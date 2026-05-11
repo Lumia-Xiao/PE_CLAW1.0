@@ -1,0 +1,1 @@
+"""DAB input schema placeholder."""

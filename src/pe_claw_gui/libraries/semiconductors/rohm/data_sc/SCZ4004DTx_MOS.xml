@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+    <Package class="MOSFET with Diode" vendor="ROHM" partnumber="SCZ4004DTx_MOS">
+        <Variables>
+            <Variable>
+                <Name>v</Name>
+                <MaxValue>750</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>i</Name>
+                <MinValue>-251</MinValue>
+                <MaxValue>251</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>T</Name>
+                <MaxValue>175</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>Rg_on</Name>
+                <Description>Gate resistance (on)</Description>
+                <MinValue>6.8</MinValue>
+                <MaxValue>22</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>Rg_off</Name>
+                <Description>Gate resistance (off)</Description>
+                <MinValue>8.2</MinValue>
+                <MaxValue>22</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>sw</Name>
+                <Description>Switch state</Description>
+            </Variable>
+        </Variables>
+        <CustomTables>
+            <Table3D>
+                <Name>Eon(x:Rg,y:Id,z:Tj)</Name>
+                <XAxis> 6.8 8.2 10 12 15 18 22</XAxis>
+                <YAxis> -1 0 5 20 60 100 150 210 300</YAxis>
+                <ZAxis> 25 150</ZAxis>
+                <FunctionValues scale="1">
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.352 0.388 0.395 0.417 0.486 0.537 0.64</YDimension>
+                        <YDimension> 0.584 0.66 0.723 0.821 0.941 1.082 1.27</YDimension>
+                        <YDimension> 1.203 1.386 1.604 1.898 2.163 2.548 2.96</YDimension>
+                        <YDimension> 1.842 2.148 2.554 3.023 3.501 4.195 4.918</YDimension>
+                        <YDimension> 2.67 3.164 3.788 4.533 5.296 6.406 7.55</YDimension>
+                        <YDimension> 3.849 4.656 5.6 6.682 8.155 9.739 11.69</YDimension>
+                        <YDimension> 5.668 7.183 8.561 10.43 12.61 15.24 18.56</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.354 0.379 0.371 0.402 0.45 0.489 0.585</YDimension>
+                        <YDimension> 0.512 0.564 0.609 0.686 0.794 0.907 1.068</YDimension>
+                        <YDimension> 0.931 1.059 1.242 1.444 1.712 2.023 2.354</YDimension>
+                        <YDimension> 1.352 1.582 1.926 2.291 2.732 3.23 3.789</YDimension>
+                        <YDimension> 1.907 2.266 2.829 3.42 4.121 4.902 5.842</YDimension>
+                        <YDimension> 2.567 3.322 4.254 5.088 6.153 7.457 9.117</YDimension>
+                        <YDimension> 3.556 5.078 6.45 7.973 9.72 11.73 14.33</YDimension>
+                    </ZDimension>
+                </FunctionValues>
+            </Table3D>
+            <Table2D>
+                <Name>Von_VG0V(x:Is,y:Tj)</Name>
+                <XAxis> -240 -190 -150 -110 -70 -40 -20 -15 -10 -7 -5 -3 -2 -1 -0.5 -0.1 -0.05 -0.01 -0.001 0 1</XAxis>
+                <YAxis> 25 125 150</YAxis>
+                <FunctionValues scale="1">
+                    <YDimension> -3.954 -3.672 -3.431 -3.168 -2.855 -2.593 -2.382 -2.311 -2.223 -2.159 -2.104 -2.043 -1.994 -1.927 -1.868 -1.708 -1.645 -0.568 -0.25 0 0</YDimension>
+                    <YDimension> -4.117 -3.775 -3.465 -3.107 -2.69 -2.376 -2.114 -2.029 -1.93 -1.86 -1.804 -1.735 -1.691 -1.633 -1.577 -1.434 -1.38 -1.327 -1.315 0 0</YDimension>
+                    <YDimension> -4.146 -3.797 -3.482 -3.113 -2.672 -2.338 -2.062 -1.972 -1.87 -1.799 -1.742 -1.673 -1.622 -1.542 -1.479 -1.34 -1.287 -1.234 -1.222 0 0</YDimension>
+                </FunctionValues>
+            </Table2D>
+            <Table3D>
+                <Name>Eoff(x:Rg,y:Id,z:Tj)</Name>
+                <XAxis> 8.2 10 12 15 18 22</XAxis>
+                <YAxis> -1 0 5 20 60 100 150 210 300</YAxis>
+                <ZAxis> 25 150</ZAxis>
+                <FunctionValues scale="1">
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.038 0.049 0.062 0.082 0.109 0.153</YDimension>
+                        <YDimension> 0.111 0.157 0.212 0.292 0.398 0.476</YDimension>
+                        <YDimension> 0.611 0.741 0.895 1.152 1.482 1.756</YDimension>
+                        <YDimension> 1.312 1.542 1.806 2.266 2.879 3.604</YDimension>
+                        <YDimension> 2.451 2.852 3.268 3.998 5.184 6.364</YDimension>
+                        <YDimension> 4.405 5.101 5.794 7.033 8.876 10.91</YDimension>
+                        <YDimension> 8.006 9.148 10.28 12.44 15.21 18.62</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.044 0.058 0.076 0.096 0.119 0.149</YDimension>
+                        <YDimension> 0.137 0.188 0.267 0.336 0.432 0.54</YDimension>
+                        <YDimension> 0.664 0.835 1.031 1.322 1.599 2.015</YDimension>
+                        <YDimension> 1.42 1.705 2.054 2.584 3.328 3.967</YDimension>
+                        <YDimension> 2.644 3.099 3.66 4.797 5.933 6.99</YDimension>
+                        <YDimension> 4.754 5.51 6.496 8.207 10.34 12.29</YDimension>
+                        <YDimension> 8.674 9.79 11.69 14.3 17.54 21.11</YDimension>
+                    </ZDimension>
+                </FunctionValues>
+            </Table3D>
+            <Table2D>
+                <Name>Von_VG18V(x:Is,y:Tj)</Name>
+                <XAxis> -240 -210 -180 -150 -120 -90 -60 -45 -30 -25 -20 -15 -10 -5 0 5 10 15 20 25 30 45 60 90 120 150 180 210 240</XAxis>
+                <YAxis> 25 125 150</YAxis>
+                <FunctionValues scale="1">
+                    <YDimension> -1.153 -1.013 -0.872 -0.73 -0.586 -0.442 -0.295 -0.222 -0.149 -0.124 -0.099 -0.074 -0.049 -0.025 0 0.025 0.052 0.079 0.106 0.132 0.156 0.23 0.303 0.461 0.621 0.783 0.951 1.122 1.295</YDimension>
+                    <YDimension> -1.649 -1.446 -1.244 -1.041 -0.836 -0.628 -0.421 -0.317 -0.211 -0.176 -0.141 -0.106 -0.071 -0.035 0 0.039 0.074 0.108 0.143 0.179 0.216 0.327 0.438 0.664 0.9 1.129 1.372 1.629 1.887</YDimension>
+                    <YDimension> -1.82 -1.597 -1.373 -1.147 -0.921 -0.694 -0.465 -0.349 -0.233 -0.194 -0.155 -0.116 -0.077 -0.039 0 0.041 0.081 0.121 0.16 0.201 0.243 0.367 0.486 0.735 0.995 1.261 1.534 1.816 2.113</YDimension>
+                </FunctionValues>
+            </Table2D>
+        </CustomTables>
+        <SemiconductorData type="MOSFET with Diode">
+            <TurnOnLoss>
+                <ComputationMethod>Formula only</ComputationMethod>
+                <Formula>lookup('Eon(x:Rg,y:Id,z:Tj)',Rg_on,i,T)*v/400*0.001</Formula>
+                <CurrentAxis> 0</CurrentAxis>
+                <VoltageAxis> 0</VoltageAxis>
+                <TemperatureAxis> 25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage> 0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOnLoss>
+            <TurnOffLoss>
+                <ComputationMethod>Formula only</ComputationMethod>
+                <Formula>lookup('Eoff(x:Rg,y:Id,z:Tj)',Rg_off,i,T)*v/400*0.001</Formula>
+                <CurrentAxis> 0</CurrentAxis>
+                <VoltageAxis> 0</VoltageAxis>
+                <TemperatureAxis> 25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage> 0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOffLoss>
+            <ConductionLoss>
+                <ComputationMethod>Formula only</ComputationMethod>
+                <Formula>(sw==0)*lookup('Von_VG0V(x:Is,y:Tj)',i,T)+(sw!=0)*lookup('Von_VG18V(x:Is,y:Tj)',i,T)</Formula>
+                <CurrentAxis> 0</CurrentAxis>
+                <TemperatureAxis> 0</TemperatureAxis>
+                <VoltageDrop scale="1">
+                    <Temperature> 0</Temperature>
+                </VoltageDrop>
+            </ConductionLoss>
+        </SemiconductorData>
+        <ThermalModel>
+            <Branch type="Cauer">
+                <RCElement R="0.002996" C="0.000653"/>
+                <RCElement R="0.01946" C="0.005523"/>
+                <RCElement R="0.153" C="0.04176"/>
+            </Branch>
+        </ThermalModel>
+        <Comment>
+            <Line>Model Generated by ROHM</Line>
+            <Line>All Rights Reserved</Line>
+            <Line>Commercial Use or Resale Restricted</Line>
+            <Line></Line>
+            <Line>Date: 06-Oct-2025</Line>
+        </Comment>
+    </Package>
+</SemiconductorLibrary>

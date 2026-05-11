@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+<Package class="IGBT" vendor="ROHM" partnumber="RGS50TSX2DHR_IGBT">
+<Variables>
+<Variable>
+<Name>v</Name>
+<MinValue>-10</MinValue>
+<MaxValue>1200</MaxValue>
+</Variable>
+<Variable>
+<Name>i</Name>
+<MinValue>0</MinValue>
+<MaxValue>75</MaxValue>
+</Variable>
+<Variable>
+<Name>T</Name>
+<MinValue>-40</MinValue>
+<MaxValue>175</MaxValue>
+</Variable>
+<Variable>
+<Name>Rg_on</Name>
+<Description>Gate resistance(on)</Description>
+<MinValue>10</MinValue>
+<MaxValue>50</MaxValue>
+</Variable>
+<Variable>
+<Name>Rg_off</Name>
+<Description>Gate resistance(off)</Description>
+<MinValue>10</MinValue>
+<MaxValue>50</MaxValue>
+</Variable>
+</Variables>
+<CustomTables>
+<Table3D>
+<Name>Eon(x:Rg,y:Ic,z:Tj)</Name>
+<XAxis> 10 15 20 30 40 50</XAxis>
+<YAxis> -1 0 2 5 10 15 20 25 30 35 40 45 50</YAxis>
+<ZAxis> 25 100 175</ZAxis>
+<FunctionValues scale="1">
+<ZDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 80 153 173 264 322 410</YDimension>
+<YDimension> 101 174 218 326 393 475</YDimension>
+<YDimension> 109 190 270 397 480 560</YDimension>
+<YDimension> 278 417 569 779 933 1064</YDimension>
+<YDimension> 498 721 948 1273 1526 1732</YDimension>
+<YDimension> 771 1095 1410 1876 2252 2558</YDimension>
+<YDimension> 1110 1533 1953 2588 3105 3531</YDimension>
+<YDimension> 1494 2033 2577 3401 4079 4644</YDimension>
+<YDimension> 1950 2612 3277 4311 5166 5887</YDimension>
+<YDimension> 2486 3262 4054 5310 6357 7253</YDimension>
+<YDimension> 3109 4003 4906 6391 7647 8732</YDimension>
+</ZDimension>
+<ZDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 91 163 185 279 339 432</YDimension>
+<YDimension> 115 187 233 345 415 502</YDimension>
+<YDimension> 126 206 289 421 507 594</YDimension>
+<YDimension> 318 442 598 819 979 1121</YDimension>
+<YDimension> 560 757 990 1331 1595 1818</YDimension>
+<YDimension> 858 1145 1469 1960 2351 2680</YDimension>
+<YDimension> 1227 1603 2037 2706 3247 3703</YDimension>
+<YDimension> 1649 2132 2696 3569 4279 4884</YDimension>
+<YDimension> 2153 2751 3445 4545 5446 6220</YDimension>
+<YDimension> 2750 3453 4287 5632 6741 7706</YDimension>
+<YDimension> 3449 4262 5223 6826 8162 9338</YDimension>
+</ZDimension>
+<ZDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 102 173 197 295 357 453</YDimension>
+<YDimension> 129 200 248 364 437 529</YDimension>
+<YDimension> 144 221 308 444 535 628</YDimension>
+<YDimension> 358 467 627 858 1025 1179</YDimension>
+<YDimension> 624 792 1031 1389 1663 1903</YDimension>
+<YDimension> 948 1195 1528 2043 2450 2801</YDimension>
+<YDimension> 1348 1674 2121 2825 3389 3875</YDimension>
+<YDimension> 1809 2232 2816 3736 4480 5125</YDimension>
+<YDimension> 2362 2890 3614 4779 5725 6552</YDimension>
+<YDimension> 3023 3644 4519 5954 7124 8159</YDimension>
+<YDimension> 3802 4521 5539 7261 8677 9944</YDimension>
+</ZDimension>
+</FunctionValues>
+</Table3D>
+<Table3D>
+<Name>Eoff(x:Rg,y:Ic,z:Tj)</Name>
+<XAxis> 10 15 20 30 40 50</XAxis>
+<YAxis> -1 0 2 5 10 15 20 25 30 35 40 45 50</YAxis>
+<ZAxis> 25 100 175</ZAxis>
+<FunctionValues scale="1">
+<ZDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 180 185 190 195 200 205</YDimension>
+<YDimension> 252 246 231 262 288 281</YDimension>
+<YDimension> 578 556 547 593 633 630</YDimension>
+<YDimension> 893 866 859 908 967 972</YDimension>
+<YDimension> 1181 1154 1143 1193 1281 1297</YDimension>
+<YDimension> 1445 1421 1405 1458 1581 1610</YDimension>
+<YDimension> 1686 1670 1648 1712 1873 1920</YDimension>
+<YDimension> 1910 1902 1878 1964 2163 2232</YDimension>
+<YDimension> 2120 2119 2102 2224 2457 2553</YDimension>
+<YDimension> 2319 2324 2324 2501 2760 2890</YDimension>
+<YDimension> 2512 2518 2550 2804 3077 3250</YDimension>
+</ZDimension>
+<ZDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 200 205 210 215 220 225</YDimension>
+<YDimension> 267 246 236 273 296 293</YDimension>
+<YDimension> 632 585 575 632 676 661</YDimension>
+<YDimension> 957 922 914 976 1038 1026</YDimension>
+<YDimension> 1244 1235 1227 1289 1375 1374</YDimension>
+<YDimension> 1502 1526 1516 1580 1693 1711</YDimension>
+<YDimension> 1738 1797 1787 1855 1999 2042</YDimension>
+<YDimension> 1958 2051 2042 2123 2299 2372</YDimension>
+<YDimension> 2168 2291 2285 2393 2601 2707</YDimension>
+<YDimension> 2371 2520 2520 2672 2910 3052</YDimension>
+<YDimension> 2571 2740 2752 2968 3235 3410</YDimension>
+</ZDimension>
+<ZDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 0 0 0 0 0 0</YDimension>
+<YDimension> 230 235 240 245 250 255</YDimension>
+<YDimension> 289 260 270 275 280 282</YDimension>
+<YDimension> 738 637 649 665 695 715</YDimension>
+<YDimension> 1121 1054 1072 1086 1124 1157</YDimension>
+<YDimension> 1455 1459 1468 1489 1546 1587</YDimension>
+<YDimension> 1758 1846 1840 1876 1959 2007</YDimension>
+<YDimension> 2038 2213 2188 2245 2361 2416</YDimension>
+<YDimension> 2304 2553 2513 2597 2750 2815</YDimension>
+<YDimension> 2560 2862 2817 2931 3121 3203</YDimension>
+<YDimension> 2810 3134 3101 3249 3473 3581</YDimension>
+<YDimension> 3055 3364 3367 3548 3802 3946</YDimension>
+</ZDimension>
+</FunctionValues>
+</Table3D>
+</CustomTables>
+<SemiconductorData type="IGBT">
+<TurnOnLoss>
+<ComputationMethod>Formula only</ComputationMethod>
+<Formula>lookup('Eon(x:Rg,y:Ic,z:Tj)',Rg_on,i,T)*v/600*1e-06</Formula>
+<CurrentAxis> 0</CurrentAxis>
+<VoltageAxis> 0</VoltageAxis>
+<TemperatureAxis> 25</TemperatureAxis>
+<Energy scale="1">
+<Temperature>
+<Voltage> 0</Voltage>
+</Temperature>
+</Energy>
+</TurnOnLoss>
+<TurnOffLoss>
+<ComputationMethod>Formula only</ComputationMethod>
+<Formula>lookup('Eoff(x:Rg,y:Ic,z:Tj)',Rg_off,i,T)*v/600*1e-06</Formula>
+<CurrentAxis> 0</CurrentAxis>
+<VoltageAxis> 0</VoltageAxis>
+<TemperatureAxis> 25</TemperatureAxis>
+<Energy scale="1">
+<Temperature>
+<Voltage>0</Voltage>
+</Temperature>
+</Energy>
+</TurnOffLoss>
+<ConductionLoss>
+<ComputationMethod>Table only</ComputationMethod>
+<CurrentAxis> -1 0 0.01 0.02 0.05 0.1 0.2 0.5 1 2 3 4 5 6 7 8 9 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80</CurrentAxis>
+<TemperatureAxis> 25 100 175</TemperatureAxis>
+<VoltageDrop scale="1">
+<Temperature> 0 0 0.3413 0.4062 0.621167 0.671433 0.7328 0.8305 0.917967 1.018 1.08933 1.14633 1.19633 1.24067 1.28233 1.32067 1.357 1.38433 1.541 1.683 1.81733 1.94733 2.07367 2.19967 2.32467 2.45233 2.57967 2.711 2.845 2.983 3.12833 3.279</Temperature>
+<Temperature> 0 0 0.223867 0.278067 0.4929 0.5548 0.628033 0.7451 0.851567 0.978667 1.06633 1.13967 1.20367 1.26067 1.31433 1.36467 1.41267 1.451 1.659 1.847 2.02533 2.19867 2.36833 2.538 2.70867 2.88133 3.05867 3.24067 3.43 3.62933 3.84167 4.06967</Temperature>
+<Temperature> 0 0 0.0778233 0.168067 0.359667 0.430433 0.514733 0.651233 0.778167 0.934033 1.04267 1.13433 1.21433 1.287 1.35467 1.418 1.47833 1.52867 1.79133 2.03167 2.25833 2.47867 2.698 2.91733 3.14033 3.36867 3.60333 3.85167 4.11533 4.399 4.70767 5.062</Temperature>
+</VoltageDrop>
+</ConductionLoss>
+</SemiconductorData>
+<ThermalModel>
+<Branch type="Cauer">
+<RCElement R="0.08829" C="0.001847"/>
+<RCElement R="0.1487" C="0.005451"/>
+<RCElement R="0.001816" C="0.06517"/>
+</Branch>
+</ThermalModel>
+<Comment>
+<Line>Model Generated by ROHM</Line>
+<Line>All Rights Reserved</Line>
+<Line>Commercial Use or Resale Restricted</Line>
+<Line></Line>
+<Line>Date:08-Aug-2023</Line>
+</Comment>
+</Package>
+</SemiconductorLibrary>

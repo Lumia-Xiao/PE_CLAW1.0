@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+    <Package class="IGBT" vendor="ROHM" partnumber="RGH80TSX2HR_IGBT">
+        <Variables>
+            <Variable>
+                <Name>v</Name>
+                <MinValue>-10</MinValue>
+                <MaxValue>1200</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>i</Name>
+                <MinValue>0</MinValue>
+                <MaxValue>160</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>T</Name>
+                <MinValue>-40</MinValue>
+                <MaxValue>175</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>Rg_on</Name>
+                <Description>Gate resistance(on)</Description>
+                <MinValue>10</MinValue>
+                <MaxValue>50</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>Rg_off</Name>
+                <Description>Gate resistance(off)</Description>
+                <MinValue>10</MinValue>
+                <MaxValue>50</MaxValue>
+            </Variable>
+        </Variables>
+        <CustomTables>
+            <Table3D>
+                <Name>Eon(x:Rg,y:Ic,z:Tj)</Name>
+                <XAxis> 10 15 20 30 40 50</XAxis>
+                <YAxis> -1 0 5 10 20 30 40 50 60 70 80</YAxis>
+                <ZAxis> 25 100 175</ZAxis>
+                <FunctionValues scale="1">
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.0543737 0.0974402 0.140507 0.190773 0.23169 0.272607</YDimension>
+                        <YDimension> 0.19186 0.255317 0.318773 0.387493 0.470045 0.552597</YDimension>
+                        <YDimension> 0.53 0.60752 0.689397 0.844263 0.990073 1.13588</YDimension>
+                        <YDimension> 0.84 0.990992 1.14623 1.40229 1.61585 1.82941</YDimension>
+                        <YDimension> 1.26423 1.50474 1.74525 2.13115 2.42657 2.72199</YDimension>
+                        <YDimension> 1.87628 2.17027 2.46426 2.94587 3.33764 3.7294</YDimension>
+                        <YDimension> 2.65911 2.97821 3.29731 3.90091 4.39342 4.88594</YDimension>
+                        <YDimension> 3.40343 3.80031 4.19719 4.9421 5.5443 6.1465</YDimension>
+                        <YDimension> 4.27999 4.74056 5.20113 6.0555 6.77683 7.49817</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.0566651 0.0999609 0.143257 0.19291 0.239763 0.286617</YDimension>
+                        <YDimension> 0.19923 0.262465 0.3257 0.394003 0.480495 0.566987</YDimension>
+                        <YDimension> 0.54 0.62271 0.70754 0.86163 1.01387 1.16612</YDimension>
+                        <YDimension> 0.85 1.01466 1.1789 1.44272 1.6689 1.89507</YDimension>
+                        <YDimension> 1.27583 1.53681 1.79779 2.19105 2.50762 2.82419</YDimension>
+                        <YDimension> 1.88801 2.21052 2.53303 3.02227 3.43652 3.85077</YDimension>
+                        <YDimension> 2.66985 3.01966 3.36948 3.99097 4.51334 5.0357</YDimension>
+                        <YDimension> 3.46623 3.86228 4.25833 5.02976 5.65865 6.28753</YDimension>
+                        <YDimension> 4.29399 4.77191 5.24983 6.13453 6.87585 7.61717</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.0871642 0.130019 0.172873 0.222613 0.26773 0.312847</YDimension>
+                        <YDimension> 0.229697 0.29149 0.353283 0.423557 0.508305 0.593053</YDimension>
+                        <YDimension> 0.570303 0.652373 0.734443 0.895663 1.05096 1.20625</YDimension>
+                        <YDimension> 0.891617 1.05126 1.2109 1.48792 1.7237 1.95947</YDimension>
+                        <YDimension> 1.3208 1.58033 1.83985 2.25772 2.58267 2.90763</YDimension>
+                        <YDimension> 1.93718 2.26232 2.58746 3.11287 3.53917 3.96547</YDimension>
+                        <YDimension> 2.73698 3.09141 3.44584 4.10167 4.63477 5.16787</YDimension>
+                        <YDimension> 3.5684 3.9655 4.36259 5.1538 5.80781 6.46183</YDimension>
+                        <YDimension> 4.43912 4.91868 5.39823 6.29273 7.07567 7.8586</YDimension>
+                    </ZDimension>
+                </FunctionValues>
+            </Table3D>
+            <Table3D>
+                <Name>Eoff(x:Rg,y:Ic,z:Tj)</Name>
+                <XAxis> 10 15 20 30 40 50</XAxis>
+                <YAxis> -1 0 5 10 20 30 40 50 60 70 80</YAxis>
+                <ZAxis> 25 100 175</ZAxis>
+                <FunctionValues scale="1">
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.157257 0.162347 0.167437 0.178567 0.199798 0.22103</YDimension>
+                        <YDimension> 0.391173 0.39768 0.404187 0.41878 0.4692 0.51962</YDimension>
+                        <YDimension> 0.789467 0.794297 0.799127 0.868117 0.956503 1.04489</YDimension>
+                        <YDimension> 1.09933 1.12642 1.1535 1.27143 1.41013 1.54883</YDimension>
+                        <YDimension> 1.38173 1.4418 1.50187 1.68563 1.8748 2.06397</YDimension>
+                        <YDimension> 1.71807 1.80478 1.8915 2.15903 2.39563 2.63223</YDimension>
+                        <YDimension> 2.07193 2.18985 2.30777 2.6422 2.92842 3.21463</YDimension>
+                        <YDimension> 2.40157 2.58083 2.7601 3.14583 3.48207 3.8183</YDimension>
+                        <YDimension> 2.8081 3.01165 3.2152 3.66877 4.07092 4.47307</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.170673 0.174213 0.177753 0.195507 0.2198 0.244093</YDimension>
+                        <YDimension> 0.440903 0.44544 0.449977 0.47122 0.528502 0.585783</YDimension>
+                        <YDimension> 0.907733 0.910985 0.914237 0.97741 1.06377 1.15013</YDimension>
+                        <YDimension> 1.24 1.27083 1.30167 1.4254 1.55282 1.68023</YDimension>
+                        <YDimension> 1.54913 1.61142 1.6737 1.86353 2.04502 2.2265</YDimension>
+                        <YDimension> 1.8905 1.98863 2.08677 2.3438 2.5814 2.819</YDimension>
+                        <YDimension> 2.25797 2.38993 2.5219 2.85143 3.14015 3.42887</YDimension>
+                        <YDimension> 2.6345 2.80567 2.97683 3.38083 3.70803 4.03523</YDimension>
+                        <YDimension> 3.012 3.22572 3.43943 3.9066 4.29513 4.68367</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.202107 0.209438 0.21677 0.238357 0.273513 0.30867</YDimension>
+                        <YDimension> 0.510963 0.522413 0.533863 0.566127 0.618625 0.671123</YDimension>
+                        <YDimension> 1.06366 1.07128 1.0789 1.1537 1.23772 1.32173</YDimension>
+                        <YDimension> 1.46237 1.48675 1.51113 1.64443 1.78028 1.91613</YDimension>
+                        <YDimension> 1.82393 1.88747 1.951 2.1377 2.32125 2.5048</YDimension>
+                        <YDimension> 2.20543 2.30887 2.4123 2.67073 2.90937 3.148</YDimension>
+                        <YDimension> 2.61667 2.75628 2.8959 3.22303 3.50947 3.7959</YDimension>
+                        <YDimension> 3.03543 3.209 3.38257 3.7835 4.11698 4.45047</YDimension>
+                        <YDimension> 3.45733 3.66993 3.88253 4.35287 4.739 5.12513</YDimension>
+                    </ZDimension>
+                </FunctionValues>
+            </Table3D>
+        </CustomTables>
+        <SemiconductorData type="IGBT">
+            <TurnOnLoss>
+                <ComputationMethod>Formula only</ComputationMethod>
+                <Formula>lookup('Eon(x:Rg,y:Ic,z:Tj)',Rg_on,i,T)*v/600*0.001</Formula>
+                <CurrentAxis> 0</CurrentAxis>
+                <VoltageAxis> 0</VoltageAxis>
+                <TemperatureAxis> 25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage> 0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOnLoss>
+            <TurnOffLoss>
+                <ComputationMethod>Formula only</ComputationMethod>
+                <Formula>lookup('Eoff(x:Rg,y:Ic,z:Tj)',Rg_off,i,T)*v/600*0.001</Formula>
+                <CurrentAxis> 0</CurrentAxis>
+                <VoltageAxis> 0</VoltageAxis>
+                <TemperatureAxis> 25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage> 0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOffLoss>
+            <ConductionLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis> -1 0 0.01 0.02 0.05 0.1 0.2 0.5 1 2 3 4 5 6 7 8 9 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95.5 99 104.5 110 115 120 125 130 135 140 145</CurrentAxis>
+                <TemperatureAxis> 25 100 175</TemperatureAxis>
+                <VoltageDrop scale="1">
+                    <Temperature> 0 0 0.341367 0.4202 0.6118 0.646967 0.688 0.755167 0.819767 0.9005 0.957533 1.001 1.04067 1.07667 1.109 1.13933 1.16767 1.188 1.30367 1.40467 1.496 1.57967 1.66033 1.73667 1.81 1.88267 1.95167 2.021 2.08833 2.155 2.22067 2.28567 2.35133 2.416 2.48033 2.52433 2.58767 2.65067 2.712 2.776 2.83833 2.90167 2.965 3.029 3.09367</Temperature>
+                    <Temperature> 0 0 0.1935 0.257933 0.468267 0.512433 0.564433 0.651133 0.737333 0.849667 0.931633 0.997 1.05533 1.108 1.15567 1.20067 1.242 1.275 1.44767 1.595 1.727 1.85 1.96633 2.075 2.18167 2.285 2.38567 2.48333 2.581 2.67633 2.77233 2.866 2.96033 3.05433 3.14867 3.21033 3.30267 3.391 3.48 3.569 3.66 3.75267 3.848 3.94033 4.03433</Temperature>
+                    <Temperature> 0 0 0.05032 0.150567 0.3204 0.374967 0.439533 0.548633 0.6581 0.8021 0.908333 0.994 1.07033 1.13967 1.20333 1.26233 1.318 1.364 1.593 1.792 1.969 2.135 2.29 2.43767 2.581 2.72033 2.85633 2.98933 3.12133 3.25267 3.37967 3.50867 3.637 3.765 3.894 3.96133 4.07967 4.201 4.324 4.45367 4.57333 4.70033 4.82667 4.95433 5.0625</Temperature>
+                </VoltageDrop>
+            </ConductionLoss>
+        </SemiconductorData>
+        <ThermalModel>
+            <Branch type="Cauer">
+                <RCElement R="0.1736" C="0.001305"/>
+                <RCElement R="0.1322" C="0.002729"/>
+                <RCElement R="0.000801" C="0.7943"/>
+            </Branch>
+        </ThermalModel>
+        <Comment>
+            <Line>Model Generated by ROHM</Line>
+            <Line>All Rights Reserved</Line>
+            <Line>Commercial Use or Resale Restricted</Line>
+            <Line></Line>
+            <Line>Date:19-Nov-2025</Line>
+        </Comment>
+    </Package>
+</SemiconductorLibrary>

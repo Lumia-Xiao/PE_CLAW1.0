@@ -1,0 +1,1 @@
+"""Magnetics library placeholders."""

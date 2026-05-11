@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+    <Package class="Diode" vendor="ROHM" partnumber="RGH00TRX2EF_FRD">
+        <Variables>
+            <Variable>
+                <Name>v</Name>
+                <MinValue>-1200</MinValue>
+                <MaxValue>10</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>i</Name>
+                <MinValue>0</MinValue>
+                <MaxValue>200</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>T</Name>
+                <MinValue>-40</MinValue>
+                <MaxValue>175</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>Rg_on</Name>
+                <Description>Gate resistance(on)</Description>
+                <MinValue>10</MinValue>
+                <MaxValue>50</MaxValue>
+            </Variable>
+        </Variables>
+        <CustomTables>
+            <Table3D>
+                <Name>Eoff(x:Rg,y:Id,z:Tj)</Name>
+                <XAxis> 10 15 20 30 40 50</XAxis>
+                <YAxis> 0 5 10 20 25 30 40 50 60 70 80 90 100</YAxis>
+                <ZAxis> 25 100 175</ZAxis>
+                <FunctionValues scale="1">
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.19895 0.186623 0.174297 0.178943 0.187228 0.195513</YDimension>
+                        <YDimension> 0.243983 0.245317 0.24665 0.240567 0.241352 0.242137</YDimension>
+                        <YDimension> 0.335567 0.357435 0.379303 0.36019 0.35561 0.35103</YDimension>
+                        <YDimension> 0.404577 0.424173 0.44377 0.419457 0.415377 0.411297</YDimension>
+                        <YDimension> 0.49653 0.505875 0.51522 0.480867 0.477138 0.47341</YDimension>
+                        <YDimension> 0.623483 0.636155 0.648827 0.601143 0.577348 0.553553</YDimension>
+                        <YDimension> 0.80779 0.786663 0.765537 0.72889 0.677658 0.626427</YDimension>
+                        <YDimension> 0.894997 0.877498 0.86 0.82996 0.775652 0.721343</YDimension>
+                        <YDimension> 1.01539 0.997695 0.98 0.949293 0.878245 0.807197</YDimension>
+                        <YDimension> 1.1347 1.09066 1.04662 1.02 0.960667 0.901333</YDimension>
+                        <YDimension> 1.21997 1.1748 1.12963 1.07 1.03263 0.995267</YDimension>
+                        <YDimension> 1.30623 1.26582 1.2254 1.13903 1.1107 1.08236</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.278073 0.289985 0.301897 0.33208 0.322598 0.313117</YDimension>
+                        <YDimension> 0.33628 0.397113 0.457947 0.447157 0.447303 0.44745</YDimension>
+                        <YDimension> 0.66069 0.679163 0.697637 0.674293 0.669775 0.665257</YDimension>
+                        <YDimension> 0.779363 0.799362 0.81936 0.77645 0.75947 0.74249</YDimension>
+                        <YDimension> 0.903273 0.903055 0.902837 0.906313 0.863932 0.82155</YDimension>
+                        <YDimension> 1.11307 1.08919 1.06531 1.1123 1.04473 0.977153</YDimension>
+                        <YDimension> 1.3119 1.27215 1.2324 1.26993 1.206 1.14207</YDimension>
+                        <YDimension> 1.4934 1.45138 1.40937 1.38 1.32395 1.2679</YDimension>
+                        <YDimension> 1.64237 1.60078 1.5592 1.53 1.45955 1.3891</YDimension>
+                        <YDimension> 1.72733 1.72663 1.72593 1.62417 1.5769 1.52963</YDimension>
+                        <YDimension> 1.87473 1.86715 1.85957 1.7411 1.69132 1.64153</YDimension>
+                        <YDimension> 1.9935 1.9926 1.9917 1.86327 1.8096 1.75593</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.635453 0.638482 0.64151 0.616987 0.614563 0.61214</YDimension>
+                        <YDimension> 0.858697 0.862368 0.86604 0.83062 0.82792 0.82522</YDimension>
+                        <YDimension> 1.2675 1.25983 1.25217 1.2322 1.1976 1.163</YDimension>
+                        <YDimension> 1.4557 1.44985 1.444 1.37943 1.35198 1.32453</YDimension>
+                        <YDimension> 1.61877 1.60492 1.59107 1.51617 1.48578 1.4554</YDimension>
+                        <YDimension> 1.90407 1.88197 1.85987 1.7721 1.71445 1.6568</YDimension>
+                        <YDimension> 2.1846 2.12867 2.07273 2.00327 1.92532 1.84737</YDimension>
+                        <YDimension> 2.3817 2.33443 2.28717 2.19787 2.11043 2.023</YDimension>
+                        <YDimension> 2.54273 2.51422 2.4857 2.3767 2.27872 2.18073</YDimension>
+                        <YDimension> 2.7473 2.71038 2.67347 2.51397 2.42827 2.34257</YDimension>
+                        <YDimension> 2.90803 2.84692 2.7858 2.67663 2.57817 2.4797</YDimension>
+                        <YDimension> 3.03837 2.97062 2.90287 2.8222 2.72003 2.61787</YDimension>
+                    </ZDimension>
+                </FunctionValues>
+            </Table3D>
+        </CustomTables>
+        <SemiconductorData type="Diode">
+            <TurnOnLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis> 0</CurrentAxis>
+                <VoltageAxis> 0</VoltageAxis>
+                <TemperatureAxis> 25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage> 0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOnLoss>
+            <TurnOffLoss>
+                <ComputationMethod>Formula only</ComputationMethod>
+                <Formula>-lookup('Eoff(x:Rg,y:Id,z:Tj)',Rg_on,i,T)*v/600*0.001</Formula>
+                <CurrentAxis> 0</CurrentAxis>
+                <VoltageAxis> 0</VoltageAxis>
+                <TemperatureAxis> 25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage> 0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOffLoss>
+            <ConductionLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis> 0 0.01 0.02 0.05 0.1 0.2 0.5 1 2 3 4 5 6 7 8 9 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95.5 98.5 104 110 115 120 125 130 135 140 145 150 155 160 165 170 175 180 185 190 195 200</CurrentAxis>
+                <TemperatureAxis> 25 100 175</TemperatureAxis>
+                <VoltageDrop scale="1">
+                    <Temperature> 0 0.367167 0.462633 0.578667 0.622967 0.6757 0.764533 0.851667 0.9628 1.03967 1.10367 1.157 1.20533 1.24833 1.288 1.324 1.35633 1.50033 1.62267 1.728 1.825 1.91633 2.00033 2.08067 2.15867 2.23533 2.31033 2.38567 2.45533 2.525 2.59533 2.66267 2.733 2.802 2.83333 2.899 2.96333 3.02533 3.09033 3.15233 3.218 3.279 3.34433 3.405 3.469 3.53033 3.59433 3.65633 3.717 3.78167 3.84433 3.909 3.96767 4.03333 4.09867</Temperature>
+                    <Temperature> 0 0.2117 0.341433 0.445967 0.4912 0.544567 0.634867 0.7256 0.845833 0.935033 1.00667 1.071 1.12933 1.18233 1.23133 1.27767 1.319 1.506 1.664 1.807 1.93367 2.05467 2.166 2.27367 2.37567 2.47467 2.56833 2.65933 2.74867 2.836 2.91733 3.00067 3.08267 3.16333 3.246 3.322 3.397 3.47067 3.54267 3.615 3.684 3.757 3.82533 3.891 3.954 4.02433 4.08633 4.15067 4.213 4.27567 4.33667 4.39667 4.45967 4.528 4.59</Temperature>
+                    <Temperature> 0 0.0449033 0.2045 0.269933 0.316767 0.368667 0.4521 0.534 0.6426 0.723933 0.792067 0.852367 0.907167 0.957567 1.00233 1.047 1.09033 1.274 1.436 1.58 1.715 1.83833 1.956 2.06533 2.17133 2.27467 2.37033 2.46633 2.555 2.643 2.73033 2.813 2.89567 2.97233 3.05667 3.13233 3.207 3.28067 3.35133 3.42233 3.48767 3.55833 3.619 3.684 3.74533 3.80567 3.86433 3.92467 3.98133 4.038 4.09433 4.14767 4.20033 4.253 4.306</Temperature>
+                </VoltageDrop>
+            </ConductionLoss>
+        </SemiconductorData>
+        <ThermalModel>
+            <Branch type="Cauer">
+                <RCElement R="0.1021" C="0.001331"/>
+                <RCElement R="0.2286" C="0.006892"/>
+                <RCElement R="0.0006313" C="0.7943"/>
+            </Branch>
+        </ThermalModel>
+        <Comment>
+            <Line>Model Generated by ROHM</Line>
+            <Line>All Rights Reserved</Line>
+            <Line>Commercial Use or Resale Restricted</Line>
+            <Line></Line>
+            <Line>Date:14-Jan-2026</Line>
+        </Comment>
+    </Package>
+</SemiconductorLibrary>

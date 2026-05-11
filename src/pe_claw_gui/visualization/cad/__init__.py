@@ -1,0 +1,1 @@
+"""CAD visualization placeholders."""

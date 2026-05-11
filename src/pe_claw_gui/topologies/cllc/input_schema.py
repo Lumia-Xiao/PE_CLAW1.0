@@ -1,0 +1,1 @@
+"""CLLC input schema placeholder."""

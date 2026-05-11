@@ -1,0 +1,1 @@
+"""Heatsink estimator placeholder."""

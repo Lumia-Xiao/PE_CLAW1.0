@@ -1,0 +1,140 @@
+<?xml version='1.0' encoding='utf-8'?>
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+  <Package class="IGBT" vendor="Mitsubishi Electric" partnumber="CM600DY-24T_IGBT">
+    <Variables>
+      <Variable>
+        <Name>RGOn</Name>
+        <Description>Turn-On Gate Resistance RGOn</Description>
+        <DefaultValue>1</DefaultValue>
+        <MinValue>1</MinValue>
+        <MaxValue>10</MaxValue>
+      </Variable>
+      <Variable>
+        <Name>RGOff</Name>
+        <Description>Turn-Off Gate Resistance RGOff</Description>
+        <DefaultValue>1</DefaultValue>
+        <MinValue>1</MinValue>
+        <MaxValue>10</MaxValue>
+      </Variable>
+    </Variables>
+    <CustomTables>
+      <Table1D>
+        <Name>EOnvsRGOn</Name>
+        <XAxis>1 2 3 5.1 8 10.0</XAxis>
+        <FunctionValues scale="1">0.056549999999999996 0.08426 0.11151000000000001 0.1658 0.23012 0.272</FunctionValues>
+      </Table1D>
+      <Table1D>
+        <Name>EOffvsRGOff</Name>
+        <XAxis>1 2 3 5.1 8 10.0</XAxis>
+        <FunctionValues scale="1">0.06431 0.06584000000000001 0.06638 0.07046 0.07801999999999999 0.08393</FunctionValues>
+      </Table1D>
+    </CustomTables>
+    <SemiconductorData type="IGBT">
+      <TurnOnLoss>
+        <ComputationMethod>Table and formula</ComputationMethod>
+        <Formula>lookup('EOnvsRGOn',RGOn)*(1/0.056549999999999996)*E</Formula>
+        <CurrentAxis>-1 0 60 120 300 450 600.0 1200.0</CurrentAxis>
+        <VoltageAxis>0 600</VoltageAxis>
+        <TemperatureAxis>25 125 150</TemperatureAxis>
+        <Energy scale="1">
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 0 0.003925983708301008 0.006454098138091544 0.014038441427463152 0.02306422071373158 0.03209 0.0854654538401862</Voltage>
+          </Temperature>
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 0 0.007245770270270271 0.01107 0.024321189189189192 0.03448 0.05138 0.16413331081081084</Voltage>
+          </Temperature>
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 0 0.00909428384849804 0.01392 0.027770309098824553 0.03896 0.056549999999999996 0.18053162821070962</Voltage>
+          </Temperature>
+        </Energy>
+      </TurnOnLoss>
+      <TurnOffLoss>
+        <ComputationMethod>Table and formula</ComputationMethod>
+        <Formula>lookup('EOffvsRGOff',RGOff)*(1/0.06431)*E</Formula>
+        <CurrentAxis>-1 0 60 120 300 450 600.0 1200.0</CurrentAxis>
+        <VoltageAxis>0 600</VoltageAxis>
+        <TemperatureAxis>25 125 150</TemperatureAxis>
+        <Energy scale="1">
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 0 0.009748141157160444 0.014334269593762824 0.028092654903569964 0.038646327451784986 0.04920000000000001 0.11729667624128028</Voltage>
+          </Temperature>
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 0 0.012705414337389016 0.01812 0.03608056889181191 0.047920000000000004 0.06099 0.1299622492601118</Voltage>
+          </Temperature>
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 0 0.013557947918290972 0.019219999999999998 0.037916125058474984 0.05037 0.06431 0.13237049742710122</Voltage>
+          </Temperature>
+        </Energy>
+      </TurnOffLoss>
+      <ConductionLoss>
+        <ComputationMethod>Table only</ComputationMethod>
+        <CurrentAxis>-1 0 3 30 60 120 300.0 450.0 600.0 1200.0</CurrentAxis>
+        <TemperatureAxis>25 125 150</TemperatureAxis>
+        <VoltageDrop scale="1">
+          <Temperature>0.0 0 0.6303323629019096 0.7750917758931672 0.8597989364017192 0.975326554973981 1.2267724597863736 1.3972670230128938 1.5500000000000003 2.1874938795495353</Temperature>
+          <Temperature>0.0 0 0.4277713420496059 0.6628634204960585 0.7873105619223495 0.9548092375397896 1.3034675382939183 1.5395542486173481 1.7500000000000009 2.6206796769851968</Temperature>
+          <Temperature>0.0 0 0.3694098094170404 0.6360980941704035 0.7672731114177302 0.9493923766816142 1.324809513132607 1.5754391544915372 1.7999999999999994 2.749986266816142</Temperature>
+        </VoltageDrop>
+      </ConductionLoss>
+    </SemiconductorData>
+    <ThermalModel>
+      <Branch type="Foster">
+        <RTauElement R="0.00024864" Tau="1.177e-05" />
+        <RTauElement R="0.00189384" Tau="0.0004442" />
+        <RTauElement R="0.0159696" Tau="0.008189" />
+        <RTauElement R="0.0058871999999999996" Tau="0.02428" />
+      </Branch>
+    </ThermalModel>
+    <Comment>
+      <Line>Version:1.16 created by: H.Hidaka(PDW) on:2025-06-23 00:00:00 based on datasheet version:CMH-11296-D (Final)</Line>
+      <Line>
+</Line>
+      <Line>Important Notice</Line>
+      <Line>The information contained in this simulation model shall in no event be regarded as a guarantee of conditions or characteritics. This product has to be used within its specified maximum ratings and is subject to customer's compliance with any applicable legal requirement, norms and standards.</Line>
+      <Line>Except as otherwise explicitly approved by Mitsubishi Electric Corporation in a written document signed by authorized representatives of Mitsubishi Electric Corporation, our products may not be used in any applications where a failure of the product or any consequences of the use thereof can reasonably be expected to result in personal injury.</Line>
+      <Line>In usage of power semiconductor, there is always the possibility that trouble may occur with them by the reliability lifetime such as Power Cycle, Thermal Cycle or others, or when used under special circumstances (e.g. condensation, high humidity, dusty, salty, highlands, environment with lots of organic matter / corrosive gas / explosive gas, or situations which terminals of semiconductor products receive strong mechanical stress).</Line>
+      <Line>Therefore, please pay sufficient attention to such circumstances. Further, depending on the technical requirements, our semiconductor products may contain environmental regulation substances, etc. If there is necessity of detailed confirmation, please contact our nearest sales branch or distributor. </Line>
+      <Line>The contents or data contained in this simulation model are exclusively intended for technically trained staff. Customer's technical departments should take responsibility to evaluate the suitability of Mitsubishi Electric Corporation product for the intended application and the completeness of the product data with respect to such application.</Line>
+      <Line>In the customer's research and development, please evalurate it not only with a single semiconductor product but also in the entire system and judge whether it is applicable. As required, pay close attention to the saftey design by installing appropriate fuse or circuir breaker between a power supply and semiconductor products to prevent secondary damage.</Line>
+      <Line>Please also pay attention to the datasheet and the application note as well as other related technical information of this product.</Line>
+      <Line>
+</Line>
+      <Line>Notes regarding these materials</Line>
+      <Line>-These materials are intended as a reference to assist our customers in the selection of the Mitsubishi Electric Semiconductor product best suited to the customer\’s application; they do not convey any license under any intellectual property rights, or any other rights, belonging to Mitsubishi Electric Corporation or a third party.</Line>
+      <Line>-Mitsubishi Electric Corporation assumes no responsibility for any damage, or infringement of any third-party\’s rights, originating in the use of any product data, diagrams, charts, programs, algorithms, or circuit application examples contained in these materials.</Line>
+      <Line>-All information contained in these materials, including product data, diagrams, charts, programs and algorithms represents information on products at the time of publication of these materials, and are subject to change by Mitsubishi Electric Corporation without notice due to product improvements or other reasons. It is therefore recommended that customers contact Mitsubishi Electric Corporation or an authorized Mitsubishi Electric Semiconductor product distributor for the latest product information before purchasing a product listed herein. The information described here may contain technical inaccuracies or typographical errors. Mitsubishi Electric Corporation assumes no responsibility for any damage, liability, or other loss rising from these inaccuracies or errors. Please also pay attention to information published by Mitsubishi Electric Corporation by various means, including the Mitsubishi Electric Semiconductor homepage (https://www.MitsubishiElectric.com/semiconductors).</Line>
+      <Line>-When using any or all of the information contained in these materials, including product data, diagrams, charts, programs, and algorithms, please be sure to evaluate all information as a total system before making a final decision on the applicability of the information and products. Mitsubishi Electric Corporation assumes no responsibility for any damage, liability or other loss resulting from the information contained herein.</Line>
+      <Line>-Mitsubishi Electric Corporation semiconductors are not designed or manufactured for use in a device or system that is used under circumstances in which human life is potentially at stake. Please contact Mitsubishi Electric Corporation or an authorized Mitsubishi Electric Semiconductor product distributor when considering the use of a product contained herein for any specific purposes, such as apparatus or systems for transportation, vehicular, medical, aerospace, nuclear, or undersea repeater use.</Line>
+      <Line>-The prior written approval of Mitsubishi Electric Corporation is necessary to reprint or reproduce in whole or in part these materials.</Line>
+      <Line>-If these products or technologies are subject to the Japanese export control restrictions, they must be exported under a license from the Japanese government and cannot be imported into a country other than the approved destination. Any diversion or re-export contrary to the export control laws and regulations of Japan and/or the country of destination is prohibited.</Line>
+      <Line>-Please contact Mitsubishi Electric Corporation or an authorized Mitsubishi Electric Semiconductor product distributor for further details on these materials or the products contained therein.</Line>
+      <Line>
+</Line>
+      <Line>Accuracy and Completeness</Line>
+      <Line>Mitsubishi Electric makes no representations or warranties, express or implied, regarding the accuracy, reliability, or completeness of the model. The model is a simulation tool, and as such, the results and outputs generated by the model should not be relied upon as completely accurate or indicative of actual performance. Mitsubishi Electric expressly disclaims any responsibility for errors or omissions in the model and any loss or damage that may arise from its use.</Line>
+      <Line>
+</Line>
+      <Line>Intellectual Property</Line>
+      <Line>All intellectual property rights in the model are owned by Mitsubishi Electric or its licensors. The model is provided for use solely in connection with Mitsubishi Electric products and cannot be used for any other purposes without prior written consent from Mitsubishi Electric.</Line>
+      <Line>
+</Line>
+      <Line>Limitation of Liability</Line>
+      <Line>Mitsubishi Electric shall not be liable for any direct, indirect, incidental, special, or consequential damages arising out of the use of or inability to use the model, even if advised of the possibility of such damages.</Line>
+      <Line>
+</Line>
+      <Line>Customer Responsibilities</Line>
+      <Line>It is the responsibility of the customer to conduct thorough validation of the model's outputs. This includes but is not limited to, performing necessary thermal qualifications and measurements to ensure the model\’s suitability for the intended application. Reliance on the model for commercial or operational decisions is at the customer\’s own risk.</Line>
+      <Line>
+</Line>
+      <Line>By accepting or using the model, the customer acknowledges that they have read this disclaimer, understand it, and agree to be bound by its terms.</Line>
+      <Line>Mitsubishi Electric shall not be liable for any direct, indirect, incidental, special, or consequential damages arising out of the use of or inability to use the model, even if advised of the possibility of such damages.</Line>
+      <Line>It is the responsibility of the customer to conduct thorough validation of the model's outputs. This includes but is not limited to, performing necessary thermal qualifications and measurements to ensure the model\’s suitability for the intended application. Reliance on the model for commercial or operational decisions is at the customer\’s own risk.</Line>
+    </Comment>
+  </Package>
+</SemiconductorLibrary>

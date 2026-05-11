@@ -1,0 +1,307 @@
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+  <Package class="MOSFET with Diode" vendor="Infineon" partnumber="IPW65R029CFD7">
+    <Variables>
+      <Variable>
+        <Name>v</Name>
+        <MinValue>0</MinValue>
+        <MaxValue>500</MaxValue>
+      </Variable>
+      <Variable>
+        <Name>i</Name>
+        <MinValue>-68.96</MinValue>
+        <MaxValue>68.96</MaxValue>
+      </Variable>
+      <Variable>
+        <Name>T</Name>
+        <MinValue>25</MinValue>
+        <MaxValue>150</MaxValue>
+      </Variable>
+      <Variable>
+        <Name>Rg_off</Name>
+        <MinValue>1.0</MinValue>
+        <MaxValue>100.0</MaxValue>
+        <Description>Gate resistance - off</Description>
+      </Variable>
+      <Variable>
+        <Name>Rg_on</Name>
+        <MinValue>1.0</MinValue>
+        <MaxValue>100.0</MaxValue>
+        <Description>Gate resistance - on</Description>
+      </Variable>
+    </Variables>
+    <CustomTables>
+      <Table3D>
+        <Name>Eon_Rg_on_i_v</Name>
+        <XAxis>1.0 2.2 4.7 10.0 22.0 47.0 100.0</XAxis>
+        <YAxis>0.0 0.69 8.62 17.24 25.86 34.48 43.1 51.72 60.34 68.96</YAxis>
+        <ZAxis>0 300 400 500</ZAxis>
+        <FunctionValues scale="1">
+          <ZDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+          </ZDimension>
+          <ZDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>8.39e-06 8.53e-06 8.86e-06 9.47e-06 1.06e-05 1.27e-05 1.68e-05</YDimension>
+            <YDimension>1.95e-05 2.18e-05 2.56e-05 3.15e-05 4.22e-05 6.28e-05 0.000105</YDimension>
+            <YDimension>4.22e-05 4.75e-05 5.34e-05 6.35e-05 8.55e-05 0.00013 0.000225</YDimension>
+            <YDimension>7.28e-05 7.78e-05 8.71e-05 0.000103 0.000139 0.000211 0.000368</YDimension>
+            <YDimension>0.000111 0.000118 0.000129 0.000152 0.000201 0.000305 0.000532</YDimension>
+            <YDimension>0.000155 0.000163 0.000179 0.000209 0.000275 0.000411 0.000717</YDimension>
+            <YDimension>0.000208 0.000217 0.000236 0.000274 0.000357 0.00053 0.00092</YDimension>
+            <YDimension>0.000266 0.000278 0.000301 0.000347 0.000449 0.000661 0.001141</YDimension>
+            <YDimension>0.000333 0.000347 0.000373 0.000428 0.00055 0.000805 0.001381</YDimension>
+          </ZDimension>
+          <ZDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>1.27e-05 1.29e-05 1.34e-05 1.43e-05 1.61e-05 1.96e-05 2.65e-05</YDimension>
+            <YDimension>2.96e-05 3.29e-05 3.82e-05 4.68e-05 6.43e-05 0.000101 0.000179</YDimension>
+            <YDimension>6.21e-05 6.85e-05 7.7e-05 9.29e-05 0.000129 0.000207 0.000379</YDimension>
+            <YDimension>0.000106 0.000113 0.000126 0.00015 0.000207 0.000333 0.00061</YDimension>
+            <YDimension>0.000158 0.000167 0.000185 0.000219 0.000298 0.000477 0.00087</YDimension>
+            <YDimension>0.00022 0.000232 0.000254 0.000298 0.000402 0.000637 0.001158</YDimension>
+            <YDimension>0.000292 0.000306 0.000334 0.000389 0.000519 0.000815 0.001472</YDimension>
+            <YDimension>0.000374 0.000391 0.000424 0.000491 0.000649 0.00101 0.001811</YDimension>
+            <YDimension>0.000467 0.000485 0.000525 0.000604 0.000791 0.001222 0.002175</YDimension>
+          </ZDimension>
+          <ZDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>1.77e-05 1.8e-05 1.87e-05 2e-05 2.29e-05 2.85e-05 3.97e-05</YDimension>
+            <YDimension>4.18e-05 4.63e-05 5.37e-05 6.69e-05 9.66e-05 0.00016 0.000294</YDimension>
+            <YDimension>8.48e-05 9.33e-05 0.000106 0.000131 0.000192 0.000326 0.000615</YDimension>
+            <YDimension>0.000143 0.000153 0.000171 0.00021 0.000305 0.000518 0.000979</YDimension>
+            <YDimension>0.000211 0.000225 0.00025 0.000303 0.000435 0.000731 0.00138</YDimension>
+            <YDimension>0.000293 0.000309 0.000341 0.000409 0.000581 0.000968 0.001816</YDimension>
+            <YDimension>0.000387 0.000407 0.000446 0.00053 0.000745 0.001228 0.002287</YDimension>
+            <YDimension>0.000494 0.000517 0.000564 0.000666 0.000925 0.001508 0.00279</YDimension>
+            <YDimension>0.000613 0.00064 0.000695 0.000815 0.001122 0.001811 0.003326</YDimension>
+          </ZDimension>
+        </FunctionValues>
+      </Table3D>
+      <Table3D>
+        <Name>Eoff_Rg_off_i_v</Name>
+        <XAxis>1.0 2.2 4.7 10.0 22.0 47.0 100.0</XAxis>
+        <YAxis>0.0 0.69 8.62 17.24 25.86 34.48 43.1 51.72 60.34 68.96</YAxis>
+        <ZAxis>0 300 400 500</ZAxis>
+        <FunctionValues scale="1">
+          <ZDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+          </ZDimension>
+          <ZDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>1.4e-05 1.39e-05 1.41e-05 1.4e-05 1.41e-05 1.41e-05 1.39e-05</YDimension>
+            <YDimension>1.4e-05 1.41e-05 1.41e-05 1.39e-05 1.44e-05 2.55e-05 0.000104</YDimension>
+            <YDimension>1.38e-05 1.38e-05 1.4e-05 1.59e-05 3.92e-05 0.000117 0.000295</YDimension>
+            <YDimension>1.45e-05 1.65e-05 2.39e-05 4.64e-05 0.000105 0.000239 0.000522</YDimension>
+            <YDimension>3.73e-05 4.59e-05 6.47e-05 0.000103 0.000191 0.000382 0.000779</YDimension>
+            <YDimension>8.26e-05 9.66e-05 0.000123 0.000175 0.000293 0.000545 0.001061</YDimension>
+            <YDimension>0.000143 0.000161 0.000194 0.00026 0.000411 0.000727 0.00137</YDimension>
+            <YDimension>0.000216 0.000238 0.000278 0.000358 0.000542 0.000924 0.0017</YDimension>
+            <YDimension>0.000299 0.000325 0.000372 0.000468 0.000687 0.001137 0.002051</YDimension>
+          </ZDimension>
+          <ZDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>1.67e-05 1.69e-05 1.67e-05 1.67e-05 1.67e-05 1.69e-05 1.66e-05</YDimension>
+            <YDimension>1.68e-05 1.68e-05 1.67e-05 1.66e-05 1.71e-05 6.16e-05 0.000227</YDimension>
+            <YDimension>1.68e-05 1.69e-05 1.7e-05 2.37e-05 8.52e-05 0.000243 0.000555</YDimension>
+            <YDimension>1.83e-05 2.31e-05 3.86e-05 8.61e-05 0.000203 0.000444 0.000928</YDimension>
+            <YDimension>5.37e-05 6.99e-05 0.000105 0.000178 0.000341 0.00067 0.001335</YDimension>
+            <YDimension>0.00012 0.000144 0.000192 0.000286 0.000497 0.000921 0.001777</YDimension>
+            <YDimension>0.000205 0.000236 0.000294 0.000412 0.000672 0.001193 0.00225</YDimension>
+            <YDimension>0.000305 0.000342 0.000412 0.000553 0.000864 0.001485 0.002746</YDimension>
+            <YDimension>0.000419 0.000461 0.000543 0.00071 0.001073 0.001799 0.003269</YDimension>
+          </ZDimension>
+          <ZDimension>
+            <YDimension>0.0 0.0 0.0 0.0 0.0 0.0 0.0</YDimension>
+            <YDimension>2.03e-05 2.02e-05 2.04e-05 2.04e-05 2.05e-05 2.05e-05 2.04e-05</YDimension>
+            <YDimension>2.02e-05 2e-05 2.01e-05 2.01e-05 2.5e-05 0.000156 0.000425</YDimension>
+            <YDimension>2.06e-05 2.02e-05 2.21e-05 4.76e-05 0.000185 0.000446 0.00096</YDimension>
+            <YDimension>2.8e-05 3.89e-05 7.26e-05 0.000166 0.000368 0.000756 0.001545</YDimension>
+            <YDimension>8.45e-05 0.000114 0.000176 0.000302 0.000571 0.001097 0.002173</YDimension>
+            <YDimension>0.000177 0.000219 0.000301 0.000457 0.000796 0.001468 0.002838</YDimension>
+            <YDimension>0.000292 0.000344 0.000441 0.000631 0.001045 0.001861 0.003533</YDimension>
+            <YDimension>0.000425 0.000484 0.000599 0.000824 0.001313 0.00228 0.004264</YDimension>
+            <YDimension>0.000574 0.000642 0.000773 0.001035 0.001601 0.002722 0.005024</YDimension>
+          </ZDimension>
+        </FunctionValues>
+      </Table3D>
+      <Table2D>
+        <Name>Eoss</Name>
+        <XAxis>0 300 400 500</XAxis>
+        <YAxis>25 75 150</YAxis>
+        <FunctionValues scale="1">
+          <YDimension>0 1.41e-05 1.68e-05 2.05e-05</YDimension>
+          <YDimension>0 1.41e-05 1.68e-05 2.05e-05</YDimension>
+          <YDimension>0 1.41e-05 1.68e-05 2.05e-05</YDimension>
+        </FunctionValues>
+      </Table2D>
+    </CustomTables>
+    <SemiconductorData type="MOSFET with Diode">
+      <TurnOnLoss>
+        <ComputationMethod>Table and formula</ComputationMethod>
+        <Formula>max(E*(lookup('Eon_Rg_on_i_v',Rg_on,i,v)/(lookup('Eon_Rg_on_i_v',10,i,v)+0.000000000001))+lookup('Eoss',v,T),0)</Formula>
+        <CurrentAxis>0.0 0.69 8.62 17.24 25.86 34.48 43.1 51.72 60.34 68.96</CurrentAxis>
+        <VoltageAxis>0 300 400 500</VoltageAxis>
+        <TemperatureAxis>25 75 150</TemperatureAxis>
+        <Energy scale="1">
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 9.47e-06 3.15e-05 6.35e-05 0.000103 0.000152 0.000209 0.000274 0.000347 0.000428</Voltage>
+            <Voltage>0.0 1.43e-05 4.68e-05 9.29e-05 0.00015 0.000219 0.000298 0.000389 0.000491 0.000604</Voltage>
+            <Voltage>0.0 2e-05 6.69e-05 0.000131 0.00021 0.000303 0.000409 0.00053 0.000666 0.000815</Voltage>
+          </Temperature>
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 9.56e-06 3.19e-05 6.43e-05 0.000105 0.000153 0.00021 0.000275 0.00035 0.000433</Voltage>
+            <Voltage>0.0 1.44e-05 4.75e-05 9.4e-05 0.000151 0.000221 0.000301 0.000392 0.000495 0.000609</Voltage>
+            <Voltage>0.0 2.02e-05 6.76e-05 0.000132 0.000211 0.000304 0.000412 0.000533 0.000669 0.00082</Voltage>
+          </Temperature>
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 9.67e-06 3.26e-05 6.55e-05 0.000106 0.000156 0.000213 0.000279 0.000353 0.000436</Voltage>
+            <Voltage>0.0 1.46e-05 4.83e-05 9.53e-05 0.000153 0.000222 0.000303 0.000396 0.0005 0.000615</Voltage>
+            <Voltage>0.0 2.03e-05 6.84e-05 0.000134 0.000213 0.000306 0.000414 0.000536 0.000673 0.000824</Voltage>
+          </Temperature>
+        </Energy>
+      </TurnOnLoss>
+      <TurnOffLoss>
+        <ComputationMethod>Table and formula</ComputationMethod>
+        <Formula>max(E*(lookup('Eoff_Rg_off_i_v',Rg_off,i,v)/(lookup('Eoff_Rg_off_i_v',10,i,v)+0.000000000001))-lookup('Eoss',v,T),0)</Formula>
+        <CurrentAxis>0.0 0.69 8.62 17.24 25.86 34.48 43.1 51.72 60.34 68.96</CurrentAxis>
+        <VoltageAxis>0 300 400 500</VoltageAxis>
+        <TemperatureAxis>25 75 150</TemperatureAxis>
+        <Energy scale="1">
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 1.4e-05 1.39e-05 1.59e-05 4.64e-05 0.000103 0.000175 0.00026 0.000358 0.000468</Voltage>
+            <Voltage>0.0 1.67e-05 1.66e-05 2.37e-05 8.61e-05 0.000178 0.000286 0.000412 0.000553 0.00071</Voltage>
+            <Voltage>0.0 2.04e-05 2.01e-05 4.76e-05 0.000166 0.000302 0.000457 0.000631 0.000824 0.001035</Voltage>
+          </Temperature>
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 1.4e-05 1.42e-05 1.7e-05 5.06e-05 0.00011 0.000185 0.000274 0.000377 0.000492</Voltage>
+            <Voltage>0.0 1.67e-05 1.69e-05 2.67e-05 9.29e-05 0.000188 0.000302 0.000432 0.000579 0.000743</Voltage>
+            <Voltage>0.0 2.02e-05 2.03e-05 5.39e-05 0.000176 0.000319 0.00048 0.00066 0.00086 0.00108</Voltage>
+          </Temperature>
+          <Temperature>
+            <Voltage>0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</Voltage>
+            <Voltage>0.0 1.4e-05 1.41e-05 1.99e-05 5.91e-05 0.000123 0.000204 0.000299 0.00041 0.000533</Voltage>
+            <Voltage>0.0 1.68e-05 1.68e-05 3.28e-05 0.000106 0.000208 0.000329 0.000469 0.000626 0.0008</Voltage>
+            <Voltage>0.0 2.04e-05 2.06e-05 6.57e-05 0.000195 0.000347 0.00052 0.000713 0.000926 0.00116</Voltage>
+          </Temperature>
+        </Energy>
+      </TurnOffLoss>
+      <ConductionLoss>
+        <ComputationMethod>Table only</ComputationMethod>
+        <CurrentAxis>-68.96 -60.34 -51.72 -43.1 -34.48 -25.86 -17.24 -8.62 -0.69 0.0 0.69 8.62 17.24 25.86 34.48 43.1 51.72 60.34 68.96</CurrentAxis>
+        <TemperatureAxis>25 75 150</TemperatureAxis>
+        <VoltageDrop scale="1">
+          <Temperature>-0.95601 -0.90209 -0.84623 -0.78661 -0.71701 -0.5974 -0.40053 -0.20014 -0.01601 0.0 0.016014 0.200141 0.400547 0.601332 0.802614 1.004509 1.207134 1.41061 1.615055</Temperature>
+          <Temperature>-0.97299 -0.91508 -0.85587 -0.79461 -0.72954 -0.65533 -0.53763 -0.2778 -0.02223 0.0 0.022226 0.27782 0.55617 0.835343 1.115614 1.397255 1.680534 1.965717 2.253074</Temperature>
+          <Temperature>-0.96258 -0.89876 -0.83386 -0.76736 -0.69836 -0.6248 -0.54049 -0.40336 -0.0356 0.0 0.035606 0.44525 0.892104 1.341492 1.794238 2.25112 2.712893 3.1803 3.65409</Temperature>
+        </VoltageDrop>
+      </ConductionLoss>
+    </SemiconductorData>
+    <ThermalModel>
+      <Branch type="Cauer">
+        <RCElement R="0.00475" C="0.000343432"></RCElement>
+        <RCElement R="0.00655" C="0.0020710000000000004"></RCElement>
+        <RCElement R="0.036770000000000004" C="0.002924"></RCElement>
+        <RCElement R="0.06426000000000001" C="0.016620000000000003"></RCElement>
+        <RCElement R="0.09436" C="0.090862"></RCElement>
+        <RCElement R="0.000001" C="0.5"></RCElement>
+      </Branch>
+    </ThermalModel>
+    <Comment>
+      <Line>****************** INFINEON Power Transistors ******************</Line>
+      <Line>This PLECS model is based on the SIMetrix model IPW65R029CFD7</Line>
+      <Line>Version: 1007</Line>
+      <Line></Line>
+      <Line>*** Abstractions/Limitation of this model ***</Line>
+      <Line>The conduction losses modelled in the third quadrant are obtained with</Line>
+      <Line>the switch always on. Therefore, body-diode conduction during deadtime</Line>
+      <Line>is not modelled!</Line>
+      <Line>The Eon/Eoff energies are determined via double-pulse</Line>
+      <Line>simulations in SIMetrix.For the switching losses, an SiC diode is used</Line>
+      <Line>on the top side of the half bridge for CoolMOS, and an</Line>
+      <Line>identical switch in the case of CoolSiC and CoolGaN.</Line>
+      <Line>The double-pulse simulation contains the parasitic elements</Line>
+      <Line>from the respective product (chip and package) and a lumped</Line>
+      <Line>parasitic inductance as indicated in the disclaimer.</Line>
+      <Line>The energy values are obtained by electrical measurements of</Line>
+      <Line>voltage and current according to Infineon internal criteria.</Line>
+      <Line>Since electrical measurements overestimate the Eoff losses,</Line>
+      <Line>we correct this behavior by transferring the Eoss-related</Line>
+      <Line>energy to the respective turn-on energies.</Line>
+      <Line></Line>
+      <Line>Qrr is not modelled explicitly - it is implicitly included in the energy values.</Line>
+      <Line></Line>
+      <Line>The thermal network in the PLECS model is identical to the thermal</Line>
+      <Line>network in the L3 SIMetrix model.</Line>
+      <Line></Line>
+      <Line>If higher accuracy is needed, we recommend performing</Line>
+      <Line>additional SPICE simulations with our SIMetrix models!</Line>
+      <Line>Please use the Infineon Developer Community</Line>
+      <Line>(https://community.infineon.com) for further information and support!</Line>
+      <Line></Line>
+      <Line>The simulation results outside of the provided power loss data range may not be accurate.</Line>
+      <Line>The upper side switch for the double pulse tests (commutation partner) is a IDH20G65C6.</Line>
+      <Line>Vds range is 0V to 500V.</Line>
+      <Line>Id range is 0A to 68.96A.</Line>
+      <Line>Tj range is 25C to 150C.</Line>
+      <Line>Rg range is 1.0Ω to 100.0Ω.</Line>
+      <Line>Gate voltage used for the thermal model is 15V.</Line>
+      <Line>Gate driver rise time is 5ns</Line>
+      <Line>Stray inductance of the test circuit is 10nH + package parasitics.</Line>
+      <Line>For the switching losses, an SiC diode is used on the top side of the half bridge for CoolMOS</Line>
+      <Line>and an identical switch in the case of CoolSiC and CoolGaN.</Line>
+      <Line></Line>
+      <Line>*********************** DISCLAIMER ***********************</Line>
+      <Line>The Simulation Model is subject to change without notice. In</Line>
+      <Line>addition, models can be a useful tool in evaluating device</Line>
+      <Line>performance, they cannot reflect the accurate device</Line>
+      <Line>performance under all conditions, nor are they intended to</Line>
+      <Line>replace bread boarding for final verification. Infineon</Line>
+      <Line>therefore does not assume any warranty or liability</Line>
+      <Line>whatsoever arising from their use. Infineon does not assume</Line>
+      <Line>any warranty or liability for the values and functions of the</Line>
+      <Line>Simulation Model.</Line>
+      <Line>The methods and results of the Simulation Model are to the</Line>
+      <Line>best of our knowledge correct.</Line>
+      <Line>However, the user is fully responsible to verify and validate</Line>
+      <Line>these results under the operating conditions and in the</Line>
+      <Line>environment of its application. Infineon will not bear the</Line>
+      <Line>responsibility arising out of or in connection with any</Line>
+      <Line>malfunction of the Simulation Models.</Line>
+      <Line>Models provided by Infineon are not warranted by Infineon as</Line>
+      <Line>completely and comprehensively representing all the</Line>
+      <Line>specifications and operating characteristics of the</Line>
+      <Line>semiconductor products to which these models relate.</Line>
+      <Line>The models describe the characteristics of typical devices.</Line>
+      <Line>In all cases, the current data sheet information for a given</Line>
+      <Line>device is the conclusive design guideline and the only actual</Line>
+      <Line>performance specification.</Line>
+      <Line>RemovePara = False, Rparallel = True</Line>
+      <Line>S2P Ver 1.0.0</Line>
+      <Line>Infineon Technologies Austria AG 2022</Line>
+      <Line>www.infineon.com</Line>
+    </Comment>
+  </Package>
+</SemiconductorLibrary>

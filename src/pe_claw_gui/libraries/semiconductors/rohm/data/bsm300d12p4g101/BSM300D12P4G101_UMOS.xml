@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+    <Package class="MOSFET with Diode" vendor="ROHM" partnumber="BSM300D12P4G101_UMOS">
+        <Variables>
+            <Variable>
+                <Name>v</Name>
+                <MaxValue>1200</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>i</Name>
+                <MinValue>-600</MinValue>
+                <MaxValue>600</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>T</Name>
+                <MaxValue>175</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>Rg_on</Name>
+                <Description>Gate resistance (on)</Description>
+                <MinValue>2.8</MinValue>
+                <MaxValue>10</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>Rg_off</Name>
+                <Description>Gate resistance (off)</Description>
+                <MinValue>2.8</MinValue>
+                <MaxValue>10</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>sw</Name>
+                <Description>Switch state</Description>
+            </Variable>
+        </Variables>
+        <CustomTables>
+            <Table3D>
+                <Name>Eon(x:Rg,y:Id,z:Tj)</Name>
+                <XAxis> 2.8 3.3 3.9 5.6 8.2 10</XAxis>
+                <YAxis> -1 0 20 40 60 80 100 120 140 160 180 200 240 280 320 360 400 440 480 520 560</YAxis>
+                <ZAxis> 25 125 150</ZAxis>
+                <FunctionValues scale="1">
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 1.07 1.07 1.01 1.23 1.24 1.4</YDimension>
+                        <YDimension> 1.45 1.49 1.54 1.85 2.12 2.4</YDimension>
+                        <YDimension> 1.8 1.86 1.88 2.43 2.89 3.32</YDimension>
+                        <YDimension> 2.13 2.23 2.39 3.03 3.67 4.26</YDimension>
+                        <YDimension> 2.47 2.61 2.79 3.64 4.52 5.24</YDimension>
+                        <YDimension> 2.82 2.98 3.27 4.27 5.34 6.27</YDimension>
+                        <YDimension> 3.14 3.32 3.61 4.9 6.17 7.24</YDimension>
+                        <YDimension> 3.39 3.62 4.11 5.49 7.03 8.28</YDimension>
+                        <YDimension> 3.54 3.8 4.37 5.84 7.58 9.09</YDimension>
+                        <YDimension> 3.84 4.14 4.8 6.46 8.18 10.06</YDimension>
+                        <YDimension> 4.47 4.88 5.77 7.77 9.99 12.27</YDimension>
+                        <YDimension> 4.97 5.65 6.63 9.34 11.71 14.67</YDimension>
+                        <YDimension> 5.59 6.44 7.63 10.79 13.9 17.06</YDimension>
+                        <YDimension> 6.23 7.18 8.62 12.14 15.85 19.62</YDimension>
+                        <YDimension> 6.86 7.82 9.68 13.74 17.6 21.93</YDimension>
+                        <YDimension> 7.45 8.68 10.62 15.28 19.82 24.26</YDimension>
+                        <YDimension> 8.15 9.5 11.79 16.7 21.62 26.59</YDimension>
+                        <YDimension> 8.7 10.2 12.8 18.28 23.74 28.84</YDimension>
+                        <YDimension> 9.24 11.02 13.89 19.8 25.54 31.05</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 1.05 1.06 1.06 1.11 1.19 1.26</YDimension>
+                        <YDimension> 1.39 1.44 1.53 1.67 1.86 2.11</YDimension>
+                        <YDimension> 1.68 1.75 1.88 2.12 2.47 2.83</YDimension>
+                        <YDimension> 1.96 2.06 2.23 2.59 3.16 3.59</YDimension>
+                        <YDimension> 2.22 2.39 2.58 3.09 3.79 4.38</YDimension>
+                        <YDimension> 2.49 2.69 2.96 3.56 4.46 5.21</YDimension>
+                        <YDimension> 2.72 2.97 3.31 4.03 5.13 6.03</YDimension>
+                        <YDimension> 2.93 3.24 3.64 4.54 5.84 6.86</YDimension>
+                        <YDimension> 3.06 3.45 3.85 4.89 6.47 7.56</YDimension>
+                        <YDimension> 3.3 3.72 4.24 5.41 7.04 8.35</YDimension>
+                        <YDimension> 3.82 4.33 5.04 6.52 8.35 10.15</YDimension>
+                        <YDimension> 4.41 5.09 5.76 7.74 10.09 12.04</YDimension>
+                        <YDimension> 4.88 5.66 6.75 9.04 11.68 14.41</YDimension>
+                        <YDimension> 5.56 6.4 7.64 10.24 13.56 16.4</YDimension>
+                        <YDimension> 6.02 7.04 8.53 11.62 15.23 18.45</YDimension>
+                        <YDimension> 6.58 7.86 9.56 13.07 17.11 20.72</YDimension>
+                        <YDimension> 7.18 8.56 10.38 14.49 18.93 22.81</YDimension>
+                        <YDimension> 7.65 9.34 11.36 15.97 20.51 25.25</YDimension>
+                        <YDimension> 8.26 10.13 12.44 17.43 22.5 27.3</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 1.04 1.04 1.04 1.12 1.2 1.22</YDimension>
+                        <YDimension> 1.39 1.43 1.47 1.65 1.9 2.03</YDimension>
+                        <YDimension> 1.66 1.72 1.8 2.08 2.48 2.73</YDimension>
+                        <YDimension> 1.92 2.01 2.14 2.55 3.12 3.45</YDimension>
+                        <YDimension> 2.18 2.31 2.49 3.02 3.73 4.14</YDimension>
+                        <YDimension> 2.41 2.58 2.81 3.47 4.38 4.95</YDimension>
+                        <YDimension> 2.66 2.86 3.14 4.02 5.05 5.74</YDimension>
+                        <YDimension> 2.88 3.09 3.47 4.48 5.72 6.57</YDimension>
+                        <YDimension> 3.03 3.24 3.72 4.81 6.32 7.23</YDimension>
+                        <YDimension> 3.22 3.63 4.07 5.42 7.1 7.98</YDimension>
+                        <YDimension> 3.75 4.18 4.93 6.56 8.6 9.8</YDimension>
+                        <YDimension> 4.26 4.85 5.69 7.96 10.27 11.85</YDimension>
+                        <YDimension> 4.94 5.62 6.55 9.17 12.12 13.67</YDimension>
+                        <YDimension> 5.47 6.22 7.54 10.46 13.79 15.84</YDimension>
+                        <YDimension> 6.1 7.01 8.45 11.84 15.88 18.06</YDimension>
+                        <YDimension> 6.64 7.68 9.5 13.26 17.8 20.21</YDimension>
+                        <YDimension> 7.17 8.5 10.35 14.87 19.7 22.26</YDimension>
+                        <YDimension> 7.69 9.32 11.38 16.16 21.39 24.34</YDimension>
+                        <YDimension> 8.21 10.13 12.55 17.68 23.24 26.41</YDimension>
+                    </ZDimension>
+                </FunctionValues>
+            </Table3D>
+            <Table2D>
+                <Name>Von_VG0V(x:Is,y:Tj)</Name>
+                <XAxis> -600 -500 -400 -300 -200 -100 -70 -50 -20 -10 -5 -2 -1 -0.5 -0.2 0 1</XAxis>
+                <YAxis> 25 125 150</YAxis>
+                <FunctionValues scale="1">
+                    <YDimension> -5.242 -4.786 -4.335 -3.872 -3.386 -2.833 -2.658 -2.529 -2.261 -2.109 -1.987 -1.85 -1.753 -1.643 -1.54 0 0</YDimension>
+                    <YDimension> -5.71 -5.221 -4.707 -4.149 -3.506 -2.755 -2.513 -2.334 -1.991 -1.822 -1.695 -1.567 -1.48 -1.376 -1.291 0 0</YDimension>
+                    <YDimension> -5.688 -5.23 -4.735 -4.198 -3.56 -2.763 -2.497 -2.302 -1.94 -1.762 -1.632 -1.504 -1.42 -1.319 -1.236 0 0</YDimension>
+                </FunctionValues>
+            </Table2D>
+            <Table3D>
+                <Name>Eoff(x:Rg,y:Id,z:Tj)</Name>
+                <XAxis> 2.8 3.3 3.9 5.6 8.2 10</XAxis>
+                <YAxis> -1 0 20 40 60 80 100 120 140 160 180 200 240 280 320 360 400 440 480 520 560</YAxis>
+                <ZAxis> 25 125 150</ZAxis>
+                <FunctionValues scale="1">
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.14 0.14 0.06 0.23 0.37 0.45</YDimension>
+                        <YDimension> 0.24 0.29 0.24 0.54 0.88 1.11</YDimension>
+                        <YDimension> 0.38 0.48 0.48 0.92 1.45 1.82</YDimension>
+                        <YDimension> 0.56 0.72 0.77 1.37 2.24 2.69</YDimension>
+                        <YDimension> 0.79 1 1.08 1.88 3.01 3.7</YDimension>
+                        <YDimension> 1.05 1.32 1.52 2.51 3.97 4.76</YDimension>
+                        <YDimension> 1.33 1.67 2.01 3.17 4.93 5.85</YDimension>
+                        <YDimension> 1.6 2.04 2.46 3.81 5.99 7.04</YDimension>
+                        <YDimension> 1.88 2.38 2.89 4.33 6.81 8.02</YDimension>
+                        <YDimension> 2.24 2.83 3.42 5.08 7.73 9.21</YDimension>
+                        <YDimension> 3.03 3.76 4.48 6.7 10.4 12.02</YDimension>
+                        <YDimension> 4 4.79 6.04 8.7 13.08 15.03</YDimension>
+                        <YDimension> 5.09 6.24 7.31 10.84 16.36 18.49</YDimension>
+                        <YDimension> 6.18 7.65 9.06 13.02 19.64 22.12</YDimension>
+                        <YDimension> 7.26 9.28 11.13 15.42 22.96 26.52</YDimension>
+                        <YDimension> 8.81 11.21 12.95 18.13 26.93 30.85</YDimension>
+                        <YDimension> 10.61 12.98 14.83 20.74 31.03 35.5</YDimension>
+                        <YDimension> 12.04 14.62 16.85 23.54 35.24 40.31</YDimension>
+                        <YDimension> 13.85 16.48 19.02 26.49 40.36 45.48</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.13 0.15 0.18 0.25 0.4 0.48</YDimension>
+                        <YDimension> 0.26 0.32 0.39 0.6 1 1.15</YDimension>
+                        <YDimension> 0.43 0.55 0.68 1.03 1.68 2.02</YDimension>
+                        <YDimension> 0.65 0.83 1.02 1.55 2.47 3</YDimension>
+                        <YDimension> 0.92 1.16 1.41 2.13 3.34 4.04</YDimension>
+                        <YDimension> 1.24 1.53 1.84 2.79 4.37 5.2</YDimension>
+                        <YDimension> 1.56 1.93 2.33 3.51 5.41 6.41</YDimension>
+                        <YDimension> 1.9 2.32 2.8 4.24 6.47 7.76</YDimension>
+                        <YDimension> 2.26 2.65 3.23 4.76 7.61 8.94</YDimension>
+                        <YDimension> 2.62 3.16 3.86 5.59 8.8 10.2</YDimension>
+                        <YDimension> 3.53 4.22 5.24 7.35 11.33 13.16</YDimension>
+                        <YDimension> 4.69 5.58 6.67 9.55 14.24 16.54</YDimension>
+                        <YDimension> 5.82 7 8.46 11.76 17.56 20.16</YDimension>
+                        <YDimension> 7.14 8.79 10.43 14.21 21.08 24.19</YDimension>
+                        <YDimension> 8.64 10.73 12.6 17.23 24.89 28.41</YDimension>
+                        <YDimension> 10.31 12.44 14.79 19.69 29.56 33.82</YDimension>
+                        <YDimension> 12.55 14.75 16.91 23.22 33.84 38.16</YDimension>
+                        <YDimension> 14.3 16.68 19.42 26.27 38.51 43.79</YDimension>
+                        <YDimension> 16.12 18.82 21.96 29.71 43.51 49.36</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0.14 0.15 0.16 0.23 0.38 0.48</YDimension>
+                        <YDimension> 0.26 0.31 0.39 0.61 0.96 1.16</YDimension>
+                        <YDimension> 0.44 0.55 0.68 1.03 1.61 1.98</YDimension>
+                        <YDimension> 0.69 0.84 1.04 1.54 2.42 3.02</YDimension>
+                        <YDimension> 0.98 1.19 1.43 2.13 3.3 4.06</YDimension>
+                        <YDimension> 1.28 1.56 1.87 2.79 4.3 5.28</YDimension>
+                        <YDimension> 1.61 1.97 2.39 3.52 5.32 6.46</YDimension>
+                        <YDimension> 1.94 2.36 2.84 4.34 6.44 7.83</YDimension>
+                        <YDimension> 2.26 2.74 3.3 4.77 7.3 8.89</YDimension>
+                        <YDimension> 2.67 3.34 3.86 5.79 8.55 10.08</YDimension>
+                        <YDimension> 3.71 4.45 5.21 7.7 11.13 13.3</YDimension>
+                        <YDimension> 4.67 5.71 6.63 9.94 14.03 16.72</YDimension>
+                        <YDimension> 6.01 7.15 8.25 12.12 17.01 20.53</YDimension>
+                        <YDimension> 7.31 8.89 10.59 14.63 20.57 24.72</YDimension>
+                        <YDimension> 9.03 10.91 12.54 17.69 24.61 29.24</YDimension>
+                        <YDimension> 11 12.93 14.77 20.35 29.14 34.16</YDimension>
+                        <YDimension> 12.96 14.98 17.26 23.55 32.32 39.35</YDimension>
+                        <YDimension> 14.92 17.47 19.54 27.24 36.93 44.09</YDimension>
+                        <YDimension> 16.88 19.95 22.44 30.77 42.81 48.61</YDimension>
+                    </ZDimension>
+                </FunctionValues>
+            </Table3D>
+            <Table2D>
+                <Name>Von_VG18V(x:Is,y:Tj)</Name>
+                <XAxis> -600 -500 -400 -350 -300 -250 -200 -140 -110 -90 -60 -30 0 30 60 90 110 140 200 250 300 350 400 500 600</XAxis>
+                <YAxis> 25 125 150</YAxis>
+                <FunctionValues scale="1">
+                    <YDimension> -2.347 -1.944 -1.55 -1.355 -1.16 -0.966 -0.772 -0.542 -0.424 -0.347 -0.23 -0.113 0 0.119 0.232 0.349 0.432 0.547 0.788 0.989 1.193 1.404 1.619 2.051 2.517</YDimension>
+                    <YDimension> -3.841 -3.143 -2.486 -2.164 -1.844 -1.531 -1.22 -0.854 -0.669 -0.546 -0.363 -0.181 0 0.178 0.369 0.555 0.676 0.868 1.252 1.575 1.909 2.246 2.595 3.351 4.166</YDimension>
+                    <YDimension> -4.364 -3.566 -2.817 -2.447 -2.084 -1.729 -1.379 -0.962 -0.757 -0.618 -0.412 -0.204 0 0.203 0.418 0.624 0.764 0.978 1.413 1.783 2.156 2.553 2.955 3.829 4.799</YDimension>
+                </FunctionValues>
+            </Table2D>
+        </CustomTables>
+        <SemiconductorData type="MOSFET with Diode">
+            <TurnOnLoss>
+                <ComputationMethod>Formula only</ComputationMethod>
+                <Formula>lookup('Eon(x:Rg,y:Id,z:Tj)',Rg_on,i,T)*v/600*1e-3</Formula>
+                <CurrentAxis> 0</CurrentAxis>
+                <VoltageAxis> 0</VoltageAxis>
+                <TemperatureAxis> 25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage> 0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOnLoss>
+            <TurnOffLoss>
+                <ComputationMethod>Formula only</ComputationMethod>
+                <Formula>lookup('Eoff(x:Rg,y:Id,z:Tj)',Rg_off,i,T)*v/600*1e-3</Formula>
+                <CurrentAxis> 0</CurrentAxis>
+                <VoltageAxis> 0</VoltageAxis>
+                <TemperatureAxis> 25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage> 0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOffLoss>
+            <ConductionLoss>
+                <ComputationMethod>Formula only</ComputationMethod>
+                <Formula>(sw==0)*lookup('Von_VG0V(x:Is,y:Tj)',i,T)+(sw!=0)*lookup('Von_VG18V(x:Is,y:Tj)',i,T)</Formula>
+                <CurrentAxis> 0</CurrentAxis>
+                <TemperatureAxis> 0</TemperatureAxis>
+                <VoltageDrop scale="1">
+                    <Temperature> 0</Temperature>
+                </VoltageDrop>
+            </ConductionLoss>
+        </SemiconductorData>
+        <ThermalModel>
+            <Branch type="Cauer">
+                <RCElement R="0.005106" C="0.0005857"/>
+                <RCElement R="0.03889" C="0.01286"/>
+                <RCElement R="0.1126" C="0.2409"/>
+            </Branch>
+        </ThermalModel>
+        <Comment>
+            <Line>Model Generated by ROHM</Line>
+            <Line>All Rights Reserved</Line>
+            <Line>Commercial Use or Resale Restricted</Line>
+            <Line></Line>
+            <Line>Date: 2023/6/9</Line>
+        </Comment>
+    </Package>
+</SemiconductorLibrary>

@@ -1,0 +1,1 @@
+"""Magnetic-core selector placeholder."""

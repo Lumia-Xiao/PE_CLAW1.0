@@ -1,0 +1,1 @@
+"""PSFB input schema placeholder."""

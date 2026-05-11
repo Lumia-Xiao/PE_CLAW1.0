@@ -1,0 +1,1 @@
+"""DAB stress placeholder."""

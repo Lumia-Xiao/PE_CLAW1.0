@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+    <Package class="MOSFET" vendor="ROHM" partnumber="BSM120D12P2C005_DMOS">
+        <Variables>
+            <Variable>
+                <Name>v</Name>
+                <MaxValue>1200</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>i</Name>
+                <MinValue>-240</MinValue>
+                <MaxValue>240</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>T</Name>
+                <MaxValue>175</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>Rg_on</Name>
+                <Description>Gate resistance (on)</Description>
+                <MinValue>1</MinValue>
+                <MaxValue>33</MaxValue>
+            </Variable>
+            <Variable>
+                <Name>Rg_off</Name>
+                <Description>Gate resistance (off)</Description>
+                <MinValue>1</MinValue>
+                <MaxValue>33</MaxValue>
+            </Variable>
+        </Variables>
+        <CustomTables>
+            <Table3D>
+                <Name>Eon(x:Rg,y:Id,z:Tj)</Name>
+                <XAxis> 1 2.2 3.9 5.6 8.2 10 15 22 33</XAxis>
+                <YAxis> -1 0 10 20 30 40 50 60 70 80 90 100 110 120 130 134 145 150</YAxis>
+                <ZAxis> 25 125 150</ZAxis>
+                <FunctionValues scale="1">
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 403.9 383 414.5 552.1 678.3 703.9 742.5 895.4 1109</YDimension>
+                        <YDimension> 755.6 724 785.2 981.5 1243 1324 1491 1900 2351</YDimension>
+                        <YDimension> 1058 1039 1141 1403 1785 1930 2284 2979 3747</YDimension>
+                        <YDimension> 1317 1331 1483 1820 2313 2529 3121 4132 5287</YDimension>
+                        <YDimension> 1537 1601 1813 2233 2835 3132 4005 5358 6964</YDimension>
+                        <YDimension> 1723 1852 2133 2645 3360 3745 4935 6658 8770</YDimension>
+                        <YDimension> 1880 2085 2445 3058 3896 4379 5914 8031 1.07e+04</YDimension>
+                        <YDimension> 2014 2301 2751 3474 4450 5042 6942 9475 1.274e+04</YDimension>
+                        <YDimension> 2129 2504 3052 3895 5031 5742 8019 1.099e+04 1.488e+04</YDimension>
+                        <YDimension> 2231 2695 3351 4324 5648 6489 9148 1.258e+04 1.713e+04</YDimension>
+                        <YDimension> 2324 2876 3648 4762 6309 7290 1.033e+04 1.424e+04 1.946e+04</YDimension>
+                        <YDimension> 2415 3048 3946 5212 7021 8155 1.156e+04 1.597e+04 2.188e+04</YDimension>
+                        <YDimension> 2507 3214 4247 5676 7793 9092 1.285e+04 1.777e+04 2.436e+04</YDimension>
+                        <YDimension> 2545 3279 4368 5866 8121 9489 1.338e+04 1.851e+04 2.538e+04</YDimension>
+                        <YDimension> 2659 3456 4706 6402 9082 1.065e+04 1.489e+04 2.06e+04 2.822e+04</YDimension>
+                        <YDimension> 2717 3535 4862 6653 9551 1.122e+04 1.56e+04 2.158e+04 2.953e+04</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 327.3 548.1 510.9 575 548.7 554.4 782.8 879.6 955</YDimension>
+                        <YDimension> 597.8 925.6 811.9 894.4 998 1069 1431 1670 2002</YDimension>
+                        <YDimension> 832.2 1223 1097 1209 1424 1567 2059 2489 3124</YDimension>
+                        <YDimension> 1035 1453 1368 1519 1834 2052 2676 3340 4320</YDimension>
+                        <YDimension> 1211 1628 1626 1827 2232 2528 3292 4228 5591</YDimension>
+                        <YDimension> 1364 1761 1873 2132 2624 3001 3916 5154 6936</YDimension>
+                        <YDimension> 1498 1866 2109 2437 3017 3475 4555 6122 8354</YDimension>
+                        <YDimension> 1619 1955 2337 2741 3415 3954 5221 7137 9845</YDimension>
+                        <YDimension> 1731 2040 2558 3046 3825 4444 5920 8200 1.141e+04</YDimension>
+                        <YDimension> 1837 2136 2774 3353 4252 4947 6663 9315 1.304e+04</YDimension>
+                        <YDimension> 1943 2254 2985 3663 4702 5470 7458 1.049e+04 1.475e+04</YDimension>
+                        <YDimension> 2053 2407 3193 3976 5180 6016 8315 1.171e+04 1.653e+04</YDimension>
+                        <YDimension> 2171 2610 3401 4294 5694 6590 9242 1.301e+04 1.838e+04</YDimension>
+                        <YDimension> 2222 2707 3483 4423 5910 6828 9634 1.354e+04 1.914e+04</YDimension>
+                        <YDimension> 2374 3032 3712 4782 6540 7513 1.078e+04 1.507e+04 2.129e+04</YDimension>
+                        <YDimension> 2451 3210 3817 4948 6846 7840 1.134e+04 1.579e+04 2.229e+04</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 484.6 489.5 488.3 504.6 512.4 543.4 651.7 922.2 1296</YDimension>
+                        <YDimension> 787.5 808.6 840.5 911.1 995.9 1078 1363 1907 2668</YDimension>
+                        <YDimension> 1073 1120 1196 1330 1497 1650 2133 2964 4154</YDimension>
+                        <YDimension> 1343 1423 1554 1762 2017 2259 2964 4096 5752</YDimension>
+                        <YDimension> 1598 1721 1918 2208 2557 2906 3854 5303 7464</YDimension>
+                        <YDimension> 1839 2013 2286 2669 3119 3591 4803 6588 9290</YDimension>
+                        <YDimension> 2068 2300 2661 3145 3703 4315 5813 7953 1.123e+04</YDimension>
+                        <YDimension> 2286 2584 3044 3638 4312 5077 6882 9400 1.328e+04</YDimension>
+                        <YDimension> 2494 2865 3434 4148 4946 5878 8011 1.093e+04 1.545e+04</YDimension>
+                        <YDimension> 2693 3144 3833 4676 5608 6718 9200 1.254e+04 1.773e+04</YDimension>
+                        <YDimension> 2884 3422 4241 5222 6297 7598 1.045e+04 1.425e+04 2.013e+04</YDimension>
+                        <YDimension> 3070 3700 4660 5789 7016 8518 1.176e+04 1.604e+04 2.264e+04</YDimension>
+                        <YDimension> 3250 3978 5091 6376 7765 9478 1.313e+04 1.792e+04 2.527e+04</YDimension>
+                        <YDimension> 3321 4090 5266 6616 8074 9873 1.369e+04 1.869e+04 2.636e+04</YDimension>
+                        <YDimension> 3514 4400 5760 7296 8950 1.099e+04 1.529e+04 2.091e+04 2.943e+04</YDimension>
+                        <YDimension> 3601 4541 5990 7614 9362 1.152e+04 1.604e+04 2.196e+04 3.088e+04</YDimension>
+                    </ZDimension>
+                </FunctionValues>
+            </Table3D>
+            <Table3D>
+                <Name>Eoff(x:Rg,y:Id,z:Tj)</Name>
+                <XAxis> 1 2.2 3.9 5.6 8.2 10 15 22 33</XAxis>
+                <YAxis> -1 0 10 20 30 40 50 60 70 80 90 100 110 120 130 134 145 150</YAxis>
+                <ZAxis> 25 125 150</ZAxis>
+                <FunctionValues scale="1">
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 36.88 68.97 121.1 176.4 215.8 247.8 436 593.2 896.1</YDimension>
+                        <YDimension> 79.06 141.7 248.4 375.1 433.9 526.6 891.7 1245 1881</YDimension>
+                        <YDimension> 128.3 223.5 382.7 567.8 687.8 850.2 1378 1936 2907</YDimension>
+                        <YDimension> 184.5 314.3 524.2 756.7 975.3 1214 1891 2662 3975</YDimension>
+                        <YDimension> 247.9 413.7 672.9 944.6 1294 1612 2430 3421 5082</YDimension>
+                        <YDimension> 318.3 521.5 829.1 1134 1643 2041 2993 4209 6227</YDimension>
+                        <YDimension> 396 637.6 992.7 1327 2019 2496 3576 5023 7410</YDimension>
+                        <YDimension> 480.8 761.6 1164 1526 2421 2971 4177 5860 8629</YDimension>
+                        <YDimension> 572.8 893.4 1343 1734 2846 3462 4795 6718 9883</YDimension>
+                        <YDimension> 672 1033 1530 1954 3292 3964 5426 7592 1.117e+04</YDimension>
+                        <YDimension> 778.6 1179 1725 2187 3757 4472 6069 8481 1.249e+04</YDimension>
+                        <YDimension> 892.4 1333 1928 2437 4240 4982 6720 9380 1.384e+04</YDimension>
+                        <YDimension> 1014 1493 2139 2706 4738 5488 7379 1.029e+04 1.523e+04</YDimension>
+                        <YDimension> 1064 1559 2226 2819 4941 5689 7643 1.065e+04 1.579e+04</YDimension>
+                        <YDimension> 1209 1746 2471 3150 5509 6231 8374 1.166e+04 1.736e+04</YDimension>
+                        <YDimension> 1278 1833 2586 3310 5771 6471 8706 1.211e+04 1.808e+04</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 54.24 88.07 219.2 332.6 275.3 314.7 514.7 780.8 1139</YDimension>
+                        <YDimension> 109.9 175.2 281.2 490.2 594.6 690.5 1067 1563 2314</YDimension>
+                        <YDimension> 167.4 270.9 372 669.5 950.3 1097 1643 2384 3536</YDimension>
+                        <YDimension> 227.3 374.9 490.6 870.1 1338 1532 2243 3241 4800</YDimension>
+                        <YDimension> 290.8 486.9 636 1092 1754 1993 2864 4129 6104</YDimension>
+                        <YDimension> 358.6 606.5 806.9 1335 2192 2475 3506 5046 7444</YDimension>
+                        <YDimension> 431.6 733.5 1002 1600 2650 2977 4168 5989 8816</YDimension>
+                        <YDimension> 510.7 867.6 1221 1885 3122 3495 4850 6953 1.022e+04</YDimension>
+                        <YDimension> 596.8 1009 1463 2191 3604 4027 5550 7937 1.164e+04</YDimension>
+                        <YDimension> 690.7 1156 1725 2518 4093 4569 6267 8937 1.309e+04</YDimension>
+                        <YDimension> 793.3 1309 2008 2865 4582 5119 7001 9949 1.456e+04</YDimension>
+                        <YDimension> 905.6 1469 2310 3233 5069 5673 7750 1.097e+04 1.604e+04</YDimension>
+                        <YDimension> 1028 1634 2630 3622 5548 6230 8513 1.2e+04 1.754e+04</YDimension>
+                        <YDimension> 1081 1701 2762 3782 5737 6452 8823 1.241e+04 1.814e+04</YDimension>
+                        <YDimension> 1234 1891 3141 4242 6244 7061 9684 1.354e+04 1.979e+04</YDimension>
+                        <YDimension> 1309 1980 3319 4458 6468 7336 1.008e+04 1.406e+04 2.055e+04</YDimension>
+                    </ZDimension>
+                    <ZDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 0 0 0 0 0 0 0 0 0</YDimension>
+                        <YDimension> 92.92 165.8 298.9 378.4 497.1 550.3 785.9 1114 1617</YDimension>
+                        <YDimension> 174.1 318.6 562.7 712.9 931.9 1066 1513 2157 3119</YDimension>
+                        <YDimension> 254.3 462.7 820.7 1041 1359 1568 2224 3184 4599</YDimension>
+                        <YDimension> 334.1 599.7 1074 1365 1780 2059 2923 4196 6063</YDimension>
+                        <YDimension> 414.1 731.1 1323 1685 2196 2540 3610 5197 7514</YDimension>
+                        <YDimension> 494.7 858.6 1569 2001 2608 3013 4287 6189 8957</YDimension>
+                        <YDimension> 576.6 983.7 1814 2315 3016 3481 4958 7175 1.039e+04</YDimension>
+                        <YDimension> 660.2 1108 2058 2628 3423 3944 5624 8157 1.183e+04</YDimension>
+                        <YDimension> 746.3 1233 2302 2940 3828 4404 6288 9138 1.327e+04</YDimension>
+                        <YDimension> 835.2 1360 2547 3252 4234 4863 6951 1.012e+04 1.472e+04</YDimension>
+                        <YDimension> 927.6 1492 2794 3566 4641 5323 7615 1.111e+04 1.618e+04</YDimension>
+                        <YDimension> 1024 1629 3045 3883 5051 5786 8283 1.21e+04 1.766e+04</YDimension>
+                        <YDimension> 1125 1773 3300 4202 5464 6252 8957 1.31e+04 1.915e+04</YDimension>
+                        <YDimension> 1167 1833 3404 4331 5630 6441 9228 1.35e+04 1.976e+04</YDimension>
+                        <YDimension> 1286 2006 3693 4689 6092 6965 9983 1.463e+04 2.144e+04</YDimension>
+                        <YDimension> 1343 2088 3828 4853 6304 7206 1.033e+04 1.514e+04 2.222e+04</YDimension>
+                    </ZDimension>
+                </FunctionValues>
+            </Table3D>
+        </CustomTables>
+        <SemiconductorData type="MOSFET">
+            <TurnOnLoss>
+                <ComputationMethod>Formula only</ComputationMethod>
+                <Formula>lookup('Eon(x:Rg,y:Id,z:Tj)',Rg_on,i,T)*v/600*1e-6</Formula>
+                <CurrentAxis> 0</CurrentAxis>
+                <VoltageAxis> 0</VoltageAxis>
+                <TemperatureAxis> 25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage> 0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOnLoss>
+            <TurnOffLoss>
+                <ComputationMethod>Formula only</ComputationMethod>
+                <Formula>lookup('Eoff(x:Rg,y:Id,z:Tj)',Rg_off,i,T)*v/600*1e-6</Formula>
+                <CurrentAxis> 0</CurrentAxis>
+                <VoltageAxis> 0</VoltageAxis>
+                <TemperatureAxis> 25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage> 0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOffLoss>
+            <ConductionLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis> -280 -260 -240 -220 -200 -180 -160 -140 -120 -100 -80 -60 -40 -20 0 20 40 60 80 100 120 140 160 180 200 220 240 260 280</CurrentAxis>
+                <TemperatureAxis> 25 125 150</TemperatureAxis>
+                <VoltageDrop scale="1">
+                    <Temperature> -5.944 -5.367 -4.821 -4.306 -3.817 -3.355 -2.916 -2.498 -2.1 -1.719 -1.352 -0.9991 -0.6568 -0.3232 0 0.3232 0.6568 0.9991 1.352 1.719 2.1 2.498 2.916 3.355 3.817 4.306 4.821 5.367 5.944</Temperature>
+                    <Temperature> -9.01 -8.054 -7.171 -6.355 -5.6 -4.899 -4.246 -3.634 -3.058 -2.51 -1.985 -1.475 -0.976 -0.4798 0 0.4798 0.976 1.475 1.985 2.51 3.058 3.634 4.246 4.899 5.6 6.355 7.171 8.054 9.01</Temperature>
+                    <Temperature> -10.41 -9.259 -8.208 -7.245 -6.361 -5.547 -4.795 -4.096 -3.442 -2.824 -2.233 -1.661 -1.1 -0.5397 0 0.5397 1.1 1.661 2.233 2.824 3.442 4.096 4.795 5.547 6.361 7.245 8.208 9.259 10.41</Temperature>
+                </VoltageDrop>
+            </ConductionLoss>
+        </SemiconductorData>
+        <ThermalModel>
+            <Branch type="Cauer">
+                <RCElement R="0.0109" C="0.01893"/>
+                <RCElement R="0.05852" C="0.02124"/>
+                <RCElement R="0.08824" C="0.3376"/>
+            </Branch>
+        </ThermalModel>
+        <Comment>
+            <Line>Model Generated by ROHM</Line>
+            <Line>All Rights Reserved</Line>
+            <Line>Commercial Use or Resale Restricted</Line>
+            <Line></Line>
+            <Line>Date: 2018/01/30</Line>
+        </Comment>
+    </Package>
+</SemiconductorLibrary>
