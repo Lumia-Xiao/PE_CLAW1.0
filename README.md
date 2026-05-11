@@ -31,7 +31,7 @@ PE-Claw 1.0 focuses on a transparent engineering pipeline rather than a black-bo
 - **Topology-specific electrical parameter synthesis**
 - **Waveform generation and operating-point refresh**
 - **Semiconductor selection from device libraries**
-- **Input/output capacitor Pareto-front selection**
+- **/output capacitor Pareto-front selection**
 - **Magnetic/inductor Pareto-front design**
 - **Semiconductor, capacitor, and magnetic loss estimation**
 - **System efficiency and loss breakdown**
@@ -53,7 +53,7 @@ Recommended usage:
 
 ```text
 1. Select converter category and topology.
-2. Fill in input voltage, output voltage, power, ripple, frequency, thermal, and device filter settings.
+2. Fill in  voltage, output voltage, power, ripple, frequency, thermal, and device filter settings.
 3. Click Run Design.
 4. Click Run Capacitor.
 5. Click Run Magnetics.
@@ -84,7 +84,7 @@ The current implementation emphasizes DC-DC converter workflows and an extensibl
 
 `Run Design` performs:
 
-- topology input parsing;
+- topology  parsing;
 - topology-specific electrical synthesis;
 - waveform generation;
 - voltage/current stress extraction;
@@ -98,11 +98,11 @@ It does **not** run capacitor or magnetic selection.
 
 `Run Capacitor` performs:
 
-- input capacitor current extraction;
+-  capacitor current extraction;
 - output capacitor ripple analysis;
 - capacitor bank selection;
 - capacitor loss and thermal proxy estimation;
-- input/output capacitor Pareto-front generation;
+- /output capacitor Pareto-front generation;
 - recommended capacitor bank selection;
 - capacitor geometry artifact generation.
 
@@ -180,7 +180,7 @@ PE-Claw 1.0 follows an eight-layer architecture:
 |---|---|
 | **Layer 1** | GUI entry and state management |
 | **Layer 2** | Converter category and topology registry |
-| **Layer 3** | Topology input forms |
+| **Layer 3** | Topology  forms |
 | **Layer 4** | Topology plugin and physics modeling |
 | **Layer 5** | Unified data model and `DesignReport` handoff |
 | **Layer 6** | Pipeline orchestration |
@@ -383,7 +383,7 @@ PE-Claw shows three representative capacitor-bank designs: minimum volume, minim
 | Recommended | C4DEHPQ6100A8TK | C4DE | 1 | 100 µF | 221.671 cm³ | 0.041153 W | 84 × 84 mm |
 
 <p align="center">
-  <img src="docs/assets/images/case_buck_sync_05_input_capacitor_design.png" alt="Input capacitor 2D design" width="820">
+  <img src="docs/assets/images/case_buck_sync_05_input_capacitor_design2D.png" alt="Input capacitor 2D design" width="820">
 </p>
 
 **Figure: Input capacitor 2D candidate comparison.**
