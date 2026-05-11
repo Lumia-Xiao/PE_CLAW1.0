@@ -118,3 +118,9 @@ Future work can extend AI Design toward:
 - surrogate-assisted optimization;
 - self-repair candidate loops;
 - a full design chain managed through AI Design.
+
+## Documentation Roles
+
+- `README.md` is the release-facing GitHub README.
+- `README_Test.md` / `readme_test.md` is internal local debug and validation documentation.
+- `report1.md` is the compact engineering change log.

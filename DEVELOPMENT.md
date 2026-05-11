@@ -30,6 +30,16 @@
 - `agents/`: AI/reporting helpers.
 - `tools/`: repository maintenance and audit tools.
 
+## Documentation Roles
+
+- `README.md`: official GitHub release README.
+- `README_Test.md` / `readme_test.md`: local debug, temporary validation, and development testing notes only.
+- `PROJECT_ARCHITECTURE.md`: current active architecture.
+- `report1.md`: compact change log.
+- `AGENTS.md`: mandatory Codex/project rules.
+
+Keep public-facing release content in `README.md`. Keep temporary debugging notes, local validation logs, and scratch observations out of `README.md`. After each change, update `report1.md`.
+
 ## Removed Legacy Namespaces
 
 These old namespaces were removed and should not be reintroduced:
