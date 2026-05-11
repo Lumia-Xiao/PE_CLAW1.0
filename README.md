@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/images/pe_claw1.0logo.png" alt="pe-claw_1.0 Logo" width="760">
+  <img src="docs/assets/images/pe_claw1.0logo.png" alt="pe-claw1.0_logo" width="760">
 </p>
 
 # PE-Claw 1.0
