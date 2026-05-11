@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/images/pe_claw1.0logo.png" alt="PE-Claw 1.0 Logo" width="760">
+  <img src="docs/assets/images/pe_claw1.0_logo.png" alt="PE-Claw 1.0 Logo" width="760">
 </p>
 
 # PE-Claw 1.0
@@ -383,7 +383,7 @@ PE-Claw shows three representative capacitor-bank designs: minimum volume, minim
 | Recommended | C4DEHPQ6100A8TK | C4DE | 1 | 100 µF | 221.671 cm³ | 0.041153 W | 84 × 84 mm |
 
 <p align="center">
-  <img src="docs/assets/images/case_buck_sync_05_input_capacitor_design.png" alt="Input capacitor 2D design" width="820">
+  <img src="docs/assets/images/case_buck_sync_05_input_capacitor_design2D.png" alt="Input capacitor 2D design" width="820">
 </p>
 
 **Figure: Input capacitor 2D candidate comparison.**
@@ -584,9 +584,9 @@ input capacitor → semiconductor → inductor → output capacitor
 The repository may also include concept logos for future PE-Claw releases:
 
 <p align="center">
-  <img src="docs/assets/images/pe_claw1.0logo.png" alt="PE-Claw 1.0" width="340">
-  <img src="docs/assets/images/pe_claw2.0logo.png" alt="PE-Claw 2.0" width="340">
-  <img src="docs/assets/images/pe_claw3.0logo.png" alt="PE-Claw 3.0" width="340">
+  <img src="docs/assets/images/pe_claw1.0_logo.png" alt="PE-Claw 1.0" width="340">
+  <img src="docs/assets/images/pe_claw2.0_logo.png" alt="PE-Claw 2.0" width="340">
+  <img src="docs/assets/images/pe_claw3.0_logo.png" alt="PE-Claw 3.0" width="340">
 </p>
 
 PE-Claw 1.0 is the rule-based automated design platform. Future versions aim to move toward AI-assisted topology advising, global optimization, explanation generation, and autonomous power converter design agents.
