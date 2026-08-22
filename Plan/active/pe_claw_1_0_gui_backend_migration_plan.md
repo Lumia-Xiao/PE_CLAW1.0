@@ -2,7 +2,7 @@
 
 ## 1. Plan Metadata
 
-- **Status:** Active plan; Phase 0 and Phase 1 completed, Phase 2 not started
+- **Status:** Active plan; Phase 0 through Phase 2 completed, Phase 3 next
 - **Plan date:** 2026-08-22
 - **Source workspace:** `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw`
 - **Source repository:** `https://github.com/Lumia-Xiao/PE-Claw_2.0.git`
@@ -619,11 +619,11 @@ Additional migration checks must verify:
 ### Runtime architecture
 
 - [ ] Package installs from a clean checkout
-- [ ] GUI launches on supported Windows/Python environment
+- [x] GUI launches on supported Windows/Python environment
 - [ ] Runtime follows GUI -> controller -> registry/plugin -> pipeline -> models -> result views
 - [ ] Deterministic pipeline stage order matches source 2.0
 - [ ] Shared dataclass and handoff contracts match the selected source baseline
-- [ ] Package data loads from the installed package
+- [x] Package data loads from the installed package
 
 ### Topologies and GUI
 
@@ -638,14 +638,14 @@ Additional migration checks must verify:
 ### AI/agentic exclusion
 
 - [ ] Legacy 1.0 AI Design files and GUI entry are removed
-- [ ] 2.0 `agentic/`, `agents/`, and `skills/` are not migrated
-- [ ] No runtime import requires AI/agentic code
-- [ ] No AI/agentic dependency is installed for GUI startup or deterministic execution
+- [x] 2.0 `agentic/`, `agents/`, and `skills/` are not migrated
+- [x] No runtime import requires AI/agentic code
+- [x] No AI/agentic dependency is installed for GUI startup or deterministic execution
 - [ ] Deterministic reports and result views work independently
 
 ### Verification and delivery
 
-- [ ] Focused tests pass for every migrated batch
+- [x] Focused tests pass for every migrated batch
 - [ ] Source/target parity fixtures pass for all 19 topology IDs
 - [ ] Complete target pytest suite passes or every non-passing case is explicitly accepted
 - [ ] Clean-clone installation and GUI smoke test pass
@@ -659,6 +659,7 @@ Additional migration checks must verify:
 
 | Date | Status | Change |
 | --- | --- | --- |
+| 2026-08-22 | Phase 2 complete | Aligned deterministic dependencies, package-data rules, pytest discovery, runtime preflight, and Windows launcher; disconnected legacy AI Design from normal imports while preserving the seven-topology baseline. A new Python 3.12 environment passed editable install, package-resource lookup, GUI and launcher smoke checks, compile smoke, and 6 focused tests. Shared models, engines, pipeline code, and 12 new topologies remain for later phases. |
 | 2026-08-22 | Phase 0 and Phase 1 complete | Recorded environment and GUI/registry baselines, created the target Git bundle backup, generated source/target SHA-256 inventories, classified 3,902 union paths, closed 4,686 dependency edges, initialized the 19-topology acceptance matrix, and documented all AI/agentic exclusions. Source backup was skipped per user confirmation. No 2.0 runtime code was copied. |
 | 2026-08-22 | Target workspace established | Moved the plan to `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0`, updated target-path references, fetched the PE_CLAW1.0 history, and created `codex/sync-gui-backend-from-2` from `origin/master` at `46e1b96c7353763685e54ad4bf76eddad5131335`. No 2.0 runtime code was copied. |
 | 2026-08-22 | Active plan created | Defined full 1.0-to-2.0 deterministic GUI/backend migration, explicit AI/agentic exclusions, phased gates, 19-topology acceptance, verification, rollback, and GitHub handoff. No runtime code copied or changed. |

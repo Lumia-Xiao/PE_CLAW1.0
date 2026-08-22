@@ -1,10 +1,10 @@
 {
   "classifications": {
     "adapt_in_target": 29,
-    "add_from_2_0": 1228,
+    "add_from_2_0": 1229,
     "exclude_agentic": 771,
     "exclude_generated": 722,
-    "exclude_out_of_scope": 253,
+    "exclude_out_of_scope": 252,
     "keep_from_1_0": 764,
     "remove_legacy_ai": 5,
     "remove_legacy_placeholder": 28,
@@ -20,7 +20,7 @@
   "matrix_rows": 3902,
   "review_required_rows": 0,
   "schema_version": "pe_claw_gui_migration_phase1_v1",
-  "selected_runtime_files": 2089,
+  "selected_runtime_files": 2090,
   "source_commit": "6726f508fcf0e545f69512654d1ea5543e6333cf",
   "source_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
   "source_topologies": 19,

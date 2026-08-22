@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ...models.ai_design_report import AIDesignReport
-from ...models.design_intent import DesignIntent
 from ...models.design_report import DesignReport
 from ...topologies.base import TopologyPlugin, TopologyRegistry
 
@@ -21,8 +19,6 @@ class AppStateStore:
     active_plugin: TopologyPlugin | None = None
     last_raw_input: dict[str, str] | None = None
     design_report: DesignReport | None = None
-    ai_design_intent: DesignIntent | None = None
-    ai_design_report: AIDesignReport | None = None
 
     def set_selected_category(self, category_id: str) -> None:
         """Select a converter category and clear topology-specific state."""
@@ -38,8 +34,6 @@ class AppStateStore:
         self.active_plugin = plugin
         self.last_raw_input = None
         self.design_report = None
-        self.ai_design_intent = None
-        self.ai_design_report = None
 
     def clear_topology_selection(self) -> None:
         """Clear the active topology, plugin, and generated results."""
@@ -48,8 +42,6 @@ class AppStateStore:
         self.active_plugin = None
         self.last_raw_input = None
         self.design_report = None
-        self.ai_design_intent = None
-        self.ai_design_report = None
 
     def reset_to_category_selection(self) -> None:
         """Return the GUI to the first-level category selection page."""

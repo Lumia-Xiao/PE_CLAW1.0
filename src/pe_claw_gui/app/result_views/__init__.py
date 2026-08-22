@@ -1,6 +1,5 @@
 """Result view widgets for the target multi-topology GUI structure."""
 
-from .ai_design_view import AIDesignView
 from .capacitor_view import CapacitorView
 from .capacitor_pf_view import CapacitorPFView
 from .device_view import DeviceView
@@ -17,7 +16,6 @@ from .thermal_view import ThermalView
 from .waveform_view import WaveformView
 
 __all__ = [
-    "AIDesignView",
     "CapacitorView",
     "CapacitorPFView",
     "DeviceView",

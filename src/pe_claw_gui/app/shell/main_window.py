@@ -6,7 +6,6 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from ...topologies.base import build_default_registry
-from ..controllers.ai_design_controller import AIDesignController
 from ..controllers.device_controller import DeviceController
 from ..controllers.efficiency_sweep_controller import EfficiencySweepController
 from ..controllers.export_controller import ExportController
@@ -32,7 +31,6 @@ class PEClawMainWindow(tk.Tk):
         )
 
         self.design_controller = RunDesignController(self.state_store)
-        self.ai_design_controller = AIDesignController(self.state_store)
         self.waveform_controller = WaveformController(self.state_store)
         self.device_controller = DeviceController(self.state_store)
         self.efficiency_sweep_controller = EfficiencySweepController(self.state_store)
@@ -59,7 +57,6 @@ class PEClawMainWindow(tk.Tk):
             self.state_store,
             on_show_categories=self._show_category_selection,
             on_show_category_topologies=self._show_selected_category_page,
-            on_show_ai_design=self._show_ai_design_page,
         )
         self.navigation.grid(row=0, column=0, sticky="ew")
 
@@ -67,7 +64,6 @@ class PEClawMainWindow(tk.Tk):
             self,
             state_store=self.state_store,
             on_run_design=self._on_run_design,
-            on_run_ai_design=self._on_run_ai_design,
             on_run_capacitor=self._on_run_capacitor,
             on_run_magnetics=self._on_run_magnetics,
             on_generate_waveforms=self._on_generate_waveforms,
@@ -102,10 +98,6 @@ class PEClawMainWindow(tk.Tk):
         self.workspace.load_form(topology_id)
         self.navigation.refresh()
 
-    def _show_ai_design_page(self) -> None:
-        self.workspace.show_ai_design_page()
-        self.navigation.refresh()
-
     def _on_run_design(self) -> None:
         try:
             if self.workspace.active_form is None:
@@ -130,20 +122,6 @@ class PEClawMainWindow(tk.Tk):
             messagebox.showwarning("No Design", str(exc))
         except Exception as exc:  # pragma: no cover - GUI path
             messagebox.showerror("Magnetics Error", str(exc))
-
-    def _on_run_ai_design(self) -> None:
-        try:
-            if self.workspace.ai_design_page is None:
-                raise RuntimeError("Open AI Design before running the AI pipeline.")
-            report, error_message = self.ai_design_controller.run_ai_design(self.workspace.ai_design_page.get_form_values())
-            if error_message is not None or report is None:
-                raise RuntimeError(error_message or "AI design pipeline failed.")
-            self.workspace.render_ai_design_report(report)
-            self.navigation.refresh()
-        except RuntimeError as exc:  # pragma: no cover - GUI path
-            messagebox.showwarning("AI Design", str(exc))
-        except Exception as exc:  # pragma: no cover - GUI path
-            messagebox.showerror("AI Design Error", str(exc))
 
     def _on_run_capacitor(self) -> None:
         try:

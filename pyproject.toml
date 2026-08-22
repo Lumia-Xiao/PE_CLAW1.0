@@ -5,11 +5,19 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pe-claw-gui"
 version = "0.1.0"
-description = "PE-Claw multi-topology scaffold with an active Buck CCM flow."
+description = "Deterministic power-electronics converter design GUI and backend."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
   "matplotlib>=3.8",
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+maintenance-pdf = [
+  "pypdf>=4.0",
 ]
 
 [tool.setuptools]
@@ -19,4 +27,31 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-pe_claw_gui = ["libraries/semiconductors/infineon/data/*.xml"]
+pe_claw_gui = [
+  "libraries/semiconductors/infineon/data/*/*.xml",
+  "libraries/semiconductors/mitsubishi/data/*/*.xml",
+  "libraries/semiconductors/navitas/data/gen3f_sic_mosfet/*.xml",
+  "libraries/semiconductors/rohm/data/*/*.xml",
+  "libraries/semiconductors/rohm/data_rg/*/*.xml",
+  "libraries/semiconductors/rohm/data_sc/*.xml",
+  "libraries/semiconductors/wolfspeed/data/diodes/*.xml",
+  "libraries/semiconductors/wolfspeed/data/legacy_mosfets/*.xml",
+  "libraries/semiconductors/wolfspeed/data/modules/*.xml",
+  "libraries/semiconductors/wolfspeed/data/mosfet_with_diode/*.xml",
+  "libraries/semiconductors/data/*.csv",
+  "libraries/capacitors/lelon/data/*.csv",
+  "libraries/capacitors/nippon_chemi_con/data/*.csv",
+  "libraries/capacitors/rubycon_electrolytic/data/*.csv",
+  "libraries/capacitors/tdk/data/*.csv",
+  "libraries/magnetics/openmagnetics_data/*.ndjson",
+  "libraries/magnetics/openmagnetics_data/*.json",
+  "libraries/magnetics/openmagnetics_data_v2/*.json",
+  "libraries/magnetics/normalized_openmagnetics/*.json",
+  "libraries/magnetics/data/*.csv",
+  "app/assets/topologies/ac_dc/*.png",
+  "app/assets/topologies/dc_ac/*.png",
+  "app/assets/topologies/dc_dc/*.png",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -11,7 +11,9 @@ This directory records the controlled migration of the deterministic PE-Claw
 - Target Phase 1 baseline commit: `b23e4f7d7ef3aa4c28b2d9caa11b81d5c8fe485d`
 - Migration branch: `codex/sync-gui-backend-from-2`
 
-No PE-Claw 2.0 runtime file was copied during Phase 0 or Phase 1.
+No PE-Claw 2.0 runtime file was copied during Phase 0 or Phase 1. Phase 2 then
+aligned only the target packaging and minimum deterministic GUI runtime
+skeleton; shared engineering backends and new topologies remain unmodified.
 
 ## Contents
 
@@ -25,6 +27,7 @@ No PE-Claw 2.0 runtime file was copied during Phase 0 or Phase 1.
 - `phase1/topology_acceptance_matrix.csv`: 19-topology migration acceptance tracker.
 - `phase1/phase1_summary.json`: machine-readable counts and baseline identities.
 - `phase1/summary.md`: reviewed Phase 1 conclusions and execution gate.
+- `phase2/summary.md`: packaging/runtime changes and clean-environment evidence.
 - `tools/generate_phase1_artifacts.py`: standard-library-only reproducible generator.
 - `artifact_manifest.csv`: byte counts and SHA-256 values for migration evidence files.
 

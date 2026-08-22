@@ -1,4 +1,3 @@
-from .ai_design_report import AIDesignReport, CandidateDesignResult, DesignCheckResult, TopologyRecommendation
 from .common_spec import CommonSpec
 from .design_intent import DesignIntent
 from .design_report import DesignReport
@@ -37,11 +36,8 @@ DeviceResult = DeviceSelectionResult
 
 __all__ = [
     "Archetype",
-    "AIDesignReport",
-    "CandidateDesignResult",
     "CommonSpec",
     "CoreDesign",
-    "DesignCheckResult",
     "DesignIntent",
     "DesignReport",
     "DesignPipelineResult",
@@ -74,7 +70,6 @@ __all__ = [
     "ThermalComparisonEntry",
     "ThermalEstimate",
     "ThermalResult",
-    "TopologyRecommendation",
     "WaveformPipelineResult",
     "WaveformSet",
 ]

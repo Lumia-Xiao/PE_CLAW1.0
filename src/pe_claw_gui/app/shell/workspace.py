@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from tkinter import ttk
 
-from ...models.ai_design_report import AIDesignReport
 from ...models.design_report import DesignReport
 from ..category_views import (
     ACACCategoryPage,
@@ -25,7 +24,6 @@ from ..result_views import (
     SummaryView,
     WaveformView,
 )
-from ..ai_design_page import AIDesignPage
 from .state_store import AppStateStore
 
 
@@ -44,12 +42,10 @@ class Workspace(ttk.Frame):
         on_back_to_categories,
         on_run_capacitor=None,
         on_run_efficiency_sweep=None,
-        on_run_ai_design=None,
     ) -> None:
         super().__init__(parent, padding=12)
         self._state_store = state_store
         self._on_run_design = on_run_design
-        self._on_run_ai_design = on_run_ai_design
         self._on_run_capacitor = on_run_capacitor
         self._on_run_efficiency_sweep = on_run_efficiency_sweep
         self._on_run_magnetics = on_run_magnetics
@@ -59,7 +55,6 @@ class Workspace(ttk.Frame):
         self._on_back_to_categories = on_back_to_categories
         self.active_form = None
         self.active_page = None
-        self.ai_design_page = None
         self.results_notebook = None
         self.summary_view = None
         self.hardware_overview_view = None
@@ -99,7 +94,6 @@ class Workspace(ttk.Frame):
         self.efficiency_view = None
         self.inductor_view = None
         self.inductor_pf_view = None
-        self.ai_design_page = None
 
     def show_category_selection(self) -> None:
         """Render the first-level converter category page."""
@@ -189,22 +183,6 @@ class Workspace(ttk.Frame):
         )
         self.active_form.grid(row=0, column=0, sticky="nsew")
         self.render_report(None)
-
-    def show_ai_design_page(self) -> None:
-        """Render the AI design intent form and result view."""
-        self._clear_content()
-        self._state_store.set_active_page("ai_design")
-        self.ai_design_page = AIDesignPage(
-            self.content_host,
-            on_run_ai_design=self._on_run_ai_design,
-        )
-        self.ai_design_page.grid(row=0, column=0, sticky="nsew")
-
-    def render_ai_design_report(self, report: AIDesignReport | None) -> None:
-        """Push an AI design report into the visible AI design page."""
-        if self.ai_design_page is None:
-            return
-        self.ai_design_page.render_report(report)
 
     def render_report(self, report: DesignReport | None) -> None:
         """Push a report into all result views and the active form."""

@@ -103,6 +103,7 @@ RUNTIME_ROOT_FILES = {
     "pyproject.toml",
     "requirements.txt",
     "run_pe_claw_gui.bat",
+    "scripts/check_runtime_dependencies.py",
 }
 
 TEXT_SUFFIXES = {

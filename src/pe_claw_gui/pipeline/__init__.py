@@ -6,7 +6,6 @@ from .run_capacitor_geometry_pipeline import run_capacitor_geometry_pipeline
 from .run_capacitor_pipeline import run_capacitor_operating_point_refresh, run_capacitor_pipeline
 from .run_full_pipeline import run_full_pipeline
 from .run_geometry_pipeline import run_geometry_pipeline
-from .run_ai_design_pipeline import run_ai_design_pipeline
 from .run_loss_pipeline import run_loss_pipeline
 from .run_magnetic_pipeline import run_magnetic_pipeline
 from .run_operating_point_refresh import run_operating_point_refresh
@@ -23,7 +22,6 @@ __all__ = [
     "run_efficiency_sweep",
     "run_full_pipeline",
     "run_geometry_pipeline",
-    "run_ai_design_pipeline",
     "run_loss_pipeline",
     "run_magnetic_pipeline",
     "run_operating_point_refresh",

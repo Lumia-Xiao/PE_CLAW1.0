@@ -13,7 +13,7 @@ identities. No 2.0 runtime file was copied.
 | Source 2.0 tracked files | 3,893 |
 | Target 1.0 tracked baseline files | 909 |
 | Union migration-matrix rows | 3,902 |
-| Selected deterministic runtime files | 2,089 |
+| Selected deterministic runtime files | 2,090 |
 | Static Python dependency edges | 4,686 |
 | Source registered topologies | 19 |
 | Target registered topology baseline | 7 |
@@ -23,7 +23,7 @@ identities. No 2.0 runtime file was copied.
 
 | Classification | Count | Planned action |
 | --- | ---: | --- |
-| `add_from_2_0` | 1,228 | Add required deterministic runtime or test files |
+| `add_from_2_0` | 1,229 | Add required deterministic runtime or test files |
 | `replace_from_2_0` | 102 | Replace changed same-role files with the 2.0 baseline |
 | `keep_from_1_0` | 764 | Retain identical or target-owned files |
 | `adapt_in_target` | 29 | Remove excluded dependencies while preserving deterministic behavior |
@@ -31,11 +31,11 @@ identities. No 2.0 runtime file was copied.
 | `remove_legacy_placeholder` | 28 | Remove unregistered AC-AC/CLLC/DAB/LLC/PSFB placeholder packages |
 | `exclude_agentic` | 771 | Do not migrate AI, agentic, skills, design requests, or Phase 17 files |
 | `exclude_generated` | 722 | Do not migrate generated reports, comparisons, outputs, or evidence |
-| `exclude_out_of_scope` | 253 | Do not migrate source-only maintenance or non-GUI material |
+| `exclude_out_of_scope` | 252 | Do not migrate source-only maintenance or non-GUI material |
 
-The 2,089 selected files include packaged semiconductor, capacitor, and
+The 2,090 selected files include packaged semiconductor, capacitor, and
 magnetic data. The high file count is therefore expected and is not equivalent
-to 2,089 Python modules.
+to 2,090 Python modules.
 
 ## Dependency Closure
 
