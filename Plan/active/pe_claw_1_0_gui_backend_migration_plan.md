@@ -2,7 +2,7 @@
 
 ## 1. Plan Metadata
 
-- **Status:** Active plan; implementation not started
+- **Status:** Active plan; Phase 0 and Phase 1 completed, Phase 2 not started
 - **Plan date:** 2026-08-22
 - **Source workspace:** `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw`
 - **Source repository:** `https://github.com/Lumia-Xiao/PE-Claw_2.0.git`
@@ -192,6 +192,8 @@ The file migration matrix must classify each relevant path as one of:
 | `remove_legacy_ai` | Legacy 1.0 AI runtime file is intentionally removed |
 | `exclude_agentic` | 2.0 AI/agentic file is outside the target product |
 | `exclude_generated` | Cache, output, archive, or generated artifact |
+| `exclude_out_of_scope` | Source-only maintenance, documentation, or non-GUI material |
+| `remove_legacy_placeholder` | Unregistered legacy placeholder package replaced by registered 2.0 topology packages |
 | `review_required` | Ownership or dependency is unresolved; migration must stop here |
 
 ## 7. Detailed Execution Phases
@@ -610,9 +612,9 @@ Additional migration checks must verify:
 - [x] Target repository connected to the recorded PE_CLAW1.0 baseline
 - [x] Migration branch created and all changes confined to it
 - [x] Source 2.0 commit frozen and recorded
-- [ ] Backup and rollback point recorded
-- [ ] Migration matrix complete with no `review_required` rows
-- [ ] No generated/cache/IDE files tracked
+- [x] Backup and rollback point recorded
+- [x] Migration matrix complete with no `review_required` rows
+- [x] No generated/cache/IDE files tracked
 
 ### Runtime architecture
 
@@ -657,5 +659,6 @@ Additional migration checks must verify:
 
 | Date | Status | Change |
 | --- | --- | --- |
+| 2026-08-22 | Phase 0 and Phase 1 complete | Recorded environment and GUI/registry baselines, created the target Git bundle backup, generated source/target SHA-256 inventories, classified 3,902 union paths, closed 4,686 dependency edges, initialized the 19-topology acceptance matrix, and documented all AI/agentic exclusions. Source backup was skipped per user confirmation. No 2.0 runtime code was copied. |
 | 2026-08-22 | Target workspace established | Moved the plan to `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0`, updated target-path references, fetched the PE_CLAW1.0 history, and created `codex/sync-gui-backend-from-2` from `origin/master` at `46e1b96c7353763685e54ad4bf76eddad5131335`. No 2.0 runtime code was copied. |
 | 2026-08-22 | Active plan created | Defined full 1.0-to-2.0 deterministic GUI/backend migration, explicit AI/agentic exclusions, phased gates, 19-topology acceptance, verification, rollback, and GitHub handoff. No runtime code copied or changed. |
