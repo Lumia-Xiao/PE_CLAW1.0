@@ -15,3 +15,5 @@ class LossResult:
     recommended_design_total_volume_m3: float | None = None
     top_design_losses: dict[str, dict[str, float]] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
+    core_loss_audit: dict[str, object] = field(default_factory=dict)
+    core_loss_status: str = "not_evaluated"

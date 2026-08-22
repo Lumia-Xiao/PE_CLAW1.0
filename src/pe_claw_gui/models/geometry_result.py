@@ -86,6 +86,8 @@ class InductorGeometryLayout:
     overall_height_mm: float
     overall_depth_mm: float
     scale_bar_mm: float
+    geometry_dimension_source: str = ""
+    geometry_warning: str = ""
     notes: list[str] = field(default_factory=list)
 
 

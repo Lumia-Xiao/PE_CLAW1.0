@@ -60,6 +60,9 @@ class SemiconductorGeometryRoleLayout:
     diode_subtype: str | None = None
     package: str | None = None
     quantity: int = 1
+    topology_position_count: int = 1
+    parallel_per_position: int = 1
+    total_physical_device_count: int = 1
     module_group_id: str | None = None
     module_section_role: str | None = None
     diode_binding_policy: str | None = None

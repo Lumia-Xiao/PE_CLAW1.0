@@ -35,6 +35,9 @@ class EfficiencySweepResult:
     full_load_efficiency: float | None = None
     light_load_efficiency: float | None = None
     artifact_paths: dict[str, str] = field(default_factory=dict)
+    sweep_basis: dict[str, object] = field(default_factory=dict)
+    pf_sweep_points: tuple[dict[str, object], ...] = ()
+    pf_sweep_artifact_paths: dict[str, str] = field(default_factory=dict)
     warnings: tuple[str, ...] = ()
     signature: str | None = None
 
@@ -48,6 +51,9 @@ class EfficiencySweepResult:
             "full_load_efficiency": self.full_load_efficiency,
             "light_load_efficiency": self.light_load_efficiency,
             "artifact_paths": dict(self.artifact_paths),
+            "sweep_basis": dict(self.sweep_basis),
+            "pf_sweep_points": [dict(point) for point in self.pf_sweep_points],
+            "pf_sweep_artifact_paths": dict(self.pf_sweep_artifact_paths),
             "warnings": self.warnings,
             "signature": self.signature,
         }

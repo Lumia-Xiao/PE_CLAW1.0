@@ -11,3 +11,6 @@ class OperatingPoint:
 
     vin_v: float
     load_ratio: float = 1.0
+    vout_v: float | None = None
+    power_factor: float | None = None
+    switching_frequency_hz: float | None = None

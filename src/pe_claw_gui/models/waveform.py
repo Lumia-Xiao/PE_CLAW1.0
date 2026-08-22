@@ -39,3 +39,4 @@ class WaveformSet:
     gate_s4: list[float] = field(default_factory=list)
     t_zero_current_s: float | None = None
     notes: list[str] = field(default_factory=list)
+    metadata: dict[str, object] = field(default_factory=dict)

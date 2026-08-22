@@ -7,7 +7,13 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class CapacitorCandidate:
-    """One capacitor catalog candidate with geometry-ready metadata."""
+    """One capacitor catalog candidate with geometry-ready metadata.
+
+    ``capacitor_technology`` describes the physical technology family used for
+    filtering and loss semantics. ``application_category`` describes where the
+    part is intended to be used, such as DC-link, snubber, safety, or pulse
+    service.
+    """
 
     part_number: str
     manufacturer: str
@@ -117,6 +123,35 @@ class CapacitorCandidate:
     irms_40c_1khz_a: float | None = None
     irms_70c_10khz_a: float | None = None
     integration_note: str = ""
+    esr_value_type: str = ""
+    loss_model_type: str = "film_default"
+    availability_status: str = "standard"
+    capacitor_technology: str = "film"
+    family: str = ""
+    design_option: str = ""
+    ordering_code_template: str = ""
+    expanded_ordering_code: str = ""
+    capacitance_tolerance_percent: float | None = None
+    esr_typ_ohm: float | None = None
+    esr_max_ohm: float | None = None
+    impedance_max_ohm: float | None = None
+    impedance_frequency_hz: float | None = None
+    impedance_temperature_c: float | None = None
+    ripple_current_max_a: float | None = None
+    ripple_current_max_frequency_hz: float | None = None
+    ripple_current_max_temperature_c: float | None = None
+    ripple_current_rated_a: float | None = None
+    ripple_current_rated_frequency_hz: float | None = None
+    ripple_current_rated_temperature_c: float | None = None
+    endurance_hours: float | None = None
+    endurance_temperature_c: float | None = None
+    useful_life_hours: float | None = None
+    useful_life_reference: str = ""
+    tan_delta: float | None = None
+    tan_delta_source: str = ""
+    correction_curve_available: bool = False
+    correction_curve_source: str = ""
+    data_source: str = ""
 
 
 @dataclass(frozen=True)
@@ -134,12 +169,146 @@ class CapacitorSizingRequest:
     voltage_margin: float = 1.2
     allow_parallel: bool = True
     max_parallel_count: int = 5
+    max_series_count: int = 1
     include_non_dc_link_capacitors: bool = False
+    capacitance_min_f: float = 0.0
+    voltage_required_v: float = 0.0
+    rms_current_required_a: float = 0.0
+    role: str = ""
+    design_type: str = ""
+    basis: str = ""
+    topology_id: str = ""
+    pout_design_w: float = 0.0
+    vac_rms_v: float = 0.0
+    f_line_hz: float = 0.0
+    allowed_capacitor_technologies: tuple[str, ...] | None = None
+    include_epcos_screw_terminal_electrolytics: bool = False
+
+
+@dataclass(frozen=True)
+class LlcResonantCapacitorDesignRequest:
+    """Pending LLC resonant capacitor design request built from FHA tank stress."""
+
+    cr_target_f: float
+    cr_target_nF: float
+    lr_target_h: float
+    lr_total_actual_h: float
+    transformer_lk_h: float
+    external_lr_actual_h: float
+    current_rms_a: float
+    current_peak_a: float
+    current_basis: str
+    voltage_rms_v: float
+    voltage_peak_v: float
+    voltage_basis: str
+    voltage_rating_basis: str
+    voltage_margin_factor: float
+    required_voltage_rating_v: float
+    fs_basis_hz: float
+    fs_min_hz: float
+    fs_max_hz: float
+    frequency_basis: str
+    is_design_required: bool
+    warning: str = ""
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class LlcResonantCapacitorBankCandidate:
+    """One first-pass LLC resonant capacitor bank candidate."""
+
+    design_id: str
+    part_number: str
+    manufacturer: str
+    series: str
+    application_category: str
+    capacitance_f: float
+    capacitance_nF: float
+    capacitance_tolerance_percent: float
+    parallel_count: int
+    bank_capacitance_f: float
+    bank_capacitance_nF: float
+    cr_target_f: float
+    cr_target_nF: float
+    capacitance_error_percent: float
+    voltage_rating_v: float
+    required_voltage_rating_v: float
+    voltage_utilization: float
+    current_rms_total_a: float
+    current_rms_per_cap_a: float
+    ripple_current_rating_a: float
+    current_utilization: float
+    esr_ohm: float
+    esr_basis: str
+    bank_esr_ohm: float
+    loss_w: float
+    loss_per_cap_w: float
+    hotspot_c: float | None
+    estimated_volume_m3: float
+    estimated_volume_cm3: float
+    package_shape: str = ""
+    body_width_mm: float | None = None
+    body_depth_mm: float | None = None
+    body_height_mm: float | None = None
+    diameter_mm: float = 0.0
+    height_mm: float = 0.0
+    terminal_count: int = 2
+    terminal_diameter_mm: float = 0.0
+    terminal_pitch_mm: float | None = None
+    terminal_pitch_secondary_mm: float | None = None
+    terminal_type: str = ""
+    ambient_c: float | None = None
+    temperature_rise_c: float | None = None
+    is_pareto: bool = False
+    representative_role: str = ""
+    representative_reason: str = ""
+    recommended_flag: bool = False
+    warning: str = ""
+    rejection_reason: str = ""
+
+
+@dataclass(frozen=True)
+class LlcResonantCapacitorSearchResult:
+    """First-pass LLC resonant capacitor candidate search and Pareto result."""
+
+    request: LlcResonantCapacitorDesignRequest | None = None
+    candidates: list[LlcResonantCapacitorBankCandidate] = field(default_factory=list)
+    feasible_candidates: list[LlcResonantCapacitorBankCandidate] = field(default_factory=list)
+    pareto_candidates: list[LlcResonantCapacitorBankCandidate] = field(default_factory=list)
+    chosen_candidates: list[LlcResonantCapacitorBankCandidate] = field(default_factory=list)
+    recommended_candidate: LlcResonantCapacitorBankCandidate | None = None
+    min_volume_candidate: LlcResonantCapacitorBankCandidate | None = None
+    min_loss_candidate: LlcResonantCapacitorBankCandidate | None = None
+    compromise_candidate: LlcResonantCapacitorBankCandidate | None = None
+    rejection_counts: dict[str, int] = field(default_factory=dict)
+    part_rejection_counts: dict[str, int] = field(default_factory=dict)
+    bank_rejection_counts: dict[str, int] = field(default_factory=dict)
+    coverage_summary: dict[str, object] = field(default_factory=dict)
+    nearest_lower_bank: LlcResonantCapacitorBankCandidate | None = None
+    nearest_upper_bank: LlcResonantCapacitorBankCandidate | None = None
+    closest_absolute_error_bank: LlcResonantCapacitorBankCandidate | None = None
+    lowest_loss_near_miss: LlcResonantCapacitorBankCandidate | None = None
+    lowest_volume_near_miss: LlcResonantCapacitorBankCandidate | None = None
+    notes: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    feasible_csv_path: str = ""
+    near_miss_csv_path: str = ""
+    pareto_csv_path: str = ""
+    chosen_csv_path: str = ""
+    pareto_png_path: str = ""
+    pareto_notes: list[str] = field(default_factory=list)
+    plot_diagnostics: dict[str, object] = field(default_factory=dict)
+    geometry_targets: list[CapacitorGeometryTarget] = field(default_factory=list)
+    geometry_artifact_paths: list[str] = field(default_factory=list)
+    geometry_comparison_2d_path: str = ""
+    geometry_comparison_3d_path: str = ""
+    geometry_notes: list[str] = field(default_factory=list)
+    geometry_diagnostics: dict[str, object] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
 class CapacitorSelectionEntry:
-    """One evaluated capacitor candidate and parallel count."""
+    """One evaluated capacitor candidate and series/parallel bank count."""
 
     candidate: CapacitorCandidate
     parallel_count: int
@@ -173,6 +342,12 @@ class CapacitorSelectionEntry:
     is_pareto: bool = False
     representative_label: str = ""
     recommended_flag: bool = False
+    series_count: int = 1
+    bank_voltage_rating_dc_v: float = 0.0
+
+    @property
+    def total_capacitor_count(self) -> int:
+        return max(int(self.series_count or 1), 1) * max(int(self.parallel_count or 1), 1)
 
 
 @dataclass(frozen=True)
@@ -203,7 +378,7 @@ class CapacitorSideResult:
 
 @dataclass(frozen=True)
 class CapacitorBankLayout:
-    """First-pass mechanical layout for one parallel capacitor bank."""
+    """First-pass mechanical layout for one series/parallel capacitor bank."""
 
     side: str
     role: str
@@ -228,9 +403,15 @@ class CapacitorBankLayout:
     terminal_pitch_secondary_mm: float | None
     terminal_type: str
     positions_mm: list[tuple[float, float]]
+    series_count: int = 1
+    total_capacitor_count: int = 1
+    bank_voltage_rating_dc_v: float = 0.0
+    grid_columns: int = 0
+    grid_rows: int = 0
     body_width_mm: float | None = None
     body_depth_mm: float | None = None
     body_height_mm: float | None = None
+    caption_lines: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
 
 
@@ -270,6 +451,8 @@ class CapacitorResult:
 
     input_selection: CapacitorSideResult | None = None
     output_selection: CapacitorSideResult | None = None
+    llc_resonant_capacitor_request: LlcResonantCapacitorDesignRequest | None = None
+    llc_resonant_capacitor_search_result: LlcResonantCapacitorSearchResult | None = None
     current_operating_input: CapacitorSideResult | None = None
     current_operating_output: CapacitorSideResult | None = None
     input_geometry: CapacitorSideGeometryResult | None = None

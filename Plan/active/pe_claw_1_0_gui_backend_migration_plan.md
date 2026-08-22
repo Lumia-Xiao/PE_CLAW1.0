@@ -2,7 +2,7 @@
 
 ## 1. Plan Metadata
 
-- **Status:** Active plan; Phase 0 through Phase 2 completed, Phase 3 next
+- **Status:** Active plan; Phase 0 through Phase 3 completed, Phase 4 next
 - **Plan date:** 2026-08-22
 - **Source workspace:** `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw`
 - **Source repository:** `https://github.com/Lumia-Xiao/PE-Claw_2.0.git`
@@ -622,7 +622,7 @@ Additional migration checks must verify:
 - [x] GUI launches on supported Windows/Python environment
 - [ ] Runtime follows GUI -> controller -> registry/plugin -> pipeline -> models -> result views
 - [ ] Deterministic pipeline stage order matches source 2.0
-- [ ] Shared dataclass and handoff contracts match the selected source baseline
+- [x] Shared dataclass and handoff contracts match the selected source baseline
 - [x] Package data loads from the installed package
 
 ### Topologies and GUI
@@ -659,6 +659,7 @@ Additional migration checks must verify:
 
 | Date | Status | Change |
 | --- | --- | --- |
+| 2026-08-22 | Phase 3 complete | Migrated 18 deterministic model files byte-for-byte from the frozen 2.0 source, adapted public model exports to exclude agentic recommendation contracts, retained seven source-identical base protocol files, and preserved the seven-topology registry until additional plugins/forms migrate. Focused model tests passed 33 cases; the complete target suite passed 39 cases, including deterministic JSON, winding-loss reproduction, registry resolution, GUI bootstrap, and a legacy Buck report chain. |
 | 2026-08-22 | Phase 2 complete | Aligned deterministic dependencies, package-data rules, pytest discovery, runtime preflight, and Windows launcher; disconnected legacy AI Design from normal imports while preserving the seven-topology baseline. A new Python 3.12 environment passed editable install, package-resource lookup, GUI and launcher smoke checks, compile smoke, and 6 focused tests. Shared models, engines, pipeline code, and 12 new topologies remain for later phases. |
 | 2026-08-22 | Phase 0 and Phase 1 complete | Recorded environment and GUI/registry baselines, created the target Git bundle backup, generated source/target SHA-256 inventories, classified 3,902 union paths, closed 4,686 dependency edges, initialized the 19-topology acceptance matrix, and documented all AI/agentic exclusions. Source backup was skipped per user confirmation. No 2.0 runtime code was copied. |
 | 2026-08-22 | Target workspace established | Moved the plan to `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0`, updated target-path references, fetched the PE_CLAW1.0 history, and created `codex/sync-gui-backend-from-2` from `origin/master` at `46e1b96c7353763685e54ad4bf76eddad5131335`. No 2.0 runtime code was copied. |

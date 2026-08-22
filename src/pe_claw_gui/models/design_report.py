@@ -6,7 +6,9 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from .capacitor import CapacitorResult
+from .bridge_rectifier import BridgeRectifierSelectionResult
 from .common_spec import CommonSpec
+from .design_assessment import DesignAssessment
 from .device_result import DeviceSelectionResult
 from .efficiency_sweep import EfficiencySweepResult
 from .geometry_result import GeometryResult
@@ -39,12 +41,17 @@ class DesignReport:
     thermal: ThermalResult | None = None
     geometry: GeometryResult | None = None
     capacitor: CapacitorResult | None = None
+    bridge_rectifier: BridgeRectifierSelectionResult | None = None
     efficiency_sweep: EfficiencySweepResult | None = None
+    assessment: DesignAssessment | None = None
     run_design_started_at: str | None = None
     run_design_finished_at: str | None = None
     run_design_runtime_seconds: float | None = None
     run_magnetics_started_at: str | None = None
     run_magnetics_finished_at: str | None = None
     run_magnetics_runtime_seconds: float | None = None
+    run_efficiency_sweep_started_at: str | None = None
+    run_efficiency_sweep_finished_at: str | None = None
+    run_efficiency_sweep_runtime_seconds: float | None = None
     topology_result: "TopologyResult | None" = None
     notes: list[str] = field(default_factory=list)

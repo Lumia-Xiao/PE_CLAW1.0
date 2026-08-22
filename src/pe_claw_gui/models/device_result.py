@@ -35,6 +35,8 @@ class SemiconductorRoleSchemeResult:
     rejected_candidate_count: int = 0
     per_device_loss_w: float | None = None
     total_loss_w: float | None = None
+    topology_position_count: int = 1
+    total_physical_device_count: int = 1
     target_junction_feasible: bool | None = None
     sink_volume_cm3: float | None = None
     sink_model_label: str = ""
