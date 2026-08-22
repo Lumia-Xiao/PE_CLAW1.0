@@ -7,7 +7,7 @@
 - **Source workspace:** `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw`
 - **Source repository:** `https://github.com/Lumia-Xiao/PE-Claw_2.0.git`
 - **Source baseline:** branch `main`, commit `6726f508fcf0e545f69512654d1ea5543e6333cf`
-- **Target workspace:** `C:\Users\Lumia\Documents\ChatGPT\PE-Claw1.0`
+- **Target workspace:** `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0`
 - **Target repository:** `https://github.com/Lumia-Xiao/PE_CLAW1.0.git`
 - **Target baseline:** branch `master`, commit `46e1b96c7353763685e54ad4bf76eddad5131335`
 - **Active migration branch:** `codex/sync-gui-backend-from-2`
@@ -202,7 +202,7 @@ The file migration matrix must classify each relevant path as one of:
 2. Re-read the source and target repository instructions before any changes.
 3. Confirm that the source worktree commit and status match the plan metadata;
    record any later source commit as an approved baseline change.
-4. Confirm that `C:\Users\Lumia\Documents\ChatGPT\PE-Claw1.0` contains only
+4. Confirm that `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0` contains only
    its empty Git metadata, this migration plan, or other explicitly approved
    content.
 5. Create the required timestamped weekly backup before repository-wide
@@ -657,5 +657,5 @@ Additional migration checks must verify:
 
 | Date | Status | Change |
 | --- | --- | --- |
-| 2026-08-22 | Target workspace established | Moved the plan to `C:\Users\Lumia\Documents\ChatGPT\PE-Claw1.0`, updated target-path references, fetched the PE_CLAW1.0 history, and created `codex/sync-gui-backend-from-2` from `origin/master` at `46e1b96c7353763685e54ad4bf76eddad5131335`. No 2.0 runtime code was copied. |
+| 2026-08-22 | Target workspace established | Moved the plan to `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0`, updated target-path references, fetched the PE_CLAW1.0 history, and created `codex/sync-gui-backend-from-2` from `origin/master` at `46e1b96c7353763685e54ad4bf76eddad5131335`. No 2.0 runtime code was copied. |
 | 2026-08-22 | Active plan created | Defined full 1.0-to-2.0 deterministic GUI/backend migration, explicit AI/agentic exclusions, phased gates, 19-topology acceptance, verification, rollback, and GitHub handoff. No runtime code copied or changed. |
