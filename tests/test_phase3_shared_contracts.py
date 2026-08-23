@@ -75,12 +75,12 @@ def test_legacy_model_construction_preserves_new_field_defaults() -> None:
     assert capacitor_request.allowed_capacitor_technologies is None
 
 
-def test_default_registry_keeps_seven_resolvable_topology_contracts() -> None:
+def test_default_registry_keeps_phase7_resolvable_topology_contracts() -> None:
     registry = build_default_registry()
     definitions = registry.list_definitions()
 
-    assert len(definitions) == 7
-    assert {definition.category_id for definition in definitions} == {"dc_dc"}
+    assert len(definitions) == 19
+    assert {definition.category_id for definition in definitions} == {"dc_dc", "ac_dc", "dc_ac"}
     for definition in definitions:
         assert registry.get_plugin(definition.topology_id) is not None
         assert registry.get_form_class(definition.topology_id).__name__ == definition.form_class

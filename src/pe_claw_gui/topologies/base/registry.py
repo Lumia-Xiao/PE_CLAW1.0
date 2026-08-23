@@ -94,6 +94,112 @@ class TopologyRegistry:
 def build_default_registry() -> TopologyRegistry:
     """Create the runtime topology registry."""
     registry = TopologyRegistry()
+    ac_dc_category = CONVERTER_CATEGORY_BY_ID["ac_dc"]
+    registry.register(
+        TopologyDefinition(
+            category_id=ac_dc_category.category_id,
+            category_display_name=ac_dc_category.display_name,
+            topology_id="single_phase_diode_bridge_rectifier_capacitor_filter",
+            display_name="Single-Phase Diode Bridge Rectifier Capacitor Filter",
+            module_path="pe_claw_gui.topologies.ac_dc.single_phase_diode_bridge_rectifier_capacitor_filter",
+            form_path="pe_claw_gui.app.topology_forms.single_phase_diode_bridge_rectifier_capacitor_filter_form",
+            form_class="SinglePhaseDiodeBridgeRectifierCapacitorFilterForm",
+            implemented=True,
+            legacy_key="SinglePhase_DiodeBridgeRectifier_CapacitorFilter",
+        )
+    )
+    registry.register(
+        TopologyDefinition(
+            category_id=ac_dc_category.category_id,
+            category_display_name=ac_dc_category.display_name,
+            topology_id="single_phase_diode_bridge_rectifier_dc_inductor_filter",
+            display_name="Single-Phase Diode Bridge Rectifier with DC-Side Inductor",
+            module_path="pe_claw_gui.topologies.ac_dc.single_phase_diode_bridge_rectifier_dc_inductor_filter",
+            form_path="pe_claw_gui.app.topology_forms.single_phase_diode_bridge_rectifier_dc_inductor_filter_form",
+            form_class="SinglePhaseDiodeBridgeRectifierDCInductorFilterForm",
+            implemented=True,
+            legacy_key="SinglePhase_DiodeBridgeRectifier_DCInductorFilter",
+        )
+    )
+    registry.register(
+        TopologyDefinition(
+            category_id=ac_dc_category.category_id,
+            category_display_name=ac_dc_category.display_name,
+            topology_id="three_phase_diode_bridge_rectifier_capacitor_filter",
+            display_name="Three-Phase Diode Bridge Rectifier Capacitor Filter",
+            module_path="pe_claw_gui.topologies.ac_dc.three_phase_diode_bridge_rectifier_capacitor_filter",
+            form_path="pe_claw_gui.app.topology_forms.three_phase_diode_bridge_rectifier_capacitor_filter_form",
+            form_class="ThreePhaseDiodeBridgeRectifierCapacitorFilterForm",
+            implemented=True,
+            legacy_key="ThreePhase_DiodeBridgeRectifier_CapacitorFilter",
+        )
+    )
+    registry.register(
+        TopologyDefinition(
+            category_id=ac_dc_category.category_id,
+            category_display_name=ac_dc_category.display_name,
+            topology_id="single_phase_boost_pfc_diode_bridge",
+            display_name="Single-Phase Boost PFC Diode Bridge",
+            module_path="pe_claw_gui.topologies.ac_dc.single_phase_boost_pfc_diode_bridge",
+            form_path="pe_claw_gui.app.topology_forms.single_phase_boost_pfc_diode_bridge_form",
+            form_class="SinglePhaseBoostPFCDiodeBridgeForm",
+            implemented=True,
+            legacy_key="SinglePhase_BoostPFC_DiodeBridge_FirstPass",
+        )
+    )
+    registry.register(
+        TopologyDefinition(
+            category_id=ac_dc_category.category_id,
+            category_display_name=ac_dc_category.display_name,
+            topology_id="single_phase_totem_pole_bridgeless_pfc",
+            display_name="Single-Phase Totem-Pole Bridgeless PFC",
+            module_path="pe_claw_gui.topologies.ac_dc.single_phase_totem_pole_bridgeless_pfc",
+            form_path="pe_claw_gui.app.topology_forms.single_phase_totem_pole_bridgeless_pfc_form",
+            form_class="SinglePhaseTotemPoleBridgelessPFCForm",
+            implemented=True,
+            legacy_key="SinglePhase_TotemPole_BridgelessPFC_FirstPass",
+        )
+    )
+    dc_ac_category = CONVERTER_CATEGORY_BY_ID["dc_ac"]
+    registry.register(
+        TopologyDefinition(
+            category_id=dc_ac_category.category_id,
+            category_display_name=dc_ac_category.display_name,
+            topology_id="single_phase_full_bridge_inverter",
+            display_name="Single-Phase Full-Bridge Inverter",
+            module_path="pe_claw_gui.topologies.dc_ac.single_phase_full_bridge_inverter",
+            form_path="pe_claw_gui.app.topology_forms.single_phase_full_bridge_inverter_form",
+            form_class="SinglePhaseFullBridgeInverterForm",
+            implemented=True,
+            legacy_key="SinglePhase_FullBridge_Inverter",
+        )
+    )
+    registry.register(
+        TopologyDefinition(
+            category_id=dc_ac_category.category_id,
+            category_display_name=dc_ac_category.display_name,
+            topology_id="three_phase_two_level_voltage_source_inverter",
+            display_name="Three-Phase Two-Level Voltage-Source Inverter",
+            module_path="pe_claw_gui.topologies.dc_ac.three_phase_two_level_voltage_source_inverter",
+            form_path="pe_claw_gui.app.topology_forms.three_phase_two_level_voltage_source_inverter_form",
+            form_class="ThreePhaseTwoLevelVoltageSourceInverterForm",
+            implemented=True,
+            legacy_key="ThreePhase_TwoLevel_VoltageSource_Inverter",
+        )
+    )
+    registry.register(
+        TopologyDefinition(
+            category_id=dc_ac_category.category_id,
+            category_display_name=dc_ac_category.display_name,
+            topology_id="three_phase_three_level_npc_inverter",
+            display_name="Three-Phase Three-Level NPC Inverter",
+            module_path="pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter",
+            form_path="pe_claw_gui.app.topology_forms.three_phase_three_level_npc_inverter_form",
+            form_class="ThreePhaseThreeLevelNPCInverterForm",
+            implemented=True,
+            legacy_key="ThreePhase_ThreeLevel_NPC_Inverter",
+        )
+    )
     dc_dc_category = CONVERTER_CATEGORY_BY_ID["dc_dc"]
     registry.register(
         TopologyDefinition(
@@ -184,6 +290,58 @@ def build_default_registry() -> TopologyRegistry:
             form_class="BoostSynchronousRectifiedUnidirectionalForm",
             implemented=True,
             legacy_key="Boost_SynchronousRectified_Unidirectional",
+        )
+    )
+    registry.register(
+        TopologyDefinition(
+            category_id=dc_dc_category.category_id,
+            category_display_name=dc_dc_category.display_name,
+            topology_id="llc_resonant_converter_diode_rectifier",
+            display_name="LLC Resonant Converter Diode Rectifier",
+            module_path="pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier",
+            form_path="pe_claw_gui.app.topology_forms.llc_resonant_converter_diode_rectifier_form",
+            form_class="LLCResonantConverterDiodeRectifierForm",
+            implemented=True,
+            legacy_key="LLC_ResonantConverter_DiodeRectifier_Placeholder",
+        )
+    )
+    registry.register(
+        TopologyDefinition(
+            category_id=dc_dc_category.category_id,
+            category_display_name=dc_dc_category.display_name,
+            topology_id="llc_resonant_converter_synchronous_rectifier",
+            display_name="LLC Resonant Converter Synchronous Rectifier",
+            module_path="pe_claw_gui.topologies.dc_dc.llc_resonant_converter_synchronous_rectifier",
+            form_path="pe_claw_gui.app.topology_forms.llc_resonant_converter_synchronous_rectifier_form",
+            form_class="LLCResonantConverterSynchronousRectifierForm",
+            implemented=True,
+            legacy_key="LLC_ResonantConverter_SynchronousRectifier_Placeholder",
+        )
+    )
+    registry.register(
+        TopologyDefinition(
+            category_id=dc_dc_category.category_id,
+            category_display_name=dc_dc_category.display_name,
+            topology_id="flyback_diode_rectified_isolated",
+            display_name="Flyback Diode Rectified Isolated",
+            module_path="pe_claw_gui.topologies.dc_dc.flyback_diode_rectified_isolated",
+            form_path="pe_claw_gui.app.topology_forms.flyback_diode_rectified_isolated_form",
+            form_class="FlybackDiodeRectifiedIsolatedForm",
+            implemented=True,
+            legacy_key="Flyback_DiodeRectified_Isolated_FirstPass",
+        )
+    )
+    registry.register(
+        TopologyDefinition(
+            category_id=dc_dc_category.category_id,
+            category_display_name=dc_dc_category.display_name,
+            topology_id="phase_shifted_full_bridge_diode_rectifier_isolated",
+            display_name="Phase-Shifted Full-Bridge Diode Rectifier Isolated",
+            module_path="pe_claw_gui.topologies.dc_dc.phase_shifted_full_bridge_diode_rectifier_isolated",
+            form_path="pe_claw_gui.app.topology_forms.psfb_form",
+            form_class="PSFBTopologyForm",
+            implemented=True,
+            legacy_key="PhaseShiftedFullBridge_DiodeRectifier_Isolated_FirstPass",
         )
     )
     return registry

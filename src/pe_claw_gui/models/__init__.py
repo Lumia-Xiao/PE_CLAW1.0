@@ -9,7 +9,6 @@ from .bridge_rectifier import (
 )
 from .common_spec import CommonSpec
 from .design_assessment import AssessmentDimension, DesignAssessment
-from .design_intent import DesignIntent
 from .design_report import DesignReport
 from .device_loss import DeviceLossResult, SwitchStress
 from .device_result import DeviceSelectionResult
@@ -86,7 +85,6 @@ __all__ = [
     "CoreDesign",
     "AssessmentDimension",
     "DesignAssessment",
-    "DesignIntent",
     "DesignReport",
     "DesignPipelineResult",
     "DesignSpec",

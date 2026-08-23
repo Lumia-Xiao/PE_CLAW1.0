@@ -17,11 +17,15 @@ from ..result_views import (
     CapacitorView,
     DeviceView,
     EfficiencyView,
+    GeometryView,
     HardwareOverviewView,
     InductorPFView,
     InductorView,
     LossView,
+    MagneticView,
     SummaryView,
+    StressView,
+    ThermalView,
     WaveformView,
 )
 from .state_store import AppStateStore
@@ -59,10 +63,14 @@ class Workspace(ttk.Frame):
         self.summary_view = None
         self.hardware_overview_view = None
         self.waveform_view = None
+        self.stress_view = None
         self.device_view = None
         self.capacitor_view = None
         self.capacitor_pf_view = None
         self.loss_view = None
+        self.magnetic_view = None
+        self.thermal_view = None
+        self.geometry_view = None
         self.efficiency_view = None
         self.inductor_view = None
         self.inductor_pf_view = None
@@ -87,10 +95,14 @@ class Workspace(ttk.Frame):
         self.summary_view = None
         self.hardware_overview_view = None
         self.waveform_view = None
+        self.stress_view = None
         self.device_view = None
         self.capacitor_view = None
         self.capacitor_pf_view = None
         self.loss_view = None
+        self.magnetic_view = None
+        self.thermal_view = None
+        self.geometry_view = None
         self.efficiency_view = None
         self.inductor_view = None
         self.inductor_pf_view = None
@@ -119,9 +131,19 @@ class Workspace(ttk.Frame):
                 on_back=self._on_back_to_categories,
             )
         elif category_id == "dc_ac":
-            page = DCACCategoryPage(self.content_host, on_back=self._on_back_to_categories)
+            page = DCACCategoryPage(
+                self.content_host,
+                registry=self._state_store.registry,
+                on_topology_selected=self._on_topology_selected,
+                on_back=self._on_back_to_categories,
+            )
         elif category_id == "ac_dc":
-            page = ACDCCategoryPage(self.content_host, on_back=self._on_back_to_categories)
+            page = ACDCCategoryPage(
+                self.content_host,
+                registry=self._state_store.registry,
+                on_topology_selected=self._on_topology_selected,
+                on_back=self._on_back_to_categories,
+            )
         elif category_id == "ac_ac":
             page = ACACCategoryPage(self.content_host, on_back=self._on_back_to_categories)
         else:
@@ -150,10 +172,14 @@ class Workspace(ttk.Frame):
         self.summary_view = SummaryView(self.results_notebook)
         self.hardware_overview_view = HardwareOverviewView(self.results_notebook)
         self.waveform_view = WaveformView(self.results_notebook)
+        self.stress_view = StressView(self.results_notebook)
         self.device_view = DeviceView(self.results_notebook)
         self.capacitor_view = CapacitorView(self.results_notebook)
         self.capacitor_pf_view = CapacitorPFView(self.results_notebook)
         self.loss_view = LossView(self.results_notebook)
+        self.magnetic_view = MagneticView(self.results_notebook)
+        self.thermal_view = ThermalView(self.results_notebook)
+        self.geometry_view = GeometryView(self.results_notebook)
         self.efficiency_view = EfficiencyView(self.results_notebook)
         self.inductor_view = InductorView(self.results_notebook)
         self.inductor_pf_view = InductorPFView(self.results_notebook)
@@ -161,12 +187,16 @@ class Workspace(ttk.Frame):
         for label, view in (
             ("Summary", self.summary_view),
             ("Waveforms", self.waveform_view),
+            ("Stress", self.stress_view),
             ("Devices", self.device_view),
             ("Capacitor PF", self.capacitor_pf_view),
             ("Capacitors", self.capacitor_view),
             ("Inductor PF", self.inductor_pf_view),
             ("Inductor", self.inductor_view),
+            ("Magnetic", self.magnetic_view),
             ("Loss", self.loss_view),
+            ("Thermal", self.thermal_view),
+            ("Geometry", self.geometry_view),
             ("Efficiency", self.efficiency_view),
             ("Hardware Overview", self.hardware_overview_view),
         ):
@@ -193,10 +223,14 @@ class Workspace(ttk.Frame):
         self.summary_view.render(report)
         self.hardware_overview_view.render(report)
         self.waveform_view.render(report)
+        self.stress_view.render(report)
         self.device_view.render(report)
         self.capacitor_view.render(report)
         self.capacitor_pf_view.render(report)
         self.loss_view.render(report)
+        self.magnetic_view.render(report)
+        self.thermal_view.render(report)
+        self.geometry_view.render(report)
         self.efficiency_view.render(report)
         self.inductor_view.render(report)
         self.inductor_pf_view.render(report)

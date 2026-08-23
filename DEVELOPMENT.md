@@ -24,10 +24,9 @@
 - `topologies/dc_dc/`: active DC-DC topology plugins.
 - `pipeline/`: runtime orchestration stages.
 - `models/`: shared dataclasses and handoff objects.
-- `engines/`: calculation engines for device, capacitor, magnetic, loss, thermal, geometry, decision, and verification work.
+- `engines/`: calculation engines for device, capacitor, magnetic, loss, thermal, and geometry work.
 - `libraries/`: semiconductor, capacitor, magnetics, heatsink, and mechanical libraries.
 - `visualization/`: geometry, semiconductor, hardware overview, and related visualization helpers.
-- `agents/`: AI/reporting helpers.
 - `tools/`: repository maintenance and audit tools.
 
 ## Documentation Roles
@@ -56,7 +55,7 @@ These old namespaces were removed and should not be reintroduced:
 
 ```bash
 python -m compileall src/pe_claw_gui
-python -m pytest -q tests/test_topology_recommender.py tests/test_ai_design_pipeline.py tests/test_ai_design_gui.py
+python -m pytest -q tests/test_phase11_ai_isolation.py
 python -m pytest -q tests/test_design_magnetics_button_split.py
 python -m pytest -q tests/test_capacitor_pipeline.py
 python -m pytest -q tests/test_loss_view_system_summary.py

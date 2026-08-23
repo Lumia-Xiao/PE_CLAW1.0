@@ -2,7 +2,7 @@
 
 ## 1. Plan Metadata
 
-- **Status:** Active plan; Phase 0 through Phase 6 completed, Phase 7 next
+- **Status:** Active plan; Phase 0 through Phase 11 completed, Phase 12 next
 - **Plan date:** 2026-08-22
 - **Source workspace:** `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw`
 - **Source repository:** `https://github.com/Lumia-Xiao/PE-Claw_2.0.git`
@@ -414,7 +414,8 @@ focused tests. Preserve source definitions of RMS, peak, line-line, phase, and
 modulation quantities.
 
 **Exit gate:** all three DC-AC IDs register, execute representative fixtures,
-and display source-equivalent results and limitations.
+and display source-equivalent results and limitations. Completed on 2026-08-23;
+see `migration/phase9/summary.md`.
 
 ### Phase 10 - Migrate and integrate the GUI
 
@@ -434,7 +435,8 @@ and display source-equivalent results and limitations.
 
 **Exit gate:** the GUI launches without AI/agentic modules, presents all three
 categories and 19 topologies, executes representative runs, and displays each
-supported result family without stale or cross-topology state.
+supported result family without stale or cross-topology state. Completed on
+2026-08-23; see `migration/phase10/summary.md`.
 
 ### Phase 11 - Prove AI and agentic separation
 
@@ -453,7 +455,8 @@ supported result family without stale or cross-topology state.
    GUI registrations are reintroduced.
 
 **Exit gate:** clean installation and GUI startup succeed when no AI/agentic
-source exists in the target repository.
+source exists in the target repository. Completed on 2026-08-23; see
+`migration/phase11/summary.md`.
 
 ### Phase 12 - Complete verification and parity testing
 
@@ -640,11 +643,13 @@ Additional migration checks must verify:
 
 ### AI/agentic exclusion
 
-- [ ] Legacy 1.0 AI Design files and GUI entry are removed
+- [x] Legacy 1.0 AI Design files and GUI entry are removed
 - [x] 2.0 `agentic/`, `agents/`, and `skills/` are not migrated
 - [x] No runtime import requires AI/agentic code
 - [x] No AI/agentic dependency is installed for GUI startup or deterministic execution
-- [ ] Deterministic reports and result views work independently
+- [x] Deterministic reports and result views work independently
+- [x] AI-only agents, decision, verification, and design-intent modules are absent
+- [x] Package discovery and isolated GUI imports contain no prohibited AI/agentic modules
 
 ### Verification and delivery
 
@@ -662,7 +667,12 @@ Additional migration checks must verify:
 
 | Date | Status | Change |
 | --- | --- | --- |
-| 2026-08-23 | Phase 5 and Phase 6 complete | Migrated the deterministic pipeline stages, source-2.0 magnetic orchestration, capacitor visualization handoff, and all seven legacy DC-DC topology packages. New LLC, Flyback, PSFB, AC-DC, and DC-AC imports remain optional and are not loaded by the 1.0 seven-topology GUI. Added `tests/test_phase5_pipeline_closure.py`; the seven-topology design pipeline passed and the Buck magnetic/loss/thermal/geometry chain produced selected Pareto designs. |
+| 2026-08-23 | Phase 7 complete | Migrated the four source-2.0 LLC/Flyback/PSFB DC-DC topology packages, first-pass/gated readback modules, runtime GUI forms, registry entries, and focused deterministic acceptance tests. All four IDs loaded through the GUI registry and passed the deterministic full pipeline with waveform, device, loss, thermal, and geometry results. A bounded full-library magnetic smoke run was stopped after exceeding the execution window; see `migration/phase7/summary.md`. |
+| 2026-08-23 | Phase 8 complete | Migrated the five source-2.0 AC-DC topology packages, deterministic simulations/waveforms, GUI forms, AC-DC selection page, registry mappings, topology card helper/assets, and focused backend tests. All five IDs passed direct plugin smoke and deterministic `run_full_pipeline`; registry count is 16. See `migration/phase8/summary.md`. |
+| 2026-08-23 | Phase 9 complete | Migrated the three source-2.0 DC-AC inverter packages, modulation/waveform/stress/evaluator paths, GUI forms, DC-AC selection page, registry mappings, three topology assets, and focused deterministic acceptance tests. All three IDs load through the GUI registry and pass representative backend pipeline checks; total registry count is 19. See `migration/phase9/summary.md`. |
+| 2026-08-23 | Phase 10 complete | Completed category-first navigation for AC-DC, DC-AC, and DC-DC, migrated the DC-DC card page and assets, connected all deterministic result views including stress/magnetic/thermal/geometry, verified all 19 form transitions and state reset behavior, and removed five unused legacy AI Design runtime files. GUI integration tests passed. See `migration/phase10/summary.md`. |
+| 2026-08-23 | Phase 11 complete | Audited and removed the remaining AI-only agent, topology-recommendation, design-checking, and design-intent modules; removed their public model export; updated current architecture/release/development documentation; and added package-discovery, source-token, isolated-import, and 19-topology plugin-load regression coverage. See `migration/phase11/summary.md`. |
+| 2026-08-23 | Phase 5 and Phase 6 complete | Migrated the deterministic pipeline stages, source-2.0 magnetic orchestration, capacitor visualization handoff, and all seven legacy DC-DC topology packages. AC-DC and DC-AC imports remain outside the 1.0 GUI until their dedicated phases. Added `tests/test_phase5_pipeline_closure.py`; the seven-topology design pipeline passed and the Buck magnetic/loss/thermal/geometry chain produced selected Pareto designs. |
 | 2026-08-23 | Phase 4 complete | Migrated 778 matrix-approved shared engine/library files plus the selected topology-capability helper; two AI-chain rows remained at their Phase 3 target version by exclusion policy. The selected scope represented 128 Python adapters/engines, 614 semiconductor XML files, 13 CSV files, 16 JSON files, and 9 NDJSON files before the two excluded AI rows. Focused engine/library tests passed 132 cases; complete target regression passed 174 cases with 1 skip and 2 documented Phase 5 magnetic-pipeline integration failures. Added empty magnetic candidate export compatibility coverage. |
 | 2026-08-22 | Phase 3 complete | Migrated 18 deterministic model files byte-for-byte from the frozen 2.0 source, adapted public model exports to exclude agentic recommendation contracts, retained seven source-identical base protocol files, and preserved the seven-topology registry until additional plugins/forms migrate. Focused model tests passed 33 cases; the complete target suite passed 39 cases, including deterministic JSON, winding-loss reproduction, registry resolution, GUI bootstrap, and a legacy Buck report chain. |
 | 2026-08-22 | Phase 2 complete | Aligned deterministic dependencies, package-data rules, pytest discovery, runtime preflight, and Windows launcher; disconnected legacy AI Design from normal imports while preserving the seven-topology baseline. A new Python 3.12 environment passed editable install, package-resource lookup, GUI and launcher smoke checks, compile smoke, and 6 focused tests. Shared models, engines, pipeline code, and 12 new topologies remain for later phases. |

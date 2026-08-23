@@ -37,7 +37,7 @@ PE-Claw 1.0 focuses on a transparent engineering pipeline rather than a black-bo
 - **System efficiency and loss breakdown**
 - **Hardware volume breakdown and 2D/3D engineering visualization**
 - **Efficiency sweep from 0.1 p.u. to 1.0 p.u. load**
-- **AI Design mode for deterministic system-level design assistance**
+- **Deterministic GUI and backend execution without an AI runtime dependency**
 
 ---
 
@@ -226,7 +226,6 @@ GUI input
 ```text
 src/pe_claw_gui/
 ├── app/                  # GUI shell, controllers, topology forms, result views
-├── agents/               # deterministic report and AI-summary helpers
 ├── engines/              # devices, capacitors, magnetics, losses, thermal, geometry
 ├── libraries/            # semiconductor, capacitor, magnetic, thermal, mechanical data
 ├── models/               # shared dataclasses and DesignReport handoff models
@@ -589,7 +588,9 @@ The repository may also include concept logos for future PE-Claw releases:
   <img src="docs/assets/images/pe_claw3.0_logo.png" alt="PE-Claw 3.0" width="340">
 </p>
 
-PE-Claw 1.0 is the rule-based automated design platform. Future versions aim to move toward AI-assisted topology advising, global optimization, explanation generation, and autonomous power converter design agents.
+PE-Claw 1.0 is the rule-based automated design platform. AI-assisted topology
+advising, agentic execution, and autonomous design loops are future-product
+scope and are intentionally excluded from the current runtime.
 
 ---
 
@@ -646,8 +647,8 @@ PE-Claw 1.0 is an engineering automation prototype. Current limitations include:
 - semiconductor heatsink sizing is proxy-based, not CFD or catalog-optimized;
 - cost, availability, and reliability/lifetime prediction are not fully integrated;
 - geometry is visualization-oriented and not a manufacturable CAD layout;
-- AI Design mode is deterministic and structured-input based;
-- natural-language parsing, case memory, surrogate optimization, and self-repair are future work.
+- AI/agentic execution is intentionally outside the current GUI/backend scope;
+- natural-language parsing, case memory, surrogate optimization, and self-repair remain future work.
 
 ---
 
@@ -666,9 +667,9 @@ user input
 → engineering visualization
 ```
 
-### PE-Claw 2.0
+### Future AI-assisted releases
 
-AI-assisted design co-pilot.
+AI-assisted design co-pilot direction.
 
 Planned directions:
 
@@ -710,7 +711,7 @@ Useful validation commands:
 
 ```bash
 python -m compileall src/pe_claw_gui
-python -m pytest -q tests/test_topology_recommender.py tests/test_ai_design_pipeline.py tests/test_ai_design_gui.py
+python -m pytest -q tests/test_phase11_ai_isolation.py
 python -m pytest -q tests/test_design_magnetics_button_split.py
 python -m pytest -q tests/test_capacitor_pipeline.py
 python -m pytest -q tests/test_loss_view_system_summary.py

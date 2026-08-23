@@ -11,9 +11,9 @@ This directory records the controlled migration of the deterministic PE-Claw
 - Target Phase 1 baseline commit: `b23e4f7d7ef3aa4c28b2d9caa11b81d5c8fe485d`
 - Migration branch: `codex/sync-gui-backend-from-2`
 
-No PE-Claw 2.0 runtime file was copied during Phase 0 or Phase 1. Phase 2 then
-aligned only the target packaging and minimum deterministic GUI runtime
-skeleton; shared engineering backends and new topologies remain unmodified.
+No PE-Claw 2.0 runtime file was copied during Phase 0 or Phase 1. Later phases
+then migrated the deterministic shared backend and selected topology packages;
+agentic/AI, generated output, and unrelated topology families remain excluded.
 
 ## Contents
 
@@ -31,6 +31,11 @@ skeleton; shared engineering backends and new topologies remain unmodified.
 - `phase3/summary.md`: shared-model migration, registry adapter, and contract-test evidence.
 - `phase4/summary.md`: shared-engine, device/capacitor/magnetic-library migration and verification evidence.
 - `phase5/summary.md`: deterministic pipeline orchestration and seven-topology GUI backend closure evidence.
+- `phase7/summary.md`: LLC, Flyback, and PSFB DC-DC topology migration and verification evidence.
+- `phase8/summary.md`: five AC-DC topology migration and deterministic GUI/backend verification evidence.
+- `phase9/summary.md`: three DC-AC inverter topology migration and deterministic GUI/backend verification evidence.
+- `phase10/summary.md`: 19-topology GUI navigation, form switching, result-tab closure, and legacy AI Design removal evidence.
+- `phase11/summary.md`: complete AI/agentic isolation audit, runtime cleanup, documentation updates, and regression evidence.
 - `tools/generate_phase1_artifacts.py`: standard-library-only reproducible generator.
 - `artifact_manifest.csv`: byte counts and SHA-256 values for migration evidence files.
 

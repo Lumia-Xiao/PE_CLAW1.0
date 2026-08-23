@@ -20,7 +20,6 @@ python -m pe_claw_gui
 - `Workspace`: page and report rendering host.
 - Category views: converter category and topology selection pages.
 - Topology forms: topology-specific raw input collection.
-- AI Design page: natural-language/structured design intent entry.
 - Controllers: bridge GUI state to pipeline calls.
 - Result views: render summary, waveform, device, capacitor, inductor, loss, efficiency, and hardware overview data.
 
@@ -39,18 +38,12 @@ topology selection
 
 Run Design performs electrical synthesis and semiconductor selection. Run Capacitor and Run Magnetics are separate hardware-selection stages. Generate Waveforms refreshes the current operating point. Run Efficiency Sweep evaluates the already selected hardware from 0.1 p.u. to 1.0 p.u. load and does not reselect hardware.
 
-## AI Design Workflow
+## Runtime Boundary
 
-```text
-AIDesignPage
-  -> AIDesignController
-  -> DesignIntent
-  -> topology_recommender
-  -> run_ai_design_pipeline
-  -> design_checker
-  -> report_agent
-  -> AIDesignView
-```
+The current PE-Claw 1.0 runtime is deterministic and GUI-driven. It accepts
+structured topology form input and executes the engineering pipeline directly.
+AI Design, agentic execution, natural-language request runners, skill loaders,
+and AI report agents are intentionally excluded from this product boundary.
 
 ## Pipeline Stages
 
@@ -64,7 +57,6 @@ AIDesignPage
 - `run_thermal_pipeline`: first-pass thermal estimation.
 - `run_geometry_pipeline`: engineering geometry artifacts.
 - `run_operating_point_refresh`: waveform and selected-hardware operating refresh.
-- `run_ai_design_pipeline`: AI Design candidate flow.
 
 ## Topology Plugin Structure
 
@@ -109,15 +101,11 @@ These old namespaces were removed and should not be reintroduced:
 - `core/`
 - `devices/`
 
-## Future AI-Agent Direction
+## Excluded Future Direction
 
-Future work can extend AI Design toward:
-
-- natural-language requirement parsing;
-- design memory and case retrieval;
-- surrogate-assisted optimization;
-- self-repair candidate loops;
-- a full design chain managed through AI Design.
+AI-assisted topology advising, natural-language requirement parsing, agentic
+execution, and autonomous design loops are future-product scope. They are not
+implemented by or required for the current deterministic GUI/backend runtime.
 
 ## Documentation Roles
 

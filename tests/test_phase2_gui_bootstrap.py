@@ -35,11 +35,11 @@ def test_package_import_does_not_load_excluded_ai_modules() -> None:
     assert result.returncode == 0, result.stderr
 
 
-def test_gui_constructs_with_seven_topology_baseline() -> None:
+def test_gui_constructs_with_phase7_topology_baseline() -> None:
     result = _run_isolated(
         "from pe_claw_gui.app.shell.main_window import PEClawMainWindow; "
         "app=PEClawMainWindow(); app.withdraw(); app.update_idletasks(); "
-        "assert len(app.state_store.registry.list_definitions()) == 7; "
+            "assert len(app.state_store.registry.list_definitions()) == 19; "
         "assert not hasattr(app.navigation, 'ai_design_button'); "
         "app.destroy()"
     )
