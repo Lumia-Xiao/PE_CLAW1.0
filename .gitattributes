@@ -1,0 +1,2 @@
+# Packaged magnetic authority artifacts are hash-addressed and must be checkout-stable.
+src/pe_claw_gui/libraries/magnetics/openmagnetics_data_v2/*.json text eol=lf
