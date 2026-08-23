@@ -338,7 +338,7 @@ Electrical synthesis
 ### Design Specification
 
 | Parameter | Value |
-|---|---:|
+|---|---|
 | Topology ID | buck_synchronous_rectified_unidirectional |
 | Nominal input voltage | 500 V |
 | Output voltage | 300 V |
@@ -356,7 +356,7 @@ PE-Claw calculates the nominal duty ratio, inductor value, output capacitor requ
 Key results:
 
 | Quantity | Value |
-|---|---:|
+|---|---|
 | Nominal duty ratio | 0.600000 |
 | Inductance | 480.000 µH |
 | Capacitance | 20.833 µF |
@@ -393,7 +393,7 @@ PE-Claw searches the semiconductor device library using topology-derived voltage
 For this case:
 
 | Role | Registered | After role filter | Passed hard filters | Rejected |
-|---|---:|---:|---:|---:|
+|---|---|---|---|---|
 | Main switch | 440 | 86 | 28 | 58 |
 | Synchronous switch | 440 | 86 | 28 | 58 |
 
@@ -423,7 +423,7 @@ The input capacitor design is evaluated against voltage rating, capacitance, rip
 Input capacitor Pareto summary:
 
 | Item | Value |
-|---|---:|
+|---|---|
 | DC voltage | 500 V |
 | Ripple target | 0.2 % |
 | Evaluated candidates | 1433 |
@@ -445,7 +445,7 @@ Input capacitor Pareto summary:
 PE-Claw shows three representative capacitor-bank designs: minimum volume, minimum loss, and recommended.
 
 | Candidate | Part | Series | N | Equivalent C | Volume | Loss | Footprint |
-|---|---|---|---:|---:|---:|---:|---|
+|---|---|---|---|---|---|---|---|
 | Min-volume | DCP4I059009F | WIMA DC-LINK MKP 4 | 1 | 90 µF | 99.75 cm³ | 0.130391 W | 35 × 57 mm |
 | Min-loss | DCHCN07260JJ00KS00 | WIMA DC-LINK HC | 5 | 13000 µF | 21563.1 cm³ | 0.004082 W | 770.2 × 611.1 mm |
 | Recommended | C4DEHPQ6100A8TK | C4DE | 1 | 100 µF | 221.671 cm³ | 0.041153 W | 84 × 84 mm |
@@ -471,7 +471,7 @@ The output capacitor stage evaluates the output voltage ripple requirement and c
 Output capacitor Pareto summary:
 
 | Item | Value |
-|---|---:|
+|---|---|
 | DC voltage | 300 V |
 | Ripple target | 0.2 % |
 | Evaluated candidates | 2413 |
@@ -491,7 +491,7 @@ Output capacitor Pareto summary:
 ### Output Capacitor Candidates
 
 | Candidate | Part | Series | N | Equivalent C | Volume | Loss | Footprint |
-|---|---|---|---:|---:|---:|---:|---|
+|---|---|---|---|---|---|---|---|
 | Min-volume | DCP4G052506G | WIMA DC-LINK MKP 4 | 1 | 25 µF | 15.5295 cm³ | 0.018046 W | 17 × 31.5 mm |
 | Min-loss | DCHCH07825JJ00KS00 | WIMA DC-LINK HC | 5 | 41250 µF | 21563.1 cm³ | 0.000083 W | 770.2 × 611.1 mm |
 | Recommended | DCP4G053006I | WIMA DC-LINK MKP 4 | 1 | 30 µF | 18.4748 cm³ | 0.015108 W | 17 × 31.5 mm |
@@ -517,7 +517,7 @@ The magnetic design stage searches a large core/winding design space and compres
 Candidate count transitions:
 
 | Stage | Count |
-|---|---:|
+|---|---|
 | Single-core basic feasible | 400937 |
 | Single-core after allow screening | 33375 |
 | Single-core after compression | 25368 |
@@ -540,7 +540,7 @@ E_42_21_15_AF_Litz_120x0.15_-_Grade_1_-_Unserved_N14_P6
 ### Inductor Candidate Comparison
 
 | Candidate | Design | Volume | Loss | Core family/template | Stack count |
-|---|---|---:|---:|---|---:|
+|---|---|---|---|---|---|
 | Min-volume | ETD_44_22_15_AF_Litz_120x0.15_-_Grade_1_-_Unserved_N10_P2 | 39.5194 cm³ | 3.59888 W | ETD / paired_etd_core | 1 |
 | Min-loss | U_67_27_14_AF_Litz_200x0.18_-_Grade_1_-_Unserved_N20_P6 | 226.006 cm³ | 1.5828 W | U / u_paired_core | 1 |
 | Recommended | E_42_21_15_AF_Litz_120x0.15_-_Grade_1_-_Unserved_N14_P6 | 66.9037 cm³ | 2.00604 W | E / paired_box_core | 1 |
@@ -600,7 +600,7 @@ E_42_21_15_AF_Litz_120x0.15_-_Grade_1_-_Unserved_N14_P6
 PE-Claw combines available semiconductor, magnetic, and capacitor losses into a system-level loss summary.
 
 | Loss component | Value |
-|---|---:|
+|---|---|
 | Total semiconductor loss | 34.1254 W |
 | Total magnetic loss | 2.00604 W |
 | Total capacitor loss | 0.0741408 W |
