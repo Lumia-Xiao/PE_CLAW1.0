@@ -88,9 +88,9 @@ PE-Claw 1.0 is designed around three engineering libraries:
 
 | Library | Purpose |
 |---|---|
-| **Knowledge Library** | Topology equations, waveform models, stress models, magnetic/capacitor/device design knowledge, loss and thermal models. |
-| **Rule Library** | Requirement parsing, topology selection, parameter design, component filtering, Pareto ranking, reporting rules. |
-| **Device Library** | Semiconductor devices, magnetic cores and winding options, capacitor candidates, package geometry, thermal and mechanical data. |
+| Knowledge Library | Topology equations, waveform models, stress models, magnetic/capacitor/device design knowledge, loss and thermal models. |
+| Rule Library | Requirement parsing, topology selection, parameter design, component filtering, Pareto ranking, reporting rules. |
+| Device Library | Semiconductor devices, magnetic cores and winding options, capacitor candidates, package geometry, thermal and mechanical data. |
 
 The current implementation provides three converter categories, 19 registered
 topology plugins, and an extensible deterministic topology-plugin architecture.
@@ -203,14 +203,14 @@ PE-Claw 1.0 follows an eight-layer architecture:
 
 | Layer | Role |
 |---|---|
-| **Layer 1** | GUI entry and state management |
-| **Layer 2** | Converter category and topology registry |
-| **Layer 3** | Topology input forms |
-| **Layer 4** | Topology plugin and physics modeling |
-| **Layer 5** | Unified data model and `DesignReport` handoff |
-| **Layer 6** | Pipeline orchestration |
-| **Layer 7** | Device libraries and multi-physics engines |
-| **Layer 8** | Result visualization and engineering outputs |
+| Layer 1 | GUI entry and state management |
+| Layer 2 | Converter category and topology registry |
+| Layer 3 | Topology input forms |
+| Layer 4 | Topology plugin and physics modeling |
+| Layer 5 | Unified data model and DesignReport handoff |
+| Layer 6 | Pipeline orchestration |
+| Layer 7 | Device libraries and multi-physics engines |
+| Layer 8 | Result visualization and engineering outputs |
 
 The active runtime path is:
 
@@ -280,35 +280,35 @@ devices/
 
 | Topology ID | Display name |
 |---|---|
-| `single_phase_diode_bridge_rectifier_capacitor_filter` | Single-phase diode bridge rectifier with capacitor filter |
-| `single_phase_diode_bridge_rectifier_dc_inductor_filter` | Single-phase diode bridge rectifier with DC-side inductor filter |
-| `three_phase_diode_bridge_rectifier_capacitor_filter` | Three-phase diode bridge rectifier with capacitor filter |
-| `single_phase_boost_pfc_diode_bridge` | Single-phase boost PFC diode bridge |
-| `single_phase_totem_pole_bridgeless_pfc` | Single-phase totem-pole bridgeless PFC |
+| single_phase_diode_bridge_rectifier_capacitor_filter | Single-phase diode bridge rectifier with capacitor filter |
+| single_phase_diode_bridge_rectifier_dc_inductor_filter | Single-phase diode bridge rectifier with DC-side inductor filter |
+| three_phase_diode_bridge_rectifier_capacitor_filter | Three-phase diode bridge rectifier with capacitor filter |
+| single_phase_boost_pfc_diode_bridge | Single-phase boost PFC diode bridge |
+| single_phase_totem_pole_bridgeless_pfc | Single-phase totem-pole bridgeless PFC |
 
 ### DC-AC
 
 | Topology ID | Display name |
 |---|---|
-| `single_phase_full_bridge_inverter` | Single-phase full-bridge inverter |
-| `three_phase_two_level_voltage_source_inverter` | Three-phase two-level voltage-source inverter |
-| `three_phase_three_level_npc_inverter` | Three-phase three-level NPC inverter |
+| single_phase_full_bridge_inverter | Single-phase full-bridge inverter |
+| three_phase_two_level_voltage_source_inverter | Three-phase two-level voltage-source inverter |
+| three_phase_three_level_npc_inverter | Three-phase three-level NPC inverter |
 
 ### DC-DC
 
 | Topology ID | Display name |
 |---|---|
-| `buck_diode_rectified_unidirectional` | Buck diode rectified unidirectional |
-| `buck_synchronous_rectified_unidirectional` | Buck synchronous rectified unidirectional |
-| `buck_boost_diode_rectified_unidirectional` | Buck-Boost diode rectified unidirectional |
-| `four_switch_buck_boost_simplified_four_mode` | Four-switch Buck-Boost simplified four-mode |
-| `three_level_tzcm_fixed_frequency` | Three-level TZCM fixed frequency |
-| `boost_diode_rectified_unidirectional` | Boost diode rectified unidirectional |
-| `boost_synchronous_rectified_unidirectional` | Boost synchronous rectified unidirectional |
-| `llc_resonant_converter_diode_rectifier` | LLC resonant converter diode rectifier |
-| `llc_resonant_converter_synchronous_rectifier` | LLC resonant converter synchronous rectifier |
-| `flyback_diode_rectified_isolated` | Flyback diode rectified isolated |
-| `phase_shifted_full_bridge_diode_rectifier_isolated` | Phase-shifted full-bridge diode rectifier isolated |
+| buck_diode_rectified_unidirectional | Buck diode rectified unidirectional |
+| buck_synchronous_rectified_unidirectional | Buck synchronous rectified unidirectional |
+| buck_boost_diode_rectified_unidirectional | Buck-Boost diode rectified unidirectional |
+| four_switch_buck_boost_simplified_four_mode | Four-switch Buck-Boost simplified four-mode |
+| three_level_tzcm_fixed_frequency | Three-level TZCM fixed frequency |
+| boost_diode_rectified_unidirectional | Boost diode rectified unidirectional |
+| boost_synchronous_rectified_unidirectional | Boost synchronous rectified unidirectional |
+| llc_resonant_converter_diode_rectifier | LLC resonant converter diode rectifier |
+| llc_resonant_converter_synchronous_rectifier | LLC resonant converter synchronous rectifier |
+| flyback_diode_rectified_isolated | Flyback diode rectified isolated |
+| phase_shifted_full_bridge_diode_rectifier_isolated | Phase-shifted full-bridge diode rectifier isolated |
 
 All 19 topology IDs are registered, form-accessible, and connected to the
 deterministic GUI/backend flow. Engineering maturity varies by topology: all
@@ -339,7 +339,7 @@ Electrical synthesis
 
 | Parameter | Value |
 |---|---:|
-| Topology ID | `buck_synchronous_rectified_unidirectional` |
+| Topology ID | buck_synchronous_rectified_unidirectional |
 | Nominal input voltage | 500 V |
 | Output voltage | 300 V |
 | Output power | 5 kW |
