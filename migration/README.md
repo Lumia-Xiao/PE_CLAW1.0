@@ -36,6 +36,8 @@ agentic/AI, generated output, and unrelated topology families remain excluded.
 - `phase9/summary.md`: three DC-AC inverter topology migration and deterministic GUI/backend verification evidence.
 - `phase10/summary.md`: 19-topology GUI navigation, form switching, result-tab closure, and legacy AI Design removal evidence.
 - `phase11/summary.md`: complete AI/agentic isolation audit, runtime cleanup, documentation updates, and regression evidence.
+- `phase12/summary.md`: full 19-topology verification, source/target backend parity, clean wheel installation, GUI smoke, and complete pytest evidence.
+- `tools/phase12_parity.py`: reproducible source/target structured-contract comparison tool.
 - `tools/generate_phase1_artifacts.py`: standard-library-only reproducible generator.
 - `artifact_manifest.csv`: byte counts and SHA-256 values for migration evidence files.
 

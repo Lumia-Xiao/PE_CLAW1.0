@@ -2,7 +2,7 @@
 
 ## 1. Plan Metadata
 
-- **Status:** Active plan; Phase 0 through Phase 11 completed, Phase 12 next
+- **Status:** Active plan; Phase 0 through Phase 12 completed, Phase 13 next
 - **Plan date:** 2026-08-22
 - **Source workspace:** `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw`
 - **Source repository:** `https://github.com/Lumia-Xiao/PE-Claw_2.0.git`
@@ -484,7 +484,7 @@ exact; otherwise use documented tolerances.
 
 **Exit gate:** no unexplained test failure, import failure, missing data file,
 missing topology, hidden agentic dependency, or source/target behavior mismatch
-remains.
+remains. Completed on 2026-08-23; see `migration/phase12/summary.md`.
 
 ### Phase 13 - Documentation, release review, and GitHub handoff
 
@@ -624,22 +624,22 @@ Additional migration checks must verify:
 
 ### Runtime architecture
 
-- [ ] Package installs from a clean checkout
+- [x] Package installs from a clean checkout
 - [x] GUI launches on supported Windows/Python environment
-- [ ] Runtime follows GUI -> controller -> registry/plugin -> pipeline -> models -> result views
-- [ ] Deterministic pipeline stage order matches source 2.0
+- [x] Runtime follows GUI -> controller -> registry/plugin -> pipeline -> models -> result views
+- [x] Deterministic pipeline stage order matches source 2.0
 - [x] Shared dataclass and handoff contracts match the selected source baseline
 - [x] Package data loads from the installed package
 
 ### Topologies and GUI
 
-- [ ] Three converter categories are visible
-- [ ] Exactly 19 intended topology IDs are registered
-- [ ] All 19 topology forms load and validate representative inputs
-- [ ] All 19 plugins resolve through the registry
-- [ ] Each topology reaches its source-equivalent completed or documented gated state
-- [ ] Supported downstream device, magnetic, loss, thermal, and geometry stages display correctly
-- [ ] GUI navigation and repeated execution do not leak stale topology state
+- [x] Three converter categories are visible
+- [x] Exactly 19 intended topology IDs are registered
+- [x] All 19 topology forms load and validate representative inputs
+- [x] All 19 plugins resolve through the registry
+- [x] Each topology reaches its source-equivalent completed or documented gated state
+- [x] Supported downstream device, magnetic, loss, thermal, and geometry stages display correctly
+- [x] GUI navigation and repeated execution do not leak stale topology state
 
 ### AI/agentic exclusion
 
@@ -654,11 +654,11 @@ Additional migration checks must verify:
 ### Verification and delivery
 
 - [x] Focused tests pass for every migrated batch
-- [ ] Source/target parity fixtures pass for all 19 topology IDs
+- [x] Source/target parity fixtures pass for all 19 topology IDs
 - [x] Complete target pytest suite passes or every non-passing case is explicitly accepted
-- [ ] Clean-clone installation and GUI smoke test pass
-- [ ] README and migration evidence describe scope and limitations accurately
-- [ ] Final diff contains no absolute local paths or unintended source files
+- [x] Isolated wheel installation and GUI smoke test pass
+- [x] README and migration evidence describe scope and limitations accurately
+- [x] Final diff contains no absolute local paths or unintended source files
 - [ ] User reviews and accepts the migration branch
 - [ ] GitHub push and merge occur only after explicit approval
 - [ ] Plan is moved to `Plan/completed/` with final evidence links
@@ -672,6 +672,7 @@ Additional migration checks must verify:
 | 2026-08-23 | Phase 9 complete | Migrated the three source-2.0 DC-AC inverter packages, modulation/waveform/stress/evaluator paths, GUI forms, DC-AC selection page, registry mappings, three topology assets, and focused deterministic acceptance tests. All three IDs load through the GUI registry and pass representative backend pipeline checks; total registry count is 19. See `migration/phase9/summary.md`. |
 | 2026-08-23 | Phase 10 complete | Completed category-first navigation for AC-DC, DC-AC, and DC-DC, migrated the DC-DC card page and assets, connected all deterministic result views including stress/magnetic/thermal/geometry, verified all 19 form transitions and state reset behavior, and removed five unused legacy AI Design runtime files. GUI integration tests passed. See `migration/phase10/summary.md`. |
 | 2026-08-23 | Phase 11 complete | Audited and removed the remaining AI-only agent, topology-recommendation, design-checking, and design-intent modules; removed their public model export; updated current architecture/release/development documentation; and added package-discovery, source-token, isolated-import, and 19-topology plugin-load regression coverage. See `migration/phase11/summary.md`. |
+| 2026-08-23 | Phase 12 complete | Verified all 19 topology registrations, forms, plugins, default contracts, and deterministic result structures; added source/target parity tooling; passed clean wheel package-data and GUI startup smoke; and completed the target suite with 201 passed and 1 skipped. See `migration/phase12/summary.md`. |
 | 2026-08-23 | Phase 5 and Phase 6 complete | Migrated the deterministic pipeline stages, source-2.0 magnetic orchestration, capacitor visualization handoff, and all seven legacy DC-DC topology packages. AC-DC and DC-AC imports remain outside the 1.0 GUI until their dedicated phases. Added `tests/test_phase5_pipeline_closure.py`; the seven-topology design pipeline passed and the Buck magnetic/loss/thermal/geometry chain produced selected Pareto designs. |
 | 2026-08-23 | Phase 4 complete | Migrated 778 matrix-approved shared engine/library files plus the selected topology-capability helper; two AI-chain rows remained at their Phase 3 target version by exclusion policy. The selected scope represented 128 Python adapters/engines, 614 semiconductor XML files, 13 CSV files, 16 JSON files, and 9 NDJSON files before the two excluded AI rows. Focused engine/library tests passed 132 cases; complete target regression passed 174 cases with 1 skip and 2 documented Phase 5 magnetic-pipeline integration failures. Added empty magnetic candidate export compatibility coverage. |
 | 2026-08-22 | Phase 3 complete | Migrated 18 deterministic model files byte-for-byte from the frozen 2.0 source, adapted public model exports to exclude agentic recommendation contracts, retained seven source-identical base protocol files, and preserved the seven-topology registry until additional plugins/forms migrate. Focused model tests passed 33 cases; the complete target suite passed 39 cases, including deterministic JSON, winding-loss reproduction, registry resolution, GUI bootstrap, and a legacy Buck report chain. |

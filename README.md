@@ -74,7 +74,8 @@ PE-Claw 1.0 is designed around three engineering libraries:
 | **Rule Library** | Requirement parsing, topology selection, parameter design, component filtering, Pareto ranking, reporting rules. |
 | **Device Library** | Semiconductor devices, magnetic cores and winding options, capacitor candidates, package geometry, thermal and mechanical data. |
 
-The current implementation emphasizes DC-DC converter workflows and an extensible topology-plugin architecture.
+The current implementation provides three converter categories, 19 registered
+topology plugins, and an extensible deterministic topology-plugin architecture.
 
 ---
 
@@ -230,7 +231,7 @@ src/pe_claw_gui/
 ├── libraries/            # semiconductor, capacitor, magnetic, thermal, mechanical data
 ├── models/               # shared dataclasses and DesignReport handoff models
 ├── pipeline/             # staged design and operating-point pipelines
-├── topologies/           # topology registry and active DC-DC topology plugins
+├── topologies/           # topology registry and 19 active topology plugins
 ├── visualization/        # geometry and result artifact rendering
 └── tools/                # audit and maintenance utilities
 ```
@@ -246,6 +247,42 @@ losses/
 core/
 devices/
 ```
+
+---
+
+## Supported Topologies
+
+### AC-DC
+
+- Single-phase diode bridge rectifier with capacitor filter
+- Single-phase diode bridge rectifier with DC-side inductor filter
+- Three-phase diode bridge rectifier with capacitor filter
+- Single-phase boost PFC diode bridge
+- Single-phase totem-pole bridgeless PFC
+
+### DC-AC
+
+- Single-phase full-bridge inverter
+- Three-phase two-level voltage-source inverter
+- Three-phase three-level NPC inverter
+
+### DC-DC
+
+- Buck diode rectified unidirectional
+- Buck synchronous rectified unidirectional
+- Buck-Boost diode rectified unidirectional
+- Four-switch Buck-Boost simplified four-mode
+- Three-level TZCM fixed frequency
+- Boost diode rectified unidirectional
+- Boost synchronous rectified unidirectional
+- LLC resonant converter diode rectifier
+- LLC resonant converter synchronous rectifier
+- Flyback diode rectified isolated
+- Phase-shifted full-bridge diode rectifier isolated
+
+All topology implementations are deterministic first-pass engineering paths.
+Some LLC, Flyback, PSFB, PFC, rectifier, and inverter paths intentionally
+retain source-documented first-pass or gated limitations.
 
 ---
 

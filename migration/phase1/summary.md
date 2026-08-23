@@ -70,6 +70,10 @@ The old unregistered placeholder namespaces `topologies/ac_ac`,
 are classified for removal. They are not the registered 2.0 LLC and PSFB
 packages under `topologies/dc_dc/`.
 
+The execution copy of the acceptance matrix was updated by Phases 5-12; all
+19 topology rows now record completed deterministic registration, form, plugin,
+pipeline, GUI, and parity evidence with first-pass limitations where applicable.
+
 ## Phase 1 Exit Gate
 
 - Every union path has a migration classification.
