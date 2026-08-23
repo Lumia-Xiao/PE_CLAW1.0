@@ -23,6 +23,11 @@ User specifications
 
 PE-Claw 1.0 focuses on a transparent engineering pipeline rather than a black-box optimizer. Each design stage is rule-based, auditable, and connected to concrete electrical equations, component libraries, and result views.
 
+> **Current release scope:** PE-Claw 1.0 provides a deterministic GUI and
+> backend flow for 19 registered converter topologies across AC-DC, DC-AC, and
+> DC-DC. AI Design, agentic execution, natural-language design intake, and
+> autonomous design loops are intentionally outside this release.
+
 ---
 
 ## Highlights
@@ -43,10 +48,23 @@ PE-Claw 1.0 focuses on a transparent engineering pipeline rather than a black-bo
 
 ## Quick Start
 
-From the project environment where dependencies are installed, launch the GUI with:
+PE-Claw 1.0 requires Python 3.10 or newer. From the repository root, install
+the package and its deterministic runtime dependencies:
 
-```bash
+```powershell
+python -m pip install -e .
+```
+
+Launch the GUI with:
+
+```powershell
 python -m pe_claw_gui
+```
+
+On Windows, the repository launcher can also be used:
+
+```powershell
+.\run_pe_claw_gui.bat
 ```
 
 Recommended usage:
@@ -59,7 +77,7 @@ Recommended usage:
 5. Click Run Magnetics.
 6. Click Generate Waveforms for operating-point refresh.
 7. Click Run Efficiency Sweep for 0.1–1.0 p.u. fixed-hardware efficiency analysis.
-8. Review Summary, Waveforms, Devices, Capacitors, Inductor, Loss, Efficiency, and Hardware Overview pages.
+8. Review Summary, Waveforms, Stress, Devices, Capacitor PF, Capacitors, Inductor PF, Inductor, Magnetic, Loss, Thermal, Geometry, Efficiency, and Hardware Overview pages.
 ```
 
 ---
@@ -76,6 +94,8 @@ PE-Claw 1.0 is designed around three engineering libraries:
 
 The current implementation provides three converter categories, 19 registered
 topology plugins, and an extensible deterministic topology-plugin architecture.
+Inputs are structured GUI fields; the current runtime does not require an AI,
+agentic, or natural-language processing dependency.
 
 ---
 
@@ -159,12 +179,16 @@ PE-Claw 1.0 organizes design outputs into multiple result pages:
 ```text
 Summary
 Waveforms
+Stress
 Devices
 Capacitor PF
 Capacitors
 Inductor PF
 Inductor
+Magnetic
 Loss
+Thermal
+Geometry
 Efficiency
 Hardware Overview
 ```
@@ -254,41 +278,49 @@ devices/
 
 ### AC-DC
 
-- Single-phase diode bridge rectifier with capacitor filter
-- Single-phase diode bridge rectifier with DC-side inductor filter
-- Three-phase diode bridge rectifier with capacitor filter
-- Single-phase boost PFC diode bridge
-- Single-phase totem-pole bridgeless PFC
+| Topology ID | Display name |
+|---|---|
+| `single_phase_diode_bridge_rectifier_capacitor_filter` | Single-phase diode bridge rectifier with capacitor filter |
+| `single_phase_diode_bridge_rectifier_dc_inductor_filter` | Single-phase diode bridge rectifier with DC-side inductor filter |
+| `three_phase_diode_bridge_rectifier_capacitor_filter` | Three-phase diode bridge rectifier with capacitor filter |
+| `single_phase_boost_pfc_diode_bridge` | Single-phase boost PFC diode bridge |
+| `single_phase_totem_pole_bridgeless_pfc` | Single-phase totem-pole bridgeless PFC |
 
 ### DC-AC
 
-- Single-phase full-bridge inverter
-- Three-phase two-level voltage-source inverter
-- Three-phase three-level NPC inverter
+| Topology ID | Display name |
+|---|---|
+| `single_phase_full_bridge_inverter` | Single-phase full-bridge inverter |
+| `three_phase_two_level_voltage_source_inverter` | Three-phase two-level voltage-source inverter |
+| `three_phase_three_level_npc_inverter` | Three-phase three-level NPC inverter |
 
 ### DC-DC
 
-- Buck diode rectified unidirectional
-- Buck synchronous rectified unidirectional
-- Buck-Boost diode rectified unidirectional
-- Four-switch Buck-Boost simplified four-mode
-- Three-level TZCM fixed frequency
-- Boost diode rectified unidirectional
-- Boost synchronous rectified unidirectional
-- LLC resonant converter diode rectifier
-- LLC resonant converter synchronous rectifier
-- Flyback diode rectified isolated
-- Phase-shifted full-bridge diode rectifier isolated
+| Topology ID | Display name |
+|---|---|
+| `buck_diode_rectified_unidirectional` | Buck diode rectified unidirectional |
+| `buck_synchronous_rectified_unidirectional` | Buck synchronous rectified unidirectional |
+| `buck_boost_diode_rectified_unidirectional` | Buck-Boost diode rectified unidirectional |
+| `four_switch_buck_boost_simplified_four_mode` | Four-switch Buck-Boost simplified four-mode |
+| `three_level_tzcm_fixed_frequency` | Three-level TZCM fixed frequency |
+| `boost_diode_rectified_unidirectional` | Boost diode rectified unidirectional |
+| `boost_synchronous_rectified_unidirectional` | Boost synchronous rectified unidirectional |
+| `llc_resonant_converter_diode_rectifier` | LLC resonant converter diode rectifier |
+| `llc_resonant_converter_synchronous_rectifier` | LLC resonant converter synchronous rectifier |
+| `flyback_diode_rectified_isolated` | Flyback diode rectified isolated |
+| `phase_shifted_full_bridge_diode_rectifier_isolated` | Phase-shifted full-bridge diode rectifier isolated |
 
-All topology implementations are deterministic first-pass engineering paths.
-Some LLC, Flyback, PSFB, PFC, rectifier, and inverter paths intentionally
-retain source-documented first-pass or gated limitations.
+All 19 topology IDs are registered, form-accessible, and connected to the
+deterministic GUI/backend flow. Engineering maturity varies by topology: all
+paths are deterministic first-pass engineering implementations, while some
+LLC, Flyback, PSFB, PFC, rectifier, and inverter paths retain source-documented
+first-pass or gated limitations.
 
 ---
 
 ## Case Study: Buck Synchronous Rectified Unidirectional Converter
 
-This section demonstrates the PE-Claw 1.0 workflow using the **Buck Synchronous Rectified Unidirectional** topology.
+This section demonstrates the PE-Claw 1.0 workflow using the **Buck Synchronous Rectified Unidirectional** topology. It is a representative case study, not a limitation on the supported topology set.
 
 The case study covers:
 
@@ -658,6 +690,9 @@ outputs/efficiency_sweep/
 outputs/hardware_overview/
 ```
 
+These folders and report files are generated locally by design runs. They are
+runtime artifacts rather than required source files or package inputs.
+
 ---
 
 ## Important Design Rules
@@ -684,6 +719,9 @@ PE-Claw 1.0 is an engineering automation prototype. Current limitations include:
 - semiconductor heatsink sizing is proxy-based, not CFD or catalog-optimized;
 - cost, availability, and reliability/lifetime prediction are not fully integrated;
 - geometry is visualization-oriented and not a manufacturable CAD layout;
+- topology-specific physics coverage is not equally mature across all 19
+  paths; LLC-SR, Flyback, PSFB, PFC, rectifier, and inverter paths may retain
+  first-pass or gated source-equivalent behavior;
 - AI/agentic execution is intentionally outside the current GUI/backend scope;
 - natural-language parsing, case memory, surrogate optimization, and self-repair remain future work.
 
@@ -736,18 +774,19 @@ Planned directions:
 
 Before modifying the codebase:
 
-1. Read `AGENTS.md`.
+1. Read `DEVELOPMENT.md` and `PROJECT_ARCHITECTURE.md`.
 2. Keep GUI widgets thin.
 3. Put computation in controllers and pipelines.
 4. Do not move physics calculations into result views.
 5. Preserve design-point vs operating-point separation.
-6. Update `report1.md` after every code change.
+6. Update migration or release evidence when changing the supported topology or runtime scope.
 7. Add focused tests for changed behavior.
 
 Useful validation commands:
 
 ```bash
-python -m compileall src/pe_claw_gui
+python -m compileall -q src/pe_claw_gui
+python -m pytest -q
 python -m pytest -q tests/test_phase11_ai_isolation.py
 python -m pytest -q tests/test_design_magnetics_button_split.py
 python -m pytest -q tests/test_capacitor_pipeline.py
