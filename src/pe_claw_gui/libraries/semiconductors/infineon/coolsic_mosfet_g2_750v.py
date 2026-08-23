@@ -15,9 +15,7 @@ from ..power_device import PowerDevice
 
 _DEVICE_PACKAGE = "pe_claw_gui.libraries.semiconductors.infineon"
 COOLSIC_MOSFET_G2_750V_XML_SUBDIR = "data/coolsic_mosfet_g2_750v"
-DEFAULT_COOLSIC_MOSFET_G2_750V_SOURCE_POOL = Path(
-    "C:\\Users\\user\\Documents\\\u8bba\u6587\\0000 \u7814\u7a76\u70b9\\038 PE-Claw\\MOSFET_Data\\Infineon\\infineon-coolsic-mosfet-750v-g2-plecs-simulationmodels-en"
-)
+DEFAULT_COOLSIC_MOSFET_G2_750V_SOURCE_POOL = None
 _XML_ONLY_SPECIAL_CASE_PARTS = frozenset({"IMDQ75R011M2H", "IMDQ75R016M2H"})
 _XML_ONLY_SPECIAL_CASE_REFERENCE_PART = "IMDQ75R020M2H"
 _DEFAULT_PDF_FILENAME = object()
@@ -434,7 +432,7 @@ def resolve_coolsic_mosfet_g2_750v_xml_relative_path(xml_filename: str) -> str:
 
 
 def discover_coolsic_mosfet_g2_750v_source_pool(
-    source_dir: str | Path = DEFAULT_COOLSIC_MOSFET_G2_750V_SOURCE_POOL,
+    source_dir: str | Path,
 ) -> dict[str, tuple[Path, Path | None]]:
     """Return normalized part numbers mapped to local XML/PDF pairs with two explicit XML-only exceptions."""
 
@@ -466,7 +464,7 @@ def discover_coolsic_mosfet_g2_750v_source_pool(
 
 
 def validate_coolsic_mosfet_g2_750v_source_pool(
-    source_dir: str | Path = DEFAULT_COOLSIC_MOSFET_G2_750V_SOURCE_POOL,
+    source_dir: str | Path,
 ) -> None:
     """Validate the provided local XML/PDF pool against the curated manifest and explicit XML-only exceptions."""
 
@@ -515,7 +513,6 @@ def build_infineon_coolsic_mosfet_g2_750v_devices() -> list[PowerDevice]:
     """Build all valid Infineon 750 V CoolSiC MOSFET G2 entries."""
 
     _validate_manifest()
-    _validate_default_source_pool_if_present()
     return [
         build_power_device_from_static_and_xml(
             static_record=_build_static_record(entry),
@@ -605,11 +602,6 @@ def _validate_manifest() -> None:
         raise ValueError(
             "Duplicate Infineon CoolSiC MOSFET G2 750 V manifest parts: " + ", ".join(sorted(duplicates))
         )
-
-
-def _validate_default_source_pool_if_present() -> None:
-    if DEFAULT_COOLSIC_MOSFET_G2_750V_SOURCE_POOL.exists():
-        validate_coolsic_mosfet_g2_750v_source_pool(DEFAULT_COOLSIC_MOSFET_G2_750V_SOURCE_POOL)
 
 
 __all__ = [

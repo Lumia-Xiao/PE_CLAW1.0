@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-import json
 import math
-import os
 import re
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -15,7 +12,17 @@ import numpy as np
 import pandas as pd
 
 from ...models.inductor import FixedInductorDesignCandidate, InductorDesignRequest, InductorOperatingEvaluation, InductorOperatingPointRequest
-from ...utils.core_family_semantics import is_paired_half_core_family, resolve_core_assembly_envelope
+from ...utils.core_family_semantics import is_paired_half_core_family
+from .data_backend import (
+    MagneticDataBackendConfig,
+    get_production_magnetic_backend_config,
+    resolve_magnetic_data_backend,
+)
+from .legacy_external_openmagnetics import InductorDatabaseUnavailableError
+from .core_loss_kernel import select_steinmetz_coefficients, steinmetz_loss_density_w_per_m3
+from .core_loss_router import route_legacy_steinmetz_loss
+from .catalog_core_binding import BoundCatalogCore, CatalogSelectionMode
+from .core_loss_audit import core_loss_is_comparable
 
 _MU0 = 4.0 * math.pi * 1e-7
 _COPPER_RESISTIVITY_25C = 1.724e-8
@@ -24,15 +31,13 @@ _OUTPUT_SUBDIR = Path("outputs") / "inductor_design"
 _STACKED_CORE_LOSS_BETA_FLOOR = 1.5
 
 
-class InductorDatabaseUnavailableError(FileNotFoundError):
-    """Raised when the external OpenMagnetics-derived database cannot be found."""
-
-
 @dataclass(frozen=True)
 class _DatabaseBundle:
     cores: pd.DataFrame
     materials: pd.DataFrame
     wires: pd.DataFrame
+    catalog_cores: tuple[BoundCatalogCore, ...] = ()
+    selection_mode: CatalogSelectionMode = "virtual"
 
 
 @dataclass(frozen=True)
@@ -45,9 +50,77 @@ class MagneticArtifactExportResult:
     plot_fallback_note: str | None = None
 
 
-def synthesize_fixed_inductor_candidates(request: InductorDesignRequest) -> list[FixedInductorDesignCandidate]:
+def synthesize_fixed_inductor_candidates(
+    request: InductorDesignRequest,
+    *,
+    selection_mode: CatalogSelectionMode = "virtual",
+) -> list[FixedInductorDesignCandidate]:
     """Search feasible fixed inductor designs for a normalized design request."""
-    database = _load_default_databases()
+    data_bundle = resolve_magnetic_data_backend(
+        get_production_magnetic_backend_config(selection_mode=selection_mode)
+    )
+    database = _DatabaseBundle(
+        cores=data_bundle.cores,
+        materials=data_bundle.materials,
+        wires=data_bundle.wires,
+        catalog_cores=data_bundle.catalog_cores,
+        selection_mode=data_bundle.selection_mode,
+    )
+    return _synthesize_fixed_inductor_candidates_from_database(request, database)
+
+
+def synthesize_fixed_inductor_candidates_with_backend(
+    request: InductorDesignRequest,
+    backend_config: MagneticDataBackendConfig | None = None,
+) -> list[FixedInductorDesignCandidate]:
+    """Search feasible fixed inductor designs with an explicit data backend.
+
+    The default public runtime path resolves the fixed normalized-v2 production
+    cache. Callers may pass the explicit normalized-v1 rollback configuration
+    for controlled diagnosis.
+    """
+    data_bundle = resolve_magnetic_data_backend(backend_config)
+    database = _DatabaseBundle(
+        cores=data_bundle.cores,
+        materials=data_bundle.materials,
+        wires=data_bundle.wires,
+        catalog_cores=data_bundle.catalog_cores,
+        selection_mode=data_bundle.selection_mode,
+    )
+    return _synthesize_fixed_inductor_candidates_from_database(request, database)
+
+
+def synthesize_fixed_inductor_candidates_with_backend_audit(
+    request: InductorDesignRequest,
+    backend_config: MagneticDataBackendConfig | None = None,
+) -> tuple[list[FixedInductorDesignCandidate], dict[str, int]]:
+    """Search candidates and return the pre-candidate screening ledger."""
+    data_bundle = resolve_magnetic_data_backend(backend_config)
+    database = _DatabaseBundle(
+        cores=data_bundle.cores,
+        materials=data_bundle.materials,
+        wires=data_bundle.wires,
+        catalog_cores=data_bundle.catalog_cores,
+        selection_mode=data_bundle.selection_mode,
+    )
+    audit: dict[str, int] = {}
+    candidates = _generate_candidates(
+        request, database, core_limit=14, material_limit=8, wire_limit=8, audit=audit
+    )
+    if not candidates:
+        audit = {}
+        candidates = _generate_candidates(
+            request, database, core_limit=24, material_limit=12, wire_limit=12, audit=audit
+        )
+    audit["basic_feasible_candidate_count"] = len(candidates)
+    return _sort_candidates(candidates), dict(sorted(audit.items()))
+
+
+def _synthesize_fixed_inductor_candidates_from_database(
+    request: InductorDesignRequest,
+    database: _DatabaseBundle,
+) -> list[FixedInductorDesignCandidate]:
+    """Search feasible fixed inductor designs from a normalized data bundle."""
     candidates = _generate_candidates(request, database, core_limit=14, material_limit=8, wire_limit=8)
     if candidates:
         return _sort_candidates(candidates)
@@ -139,31 +212,44 @@ def evaluate_fixed_inductor_design(
     if operating_point_request.mode != "CCM":
         notes.append("Current RMS uses a DCM triangular-current approximation.")
 
-    copper_loss_w: float | None = None
-    if design.rdc_25c_ohm is not None:
-        copper_loss_w = (operating_point_request.i_rms_a**2) * design.rdc_25c_ohm * _ac_resistance_multiplier(
+    if operating_point_request.mode == "tcm_triangular_current_first_pass":
+        copper_loss_w, core_loss_w, b_peak_t, total_loss_w, segment_notes = _evaluate_tcm_segmented_operating_losses(
+            design=design,
+            operating_point_request=operating_point_request,
+            ae=ae,
+            ve=ve,
             strand_diameter=strand_diameter,
             total_strands=total_strands,
-            fs_hz=operating_point_request.fs_hz,
+            turns=turns,
         )
-
-    b_peak_t: float | None = None
-    core_loss_w: float | None = None
-    if ae is not None and ve is not None:
-        b_peak_t = abs(operating_point_request.v_l_on_v) * operating_point_request.duty / (
-            operating_point_request.fs_hz * ae * turns
-        )
-        if steinmetz_ranges:
-            core_loss_w = _compute_operating_core_loss_w(
-                design=design,
-                ve_m3=ve,
-                b_peak_t=b_peak_t,
+        notes.extend(segment_notes)
+    else:
+        copper_loss_w: float | None = None
+        if design.rdc_25c_ohm is not None:
+            copper_loss_w = (operating_point_request.i_rms_a**2) * design.rdc_25c_ohm * _ac_resistance_multiplier(
+                strand_diameter=strand_diameter,
+                total_strands=total_strands,
                 fs_hz=operating_point_request.fs_hz,
             )
 
-    total_loss_w: float | None = None
-    if copper_loss_w is not None or core_loss_w is not None:
-        total_loss_w = (copper_loss_w or 0.0) + (core_loss_w or 0.0)
+        b_peak_t: float | None = None
+        core_loss_w: float | None = None
+        if ae is not None and ve is not None:
+            flux_peak_to_peak_t = abs(operating_point_request.v_l_on_v) * operating_point_request.duty / (
+                operating_point_request.fs_hz * ae * turns
+            )
+            b_peak_t = design.inductance_h * operating_point_request.i_peak_a / (turns * ae)
+            if steinmetz_ranges:
+                core_loss_w = _compute_operating_core_loss_w(
+                    design=design,
+                    ve_m3=ve,
+                    flux_peak_to_peak_t=flux_peak_to_peak_t,
+                    fs_hz=operating_point_request.fs_hz,
+                )
+
+        total_loss_w: float | None = None
+        if copper_loss_w is not None or core_loss_w is not None:
+            total_loss_w = (copper_loss_w or 0.0) + (core_loss_w or 0.0)
 
     current_density_a_per_mm2: float | None = None
     if bundle_copper_area is not None:
@@ -188,6 +274,90 @@ def evaluate_fixed_inductor_design(
         b_peak_t=b_peak_t,
         current_density_a_per_mm2=current_density_a_per_mm2,
         notes=notes,
+    )
+
+
+def _evaluate_tcm_segmented_operating_losses(
+    *,
+    design: FixedInductorDesignCandidate,
+    operating_point_request: InductorOperatingPointRequest,
+    ae: float | None,
+    ve: float | None,
+    strand_diameter: float | None,
+    total_strands: int,
+    turns: int,
+) -> tuple[float | None, float | None, float | None, float | None, list[str]]:
+    metadata = design.metadata if isinstance(design.metadata, dict) else {}
+    segments = metadata.get("tcm_segments")
+    if not segments:
+        return (None, None, None, None, ["TCM segmented magnetic loss data is unavailable; falling back to single-point evaluation."])
+    if design.rdc_25c_ohm is None:
+        return (None, None, None, None, ["TCM segmented magnetic loss data is unavailable because winding resistance is missing."])
+    if ae is None or ve is None:
+        return (None, None, None, None, ["TCM segmented magnetic loss data is unavailable because core geometry is missing."])
+    if not metadata.get("steinmetz_ranges"):
+        return (None, None, None, None, ["TCM segmented magnetic loss data is unavailable because Steinmetz data is missing."])
+
+    total_time_s = 0.0
+    total_copper_energy_j = 0.0
+    total_core_energy_j = 0.0
+    segment_b_peak_values: list[float] = []
+    notes = [
+        "TCM segmented magnetic loss is time-averaged from per-segment copper and core loss.",
+        "Per-segment copper loss uses the segment switching frequency and the segment RMS current.",
+        "Per-segment core loss uses the segment switching frequency and a first-pass Bpeak proxy.",
+    ]
+
+    for segment in segments:
+        duration_s = _as_float(segment.get("duration_s")) or 0.0
+        if duration_s <= 0.0:
+            duration_s = _as_float(segment.get("switching_period_s")) or 0.0
+        if duration_s <= 0.0:
+            continue
+        fsw_hz = _as_float(segment.get("fsw_hz")) or operating_point_request.fs_hz
+        i_rms_a = _as_float(segment.get("irms_a")) or operating_point_request.i_rms_a
+        volt_second_up_v_s = _as_float(segment.get("volt_second_up_v_s"))
+        if volt_second_up_v_s is None:
+            vac_eff_v = _as_float(segment.get("vac_eff_v")) or abs(operating_point_request.v_l_on_v)
+            duty = _as_float(segment.get("duty")) or operating_point_request.duty
+            volt_second_up_v_s = abs(vac_eff_v) * duty / max(fsw_hz, 1e-12)
+        b_peak_t = abs(volt_second_up_v_s) / (ae * turns)
+        segment_b_peak_values.append(b_peak_t)
+
+        copper_energy_j = 0.0
+        if design.rdc_25c_ohm is not None:
+            copper_loss_w = (i_rms_a**2) * design.rdc_25c_ohm * _ac_resistance_multiplier(
+                strand_diameter=strand_diameter,
+                total_strands=total_strands,
+                fs_hz=fsw_hz,
+            )
+            copper_energy_j = copper_loss_w * duration_s
+
+        core_loss_w = _compute_operating_core_loss_w(
+            design=design,
+            ve_m3=ve,
+            flux_peak_to_peak_t=b_peak_t,
+            fs_hz=fsw_hz,
+        )
+        core_energy_j = (core_loss_w or 0.0) * duration_s
+
+        total_time_s += duration_s
+        total_copper_energy_j += copper_energy_j
+        total_core_energy_j += core_energy_j
+
+    if total_time_s <= 0.0:
+        return (None, None, None, None, ["TCM segmented magnetic loss data was present but no valid segment timing could be evaluated."])
+
+    copper_loss_avg_w = total_copper_energy_j / total_time_s if total_copper_energy_j else 0.0
+    core_loss_avg_w = total_core_energy_j / total_time_s if total_core_energy_j else 0.0
+    total_loss_avg_w = copper_loss_avg_w + core_loss_avg_w
+    b_peak_t = max(segment_b_peak_values) if segment_b_peak_values else None
+    return (
+        copper_loss_avg_w if total_copper_energy_j or copper_loss_avg_w else None,
+        core_loss_avg_w if total_core_energy_j or core_loss_avg_w else None,
+        b_peak_t,
+        total_loss_avg_w,
+        notes,
     )
 
 
@@ -301,8 +471,12 @@ def _generate_candidates(
     core_limit: int,
     material_limit: int,
     wire_limit: int,
+    audit: dict[str, int] | None = None,
+    core_offset: int = 0,
 ) -> list[FixedInductorDesignCandidate]:
-    cores = _select_valid_cores(database.cores, request, limit=core_limit)
+    if database.selection_mode != "virtual":
+        return _generate_catalog_candidates(request, database, core_limit=core_limit, wire_limit=wire_limit)
+    cores = _select_valid_cores(database.cores, request, limit=core_limit).iloc[max(core_offset, 0) :]
     materials = _select_candidate_materials(database.materials, request, limit=material_limit)
     wires = _select_candidate_wires(database.wires, request, limit=wire_limit)
 
@@ -323,8 +497,33 @@ def _generate_candidates(
                         wire=wire,
                         turns_grid=turns_grid,
                         parallel_grid=parallel_grid,
+                        audit=audit,
                     )
                 )
+    return candidates
+
+
+def _generate_catalog_candidates(
+    request: InductorDesignRequest,
+    database: _DatabaseBundle,
+    *,
+    core_limit: int,
+    wire_limit: int,
+) -> list[FixedInductorDesignCandidate]:
+    """Evaluate only exact catalog shape/material pairings."""
+    selected = sorted(
+        database.catalog_cores,
+        key=lambda item: (item.effective_volume_m3 if item.effective_volume_m3 is not None else math.inf, item.catalog_core_id),
+    )[: max(core_limit * 8, core_limit)]
+    wires = _select_candidate_wires(database.wires, request, limit=wire_limit)
+    candidates: list[FixedInductorDesignCandidate] = []
+    for catalog in selected:
+        core = database.cores.loc[catalog.shape_name] if catalog.shape_name in database.cores.index else None
+        material = database.materials.loc[catalog.material_name] if catalog.material_name in database.materials.index else None
+        if core is None or material is None:
+            continue
+        for wire in wires.itertuples():
+            candidates.extend(_evaluate_core_material_wire_combo(request, core, material, wire, np.repeat(np.arange(8, 81, dtype=float), len(np.arange(1, 9, dtype=float))), np.tile(np.arange(1, 9, dtype=float), len(np.arange(8, 81, dtype=float))), catalog=catalog))
     return candidates
 
 
@@ -335,10 +534,24 @@ def _evaluate_core_material_wire_combo(
     wire: Any,
     turns_grid: np.ndarray,
     parallel_grid: np.ndarray,
+    catalog: BoundCatalogCore | None = None,
+    audit: dict[str, int] | None = None,
 ) -> list[FixedInductorDesignCandidate]:
+    effective_volume_m3 = (
+        float(catalog.effective_volume_m3)
+        if catalog is not None and catalog.effective_volume_m3 is not None
+        else float(core.Ve)
+    )
     gap_m = (_MU0 * (turns_grid**2) * float(core.Ae)) / request.target_inductance_h
     fill_factor = turns_grid * parallel_grid * float(wire.bundle_copper_area) * _LITZ_PACKING_FACTOR / float(core.Aw)
-    mask = (gap_m > 0.02e-3) & (gap_m < 8.0e-3) & (fill_factor > 0.01) & (fill_factor < 0.60)
+    gap_mask = (gap_m > 0.02e-3) & (gap_m < 8.0e-3)
+    fill_mask = (fill_factor > 0.01) & (fill_factor < 0.60)
+    mask = gap_mask & fill_mask
+    if audit is not None:
+        _audit_increment(audit, "raw_grid_candidate_count", len(turns_grid))
+        _audit_increment(audit, "identity_resolved_candidate_count", len(turns_grid))
+        _audit_increment(audit, "gap_rejection_count", int((~gap_mask).sum()))
+        _audit_increment(audit, "window_fill_rejection_count", int((gap_mask & ~fill_mask).sum()))
     if not mask.any():
         return []
 
@@ -354,8 +567,12 @@ def _evaluate_core_material_wire_combo(
         fs_hz=request.fs_hz,
     )
     copper_loss_w = (request.i_rms_a**2) * rdc * fac
-    b_peak_design_t = abs(request.v_l_on_v) * request.duty_nom / (request.fs_hz * float(core.Ae) * turns)
-    feasible = b_peak_design_t < (0.85 * float(material.B_sat))
+    flux_peak_to_peak_t = abs(request.v_l_on_v) * request.duty_nom / (request.fs_hz * float(core.Ae) * turns)
+    flux_absolute_peak_t = request.target_inductance_h * request.i_peak_a / (turns * float(core.Ae))
+    flux_dc_offset_t = request.target_inductance_h * request.i_avg_a / (turns * float(core.Ae))
+    feasible = flux_absolute_peak_t < (0.85 * float(material.B_sat))
+    if audit is not None:
+        _audit_increment(audit, "saturation_rejection_count", int((~feasible).sum()))
     if not feasible.any():
         return []
 
@@ -367,15 +584,68 @@ def _evaluate_core_material_wire_combo(
     total_strands = total_strands[feasible]
     rdc = rdc[feasible]
     copper_loss_w = copper_loss_w[feasible]
-    b_peak_design_t = b_peak_design_t[feasible]
-    core_loss_w = (
-        coeffs["k"]
-        * (request.fs_hz**coeffs["alpha"])
-        * (b_peak_design_t**coeffs["beta"])
-        * float(core.Ve)
-        * 1e3
+    flux_peak_to_peak_t = flux_peak_to_peak_t[feasible]
+    flux_absolute_peak_t = flux_absolute_peak_t[feasible]
+    flux_dc_offset_t = flux_dc_offset_t[feasible]
+    density_fn = np.vectorize(
+        lambda flux_t: steinmetz_loss_density_w_per_m3(
+            model=coeffs,
+            frequency_hz=request.fs_hz,
+            flux_ac_peak_t=float(flux_t) / 2.0,
+        ),
+        otypes=[float],
     )
-    total_loss_w = copper_loss_w + core_loss_w
+    legacy_core_loss_w = density_fn(flux_peak_to_peak_t) * effective_volume_m3
+    # Step 8 shadow adapter: the v1 search still supplies the candidate row,
+    # while the shared router becomes the authoritative comparable loss value.
+    routed_core_loss_w = np.empty(len(flux_peak_to_peak_t), dtype=float)
+    router_statuses: list[str] = []
+    router_attempt_counts: list[int] = []
+    router_model_ids: list[str | None] = []
+    router_model_scopes: list[str | None] = []
+    for index, flux_bpp in enumerate(flux_peak_to_peak_t):
+        routed = route_legacy_steinmetz_loss(
+            model=coeffs,
+            frequency_hz=request.fs_hz,
+            flux_peak_to_peak_t=float(flux_bpp),
+            effective_volume_m3=effective_volume_m3,
+            material_id=str(material.Index),
+            material_name=str(material.Index),
+            calculation_mode="shadow_step8_generic_inductor",
+        )
+        if routed.core_loss_w is None or routed.volumetric_loss_w_per_m3 is None:
+            # A candidate with unavailable reference loss is not comparable and
+            # must not enter engineering ranking as a zero-loss candidate.
+            routed_core_loss_w[index] = np.nan
+        else:
+            routed_core_loss_w[index] = float(routed.core_loss_w)
+        router_statuses.append(routed.validity_status.value)
+        router_attempt_counts.append(len(routed.routing_attempts))
+        router_model_ids.append(routed.selected_model_id)
+        router_model_scopes.append(routed.selected_model_scope)
+    valid_router = np.isfinite(routed_core_loss_w)
+    if audit is not None:
+        _audit_increment(audit, "loss_model_unavailable_count", int((~valid_router).sum()))
+        _audit_increment(audit, "model_compatible_candidate_count", int(valid_router.sum()))
+    if not valid_router.any():
+        return []
+    turns = turns[valid_router]
+    parallels = parallels[valid_router]
+    gaps = gaps[valid_router]
+    fills = fills[valid_router]
+    total_strands = total_strands[valid_router]
+    rdc = rdc[valid_router]
+    copper_loss_w = copper_loss_w[valid_router]
+    flux_peak_to_peak_t = flux_peak_to_peak_t[valid_router]
+    flux_absolute_peak_t = flux_absolute_peak_t[valid_router]
+    flux_dc_offset_t = flux_dc_offset_t[valid_router]
+    legacy_core_loss_w = legacy_core_loss_w[valid_router]
+    routed_core_loss_w = routed_core_loss_w[valid_router]
+    router_statuses = [value for value, valid in zip(router_statuses, valid_router) if valid]
+    router_attempt_counts = [value for value, valid in zip(router_attempt_counts, valid_router) if valid]
+    router_model_ids = [value for value, valid in zip(router_model_ids, valid_router) if valid]
+    router_model_scopes = [value for value, valid in zip(router_model_scopes, valid_router) if valid]
+    total_loss_w = copper_loss_w + routed_core_loss_w
     winding_volume_m3 = (
         turns
         * parallels
@@ -383,7 +653,10 @@ def _evaluate_core_material_wire_combo(
         * (math.pi * (float(wire.outer_diameter) / 2.0) ** 2)
         * _LITZ_PACKING_FACTOR
     )
-    core_volume_m3 = np.full(len(turns), float(core.gross_volume))
+    core_volume_m3 = np.full(
+        len(turns),
+        effective_volume_m3 if catalog is not None else float(core.gross_volume),
+    )
     total_volume_m3 = core_volume_m3 + winding_volume_m3
     saturation_current_a = 0.85 * float(material.B_sat) * gaps / (_MU0 * turns)
 
@@ -397,6 +670,7 @@ def _evaluate_core_material_wire_combo(
             wire_name=str(wire.Index),
             turns=turns_i,
             parallel_bundles=parallels_i,
+            catalog_core_id=catalog.catalog_core_id if catalog is not None else None,
         )
         results.append(
             FixedInductorDesignCandidate(
@@ -416,16 +690,22 @@ def _evaluate_core_material_wire_combo(
                 core_volume_m3=float(core_volume_m3[index]),
                 winding_volume_m3=float(winding_volume_m3[index]),
                 total_volume_m3=float(total_volume_m3[index]),
-                b_peak_design_t=float(b_peak_design_t[index]),
+                b_peak_design_t=float(flux_absolute_peak_t[index]),
                 saturation_current_a=float(saturation_current_a[index]),
                 reference_copper_loss_w=float(copper_loss_w[index]),
-                reference_core_loss_w=float(core_loss_w[index]),
+                reference_core_loss_w=float(routed_core_loss_w[index]),
                 reference_total_loss_w=float(total_loss_w[index]),
                 notes=[
                     "Fixed inductor geometry synthesized from the design-point request.",
                     "Operating-point evaluation should reuse this geometry unchanged.",
                 ],
                 metadata={
+                    "core_id": str(getattr(core, "stable_core_id", core.Index)),
+                    "material_id": str(getattr(material, "stable_material_id", material.Index)),
+                    "wire_id": str(getattr(wire, "stable_wire_id", wire.Index)),
+                    "core_source_provenance": getattr(core, "core_source_provenance", None),
+                    "material_source_provenance": getattr(material, "material_source_provenance", None),
+                    "wire_source_record": getattr(wire, "source_wire_record", None),
                     "shape_label": str(getattr(core, "shape_label", core.Index)),
                     "family": str(getattr(core, "family", "")),
                     "wire_family": _derive_wire_family(str(wire.Index)),
@@ -435,11 +715,17 @@ def _evaluate_core_material_wire_combo(
                     "strand_diameter_m": float(wire.d_strand),
                     "wire_outer_diameter_m": float(wire.outer_diameter),
                     "core_effective_area_m2": float(core.Ae),
-                    "core_effective_volume_m3": float(core.Ve),
+                    "core_effective_volume_m3": effective_volume_m3,
                     "core_window_area_m2": float(core.Aw),
                     "core_path_length_m": float(core.le),
                     "mean_length_per_turn_m": float(core.mlt),
                     "gross_volume_m3": float(core.gross_volume),
+                    "physical_envelope_volume_m3": _finite_or_none(
+                        getattr(core, "physical_envelope_volume_m3", core.gross_volume)
+                    ),
+                    "solid_material_volume_m3": _finite_or_none(
+                        getattr(core, "solid_material_volume_m3", None)
+                    ),
                     "core_width_m": float(core.width),
                     "core_height_m": float(core.height),
                     "core_depth_m": float(core.depth),
@@ -459,24 +745,83 @@ def _evaluate_core_material_wire_combo(
                     "b_sat_100c_source": str(getattr(material, "b_sat_100c_source", "unknown")),
                     "steinmetz_ranges": material.steinmetz_ranges,
                     "core_loss_model": "steinmetz_raw",
+                    "core_loss_unit_conversion_policy": "W_per_m3_times_m3_equals_W_once",
+                    "core_loss_flux_input_definition": "core_loss_flux_peak_to_peak_t_is_Bpp; kernel_Bac_peak=Bpp/2",
+                    "core_loss_flux_peak_to_peak_t": float(flux_peak_to_peak_t[index]),
+                    "core_flux_ac_peak_t": float(flux_peak_to_peak_t[index]) / 2.0,
+                    "core_flux_dc_offset_t": float(flux_dc_offset_t[index]),
+                    "core_flux_absolute_peak_t": float(flux_absolute_peak_t[index]),
+                    "saturation_flux_input_definition": "Babsolute=L*Ipeak/(N*Ae)",
+                    "legacy_core_loss_w": float(legacy_core_loss_w[index]),
+                    "kernel_core_loss_w": float(routed_core_loss_w[index]),
+                    "step8_router_core_loss_w": float(routed_core_loss_w[index]),
+                    "step8_router_status": router_statuses[index],
+                    "step8_router_policy": "mkf_compatible_v1",
+                    "step8_router_attempt_count": router_attempt_counts[index],
+                    "step8_router_model_id": router_model_ids[index],
+                    "step8_router_model_scope": router_model_scopes[index],
+                    "core_loss_validity_status": router_statuses[index],
+                    "core_loss_method": "steinmetz",
+                    "core_loss_model_id": router_model_ids[index],
+                    "core_loss_model_scope": router_model_scopes[index],
+                    "core_loss_effective_volume_m3": effective_volume_m3,
+                    "step8_legacy_core_loss_w": float(legacy_core_loss_w[index]),
+                    "kernel_vs_legacy_relative_difference": (1.0 / (1e3 * (2.0 ** float(coeffs["beta"])))) - 1.0,
                     "core_loss_beta_raw": float(coeffs["beta"]),
                     "core_loss_beta_effective": float(coeffs["beta"]),
-                    "reference_b_peak_t": float(b_peak_design_t[index]),
-                    "reference_core_loss_density_w_per_m3": float(core_loss_w[index]) / max(float(core.Ve), 1e-18),
+                    # The explicit names are authoritative.  ``reference_b_peak_t``
+                    # remains as a compatibility alias for older stacked-loss
+                    # callers, but its historical value is Bpp, not Babsolute.
+                    "reference_flux_peak_to_peak_t": float(flux_peak_to_peak_t[index]),
+                    "reference_flux_ac_peak_t": float(flux_peak_to_peak_t[index]) / 2.0,
+                    "reference_flux_absolute_peak_t": float(flux_absolute_peak_t[index]),
+                    "reference_b_peak_t": float(flux_peak_to_peak_t[index]),
+                    "reference_core_loss_density_w_per_m3": float(routed_core_loss_w[index]) / max(effective_volume_m3, 1e-18),
                     "material_type": str(getattr(material, "material_type", "")),
                     "manufacturer": str(getattr(material, "manufacturer", "")),
+                    "material_metric_source": str(getattr(material, "material_metric_source", "")),
+                    "material_metric_source_pdf": str(getattr(material, "material_metric_source_pdf", "")),
+                    "material_metric_source_page": str(getattr(material, "material_metric_source_page", "")),
+                    "material_metric_notes": str(getattr(material, "material_metric_notes", "")),
+                    "material_recommended_frequency_min_hz": _as_float(getattr(material, "f_min_recommended", None)),
+                    "material_recommended_frequency_max_hz": _as_float(getattr(material, "f_max_recommended", None)),
                     "reference_i_rms_a": request.i_rms_a,
                     "reference_current_density_a_per_mm2": request.i_rms_a / max(float(wire.bundle_copper_area) * parallels_i * 1e6, 1e-12),
+                    "tcm_segments": request.metadata.get("tcm_segments"),
+                    "core_selection_mode": "virtual" if catalog is None else catalog.catalog_kind,
+                    "purchasable": catalog is not None,
+                    "commercial_binding_status": "virtual_shape_material_combination" if catalog is None else "bound",
+                    "catalog_core_id": catalog.catalog_core_id if catalog is not None else None,
+                    "catalog_kind": catalog.catalog_kind if catalog is not None else None,
+                    "manufacturer_reference": catalog.manufacturer_reference if catalog is not None else None,
+                    "catalog_manufacturer": catalog.manufacturer if catalog is not None else None,
+                    "manufacturer_status": catalog.manufacturer_status if catalog is not None else None,
+                    "catalog_shape_id": catalog.shape_id if catalog is not None else None,
+                    "catalog_material_id": catalog.material_id if catalog is not None else None,
+                    "catalog_number_stacks": catalog.number_stacks if catalog is not None else 1,
+                    "catalog_gapping": list(catalog.gapping) if catalog is not None else [],
+                    "catalog_distributor_entries": list(catalog.distributor_entries) if catalog is not None else [],
+                    "core_effective_volume_source": "catalog_shape_effective_volume" if catalog is not None and catalog.effective_volume_m3 is not None else "virtual_shape_dataframe",
+                    "core_mass_kg": (
+                        catalog.mass_kg
+                        if catalog is not None
+                        else _finite_or_none(getattr(core, "core_mass_kg", None))
+                    ),
                 },
             )
         )
     return results
 
 
+def _audit_increment(audit: dict[str, int], key: str, amount: int) -> None:
+    audit[key] = audit.get(key, 0) + int(amount)
+
+
 def _sort_candidates(candidates: Iterable[FixedInductorDesignCandidate]) -> list[FixedInductorDesignCandidate]:
     return sorted(
         list(candidates),
         key=lambda item: (
+            0 if core_loss_is_comparable(item.metadata, item.reference_total_loss_w) else 1,
             _metric_or_inf(item.total_volume_m3),
             _metric_or_inf(item.reference_total_loss_w),
             item.candidate_id,
@@ -485,6 +830,9 @@ def _sort_candidates(candidates: Iterable[FixedInductorDesignCandidate]) -> list
 
 
 def _best_balanced_candidate(candidates: list[FixedInductorDesignCandidate]) -> FixedInductorDesignCandidate:
+    comparable = [item for item in candidates if core_loss_is_comparable(item.metadata, item.reference_total_loss_w)]
+    if comparable:
+        candidates = comparable
     volumes = [_metric_or_inf(candidate.total_volume_m3) for candidate in candidates]
     losses = [_metric_or_inf(candidate.reference_total_loss_w) for candidate in candidates]
     min_volume, max_volume = min(volumes), max(volumes)
@@ -522,7 +870,7 @@ def _display_value(value: float | None, scale: float, unit: str) -> str:
 def _compute_operating_core_loss_w(
     design: FixedInductorDesignCandidate,
     ve_m3: float,
-    b_peak_t: float,
+    flux_peak_to_peak_t: float,
     fs_hz: float,
 ) -> float | None:
     metadata = design.metadata
@@ -538,21 +886,23 @@ def _compute_operating_core_loss_w(
         and effective_beta is not None
         and design.reference_core_loss_w is not None
     ):
-        reference_b_peak_t = _as_float(metadata.get("reference_b_peak_t")) or design.b_peak_design_t
+        reference_b_peak_t = (
+            _as_float(metadata.get("reference_flux_peak_to_peak_t"))
+            or _as_float(metadata.get("reference_b_peak_t"))
+            or design.b_peak_design_t
+        )
         reference_ve_m3 = _as_float(metadata.get("core_effective_volume_m3"))
         if reference_b_peak_t is not None and reference_b_peak_t > 0.0 and reference_ve_m3 is not None and reference_ve_m3 > 0.0:
             reference_density = design.reference_core_loss_w / reference_ve_m3
-            return reference_density * ((b_peak_t / reference_b_peak_t) ** effective_beta) * ve_m3
+            return reference_density * ((flux_peak_to_peak_t / reference_b_peak_t) ** effective_beta) * ve_m3
 
     coeffs = _select_steinmetz_range(steinmetz_ranges, fs_hz)
     beta = raw_beta if raw_beta is not None else coeffs["beta"]
-    return (
-        coeffs["k"]
-        * (fs_hz**coeffs["alpha"])
-        * (b_peak_t**beta)
-        * ve_m3
-        * 1e3
-    )
+    return steinmetz_loss_density_w_per_m3(
+        model={**coeffs, "beta": beta},
+        frequency_hz=fs_hz,
+        flux_ac_peak_t=flux_peak_to_peak_t / 2.0,
+    ) * ve_m3
 
 
 def _candidate_id(
@@ -561,8 +911,11 @@ def _candidate_id(
     wire_name: str,
     turns: int,
     parallel_bundles: int,
+    catalog_core_id: str | None = None,
 ) -> str:
     raw = f"{core_name}_{material_name}_{wire_name}_N{turns}_P{parallel_bundles}"
+    if catalog_core_id:
+        raw = f"{catalog_core_id}_{raw}"
     return re.sub(r"[^A-Za-z0-9_.-]+", "_", raw)
 
 
@@ -618,6 +971,31 @@ def _select_candidate_wires(wires: pd.DataFrame, request: InductorDesignRequest,
 
 
 def _candidate_frame(candidates: Iterable[FixedInductorDesignCandidate]) -> pd.DataFrame:
+    columns = [
+        "candidate_id",
+        "assembly_type",
+        "stack_count",
+        "base_core_name",
+        "core_name",
+        "material_name",
+        "wire_name",
+        "turns",
+        "parallel_bundles",
+        "gap_m",
+        "inductance_h",
+        "rdc_25c_ohm",
+        "fill_factor",
+        "core_volume_m3",
+        "winding_volume_m3",
+        "total_volume_m3",
+        "b_peak_design_t",
+        "b_sat_t",
+        "reference_sat_margin",
+        "saturation_current_a",
+        "reference_copper_loss_w",
+        "reference_core_loss_w",
+        "reference_total_loss_w",
+    ]
     rows: list[dict[str, Any]] = []
     for candidate in candidates:
         b_sat_t = _as_float(candidate.metadata.get("b_sat_t"))
@@ -651,7 +1029,7 @@ def _candidate_frame(candidates: Iterable[FixedInductorDesignCandidate]) -> pd.D
                 "reference_total_loss_w": candidate.reference_total_loss_w,
             }
         )
-    return pd.DataFrame(rows)
+    return pd.DataFrame(rows, columns=columns)
 
 
 def _write_pareto_plot(
@@ -803,359 +1181,12 @@ def _write_pareto_plot(
     }
 
 
-@lru_cache(maxsize=1)
-def _load_default_databases() -> _DatabaseBundle:
-    data_root = _locate_mas_data_root()
-    core_shapes = _read_ndjson(data_root / "core_shapes.ndjson")
-    cores_stock = _read_ndjson(data_root / "cores_stock.ndjson")
-    core_materials = _read_ndjson(data_root / "core_materials.ndjson")
-    wires = _read_ndjson(data_root / "wires.ndjson")
-
-    shapes_map = {shape["name"]: shape for shape in core_shapes}
-    round_wires = {wire["name"]: wire for wire in wires if wire.get("type") == "round"}
-    return _DatabaseBundle(
-        cores=_build_cores_dataframe(cores_stock, shapes_map),
-        materials=_build_materials_dataframe(core_materials),
-        wires=_build_litz_dataframe(wires, round_wires),
-    )
-
-
-def _locate_mas_data_root() -> Path:
-    env_root = os.environ.get("PE_CLAW_OPENMAGNETICS_DATA")
-    candidates = [
-        Path(env_root) if env_root else None,
-        _project_root() / "external" / "OpenMagnetics-MAS" / "data",
-        _project_root().parent / "Buck_Inductor_Opt_Design" / "New project" / "external" / "OpenMagnetics-MAS" / "data",
-        _project_root().parent / "Buck_Inductor_Opt_Design" / "external" / "OpenMagnetics-MAS" / "data",
-    ]
-    for candidate in candidates:
-        if candidate is not None and candidate.exists():
-            return candidate
-    raise InductorDatabaseUnavailableError(
-        "OpenMagnetics-derived inductor database was not found. "
-        "Set PE_CLAW_OPENMAGNETICS_DATA or place Buck_Inductor_Opt_Design beside PE_Claw."
-    )
-
-
 def _project_root() -> Path:
     return Path(__file__).resolve().parents[4]
 
 
-def _read_ndjson(path: Path) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
-    with path.open(encoding="utf-8") as handle:
-        for line in handle:
-            line = line.strip()
-            if not line:
-                continue
-            rows.append(json.loads(line))
-    return rows
-
-
-def _dim_value(entry: dict[str, float] | None) -> float | None:
-    if not entry:
-        return None
-    if "nominal" in entry:
-        return float(entry["nominal"])
-    if "minimum" in entry and "maximum" in entry:
-        return 0.5 * (float(entry["minimum"]) + float(entry["maximum"]))
-    if "minimum" in entry:
-        return float(entry["minimum"])
-    if "maximum" in entry:
-        return float(entry["maximum"])
-    return None
-
-
-def _get_dims(shape: dict[str, Any]) -> dict[str, float]:
-    return {
-        key: value
-        for key, value in (
-            (dim_name, _dim_value(dim_data))
-            for dim_name, dim_data in shape.get("dimensions", {}).items()
-        )
-        if value is not None
-    }
-
-
-def _build_cores_dataframe(
-    cores_stock: list[dict[str, Any]],
-    shapes_map: dict[str, dict[str, Any]],
-) -> pd.DataFrame:
-    supported_families = {"t", "e", "etd", "er", "ec", "efd", "pq", "ep", "rm", "eq", "p", "u"}
-    rows: list[dict[str, Any]] = []
-    seen_shapes: set[str] = set()
-
-    for core in cores_stock:
-        functional = core.get("functionalDescription", {})
-        shape_name = functional.get("shape")
-        if not isinstance(shape_name, str) or shape_name in seen_shapes:
-            continue
-
-        shape = shapes_map.get(shape_name)
-        if not shape or shape.get("family") not in supported_families:
-            continue
-
-        metrics = _approximate_core_metrics(shape)
-        if not metrics:
-            continue
-
-        seen_shapes.add(shape_name)
-        rows.append(
-            {
-                "core_name": shape_name,
-                "shape_label": shape_name,
-                "family": shape.get("family", ""),
-                **metrics,
-            }
-        )
-
-    cores = pd.DataFrame(rows).drop_duplicates(subset=["core_name"]).set_index("core_name")
-    cores["Ap"] = cores["Ae"] * cores["Aw"]
-    return cores.sort_values("Ve")
-
-
-def _approximate_core_metrics(shape: dict[str, Any]) -> dict[str, float] | None:
-    family = shape.get("family")
-    dims = _get_dims(shape)
-    if not dims:
-        return None
-
-    if family == "t":
-        a = dims.get("A")
-        b = dims.get("B")
-        c = dims.get("C")
-        if not all([a, b, c]) or a <= b:
-            return None
-        radial_thickness = 0.5 * (a - b)
-        ae = radial_thickness * c
-        le = math.pi * 0.5 * (a + b)
-        aw = 0.25 * math.pi * b**2
-        return {
-            "Ae": ae,
-            "Aw": max(aw, 1e-10),
-            "Ve": ae * le,
-            "le": le,
-            "mlt": le,
-            "gross_volume": 0.25 * math.pi * (a**2 - b**2) * c,
-            "width": a,
-            "height": a,
-            "depth": c,
-        }
-
-    a = dims.get("A")
-    b = dims.get("B")
-    c = dims.get("C")
-    d = dims.get("D")
-    e = dims.get("E")
-    f = dims.get("F")
-    if not all([a, b, c]):
-        return None
-
-    assembly = resolve_core_assembly_envelope(
-        family=str(family or ""),
-        library_width_m=a,
-        library_height_m=b,
-        library_depth_m=c,
-    )
-    width = assembly.assembled_width_m
-    height = assembly.assembled_height_m
-    depth = assembly.assembled_depth_m
-    gross_volume = assembly.assembled_volume_m3
-    paired_family = is_paired_half_core_family(str(family or ""))
-    effective_width = assembly.library_width_m if paired_family else width
-    effective_height = assembly.library_height_m if paired_family else height
-    effective_depth = assembly.library_depth_m if paired_family else depth
-
-    if family == "pq":
-        j = dims.get("J", 0.24 * min(effective_width, effective_height))
-        l = dims.get("L", 0.55 * effective_width)
-        g = dims.get("G", dims.get("F", 0.55 * effective_depth))
-        ae = max(j * g, 1e-10)
-        aw = max(2.0 * j * l, 1e-10)
-        le = 2.0 * (dims.get("E", 0.8 * effective_width) + dims.get("F", 0.6 * effective_depth))
-        return {
-            "Ae": ae,
-            "Aw": aw,
-            "Ve": ae * le,
-            "le": le,
-            "mlt": 2.0 * (dims.get("E", 0.8 * effective_width) + effective_depth),
-            "gross_volume": gross_volume,
-            "width": width,
-            "height": height,
-            "depth": depth,
-            "library_width": assembly.library_width_m,
-            "library_height": assembly.library_height_m,
-            "library_depth": assembly.library_depth_m,
-            "library_item_is_half_core": assembly.library_item_is_half_core,
-        }
-
-    if family == "rm":
-        g = dims.get("G", 0.45 * effective_width)
-        h = dims.get("H", 0.25 * effective_height)
-        j = dims.get("J", 0.75 * effective_width)
-        c_dim = dims.get("C", effective_depth)
-        ae = max(g * h, 1e-10)
-        aw = max((j - g) * c_dim, 1e-10)
-        le = 2.2 * (dims.get("E", 0.7 * effective_width) + dims.get("F", 0.45 * effective_depth))
-        return {
-            "Ae": ae,
-            "Aw": aw,
-            "Ve": ae * le,
-            "le": le,
-            "mlt": 2.0 * (j + c_dim),
-            "gross_volume": gross_volume,
-            "width": width,
-            "height": height,
-            "depth": depth,
-            "library_width": assembly.library_width_m,
-            "library_height": assembly.library_height_m,
-            "library_depth": assembly.library_depth_m,
-            "library_item_is_half_core": assembly.library_item_is_half_core,
-        }
-
-    # Paired families (U/E/ETD/PQ/RM) are stored as half-core library items. PE-Claw
-    # now expands their physical bounding box and gross physical volume to the paired
-    # assembly for reporting, geometry, and thermal use. The existing first-pass
-    # effective-parameter approximations (Ae/Aw/le/Ve/MLT) are intentionally kept on
-    # the same local shape basis that already drove the magnetic search, because the
-    # semantics inspection showed the inconsistent part was the physical half-core
-    # interpretation, not the effective magnetic-parameter basis.
-
-    center_width = d or 0.35 * effective_width
-    center_depth = f or 0.85 * effective_depth
-    ae = max(center_width * center_depth, 1e-10)
-
-    if family == "ep":
-        aw = max((a - e) * max(b - f, 0.35 * b), 1e-10) if e and f else max(0.18 * width * height, 1e-10)
-    elif family == "p":
-        aw = max(dims.get("G", 0.18 * width) * dims.get("H", 0.45 * height), 1e-10)
-    elif paired_family:
-        aw = max(
-            (effective_width - dims.get("D", 0.45 * effective_width))
-            * dims.get("E", 0.35 * effective_height),
-            1e-10,
-        )
-    else:
-        aw = max((a - e) * max(b - f, 0.25 * b), 1e-10) if e and f else max(0.20 * width * height, 1e-10)
-
-    if family == "efd":
-        le = 2.0 * ((e or 0.75 * width) + dims.get("F2", center_depth))
-    elif paired_family:
-        le = 2.0 * ((e or 0.75 * effective_width) + (f or 0.6 * effective_depth))
-    else:
-        le = 2.0 * ((e or 0.75 * width) + (f or 0.6 * depth))
-
-    return {
-        "Ae": ae,
-        "Aw": aw,
-        "Ve": ae * le,
-        "le": le,
-        "mlt": 2.0 * ((e or 0.75 * effective_width) + effective_height),
-        "gross_volume": gross_volume,
-        "width": width,
-        "height": height,
-        "depth": depth,
-        "library_width": assembly.library_width_m,
-        "library_height": assembly.library_height_m,
-        "library_depth": assembly.library_depth_m,
-        "library_item_is_half_core": assembly.library_item_is_half_core,
-    }
-
-
-def _build_materials_dataframe(core_materials: list[dict[str, Any]]) -> pd.DataFrame:
-    rows: list[dict[str, Any]] = []
-    for material in core_materials:
-        steinmetz_ranges = []
-        for method in material.get("volumetricLosses", {}).get("default", []):
-            if method.get("method") != "steinmetz":
-                continue
-            for range_data in method.get("ranges", []):
-                steinmetz_ranges.append(
-                    {
-                        "minimumFrequency": float(range_data["minimumFrequency"]),
-                        "maximumFrequency": float(range_data["maximumFrequency"]),
-                        "k": float(range_data["k"]),
-                        "alpha": float(range_data["alpha"]),
-                        "beta": float(range_data["beta"]),
-                    }
-                )
-        if not steinmetz_ranges:
-            continue
-
-        saturation = material.get("saturation", [])
-        if not saturation:
-            continue
-
-        b_sat_t = max(float(point["magneticFluxDensity"]) for point in saturation if "magneticFluxDensity" in point)
-        b_sat_100c_t, b_sat_100c_source = _resolve_b_sat_100c(saturation)
-
-        rows.append(
-            {
-                "mat_name": material["name"],
-                "manufacturer": material.get("manufacturerInfo", {}).get("name", ""),
-                "material_type": material.get("material", ""),
-                "B_sat": b_sat_t,
-                "B_sat_100c": b_sat_100c_t,
-                "b_sat_100c_source": b_sat_100c_source,
-                "density": float(material.get("density", 4800.0)),
-                "steinmetz_ranges": steinmetz_ranges,
-                "f_min_recommended": float(material.get("recommendations", {}).get("minimumFrequency", 1.0)),
-                "f_max_recommended": float(material.get("recommendations", {}).get("maximumFrequency", 1e9)),
-            }
-        )
-
-    return pd.DataFrame(rows).drop_duplicates(subset=["mat_name"]).set_index("mat_name")
-
-
-def _build_litz_dataframe(
-    wires: list[dict[str, Any]],
-    round_wires: dict[str, dict[str, Any]],
-) -> pd.DataFrame:
-    rows: list[dict[str, Any]] = []
-    for wire in wires:
-        if wire.get("type") != "litz":
-            continue
-        strand = wire.get("strand")
-        strand_data = round_wires.get(strand) if isinstance(strand, str) else strand
-        if not strand_data:
-            continue
-
-        strand_diameter = _dim_value(strand_data.get("conductingDiameter"))
-        if not strand_diameter:
-            continue
-
-        strands_per_bundle = int(wire.get("numberConductors", 1))
-        strand_area = math.pi * (strand_diameter / 2.0) ** 2
-        rows.append(
-            {
-                "wire_id": wire["name"],
-                "d_strand": strand_diameter,
-                "a_strand": strand_area,
-                "strands_per_bundle": strands_per_bundle,
-                "bundle_copper_area": strands_per_bundle * strand_area,
-                "outer_diameter": _dim_value(wire.get("outerDiameter")) or strand_diameter,
-            }
-        )
-
-    return (
-        pd.DataFrame(rows)
-        .drop_duplicates(subset=["wire_id"])
-        .sort_values("bundle_copper_area")
-        .set_index("wire_id")
-    )
-
-
 def _select_steinmetz_range(ranges: list[dict[str, float]], frequency: float) -> dict[str, float]:
-    for range_data in ranges:
-        if range_data["minimumFrequency"] <= frequency <= range_data["maximumFrequency"]:
-            return range_data
-    return min(
-        ranges,
-        key=lambda item: min(
-            abs(frequency - item["minimumFrequency"]),
-            abs(frequency - item["maximumFrequency"]),
-        ),
-    )
+    return select_steinmetz_coefficients(ranges, frequency)
 
 
 def _as_float(value: Any) -> float | None:
@@ -1167,37 +1198,17 @@ def _as_float(value: Any) -> float | None:
         return None
 
 
+def _finite_or_none(value: Any) -> float | None:
+    resolved = _as_float(value)
+    return resolved if resolved is not None and math.isfinite(resolved) else None
+
+
 def _derive_wire_family(wire_name: str) -> str:
     if "_" in wire_name:
         return wire_name.split("_", 1)[0]
     if "-" in wire_name:
         return wire_name.split("-", 1)[0]
     return wire_name
-
-
-def _resolve_b_sat_100c(saturation_points: list[dict[str, Any]]) -> tuple[float | None, str]:
-    points = [
-        (float(point["temperature"]), float(point["magneticFluxDensity"]))
-        for point in saturation_points
-        if "temperature" in point and "magneticFluxDensity" in point
-    ]
-    if not points:
-        return None, "missing"
-
-    points.sort(key=lambda item: item[0])
-    for temperature, flux in points:
-        if temperature == 100.0:
-            return flux, "exact"
-
-    lower = max((item for item in points if item[0] < 100.0), default=None, key=lambda item: item[0])
-    upper = min((item for item in points if item[0] > 100.0), default=None, key=lambda item: item[0])
-    if lower is not None and upper is not None and upper[0] > lower[0]:
-        ratio = (100.0 - lower[0]) / (upper[0] - lower[0])
-        return lower[1] + ratio * (upper[1] - lower[1]), "interpolated"
-
-    nominal = max(flux for _, flux in points)
-    # Conservative fallback when the material database only exposes nominal or room-temperature saturation.
-    return 0.80 * nominal, "fallback_0p80_nominal"
 
 
 def _resolve_plot_candidates(

@@ -16,6 +16,7 @@ from ...utils.ambient_temperature import (
 from .resistance_chain import estimate_thermal_resistances
 from .temperature_solver import solve_lumped_magnetic_temperatures
 from .thermal_proxies import build_geometry_proxy
+from ..magnetics.core_loss_audit import core_loss_is_comparable, core_loss_status
 
 _OUTPUT_SUBDIR = Path("outputs") / "inductor_design"
 
@@ -51,6 +52,11 @@ def resolve_loss_snapshot(
 ) -> MagneticLossSnapshot | None:
     """Resolve the best available core/copper loss inputs for thermal estimation."""
     notes: list[str] = []
+
+    if not core_loss_is_comparable(design.metadata, evaluation.core_loss_w if evaluation is not None else design.reference_core_loss_w):
+        status = core_loss_status(design.metadata)
+        notes.append(f"Core-loss status {status!r} is not valid for thermal estimation; no zero-loss fallback was applied.")
+        return None
 
     if evaluation is not None and evaluation.core_loss_w is not None and evaluation.copper_loss_w is not None:
         total_loss_w = evaluation.total_loss_w

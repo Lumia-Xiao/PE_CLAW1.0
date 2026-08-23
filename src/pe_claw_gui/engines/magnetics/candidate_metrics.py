@@ -102,6 +102,9 @@ def compute_candidate_engineering_metrics(
 
 
 def _resolve_b_peak(candidate: FixedInductorDesignCandidate, notes: list[str]) -> float | None:
+    explicit_absolute_peak = _as_float(candidate.metadata.get("core_flux_absolute_peak_t"))
+    if explicit_absolute_peak is not None:
+        return explicit_absolute_peak
     if candidate.b_peak_design_t is not None:
         return candidate.b_peak_design_t
     metadata_value = _as_float(candidate.metadata.get("b_peak_t"))

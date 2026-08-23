@@ -1,0 +1,50 @@
+{
+  "core_families": [
+    "c",
+    "e",
+    "ec",
+    "efd",
+    "ep",
+    "epx",
+    "eq",
+    "er",
+    "etd",
+    "lp",
+    "p",
+    "planar e",
+    "planar el",
+    "planar er",
+    "pm",
+    "pq",
+    "pqi",
+    "rm",
+    "t",
+    "u",
+    "ui",
+    "ur",
+    "ut"
+  ],
+  "counts": {
+    "commercial_cores": 10318,
+    "core_materials": 411,
+    "core_shapes": 890,
+    "stock_cores": 1573,
+    "wires": 4352
+  },
+  "material_types": [
+    "amorphous",
+    "ferrite",
+    "nanocrystalline",
+    "powder"
+  ],
+  "normalized_by": "PE-Claw OpenMagnetics normalizer",
+  "record_version": "openmagnetics-normalized-v1",
+  "source": "packaged OpenMagnetics-derived NDJSON",
+  "wire_types": [
+    "foil",
+    "litz",
+    "planar",
+    "rectangular",
+    "round"
+  ]
+}

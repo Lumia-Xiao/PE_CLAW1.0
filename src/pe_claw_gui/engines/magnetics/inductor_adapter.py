@@ -53,7 +53,7 @@ def build_inductor_operating_point_request(report: DesignReport) -> InductorOper
 
 def build_design_requirements_dict(request: InductorDesignRequest) -> dict[str, float | str | bool | None]:
     """Format a normalized request into a GUI-facing requirements dictionary."""
-    return {
+    requirements = {
         "topology_id": request.topology_id,
         "display_name": request.display_name,
         "inductance_h": request.inductance_h,
@@ -76,6 +76,33 @@ def build_design_requirements_dict(request: InductorDesignRequest) -> dict[str, 
         "ccm_valid": request.ccm_valid,
         "mode_capable": request.mode_capable,
     }
+    for key in (
+        "phase_count",
+        "magnetic_quantity",
+        "magnetic_request_basis",
+        "system_pout_w",
+        "per_phase_power_proxy_w",
+        "i_phase_rms_a",
+        "i_phase_peak_a",
+        "i_phase_rms_operating_a",
+        "i_phase_peak_operating_a",
+        "operating_load_ratio",
+        "operating_power_factor",
+        "delta_i_pp_design_a",
+        "pwm_ripple_rms_a",
+        "current_basis",
+        "line_frequency_hz",
+        "dc_bus_voltage_v",
+        "boost_inductor_worst_theta_deg",
+        "boost_inductor_worst_vrectified_v",
+        "boost_inductor_worst_v_abs_v",
+        "boost_inductor_worst_duty",
+        "boost_inductor_worst_delta_i_allowed_a",
+    ):
+        value = request.metadata.get(key)
+        if value is not None:
+            requirements[key] = value
+    return requirements
 
 
 def _require_candidate(report: DesignReport) -> TopologyCandidate:
@@ -462,6 +489,228 @@ def _build_boost_sr_operating_request(report: DesignReport) -> InductorOperating
     )
 
 
+def _build_single_phase_boost_pfc_design_request(report: DesignReport) -> InductorDesignRequest:
+    candidate = _require_candidate(report)
+    _require_positive_inductance(candidate)
+    metadata = candidate.metadata if isinstance(candidate.metadata, dict) else {}
+    waveform_metadata = report.waveform.metadata if report.waveform is not None and isinstance(report.waveform.metadata, dict) else {}
+    line_cycle = metadata.get("sizing_line_cycle") if isinstance(metadata.get("sizing_line_cycle"), dict) else {}
+    line_current_values = line_cycle.get("input_current_a") if isinstance(line_cycle, dict) else None
+    line_current_avg_a = (
+        sum(float(value) for value in line_current_values) / len(line_current_values)
+        if isinstance(line_current_values, list) and line_current_values
+        else abs(candidate.iout)
+    )
+    i_avg_a = _positive_float(waveform_metadata.get("sizing_bridge_rectifier_current_avg_a"), line_current_avg_a)
+    i_rms_a = _positive_float(
+        waveform_metadata.get("sizing_bridge_rectifier_current_rms_a"),
+        _positive_float(metadata.get("sizing_input_current_rms_a"), abs(candidate.iout)),
+    )
+    i_peak_a = _positive_float(candidate.il_peak, _positive_float(metadata.get("i_line_peak_a"), i_rms_a * math.sqrt(2.0)))
+    i_valley_a = _positive_float(candidate.il_valley, 0.0)
+    delta_i_pp_a = _positive_float(
+        candidate.delta_il,
+        _positive_float(metadata.get("delta_il_pp_nom_a"), max(i_peak_a - i_valley_a, 0.0)),
+    )
+    worst_vrectified_v = _positive_float(metadata.get("boost_inductor_worst_vrectified_v"), abs(candidate.vin_nom))
+    worst_duty = _positive_float(metadata.get("boost_inductor_worst_duty"), candidate.duty_nom)
+    return InductorDesignRequest(
+        topology_id=candidate.topology_id,
+        display_name=_normalized_display_name(report),
+        inductance_h=candidate.inductance_h,
+        fs_hz=candidate.fs_hz,
+        i_avg_a=i_avg_a,
+        i_rms_a=i_rms_a,
+        i_peak_a=i_peak_a,
+        i_valley_a=i_valley_a,
+        delta_i_pp_a=delta_i_pp_a,
+        throughput_power_w=candidate.pout_target,
+        mode="ccm_single_phase_boost_pfc_first_pass",
+        vin_nom_v=candidate.vin_nom,
+        vout_nom_v=candidate.vout_target,
+        duty_nom=candidate.duty_nom,
+        v_l_on_v=worst_vrectified_v,
+        v_l_off_v=worst_vrectified_v - candidate.vout_target,
+        ccm_valid=candidate.ccm_valid,
+        mode_capable=candidate.mode_capable,
+        notes=[
+            "Derived from the synthesized single-phase boost PFC boost inductor.",
+            "Inductor current uses the sampled rectified line-cycle envelope plus nominal switching ripple.",
+            "Flux-density screening uses the worst line-cycle boost volt-second point from synthesis metadata.",
+            "Zero-crossing control, line-current THD, EMI, and detailed controller dynamics remain first-pass limitations.",
+        ],
+        metadata={
+            "candidate_display_name": candidate.display_name,
+            "throughput_label": "boost PFC output power proxy",
+            "magnetic_request_basis": "single_phase_boost_pfc_boost_inductor",
+            "current_basis": "line-cycle rectified input current plus nominal switching ripple",
+            "line_frequency_hz": _positive_float(metadata.get("f_line_hz"), 0.0),
+            "dc_bus_voltage_v": candidate.vout_target,
+            "boost_inductor_worst_theta_deg": metadata.get("boost_inductor_worst_theta_deg"),
+            "boost_inductor_worst_vrectified_v": metadata.get("boost_inductor_worst_vrectified_v"),
+            "boost_inductor_worst_duty": worst_duty,
+            "boost_inductor_worst_delta_i_allowed_a": metadata.get("boost_inductor_worst_delta_i_allowed_a"),
+            "dc_link_capacitance_required_f": metadata.get("dc_link_capacitance_required_f"),
+        },
+    )
+
+
+def _build_single_phase_boost_pfc_operating_request(report: DesignReport) -> InductorOperatingPointRequest:
+    candidate = _require_candidate(report)
+    design_request = _build_single_phase_boost_pfc_design_request(report)
+    load_ratio = _operating_load_ratio(report)
+    current_scale = max(load_ratio, 0.0)
+    operating_vin_v = (
+        float(report.operating_point.vin_v)
+        if report.operating_point is not None and report.operating_point.vin_v is not None
+        else float(candidate.vin_nom)
+    )
+    metadata = dict(design_request.metadata)
+    metadata.update(
+        {
+            "magnetic_request_basis": "single_phase_boost_pfc_boost_inductor_operating_loss",
+            "operating_load_ratio": load_ratio,
+            "operating_power_factor": _operating_power_factor(report, candidate.metadata if isinstance(candidate.metadata, dict) else {}),
+            "operating_current_scale": current_scale,
+        }
+    )
+    return InductorOperatingPointRequest(
+        topology_id=candidate.topology_id,
+        display_name=_normalized_display_name(report),
+        fs_hz=candidate.fs_hz,
+        operating_vin_v=operating_vin_v,
+        operating_vout_v=candidate.vout_target,
+        operating_iout_a=candidate.iout * current_scale,
+        throughput_power_w=candidate.pout_target * current_scale,
+        duty=design_request.duty_nom,
+        i_avg_a=design_request.i_avg_a * current_scale,
+        i_rms_a=design_request.i_rms_a * current_scale,
+        i_peak_a=design_request.i_peak_a * current_scale,
+        i_valley_a=design_request.i_valley_a * current_scale,
+        delta_i_pp_a=design_request.delta_i_pp_a * current_scale,
+        v_l_on_v=design_request.v_l_on_v,
+        v_l_off_v=design_request.v_l_off_v,
+        mode="CCM",
+        load_ratio=load_ratio,
+        notes=[
+            "Boost PFC operating magnetic loss uses the sampled line-cycle current envelope at the requested load ratio.",
+            "The selected boost inductor geometry is reused; this stage only refreshes first-pass core/copper loss.",
+            "Line-current THD, zero-crossing current-loop behavior, EMI filter coupling, and detailed harmonic magnetic loss remain pending.",
+            *design_request.notes,
+        ],
+        metadata=metadata,
+    )
+
+
+def _build_single_phase_totem_pole_pfc_design_request(report: DesignReport) -> InductorDesignRequest:
+    candidate = _require_candidate(report)
+    _require_positive_inductance(candidate)
+    metadata = candidate.metadata if isinstance(candidate.metadata, dict) else {}
+    line_cycle = metadata.get("line_cycle") if isinstance(metadata.get("line_cycle"), dict) else {}
+    abs_line_current_values = line_cycle.get("i_abs_a") if isinstance(line_cycle, dict) else None
+    line_current_avg_a = (
+        sum(float(value) for value in abs_line_current_values) / len(abs_line_current_values)
+        if isinstance(abs_line_current_values, list) and abs_line_current_values
+        else abs(candidate.iout)
+    )
+    i_avg_a = _positive_float(metadata.get("i_line_abs_avg_a"), line_current_avg_a)
+    i_rms_a = _positive_float(metadata.get("i_line_rms_a"), abs(candidate.iout))
+    i_peak_a = _positive_float(candidate.il_peak, _positive_float(metadata.get("i_line_peak_a"), i_rms_a * math.sqrt(2.0)))
+    i_valley_a = _positive_float(candidate.il_valley, 0.0)
+    delta_i_pp_a = _positive_float(
+        candidate.delta_il,
+        _positive_float(metadata.get("delta_il_pp_nom_a"), max(i_peak_a - i_valley_a, 0.0)),
+    )
+    worst_v_abs_v = _positive_float(metadata.get("boost_inductor_worst_v_abs_v"), abs(candidate.vin_nom))
+    worst_duty = _positive_float(metadata.get("boost_inductor_worst_duty"), candidate.duty_nom)
+    return InductorDesignRequest(
+        topology_id=candidate.topology_id,
+        display_name=_normalized_display_name(report),
+        inductance_h=candidate.inductance_h,
+        fs_hz=candidate.fs_hz,
+        i_avg_a=i_avg_a,
+        i_rms_a=i_rms_a,
+        i_peak_a=i_peak_a,
+        i_valley_a=i_valley_a,
+        delta_i_pp_a=delta_i_pp_a,
+        throughput_power_w=candidate.pout_target,
+        mode="ccm_single_phase_totem_pole_pfc_first_pass",
+        vin_nom_v=candidate.vin_nom,
+        vout_nom_v=candidate.vout_target,
+        duty_nom=candidate.duty_nom,
+        v_l_on_v=worst_v_abs_v,
+        v_l_off_v=worst_v_abs_v - candidate.vout_target,
+        ccm_valid=candidate.ccm_valid,
+        mode_capable=candidate.mode_capable,
+        notes=[
+            "Derived from the synthesized single-phase Totem-Pole PFC boost inductor.",
+            "Inductor current uses the full-line-cycle absolute input-current envelope plus nominal switching ripple.",
+            "Flux-density screening uses the worst full-line-cycle boost volt-second point from synthesis metadata.",
+            "Zero-crossing control, line-current THD, EMI, and detailed controller dynamics remain first-pass limitations.",
+        ],
+        metadata={
+            "candidate_display_name": candidate.display_name,
+            "throughput_label": "Totem-Pole PFC output power proxy",
+            "magnetic_request_basis": "single_phase_totem_pole_pfc_boost_inductor",
+            "current_basis": "full-line-cycle absolute input current plus nominal switching ripple",
+            "line_frequency_hz": _positive_float(metadata.get("f_line_hz"), 0.0),
+            "dc_bus_voltage_v": candidate.vout_target,
+            "boost_inductor_worst_theta_deg": metadata.get("boost_inductor_worst_theta_deg"),
+            "boost_inductor_worst_v_abs_v": metadata.get("boost_inductor_worst_v_abs_v"),
+            "boost_inductor_worst_duty": worst_duty,
+            "boost_inductor_worst_delta_i_allowed_a": metadata.get("boost_inductor_worst_delta_i_allowed_a"),
+            "dc_link_capacitance_required_f": metadata.get("dc_link_capacitance_required_f"),
+        },
+    )
+
+
+def _build_single_phase_totem_pole_pfc_operating_request(report: DesignReport) -> InductorOperatingPointRequest:
+    candidate = _require_candidate(report)
+    design_request = _build_single_phase_totem_pole_pfc_design_request(report)
+    load_ratio = _operating_load_ratio(report)
+    current_scale = max(load_ratio, 0.0)
+    operating_vin_v = (
+        float(report.operating_point.vin_v)
+        if report.operating_point is not None and report.operating_point.vin_v is not None
+        else float(candidate.vin_nom)
+    )
+    metadata = dict(design_request.metadata)
+    metadata.update(
+        {
+            "magnetic_request_basis": "single_phase_totem_pole_pfc_boost_inductor_operating_loss",
+            "operating_load_ratio": load_ratio,
+            "operating_power_factor": _operating_power_factor(report, candidate.metadata if isinstance(candidate.metadata, dict) else {}),
+            "operating_current_scale": current_scale,
+        }
+    )
+    return InductorOperatingPointRequest(
+        topology_id=candidate.topology_id,
+        display_name=_normalized_display_name(report),
+        fs_hz=candidate.fs_hz,
+        operating_vin_v=operating_vin_v,
+        operating_vout_v=candidate.vout_target,
+        operating_iout_a=candidate.iout * current_scale,
+        throughput_power_w=candidate.pout_target * current_scale,
+        duty=design_request.duty_nom,
+        i_avg_a=design_request.i_avg_a * current_scale,
+        i_rms_a=design_request.i_rms_a * current_scale,
+        i_peak_a=design_request.i_peak_a * current_scale,
+        i_valley_a=design_request.i_valley_a * current_scale,
+        delta_i_pp_a=design_request.delta_i_pp_a * current_scale,
+        v_l_on_v=design_request.v_l_on_v,
+        v_l_off_v=design_request.v_l_off_v,
+        mode="CCM",
+        load_ratio=load_ratio,
+        notes=[
+            "Totem-Pole PFC operating magnetic loss uses the sampled full-line-cycle absolute current envelope at the requested load ratio.",
+            "The selected boost inductor geometry is reused; this stage only refreshes first-pass core/copper loss.",
+            "Zero-crossing behavior, common-mode EMI, reverse recovery/body-diode intervals, and detailed harmonic magnetic loss remain pending.",
+            *design_request.notes,
+        ],
+        metadata=metadata,
+    )
+
+
 def _build_buck_boost_design_request(report: DesignReport) -> InductorDesignRequest:
     from ...topologies.dc_dc.buck_boost_diode_rectified_unidirectional.mode import build_operating_state
 
@@ -675,6 +924,497 @@ def _build_three_level_operating_request(report: DesignReport) -> InductorOperat
     )
 
 
+def _build_single_phase_full_bridge_inverter_design_request(report: DesignReport) -> InductorDesignRequest:
+    candidate = _require_candidate(report)
+    _require_positive_inductance(candidate)
+    metadata = candidate.metadata if isinstance(candidate.metadata, dict) else {}
+    if str(candidate.mode_capable).startswith("tcm_"):
+        iac_rms_a = _positive_float(metadata.get("iac_rms_a"), abs(candidate.iout))
+        iac_peak_a = _positive_float(metadata.get("iac_peak_a"), abs(candidate.iout) * math.sqrt(2.0))
+        delta_i_pp_a = _positive_float(metadata.get("tcm_delta_i_max_a"), abs(candidate.delta_il))
+        i_rms_a = _positive_float(metadata.get("tcm_i_rms_a"), iac_rms_a)
+        i_peak_a = _positive_float(metadata.get("tcm_i_peak_max_a"), abs(candidate.il_peak))
+        i_valley_a = float(metadata.get("tcm_valley_current_target_a", candidate.il_valley))
+        v_l_design_v = 0.5 * abs(candidate.vin_nom)
+        return InductorDesignRequest(
+            topology_id=candidate.topology_id,
+            display_name=_normalized_display_name(report),
+            inductance_h=candidate.inductance_h,
+            fs_hz=candidate.fs_hz,
+            i_avg_a=0.0,
+            i_rms_a=i_rms_a,
+            i_peak_a=i_peak_a,
+            i_valley_a=i_valley_a,
+            delta_i_pp_a=delta_i_pp_a,
+            throughput_power_w=candidate.pout_target,
+            mode="tcm_triangular_current_first_pass",
+            vin_nom_v=candidate.vin_nom,
+            vout_nom_v=candidate.vout_target,
+            duty_nom=0.5,
+            v_l_on_v=v_l_design_v,
+            v_l_off_v=-v_l_design_v,
+            ccm_valid=False,
+            mode_capable=candidate.mode_capable,
+            notes=[
+                "Derived from the synthesized single-phase full-bridge inverter TCM output inductor.",
+                "Current RMS is estimated from the 20-segment triangular-current envelope.",
+                "Flux-density screening uses a first-pass half-DC-bus inductor-voltage proxy; TCM variable-frequency details are retained in metadata.",
+                "This is a rough magnetic realization request only; detailed inverter magnetic loss and thermal validation are pending.",
+            ],
+            metadata={
+                "candidate_display_name": candidate.display_name,
+                "throughput_label": "inverter AC output power",
+                "iac_rms_a": iac_rms_a,
+                "iac_peak_a": iac_peak_a,
+                "tcm_i_rms_a": i_rms_a,
+                "tcm_i_peak_max_a": i_peak_a,
+                "tcm_delta_i_max_a": delta_i_pp_a,
+                "tcm_valley_current_target_a": i_valley_a,
+                "tcm_fsw_min_actual_hz": metadata.get("tcm_fsw_min_actual_hz"),
+                "tcm_fsw_max_actual_hz": metadata.get("tcm_fsw_max_actual_hz"),
+                "tcm_segments": metadata.get("tcm_segments"),
+                "line_frequency_hz": _positive_float(metadata.get("f_line_hz"), 0.0),
+                "modulation_index": _positive_float(metadata.get("modulation_index"), 0.0),
+                "magnetic_request_basis": "single_phase_full_bridge_inverter_tcm_output_inductor",
+            },
+        )
+    iac_rms_a = _positive_float(metadata.get("iac_rms_a"), abs(candidate.iout))
+    iac_peak_a = _positive_float(metadata.get("iac_peak_a"), abs(candidate.iout) * math.sqrt(2.0))
+    delta_i_pp_a = _positive_float(metadata.get("delta_il_pp_a"), abs(candidate.delta_il))
+    ripple_rms_a = delta_i_pp_a / math.sqrt(12.0)
+    i_rms_a = math.sqrt(iac_rms_a * iac_rms_a + ripple_rms_a * ripple_rms_a)
+    i_peak_a = iac_peak_a + 0.5 * delta_i_pp_a
+    v_l_design_v = 0.5 * abs(candidate.vin_nom)
+    return InductorDesignRequest(
+        topology_id=candidate.topology_id,
+        display_name=_normalized_display_name(report),
+        inductance_h=candidate.inductance_h,
+        fs_hz=candidate.fs_hz,
+        i_avg_a=0.0,
+        i_rms_a=i_rms_a,
+        i_peak_a=i_peak_a,
+        i_valley_a=-i_peak_a,
+        delta_i_pp_a=delta_i_pp_a,
+        throughput_power_w=candidate.pout_target,
+        mode="ccm_unipolar_spwm_first_pass",
+        vin_nom_v=candidate.vin_nom,
+        vout_nom_v=candidate.vout_target,
+        duty_nom=0.5,
+        v_l_on_v=v_l_design_v,
+        v_l_off_v=-v_l_design_v,
+        ccm_valid=candidate.ccm_valid,
+        mode_capable=candidate.mode_capable,
+        notes=[
+            "Derived from the synthesized single-phase full-bridge inverter output-filter inductor.",
+            "Current RMS combines the line-frequency sinusoidal output current and triangular PWM ripple RMS.",
+            "Flux-density screening uses a first-pass unipolar-SPWM half-DC-bus inductor-voltage proxy.",
+            "This is a rough magnetic realization request only; detailed inverter magnetic loss and thermal validation are pending.",
+        ],
+        metadata={
+            "candidate_display_name": candidate.display_name,
+            "throughput_label": "inverter AC output power",
+            "iac_rms_a": iac_rms_a,
+            "iac_peak_a": iac_peak_a,
+            "pwm_ripple_rms_a": ripple_rms_a,
+            "line_frequency_hz": _positive_float(metadata.get("f_line_hz"), 0.0),
+            "modulation_index": _positive_float(metadata.get("modulation_index"), 0.0),
+            "magnetic_request_basis": "single_phase_full_bridge_inverter_first_pass_output_inductor",
+        },
+    )
+
+
+def _build_three_phase_two_level_inverter_design_request(report: DesignReport) -> InductorDesignRequest:
+    candidate = _require_candidate(report)
+    _require_positive_inductance(candidate)
+    metadata = candidate.metadata if isinstance(candidate.metadata, dict) else {}
+    phase_count = 3
+    i_phase_rms_a = _positive_float(metadata.get("i_phase_rms_a"), abs(candidate.iout))
+    i_phase_peak_a = _positive_float(metadata.get("i_phase_peak_a"), i_phase_rms_a * math.sqrt(2.0))
+    delta_i_pp_a = _positive_float(metadata.get("delta_il_pp_a"), abs(candidate.delta_il))
+    ripple_rms_a = delta_i_pp_a / math.sqrt(12.0)
+    i_rms_a = math.sqrt(i_phase_rms_a * i_phase_rms_a + ripple_rms_a * ripple_rms_a)
+    system_pout_w = abs(float(candidate.pout_target))
+    per_phase_power_w = system_pout_w / phase_count
+    v_l_design_v = 0.5 * abs(candidate.vin_nom)
+    return InductorDesignRequest(
+        topology_id=candidate.topology_id,
+        display_name=_normalized_display_name(report),
+        inductance_h=candidate.inductance_h,
+        fs_hz=candidate.fs_hz,
+        i_avg_a=0.0,
+        i_rms_a=i_rms_a,
+        i_peak_a=abs(candidate.il_peak),
+        i_valley_a=candidate.il_valley,
+        delta_i_pp_a=delta_i_pp_a,
+        throughput_power_w=per_phase_power_w,
+        mode="ccm_three_phase_two_level_spwm_first_pass_per_phase",
+        vin_nom_v=candidate.vin_nom,
+        vout_nom_v=candidate.vout_target,
+        duty_nom=0.5,
+        v_l_on_v=v_l_design_v,
+        v_l_off_v=-v_l_design_v,
+        ccm_valid=candidate.ccm_valid,
+        mode_capable=candidate.mode_capable,
+        notes=[
+            "Derived from the synthesized three-phase two-level inverter per-phase output inductor.",
+            "Design requirements are per phase.",
+            "Physical output-inductor quantity = 3.",
+            "Current RMS combines the phase sinusoidal current and triangular PWM ripple RMS.",
+            "Flux-density screening uses a first-pass two-level SPWM half-DC-bus inductor-voltage proxy.",
+            "Loss shown by magnetic search is per-inductor reference loss; system magnetic total will be handled in a later loss stage.",
+        ],
+        metadata={
+            "candidate_display_name": candidate.display_name,
+            "throughput_label": "per-phase inverter output power proxy",
+            "phase_count": phase_count,
+            "magnetic_quantity": phase_count,
+            "magnetic_request_basis": "three_phase_two_level_inverter_per_phase_output_inductor",
+            "system_pout_w": system_pout_w,
+            "per_phase_power_proxy_w": per_phase_power_w,
+            "i_phase_rms_a": i_phase_rms_a,
+            "i_phase_peak_a": i_phase_peak_a,
+            "pwm_ripple_rms_a": ripple_rms_a,
+            "current_basis": "per-phase sinusoidal current plus triangular PWM ripple RMS",
+            "line_frequency_hz": _positive_float(metadata.get("f_line_hz"), 0.0),
+            "modulation_index": _positive_float(metadata.get("modulation_index"), 0.0),
+        },
+    )
+
+
+def _build_single_phase_full_bridge_inverter_operating_request(report: DesignReport) -> InductorOperatingPointRequest:
+    candidate = _require_candidate(report)
+    _require_positive_inductance(candidate)
+    metadata = candidate.metadata if isinstance(candidate.metadata, dict) else {}
+    if str(candidate.mode_capable).startswith("tcm_"):
+        iac_rms_a = _positive_float(metadata.get("iac_rms_a"), abs(candidate.iout))
+        i_peak_a = _positive_float(metadata.get("tcm_i_peak_max_a"), abs(candidate.il_peak))
+        i_valley_a = float(metadata.get("tcm_valley_current_target_a", candidate.il_valley))
+        delta_i_pp_a = _positive_float(metadata.get("tcm_delta_i_max_a"), abs(candidate.delta_il))
+        i_rms_a = _positive_float(metadata.get("tcm_i_rms_a"), iac_rms_a)
+        v_l_design_v = 0.5 * abs(candidate.vin_nom)
+        return InductorOperatingPointRequest(
+            topology_id=candidate.topology_id,
+            display_name=_normalized_display_name(report),
+            fs_hz=candidate.fs_hz,
+            operating_vin_v=candidate.vin_nom,
+            operating_vout_v=candidate.vout_target,
+            operating_iout_a=candidate.iout,
+            throughput_power_w=candidate.pout_target,
+            duty=0.5,
+            i_avg_a=0.0,
+            i_rms_a=i_rms_a,
+            i_peak_a=i_peak_a,
+            i_valley_a=i_valley_a,
+            delta_i_pp_a=delta_i_pp_a,
+            v_l_on_v=v_l_design_v,
+            v_l_off_v=-v_l_design_v,
+            mode="tcm_triangular_current_first_pass",
+            load_ratio=1.0,
+            notes=[
+                "TCM output-inductor operating loss uses segment-resolved variable-frequency magnetic loss, time-averaged.",
+                "Current RMS is estimated from the 20-segment triangular-current envelope.",
+            ],
+            metadata={
+                "candidate_display_name": candidate.display_name,
+                "throughput_label": "inverter AC output power",
+                "magnetic_request_basis": "single_phase_full_bridge_inverter_tcm_segmented_operating_loss",
+                "tcm_segments": metadata.get("tcm_segments"),
+                "tcm_fsw_min_actual_hz": metadata.get("tcm_fsw_min_actual_hz"),
+                "tcm_fsw_max_actual_hz": metadata.get("tcm_fsw_max_actual_hz"),
+                "tcm_i_rms_a": i_rms_a,
+                "tcm_i_peak_max_a": i_peak_a,
+                "tcm_delta_i_max_a": delta_i_pp_a,
+            },
+        )
+    return _build_single_phase_full_bridge_inverter_design_request_as_operating_request(report)
+
+
+def _build_three_phase_two_level_inverter_operating_request(report: DesignReport) -> InductorOperatingPointRequest:
+    candidate = _require_candidate(report)
+    _require_positive_inductance(candidate)
+    metadata = candidate.metadata if isinstance(candidate.metadata, dict) else {}
+    waveform_metadata = report.waveform.metadata if report.waveform is not None and isinstance(report.waveform.metadata, dict) else {}
+    phase_count = 3
+    load_ratio = _operating_load_ratio(report)
+    operating_pf = _operating_power_factor(report, metadata)
+    pf_abs = max(abs(operating_pf), 1.0e-6)
+    system_pout_w = abs(float(candidate.pout_target) * load_ratio)
+    vac_ll_rms_v = _positive_float(metadata.get("vac_ll_rms_v"), abs(candidate.vout_target))
+    i_phase_rms_a = _positive_float(
+        waveform_metadata.get("operating_i_phase_rms_a"),
+        system_pout_w / max(math.sqrt(3.0) * vac_ll_rms_v * pf_abs, 1.0e-12),
+    )
+    i_phase_peak_a = _positive_float(
+        waveform_metadata.get("operating_i_phase_peak_a"),
+        i_phase_rms_a * math.sqrt(2.0),
+    )
+    delta_i_pp_a = _positive_float(metadata.get("delta_il_pp_a"), abs(candidate.delta_il))
+    ripple_rms_a = delta_i_pp_a / math.sqrt(12.0)
+    i_rms_a = math.sqrt(i_phase_rms_a * i_phase_rms_a + ripple_rms_a * ripple_rms_a)
+    i_peak_a = i_phase_peak_a + 0.5 * delta_i_pp_a
+    per_phase_power_w = system_pout_w / phase_count
+    v_l_design_v = 0.5 * abs(candidate.vin_nom)
+    return InductorOperatingPointRequest(
+        topology_id=candidate.topology_id,
+        display_name=_normalized_display_name(report),
+        fs_hz=candidate.fs_hz,
+        operating_vin_v=candidate.vin_nom,
+        operating_vout_v=candidate.vout_target,
+        operating_iout_a=i_phase_rms_a,
+        throughput_power_w=per_phase_power_w,
+        duty=0.5,
+        i_avg_a=0.0,
+        i_rms_a=i_rms_a,
+        i_peak_a=i_peak_a,
+        i_valley_a=-i_peak_a,
+        delta_i_pp_a=delta_i_pp_a,
+        v_l_on_v=v_l_design_v,
+        v_l_off_v=-v_l_design_v,
+        mode="ccm_three_phase_two_level_spwm_first_pass_per_phase_operating",
+        load_ratio=load_ratio,
+        notes=[
+            "Three-phase two-level inverter output-inductor operating loss uses one per-phase representative inductor.",
+            "Three identical per-phase output inductors; magnetic loss is per-inductor operating evaluation multiplied by 3.",
+            "Operating current RMS combines refreshed phase sinusoidal current and fixed design-point triangular PWM ripple RMS.",
+        ],
+        metadata={
+            "candidate_display_name": candidate.display_name,
+            "throughput_label": "per-phase inverter output power proxy",
+            "phase_count": phase_count,
+            "magnetic_quantity": phase_count,
+            "magnetic_request_basis": "three_phase_two_level_inverter_per_phase_operating_output_inductor",
+            "system_pout_w": system_pout_w,
+            "per_phase_power_proxy_w": per_phase_power_w,
+            "operating_load_ratio": load_ratio,
+            "operating_power_factor": operating_pf,
+            "i_phase_rms_operating_a": i_phase_rms_a,
+            "i_phase_peak_operating_a": i_phase_peak_a,
+            "delta_i_pp_design_a": delta_i_pp_a,
+            "pwm_ripple_rms_a": ripple_rms_a,
+            "current_basis": "operating per-phase sinusoidal current plus fixed design-point triangular PWM ripple RMS",
+            "line_frequency_hz": _positive_float(metadata.get("f_line_hz"), 0.0),
+            "modulation_index": _positive_float(metadata.get("modulation_index"), 0.0),
+        },
+    )
+
+
+def _build_three_phase_three_level_npc_inverter_design_request(report: DesignReport) -> InductorDesignRequest:
+    candidate = _require_candidate(report)
+    _require_positive_inductance(candidate)
+    metadata = candidate.metadata if isinstance(candidate.metadata, dict) else {}
+    waveform_metadata = report.waveform.metadata if report.waveform is not None and isinstance(report.waveform.metadata, dict) else {}
+    phase_count = 3
+    i_phase_rms_a = _positive_float(metadata.get("i_phase_rms_a"), abs(candidate.iout))
+    i_phase_peak_a = _positive_float(metadata.get("i_phase_peak_a"), i_phase_rms_a * math.sqrt(2.0))
+    delta_i_target_pp_a = _positive_float(metadata.get("inductor_ripple_design_target_pp_a"), abs(candidate.delta_il))
+    delta_i_pp_a = _positive_float(waveform_metadata.get("phase_inductor_ripple_max_local_pp_a"), delta_i_target_pp_a)
+    ripple_rms_a = _positive_float(
+        waveform_metadata.get("phase_inductor_switching_ripple_rms_a"),
+        delta_i_target_pp_a / math.sqrt(12.0),
+    )
+    i_rms_a = _positive_float(
+        waveform_metadata.get("operating_i_phase_total_rms_a"),
+        math.sqrt(i_phase_rms_a * i_phase_rms_a + ripple_rms_a * ripple_rms_a),
+    )
+    i_peak_a = _positive_float(
+        waveform_metadata.get("operating_i_phase_peak_a"),
+        i_phase_peak_a + 0.5 * delta_i_pp_a,
+    )
+    system_pout_w = abs(float(candidate.pout_target))
+    per_phase_power_w = system_pout_w / phase_count
+    v_l_design_v = 0.5 * abs(candidate.vin_nom)
+    return InductorDesignRequest(
+        topology_id=candidate.topology_id,
+        display_name=_normalized_display_name(report),
+        inductance_h=candidate.inductance_h,
+        fs_hz=candidate.fs_hz,
+        i_avg_a=0.0,
+        i_rms_a=i_rms_a,
+        i_peak_a=i_peak_a,
+        i_valley_a=-i_peak_a,
+        delta_i_pp_a=delta_i_pp_a,
+        throughput_power_w=per_phase_power_w,
+        mode="ccm_three_phase_three_level_npc_lspwm_first_pass_per_phase",
+        vin_nom_v=candidate.vin_nom,
+        vout_nom_v=candidate.vout_target,
+        duty_nom=0.5,
+        v_l_on_v=v_l_design_v,
+        v_l_off_v=-v_l_design_v,
+        ccm_valid=candidate.ccm_valid,
+        mode_capable=candidate.mode_capable,
+        notes=[
+            "Derived from the synthesized three-phase three-level NPC inverter per-phase output inductor.",
+            "Design requirements are per phase.",
+            "Physical output-inductor quantity = 3.",
+            "Current RMS and peak use the waveform-predicted NPC switching ripple when waveform data is available.",
+            "Flux-density screening uses a first-pass NPC three-level SPWM half-DC-bus inductor-voltage proxy.",
+            "Loss shown by magnetic search is per-inductor reference loss; system magnetic total will be handled in a later loss stage.",
+        ],
+        metadata={
+            "candidate_display_name": candidate.display_name,
+            "throughput_label": "per-phase inverter output power proxy",
+            "phase_count": phase_count,
+            "magnetic_quantity": phase_count,
+            "magnetic_request_basis": "three_phase_three_level_npc_inverter_per_phase_output_inductor",
+            "system_pout_w": system_pout_w,
+            "per_phase_power_proxy_w": per_phase_power_w,
+            "i_phase_rms_a": i_phase_rms_a,
+            "i_phase_peak_a": i_phase_peak_a,
+            "delta_i_pp_design_target_a": delta_i_target_pp_a,
+            "delta_i_pp_predicted_achieved_a": delta_i_pp_a,
+            "pwm_ripple_rms_a": ripple_rms_a,
+            "current_basis": "per-phase sinusoidal current plus fixed-neutral NPC PD-SPWM volt-second-integrated switching ripple",
+            "line_frequency_hz": _positive_float(metadata.get("f_line_hz"), 0.0),
+            "modulation_index": _positive_float(metadata.get("modulation_index"), 0.0),
+        },
+    )
+
+
+def _build_three_phase_three_level_npc_inverter_operating_request(report: DesignReport) -> InductorOperatingPointRequest:
+    candidate = _require_candidate(report)
+    _require_positive_inductance(candidate)
+    metadata = candidate.metadata if isinstance(candidate.metadata, dict) else {}
+    waveform_metadata = report.waveform.metadata if report.waveform is not None and isinstance(report.waveform.metadata, dict) else {}
+    phase_count = 3
+    load_ratio = _operating_load_ratio(report)
+    operating_pf = _operating_power_factor(report, metadata)
+    pf_abs = max(abs(operating_pf), 1.0e-6)
+    system_pout_w = abs(float(candidate.pout_target) * load_ratio)
+    vac_ll_rms_v = _positive_float(metadata.get("vac_ll_rms_v"), abs(candidate.vout_target))
+    i_phase_rms_a = _positive_float(
+        waveform_metadata.get("operating_i_phase_rms_a"),
+        system_pout_w / max(math.sqrt(3.0) * vac_ll_rms_v * pf_abs, 1.0e-12),
+    )
+    i_phase_peak_a = _positive_float(
+        waveform_metadata.get("operating_i_phase_peak_a"),
+        i_phase_rms_a * math.sqrt(2.0),
+    )
+    delta_i_target_pp_a = _positive_float(metadata.get("inductor_ripple_design_target_pp_a"), abs(candidate.delta_il))
+    delta_i_pp_a = _positive_float(waveform_metadata.get("phase_inductor_ripple_max_local_pp_a"), delta_i_target_pp_a)
+    ripple_rms_a = _positive_float(
+        waveform_metadata.get("phase_inductor_switching_ripple_rms_a"),
+        delta_i_target_pp_a / math.sqrt(12.0),
+    )
+    i_rms_a = _positive_float(
+        waveform_metadata.get("operating_i_phase_total_rms_a"),
+        math.sqrt(i_phase_rms_a * i_phase_rms_a + ripple_rms_a * ripple_rms_a),
+    )
+    i_peak_a = _positive_float(
+        waveform_metadata.get("operating_i_phase_peak_a"),
+        i_phase_peak_a + 0.5 * delta_i_pp_a,
+    )
+    per_phase_power_w = system_pout_w / phase_count
+    v_l_design_v = 0.5 * abs(candidate.vin_nom)
+    return InductorOperatingPointRequest(
+        topology_id=candidate.topology_id,
+        display_name=_normalized_display_name(report),
+        fs_hz=candidate.fs_hz,
+        operating_vin_v=candidate.vin_nom,
+        operating_vout_v=candidate.vout_target,
+        operating_iout_a=i_phase_rms_a,
+        throughput_power_w=per_phase_power_w,
+        duty=0.5,
+        i_avg_a=0.0,
+        i_rms_a=i_rms_a,
+        i_peak_a=i_peak_a,
+        i_valley_a=-i_peak_a,
+        delta_i_pp_a=delta_i_pp_a,
+        v_l_on_v=v_l_design_v,
+        v_l_off_v=-v_l_design_v,
+        mode="ccm_three_phase_three_level_npc_lspwm_first_pass_per_phase_operating",
+        load_ratio=load_ratio,
+        notes=[
+            "Three-phase three-level NPC inverter output-inductor operating loss uses one per-phase representative inductor.",
+            "Three identical per-phase output inductors; magnetic loss is per-inductor operating evaluation multiplied by 3.",
+            "Operating current RMS and peak use the refreshed NPC switching waveform prediction.",
+        ],
+        metadata={
+            "candidate_display_name": candidate.display_name,
+            "throughput_label": "per-phase inverter output power proxy",
+            "phase_count": phase_count,
+            "magnetic_quantity": phase_count,
+            "magnetic_request_basis": "three_phase_three_level_npc_inverter_per_phase_operating_output_inductor",
+            "system_pout_w": system_pout_w,
+            "per_phase_power_proxy_w": per_phase_power_w,
+            "operating_load_ratio": load_ratio,
+            "operating_power_factor": operating_pf,
+            "i_phase_rms_operating_a": i_phase_rms_a,
+            "i_phase_peak_operating_a": i_phase_peak_a,
+            "delta_i_pp_design_a": delta_i_target_pp_a,
+            "delta_i_pp_predicted_achieved_a": delta_i_pp_a,
+            "pwm_ripple_rms_a": ripple_rms_a,
+            "current_basis": "operating per-phase sinusoidal current plus fixed-neutral NPC PD-SPWM volt-second-integrated switching ripple",
+            "line_frequency_hz": _positive_float(metadata.get("f_line_hz"), 0.0),
+            "modulation_index": _positive_float(metadata.get("modulation_index"), 0.0),
+        },
+    )
+
+
+def _build_single_phase_full_bridge_inverter_design_request_as_operating_request(report: DesignReport) -> InductorOperatingPointRequest:
+    design_request = _build_single_phase_full_bridge_inverter_design_request(report)
+    candidate = _require_candidate(report)
+    return InductorOperatingPointRequest(
+        topology_id=design_request.topology_id,
+        display_name=design_request.display_name,
+        fs_hz=design_request.fs_hz,
+        operating_vin_v=candidate.vin_nom,
+        operating_vout_v=candidate.vout_target,
+        operating_iout_a=candidate.iout,
+        throughput_power_w=design_request.throughput_power_w,
+        duty=design_request.duty_nom,
+        i_avg_a=design_request.i_avg_a,
+        i_rms_a=design_request.i_rms_a,
+        i_peak_a=design_request.i_peak_a,
+        i_valley_a=design_request.i_valley_a,
+        delta_i_pp_a=design_request.delta_i_pp_a,
+        v_l_on_v=design_request.v_l_on_v,
+        v_l_off_v=design_request.v_l_off_v,
+        mode=design_request.mode,
+        load_ratio=1.0,
+        notes=list(design_request.notes),
+        metadata=dict(design_request.metadata),
+    )
+
+
+def _positive_float(value: object, fallback: float) -> float:
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return fallback
+    return result if result > 0.0 else fallback
+
+
+def _operating_load_ratio(report: DesignReport) -> float:
+    if report.operating_point is not None:
+        try:
+            return max(float(report.operating_point.load_ratio), 0.0)
+        except (TypeError, ValueError):
+            pass
+    if report.waveform is not None:
+        try:
+            return max(float(report.waveform.load_ratio), 0.0)
+        except (TypeError, ValueError):
+            pass
+    return 1.0
+
+
+def _operating_power_factor(report: DesignReport, metadata: dict) -> float:
+    if report.operating_point is not None and report.operating_point.power_factor is not None:
+        try:
+            return min(max(float(report.operating_point.power_factor), -1.0), 1.0)
+        except (TypeError, ValueError):
+            pass
+    if report.waveform is not None and isinstance(report.waveform.metadata, dict):
+        try:
+            return min(max(float(report.waveform.metadata.get("operating_power_factor")), -1.0), 1.0)
+        except (TypeError, ValueError):
+            pass
+    try:
+        return min(max(float(metadata.get("power_factor")), -1.0), 1.0)
+    except (TypeError, ValueError):
+        return 1.0
+
+
 _DESIGN_REQUEST_BUILDERS: dict[str, Callable[[DesignReport], InductorDesignRequest]] = {
     "buck_diode_rectified_unidirectional": _build_buck_design_request,
     "buck_synchronous_rectified_unidirectional": _build_buck_sr_design_request,
@@ -683,6 +1423,11 @@ _DESIGN_REQUEST_BUILDERS: dict[str, Callable[[DesignReport], InductorDesignReque
     "buck_boost_diode_rectified_unidirectional": _build_buck_boost_design_request,
     "four_switch_buck_boost_simplified_four_mode": _build_four_switch_design_request,
     "three_level_tzcm_fixed_frequency": _build_three_level_design_request,
+    "single_phase_full_bridge_inverter": _build_single_phase_full_bridge_inverter_design_request,
+    "three_phase_two_level_voltage_source_inverter": _build_three_phase_two_level_inverter_design_request,
+    "three_phase_three_level_npc_inverter": _build_three_phase_three_level_npc_inverter_design_request,
+    "single_phase_boost_pfc_diode_bridge": _build_single_phase_boost_pfc_design_request,
+    "single_phase_totem_pole_bridgeless_pfc": _build_single_phase_totem_pole_pfc_design_request,
 }
 
 _OPERATING_REQUEST_BUILDERS: dict[str, Callable[[DesignReport], InductorOperatingPointRequest]] = {
@@ -693,6 +1438,11 @@ _OPERATING_REQUEST_BUILDERS: dict[str, Callable[[DesignReport], InductorOperatin
     "buck_boost_diode_rectified_unidirectional": _build_buck_boost_operating_request,
     "four_switch_buck_boost_simplified_four_mode": _build_four_switch_operating_request,
     "three_level_tzcm_fixed_frequency": _build_three_level_operating_request,
+    "single_phase_full_bridge_inverter": _build_single_phase_full_bridge_inverter_operating_request,
+    "three_phase_two_level_voltage_source_inverter": _build_three_phase_two_level_inverter_operating_request,
+    "three_phase_three_level_npc_inverter": _build_three_phase_three_level_npc_inverter_operating_request,
+    "single_phase_boost_pfc_diode_bridge": _build_single_phase_boost_pfc_operating_request,
+    "single_phase_totem_pole_bridgeless_pfc": _build_single_phase_totem_pole_pfc_operating_request,
 }
 
 SUPPORTED_TOPOLOGY_IDS = frozenset(_DESIGN_REQUEST_BUILDERS)

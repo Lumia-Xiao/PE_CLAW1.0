@@ -15,13 +15,9 @@ from ..power_device import PowerDevice
 
 _DEVICE_PACKAGE = "pe_claw_gui.libraries.semiconductors.navitas"
 GEN3F_SIC_MOSFET_XML_SUBDIR = "data/gen3f_sic_mosfet"
-# The reviewed local Navitas source pool is used for XML/PDF filename pairing and PDF-backed
-# static curation. Runtime loads the packaged family XML assets committed under navitas/data/,
-# which were normalized from the matching vendor-hosted per-part PLECS XML downloads because
-# the reviewed local `.xml` payloads were opaque binary containers rather than parseable XML.
-DEFAULT_NAVITAS_GEN3F_SIC_MOSFET_SOURCE_POOL = Path(
-    r"C:\Users\user\Documents\论文\0000 研究点\038 PE-Claw\MOSFET_Data\Navitas"
-)
+# Source-pool validation is a maintenance operation with an explicit input.
+# Runtime loads the packaged family XML assets committed under navitas/data/.
+DEFAULT_NAVITAS_GEN3F_SIC_MOSFET_SOURCE_POOL = None
 _XML_ONLY_SPECIAL_CASE_PARTS = frozenset({"G3F20MT12K", "G3F25MT12K"})
 _XML_ONLY_REFERENCE_PARTS = {
     "G3F20MT12K": "G3F25MT12J",
@@ -568,7 +564,7 @@ def resolve_navitas_gen3f_sic_mosfet_xml_relative_path(xml_filename: str) -> str
 
 
 def discover_navitas_gen3f_sic_mosfet_source_pool(
-    source_dir: str | Path = DEFAULT_NAVITAS_GEN3F_SIC_MOSFET_SOURCE_POOL,
+    source_dir: str | Path,
 ) -> dict[str, tuple[Path, Path | None]]:
     """Return normalized part numbers mapped to local XML/PDF pairs with two explicit XML-only exceptions."""
 
@@ -600,7 +596,7 @@ def discover_navitas_gen3f_sic_mosfet_source_pool(
 
 
 def validate_navitas_gen3f_sic_mosfet_source_pool(
-    source_dir: str | Path = DEFAULT_NAVITAS_GEN3F_SIC_MOSFET_SOURCE_POOL,
+    source_dir: str | Path,
 ) -> None:
     """Validate the reviewed local XML/PDF pool against the curated manifest and explicit XML-only exceptions."""
 
@@ -652,7 +648,6 @@ def build_navitas_gen3f_sic_mosfet_devices() -> list[PowerDevice]:
     """Build all valid Navitas Gen3F SiC entries."""
 
     _validate_manifest()
-    _validate_default_source_pool_if_present()
     return [
         build_power_device_from_static_and_xml(
             static_record=_build_static_record(entry),
@@ -755,11 +750,6 @@ def _validate_manifest() -> None:
         _build_static_record(entry)
     if duplicates:
         raise ValueError("Duplicate Navitas Gen3F SiC MOSFET manifest parts: " + ", ".join(sorted(duplicates)))
-
-
-def _validate_default_source_pool_if_present() -> None:
-    if DEFAULT_NAVITAS_GEN3F_SIC_MOSFET_SOURCE_POOL.exists():
-        validate_navitas_gen3f_sic_mosfet_source_pool(DEFAULT_NAVITAS_GEN3F_SIC_MOSFET_SOURCE_POOL)
 
 
 __all__ = [

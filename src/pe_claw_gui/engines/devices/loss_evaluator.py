@@ -10,6 +10,7 @@ from ...libraries.semiconductors.power_device import PowerDevice
 from ...libraries.semiconductors.rohm.rg_igbt_series import RohmRGIGBTDevice
 from ...libraries.semiconductors.rohm.sc_series import RohmSCDevice
 from ...libraries.semiconductors.rohm.sic_modules import RohmSiCModule
+from ...libraries.semiconductors.wolfspeed.modules import WolfspeedSiCModule
 from ...models.device_loss import DeviceLossResult, SwitchStress
 from .thermal_backsolve import (
     DEFAULT_COOLING_MODE,
@@ -171,15 +172,21 @@ def evaluate_switch_loss(
             return _evaluate_rohm_sic_module_sbd_section_loss(device, cast(RohmSiCModule, device.payload), stress)
         if isinstance(device.payload, MitsubishiIGBTModule):
             return _evaluate_mitsubishi_module_fwd_section_loss(device, cast(MitsubishiIGBTModule, device.payload), stress)
+        if isinstance(device.payload, WolfspeedSiCModule):
+            return _evaluate_wolfspeed_module_diode_section_loss(device, cast(WolfspeedSiCModule, device.payload), stress)
 
     if isinstance(device.payload, MitsubishiIGBTModule):
         return _evaluate_mitsubishi_module_loss(device, cast(MitsubishiIGBTModule, device.payload), stress)
     if isinstance(device.payload, RohmSiCModule):
         return _evaluate_rohm_sic_module_loss(device, cast(RohmSiCModule, device.payload), stress)
+    if isinstance(device.payload, WolfspeedSiCModule):
+        return _evaluate_wolfspeed_module_loss(device, cast(WolfspeedSiCModule, device.payload), stress)
     if isinstance(device.payload, RohmRGIGBTDevice):
         return _evaluate_rohm_rg_igbt_loss(device, cast(RohmRGIGBTDevice, device.payload), stress)
     if isinstance(device.payload, RohmSCDevice):
         return _evaluate_rohm_sc_loss(device, cast(RohmSCDevice, device.payload), stress)
+    if device.selection_device_type == "Diode" and device.module_section_role != "internal_diode":
+        return _evaluate_standalone_diode_loss(device, stress, method)
 
     warnings: list[str] = []
     junction_temp_c = 75.0
@@ -388,6 +395,79 @@ def _build_loss_result_from_reference(
     )
 
 
+def _evaluate_standalone_diode_loss(
+    device: PowerDevice,
+    stress: SwitchStress,
+    method: str,
+) -> DeviceLossResult:
+    """Evaluate a standalone diode without mapping XML turn-loss tables to switch loss."""
+
+    warnings: list[str] = []
+    junction_temp_c = 75.0
+    p_cond_w = 0.0
+    p_rr_w = 0.0
+    thermal_reference = estimate_reference_junction_temperature(
+        p_total_w=0.0,
+        rth_jc_k_per_w=device.static.rth_jc_K_per_W,
+        rth_ja_k_per_w=device.static.rth_ja_K_per_W,
+        ambient_temp_c=stress.ambient_temp_C if stress.ambient_temp_C is not None else 25.0,
+        case_temp_c=stress.case_temp_C,
+    )
+    for _ in range(8):
+        p_cond_w = _compute_standalone_diode_conduction_loss(device, stress, junction_temp_c, method, warnings)
+        qrr_c = max(device.static.qrr_typ_uC, 0.0) * 1e-6
+        p_rr_w = qrr_c * max(stress.v_block_V, 0.0) * max(stress.fsw_Hz, 0.0)
+        p_total_w = p_cond_w + p_rr_w
+        thermal_reference = estimate_reference_junction_temperature(
+            p_total_w=p_total_w,
+            rth_jc_k_per_w=device.static.rth_jc_K_per_W,
+            rth_ja_k_per_w=device.static.rth_ja_K_per_W,
+            ambient_temp_c=stress.ambient_temp_C if stress.ambient_temp_C is not None else 25.0,
+            case_temp_c=stress.case_temp_C,
+        )
+        updated_junction_temp_c = thermal_reference.tj_est_c
+        if abs(updated_junction_temp_c - junction_temp_c) < 0.25:
+            junction_temp_c = updated_junction_temp_c
+            break
+        junction_temp_c = updated_junction_temp_c
+
+    warnings.extend(warning for warning in thermal_reference.warnings if warning not in warnings)
+    notes = [
+        "Standalone diode loss uses diode conduction plus static reverse-recovery charge; XML TurnOnLoss/TurnOffLoss tables are not mapped to switch loss."
+    ]
+    return _build_loss_result_from_reference(
+        device=device,
+        stress=stress,
+        p_cond_w=p_cond_w,
+        p_sw_on_w=0.0,
+        p_sw_off_w=0.0,
+        p_rr_w=p_rr_w,
+        tj_est_c=junction_temp_c,
+        method="standalone_diode",
+        thermal_source=thermal_reference.method,
+        warnings=warnings,
+        thermal_design_notes=notes,
+    )
+
+
+def _compute_standalone_diode_conduction_loss(
+    device: PowerDevice,
+    stress: SwitchStress,
+    junction_temp_c: float,
+    method: str,
+    warnings: list[str],
+) -> float:
+    representative_current_a = max(abs(_representative_current(stress.i_avg_A, stress.i_rms_A)), abs(stress.i_rms_A))
+    if method == "accurate" and device.dynamic.conduction_on_voltage_drop is not None:
+        voltage_drop_v = abs(device.dynamic.conduction_on_voltage_drop.evaluate(representative_current_a, junction_temp_c, warnings))
+    else:
+        voltage_drop_v = abs(device.static.vsd_typ_V)
+    if abs(stress.i_avg_A) > 1e-9:
+        return voltage_drop_v * abs(stress.i_avg_A)
+    duty_ratio = stress.conduction_time_s * stress.fsw_Hz if stress.fsw_Hz > 0.0 else stress.duty
+    return voltage_drop_v * representative_current_a * max(duty_ratio, 0.0)
+
+
 def _evaluate_rohm_sic_module_sbd_section_loss(
     device: PowerDevice,
     module: RohmSiCModule,
@@ -542,6 +622,112 @@ def _evaluate_rohm_sic_module_loss(
         p_rr_w=p_rr_w,
         tj_est_c=tj_est_c,
         method="rohm_sic_module",
+        thermal_design_notes=notes,
+    )
+
+
+def _evaluate_wolfspeed_module_diode_section_loss(
+    device: PowerDevice,
+    module: WolfspeedSiCModule,
+    stress: SwitchStress,
+) -> DeviceLossResult:
+    reference_temp_c = stress.case_temp_C if stress.case_temp_C is not None else (stress.ambient_temp_C or 25.0)
+    junction_temp_c = max(reference_temp_c, 25.0)
+    representative_current_a = max(abs(_representative_current(stress.i_avg_A, stress.i_rms_A)), abs(stress.i_rms_A))
+    duty = stress.conduction_time_s * stress.fsw_Hz if stress.fsw_Hz > 0.0 else stress.duty
+    diode_voltage_v = module.diode_vf_V(representative_current_a, junction_temp_c)
+    p_cond_w = abs(diode_voltage_v * representative_current_a) * max(duty, 1e-6)
+    p_rr_w = module.diode_reverse_recovery_loss_W(
+        stress.fsw_Hz,
+        max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A)),
+        stress.v_block_V,
+        junction_temp_c,
+        stress.rg_on_Ohm,
+    )
+    warnings: list[str] = []
+    if module.diode_loss_model is None or module.diode_loss_model.thermal is None:
+        warnings.append("internal diode thermal model unavailable; using module static diode thermal resistance.")
+    thermal_split = module.estimate_junction_temperature_C(
+        {
+            "p_mosfet_W": 0.0,
+            "p_diode_cond_W": p_cond_w,
+            "p_diode_rr_W": p_rr_w,
+        },
+        reference_temp_c,
+    )
+    return _build_loss_result_from_reference(
+        device=device,
+        stress=stress,
+        p_cond_w=p_cond_w,
+        p_sw_on_w=0.0,
+        p_sw_off_w=0.0,
+        p_rr_w=p_rr_w,
+        tj_est_c=thermal_split["tj_diode_C"],
+        method="wolfspeed_module_bound_diode",
+        thermal_source="wolfspeed_module_diode",
+        warnings=warnings,
+        thermal_design_notes=[
+            (
+                "Wolfspeed module-bound diode thermal estimate: "
+                f"Tj_diode={thermal_split['tj_diode_C']:.3f} C, "
+                f"Rth_jc_diode={module.static.rth_jc_sbd_K_per_W:.6g} K/W, "
+                f"Rth_cs_module={module.static.rth_cs_module_K_per_W:.6g} K/W."
+            )
+        ],
+    )
+
+
+def _evaluate_wolfspeed_module_loss(
+    device: PowerDevice,
+    module: WolfspeedSiCModule,
+    stress: SwitchStress,
+) -> DeviceLossResult:
+    reference_temp_c = stress.case_temp_C if stress.case_temp_C is not None else (stress.ambient_temp_C or 25.0)
+    junction_temp_c = max(reference_temp_c, 25.0)
+    representative_current_a = max(abs(_representative_current(stress.i_avg_A, stress.i_rms_A)), abs(stress.i_rms_A))
+    switch_duty = stress.conduction_time_s * stress.fsw_Hz if stress.fsw_Hz > 0.0 else stress.duty
+    diode_duty = stress.body_diode_conduction_time_s * stress.fsw_Hz if stress.fsw_Hz > 0.0 else 0.0
+    switch_voltage_v = module.vds_on_V(representative_current_a, junction_temp_c)
+    diode_voltage_v = module.diode_vf_V(representative_current_a, junction_temp_c)
+    switch_cond_w = abs(switch_voltage_v * representative_current_a) * max(switch_duty, 1e-6)
+    diode_cond_w = abs(diode_voltage_v * representative_current_a) * max(diode_duty, 0.0)
+    p_cond_w = switch_cond_w + diode_cond_w
+    p_sw_on_w = stress.fsw_Hz * module.eon_mJ(abs(stress.i_turn_on_A), stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) / 1000.0
+    p_sw_off_w = stress.fsw_Hz * module.eoff_mJ(abs(stress.i_turn_off_A), stress.v_block_V, junction_temp_c, stress.rg_off_Ohm) / 1000.0
+    p_rr_w = module.diode_reverse_recovery_loss_W(
+        stress.fsw_Hz,
+        max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A)),
+        stress.v_block_V,
+        junction_temp_c,
+        stress.rg_on_Ohm,
+    )
+    thermal_split = module.estimate_junction_temperature_C(
+        {
+            "p_mosfet_cond_W": switch_cond_w,
+            "p_mosfet_sw_W": p_sw_on_w + p_sw_off_w,
+            "p_diode_cond_W": diode_cond_w,
+            "p_diode_rr_W": p_rr_w,
+        },
+        reference_temp_c,
+    )
+    tj_est_c = max(thermal_split["tj_mosfet_C"], thermal_split["tj_diode_C"])
+    notes = [
+        (
+            "Wolfspeed module split-junction estimate: "
+            f"Tj_mosfet={thermal_split['tj_mosfet_C']:.3f} C, "
+            f"Tj_diode={thermal_split['tj_diode_C']:.3f} C."
+        )
+    ]
+    return _build_loss_result_from_reference(
+        device=device,
+        stress=stress,
+        p_cond_w=p_cond_w,
+        p_sw_on_w=p_sw_on_w,
+        p_sw_off_w=p_sw_off_w,
+        p_rr_w=p_rr_w,
+        tj_est_c=tj_est_c,
+        method="wolfspeed_sic_module",
+        thermal_source="wolfspeed_sic_module",
         thermal_design_notes=notes,
     )
 

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+    <Package class="MOSFET" vendor="Wolfspeed" partnumber="CBB021M12FM3">
+        <Variables>
+            <Variable>
+                <Name>Rgon</Name>
+                <Description>External gate resistance (turn-on)</Description>
+                <DefaultValue>2</DefaultValue>
+            </Variable>
+            <Variable>
+                <Name>Rgoff</Name>
+                <Description>External gate resistance (turn-off)</Description>
+                <DefaultValue>0</DefaultValue>
+            </Variable>
+        </Variables>
+        <CustomTables>
+            <Table numDimensions="1">
+                <Name>Eon(Rg)</Name>
+                <Axis> 0 1 2 3 4 5 6.8 10 15</Axis>
+                <FunctionValues scale="1"> 0.419782 0.48593 0.549655 0.610956 0.669834 0.726289 0.821802 0.972214 1.15756</FunctionValues>
+            </Table>
+            <Table numDimensions="1">
+                <Name>Eoff(Rg)</Name>
+                <Axis> 0 1 2 3 4 5 6.8 10 15</Axis>
+                <FunctionValues scale="1"> 0.0496299 0.0652593 0.0814078 0.0980752 0.115262 0.132967 0.166144 0.229279 0.338565</FunctionValues>
+            </Table>
+        </CustomTables>
+        <SemiconductorData type="MOSFET">
+            <TurnOnLoss>
+                <ComputationMethod>Table and formula</ComputationMethod>
+                <Formula>E*lookup('Eon(Rg)',Rgon)/lookup('Eon(Rg)',2)</Formula>
+                <CurrentAxis> -10 0 5 10 20 30 40 50 60 70 80 90 100</CurrentAxis>
+                <VoltageAxis> -10 0 600 800</VoltageAxis>
+                <TemperatureAxis> 25 75 125 175 200 1000</TemperatureAxis>
+                <Energy scale="0.001">
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.28532 0.32948 0.42767 0.53901 0.66348 0.80111 0.95188 1.11579 1.29285 1.48305 1.68640</Voltage>
+                        <Voltage> 0 0 0.31227 0.39509 0.57330 0.76828 0.98003 1.20855 1.45384 1.71590 1.99473 2.29033 2.60270</Voltage>
+                    </Temperature>
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.22221 0.28900 0.43172 0.58666 0.75381 0.93317 1.12475 1.32854 1.54455 1.77277 2.01321</Voltage>
+                        <Voltage> 0 0 0.27274 0.39321 0.64096 0.89780 1.16372 1.43874 1.72284 2.01604 2.31832 2.62969 2.95015</Voltage>
+                    </Temperature>
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.31750 0.37742 0.50847 0.65447 0.81541 0.99129 1.18212 1.38790 1.60862 1.84428 2.09489</Voltage>
+                        <Voltage> 0 0 0.42334 0.50622 0.67199 0.94488 1.23141 1.53158 1.84539 2.17283 2.51391 2.86863 3.23699</Voltage>
+                    </Temperature>
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.24296 0.33314 0.52170 0.72122 0.93170 1.15313 1.38552 1.62886 1.88315 2.14841 2.42461</Voltage>
+                        <Voltage> 0 0 0.32395 0.34126 0.70339 1.07140 1.44531 1.82510 2.21078 2.60235 2.99981 3.40315 3.81238</Voltage>
+                    </Temperature>
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.20569 0.31099 0.52832 0.75460 0.98984 1.23405 1.48721 1.74934 2.02042 2.30047 2.58947</Voltage>
+                        <Voltage> 0 0 0.27425 0.41466 0.71908 1.13466 1.55226 1.97186 2.39348 2.81711 3.24275 3.67041 4.10008</Voltage>
+                    </Temperature>
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.22626 0.34209 0.58115 0.83006 1.08883 1.35745 1.63593 1.92427 2.22246 2.53051 2.84842</Voltage>
+                        <Voltage> 0 0 0.30168 0.45612 0.79099 1.24813 1.70748 2.16905 2.63283 3.09882 3.56703 4.03745 4.51008</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOnLoss>
+            <TurnOffLoss>
+                <ComputationMethod>Table and formula</ComputationMethod>
+                <Formula>E*lookup('Eoff(Rg)',Rgoff)/lookup('Eoff(Rg)',0)</Formula>
+                <CurrentAxis> -10 0 5 10 20 30 40 50 60 70 80 90 100</CurrentAxis>
+                <VoltageAxis> -10 0 600 800</VoltageAxis>
+                <TemperatureAxis> 25 75 125 175 200 1000</TemperatureAxis>
+                <Energy scale="0.001">
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.00928 0.01429 0.02692 0.04305 0.06267 0.08579 0.11240 0.14252 0.17612 0.21323 0.25383</Voltage>
+                        <Voltage> 0 0 0.01238 0.01905 0.03554 0.06279 0.09396 0.12905 0.16808 0.21103 0.25790 0.30870 0.36343</Voltage>
+                    </Temperature>
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.00085 0.00817 0.02516 0.04529 0.06856 0.09497 0.12452 0.15720 0.19303 0.23199 0.27409</Voltage>
+                        <Voltage> 0 0 0.00114 0.01090 0.02537 0.05948 0.09716 0.13840 0.18320 0.23157 0.28350 0.33899 0.39805</Voltage>
+                    </Temperature>
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.01887 0.02587 0.04282 0.06370 0.08849 0.11722 0.14987 0.18644 0.22693 0.27136 0.31970</Voltage>
+                        <Voltage> 0 0 0.02516 0.03449 0.05709 0.07754 0.11900 0.16449 0.21402 0.26759 0.32520 0.38684 0.45253</Voltage>
+                    </Temperature>
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.00689 0.01852 0.04415 0.07299 0.10501 0.14023 0.17864 0.22024 0.26504 0.31303 0.36421</Voltage>
+                        <Voltage> 0 0 0.00919 0.02469 0.04931 0.10090 0.15539 0.21277 0.27306 0.33624 0.40233 0.47131 0.54319</Voltage>
+                    </Temperature>
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.00091 0.01484 0.04482 0.07763 0.11327 0.15174 0.19303 0.23715 0.28409 0.33387 0.38647</Voltage>
+                        <Voltage> 0 0 0.00121 0.01978 0.05390 0.11258 0.17358 0.23692 0.30258 0.37057 0.44089 0.51354 0.58852</Voltage>
+                    </Temperature>
+                    <Temperature>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0 0 0 0 0 0 0 0 0 0 0</Voltage>
+                        <Voltage> 0 0 0.00100 0.01632 0.04930 0.08539 0.12460 0.16691 0.21233 0.26086 0.31250 0.36726 0.42512</Voltage>
+                        <Voltage> 0 0 0.00133 0.02176 0.05929 0.12383 0.19094 0.26061 0.33284 0.40763 0.48498 0.56490 0.64737</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOffLoss>
+            <ConductionLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis> -100 -90 -80 -70 -60 -50 -40 -30 -20 -10 0 10 20 30 40 50 60 70 80 90 100</CurrentAxis>
+                <TemperatureAxis> -40 -25 0 25 100 125 150 175 200 1000</TemperatureAxis>
+                <VoltageDrop scale="1">
+                    <Temperature> -1.871 -1.705 -1.540 -1.372 -1.197 -1.020 -0.833 -0.641 -0.438 -0.226 0.000 0.220 0.448 0.684 0.923 1.170 1.420 1.673 1.928 2.183 2.439</Temperature>
+                    <Temperature> -1.870 -1.693 -1.517 -1.343 -1.171 -0.991 -0.807 -0.617 -0.419 -0.214 0.000 0.211 0.427 0.651 0.882 1.115 1.352 1.597 1.844 2.096 2.352</Temperature>
+                    <Temperature> -1.864 -1.682 -1.501 -1.323 -1.146 -0.966 -0.783 -0.595 -0.402 -0.203 0.000 0.202 0.410 0.622 0.838 1.060 1.287 1.519 1.751 1.986 2.224</Temperature>
+                    <Temperature> -1.852 -1.680 -1.508 -1.333 -1.150 -0.967 -0.779 -0.589 -0.396 -0.202 0.000 0.201 0.406 0.617 0.830 1.048 1.271 1.497 1.733 1.975 2.224</Temperature>
+                    <Temperature> -2.397 -2.163 -1.929 -1.690 -1.453 -1.211 -0.973 -0.732 -0.487 -0.247 0.000 0.248 0.497 0.751 1.012 1.275 1.544 1.817 2.101 2.393 2.694</Temperature>
+                    <Temperature> -2.715 -2.452 -2.189 -1.920 -1.644 -1.372 -1.099 -0.825 -0.553 -0.277 0.000 0.280 0.563 0.850 1.140 1.438 1.740 2.050 2.369 2.695 3.030</Temperature>
+                    <Temperature> -3.127 -2.818 -2.508 -2.195 -1.881 -1.568 -1.255 -0.944 -0.632 -0.316 0.000 0.318 0.641 0.968 1.301 1.639 1.984 2.339 2.704 3.076 3.457</Temperature>
+                    <Temperature> -3.664 -3.294 -2.923 -2.553 -2.183 -1.818 -1.455 -1.093 -0.730 -0.365 0.000 0.369 0.743 1.122 1.506 1.901 2.302 2.715 3.138 3.573 4.020</Temperature>
+                    <Temperature> -4.225 -3.797 -3.370 -2.943 -2.517 -2.096 -1.678 -1.260 -0.842 -0.421 0.000 0.426 0.856 1.294 1.736 2.192 2.654 3.131 3.619 4.120 4.635</Temperature>
+                    <Temperature> -4.647 -4.177 -3.707 -3.238 -2.768 -2.306 -1.846 -1.386 -0.926 -0.463 0.000 0.468 0.942 1.424 1.910 2.411 2.919 3.444 3.980 4.532 5.099</Temperature>
+                </VoltageDrop>
+            </ConductionLoss>
+        </SemiconductorData>
+        <ThermalModel>
+            <Branch type="Cauer">
+                <RCElement R="0.088527" C="0.003797"/>
+                <RCElement R="0.182665" C="0.018044"/>
+                <RCElement R="0.488083" C="0.031438"/>
+                <RCElement R="0.393396" C="0.192140"/>
+            </Branch>
+        </ThermalModel>
+        <Comment>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+            <Line>DISCLAIMER</Line>
+            <Line>This model is provided as is, where is, and with no warranty of any kind either</Line>
+            <Line>expressed or implied, including but not limited to any implied warranties of</Line>
+            <Line>merchantability and fitness for a particular purpose.</Line>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+            <Line></Line>
+            <Line></Line>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+            <Line>Wolfspeed SiC Module PLECS Library</Line>
+            <Line></Line>
+            <Line>	CBB021M12FM3</Line>
+            <Line>	Full Bridge	(MOSFET Model)</Line>
+            <Line>	Version 4	Date: 03-19-2026</Line>
+            <Line></Line>
+            <Line>	Electrical Parameters</Line>
+            <Line>	Ron	= 0.0288	Ω</Line>
+            <Line></Line>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+            <Line></Line>
+            <Line></Line>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+            <Line>To find other WOLFSPEED SiC models, please visit: </Line>
+            <Line>https://www.wolfspeed.com/tools-and-support/power/ltspice-and-plecs-models/</Line>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+        </Comment>
+    </Package>
+</SemiconductorLibrary>

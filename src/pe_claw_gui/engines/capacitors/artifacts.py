@@ -9,7 +9,7 @@ from pathlib import Path
 
 from matplotlib.figure import Figure
 
-from ...models.capacitor import CapacitorSelectionEntry, CapacitorSideResult
+from ...models.capacitor import CapacitorCandidate, CapacitorSelectionEntry, CapacitorSideResult
 
 _CSV_FIELDS = [
     "side",
@@ -17,6 +17,9 @@ _CSV_FIELDS = [
     "manufacturer",
     "series",
     "application_category",
+    "capacitor_technology",
+    "loss_model_type",
+    "capacitor_type",
     "package_shape",
     "mounting_style",
     "construction",
@@ -34,8 +37,11 @@ _CSV_FIELDS = [
     "order_code_placeholders",
     "not_recommended_for_new_design",
     "integration_note",
+    "availability_status",
     "voltage_rating_dc_v",
     "voltage_rating_ac_vrms",
+    "rs_ohm",
+    "esr_value_type",
     "esr_frequency_hz",
     "esr_basis",
     "loss_basis",
@@ -46,7 +52,13 @@ _CSV_FIELDS = [
     "esl_basis",
     "irms_frequency_hz",
     "irms_temperature_c",
+    "tan_delta",
+    "tan_delta_source",
+    "series_count",
     "parallel_count",
+    "total_capacitor_count",
+    "bank_voltage_rating_dc_v",
+    "series_parallel_label",
     "equivalent_capacitance_f",
     "equivalent_rs_ohm",
     "equivalent_esl_h",
@@ -150,6 +162,9 @@ def _entry_row(side: str, entry: CapacitorSelectionEntry) -> dict[str, object]:
         "manufacturer": entry.candidate.manufacturer,
         "series": entry.candidate.series,
         "application_category": entry.candidate.application_category,
+        "capacitor_technology": entry.candidate.capacitor_technology,
+        "loss_model_type": entry.candidate.loss_model_type,
+        "capacitor_type": entry.candidate.capacitor_type,
         "package_shape": entry.candidate.package_shape,
         "mounting_style": entry.candidate.mounting_style,
         "construction": entry.candidate.construction,
@@ -167,8 +182,11 @@ def _entry_row(side: str, entry: CapacitorSelectionEntry) -> dict[str, object]:
         "order_code_placeholders": " | ".join(entry.candidate.order_code_placeholders),
         "not_recommended_for_new_design": entry.candidate.not_recommended_for_new_design,
         "integration_note": entry.candidate.integration_note,
+        "availability_status": entry.candidate.availability_status,
         "voltage_rating_dc_v": entry.candidate.voltage_rating_dc_v,
         "voltage_rating_ac_vrms": entry.candidate.voltage_rating_ac_vrms,
+        "rs_ohm": entry.candidate.rs_ohm,
+        "esr_value_type": entry.candidate.esr_value_type,
         "esr_frequency_hz": entry.candidate.esr_frequency_hz or "",
         "esr_temperature_c": entry.candidate.esr_temperature_c or "",
         "esr_basis": entry.candidate.esr_basis,
@@ -179,7 +197,13 @@ def _entry_row(side: str, entry: CapacitorSelectionEntry) -> dict[str, object]:
         "current_basis": entry.candidate.current_basis,
         "irms_frequency_hz": entry.candidate.irms_frequency_hz or "",
         "irms_temperature_c": entry.candidate.irms_temperature_c or "",
+        "tan_delta": _tan_delta_display(entry.candidate),
+        "tan_delta_source": entry.candidate.tan_delta_source,
+        "series_count": entry.series_count,
         "parallel_count": entry.parallel_count,
+        "total_capacitor_count": entry.total_capacitor_count,
+        "bank_voltage_rating_dc_v": entry.bank_voltage_rating_dc_v,
+        "series_parallel_label": _series_parallel_label(entry),
         "equivalent_capacitance_f": entry.equivalent_capacitance_f,
         "equivalent_rs_ohm": entry.equivalent_rs_ohm,
         "equivalent_esl_h": entry.equivalent_esl_h,
@@ -217,8 +241,8 @@ def _write_plot(path: Path, side_result: CapacitorSideResult) -> None:
     figure = Figure(figsize=(7.2, 4.8), dpi=120)
     axis = figure.add_subplot(111)
 
-    for parallel_count in range(1, 6):
-        entries = [entry for entry in feasible if entry.parallel_count == parallel_count]
+    for series_count, parallel_count in sorted({(entry.series_count, entry.parallel_count) for entry in feasible}):
+        entries = [entry for entry in feasible if entry.series_count == series_count and entry.parallel_count == parallel_count]
         if not entries:
             continue
         axis.scatter(
@@ -226,7 +250,7 @@ def _write_plot(path: Path, side_result: CapacitorSideResult) -> None:
             [entry.p_total_w for entry in entries],
             s=26,
             alpha=0.55,
-            label=f"N={parallel_count}",
+            label=f"S={series_count}, P={parallel_count}",
         )
 
     if pareto:
@@ -278,16 +302,20 @@ def _mark_representative(axis, entry: CapacitorSelectionEntry | None, label: str
     )
 
 
-def _plot_label(label: str, entry: CapacitorSelectionEntry | None, recommended_key: tuple[str, int]) -> str:
+def _plot_label(label: str, entry: CapacitorSelectionEntry | None, recommended_key: tuple[str, int, int]) -> str:
     if entry is not None and _entry_key(entry) == recommended_key:
         return f"{label} / recommended"
     return label
 
 
-def _entry_key(entry: CapacitorSelectionEntry | None) -> tuple[str, int]:
+def _entry_key(entry: CapacitorSelectionEntry | None) -> tuple[str, int, int]:
     if entry is None:
-        return ("", 0)
-    return (entry.candidate.part_number, entry.parallel_count)
+        return ("", 0, 0)
+    return (entry.candidate.part_number, entry.series_count, entry.parallel_count)
+
+
+def _series_parallel_label(entry: CapacitorSelectionEntry) -> str:
+    return f"S={entry.series_count}, P={entry.parallel_count}"
 
 
 def _dedupe(values: list[str]) -> list[str]:
@@ -303,3 +331,9 @@ def _dedupe(values: list[str]) -> list[str]:
 
 def _has_dual_use_restriction(notes: list[str]) -> bool:
     return any("dual_use_restricted=True" in note for note in notes)
+
+
+def _tan_delta_display(candidate: CapacitorCandidate) -> object:
+    if candidate.tan_delta is not None:
+        return candidate.tan_delta
+    return candidate.tan_delta_0

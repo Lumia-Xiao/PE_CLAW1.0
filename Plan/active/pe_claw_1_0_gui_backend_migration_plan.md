@@ -2,7 +2,7 @@
 
 ## 1. Plan Metadata
 
-- **Status:** Active plan; Phase 0 through Phase 3 completed, Phase 4 next
+- **Status:** Active plan; Phase 0 through Phase 4 completed, Phase 5 next
 - **Plan date:** 2026-08-22
 - **Source workspace:** `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw`
 - **Source repository:** `https://github.com/Lumia-Xiao/PE-Claw_2.0.git`
@@ -659,6 +659,7 @@ Additional migration checks must verify:
 
 | Date | Status | Change |
 | --- | --- | --- |
+| 2026-08-23 | Phase 4 complete | Migrated 778 matrix-approved shared engine/library files plus the selected topology-capability helper; two AI-chain rows remained at their Phase 3 target version by exclusion policy. The selected scope represented 128 Python adapters/engines, 614 semiconductor XML files, 13 CSV files, 16 JSON files, and 9 NDJSON files before the two excluded AI rows. Focused engine/library tests passed 132 cases; complete target regression passed 174 cases with 1 skip and 2 documented Phase 5 magnetic-pipeline integration failures. Added empty magnetic candidate export compatibility coverage. |
 | 2026-08-22 | Phase 3 complete | Migrated 18 deterministic model files byte-for-byte from the frozen 2.0 source, adapted public model exports to exclude agentic recommendation contracts, retained seven source-identical base protocol files, and preserved the seven-topology registry until additional plugins/forms migrate. Focused model tests passed 33 cases; the complete target suite passed 39 cases, including deterministic JSON, winding-loss reproduction, registry resolution, GUI bootstrap, and a legacy Buck report chain. |
 | 2026-08-22 | Phase 2 complete | Aligned deterministic dependencies, package-data rules, pytest discovery, runtime preflight, and Windows launcher; disconnected legacy AI Design from normal imports while preserving the seven-topology baseline. A new Python 3.12 environment passed editable install, package-resource lookup, GUI and launcher smoke checks, compile smoke, and 6 focused tests. Shared models, engines, pipeline code, and 12 new topologies remain for later phases. |
 | 2026-08-22 | Phase 0 and Phase 1 complete | Recorded environment and GUI/registry baselines, created the target Git bundle backup, generated source/target SHA-256 inventories, classified 3,902 union paths, closed 4,686 dependency edges, initialized the 19-topology acceptance matrix, and documented all AI/agentic exclusions. Source backup was skipped per user confirmation. No 2.0 runtime code was copied. |

@@ -1,0 +1,151 @@
+{
+  "contract_version": "openmagnetics_source_manifest_v1",
+  "generated_at": "2026-07-25T11:30:00+08:00",
+  "git_lfs_status": {
+    "pointer_file_count": 1,
+    "pointer_files": [
+      "advanced_core_materials.ndjson"
+    ],
+    "status": "contains_unresolved_pointer"
+  },
+  "normalizer_version": "openmagnetics-normalized-v1",
+  "reference_stack": {
+    "compatibility_basis": "PyOpenMagnetics 1.6.2 release boundary; MKF tip immediately preceding the release; MAS gitlink recorded by that MKF commit",
+    "mas": {
+      "commit": "e3ccea8ca9772b11a56d90ef63db35ef872b2684",
+      "commit_date_utc": "2026-07-08T18:14:56Z",
+      "repository": "https://github.com/OpenMagnetics/MAS.git"
+    },
+    "mkf": {
+      "commit": "8d3bad38297ddca92a2aafe9c88a4fc93ef75d5b",
+      "commit_date_utc": "2026-07-08T18:15:46Z",
+      "repository": "https://github.com/OpenMagnetics/MKF.git"
+    },
+    "pyopenmagnetics": {
+      "commit": "b960e88109a12c4455bbded5d11bb80c9d8fc114",
+      "commit_date_utc": "2026-07-12T16:33:10Z",
+      "repository": "https://github.com/OpenMagnetics/PyOpenMagnetics.git",
+      "version": "1.6.2"
+    }
+  },
+  "schema_binding_status": "reference_stack_only_not_proven_for_legacy_snapshot",
+  "schema_commit": "e3ccea8ca9772b11a56d90ef63db35ef872b2684",
+  "schema_repository": "https://github.com/OpenMagnetics/MAS.git",
+  "schema_version": "MAS schema at pinned reference commit",
+  "source_commit": "dda025b8bb8aa17e39cca94e8dc6007656a5cba6",
+  "source_files": [
+    {
+      "byte_count": 134,
+      "git_lfs_status": {
+        "engineering_data_available": false,
+        "expected_byte_count": 144484868,
+        "is_pointer": true,
+        "oid_sha256": "1a215665d63130c673e580f996609428bbee63faa9e2b5ed0368280402b9a17e"
+      },
+      "path": "advanced_core_materials.ndjson",
+      "record_count": null,
+      "sha256": "be988544e96788125ccb542bcd942b7b85577c7828b89b35fa15885b63bbc79c"
+    },
+    {
+      "byte_count": 262892,
+      "git_lfs_status": {
+        "engineering_data_available": true,
+        "expected_byte_count": null,
+        "is_pointer": false,
+        "oid_sha256": null
+      },
+      "path": "bobbins.ndjson",
+      "record_count": 504,
+      "sha256": "cd658c968ec1cd44e1b030ff63b289d5d347ba7fd76a742994ba6bf4079e6dc2"
+    },
+    {
+      "byte_count": 6502698,
+      "git_lfs_status": {
+        "engineering_data_available": true,
+        "expected_byte_count": null,
+        "is_pointer": false,
+        "oid_sha256": null
+      },
+      "path": "core_materials.ndjson",
+      "record_count": 411,
+      "sha256": "689e4cdea943c32a047602b8dd836f6f2bd436eae6a0ccb47e88741511db5a3a"
+    },
+    {
+      "byte_count": 242986,
+      "git_lfs_status": {
+        "engineering_data_available": true,
+        "expected_byte_count": null,
+        "is_pointer": false,
+        "oid_sha256": null
+      },
+      "path": "core_shapes.ndjson",
+      "record_count": 890,
+      "sha256": "1579d171689d0243a20655ea59af2c95a8af19cd691971e28d7cee99c0e6ea68"
+    },
+    {
+      "byte_count": 4937490,
+      "git_lfs_status": {
+        "engineering_data_available": true,
+        "expected_byte_count": null,
+        "is_pointer": false,
+        "oid_sha256": null
+      },
+      "path": "cores.ndjson",
+      "record_count": 10318,
+      "sha256": "36d59ad1890f46e19fdf9cc8939672a3c458c3a290c80755f0acd0552df74b26"
+    },
+    {
+      "byte_count": 1224523,
+      "git_lfs_status": {
+        "engineering_data_available": true,
+        "expected_byte_count": null,
+        "is_pointer": false,
+        "oid_sha256": null
+      },
+      "path": "cores_stock.ndjson",
+      "record_count": 1573,
+      "sha256": "3850046a74d2488fb14ed7cfce2416139f8acbc0abed117eb5bc56718b1dbf60"
+    },
+    {
+      "byte_count": 8682,
+      "git_lfs_status": {
+        "engineering_data_available": true,
+        "expected_byte_count": null,
+        "is_pointer": false,
+        "oid_sha256": null
+      },
+      "path": "insulation_materials.ndjson",
+      "record_count": 23,
+      "sha256": "05b97afe8aaff8de072eb9d46f9c0519b34890cb4483354dbe645d2d14e9b120"
+    },
+    {
+      "byte_count": 797,
+      "git_lfs_status": {
+        "engineering_data_available": true,
+        "expected_byte_count": null,
+        "is_pointer": false,
+        "oid_sha256": null
+      },
+      "path": "wire_materials.ndjson",
+      "record_count": 2,
+      "sha256": "bbc49a8dd1f764e84d02a46cb4af8d1081c25bc7c7f5f5acbb1c99a01213e835"
+    },
+    {
+      "byte_count": 1789707,
+      "git_lfs_status": {
+        "engineering_data_available": true,
+        "expected_byte_count": null,
+        "is_pointer": false,
+        "oid_sha256": null
+      },
+      "path": "wires.ndjson",
+      "record_count": 4352,
+      "sha256": "2841591f068b546e2c4386ac4f590b50db36aa6cbfce3cc0c362b51c2ac567c6"
+    }
+  ],
+  "source_repository": "https://github.com/Lumia-Xiao/PE-Claw_2.0.git",
+  "source_snapshot_status": "legacy_snapshot_pinned_by_local_commit_and_file_hashes",
+  "upstream_provenance_status": "not_recorded_in_legacy_snapshot",
+  "upstream_repository": "https://github.com/OpenMagnetics/MAS.git",
+  "upstream_source_commit": null
+}

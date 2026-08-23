@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+    <Package class="Diode" vendor="Wolfspeed" partnumber="E6D30065A">
+        <Variables></Variables>
+        <SemiconductorData type="Diode">
+            <TurnOnLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis>0</CurrentAxis>
+                <VoltageAxis>0</VoltageAxis>
+                <TemperatureAxis>25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage>0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOnLoss>
+            <TurnOffLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis>0</CurrentAxis>
+                <VoltageAxis>0</VoltageAxis>
+                <TemperatureAxis>25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage>0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOffLoss>
+            <ConductionLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis>-5 0 0.01 0.05 0.1 0.5 1 2 5 10 15 35 55 75 95 115 120 </CurrentAxis>
+                <TemperatureAxis>-55 25 75 125 175 900</TemperatureAxis>
+                <VoltageDrop scale="1">
+                    <Temperature>0 0 0.809 0.21776 0.48884 0.99077 1.0133 1.0416 1.0914 1.1524 1.2095 1.4144 1.6085 1.8004 1.9931 2.1847 2.2336 </Temperature>
+                    <Temperature>0 0 0.80439 0.81212 0.82177 0.89902 0.93251 0.96431 1.0216 1.0919 1.1549 1.3821 1.5991 1.8157 2.0289 2.2488 2.3034 </Temperature>
+                    <Temperature>0 0 0.26556 0.52095 0.79308 0.83466 0.88073 0.91444 0.98027 1.0622 1.1342 1.4011 1.656 1.9099 2.1692 2.4278 2.4946 </Temperature>
+                    <Temperature>0 0 0.22672 0.31943 0.43531 0.78668 0.82328 0.86597 0.94237 1.0421 1.1287 1.448 1.7583 2.0652 2.3779 2.6987 2.7785 </Temperature>
+                    <Temperature>0 0 0.2034 0.067276 0.14915 0.74102 0.77123 0.82018 0.91078 1.0272 1.1323 1.5211 1.8968 2.2763 2.661 3.057 3.1581 </Temperature>
+                    <Temperature>0 0 0.18491 0.06116 0.13559 0.67365 0.70112 0.90219 1.0019 1.1299 1.2455 1.6732 2.0865 2.5039 2.9271 3.3627 3.4739 </Temperature>
+                </VoltageDrop>
+            </ConductionLoss>
+        </SemiconductorData>
+        <ThermalModel>
+            <Branch type="Cauer">
+                <RCElement R="0.01905" C="0.000286"/>
+                <RCElement R="0.03787" C="0.001274"/>
+                <RCElement R="0.2251" C="0.003125"/>
+                <RCElement R="0.1959" C="0.01361"/>
+            </Branch>
+        </ThermalModel>
+        <Comment>
+            <Line>Version 1.1 → Date: 04/2024. It is the customer's responsibility to verify the performance of the device with actual prototype.</Line>
+        </Comment>
+    </Package>
+</SemiconductorLibrary>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+    <Package class="Diode" vendor="Wolfspeed" partnumber="E3M0900170J_Diode">
+        <Variables></Variables>
+        <SemiconductorData type="Diode">
+            <TurnOnLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis>0</CurrentAxis>
+                <VoltageAxis>0</VoltageAxis>
+                <TemperatureAxis>25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage>0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOnLoss>
+            <TurnOffLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis>0</CurrentAxis>
+                <VoltageAxis>0</VoltageAxis>
+                <TemperatureAxis>25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage>0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOffLoss>
+            <ConductionLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis>0 0.0284332 0.0654256 0.113554 0.17617 0.257637 0.363627 0.501523 0.680931 0.914346 1.21803 1.61313 2.12716 2.79594 3.66604 4.79807 6.27087 8.18704 10.68 13.9235 </CurrentAxis>
+                <TemperatureAxis>-40 25 175 900</TemperatureAxis>
+                <VoltageDrop scale="1">
+                    <Temperature>0 0.356953 0.795475 1.32379 1.94323 2.64193 3.38662 4.11499 4.73855 5.18408 5.541 5.92433 6.3551 6.85888 7.42973 8.0829 8.83625 9.72585 10.7956 12.0877 </Temperature>
+                    <Temperature>0 0.311225 0.69435 1.15723 1.7021 2.32027 2.9849 3.64399 4.22108 4.64631 4.97017 5.32696 5.7387 6.22848 6.80318 7.46607 8.24483 9.17277 10.2521 11.4821 </Temperature>
+                    <Temperature>0 0.274794 0.612953 1.02129 1.50155 2.04562 2.62898 3.20416 3.70071 4.05117 4.29355 4.58787 4.90787 5.29078 5.72022 6.22634 6.80804 7.48136 8.25878 9.14912 </Temperature>
+                    <Temperature>0 0.219835 0.490362 0.817033 1.20124 1.6365 2.10319 2.56333 2.96057 3.24094 3.43484 3.67029 3.9263 4.23262 4.57617 4.98107 5.44643 5.98509 6.60702 7.3193 </Temperature>
+                </VoltageDrop>
+            </ConductionLoss>
+        </SemiconductorData>
+        <ThermalModel>
+            <Branch type="Cauer">
+                <RCElement R="0.69456" C="0.00018589"/>
+                <RCElement R="1.2906" C="0.00095336"/>
+                <RCElement R="0.46495" C="0.0062583"/>
+                <RCElement R="0.34986" C="0.1372"/>
+            </Branch>
+        </ThermalModel>
+        <Comment>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+            <Line>DISCLAIMER</Line>
+            <Line>This model is provided as is, where is, and with no warranty of any kind either</Line>
+            <Line>expressed or implied, including but not limited to any implied warranties of</Line>
+            <Line>merchantability and fitness for a particular purpose.</Line>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+            <Line></Line>
+            <Line></Line>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+            <Line>Wolfspeed SiC MOSFET (Bodydiode) PLECS Library</Line>
+            <Line></Line>
+            <Line>       E3M0900170J</Line>
+            <Line>       MOSFET (bodydiode)</Line>
+            <Line>       Datasheet Rev.1, 01/22/2025</Line>
+            <Line>       </Line>
+            <Line>       Electrical Parameters (nominal)</Line>
+            <Line>       Ron = 1.0669 Ω</Line>
+            <Line>       Vf = 2.8023 V</Line>
+            <Line>       </Line>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+            <Line></Line>
+            <Line></Line>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+            <Line>To find other WOLFSPEED SiC models, please visit:</Line>
+            <Line>https://www.wolfspeed.com/tools-and-support/power/ltspice-and-plecs-models/</Line>
+            <Line>-------------------------------------------------------------------------------------------------</Line>
+        </Comment>
+    </Package>
+</SemiconductorLibrary>

@@ -24,6 +24,8 @@ class CandidateCompressionResult:
     filtered_candidates: list[FixedInductorDesignCandidate] = field(default_factory=list)
     compressed_candidates: list[FixedInductorDesignCandidate] = field(default_factory=list)
     metrics_by_id: dict[str, MagneticCandidateEngineeringMetrics] = field(default_factory=dict)
+    rejection_counts: dict[str, int] = field(default_factory=dict)
+    missing_metric_counts: dict[str, int] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
 
 
@@ -33,6 +35,24 @@ def apply_engineering_allow_screen(
     allow_profile: MagneticAllowProfile,
 ) -> tuple[list[FixedInductorDesignCandidate], dict[str, MagneticCandidateEngineeringMetrics], list[str]]:
     """Filter candidates against the resolved engineering-allow profile."""
+    survivors, metrics_by_id, notes, _, _ = _apply_engineering_allow_screen_with_audit(
+        candidates, context, allow_profile
+    )
+    return survivors, metrics_by_id, notes
+
+
+def _apply_engineering_allow_screen_with_audit(
+    candidates: Iterable[FixedInductorDesignCandidate],
+    context: MagneticCandidateContext,
+    allow_profile: MagneticAllowProfile,
+) -> tuple[
+    list[FixedInductorDesignCandidate],
+    dict[str, MagneticCandidateEngineeringMetrics],
+    list[str],
+    dict[str, int],
+    dict[str, int],
+]:
+    """Apply the allow screen and retain a deterministic rejection ledger."""
     survivors: list[FixedInductorDesignCandidate] = []
     metrics_by_id: dict[str, MagneticCandidateEngineeringMetrics] = {}
     counters = {
@@ -42,6 +62,12 @@ def apply_engineering_allow_screen(
         "current_density_skipped": 0,
         "fill_skipped": 0,
         "volume_fallback": 0,
+    }
+    rejection_counts = {
+        "saturation": 0,
+        "loss": 0,
+        "current_density": 0,
+        "fill": 0,
     }
 
     for candidate in candidates:
@@ -56,21 +82,25 @@ def apply_engineering_allow_screen(
             if metrics.sat_margin is None:
                 counters["sat_skipped"] += 1
             else:
+                rejection_counts["saturation"] += 1
                 continue
         if not _passes_metric(metrics.loss_margin):
             if metrics.loss_margin is None:
                 counters["loss_skipped"] += 1
             else:
+                rejection_counts["loss"] += 1
                 continue
         if not _passes_metric(metrics.current_density_margin):
             if metrics.current_density_margin is None:
                 counters["current_density_skipped"] += 1
             else:
+                rejection_counts["current_density"] += 1
                 continue
         if not _passes_metric(metrics.fill_margin):
             if metrics.fill_margin is None:
                 counters["fill_skipped"] += 1
             else:
+                rejection_counts["fill"] += 1
                 continue
 
         survivors.append(candidate)
@@ -88,7 +118,13 @@ def apply_engineering_allow_screen(
         notes.append(f"Current-density screening was skipped for {counters['current_density_skipped']} candidates with missing data.")
     if counters["fill_skipped"]:
         notes.append(f"Fill-factor screening was skipped for {counters['fill_skipped']} candidates with missing data.")
-    return survivors, metrics_by_id, notes
+    missing_metric_counts = {
+        "saturation": counters["sat_skipped"],
+        "loss": counters["loss_skipped"],
+        "current_density": counters["current_density_skipped"],
+        "fill": counters["fill_skipped"],
+    }
+    return survivors, metrics_by_id, notes, rejection_counts, missing_metric_counts
 
 
 def compress_redundant_candidates(
@@ -121,7 +157,7 @@ def compress_candidates(
 ) -> CandidateCompressionResult:
     """Apply engineering screening and redundancy compression to magnetic candidates."""
     candidate_list = list(candidates)
-    filtered_candidates, metrics_by_id, screen_notes = apply_engineering_allow_screen(
+    filtered_candidates, metrics_by_id, screen_notes, rejection_counts, missing_metric_counts = _apply_engineering_allow_screen_with_audit(
         candidate_list,
         context,
         allow_profile,
@@ -139,6 +175,8 @@ def compress_candidates(
         filtered_candidates=filtered_candidates,
         compressed_candidates=compressed_candidates,
         metrics_by_id=metrics_by_id,
+        rejection_counts=rejection_counts,
+        missing_metric_counts=missing_metric_counts,
         notes=notes,
     )
 

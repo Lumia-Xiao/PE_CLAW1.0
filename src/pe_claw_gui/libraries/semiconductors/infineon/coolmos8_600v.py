@@ -15,9 +15,7 @@ from ..power_device import PowerDevice
 
 _DEVICE_PACKAGE = "pe_claw_gui.libraries.semiconductors.infineon"
 COOLMOS8_600V_XML_SUBDIR = "data/coolmos8_600v"
-DEFAULT_COOLMOS8_SOURCE_POOL = Path(
-    r"C:\Users\user\Documents\论文\0000 研究点\038 PE-Claw\MOSFET_Data\Infineon\infineon-600-v-coolmos-8-plecs-simulationmodels-en"
-)
+DEFAULT_COOLMOS8_SOURCE_POOL = None
 
 _COMMON_STATIC_FIELDS: dict[str, float | str] = {
     "vendor": "Infineon",
@@ -300,7 +298,7 @@ def normalize_coolmos8_part_number(filename_or_part: str) -> str:
     return re.sub(r"[^A-Z0-9]", "", stem)
 
 
-def discover_coolmos8_source_pool(source_dir: str | Path = DEFAULT_COOLMOS8_SOURCE_POOL) -> dict[str, tuple[Path, Path]]:
+def discover_coolmos8_source_pool(source_dir: str | Path) -> dict[str, tuple[Path, Path]]:
     """Return normalized part numbers mapped to local XML/PDF pairs."""
 
     source_path = Path(source_dir)
@@ -327,7 +325,7 @@ def discover_coolmos8_source_pool(source_dir: str | Path = DEFAULT_COOLMOS8_SOUR
     return pairs
 
 
-def validate_coolmos8_source_pool(source_dir: str | Path = DEFAULT_COOLMOS8_SOURCE_POOL) -> None:
+def validate_coolmos8_source_pool(source_dir: str | Path) -> None:
     """Validate the provided local XML/PDF pool against the curated manifest."""
 
     pairs = discover_coolmos8_source_pool(source_dir)
@@ -359,7 +357,6 @@ def build_infineon_coolmos8_600v_devices() -> list[PowerDevice]:
     """Build all valid Infineon 600 V CoolMOS 8 entries."""
 
     _validate_manifest()
-    _validate_default_source_pool_if_present()
     return [
         build_power_device_from_static_and_xml(
             static_record=_build_static_record(entry),
@@ -422,11 +419,6 @@ def _validate_manifest() -> None:
         _build_static_record(entry)
     if duplicates:
         raise ValueError("Duplicate Infineon CoolMOS 8 manifest parts: " + ", ".join(sorted(duplicates)))
-
-
-def _validate_default_source_pool_if_present() -> None:
-    if DEFAULT_COOLMOS8_SOURCE_POOL.exists():
-        validate_coolmos8_source_pool(DEFAULT_COOLMOS8_SOURCE_POOL)
 
 
 __all__ = [

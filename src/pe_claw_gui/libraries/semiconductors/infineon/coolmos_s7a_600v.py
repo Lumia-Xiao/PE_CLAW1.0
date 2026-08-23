@@ -15,9 +15,7 @@ from ..power_device import PowerDevice
 
 _DEVICE_PACKAGE = "pe_claw_gui.libraries.semiconductors.infineon"
 COOLMOS_S7A_600V_XML_SUBDIR = "data/coolmos_s7a_600v"
-DEFAULT_COOLMOS_S7A_600V_SOURCE_POOL = Path(
-    "C:\\Users\\user\\Documents\\\u8bba\u6587\\0000 \u7814\u7a76\u70b9\\038 PE-Claw\\MOSFET_Data\\Infineon\\infineon-coolmos-600v-s7a-plecs-simulationmodels-en"
-)
+DEFAULT_COOLMOS_S7A_600V_SOURCE_POOL = None
 _XML_ONLY_SPECIAL_CASE_PART = "IPQC60R022S7A"
 _XML_ONLY_SPECIAL_CASE_REFERENCE_PART = "IPQC60R017S7A"
 
@@ -236,7 +234,7 @@ def resolve_coolmos_s7a_600v_xml_relative_path(xml_filename: str) -> str:
 
 
 def discover_coolmos_s7a_600v_source_pool(
-    source_dir: str | Path = DEFAULT_COOLMOS_S7A_600V_SOURCE_POOL,
+    source_dir: str | Path,
 ) -> dict[str, tuple[Path, Path | None]]:
     """Return normalized part numbers mapped to local XML/PDF pairs, with one explicit XML-only exception."""
 
@@ -267,7 +265,7 @@ def discover_coolmos_s7a_600v_source_pool(
     return pairs
 
 
-def validate_coolmos_s7a_600v_source_pool(source_dir: str | Path = DEFAULT_COOLMOS_S7A_600V_SOURCE_POOL) -> None:
+def validate_coolmos_s7a_600v_source_pool(source_dir: str | Path) -> None:
     """Validate the provided local XML/PDF pool against the curated manifest and explicit XML-only exception."""
 
     pairs = discover_coolmos_s7a_600v_source_pool(source_dir)
@@ -304,7 +302,6 @@ def build_infineon_coolmos_s7a_600v_devices() -> list[PowerDevice]:
     """Build all valid Infineon 600 V CoolMOS S7A entries."""
 
     _validate_manifest()
-    _validate_default_source_pool_if_present()
     return [
         build_power_device_from_static_and_xml(
             static_record=_build_static_record(entry),
@@ -367,11 +364,6 @@ def _validate_manifest() -> None:
         _build_static_record(entry)
     if duplicates:
         raise ValueError("Duplicate Infineon CoolMOS S7A 600 V manifest parts: " + ", ".join(sorted(duplicates)))
-
-
-def _validate_default_source_pool_if_present() -> None:
-    if DEFAULT_COOLMOS_S7A_600V_SOURCE_POOL.exists():
-        validate_coolmos_s7a_600v_source_pool(DEFAULT_COOLMOS_S7A_600V_SOURCE_POOL)
 
 
 __all__ = [

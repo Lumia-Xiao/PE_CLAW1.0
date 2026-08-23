@@ -1,0 +1,6 @@
+series_key,series,package_family,source_brand,page_start,page_end,parser_type,dimension_source,esr_source,registration_scope,parsed_row_count,blocked_reason
+UTOR_screw,UTOR,screw_terminal,United Chemi-Con,396,402,special_audio_or_toroidal,toroidal_shape_special,tandelta_derived,blocked_with_reason,0,toroidal screw-terminal geometry needs a dedicated template before registration
+MAR_audio,MAR,audio,Nippon Chemi-Con,403,403,special_audio_or_toroidal,size_code_dimension_join,tandelta_derived,audit_only_non_dc_link,0,audio application is not part of default DC-link selection
+MAK_audio,MAK,audio,Nippon Chemi-Con,404,404,special_audio_or_toroidal,size_code_dimension_join,tandelta_derived,audit_only_non_dc_link,0,audio application is not part of default DC-link selection
+AVH_audio,AVH,audio,Nippon Chemi-Con,405,406,special_audio_or_toroidal,case_size_dxL_table,tandelta_derived,audit_only_non_dc_link,0,audio application is not part of default DC-link selection
+AWJ_audio,AWJ,audio,Nippon Chemi-Con,407,407,special_audio_or_toroidal,case_size_dxL_table,tandelta_derived,audit_only_non_dc_link,0,audio application is not part of default DC-link selection

@@ -8,13 +8,25 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from ..models.bridge_rectifier import (
+    BridgeRectifierCandidateEvaluation,
+    bridge_rectifier_package_confidence_label,
+    bridge_rectifier_thermal_confidence_label,
+)
 from ..models.capacitor import CapacitorGeometryTarget, CapacitorSelectionEntry, capacitor_series_display_name
 from ..models.design_report import DesignReport
 from ..models.geometry_result import GeometryTarget, InductorGeometryLayout
 from ..models.inductor import FixedInductorDesignCandidate
 from ..models.semiconductor_geometry_result import SemiconductorGeometryRoleLayout, SemiconductorGeometryTarget
+from ..topology_capabilities import (
+    has_dc_link_output_capacitor_only,
+    has_generic_semiconductor_overview_group,
+    has_inductor_result_pages,
+    has_split_dc_link_capacitor_bank,
+    is_single_phase_full_bridge_inverter_topology,
+)
 
-_GROUP_IDS = ("semiconductor", "inductor", "capacitor")
+_GROUP_IDS = ("bridge_rectifier", "semiconductor", "inductor", "capacitor")
 _OVERVIEW_OUTPUT_DIR = Path("outputs") / "hardware_overview"
 
 
@@ -51,6 +63,7 @@ class HardwareOverviewChildEntry:
     loss_w: float | None = None
     bounding_box_mm: HardwareOverviewBoundingBox = field(default_factory=HardwareOverviewBoundingBox)
     shape_type: str = "unknown"
+    metadata: dict[str, Any] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
@@ -179,11 +192,15 @@ def build_hardware_overview_payload(
     """Build and persist the Hardware Overview backend payload without rerunning design stages."""
 
     resolved_output_dir = _resolve_output_dir(output_dir)
-    groups = [
-        _build_semiconductor_group(report),
-        _build_inductor_group(report),
-        _build_capacitor_group(report),
-    ]
+    groups = []
+    bridge_group = _build_bridge_rectifier_group(report)
+    if bridge_group is not None:
+        groups.append(bridge_group)
+    if _should_include_semiconductor_group(report):
+        groups.append(_build_semiconductor_group(report))
+    if has_inductor_result_pages(report.spec.topology_id):
+        groups.append(_build_inductor_group(report))
+    groups.append(_build_capacitor_group(report))
     global_scale = _build_global_scale(groups)
     integrated_layout = build_integrated_hardware_layout_from_groups(groups)
     payload = HardwareOverviewPayload(
@@ -192,7 +209,7 @@ def build_hardware_overview_payload(
         integrated_layout=integrated_layout,
         notes=[
             "Hardware Overview payload is assembled from existing report results only.",
-            "Existing individual-page images are treated as local-scale fallbacks unless generated as overview artifacts.",
+            "Overview images are first-pass engineering visualizations.",
             "Integrated hardware overview artifacts are the preferred system-level representation once generated.",
         ],
         warnings=_dedupe_strings([*_payload_warnings(groups), *integrated_layout.warnings]),
@@ -221,6 +238,12 @@ def build_and_generate_hardware_overview(
     from ..visualization.hardware_overview import generate_hardware_overview_artifacts
 
     return generate_hardware_overview_artifacts(payload, resolved_output_dir)
+
+
+def build_bridge_rectifier_overview_group(report: DesignReport) -> HardwareOverviewComponentGroup | None:
+    """Return the selected bridge-rectifier overview group for direct view rendering."""
+
+    return _build_bridge_rectifier_group(report)
 
 
 def write_hardware_overview_payload_json(payload: HardwareOverviewPayload, output_dir: str | Path) -> Path:
@@ -268,24 +291,174 @@ def build_integrated_hardware_layout_from_groups(
         artifact_paths=dict(artifact_paths or {}),
         notes=[
             "Integrated layout places recommended hardware in one shared coordinate system.",
-            "Layout rule, left to right: input capacitor, semiconductor, inductor, output capacitor.",
-            "Layout depth rule, back to front: input capacitor, semiconductor, inductor, output capacitor.",
+            "Layout rule, left to right: input capacitor, bridge rectifier when present, semiconductor, inductor, output capacitor.",
+            "Layout depth rule, back to front: input capacitor, bridge rectifier when present, semiconductor, inductor, output capacitor.",
             "This is an engineering overview layout, not a PCB, package, or electrical placement.",
         ],
         warnings=_dedupe_strings(warnings),
     )
 
 
+def _build_bridge_rectifier_group(report: DesignReport) -> HardwareOverviewComponentGroup | None:
+    selection = report.bridge_rectifier
+    if selection is None:
+        return None
+    candidate = selection.selected_candidate
+    if candidate is None:
+        return _missing_group("bridge_rectifier", "Bridge Rectifier", "Bridge rectifier selection did not produce a selected candidate.")
+
+    display_name = _bridge_rectifier_display_name(report)
+    evaluation = _selected_bridge_evaluation(report)
+    loss_w = evaluation.loss_estimate.total_loss_w if evaluation is not None and evaluation.loss_estimate is not None else None
+    thermal = evaluation.thermal_estimate if evaluation is not None else None
+    ranking = evaluation.ranking_breakdown if evaluation is not None else None
+    package_confidence = bridge_rectifier_package_confidence_label(candidate)
+    thermal_confidence = bridge_rectifier_thermal_confidence_label(candidate, thermal)
+    body_bbox = HardwareOverviewBoundingBox(candidate.body_length_mm, candidate.body_height_mm, candidate.body_width_mm)
+    body_volume_cm3 = candidate.body_volume_mm3 / 1000.0
+    sink_volume_cm3 = _positive_or_none(thermal.estimated_sink_volume_cm3 if thermal is not None else None)
+    sink_bbox = _bridge_sink_bbox(body_bbox, sink_volume_cm3)
+    bbox = _bridge_group_bbox(body_bbox, sink_bbox)
+    total_volume_cm3 = body_volume_cm3 + (sink_volume_cm3 or 0.0)
+    child_entries = [
+        HardwareOverviewChildEntry(
+            entry_id="bridge_body",
+            display_name="Bridge package",
+            recommended_name=candidate.part_number,
+            manufacturer=candidate.manufacturer,
+            series=candidate.package_family,
+            part_number=candidate.part_number,
+            quantity=1,
+            volume_cm3=body_volume_cm3,
+            loss_w=loss_w,
+            bounding_box_mm=body_bbox,
+            shape_type="bridge_rectifier_package",
+            notes=[f"Package case: {candidate.package_case or '-'}."],
+            warnings=_bbox_warnings(body_bbox),
+        )
+    ]
+    if sink_volume_cm3 is not None and sink_bbox is not None:
+        child_entries.append(
+            HardwareOverviewChildEntry(
+                entry_id="bridge_heatsink",
+                display_name="Bridge heatsink proxy",
+                quantity=1,
+                volume_cm3=sink_volume_cm3,
+                bounding_box_mm=sink_bbox,
+                shape_type="heatsink_proxy",
+                notes=["Estimated from bridge sink backsolve volume; this is not a CAD heatsink model."],
+                warnings=_bbox_warnings(sink_bbox),
+            )
+        )
+
+    warnings = _bbox_warnings(bbox)
+    if sink_volume_cm3 is None:
+        warnings.append("Bridge overview volume excludes heatsink because sink backsolve volume is unavailable.")
+    return HardwareOverviewComponentGroup(
+        group_id="bridge_rectifier",
+        display_name=display_name,
+        status="available",
+        recommended_name=candidate.part_number,
+        manufacturer=candidate.manufacturer,
+        series=candidate.package_family,
+        part_number=candidate.part_number,
+        quantity=1,
+        volume_cm3=total_volume_cm3,
+        volume_breakdown_cm3={
+            "bridge_body_volume_cm3": body_volume_cm3,
+            "bridge_heatsink_volume_cm3": sink_volume_cm3,
+            "total_volume_cm3": total_volume_cm3,
+        },
+        loss_w=loss_w,
+        image_2d=_local_image_ref(None),
+        image_3d=_local_image_ref(None),
+        geometry_source="selected_bridge_package_dimensions",
+        bounding_box_mm=bbox,
+        shape_type="bridge_rectifier_with_heatsink" if sink_volume_cm3 is not None else "bridge_rectifier_package",
+        child_entries=child_entries,
+        metadata={
+            "topology_id": selection.request.topology_id,
+            "topology_kind": candidate.topology_kind,
+            "display_label": display_name,
+            "package_case": candidate.package_case,
+            "mounting_type": candidate.mounting_type,
+            "package_dimension_status": candidate.package_dimension_status,
+            "thermal_status": candidate.thermal_status,
+            "thermal_condition": candidate.thermal_condition,
+            "package_confidence_label": package_confidence,
+            "thermal_confidence_label": thermal_confidence,
+            "data_confidence_policy": selection.request.data_confidence_policy,
+            "data_confidence_penalty_component": (
+                ranking.data_confidence_penalty_component if ranking is not None else None
+            ),
+            "v_rrm_v": candidate.v_rrm_v,
+            "required_reverse_voltage_v": selection.request.required_reverse_voltage_v,
+            "recommended_reverse_voltage_v": selection.request.recommended_reverse_voltage_v,
+            "selected_vrrm_margin_ratio": (
+                candidate.v_rrm_v / selection.request.recommended_reverse_voltage_v
+                if selection.request.recommended_reverse_voltage_v
+                else None
+            ),
+            "meets_recommended_reverse_voltage": (
+                candidate.v_rrm_v >= selection.request.recommended_reverse_voltage_v
+                if selection.request.recommended_reverse_voltage_v is not None
+                else None
+            ),
+            "voltage_margin_basis": selection.request.voltage_margin_basis,
+            "io_avg_rectified_a": candidate.io_avg_rectified_a,
+            "vf_max_v": candidate.vf_max_v,
+            "rth_jc_k_per_w": candidate.rth_jc_k_per_w,
+            "rth_ja_k_per_w": candidate.rth_ja_k_per_w,
+            "rth_jl_k_per_w": candidate.rth_jl_k_per_w,
+            "rth_basis_used": thermal.rth_basis if thermal is not None else "",
+            "tj_est_c": thermal.tj_est_c if thermal is not None else None,
+            "junction_margin_c": thermal.junction_margin_c if thermal is not None else None,
+            "bare_rthja_tj_est_c": thermal.bare_rthja_tj_est_c if thermal is not None else None,
+            "required_sink_rth_k_per_w": thermal.required_sink_rth_k_per_w if thermal is not None else None,
+            "sink_thermal_classification": thermal.sink_thermal_classification if thermal is not None else "",
+            "top_candidate_rows": build_bridge_rectifier_top_candidate_rows(selection),
+        },
+        notes=[
+            "Bridge rectifier overview uses normalized package body dimensions from the selected candidate.",
+            f"Package data confidence: {package_confidence}.",
+            f"Thermal data confidence: {thermal_confidence}.",
+            "Heatsink geometry is a first-pass cuboid proxy derived from sink backsolve volume when available.",
+            *_bridge_rectifier_selection_notes_for_overview(selection.request.notes),
+        ],
+        warnings=warnings,
+    )
+
+
+def _bridge_rectifier_display_name(report: DesignReport) -> str:
+    selection = report.bridge_rectifier
+    if selection is not None:
+        topology_id = selection.request.topology_id
+        if topology_id.startswith("three_phase_"):
+            return "Three-Phase Bridge Rectifier"
+        if topology_id.startswith("single_phase_"):
+            return "Single-Phase Bridge Rectifier"
+    return "Bridge Rectifier"
+
+
+def _bridge_rectifier_selection_notes_for_overview(notes: tuple[str, ...]) -> list[str]:
+    return [note for note in notes if "voltage hard filter" in note or "three-phase" in note][:2]
+
+
+def _should_include_semiconductor_group(report: DesignReport) -> bool:
+    return has_generic_semiconductor_overview_group(report.spec.topology_id) and report.bridge_rectifier is None
+
+
 def _build_semiconductor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    display_name = _semiconductor_group_display_name(report)
     if report.device is None:
-        return _missing_group("semiconductor", "Semiconductor", "Run Design first to populate semiconductor overview.")
+        return _missing_group("semiconductor", display_name, "Run Design first to populate semiconductor overview.")
 
     target = _recommended_semiconductor_target(report)
     if target is None or not target.role_layouts:
         warnings = ["Missing semiconductor geometry; run or refresh design geometry before overview rendering."]
         return HardwareOverviewComponentGroup(
             group_id="semiconductor",
-            display_name="Semiconductor",
+            display_name=display_name,
             status="missing",
             recommended_name=_semiconductor_recommended_name(report),
             loss_w=_resolve_semiconductor_loss_w(report),
@@ -294,9 +467,9 @@ def _build_semiconductor_group(report: DesignReport) -> HardwareOverviewComponen
             warnings=warnings,
         )
 
-    bbox = _semiconductor_bbox(target)
-    child_entries = [_semiconductor_child_entry(role_layout) for role_layout in target.role_layouts if role_layout.part_number]
-    device_volume_cm3 = sum(value for value in (_semiconductor_role_volume_cm3(role) for role in target.role_layouts) if value is not None)
+    bbox = _semiconductor_bbox(report, target)
+    child_entries = [_semiconductor_child_entry(report, role_layout) for role_layout in target.role_layouts if role_layout.part_number]
+    device_volume_cm3 = sum(value for value in (_semiconductor_role_volume_cm3(report, role) for role in target.role_layouts) if value is not None)
     heatsink_volume_cm3 = _positive_or_none(target.sink_volume_cm3)
     if heatsink_volume_cm3 is None:
         heatsink_volume_cm3 = _semiconductor_role_sink_volume_cm3(target.role_layouts)
@@ -306,17 +479,22 @@ def _build_semiconductor_group(report: DesignReport) -> HardwareOverviewComponen
     warnings = _bbox_warnings(bbox)
     if heatsink_volume_cm3 is None:
         warnings.append("Semiconductor overview volume excludes heatsink.")
-    warnings.append("Existing semiconductor geometry is rendered in-view and not persisted as an overview artifact.")
+    notes = [
+        "Semiconductor payload uses the recommended scheme geometry already attached to the design report.",
+        "Heatsink volume is included when available because overview size is physical hardware size.",
+        "Semiconductor package geometry is rendered as a first-pass overview visualization.",
+    ]
     primary = next((child for child in child_entries if child.part_number), None)
+    module_metadata = _semiconductor_module_overview_metadata(report, target)
     return HardwareOverviewComponentGroup(
         group_id="semiconductor",
-        display_name="Semiconductor",
+        display_name=display_name,
         status="available",
-        recommended_name=_semiconductor_recommended_name(report),
+        recommended_name=_semiconductor_recommended_name(report, target),
         manufacturer=primary.manufacturer if primary else None,
         series=primary.series if primary else None,
         part_number=primary.part_number if primary else target.part_number,
-        quantity=target.parallel_count,
+        quantity=_semiconductor_group_quantity(report, target),
         volume_cm3=total_volume_cm3,
         volume_breakdown_cm3={
             "device_volume_cm3": device_volume_cm3 if device_volume_cm3 > 0.0 else None,
@@ -331,40 +509,142 @@ def _build_semiconductor_group(report: DesignReport) -> HardwareOverviewComponen
         shape_type="heatsink_plus_device" if heatsink_volume_cm3 is not None else "semiconductor_module",
         child_entries=child_entries,
         metadata={
+            "topology_id": report.spec.topology_id,
             "recommended_scheme_id": report.device.recommended_scheme_id,
             "target_scheme_id": target.scheme_id,
             "device_only_volume_cm3": device_volume_cm3 if device_volume_cm3 > 0.0 else None,
             "heatsink_volume_cm3": heatsink_volume_cm3,
             "total_volume_cm3": total_volume_cm3,
+            "loss_basis_label": _resolve_semiconductor_loss_basis(report),
+            "efficiency_sweep_full_load_semiconductor_loss_w": _efficiency_sweep_full_load_semiconductor_loss_w(report),
+            "efficiency_sweep_power_factor": _efficiency_sweep_power_factor(report),
+            **module_metadata,
+            **_npc_semiconductor_overview_metadata(report, target),
         },
-        notes=[
-            "Semiconductor payload uses the recommended scheme geometry already attached to the design report.",
-            "Heatsink volume is included when available because overview size is physical hardware size.",
-        ],
+        notes=notes,
         warnings=warnings,
     )
+
+
+def _semiconductor_group_display_name(report: DesignReport) -> str:
+    if _is_three_phase_npc_inverter(report):
+        return "NPC Semiconductors"
+    if is_single_phase_full_bridge_inverter_topology(report.spec.topology_id) or _is_three_phase_two_level_inverter(report):
+        return "Inverter Switches"
+    return "Semiconductor"
+
+
+def build_bridge_rectifier_top_candidate_rows(result, limit: int = 5) -> list[dict[str, object]]:
+    """Return structured Top-N bridge rows in the selector ranking order."""
+
+    rows: list[dict[str, object]] = []
+    if result is None or limit <= 0:
+        return rows
+    passed = [evaluation for evaluation in result.evaluations if evaluation.passed_hard_filters][:limit]
+    for index, evaluation in enumerate(passed, start=1):
+        candidate = evaluation.candidate
+        loss = evaluation.loss_estimate
+        thermal = evaluation.thermal_estimate
+        ranking = evaluation.ranking_breakdown
+        rows.append(
+            {
+                "rank": index,
+                "part_number": candidate.part_number,
+                "manufacturer": candidate.manufacturer,
+                "package": _bridge_package_label(candidate),
+                "package_family": candidate.package_family,
+                "package_case": candidate.package_case,
+                "package_dimension_status": candidate.package_dimension_status,
+                "thermal_status": candidate.thermal_status,
+                "package_confidence_label": bridge_rectifier_package_confidence_label(candidate),
+                "thermal_confidence_label": bridge_rectifier_thermal_confidence_label(candidate, thermal),
+                "data_confidence_policy": result.request.data_confidence_policy,
+                "data_confidence_penalty_component": (
+                    None if ranking is None else float(ranking.data_confidence_penalty_component)
+                ),
+                "vf_max_v": float(candidate.vf_max_v),
+                "required_reverse_voltage_v": float(result.request.required_reverse_voltage_v),
+                "recommended_reverse_voltage_v": (
+                    None
+                    if result.request.recommended_reverse_voltage_v is None
+                    else float(result.request.recommended_reverse_voltage_v)
+                ),
+                "vrrm_margin_ratio": (
+                    None
+                    if result.request.recommended_reverse_voltage_v is None
+                    else float(candidate.v_rrm_v / result.request.recommended_reverse_voltage_v)
+                ),
+                "meets_recommended_vrrm_margin": (
+                    None
+                    if result.request.recommended_reverse_voltage_v is None
+                    else bool(candidate.v_rrm_v >= result.request.recommended_reverse_voltage_v)
+                ),
+                "loss_w": None if loss is None else float(loss.total_loss_w),
+                "tj_est_c": None if thermal is None or thermal.tj_est_c is None else float(thermal.tj_est_c),
+                "unit_price_usd": float(candidate.unit_price_usd),
+                "body_volume_cm3": float(candidate.body_volume_mm3 / 1000.0),
+                "ranking_score": None if ranking is None else float(ranking.total_score),
+            }
+        )
+    return rows
+
+
+def _bridge_package_label(candidate) -> str:
+    if candidate.package_case:
+        return f"{candidate.package_family}/{candidate.package_case}"
+    return candidate.package_family or "-"
 
 
 def _integrated_layout_objects(groups: list[HardwareOverviewComponentGroup]) -> list[HardwareIntegratedLayoutObject]:
     by_id = {group.group_id: group for group in groups}
     objects: list[HardwareIntegratedLayoutObject] = []
+    topology_id = _overview_topology_id(groups)
+    bridge_rectifier = by_id.get("bridge_rectifier")
+    if bridge_rectifier is not None and _group_available_for_integrated_layout(bridge_rectifier):
+        objects.append(_integrated_object_from_group(bridge_rectifier, object_id="bridge_rectifier", display_name="Bridge rectifier"))
     semiconductor = by_id.get("semiconductor")
     if semiconductor is not None and _group_available_for_integrated_layout(semiconductor):
-        objects.append(_integrated_object_from_group(semiconductor, object_id="semiconductor", display_name="Semiconductor"))
+        objects.append(
+            _integrated_object_from_group(
+                semiconductor,
+                object_id="semiconductor",
+                display_name=semiconductor.display_name or "Semiconductor",
+            )
+        )
     inductor = by_id.get("inductor")
     if inductor is not None and _group_available_for_integrated_layout(inductor):
-        objects.append(_integrated_object_from_group(inductor, object_id="inductor", display_name="Inductor"))
+        objects.append(_integrated_object_from_group(inductor, object_id="inductor", display_name=inductor.display_name))
     capacitor = by_id.get("capacitor")
     if capacitor is not None:
         capacitor_children = [child for child in capacitor.child_entries if _bbox_complete(child.bounding_box_mm)]
         for child in capacitor_children:
             if child.entry_id == "input_capacitor":
-                objects.append(_integrated_object_from_child(child, "capacitor_input", "Input capacitor"))
+                objects.append(
+                    _integrated_object_from_child(
+                        child,
+                        "capacitor_upper" if has_split_dc_link_capacitor_bank(topology_id) else "capacitor_input",
+                        "Upper split-link capacitor" if has_split_dc_link_capacitor_bank(topology_id) else "Input capacitor",
+                    )
+                )
             elif child.entry_id == "output_capacitor":
-                objects.append(_integrated_object_from_child(child, "capacitor_output", "Output capacitor"))
+                objects.append(
+                    _integrated_object_from_child(
+                        child,
+                        "capacitor_lower" if has_split_dc_link_capacitor_bank(topology_id) else "capacitor_output",
+                        "Lower split-link capacitor" if has_split_dc_link_capacitor_bank(topology_id) else "Output capacitor",
+                    )
+                )
         if not capacitor_children and _group_available_for_integrated_layout(capacitor):
             objects.append(_integrated_object_from_group(capacitor, object_id="capacitor", display_name="Capacitors"))
     return objects
+
+
+def _overview_topology_id(groups: list[HardwareOverviewComponentGroup]) -> str:
+    for group in groups:
+        topology_id = group.metadata.get("topology_id")
+        if topology_id:
+            return str(topology_id)
+    return ""
 
 
 def _group_available_for_integrated_layout(group: HardwareOverviewComponentGroup) -> bool:
@@ -426,13 +706,58 @@ def _box_from_overview_bbox(bbox: HardwareOverviewBoundingBox) -> HardwareIntegr
     return HardwareIntegratedBox(width_mm=bbox.width_mm, depth_mm=bbox.depth_mm, height_mm=bbox.height_mm)
 
 
+def _selected_bridge_evaluation(report: DesignReport) -> BridgeRectifierCandidateEvaluation | None:
+    selection = report.bridge_rectifier
+    if selection is None or selection.selected_candidate is None:
+        return None
+    selected_id = selection.selected_candidate.candidate_id
+    return next((item for item in selection.evaluations if item.candidate.candidate_id == selected_id), None)
+
+
+def _bridge_sink_bbox(
+    body_bbox: HardwareOverviewBoundingBox,
+    sink_volume_cm3: float | None,
+) -> HardwareOverviewBoundingBox | None:
+    if sink_volume_cm3 is None:
+        return None
+    volume_mm3 = sink_volume_cm3 * 1000.0
+    if volume_mm3 <= 0.0:
+        return None
+    footprint_width_mm = max(float(body_bbox.width_mm or 0.0) + 12.0, math.sqrt(volume_mm3 * 2.0))
+    footprint_depth_mm = max(float(body_bbox.depth_mm or 0.0) + 12.0, 0.65 * footprint_width_mm)
+    height_mm = max(volume_mm3 / max(footprint_width_mm * footprint_depth_mm, 1.0), 6.0)
+    return HardwareOverviewBoundingBox(footprint_width_mm, height_mm, footprint_depth_mm)
+
+
+def _bridge_group_bbox(
+    body_bbox: HardwareOverviewBoundingBox,
+    sink_bbox: HardwareOverviewBoundingBox | None,
+) -> HardwareOverviewBoundingBox:
+    if sink_bbox is None:
+        return body_bbox
+    return HardwareOverviewBoundingBox(
+        width_mm=max(float(body_bbox.width_mm or 0.0), float(sink_bbox.width_mm or 0.0)),
+        height_mm=float(body_bbox.height_mm or 0.0) + float(sink_bbox.height_mm or 0.0),
+        depth_mm=max(float(body_bbox.depth_mm or 0.0), float(sink_bbox.depth_mm or 0.0)),
+    )
+
+
 def _place_integrated_objects(
     objects: list[HardwareIntegratedLayoutObject],
     group_spacing_mm: float,
     capacitor_internal_spacing_mm: float,
 ) -> list[HardwareIntegratedLayoutObject]:
     by_id = {obj.id: obj for obj in objects}
-    ordered_ids = ("capacitor_input", "semiconductor", "inductor", "capacitor_output", "capacitor")
+    ordered_ids = (
+        "capacitor_input",
+        "capacitor_upper",
+        "bridge_rectifier",
+        "semiconductor",
+        "inductor",
+        "capacitor_lower",
+        "capacitor_output",
+        "capacitor",
+    )
     ordered_objects = [by_id[obj_id] for obj_id in ordered_ids if obj_id in by_id]
     placed: list[HardwareIntegratedLayoutObject] = []
     x_cursor = 0.0
@@ -528,17 +853,26 @@ def _integrated_missing_warnings(
     present_ids = {obj.id for obj in objects}
     by_id = {group.group_id: group for group in groups}
     warnings: list[str] = []
-    if "semiconductor" not in present_ids:
+    if by_id.get("bridge_rectifier") is not None and "bridge_rectifier" not in present_ids:
+        warning = _first_warning(by_id.get("bridge_rectifier")) or "Bridge rectifier is unavailable for integrated hardware overview."
+        warnings.append(warning)
+    if by_id.get("semiconductor") is not None and "semiconductor" not in present_ids:
         warning = _first_warning(by_id.get("semiconductor")) or "Semiconductor is unavailable for integrated hardware overview."
         warnings.append(warning)
-    if "inductor" not in present_ids:
+    if by_id.get("inductor") is not None and "inductor" not in present_ids:
         warning = _first_warning(by_id.get("inductor")) or "Inductor is unavailable for integrated hardware overview."
         warnings.append(warning)
-    if "capacitor_input" not in present_ids:
-        warnings.append("Input capacitor is unavailable for integrated hardware overview.")
-    if "capacitor_output" not in present_ids:
-        warnings.append("Output capacitor is unavailable for integrated hardware overview.")
+    capacitor = by_id.get("capacitor")
+    split_dc_link = capacitor is not None and has_split_dc_link_capacitor_bank(str(capacitor.metadata.get("topology_id") or ""))
+    if _group_has_child(capacitor, "input_capacitor") and not ({"capacitor_input", "capacitor_upper"} & present_ids):
+        warnings.append("Upper split-link capacitor is unavailable for integrated hardware overview." if split_dc_link else "Input capacitor is unavailable for integrated hardware overview.")
+    if _group_has_child(capacitor, "output_capacitor") and not ({"capacitor_output", "capacitor_lower"} & present_ids):
+        warnings.append("Lower split-link capacitor is unavailable for integrated hardware overview." if split_dc_link else "Output capacitor is unavailable for integrated hardware overview.")
     return warnings
+
+
+def _group_has_child(group: HardwareOverviewComponentGroup | None, entry_id: str) -> bool:
+    return group is not None and any(child.entry_id == entry_id for child in group.child_entries)
 
 
 def _first_warning(group: HardwareOverviewComponentGroup | None) -> str | None:
@@ -561,13 +895,15 @@ def _box_height(box: HardwareIntegratedBox) -> float:
 
 def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
     if report.magnetic is None:
-        return _missing_group("inductor", "Inductor", "Run Magnetics first to populate inductor overview.")
+        display_name = _inductor_group_display_name(report.spec.topology_id)
+        return _missing_group("inductor", display_name, "Run Magnetics first to populate inductor overview.")
 
     target = _recommended_inductor_target(report)
     design = _recommended_inductor_design(report)
     layout = target.layout if target is not None else report.geometry.selected_layout if report.geometry else None
     if design is None and layout is None:
-        return _missing_group("inductor", "Inductor", "Recommended magnetic design is unavailable.")
+        display_name = _inductor_group_display_name(report.spec.topology_id)
+        return _missing_group("inductor", display_name, "Recommended magnetic design is unavailable.")
 
     bbox = _inductor_bbox(layout)
     artifacts = _inductor_recommended_artifacts(target, report)
@@ -576,24 +912,33 @@ def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGrou
     volume_cm3 = _m3_to_cm3(target.volume_m3 if target is not None else None)
     if volume_cm3 is None and design is not None:
         volume_cm3 = _m3_to_cm3(design.total_volume_m3)
-    loss_w = target.loss_w if target is not None else _inductor_loss_w(report, design.candidate_id if design is not None else None)
+    quantity = _inductor_physical_quantity(report)
+    per_inductor_volume_cm3 = volume_cm3
+    if volume_cm3 is not None:
+        volume_cm3 *= quantity
+    active_design_id = _active_inductor_design_id(report, design)
+    loss_w = _inductor_loss_w(report, active_design_id)
+    loss_basis_label = "operating-point magnetic loss" if loss_w is not None else "reference magnetic search loss"
+    if loss_w is None:
+        loss_w = target.loss_w if target is not None else _inductor_reference_loss_w(design)
     warnings = _bbox_warnings(bbox)
     warnings.extend(_image_warnings(image_2d_path, image_3d_path))
     if volume_cm3 is None:
         warnings.append("Incomplete volume definition: inductor total assembly volume is unavailable.")
     return HardwareOverviewComponentGroup(
         group_id="inductor",
-        display_name="Inductor",
+        display_name=_inductor_group_display_name(report.spec.topology_id),
         status="available",
         recommended_name=(design.candidate_id if design is not None else layout.design_id if layout is not None else ""),
         manufacturer=None,
         series=(design.core_name if design is not None else layout.core_name if layout is not None else None),
         part_number=(design.candidate_id if design is not None else layout.design_id if layout is not None else None),
-        quantity=1,
+        quantity=quantity,
         volume_cm3=volume_cm3,
         volume_breakdown_cm3={
             "core_volume_cm3": _m3_to_cm3(design.core_volume_m3 if design is not None else None),
             "winding_volume_cm3": _m3_to_cm3(design.winding_volume_m3 if design is not None else None),
+            "per_inductor_assembly_volume_cm3": per_inductor_volume_cm3,
             "assembly_volume_cm3": volume_cm3,
         },
         loss_w=loss_w,
@@ -605,6 +950,7 @@ def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGrou
         bounding_box_mm=bbox,
         shape_type="magnetic_core_assembly",
         metadata={
+            "topology_id": report.spec.topology_id,
             "core_family": layout.core_family if layout is not None else None,
             "core_name": design.core_name if design is not None else layout.core_name if layout is not None else None,
             "base_core_name": design.base_core_name if design is not None else layout.base_core_name if layout is not None else None,
@@ -613,24 +959,38 @@ def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGrou
             "parallel_strands": design.parallel_bundles if design is not None else layout.parallels if layout is not None else None,
             "stack_count": design.stack_count if design is not None else layout.stack_count if layout is not None else None,
             "hotspot_proxy_temp_c": _thermal_hotspot_c(report),
+            "loss_basis_label": _inductor_loss_basis_label(report, loss_basis_label),
+            "magnetic_quantity": quantity,
         },
-        notes=["Inductor overview volume uses total assembly volume, including stacked assembly depth when present."],
+        notes=_inductor_overview_notes(report, loss_basis_label),
         warnings=warnings,
     )
+
+
+def _inductor_group_display_name(topology_id: str) -> str:
+    if (
+        is_single_phase_full_bridge_inverter_topology(topology_id)
+        or topology_id == "three_phase_two_level_voltage_source_inverter"
+        or topology_id == "three_phase_three_level_npc_inverter"
+    ):
+        return "Output Inductor"
+    return "Inductor"
 
 
 def _build_capacitor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
     if report.capacitor is None:
         return _missing_group("capacitor", "Capacitors", "Run Capacitor first to populate capacitor overview.")
 
-    input_entry = report.capacitor.input_selection.recommended if report.capacitor.input_selection else None
-    output_entry = report.capacitor.output_selection.recommended if report.capacitor.output_selection else None
+    input_entry = _active_capacitor_entry(report, "input")
+    output_entry = _active_capacitor_entry(report, "output")
     input_target = _capacitor_recommended_target(report, "input")
     output_target = _capacitor_recommended_target(report, "output")
-    child_entries = [
-        _capacitor_child_entry("input", input_entry, input_target),
-        _capacitor_child_entry("output", output_entry, output_target),
-    ]
+    split_dc_link = has_split_dc_link_capacitor_bank(report.spec.topology_id)
+    dc_link_output_only = has_dc_link_output_capacitor_only(report.spec.topology_id)
+    child_entries = []
+    if not dc_link_output_only:
+        child_entries.append(_capacitor_child_entry("input", input_entry, input_target, report.spec.topology_id))
+    child_entries.append(_capacitor_child_entry("output", output_entry, output_target, report.spec.topology_id))
     child_entries = [child for child in child_entries if child is not None]
     volume_cm3 = _sum_optional(child.volume_cm3 for child in child_entries)
     loss_w = _sum_optional(child.loss_w for child in child_entries)
@@ -640,22 +1000,23 @@ def _build_capacitor_group(report: DesignReport) -> HardwareOverviewComponentGro
     image_3d_path = _first_existing_path(artifacts, suffixes=("_3d.png",))
     warnings = _bbox_warnings(bbox)
     warnings.extend(_image_warnings(image_2d_path, image_3d_path))
-    if not input_entry:
-        warnings.append("Input capacitor recommended bank is unavailable.")
+    if not input_entry and not dc_link_output_only:
+        warnings.append("Upper split-link capacitor recommended bank is unavailable." if split_dc_link else "Input capacitor recommended bank is unavailable.")
     if not output_entry:
-        warnings.append("Output capacitor recommended bank is unavailable.")
+        warnings.append("Lower split-link capacitor recommended bank is unavailable." if split_dc_link else "Output capacitor recommended bank is unavailable.")
     status = "available" if input_entry or output_entry else "missing"
     return HardwareOverviewComponentGroup(
         group_id="capacitor",
         display_name="Capacitors",
         status=status,
-        recommended_name=_capacitor_recommended_name(input_entry, output_entry),
+        recommended_name=_capacitor_recommended_name(input_entry, output_entry, report.spec.topology_id),
         quantity=_sum_ints(child.quantity for child in child_entries),
         volume_cm3=volume_cm3,
         volume_breakdown_cm3={
-            "input_capacitor_bank_volume_cm3": _entry_volume(input_entry),
-            "output_capacitor_bank_volume_cm3": _entry_volume(output_entry),
+            ("upper_split_link_capacitor_bank_volume_cm3" if split_dc_link else "input_capacitor_bank_volume_cm3"): _entry_volume(input_entry),
+            ("lower_split_link_capacitor_bank_volume_cm3" if split_dc_link else "output_capacitor_bank_volume_cm3"): _entry_volume(output_entry),
         },
+        metadata=_capacitor_group_metadata(report, input_entry, output_entry, dc_link_output_only),
         loss_w=loss_w,
         image_2d_path_existing=image_2d_path,
         image_3d_path_existing=image_3d_path,
@@ -665,38 +1026,143 @@ def _build_capacitor_group(report: DesignReport) -> HardwareOverviewComponentGro
         bounding_box_mm=bbox,
         shape_type="rectangular_box" if any(child.shape_type == "rectangular_box" for child in child_entries) else "cylindrical_can",
         child_entries=child_entries,
-        notes=["Capacitor overview groups input and output recommended banks side by side; it does not merge them physically."],
+        notes=[_capacitor_group_note(report.spec.topology_id, dc_link_output_only)],
         warnings=warnings,
     )
+
+
+def _capacitor_group_note(topology_id: str, dc_link_output_only: bool) -> str:
+    if has_split_dc_link_capacitor_bank(topology_id):
+        return "Capacitor overview shows split upper/lower DC-link capacitor banks for the NPC inverter."
+    if dc_link_output_only:
+        return "Capacitor overview shows the DC-link capacitor bank used by this topology."
+    return "Capacitor overview groups input and output recommended banks side by side; it does not merge them physically."
+
+
+def _active_capacitor_entry(report: DesignReport, side: str) -> CapacitorSelectionEntry | None:
+    if report.capacitor is None:
+        return None
+    current = report.capacitor.current_operating_input if side == "input" else report.capacitor.current_operating_output
+    if current is not None and current.recommended is not None:
+        return current.recommended
+    design = report.capacitor.input_selection if side == "input" else report.capacitor.output_selection
+    return design.recommended if design is not None else None
+
+
+def _capacitor_group_metadata(
+    report: DesignReport,
+    input_entry: CapacitorSelectionEntry | None,
+    output_entry: CapacitorSelectionEntry | None,
+    dc_link_output_only: bool,
+) -> dict[str, object]:
+    active_entry = output_entry if dc_link_output_only else output_entry or input_entry
+    if report.spec.topology_id == "three_phase_two_level_voltage_source_inverter":
+        loss_basis_label = "current operating point capacitor loss; three-phase PWM-level switch-state DC-link current proxy"
+    elif has_split_dc_link_capacitor_bank(report.spec.topology_id):
+        loss_basis_label = "current operating point capacitor loss; NPC split-link PWM-level current proxy"
+    else:
+        loss_basis_label = "current operating point capacitor loss"
+    metadata: dict[str, object] = {
+        "topology_id": report.spec.topology_id,
+        "loss_basis_label": loss_basis_label,
+    }
+    if has_split_dc_link_capacitor_bank(report.spec.topology_id):
+        total_count = sum(
+            entry.total_capacitor_count
+            for entry in (input_entry, output_entry)
+            if entry is not None
+        )
+        labels = []
+        if input_entry is not None:
+            labels.append(f"upper: {_capacitor_bank_label(input_entry)}")
+        if output_entry is not None:
+            labels.append(f"lower: {_capacitor_bank_label(output_entry)}")
+        metadata.update(
+            {
+                "split_link_bank_type": "npc_upper_lower",
+                "total_capacitor_count": total_count,
+                "series_parallel_label": "; ".join(labels),
+            }
+        )
+        metadata.update(_split_capacitor_entry_metadata("upper", input_entry))
+        metadata.update(_split_capacitor_entry_metadata("lower", output_entry))
+        return metadata
+    if active_entry is not None:
+        metadata.update(
+            {
+                "series_count": active_entry.series_count,
+                "parallel_count": active_entry.parallel_count,
+                "total_capacitor_count": active_entry.total_capacitor_count,
+                "bank_voltage_rating_dc_v": active_entry.bank_voltage_rating_dc_v,
+                "series_parallel_label": _capacitor_bank_label(active_entry),
+            }
+        )
+    return metadata
+
+
+def _split_capacitor_entry_metadata(prefix: str, entry: CapacitorSelectionEntry | None) -> dict[str, object]:
+    if entry is None:
+        return {
+            f"{prefix}_series_count": None,
+            f"{prefix}_parallel_count": None,
+            f"{prefix}_total_capacitor_count": 0,
+            f"{prefix}_bank_voltage_rating_dc_v": None,
+            f"{prefix}_loss_w": None,
+        }
+    return {
+        f"{prefix}_series_count": entry.series_count,
+        f"{prefix}_parallel_count": entry.parallel_count,
+        f"{prefix}_total_capacitor_count": entry.total_capacitor_count,
+        f"{prefix}_bank_voltage_rating_dc_v": entry.bank_voltage_rating_dc_v,
+        f"{prefix}_loss_w": entry.p_total_w,
+    }
 
 
 def _capacitor_child_entry(
     side: str,
     entry: CapacitorSelectionEntry | None,
     target: CapacitorGeometryTarget | None,
+    topology_id: str = "",
 ) -> HardwareOverviewChildEntry | None:
     if entry is None:
         return HardwareOverviewChildEntry(
             entry_id=f"{side}_capacitor",
-            display_name=f"{side.title()} capacitor recommended",
+            display_name=_capacitor_child_display_name(side, topology_id),
             bounding_box_mm=HardwareOverviewBoundingBox(),
-            warnings=[f"{side.title()} capacitor recommended bank is unavailable."],
+            warnings=[f"{_capacitor_child_display_name(side, topology_id)} bank is unavailable."],
         )
     candidate = entry.candidate
     bbox = _capacitor_bbox(entry, target)
+    if topology_id == "three_phase_two_level_voltage_source_inverter":
+        loss_basis = "current operating point capacitor loss; three-phase PWM-level switch-state DC-link current proxy"
+    elif has_split_dc_link_capacitor_bank(topology_id):
+        loss_basis = "current operating point capacitor loss; NPC split-link PWM-level current proxy"
+    else:
+        loss_basis = "current operating point capacitor loss"
     return HardwareOverviewChildEntry(
         entry_id=f"{side}_capacitor",
-        display_name=f"{side.title()} capacitor recommended",
-        recommended_name=f"{candidate.part_number} N={entry.parallel_count}",
+        display_name=_capacitor_child_display_name(side, topology_id),
+        recommended_name=f"{candidate.part_number} {_capacitor_bank_label(entry)}",
         manufacturer=candidate.manufacturer,
         series=candidate.series,
         part_number=candidate.part_number,
-        quantity=entry.parallel_count,
+        quantity=entry.total_capacitor_count,
         volume_cm3=entry.total_volume_cm3,
         loss_w=entry.p_total_w,
         bounding_box_mm=bbox,
         shape_type=candidate.package_shape or "unknown",
-        notes=[f"Series display: {capacitor_series_display_name(candidate)}."],
+        metadata={
+            "series_count": entry.series_count,
+            "parallel_count": entry.parallel_count,
+            "total_capacitor_count": entry.total_capacitor_count,
+            "bank_voltage_rating_dc_v": entry.bank_voltage_rating_dc_v,
+            "series_parallel_label": _capacitor_bank_label(entry),
+            "loss_basis": loss_basis,
+        },
+        notes=[
+            f"Series display: {capacitor_series_display_name(candidate)}.",
+            f"Bank configuration: {_capacitor_bank_label(entry)}, total={entry.total_capacitor_count}.",
+        ],
         warnings=_bbox_warnings(bbox),
     )
 
@@ -737,7 +1203,9 @@ def _recommended_semiconductor_target(report: DesignReport) -> SemiconductorGeom
     return next((target for target in geometry.targets if target.scheme_id == recommended_id), geometry.targets[0])
 
 
-def _semiconductor_recommended_name(report: DesignReport) -> str:
+def _semiconductor_recommended_name(report: DesignReport, target: SemiconductorGeometryTarget | None = None) -> str:
+    if target is not None and _semiconductor_target_uses_half_bridge_modules(report, target):
+        return "Half-Bridge Module"
     device = report.device
     if device is None:
         return ""
@@ -748,51 +1216,175 @@ def _semiconductor_recommended_name(report: DesignReport) -> str:
     return ", ".join(f"{role}={part}" for role, part in sorted(device.selected_devices.items()))
 
 
-def _semiconductor_child_entry(role_layout: SemiconductorGeometryRoleLayout) -> HardwareOverviewChildEntry:
-    bbox = _semiconductor_role_bbox(role_layout)
+def _semiconductor_group_quantity(report: DesignReport, target: SemiconductorGeometryTarget) -> int:
+    total = sum(_semiconductor_role_overview_quantity(report, role) for role in target.role_layouts)
+    return total if total > 0 else max(int(target.parallel_count or 1), 1)
+
+
+def _semiconductor_child_entry(report: DesignReport, role_layout: SemiconductorGeometryRoleLayout) -> HardwareOverviewChildEntry:
+    bbox = _semiconductor_role_bbox(report, role_layout)
+    notes = [f"Thermal source: {role_layout.thermal_source or '-'}."] if role_layout.thermal_source else []
+    loss_w = _semiconductor_child_loss_w(report, role_layout)
+    current_role_loss_w = _npc_semiconductor_current_role_loss_w(report, role_layout)
+    loss_basis_label = (
+        "current operating role total"
+        if _is_three_phase_npc_inverter(report) and current_role_loss_w is not None
+        else "design-point role total"
+    )
+    if loss_w is not None:
+        if loss_basis_label == "current operating role total":
+            notes.append("Loss scope: current operating role total.")
+        else:
+            notes.append("Loss scope: design-point role total.")
     return HardwareOverviewChildEntry(
         entry_id=role_layout.role_name,
-        display_name=role_layout.role_label or role_layout.role_name,
+        display_name=_semiconductor_child_display_name(report, role_layout),
         recommended_name=role_layout.part_number or "",
         manufacturer=role_layout.vendor,
         series=role_layout.package,
         part_number=role_layout.part_number,
-        quantity=role_layout.quantity,
-        volume_cm3=_semiconductor_role_volume_cm3(role_layout),
-        loss_w=role_layout.role_total_loss_w,
+        quantity=_semiconductor_role_overview_quantity(report, role_layout),
+        volume_cm3=_semiconductor_role_volume_cm3(report, role_layout),
+        loss_w=loss_w,
         bounding_box_mm=bbox,
-        shape_type="semiconductor_module" if role_layout.package_level == "module" else "semiconductor_package",
-        notes=[f"Thermal source: {role_layout.thermal_source or '-'}."] if role_layout.thermal_source else [],
+        shape_type="semiconductor_module" if role_layout.package_level in {"module", "power_module"} else "semiconductor_package",
+        metadata={
+            "topology_position_count": role_layout.topology_position_count,
+            "parallel_per_position": role_layout.parallel_per_position,
+            "total_physical_device_count": role_layout.total_physical_device_count,
+            "role_total_loss_w": role_layout.role_total_loss_w,
+            "design_role_total_loss_w": role_layout.role_total_loss_w,
+            "current_operating_role_total_loss_w": current_role_loss_w,
+            "loss_basis_label": loss_basis_label,
+        },
+        notes=notes,
         warnings=_bbox_warnings(bbox),
     )
 
 
-def _semiconductor_bbox(target: SemiconductorGeometryTarget) -> HardwareOverviewBoundingBox:
+def _semiconductor_bbox(report: DesignReport, target: SemiconductorGeometryTarget) -> HardwareOverviewBoundingBox:
     if target.estimated_sink_dims_mm is not None:
         sink_width_mm, sink_height_mm, sink_depth_mm = target.estimated_sink_dims_mm
         return HardwareOverviewBoundingBox(float(sink_width_mm), float(sink_height_mm), float(sink_depth_mm))
-    role_bboxes = [_semiconductor_role_bbox(role) for role in target.role_layouts if _bbox_complete(_semiconductor_role_bbox(role))]
+    role_bboxes = [_semiconductor_role_bbox(report, role) for role in target.role_layouts if _bbox_complete(_semiconductor_role_bbox(report, role))]
     return _combined_bbox(role_bboxes)
 
 
-def _semiconductor_role_bbox(role_layout: SemiconductorGeometryRoleLayout) -> HardwareOverviewBoundingBox:
+def _semiconductor_role_bbox(report: DesignReport, role_layout: SemiconductorGeometryRoleLayout) -> HardwareOverviewBoundingBox:
     layout = role_layout.layout
     if layout is None:
         return HardwareOverviewBoundingBox()
-    quantity = max(int(role_layout.quantity or 1), 1)
+    quantity = _semiconductor_role_overview_quantity(report, role_layout)
     width_mm = quantity * layout.package_body_width_mm + max(quantity - 1, 0) * max(3.0, 0.28 * layout.package_body_width_mm)
     height_mm = layout.package_body_height_mm + layout.lead_length_mm
     depth_mm = layout.package_body_thickness_mm
     return HardwareOverviewBoundingBox(width_mm, height_mm, depth_mm)
 
 
-def _semiconductor_role_volume_cm3(role_layout: SemiconductorGeometryRoleLayout) -> float | None:
+def _semiconductor_role_volume_cm3(report: DesignReport, role_layout: SemiconductorGeometryRoleLayout) -> float | None:
     layout = role_layout.layout
     if layout is None:
         return None
-    quantity = max(int(role_layout.quantity or 1), 1)
+    quantity = _semiconductor_role_overview_quantity(report, role_layout)
     volume_mm3 = layout.package_body_width_mm * layout.package_body_height_mm * layout.package_body_thickness_mm * quantity
     return volume_mm3 / 1000.0
+
+
+def _semiconductor_role_overview_quantity(report: DesignReport, role_layout: SemiconductorGeometryRoleLayout) -> int:
+    if _is_inverter_half_bridge_module_role(report, role_layout):
+        positions = max(int(role_layout.topology_position_count or _default_inverter_switch_positions(report)), 1)
+        parallel = max(int(role_layout.parallel_per_position or 1), 1)
+        return max(int(math.ceil(positions / 2.0)) * parallel, 1)
+    return max(int(role_layout.total_physical_device_count or role_layout.quantity or 1), 1)
+
+
+def _semiconductor_child_display_name(report: DesignReport, role_layout: SemiconductorGeometryRoleLayout) -> str:
+    if _is_inverter_half_bridge_module_role(report, role_layout):
+        if _is_three_phase_two_level_inverter(report):
+            return "Three-phase half-bridge module"
+        return "Full-bridge half-bridge module"
+    return role_layout.role_label or role_layout.role_name
+
+
+def _semiconductor_module_overview_metadata(
+    report: DesignReport,
+    target: SemiconductorGeometryTarget,
+) -> dict[str, object]:
+    role_layout = next((role for role in target.role_layouts if _is_inverter_half_bridge_module_role(report, role)), None)
+    if role_layout is None:
+        return {}
+    physical_module_count = _semiconductor_role_overview_quantity(report, role_layout)
+    switch_positions = max(int(role_layout.topology_position_count or _default_inverter_switch_positions(report)), 1)
+    return {
+        "module_internal_topology": "half_bridge",
+        "switch_positions_covered": switch_positions,
+        "switches_per_module": 2,
+        "physical_module_count": physical_module_count,
+        "semiconductor_physical_quantity_basis": _semiconductor_module_quantity_basis(report),
+        "loss_scope": "group_total",
+    }
+
+
+def _npc_semiconductor_overview_metadata(
+    report: DesignReport,
+    target: SemiconductorGeometryTarget,
+) -> dict[str, object]:
+    if not _is_three_phase_npc_inverter(report):
+        return {}
+    active_roles = {"npc_outer_switch", "npc_inner_switch"}
+    clamp_roles = {"npc_clamp_diode"}
+    active_count = sum(
+        _semiconductor_role_overview_quantity(report, role)
+        for role in target.role_layouts
+        if role.role_name in active_roles
+    )
+    clamp_count = sum(
+        _semiconductor_role_overview_quantity(report, role)
+        for role in target.role_layouts
+        if role.role_name in clamp_roles
+    )
+    return {
+        "npc_semiconductor_group_type": "three_phase_three_level_npc",
+        "active_switch_position_count": 12,
+        "clamp_diode_position_count": 6,
+        "active_switch_physical_count": active_count,
+        "clamp_diode_physical_count": clamp_count,
+        "total_physical_device_count": active_count + clamp_count,
+        "semiconductor_physical_quantity_basis": (
+            "NPC discrete role totals: 12 active switch positions and 6 clamp diode positions, "
+            "multiplied by the selected parallel count per position."
+        ),
+        "loss_scope": "group_total",
+    }
+
+
+def _semiconductor_target_uses_half_bridge_modules(report: DesignReport, target: SemiconductorGeometryTarget) -> bool:
+    return any(_is_inverter_half_bridge_module_role(report, role) for role in target.role_layouts)
+
+
+def _is_full_bridge_half_bridge_module_role(report: DesignReport, role_layout: SemiconductorGeometryRoleLayout) -> bool:
+    return _is_inverter_half_bridge_module_role(report, role_layout)
+
+
+def _is_inverter_half_bridge_module_role(report: DesignReport, role_layout: SemiconductorGeometryRoleLayout) -> bool:
+    return (
+        (is_single_phase_full_bridge_inverter_topology(report.spec.topology_id) or _is_three_phase_two_level_inverter(report))
+        and role_layout.role_name.strip().casefold() == "main_switch"
+        and role_layout.package_level in {"module", "power_module"}
+        and role_layout.module_internal_topology == "half_bridge"
+    )
+
+
+def _default_inverter_switch_positions(report: DesignReport) -> int:
+    if _is_three_phase_two_level_inverter(report):
+        return 6
+    return 4
+
+
+def _semiconductor_module_quantity_basis(report: DesignReport) -> str:
+    if _is_three_phase_two_level_inverter(report):
+        return "three-phase two-level inverter implemented with three half-bridge power modules"
+    return "single-phase full-bridge implemented with half-bridge power modules"
 
 
 def _semiconductor_role_sink_volume_cm3(role_layouts: tuple[SemiconductorGeometryRoleLayout, ...]) -> float | None:
@@ -808,14 +1400,109 @@ def _resolve_semiconductor_loss_w(report: DesignReport) -> float | None:
     device = report.device
     if device is None:
         return None
+    if device.current_operating_losses:
+        return _semiconductor_losses_total_w(report, device.current_operating_losses)
     scheme_id = device.active_scheme_id or device.recommended_scheme_id
     scheme = next((item for item in device.scheme_results if item.scheme_id == scheme_id), None)
     if scheme is not None and scheme.total_scheme_loss_w is not None:
         return scheme.total_scheme_loss_w
-    losses = device.current_operating_losses or device.design_point_losses or device.evaluated_losses
+    losses = device.design_point_losses or device.evaluated_losses
     if not losses:
         return None
-    return sum(loss.p_total_W for loss in losses.values())
+    return _semiconductor_losses_total_w(report, losses)
+
+
+def _resolve_semiconductor_loss_basis(report: DesignReport) -> str:
+    device = report.device
+    if device is None:
+        return ""
+    if _is_three_phase_npc_inverter(report):
+        if device.current_operating_losses:
+            return "current operating point semiconductor loss; first-pass NPC PD-SPWM over 12 active switch positions and 6 clamp diode positions"
+        return "design-point active scheme total loss; first-pass NPC Vdc/2 stress"
+    if device.current_operating_losses:
+        return "current operating point semiconductor loss"
+    scheme_id = device.active_scheme_id or device.recommended_scheme_id
+    scheme = next((item for item in device.scheme_results if item.scheme_id == scheme_id), None)
+    if scheme is not None and scheme.total_scheme_loss_w is not None:
+        return "design-point active scheme total loss"
+    if device.design_point_losses or device.evaluated_losses:
+        return "design-point evaluated loss fallback"
+    return ""
+
+
+def _semiconductor_child_loss_w(report: DesignReport, role_layout: SemiconductorGeometryRoleLayout) -> float | None:
+    if _is_three_phase_npc_inverter(report):
+        current_role_loss_w = _npc_semiconductor_current_role_loss_w(report, role_layout)
+        if current_role_loss_w is not None:
+            return current_role_loss_w
+    return role_layout.role_total_loss_w
+
+
+def _npc_semiconductor_current_role_loss_w(report: DesignReport, role_layout: SemiconductorGeometryRoleLayout) -> float | None:
+    if not _is_three_phase_npc_inverter(report):
+        return None
+    device = report.device
+    if device is None or not device.current_operating_losses:
+        return None
+    for key, loss in device.current_operating_losses.items():
+        if _role_name_from_loss_key(str(key)) == role_layout.role_name:
+            count = _semiconductor_role_total_count(report, role_layout.role_name)
+            return count * float(loss.p_total_W)
+    return None
+
+
+def _efficiency_sweep_full_load_semiconductor_loss_w(report: DesignReport) -> float | None:
+    sweep = report.efficiency_sweep
+    if sweep is None:
+        return None
+    for point in sweep.points:
+        if abs(point.load_pu - 1.0) < 1.0e-9:
+            return point.semiconductor_loss_w
+    return None
+
+
+def _efficiency_sweep_power_factor(report: DesignReport) -> float | None:
+    sweep = report.efficiency_sweep
+    if sweep is not None:
+        value = sweep.sweep_basis.get("operating_power_factor")
+        if value is not None:
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                pass
+    if report.operating_point is not None and report.operating_point.power_factor is not None:
+        return float(report.operating_point.power_factor)
+    if report.candidate is not None:
+        try:
+            return float(report.candidate.metadata.get("power_factor"))
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
+def _semiconductor_losses_total_w(report: DesignReport, losses: dict) -> float:
+    return sum(_semiconductor_role_total_count(report, _role_name_from_loss_key(key)) * loss.p_total_W for key, loss in losses.items())
+
+
+def _semiconductor_role_total_count(report: DesignReport, role_name: str) -> int:
+    device = report.device
+    if device is None:
+        return 1
+    scheme_id = device.active_scheme_id or device.recommended_scheme_id
+    scheme = next((item for item in device.scheme_results if item.scheme_id == scheme_id), None)
+    if scheme is None:
+        return max(int(getattr(device, "active_parallel_count", 1) or 1), 1)
+    role_result = next((item for item in scheme.role_results if item.role == role_name), None)
+    if role_result is None:
+        return max(int(scheme.parallel_count or 1), 1)
+    return max(int(role_result.total_physical_device_count or 1), 1)
+
+
+def _role_name_from_loss_key(key: str) -> str:
+    if ":" in key:
+        return key.split(":", 1)[1]
+    return key
 
 
 def _recommended_inductor_target(report: DesignReport) -> GeometryTarget | None:
@@ -843,6 +1530,16 @@ def _recommended_inductor_design(report: DesignReport) -> FixedInductorDesignCan
     return magnetic.chosen_designs[0] if magnetic.chosen_designs else None
 
 
+def _active_inductor_design_id(report: DesignReport, design: FixedInductorDesignCandidate | None) -> str | None:
+    if report.geometry and report.geometry.selected_design_id:
+        return report.geometry.selected_design_id
+    if report.loss and report.loss.recommended_design_id:
+        return report.loss.recommended_design_id
+    if report.magnetic and report.magnetic.selected_design_id:
+        return report.magnetic.selected_design_id
+    return design.candidate_id if design is not None else None
+
+
 def _inductor_bbox(layout: InductorGeometryLayout | None) -> HardwareOverviewBoundingBox:
     if layout is None:
         return HardwareOverviewBoundingBox()
@@ -852,15 +1549,95 @@ def _inductor_bbox(layout: InductorGeometryLayout | None) -> HardwareOverviewBou
 def _inductor_loss_w(report: DesignReport, design_id: str | None) -> float | None:
     if design_id is None:
         return None
+    if _is_three_phase_per_phase_inductor_report(report):
+        if report.loss and report.loss.top_design_losses:
+            values = report.loss.top_design_losses.get(design_id)
+            if values and values.get("total_loss_w") is not None:
+                return values.get("total_loss_w")
+        if (
+            report.loss
+            and report.loss.recommended_design_id == design_id
+            and report.loss.breakdown_w.get("inductor_total_loss_w") is not None
+        ):
+            return report.loss.breakdown_w.get("inductor_total_loss_w")
     if report.magnetic:
         evaluation = next((item for item in report.magnetic.evaluations if item.design_id == design_id), None)
-        if evaluation is not None:
-            return evaluation.total_loss_w
+        if evaluation is not None and evaluation.total_loss_w is not None:
+            return evaluation.total_loss_w * _inductor_physical_quantity(report)
     if report.loss and report.loss.top_design_losses:
         values = report.loss.top_design_losses.get(design_id)
-        if values:
+        if values and values.get("total_loss_w") is not None:
             return values.get("total_loss_w")
+    if (
+        report.loss
+        and report.loss.recommended_design_id == design_id
+        and report.loss.breakdown_w.get("inductor_total_loss_w") is not None
+    ):
+        return report.loss.breakdown_w.get("inductor_total_loss_w")
     return None
+
+
+def _inductor_reference_loss_w(design: FixedInductorDesignCandidate | None) -> float | None:
+    return design.reference_total_loss_w if design is not None else None
+
+
+def _inductor_overview_notes(report: DesignReport, loss_basis_label: str) -> list[str]:
+    if _is_three_phase_npc_inverter(report):
+        if loss_basis_label == "operating-point magnetic loss":
+            return ["3 identical per-phase output inductors; displayed loss and volume are system totals."]
+        return ["Per-phase representative inductor; system operating loss is available after Loss stage."]
+    notes = ["Inductor overview volume uses total assembly volume, including stacked assembly depth when present."]
+    if loss_basis_label == "operating-point magnetic loss":
+        notes.append("Output inductor loss follows the Loss-stage operating magnetic evaluation.")
+    if _is_tcm_inverter_report(report) and loss_basis_label == "operating-point magnetic loss":
+        notes.append("Output inductor loss follows the Loss-stage segment-resolved operating magnetic evaluation.")
+    if _is_three_phase_two_level_inverter(report):
+        notes.append("Output inductor quantity is 3; volume and loss are system totals for three identical per-phase inductors.")
+        if loss_basis_label == "operating-point magnetic loss":
+            notes.append("Output inductor loss follows the Loss-stage per-inductor operating evaluation multiplied by 3.")
+    return notes
+
+
+def _is_tcm_inverter_report(report: DesignReport) -> bool:
+    return (
+        is_single_phase_full_bridge_inverter_topology(report.spec.topology_id)
+        and report.candidate is not None
+        and str(getattr(report.candidate, "mode_capable", "") or "").startswith("tcm_")
+    )
+
+
+def _is_three_phase_two_level_inverter(report: DesignReport) -> bool:
+    return report.spec.topology_id == "three_phase_two_level_voltage_source_inverter"
+
+
+def _is_three_phase_npc_inverter(report: DesignReport) -> bool:
+    return report.spec.topology_id == "three_phase_three_level_npc_inverter"
+
+
+def _is_three_phase_per_phase_inductor_report(report: DesignReport) -> bool:
+    return report.spec.topology_id in {
+        "three_phase_two_level_voltage_source_inverter",
+        "three_phase_three_level_npc_inverter",
+    }
+
+
+def _inductor_physical_quantity(report: DesignReport) -> int:
+    if not _is_three_phase_per_phase_inductor_report(report):
+        return 1
+    if report.magnetic is not None:
+        try:
+            return max(int(report.magnetic.design_requirements.get("magnetic_quantity")), 1)
+        except (TypeError, ValueError):
+            pass
+    return 3
+
+
+def _inductor_loss_basis_label(report: DesignReport, base_label: str) -> str:
+    if _is_three_phase_per_phase_inductor_report(report) and base_label == "operating-point magnetic loss":
+        return "operating-point magnetic loss, 3 per-phase inductors"
+    if _is_three_phase_npc_inverter(report) and base_label == "reference magnetic search loss":
+        return "per-inductor reference magnetic search loss; system magnetic total pending Loss stage"
+    return base_label
 
 
 def _thermal_hotspot_c(report: DesignReport) -> float | None:
@@ -891,7 +1668,7 @@ def _capacitor_bbox(
     height_mm = candidate.body_height_mm or candidate.height_mm
     if width_mm is None or depth_mm is None or height_mm is None:
         return HardwareOverviewBoundingBox()
-    parallel = max(entry.parallel_count, 1)
+    parallel = max(entry.total_capacitor_count, 1)
     spacing_mm = max(8.0, 0.10 * max(width_mm, depth_mm))
     footprint_width_mm = (parallel * width_mm) + max(parallel - 1, 0) * spacing_mm
     return HardwareOverviewBoundingBox(footprint_width_mm, height_mm, depth_mm)
@@ -913,13 +1690,51 @@ def _combined_capacitor_bbox(child_entries: list[HardwareOverviewChildEntry]) ->
 def _capacitor_recommended_name(
     input_entry: CapacitorSelectionEntry | None,
     output_entry: CapacitorSelectionEntry | None,
+    topology_id: str = "",
 ) -> str:
     parts = []
+    if has_split_dc_link_capacitor_bank(topology_id):
+        if input_entry is not None and output_entry is not None and _same_capacitor_bank_identity(input_entry, output_entry):
+            total_count = input_entry.total_capacitor_count + output_entry.total_capacitor_count
+            return (
+                f"Symmetric split-link: {input_entry.candidate.part_number}, "
+                f"{_capacitor_bank_label_compact(input_entry)} each, total={total_count}"
+            )
+        if input_entry is not None:
+            parts.append(f"upper {input_entry.candidate.part_number} {_capacitor_bank_label_compact(input_entry)}")
+        if output_entry is not None:
+            parts.append(f"lower {output_entry.candidate.part_number} {_capacitor_bank_label_compact(output_entry)}")
+        if parts:
+            total_count = sum(entry.total_capacitor_count for entry in (input_entry, output_entry) if entry is not None)
+            parts.append(f"total={total_count}")
+        return ", ".join(parts)
     if input_entry is not None:
-        parts.append(f"input={input_entry.candidate.part_number} N={input_entry.parallel_count}")
+        parts.append(f"input={input_entry.candidate.part_number} {_capacitor_bank_label(input_entry)}")
     if output_entry is not None:
-        parts.append(f"output={output_entry.candidate.part_number} N={output_entry.parallel_count}")
+        parts.append(f"output={output_entry.candidate.part_number} {_capacitor_bank_label(output_entry)}")
     return ", ".join(parts)
+
+
+def _capacitor_child_display_name(side: str, topology_id: str) -> str:
+    if has_split_dc_link_capacitor_bank(topology_id):
+        return "Upper split-link capacitor recommended" if side == "input" else "Lower split-link capacitor recommended"
+    return f"{side.title()} capacitor recommended"
+
+
+def _capacitor_bank_label(entry: CapacitorSelectionEntry) -> str:
+    return f"S={entry.series_count}, P={entry.parallel_count}"
+
+
+def _capacitor_bank_label_compact(entry: CapacitorSelectionEntry) -> str:
+    return f"S={entry.series_count} P={entry.parallel_count}"
+
+
+def _same_capacitor_bank_identity(left: CapacitorSelectionEntry, right: CapacitorSelectionEntry) -> bool:
+    return (
+        left.candidate.part_number == right.candidate.part_number
+        and left.series_count == right.series_count
+        and left.parallel_count == right.parallel_count
+    )
 
 
 def _capacitor_recommended_artifacts(
@@ -979,16 +1794,7 @@ def _first_existing_path(
 
 
 def _image_warnings(image_2d_path: str | None, image_3d_path: str | None) -> list[str]:
-    warnings: list[str] = []
-    if image_2d_path is None:
-        warnings.append("Missing existing 2D geometry image path.")
-    else:
-        warnings.append("Existing 2D geometry image is local-scale fallback only.")
-    if image_3d_path is None:
-        warnings.append("Missing existing 3D geometry image path.")
-    else:
-        warnings.append("Existing 3D geometry image is local-scale fallback only.")
-    return warnings
+    return []
 
 
 def _bbox_warnings(bbox: HardwareOverviewBoundingBox) -> list[str]:

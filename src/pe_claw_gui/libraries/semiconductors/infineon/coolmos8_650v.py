@@ -15,9 +15,7 @@ from ..power_device import PowerDevice
 
 _DEVICE_PACKAGE = "pe_claw_gui.libraries.semiconductors.infineon"
 COOLMOS8_650V_XML_SUBDIR = "data/coolmos8_650v"
-DEFAULT_COOLMOS8_650V_SOURCE_POOL = Path(
-    r"C:\Users\user\Documents\论文\0000 研究点\038 PE-Claw\MOSFET_Data\Infineon\infineon-650-v-coolmos-8-plecs-simulationmodels-en"
-)
+DEFAULT_COOLMOS8_650V_SOURCE_POOL = None
 
 _COMMON_STATIC_FIELDS: dict[str, float | str] = {
     "vendor": "Infineon",
@@ -287,7 +285,7 @@ def resolve_coolmos8_650v_xml_relative_path(xml_filename: str) -> str:
     return f"{COOLMOS8_650V_XML_SUBDIR}/{xml_filename}"
 
 
-def discover_coolmos8_650v_source_pool(source_dir: str | Path = DEFAULT_COOLMOS8_650V_SOURCE_POOL) -> dict[str, tuple[Path, Path]]:
+def discover_coolmos8_650v_source_pool(source_dir: str | Path) -> dict[str, tuple[Path, Path]]:
     """Return normalized part numbers mapped to local XML/PDF pairs."""
 
     source_path = Path(source_dir)
@@ -314,7 +312,7 @@ def discover_coolmos8_650v_source_pool(source_dir: str | Path = DEFAULT_COOLMOS8
     return pairs
 
 
-def validate_coolmos8_650v_source_pool(source_dir: str | Path = DEFAULT_COOLMOS8_650V_SOURCE_POOL) -> None:
+def validate_coolmos8_650v_source_pool(source_dir: str | Path) -> None:
     """Validate the provided local XML/PDF pool against the curated manifest."""
 
     pairs = discover_coolmos8_650v_source_pool(source_dir)
@@ -340,7 +338,6 @@ def build_infineon_coolmos8_650v_devices() -> list[PowerDevice]:
     """Build all valid Infineon 650 V CoolMOS 8 entries."""
 
     _validate_manifest()
-    _validate_default_source_pool_if_present()
     return [
         build_power_device_from_static_and_xml(
             static_record=_build_static_record(entry),
@@ -403,11 +400,6 @@ def _validate_manifest() -> None:
         _build_static_record(entry)
     if duplicates:
         raise ValueError("Duplicate Infineon CoolMOS 8 650 V manifest parts: " + ", ".join(sorted(duplicates)))
-
-
-def _validate_default_source_pool_if_present() -> None:
-    if DEFAULT_COOLMOS8_650V_SOURCE_POOL.exists():
-        validate_coolmos8_650v_source_pool(DEFAULT_COOLMOS8_650V_SOURCE_POOL)
 
 
 __all__ = [

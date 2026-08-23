@@ -7,9 +7,12 @@ from .registry import (
     list_registered_capacitors,
 )
 from .jianghai import list_jianghai_capacitors
+from .lelon import list_lelon_capacitors
+from .nippon_chemi_con import list_nippon_chemi_con_capacitors
 from .panasonic import list_panasonic_capacitors
 from .rubycon import list_rubycon_capacitors
 from .tdk import (
+    B41456_B41458_CAPACITORS,
     B25654A_001_CAPACITORS,
     B3267_D_G_J_T_CAPACITORS,
     B3271XP_CAPACITORS,
@@ -20,6 +23,7 @@ from .tdk import (
     B3277M_CAPACITORS,
     B3277P_CAPACITORS,
     B3277XYZ_CAPACITORS,
+    get_b41456_b41458_capacitors,
     get_b25654a_001_capacitors,
     get_b3267_d_g_j_t_capacitors,
     get_b3271xp_capacitors,
@@ -30,6 +34,8 @@ from .tdk import (
     get_b3277m_capacitors,
     get_b3277p_capacitors,
     get_b3277xyz_capacitors,
+    list_epcos_screw_terminal_capacitors,
+    list_epcos_screw_terminal_capacitors_without_b414,
     list_tdk_capacitors,
 )
 from .wima import list_wima_capacitors
@@ -136,6 +142,7 @@ __all__ = [
     "R66_FINAL_CAPACITORS",
     "F863_X2_310_CAPACITORS",
     "RSB_CAPACITORS",
+    "B41456_B41458_CAPACITORS",
     "B25654A_001_CAPACITORS",
     "B3267_D_G_J_T_CAPACITORS",
     "B3271XP_CAPACITORS",
@@ -183,6 +190,7 @@ __all__ = [
     "list_r863_x2_310_capacitors",
     "list_rsb_capacitors",
     "list_yageo_capacitors",
+    "get_b41456_b41458_capacitors",
     "get_b25654a_001_capacitors",
     "get_b3267_d_g_j_t_capacitors",
     "get_b3271xp_capacitors",
@@ -193,10 +201,14 @@ __all__ = [
     "get_b3277m_capacitors",
     "get_b3277p_capacitors",
     "get_b3277xyz_capacitors",
+    "list_epcos_screw_terminal_capacitors",
+    "list_epcos_screw_terminal_capacitors_without_b414",
     "list_tdk_capacitors",
     "list_wima_capacitors",
     "list_registered_capacitors",
     "list_jianghai_capacitors",
+    "list_lelon_capacitors",
+    "list_nippon_chemi_con_capacitors",
     "list_panasonic_capacitors",
     "list_rubycon_capacitors",
 ]

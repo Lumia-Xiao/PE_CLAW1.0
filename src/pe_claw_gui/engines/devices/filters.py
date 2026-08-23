@@ -101,6 +101,22 @@ def _matches_active_switch_category(device: PowerDevice, category: str) -> bool:
     part = device.part_number.casefold()
     if category in {"Discrete MOSFET", "Discrete MOSFETs"}:
         return device.selection_device_type == "MOSFET" and device.device_structure_type == "discrete_single" and device.package_level == "discrete"
+    if category == "Discrete Silicon MOSFET":
+        is_wide_bandgap = (
+            "sic" in technology
+            or "coolsic" in family
+            or family.startswith(("sc", "g3f"))
+            or "gan" in technology
+            or "gan" in family
+            or "gan" in part
+            or part.startswith(("igl", "igt"))
+        )
+        return (
+            device.selection_device_type == "MOSFET"
+            and device.device_structure_type == "discrete_single"
+            and device.package_level == "discrete"
+            and not is_wide_bandgap
+        )
     if category == "Discrete SiC MOSFET":
         return (
             device.selection_device_type == "MOSFET"
@@ -243,22 +259,30 @@ def evaluate_electrical_filters(device: PowerDevice, criteria: DeviceFilterCrite
             f"voltage filter failed: Vdss {ratings.vdss_max_V:.3f} V < required {criteria.min_vdss_V:.3f} V"
         )
 
-    continuous_limit_a = ratings.id_cont_100C_A
-    current_rating_label = "Id_cont_100C"
-    if continuous_limit_a is None:
-        continuous_limit_a = ratings.id_cont_25C_A
-        current_rating_label = "Id_cont_25C fallback"
-        rejection_reasons.append("current filter used Id_cont_25C fallback because Id_cont_100C is unavailable")
+    if device.selection_device_type == "Diode":
+        continuous_limit_a = ratings.if_cont_A
+        pulse_limit_a = ratings.if_pulse_A
+        current_rating_label = "If_cont"
+        pulse_rating_label = "If_pulse"
+    else:
+        continuous_limit_a = ratings.id_cont_100C_A
+        pulse_limit_a = ratings.id_pulse_A
+        current_rating_label = "Id_cont_100C"
+        pulse_rating_label = "Id_pulse"
+        if continuous_limit_a is None:
+            continuous_limit_a = ratings.id_cont_25C_A
+            current_rating_label = "Id_cont_25C fallback"
+            rejection_reasons.append("current filter used Id_cont_25C fallback because Id_cont_100C is unavailable")
     passed_continuous_current = continuous_limit_a >= criteria.min_continuous_current_A
     if not passed_continuous_current:
         rejection_reasons.append(
             f"current filter failed: {current_rating_label} {continuous_limit_a:.3f} A < required {criteria.min_continuous_current_A:.3f} A"
         )
 
-    passed_pulse_current = ratings.id_pulse_A >= criteria.min_pulse_current_A
+    passed_pulse_current = pulse_limit_a >= criteria.min_pulse_current_A
     if not passed_pulse_current:
         rejection_reasons.append(
-            f"pulse current filter failed: Id_pulse {ratings.id_pulse_A:.3f} A < required {criteria.min_pulse_current_A:.3f} A"
+            f"pulse current filter failed: {pulse_rating_label} {pulse_limit_a:.3f} A < required {criteria.min_pulse_current_A:.3f} A"
         )
 
     passed_tj_rating = ratings.tj_max_C >= criteria.max_junction_temp_C
@@ -286,7 +310,7 @@ def evaluate_electrical_filters(device: PowerDevice, criteria: DeviceFilterCrite
         datasheet_continuous_current_rating_A=datasheet_continuous_current_a,
         required_continuous_current_A=criteria.min_continuous_current_A,
         passed_continuous_current_filter=passed_continuous_current,
-        candidate_pulse_current_rating_A=ratings.id_pulse_A,
+        candidate_pulse_current_rating_A=pulse_limit_a,
         datasheet_pulse_current_rating_A=datasheet_pulse_current_a,
         required_pulse_current_A=criteria.min_pulse_current_A,
         passed_pulse_current_filter=passed_pulse_current,

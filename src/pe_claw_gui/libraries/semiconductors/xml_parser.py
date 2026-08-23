@@ -89,7 +89,29 @@ def _parse_table_2d(node: ET.Element, *, x_name: str, y_name: str, unit: str) ->
     )
 
 
-def _parse_turn_loss(node: ET.Element, name: str) -> LookupTable3D:
+def _parse_optional_table_2d(
+    table_by_name: dict[str, ET.Element],
+    table_name: str,
+    *,
+    x_name: str,
+    y_name: str,
+    unit: str,
+    notes: list[str],
+) -> LookupTable2D | None:
+    node = table_by_name.get(table_name)
+    if node is None:
+        return None
+    try:
+        return _parse_table_2d(node, x_name=x_name, y_name=y_name, unit=unit)
+    except ValueError as exc:
+        message = str(exc)
+        if table_name == "Eoss" and "Unexpected shape for 2D table Eoss: (0,)" in message:
+            notes.append("Eoss table is empty; static Coss fallback remains active.")
+            return None
+        raise
+
+
+def _parse_turn_loss(node: ET.Element, name: str, notes: list[str] | None = None) -> LookupTable3D:
     current_axis = _parse_axis_values(node.findtext("plecs:CurrentAxis", namespaces=_NS))
     voltage_axis = _parse_axis_values(node.findtext("plecs:VoltageAxis", namespaces=_NS))
     temperature_axis = _parse_axis_values(node.findtext("plecs:TemperatureAxis", namespaces=_NS))
@@ -102,6 +124,12 @@ def _parse_turn_loss(node: ET.Element, name: str) -> LookupTable3D:
         voltage_rows = [_parse_axis_values(voltage.text) for voltage in temperature.findall("plecs:Voltage", _NS)]
         raw_values.append([list(row) for row in voltage_rows])
 
+    temperature_axis, raw_values = _remove_adjacent_duplicate_temperature_planes(
+        temperature_axis,
+        raw_values,
+        name,
+        notes,
+    )
     raw_array = np.asarray(raw_values, dtype=float) * _parse_scale(energy_node)
     if raw_array.shape != (len(temperature_axis), len(voltage_axis), len(current_axis)):
         raise ValueError(f"Unexpected shape for {name}: {raw_array.shape}.")
@@ -122,6 +150,36 @@ def _parse_turn_loss(node: ET.Element, name: str) -> LookupTable3D:
         values=values,
         unit="J",
     )
+
+
+def _remove_adjacent_duplicate_temperature_planes(
+    temperature_axis: tuple[float, ...],
+    raw_values: list[list[list[float]]],
+    table_name: str,
+    notes: list[str] | None,
+) -> tuple[tuple[float, ...], list[list[list[float]]]]:
+    if len(temperature_axis) != len(raw_values):
+        return temperature_axis, raw_values
+
+    keep_indices: list[int] = []
+    removed_values: list[float] = []
+    previous: float | None = None
+    for index, value in enumerate(temperature_axis):
+        if previous is not None and value == previous:
+            removed_values.append(value)
+            continue
+        keep_indices.append(index)
+        previous = value
+
+    if not removed_values:
+        return temperature_axis, raw_values
+
+    repaired_axis = tuple(temperature_axis[index] for index in keep_indices)
+    repaired_values = [raw_values[index] for index in keep_indices]
+    if notes is not None:
+        removed = ", ".join(f"{value:g}" for value in removed_values)
+        notes.append(f"{table_name}: removed duplicate temperature-axis point(s) {removed} and corresponding data plane(s).")
+    return repaired_axis, repaired_values
 
 
 def _parse_conduction_loss(node: ET.Element, name: str) -> LookupTable2D:
@@ -245,10 +303,10 @@ def parse_plecs_xml(xml_path: str | Path) -> DeviceDynamicModel:
         eoff_rg_off_i_v=_parse_table_3d(table_by_name["Eoff_Rg_off_i_v"], x_name="rg_off_Ohm", y_name="current_A", z_name="voltage_V", unit="J")
         if "Eoff_Rg_off_i_v" in table_by_name
         else None,
-        turn_on_energy=_parse_turn_loss(semiconductor_data.find("plecs:TurnOnLoss", _NS), "TurnOnLoss")
+        turn_on_energy=_parse_turn_loss(semiconductor_data.find("plecs:TurnOnLoss", _NS), "TurnOnLoss", notes)
         if semiconductor_data.find("plecs:TurnOnLoss", _NS) is not None
         else None,
-        turn_off_energy=_parse_turn_loss(semiconductor_data.find("plecs:TurnOffLoss", _NS), "TurnOffLoss")
+        turn_off_energy=_parse_turn_loss(semiconductor_data.find("plecs:TurnOffLoss", _NS), "TurnOffLoss", notes)
         if semiconductor_data.find("plecs:TurnOffLoss", _NS) is not None
         else None,
         conduction_on_voltage_drop=_parse_optional_conduction_loss(
@@ -263,9 +321,14 @@ def parse_plecs_xml(xml_path: str | Path) -> DeviceDynamicModel:
             "ConductionLoss_off",
             notes,
         ),
-        eoss_energy=_parse_table_2d(table_by_name["Eoss"], x_name="voltage_V", y_name="temperature_C", unit="J")
-        if "Eoss" in table_by_name
-        else None,
+        eoss_energy=_parse_optional_table_2d(
+            table_by_name,
+            "Eoss",
+            x_name="voltage_V",
+            y_name="temperature_C",
+            unit="J",
+            notes=notes,
+        ),
         thermal_rc_network=thermal_rc_network,
         source_name=xml_file.name,
         notes=notes,

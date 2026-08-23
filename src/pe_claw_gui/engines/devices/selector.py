@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from ...libraries.semiconductors.power_device import PowerDevice
@@ -60,6 +60,7 @@ def select_switch_device(
     current_margin: float = CURRENT_MARGIN_FACTOR,
     loss_weight: float = LOSS_WEIGHT,
     tj_weight: float = TJ_WEIGHT,
+    loss_evaluator: Callable[[PowerDevice, SwitchStress], object] | None = None,
 ) -> tuple[PowerDevice | None, list[RankedDeviceCandidate], list[str]]:
     """Select one switch device with explicit hard filtering followed by weighted ranking."""
 
@@ -71,6 +72,7 @@ def select_switch_device(
         current_margin=current_margin,
         loss_weight=loss_weight,
         tj_weight=tj_weight,
+        loss_evaluator=loss_evaluator,
     )
     return selected_device, ranked_candidates, notes
 
@@ -84,6 +86,7 @@ def select_switch_device_with_audit(
     current_margin: float = CURRENT_MARGIN_FACTOR,
     loss_weight: float = LOSS_WEIGHT,
     tj_weight: float = TJ_WEIGHT,
+    loss_evaluator: Callable[[PowerDevice, SwitchStress], object] | None = None,
 ) -> tuple[PowerDevice | None, list[RankedDeviceCandidate], list[str], DeviceSelectionAudit]:
     """Select and rank switch candidates while preserving per-candidate traces."""
 
@@ -101,7 +104,11 @@ def select_switch_device_with_audit(
             trace_by_part[device.part_number] = electrical_trace
             continue
 
-        loss_result = evaluate_switch_loss(device, stress, method=method)
+        loss_result = (
+            loss_evaluator(device, stress)
+            if loss_evaluator is not None
+            else evaluate_switch_loss(device, stress, method=method)
+        )
         thermal_trace = apply_thermal_filter(electrical_trace, loss_result)
         trace_by_part[device.part_number] = thermal_trace
         if thermal_trace.passed_all_filters:

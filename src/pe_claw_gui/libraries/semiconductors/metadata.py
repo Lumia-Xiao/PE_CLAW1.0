@@ -8,9 +8,13 @@ from typing import Any
 
 
 SEMICONDUCTOR_DEVICE_TYPE_OPTIONS: tuple[str, ...] = ("Any", "MOSFET", "IGBT", "Diode")
-SEMICONDUCTOR_MANUFACTURER_OPTIONS: tuple[str, ...] = ("Any", "Infineon", "Navitas", "Mitsubishi", "ROHM")
+SEMICONDUCTOR_MANUFACTURER_OPTIONS: tuple[str, ...] = ("Any", "Infineon", "Navitas", "Mitsubishi", "ROHM", "Wolfspeed")
 SEMICONDUCTOR_DEVICE_TYPE_INPUT_KEY = "semiconductor_device_type"
 SEMICONDUCTOR_MANUFACTURER_INPUT_KEY = "semiconductor_manufacturer"
+PRIMARY_SWITCH_DEVICE_TYPE_INPUT_KEY = "primary_switch_device_type"
+PRIMARY_SWITCH_MANUFACTURER_INPUT_KEY = "primary_switch_manufacturer"
+RECTIFIER_DIODE_DEVICE_TYPE_INPUT_KEY = "rectifier_diode_device_type"
+RECTIFIER_DIODE_MANUFACTURER_INPUT_KEY = "rectifier_diode_manufacturer"
 MAIN_SWITCH_CATEGORY_INPUT_KEY = "main_switch_category"
 SYNC_SWITCH_CATEGORY_INPUT_KEY = "sync_switch_category"
 RECTIFIER_DIODE_CATEGORY_INPUT_KEY = "rectifier_diode_category"
@@ -25,6 +29,7 @@ INTERNAL_MODULE_DIODE_CATEGORY = "Internal diode section from selected switch mo
 ACTIVE_SWITCH_CATEGORY_OPTIONS: tuple[str, ...] = (
     ANY_ACTIVE_SWITCH_CATEGORY,
     "Discrete MOSFET",
+    "Discrete Silicon MOSFET",
     "Discrete SiC MOSFET",
     "GaN switch",
     "Discrete IGBT",
@@ -38,6 +43,7 @@ ACTIVE_SWITCH_CATEGORY_OPTIONS: tuple[str, ...] = (
 DIODE_RECTIFIED_MAIN_SWITCH_CATEGORY_OPTIONS: tuple[str, ...] = (
     ANY_ACTIVE_SWITCH_CATEGORY,
     "Discrete MOSFET",
+    "Discrete Silicon MOSFET",
     "Discrete SiC MOSFET",
     "GaN switch",
     "Discrete IGBT",
@@ -60,6 +66,7 @@ RECTIFIER_DIODE_CATEGORY_OPTIONS: tuple[str, ...] = (
 SYNCHRONOUS_SWITCH_CATEGORY_OPTIONS: tuple[str, ...] = (
     ANY_ACTIVE_SWITCH_CATEGORY,
     "Discrete MOSFET",
+    "Discrete Silicon MOSFET",
     "Discrete SiC MOSFET",
     "GaN switch",
     "Discrete IGBT",
@@ -79,6 +86,7 @@ SWITCH_IMPLEMENTATION_CATEGORY_OPTIONS: tuple[str, ...] = (
 THREE_LEVEL_SWITCH_CATEGORY_OPTIONS: tuple[str, ...] = (
     ANY_ACTIVE_SWITCH_CATEGORY,
     "Discrete MOSFET",
+    "Discrete Silicon MOSFET",
     "Discrete SiC MOSFET",
     "GaN switch",
     "IGBT",
@@ -156,6 +164,8 @@ _MANUFACTURER_ALIASES = {
     "mitsubishi": "Mitsubishi",
     "mitsubishi electric": "Mitsubishi",
     "rohm": "ROHM",
+    "wolfspeed": "Wolfspeed",
+    "cree": "Wolfspeed",
 }
 
 _DISCRETE_PACKAGE_HINTS = (
@@ -217,6 +227,8 @@ def normalize_semiconductor_category(value: object, *, default: str = ANY_ACTIVE
     aliases = {
         "any": default,
         "mosfet": "Discrete MOSFET",
+        "silicon mosfet": "Discrete Silicon MOSFET",
+        "discrete silicon mosfet": "Discrete Silicon MOSFET",
         "igbt": "Discrete IGBT",
         "diode": ANY_DIODE_CATEGORY,
         "any active switch": ANY_ACTIVE_SWITCH_CATEGORY,
@@ -244,7 +256,7 @@ def diode_binding_policy_for_categories(main_switch_category: object, rectifier_
     diode_category = normalize_semiconductor_category(rectifier_diode_category, default=ANY_DIODE_CATEGORY)
     if diode_category == INTERNAL_MODULE_DIODE_CATEGORY or is_module_bound_switch_category(main_category):
         return "internal_module_diode"
-    if main_category in {"Discrete MOSFET", "Discrete SiC MOSFET", "GaN switch", "Discrete IGBT"}:
+    if main_category in {"Discrete MOSFET", "Discrete Silicon MOSFET", "Discrete SiC MOSFET", "GaN switch", "Discrete IGBT"}:
         return "independent"
     return "auto"
 
@@ -523,9 +535,18 @@ def merge_semiconductor_filter_metadata(
     merged = dict(metadata or {})
     legacy_device_type = normalize_semiconductor_device_type(raw_input.get(SEMICONDUCTOR_DEVICE_TYPE_INPUT_KEY))
     merged[SEMICONDUCTOR_DEVICE_TYPE_INPUT_KEY] = legacy_device_type
-    merged[SEMICONDUCTOR_MANUFACTURER_INPUT_KEY] = normalize_semiconductor_manufacturer(raw_input.get(SEMICONDUCTOR_MANUFACTURER_INPUT_KEY))
-    main_category = normalize_semiconductor_category(
+    legacy_manufacturer = normalize_semiconductor_manufacturer(raw_input.get(SEMICONDUCTOR_MANUFACTURER_INPUT_KEY))
+    merged[SEMICONDUCTOR_MANUFACTURER_INPUT_KEY] = legacy_manufacturer
+    primary_switch_category_input = raw_input.get(
+        PRIMARY_SWITCH_DEVICE_TYPE_INPUT_KEY,
         raw_input.get(MAIN_SWITCH_CATEGORY_INPUT_KEY),
+    )
+    rectifier_diode_category_input = raw_input.get(
+        RECTIFIER_DIODE_DEVICE_TYPE_INPUT_KEY,
+        raw_input.get(RECTIFIER_DIODE_CATEGORY_INPUT_KEY),
+    )
+    main_category = normalize_semiconductor_category(
+        primary_switch_category_input,
         default=_legacy_switch_category(legacy_device_type),
     )
     sync_category = normalize_semiconductor_category(
@@ -533,7 +554,7 @@ def merge_semiconductor_filter_metadata(
         default=_legacy_switch_category(legacy_device_type),
     )
     rectifier_category = normalize_semiconductor_category(
-        raw_input.get(RECTIFIER_DIODE_CATEGORY_INPUT_KEY),
+        rectifier_diode_category_input,
         default=_legacy_diode_category(legacy_device_type),
     )
     switch_implementation_category = normalize_semiconductor_category(
@@ -542,15 +563,25 @@ def merge_semiconductor_filter_metadata(
     )
     policy = raw_input.get(DIODE_BINDING_POLICY_INPUT_KEY)
     computed_policy = diode_binding_policy_for_categories(main_category, rectifier_category)
-    if policy is None or normalize_diode_binding_policy(policy) == "auto":
-        policy = computed_policy
+    normalized_policy = normalize_diode_binding_policy(policy)
+    if policy is None or normalized_policy == "auto":
+        normalized_policy = computed_policy
     merged[MAIN_SWITCH_CATEGORY_INPUT_KEY] = main_category
+    merged[PRIMARY_SWITCH_DEVICE_TYPE_INPUT_KEY] = main_category
+    merged[PRIMARY_SWITCH_MANUFACTURER_INPUT_KEY] = normalize_semiconductor_manufacturer(
+        raw_input.get(PRIMARY_SWITCH_MANUFACTURER_INPUT_KEY, legacy_manufacturer)
+    )
     merged[SYNC_SWITCH_CATEGORY_INPUT_KEY] = sync_category
-    merged[RECTIFIER_DIODE_CATEGORY_INPUT_KEY] = (
-        INTERNAL_MODULE_DIODE_CATEGORY if diode_binding_policy_for_categories(main_category, rectifier_category) == "internal_module_diode" else rectifier_category
+    effective_rectifier_category = (
+        INTERNAL_MODULE_DIODE_CATEGORY if normalized_policy == "internal_module_diode" else rectifier_category
+    )
+    merged[RECTIFIER_DIODE_CATEGORY_INPUT_KEY] = effective_rectifier_category
+    merged[RECTIFIER_DIODE_DEVICE_TYPE_INPUT_KEY] = effective_rectifier_category
+    merged[RECTIFIER_DIODE_MANUFACTURER_INPUT_KEY] = normalize_semiconductor_manufacturer(
+        raw_input.get(RECTIFIER_DIODE_MANUFACTURER_INPUT_KEY, legacy_manufacturer)
     )
     merged[SWITCH_IMPLEMENTATION_CATEGORY_INPUT_KEY] = switch_implementation_category
-    merged[DIODE_BINDING_POLICY_INPUT_KEY] = normalize_diode_binding_policy(policy)
+    merged[DIODE_BINDING_POLICY_INPUT_KEY] = normalized_policy
     return merged
 
 

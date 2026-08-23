@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SemiconductorLibrary xmlns="http://www.plexim.com/xml/semiconductors/" version="1.1">
+    <Package class="Diode" vendor="Wolfspeed" partnumber="E4M0015075K1_Diode">
+        <Variables></Variables>
+        <SemiconductorData type="Diode">
+            <TurnOnLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis>0</CurrentAxis>
+                <VoltageAxis>0</VoltageAxis>
+                <TemperatureAxis>25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage>0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOnLoss>
+            <TurnOffLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis>0</CurrentAxis>
+                <VoltageAxis>0</VoltageAxis>
+                <TemperatureAxis>25</TemperatureAxis>
+                <Energy scale="1">
+                    <Temperature>
+                        <Voltage>0</Voltage>
+                    </Temperature>
+                </Energy>
+            </TurnOffLoss>
+            <ConductionLoss>
+                <ComputationMethod>Table only</ComputationMethod>
+                <CurrentAxis>0 1 2 5 10 15 30 50 70 90 110 130 150 170 190 210 </CurrentAxis>
+                <TemperatureAxis>-55 25 175 900</TemperatureAxis>
+                <VoltageDrop scale="1">
+                    <Temperature>0 3.4697 3.7488 4.227 4.7042 5.0389 5.7337 6.3671 6.8548 7.2677 7.6305 7.9589 8.2631 8.5435 8.8115 9.0638 </Temperature>
+                    <Temperature>0 3.0746 3.2734 3.6376 4.0251 4.3138 4.949 5.569 6.0705 6.5059 6.8977 7.255 7.5911 7.9061 8.2059 8.4947 </Temperature>
+                    <Temperature>0 2.696 2.889 3.2377 3.6072 3.8842 4.5069 5.1241 5.6306 6.0753 6.4761 6.8445 7.1889 7.5116 7.8176 8.1088 </Temperature>
+                    <Temperature>0 2.1568 2.3112 2.5901 2.8858 3.1073 3.6055 4.0993 4.5045 4.8602 5.1809 5.4756 5.7511 6.0093 6.2541 6.487 </Temperature>
+                </VoltageDrop>
+            </ConductionLoss>
+        </SemiconductorData>
+        <ThermalModel>
+            <Branch type="Cauer">
+                <RCElement R="0.030427" C="0.0023854"/>
+                <RCElement R="0.098385" C="0.011262"/>
+                <RCElement R="0.074695" C="0.040127"/>
+                <RCElement R="0.11523" C="0.18931"/>
+            </Branch>
+        </ThermalModel>
+        <Comment>
+            <Line>Datasheet Rev.1, 2-2024. It is customer's responsibility to verify the performance of the Mosfet with actual prototype.</Line>
+        </Comment>
+    </Package>
+</SemiconductorLibrary>

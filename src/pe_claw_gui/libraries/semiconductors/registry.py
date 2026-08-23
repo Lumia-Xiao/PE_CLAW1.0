@@ -11,6 +11,7 @@ from .infineon import get_infineon_devices
 from .mitsubishi import get_mitsubishi_devices
 from .navitas import get_navitas_devices
 from .rohm import get_rohm_devices
+from .wolfspeed import get_wolfspeed_devices
 
 VendorDevicesBuilder = Callable[[], list[PowerDevice]]
 
@@ -63,6 +64,7 @@ def get_vendor_device_builders() -> dict[str, VendorDevicesBuilder]:
         "Mitsubishi": get_mitsubishi_devices,
         "Navitas": get_navitas_devices,
         "ROHM": get_rohm_devices,
+        "Wolfspeed": get_wolfspeed_devices,
     }
 
 
@@ -95,7 +97,7 @@ def _build_internal_diode_section_devices(devices: list[PowerDevice]) -> list[Po
             continue
         if not device.has_internal_diode_section or not device.internal_diode_model_available:
             continue
-        diode_suffix = "_SBD" if device.diode_subtype in {"sbd", "sic_sbd", "schottky", "jbs"} else "_FWD"
+        diode_suffix = _internal_diode_part_suffix(device)
         diode_part_number = f"{device.part_number}{diode_suffix}"
         diode_type = _diode_device_type_label(device)
         diode_rth_jc = _internal_diode_rth_jc(device)
@@ -108,7 +110,7 @@ def _build_internal_diode_section_devices(devices: list[PowerDevice]) -> list[Po
             device_structure_type="diode_module" if device.package_level == "power_module" else "discrete_single",
             package_level=device.package_level,
             module_internal_topology="diode_only",
-            diode_subtype=device.diode_subtype if device.diode_subtype not in {"none", "body_diode"} else "module_diode",
+            diode_subtype=device.diode_subtype if device.diode_subtype != "none" else "module_diode",
             switch_count=0,
             diode_count=max(device.diode_count, 1),
             module_group_id=device.module_group_id or device.part_number,
@@ -136,6 +138,8 @@ def _build_internal_diode_section_devices(devices: list[PowerDevice]) -> list[Po
 
 
 def _diode_device_type_label(device: PowerDevice) -> str:
+    if device.diode_subtype == "body_diode":
+        return "Body diode"
     if device.diode_subtype in {"sic_sbd", "sbd", "schottky"}:
         return "SiC Schottky barrier diode" if device.diode_subtype == "sic_sbd" else "Schottky diode"
     if device.diode_subtype in {"frd", "fwd"}:
@@ -143,6 +147,14 @@ def _diode_device_type_label(device: PowerDevice) -> str:
     if device.diode_subtype == "jbs":
         return "JBS diode"
     return "Internal module diode"
+
+
+def _internal_diode_part_suffix(device: PowerDevice) -> str:
+    if device.diode_subtype == "body_diode":
+        return "_BODY_DIODE"
+    if device.diode_subtype in {"sbd", "sic_sbd", "schottky", "jbs"}:
+        return "_SBD"
+    return "_FWD"
 
 
 def _internal_diode_rth_jc(device: PowerDevice) -> float:

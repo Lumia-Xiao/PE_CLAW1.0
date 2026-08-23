@@ -9,6 +9,8 @@ from ...models.capacitor import CapacitorSelectionEntry
 
 RECOMMENDED_POLICY_NAME = "minimum-parallel margin-aware recommendation"
 RECOMMENDED_SOURCE = "minimum_parallel_margin_aware"
+COMPROMISE_RECOMMENDED_POLICY_NAME = "volume-loss compromise recommendation"
+COMPROMISE_RECOMMENDED_SOURCE = "pareto_compromise"
 COMFORTABLE_RIPPLE_UTILIZATION = 0.90
 EDGE_RIPPLE_UTILIZATION = 0.95
 
@@ -44,6 +46,7 @@ def extract_pareto_front(entries: list[CapacitorSelectionEntry]) -> list[Capacit
         key=lambda entry: (
             entry.total_volume_cm3,
             entry.p_total_w,
+            entry.series_count,
             entry.parallel_count,
             entry.candidate.part_number,
         ),
@@ -80,7 +83,7 @@ def apply_representative_labels(
     if recommended is None:
         recommended = choose_margin_aware_recommended_capacitor(pareto_front, feasible_entries).selected
 
-    label_by_key: dict[tuple[str, int], list[str]] = {}
+    label_by_key: dict[tuple[str, int, int], list[str]] = {}
     for label, entry in (
         ("min-volume", min_volume),
         ("min-loss", min_loss),
@@ -145,7 +148,7 @@ def choose_margin_aware_recommended_capacitor(
         return _decision(
             selected,
             n0,
-            f"selected an N={n0} candidate because it satisfies ripple margin without extra parallel capacitors.",
+            f"selected an S/P={_bank_label(selected)} candidate because it satisfies ripple margin without extra parallel capacitors.",
         )
 
     best_n0 = min(n0_entries, key=_entry_sort_key_for_min_parallel_recommendation)
@@ -154,7 +157,7 @@ def choose_margin_aware_recommended_capacitor(
         return _decision(
             best_n0,
             n0,
-            f"selected the smallest-volume N={n0} candidate; ripple is acceptable but near the target.",
+            f"selected the smallest-volume S/P={_bank_label(best_n0)} candidate; ripple is acceptable but near the target.",
         )
 
     n1 = n0 + 1
@@ -165,13 +168,51 @@ def choose_margin_aware_recommended_capacitor(
         return _decision(
             selected,
             n0,
-            f"N={n0} was too close to the ripple limit, so the recommendation increased only one step to N={n1}.",
+            f"P={n0} was too close to the ripple limit, so the recommendation increased only one step to P={n1}.",
         )
 
     return _decision(
         best_n0,
         n0,
-        f"no comfortable N={n1} option was available, so the best N={n0} candidate remains recommended.",
+        f"no comfortable P={n1} option was available, so the best P={n0} candidate remains recommended.",
+    )
+
+
+def choose_compromise_recommended_capacitor(
+    pareto_entries: list[CapacitorSelectionEntry],
+    feasible_entries: list[CapacitorSelectionEntry],
+) -> CapacitorRecommendationDecision:
+    """Choose the Pareto compromise point as the final recommendation."""
+
+    source_pool = pareto_entries if pareto_entries else feasible_entries
+    pool = [entry for entry in source_pool if entry.feasible]
+    if not pool:
+        return CapacitorRecommendationDecision(
+            selected=None,
+            reason="No feasible capacitor bank candidate is available.",
+            policy_name=COMPROMISE_RECOMMENDED_POLICY_NAME,
+            source=COMPROMISE_RECOMMENDED_SOURCE,
+        )
+    selected = select_compromise(pool)
+    if selected is None:
+        return CapacitorRecommendationDecision(
+            selected=None,
+            reason="No Pareto compromise capacitor bank candidate is available.",
+            policy_name=COMPROMISE_RECOMMENDED_POLICY_NAME,
+            source=COMPROMISE_RECOMMENDED_SOURCE,
+        )
+    minimum_parallel_count = min(entry.parallel_count for entry in pool)
+    return CapacitorRecommendationDecision(
+        selected=selected,
+        reason=(
+            f"{COMPROMISE_RECOMMENDED_POLICY_NAME}: selected the Pareto compromise candidate "
+            "using normalized capacitor-bank volume and total bank loss."
+        ),
+        policy_name=COMPROMISE_RECOMMENDED_POLICY_NAME,
+        source=COMPROMISE_RECOMMENDED_SOURCE,
+        minimum_feasible_parallel_count=minimum_parallel_count,
+        recommended_parallel_count=selected.parallel_count,
+        recommended_ripple_utilization=_ripple_utilization(selected),
     )
 
 
@@ -183,6 +224,7 @@ def select_min_volume(pareto_front: list[CapacitorSelectionEntry]) -> CapacitorS
         key=lambda entry: (
             entry.total_volume_cm3,
             entry.p_total_w,
+            entry.series_count,
             entry.parallel_count,
             entry.candidate.part_number,
         ),
@@ -197,6 +239,7 @@ def select_min_loss(pareto_front: list[CapacitorSelectionEntry]) -> CapacitorSel
         key=lambda entry: (
             entry.p_total_w,
             entry.total_volume_cm3,
+            entry.series_count,
             entry.parallel_count,
             entry.candidate.part_number,
         ),
@@ -216,6 +259,7 @@ def select_compromise(pareto_front: list[CapacitorSelectionEntry]) -> CapacitorS
                 _normalize(entry.total_volume_cm3, volume_values),
                 _normalize(entry.p_total_w, loss_values),
             ),
+            entry.series_count,
             entry.parallel_count,
             entry.total_volume_cm3,
             entry.p_total_w,
@@ -262,24 +306,29 @@ def _ripple_utilization(entry: CapacitorSelectionEntry) -> float:
     return entry.ripple_total_pp_v / entry.ripple_allow_v
 
 
-def _entry_sort_key_for_min_parallel_recommendation(entry: CapacitorSelectionEntry) -> tuple[float, float, float, int, str]:
+def _entry_sort_key_for_min_parallel_recommendation(entry: CapacitorSelectionEntry) -> tuple[float, float, float, int, int, str]:
     return (
         entry.total_volume_cm3,
         entry.p_total_w,
         entry.hotspot_temp_c,
+        entry.series_count,
         entry.parallel_count,
         entry.candidate.part_number,
     )
 
 
-def _entry_key(entry: CapacitorSelectionEntry | None) -> tuple[str, int]:
+def _entry_key(entry: CapacitorSelectionEntry | None) -> tuple[str, int, int]:
     if entry is None:
-        return ("", 0)
-    return (entry.candidate.part_number, entry.parallel_count)
+        return ("", 0, 0)
+    return (entry.candidate.part_number, entry.series_count, entry.parallel_count)
 
 
-def _pareto_sort_key(entry: CapacitorSelectionEntry) -> tuple[float, float, int, str]:
-    return (entry.total_volume_cm3, entry.p_total_w, entry.parallel_count, entry.candidate.part_number)
+def _pareto_sort_key(entry: CapacitorSelectionEntry) -> tuple[float, float, int, int, str]:
+    return (entry.total_volume_cm3, entry.p_total_w, entry.series_count, entry.parallel_count, entry.candidate.part_number)
+
+
+def _bank_label(entry: CapacitorSelectionEntry) -> str:
+    return f"S={entry.series_count}, P={entry.parallel_count}"
 
 
 def _normalize(value: float, values: list[float]) -> float:

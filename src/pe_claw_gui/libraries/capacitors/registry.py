@@ -6,8 +6,11 @@ from collections import Counter
 
 from ...models.capacitor import CapacitorCandidate
 from .jianghai import list_jianghai_capacitors
+from .lelon import list_lelon_capacitors
+from .nippon_chemi_con import list_nippon_chemi_con_capacitors
 from .panasonic import list_panasonic_capacitors
 from .rubycon import list_rubycon_capacitors
+from .rubycon_electrolytic import list_rubycon_electrolytic_capacitors
 from .tdk import list_tdk_capacitors
 from .wima import list_wima_capacitors
 from .yageo import list_yageo_capacitors
@@ -28,6 +31,9 @@ def list_registered_capacitors() -> tuple[CapacitorCandidate, ...]:
                 *list_rubycon_capacitors(),
                 *list_panasonic_capacitors(),
                 *list_jianghai_capacitors(),
+                *list_lelon_capacitors(),
+                *list_nippon_chemi_con_capacitors(),
+                *list_rubycon_electrolytic_capacitors(),
             )
         )
         _validate_unique_part_numbers(candidates)

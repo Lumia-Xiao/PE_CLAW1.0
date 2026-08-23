@@ -10,6 +10,8 @@ from ...models.inductor import FixedInductorDesignCandidate, InductorDesignReque
 from .allow_profiles import MagneticAllowProfile
 from .candidate_metrics import MagneticCandidateContext, MagneticCandidateEngineeringMetrics, compute_candidate_engineering_metrics
 from .core_assembly import StackedCoreAssembly, build_same_core_stack_assembly
+from .core_loss_audit import core_loss_is_comparable
+from .core_loss_role_adapter import evaluate_candidate_core_loss
 
 STACKED_MARGIN_NEAR_LIMIT_THRESHOLD = 1.15
 STACKED_SEED_LIMIT = 20
@@ -40,6 +42,16 @@ class _CoreLossComputation:
     model_name: str
     raw_beta: float | None = None
     effective_beta: float | None = None
+    legacy_total_loss_w: float | None = None
+    validity_status: str = "loss_data_not_available"
+    model_id: str | None = None
+    model_scope: str | None = None
+    reconstruction_method: str = "unavailable"
+    flux_peak_to_peak_t: float | None = None
+    flux_ac_peak_t: float | None = None
+    flux_dc_offset_t: float | None = None
+    flux_absolute_peak_t: float | None = None
+    effective_volume_m3: float | None = None
 
 
 def select_stacked_seed_candidates(
@@ -128,6 +140,11 @@ def expand_stacked_same_core_candidates(
             )
             if detailed_candidate is None:
                 continue
+            if not core_loss_is_comparable(
+                detailed_candidate.metadata,
+                detailed_candidate.reference_total_loss_w,
+            ):
+                continue
             precheck_pass_count += 1
             expanded_candidates.append(detailed_candidate)
 
@@ -187,7 +204,14 @@ def build_stacked_candidate(
         return None
 
     turns = max(seed.turns, 1)
-    b_peak_t = abs(request.v_l_on_v) * request.duty_nom / (request.fs_hz * effective_ae_m2 * turns)
+    corrected_v2_semantics = assembly.volume_policy.startswith("step19d_v2_")
+    flux_peak_to_peak_t = (
+        request.target_inductance_h * abs(request.i_peak_a - request.i_valley_a) / (turns * effective_ae_m2)
+        if corrected_v2_semantics
+        else abs(request.v_l_on_v) * request.duty_nom / (request.fs_hz * effective_ae_m2 * turns)
+    )
+    flux_absolute_peak_t = request.target_inductance_h * request.i_peak_a / (turns * effective_ae_m2)
+    flux_dc_offset_t = request.target_inductance_h * request.i_avg_a / (turns * effective_ae_m2)
     gap_m = seed.gap_m * assembly.stack_count if seed.gap_m is not None else (
         _MU0 * (turns**2) * effective_ae_m2 / request.target_inductance_h
     )
@@ -199,7 +223,17 @@ def build_stacked_candidate(
         copper_loss_w = (reference_i_rms**2) * rdc_ohm
 
     if detailed:
-        core_loss_result = _resolve_core_loss(seed, request, effective_ve_m3, b_peak_t, assembly.stack_count)
+        core_loss_result = _resolve_core_loss(
+            seed,
+            request,
+            (
+                effective_ae_m2
+                if corrected_v2_semantics
+                else float(seed.metadata.get("core_effective_area_m2") or effective_ae_m2)
+            ),
+            effective_ve_m3,
+            assembly.stack_count,
+        )
     else:
         approximate_core_loss = _approximate_core_loss(seed, assembly.stack_count)
         core_loss_result = _CoreLossComputation(
@@ -214,12 +248,16 @@ def build_stacked_candidate(
             effective_beta=_as_float(seed.metadata.get("core_loss_beta_effective")),
         )
     core_loss_w = core_loss_result.total_loss_w
-    total_loss_w = None
-    if copper_loss_w is not None or core_loss_w is not None:
-        total_loss_w = (copper_loss_w or 0.0) + (core_loss_w or 0.0)
+    if detailed and core_loss_w is None:
+        return None
+    total_loss_w = (
+        copper_loss_w + core_loss_w
+        if copper_loss_w is not None and core_loss_w is not None
+        else None
+    )
 
-    winding_volume_m3 = seed.winding_volume_m3 * assembly.stack_count if seed.winding_volume_m3 is not None else None
-    core_volume_m3 = seed.core_volume_m3 * assembly.stack_count if seed.core_volume_m3 is not None else None
+    winding_volume_m3 = assembly.winding_volume_m3
+    core_volume_m3 = assembly.physical_envelope_volume_m3
     saturation_current_a = seed.saturation_current_a * assembly.stack_count if seed.saturation_current_a is not None else None
     candidate_id = f"{seed.candidate_id}_STACK{assembly.stack_count}"
     notes = [
@@ -228,9 +266,7 @@ def build_stacked_candidate(
         "Same-core stacked competitor generated from a selected single-core seed.",
     ]
     if core_loss_result.model_name == "stacked_seed_anchored_beta_floor":
-        notes.append(
-            f"Stacked core loss was recomputed from stacked B and Ve using a seed-anchored beta floor of {STACKED_CORE_LOSS_BETA_FLOOR:.2f} because the imported raw Steinmetz beta was <= 1."
-        )
+        notes.append("Legacy stacked beta-floor result is retained for A/B diagnostics only.")
     metadata = dict(seed.metadata)
     metadata.update(
         {
@@ -245,13 +281,63 @@ def build_stacked_candidate(
             "seed_reference_core_loss_w": seed.reference_core_loss_w,
             "seed_reference_b_peak_t": seed.b_peak_design_t,
             "seed_core_effective_volume_m3": seed.metadata.get("core_effective_volume_m3"),
+            "seed_core_effective_area_m2": seed.metadata.get("core_effective_area_m2"),
+            "seed_core_window_area_m2": seed.metadata.get("core_window_area_m2"),
+            "seed_core_physical_envelope_volume_m3": (
+                seed.metadata.get("physical_envelope_volume_m3") or seed.core_volume_m3
+            ),
+            "seed_solid_material_volume_m3": seed.metadata.get("solid_material_volume_m3"),
+            "seed_core_mass_kg": seed.metadata.get("core_mass_kg"),
+            "seed_winding_volume_m3": seed.winding_volume_m3,
+            "physical_envelope_volume_m3": assembly.physical_envelope_volume_m3,
+            "solid_material_volume_m3": assembly.solid_material_volume_m3,
+            "core_mass_kg": assembly.mass_kg,
+            "gross_volume_m3": assembly.physical_envelope_volume_m3,
+            "stack_volume_policy": assembly.volume_policy,
+            "step19d_corrected_v2_semantics": corrected_v2_semantics,
+            "core_loss_flux_peak_to_peak_t": flux_peak_to_peak_t,
+            "core_flux_ac_peak_t": flux_peak_to_peak_t / 2.0,
+            "core_flux_dc_offset_t": flux_dc_offset_t,
+            "core_flux_absolute_peak_t": flux_absolute_peak_t,
+            "saturation_flux_input_definition": "Babsolute=L*Ipeak/(N*Ae)",
         }
     )
     if core_loss_w is not None:
         raw_beta = core_loss_result.raw_beta
         effective_beta = core_loss_result.effective_beta or raw_beta
         metadata["core_loss_model"] = core_loss_result.model_name
-        metadata["reference_b_peak_t"] = b_peak_t
+        metadata["core_loss_unit_conversion_policy"] = "W_per_m3_times_m3_equals_W_once"
+        metadata["core_loss_flux_input_definition"] = (
+            "Bpp=L*(Ipeak-Ivalley)/(N*Ae_assembled); shared current reconstruction"
+            if corrected_v2_semantics
+            else "legacy-v1 stacked flux/loss policy retained until normalized-v2 promotion"
+        )
+        metadata["kernel_core_loss_w"] = core_loss_w
+        metadata["step9_router_status"] = core_loss_result.validity_status
+        metadata["step9_router_model_id"] = core_loss_result.model_id
+        metadata["step9_router_model_scope"] = core_loss_result.model_scope
+        metadata["step9_reconstruction_method"] = core_loss_result.reconstruction_method
+        metadata["core_loss_validity_status"] = core_loss_result.validity_status
+        metadata["core_loss_method"] = core_loss_result.model_name
+        metadata["core_loss_model_id"] = core_loss_result.model_id
+        metadata["core_loss_model_scope"] = core_loss_result.model_scope
+        metadata["core_loss_effective_volume_m3"] = effective_ve_m3
+        metadata["step19d_assembled_ae_m2"] = effective_ae_m2
+        metadata["step19d_assembled_ve_m3"] = effective_ve_m3
+        metadata["step19d_loss_volume_multiplier_count"] = 1
+        metadata["step19d_router_flux_peak_to_peak_t"] = core_loss_result.flux_peak_to_peak_t
+        metadata["step19d_router_flux_ac_peak_t"] = core_loss_result.flux_ac_peak_t
+        metadata["step19d_router_flux_dc_offset_t"] = core_loss_result.flux_dc_offset_t
+        metadata["step19d_router_flux_absolute_peak_t"] = core_loss_result.flux_absolute_peak_t
+        if core_loss_result.legacy_total_loss_w is not None:
+            metadata["legacy_core_loss_w"] = core_loss_result.legacy_total_loss_w
+            metadata["kernel_vs_legacy_relative_difference"] = (core_loss_w / core_loss_result.legacy_total_loss_w) - 1.0
+        # Explicit flux semantics are authoritative.  Keep the legacy alias
+        # because the stacked beta-floor path still reads it for old records.
+        metadata["reference_flux_peak_to_peak_t"] = flux_peak_to_peak_t
+        metadata["reference_flux_ac_peak_t"] = flux_peak_to_peak_t / 2.0
+        metadata["reference_flux_absolute_peak_t"] = flux_absolute_peak_t
+        metadata["reference_b_peak_t"] = flux_peak_to_peak_t
         metadata["reference_core_loss_density_w_per_m3"] = (
             core_loss_result.core_loss_density_w_per_m3
             if core_loss_result.core_loss_density_w_per_m3 is not None
@@ -278,7 +364,7 @@ def build_stacked_candidate(
         core_volume_m3=core_volume_m3,
         winding_volume_m3=winding_volume_m3,
         total_volume_m3=effective_total_volume_m3,
-        b_peak_design_t=b_peak_t,
+        b_peak_design_t=flux_absolute_peak_t,
         saturation_current_a=saturation_current_a,
         reference_copper_loss_w=copper_loss_w,
         reference_core_loss_w=core_loss_w,
@@ -338,59 +424,45 @@ def _resolve_copper_loss(seed: FixedInductorDesignCandidate) -> float | None:
 def _resolve_core_loss(
     seed: FixedInductorDesignCandidate,
     request: InductorDesignRequest,
+    effective_ae_m2: float,
     effective_ve_m3: float,
-    b_peak_t: float,
     stack_count: int,
 ) -> _CoreLossComputation:
-    steinmetz_ranges = seed.metadata.get("steinmetz_ranges")
-    if not steinmetz_ranges:
-        approximate = _approximate_core_loss(seed, stack_count)
-        return _CoreLossComputation(
-            total_loss_w=approximate,
-            core_loss_density_w_per_m3=(approximate / effective_ve_m3 if approximate is not None and effective_ve_m3 > 0.0 else None),
-            model_name=str(seed.metadata.get("core_loss_model") or "approximate_from_seed"),
-            raw_beta=_as_float(seed.metadata.get("core_loss_beta_raw")),
-            effective_beta=_as_float(seed.metadata.get("core_loss_beta_effective")),
-        )
-    coeffs = _select_steinmetz_range(steinmetz_ranges, request.fs_hz)
-    raw_beta = _as_float(coeffs.get("beta"))
-    if raw_beta is None:
-        return _CoreLossComputation(total_loss_w=None, core_loss_density_w_per_m3=None, model_name="invalid_steinmetz_beta")
-    seed_b_peak_t = _as_float(seed.b_peak_design_t)
-    seed_core_loss_w = _as_float(seed.reference_core_loss_w)
-    seed_ve_m3 = _as_float(seed.metadata.get("core_effective_volume_m3"))
-
-    if raw_beta <= 1.0 and seed_b_peak_t is not None and seed_b_peak_t > 0.0 and seed_core_loss_w is not None and seed_ve_m3 is not None and seed_ve_m3 > 0.0:
-        # Some imported MAS Steinmetz fits carry beta <= 1.0. Under the idealized
-        # same-core stacked model (Ae, Ve scale with stack_count), that would make
-        # total core loss rise with stack_count even though flux density falls. For
-        # first-pass stacked comparisons, anchor the density to the single-core seed
-        # and use a monotonic beta floor so stacked loss density is recomputed from
-        # the stacked candidate's own B and Ve instead of inheriting seed loss.
-        effective_beta = max(raw_beta, STACKED_CORE_LOSS_BETA_FLOOR)
-        seed_density_w_per_m3 = seed_core_loss_w / seed_ve_m3
-        scaled_density_w_per_m3 = seed_density_w_per_m3 * ((b_peak_t / seed_b_peak_t) ** effective_beta)
-        return _CoreLossComputation(
-            total_loss_w=scaled_density_w_per_m3 * effective_ve_m3,
-            core_loss_density_w_per_m3=scaled_density_w_per_m3,
-            model_name="stacked_seed_anchored_beta_floor",
-            raw_beta=raw_beta,
-            effective_beta=effective_beta,
-        )
-
-    total_loss_w = (
-        coeffs["k"]
-        * (request.fs_hz**coeffs["alpha"])
-        * (b_peak_t**raw_beta)
-        * effective_ve_m3
-        * 1e3
+    ranges = seed.metadata.get("steinmetz_ranges")
+    result, built = evaluate_candidate_core_loss(
+        material_id=str(seed.metadata.get("material_id") or seed.material_name or seed.candidate_id),
+        material_name=seed.material_name or seed.candidate_id,
+        frequency_hz=request.fs_hz,
+        effective_volume_m3=effective_ve_m3,
+        effective_area_m2=effective_ae_m2,
+        turns=seed.turns,
+        inductance_h=seed.inductance_h,
+        current_min_a=float(request.i_valley_a),
+        current_max_a=float(request.i_peak_a),
+        steinmetz_ranges=ranges if isinstance(ranges, list) else None,
+        source_role="stacked_core",
+        source_component_id=f"{seed.candidate_id}_STACK{stack_count}",
     )
+    total_loss_w = result.core_loss_w
+    raw_beta = _as_float(seed.metadata.get("core_loss_beta_raw"))
+    legacy_total_loss_w = _approximate_core_loss(seed, stack_count)
+    excitation = built.excitation
     return _CoreLossComputation(
         total_loss_w=total_loss_w,
-        core_loss_density_w_per_m3=(total_loss_w / effective_ve_m3 if effective_ve_m3 > 0.0 else None),
-        model_name="steinmetz_raw",
+        core_loss_density_w_per_m3=result.volumetric_loss_w_per_m3,
+        model_name=result.method_used or "unavailable",
         raw_beta=raw_beta,
         effective_beta=raw_beta,
+        legacy_total_loss_w=legacy_total_loss_w,
+        validity_status=result.validity_status.value,
+        model_id=result.selected_model_id,
+        model_scope=result.selected_model_scope,
+        reconstruction_method=built.reconstruction_method,
+        flux_peak_to_peak_t=excitation.flux_peak_to_peak_t if excitation is not None else None,
+        flux_ac_peak_t=excitation.flux_ac_peak_t if excitation is not None else None,
+        flux_dc_offset_t=excitation.flux_dc_offset_t if excitation is not None else None,
+        flux_absolute_peak_t=excitation.flux_absolute_peak_t if excitation is not None else None,
+        effective_volume_m3=excitation.effective_volume_m3 if excitation is not None else None,
     )
 
 
@@ -407,23 +479,11 @@ def _approximate_core_loss(seed: FixedInductorDesignCandidate, stack_count: int)
     return seed.reference_core_loss_w * (stack_count ** (1.0 - beta))
 
 
-def _select_steinmetz_range(ranges: list[dict[str, float]], frequency: float) -> dict[str, float]:
-    for range_data in ranges:
-        if range_data["minimumFrequency"] <= frequency <= range_data["maximumFrequency"]:
-            return range_data
-    return min(
-        ranges,
-        key=lambda item: min(
-            abs(frequency - item["minimumFrequency"]),
-            abs(frequency - item["maximumFrequency"]),
-        ),
-    )
-
-
 def _as_float(value) -> float | None:
     if value is None:
         return None
     try:
-        return float(value)
+        resolved = float(value)
+        return resolved if math.isfinite(resolved) else None
     except (TypeError, ValueError, AttributeError):
         return None

@@ -29,6 +29,7 @@ skeleton; shared engineering backends and new topologies remain unmodified.
 - `phase1/summary.md`: reviewed Phase 1 conclusions and execution gate.
 - `phase2/summary.md`: packaging/runtime changes and clean-environment evidence.
 - `phase3/summary.md`: shared-model migration, registry adapter, and contract-test evidence.
+- `phase4/summary.md`: shared-engine, device/capacitor/magnetic-library migration and verification evidence.
 - `tools/generate_phase1_artifacts.py`: standard-library-only reproducible generator.
 - `artifact_manifest.csv`: byte counts and SHA-256 values for migration evidence files.
 
