@@ -41,6 +41,7 @@ def resolve_capacitor_3d_comparison_settings(layouts: list[CapacitorBankLayout])
 def create_capacitor_bank_figure_2d(
     layout: CapacitorBankLayout,
     *,
+    display_label: str | None = None,
     shared_span_x_mm: float | None = None,
     shared_span_y_mm: float | None = None,
 ) -> Figure:
@@ -127,12 +128,14 @@ def create_capacitor_bank_figure_2d(
             axis.add_patch(Circle((x_mm, y_mm), radius_mm * 0.83, fill=False, edgecolor="#94a3b8", linewidth=0.8))
         axis.text(x_mm, y_mm, str(index), ha="center", va="center", fontsize=8, color="#111827")
 
-    axis.set_title(f"{layout.label}: {layout.part_number}  N={layout.parallel_count}", fontsize=9)
+    label = display_label or layout.label
+    axis.set_title(f"{label}: {layout.part_number}  N={layout.parallel_count}", fontsize=9)
     axis.text(
         0.02,
         0.02,
         f"{_layout_dimension_text(layout)}\n"
-        f"Footprint={layout.footprint_width_mm:.3g} x {layout.footprint_depth_mm:.3g} mm",
+        f"Footprint={layout.footprint_width_mm:.3g} x {layout.footprint_depth_mm:.3g} mm\n"
+        f"Grid={layout.grid_columns} x {layout.grid_rows}",
         transform=axis.transAxes,
         va="bottom",
         ha="left",
@@ -152,6 +155,7 @@ def create_capacitor_bank_figure_2d(
 def create_capacitor_bank_figure_3d(
     layout: CapacitorBankLayout,
     *,
+    display_label: str | None = None,
     comparison_settings: dict[str, float] | None = None,
 ) -> Figure:
     """Create a static 3D engineering figure for one capacitor bank."""
@@ -172,7 +176,8 @@ def create_capacitor_bank_figure_3d(
             _draw_cylinder(axis, x_mm, y_mm, layout.can_diameter_mm, layout.can_height_mm)
         _draw_terminals(axis, x_mm, y_mm, layout)
 
-    axis.set_title(f"{layout.label}: {layout.part_number}  N={layout.parallel_count}", fontsize=9)
+    label = display_label or layout.label
+    axis.set_title(f"{label}: {layout.part_number}  N={layout.parallel_count}", fontsize=9)
     axis.set_xlim(-0.5 * span_mm, 0.5 * span_mm)
     axis.set_ylim(-0.5 * span_mm, 0.5 * span_mm)
     axis.set_zlim(0.0, height_mm)
@@ -193,6 +198,7 @@ def export_capacitor_geometry_artifacts(
     *,
     output_dir: Path,
     basename: str,
+    basename_3d: str | None = None,
     comparison_settings_2d: dict[str, float],
     comparison_settings_3d: dict[str, float],
 ) -> tuple[list[str], list[str]]:
@@ -200,7 +206,7 @@ def export_capacitor_geometry_artifacts(
 
     output_dir.mkdir(parents=True, exist_ok=True)
     path_2d = output_dir / f"{basename}.png"
-    path_3d = output_dir / f"{basename}_3d.png"
+    path_3d = output_dir / f"{basename_3d or f'{basename}_3d'}.png"
 
     figure_2d = create_capacitor_bank_figure_2d(layout, **comparison_settings_2d)
     figure_2d.savefig(path_2d)
@@ -211,6 +217,134 @@ def export_capacitor_geometry_artifacts(
     figure_3d.clear()
 
     return [str(path_2d)], [str(path_3d)]
+
+
+def export_capacitor_comparison_geometry_artifacts(
+    layouts: list[CapacitorBankLayout],
+    *,
+    output_dir: Path,
+    basename: str,
+    basename_3d: str | None = None,
+    comparison_settings_2d: dict[str, float],
+    comparison_settings_3d: dict[str, float],
+) -> tuple[str, str]:
+    """Export 2D and 3D three-bank comparison PNGs with shared physical scale."""
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path_2d = output_dir / f"{basename}.png"
+    path_3d = output_dir / f"{basename_3d or f'{basename}_3d'}.png"
+    figure_2d = _create_comparison_figure_2d(layouts, comparison_settings_2d)
+    figure_2d.savefig(path_2d)
+    figure_2d.clear()
+    figure_3d = _create_comparison_figure_3d(layouts, comparison_settings_3d)
+    figure_3d.savefig(path_3d)
+    figure_3d.clear()
+    return str(path_2d), str(path_3d)
+
+
+def _create_comparison_figure_2d(
+    layouts: list[CapacitorBankLayout],
+    comparison_settings_2d: dict[str, float],
+) -> Figure:
+    figure = Figure(figsize=(12.0, _comparison_figure_height(layouts, base_height=3.8)), dpi=120)
+    for index, layout in enumerate(layouts, start=1):
+        axis = figure.add_subplot(1, len(layouts), index)
+        _draw_bank_top_view(axis, layout)
+        span_x = comparison_settings_2d["shared_span_x_mm"]
+        span_y = comparison_settings_2d["shared_span_y_mm"]
+        axis.set_xlim(-0.5 * span_x, 0.5 * span_x)
+        axis.set_ylim(-0.5 * span_y, 0.5 * span_y)
+        axis.set_aspect("equal", adjustable="box")
+        axis.set_title(_comparison_title(layout), fontsize=9)
+        axis.grid(True, alpha=0.22)
+    figure.tight_layout()
+    return figure
+
+
+def _create_comparison_figure_3d(
+    layouts: list[CapacitorBankLayout],
+    comparison_settings_3d: dict[str, float],
+) -> Figure:
+    figure = Figure(figsize=(12.0, _comparison_figure_height(layouts, base_height=3.9)), dpi=120)
+    span_mm = comparison_settings_3d["shared_span_mm"]
+    height_mm = comparison_settings_3d["shared_height_mm"]
+    for index, layout in enumerate(layouts, start=1):
+        axis = figure.add_subplot(1, len(layouts), index, projection="3d")
+        _draw_baseplate(axis, layout)
+        for x_mm, y_mm in layout.positions_mm:
+            if layout.package_shape == "rectangular_box":
+                _draw_box(axis, x_mm, y_mm, layout)
+            elif layout.package_shape == "axial_cylindrical":
+                _draw_horizontal_cylinder(axis, x_mm, y_mm, layout)
+            else:
+                _draw_cylinder(axis, x_mm, y_mm, layout.can_diameter_mm, layout.can_height_mm)
+            _draw_terminals(axis, x_mm, y_mm, layout)
+        axis.set_title(_comparison_title(layout), fontsize=9)
+        axis.set_xlim(-0.5 * span_mm, 0.5 * span_mm)
+        axis.set_ylim(-0.5 * span_mm, 0.5 * span_mm)
+        axis.set_zlim(0.0, height_mm)
+        axis.view_init(elev=comparison_settings_3d.get("elev", 24.0), azim=comparison_settings_3d.get("azim", -42.0))
+        try:
+            axis.set_box_aspect((1, 1, height_mm / max(span_mm, 1e-9)))
+        except AttributeError:
+            pass
+    figure.tight_layout()
+    return figure
+
+
+def _draw_bank_top_view(axis, layout: CapacitorBankLayout) -> None:
+    body_width_mm = layout.body_width_mm or layout.can_diameter_mm
+    body_depth_mm = layout.body_depth_mm or layout.can_diameter_mm
+    radius_mm = 0.5 * layout.can_diameter_mm
+    axis.add_patch(
+        Rectangle(
+            (-0.5 * layout.footprint_width_mm, -0.5 * layout.footprint_depth_mm),
+            layout.footprint_width_mm,
+            layout.footprint_depth_mm,
+            fill=False,
+            linestyle="--",
+            linewidth=1.1,
+            edgecolor="#475569",
+        )
+    )
+    for index, (x_mm, y_mm) in enumerate(layout.positions_mm, start=1):
+        if layout.package_shape == "rectangular_box":
+            axis.add_patch(
+                Rectangle(
+                    (x_mm - 0.5 * body_width_mm, y_mm - 0.5 * body_depth_mm),
+                    body_width_mm,
+                    body_depth_mm,
+                    facecolor="#d9dee5",
+                    edgecolor="#1f2937",
+                    linewidth=1.0,
+                )
+            )
+        else:
+            axis.add_patch(Circle((x_mm, y_mm), radius_mm, facecolor="#d9dee5", edgecolor="#1f2937", linewidth=1.0))
+        axis.text(x_mm, y_mm, str(index), ha="center", va="center", fontsize=7, color="#111827")
+    axis.text(
+        0.02,
+        0.02,
+        f"N={layout.parallel_count}\nGrid={layout.grid_columns} x {layout.grid_rows}",
+        transform=axis.transAxes,
+        va="bottom",
+        ha="left",
+        fontsize=8,
+        bbox={"facecolor": "white", "edgecolor": "#cbd5e1", "alpha": 0.85},
+    )
+
+
+def _comparison_title(layout: CapacitorBankLayout) -> str:
+    if layout.caption_lines:
+        return "\n".join(layout.caption_lines)
+    return f"{layout.label}\n{layout.part_number}"
+
+
+def _comparison_figure_height(layouts: list[CapacitorBankLayout], *, base_height: float) -> float:
+    max_caption_lines = max((len(layout.caption_lines) for layout in layouts), default=0)
+    if max_caption_lines <= 2:
+        return base_height
+    return max(base_height, 6.2)
 
 
 def _draw_baseplate(axis, layout: CapacitorBankLayout) -> None:

@@ -198,7 +198,8 @@ def _build_geometry_target(*, registry, topology_id: str, scheme: SemiconductorS
     for role_layout in role_layouts:
         notes.append(
             f"Role {role_layout.role_name}: part={role_layout.part_number or '-'}, package={role_layout.package or '-'}, "
-            f"module_group_id={role_layout.module_group_id or '-'}."
+            f"positions={role_layout.topology_position_count}, parallel={role_layout.parallel_per_position}, "
+            f"total={role_layout.total_physical_device_count}, module_group_id={role_layout.module_group_id or '-'}."
         )
 
     return SemiconductorGeometryTarget(
@@ -454,7 +455,7 @@ def _build_role_layout(
             layout_loss,
             scheme_id=scheme.scheme_id,
             scheme_label=scheme.label,
-            parallel_count=scheme.parallel_count,
+            parallel_count=role_result.total_physical_device_count,
             case_id=case_id,
         )
     elif role_result.selected_part_number is not None:
@@ -473,7 +474,10 @@ def _build_role_layout(
         module_internal_topology=role_result.module_internal_topology,
         diode_subtype=role_result.diode_subtype,
         package=role_result.package,
-        quantity=scheme.parallel_count,
+        quantity=role_result.total_physical_device_count,
+        topology_position_count=role_result.topology_position_count,
+        parallel_per_position=scheme.parallel_count,
+        total_physical_device_count=role_result.total_physical_device_count,
         module_group_id=role_result.module_group_id,
         module_section_role=role_result.module_section_role,
         diode_binding_policy=role_result.diode_binding_policy,

@@ -52,9 +52,10 @@ Every actual migrated file was checked against source commit
 - AI/agentic code remains excluded. The legacy topology recommender and design
   checker remain in their Phase 3 state and are not part of the deterministic
   Phase 4 execution boundary.
-- `pipeline/run_magnetic_pipeline.py` was not replaced. The source 2.0 version
-  now orchestrates LLC, Flyback, PSFB, AC-DC reactor, and excitation-audit
-  paths; those pipeline integrations belong to Phase 5.
+- `pipeline/run_magnetic_pipeline.py` was not replaced during Phase 4. It was
+  migrated and adapted in the subsequent Phase 5 pipeline closure; future
+  LLC, Flyback, PSFB, and AC-DC branches remain optional until those topology
+  packages are migrated.
 
 ## Verification
 
@@ -69,13 +70,11 @@ Verification used the clean Python 3.12 environment created for Phase 2.
 | Complete target regression | 174 passed, 1 skipped, 2 failed in 528.62 seconds |
 | Phase 2/3 regression | Existing GUI/model/contract tests remain included in the complete regression |
 
-The two complete-regression failures are known Phase 5 integration gaps in
-`tests/test_default_packaged_normalized_magnetic_backend.py`. The target's
-legacy `run_magnetic_pipeline.py` calls the newly migrated engines but does not
-yet use the source 2.0 orchestration. It generates basic candidates, but the
-legacy pipeline's allow-screening leaves no selected Pareto design, so the
-downstream geometry assertions fail. This is recorded as a pipeline contract
-gap, not accepted as full magnetic pipeline parity.
+The two complete-regression failures recorded here were the known pre-Phase 5
+integration gaps in `tests/test_default_packaged_normalized_magnetic_backend.py`.
+They were resolved by the Phase 5 source-2.0 magnetic orchestration; the
+post-Phase 5 targeted regression for this file passed 5 tests with 1 explicit
+legacy-external-backend skip.
 
 During Phase 4 a small deterministic compatibility fix was added to preserve
 the export columns when a magnetic candidate frame is empty. The dedicated
@@ -90,7 +89,8 @@ regression test confirms that artifact export does not raise a pandas
 - Focused device, capacitor, magnetic, loss, thermal, and packaged-data tests
   pass.
 - Existing GUI and seven-topology tests continue to pass.
-- Known pipeline integration gaps are explicitly documented for Phase 5.
+- The pre-Phase 5 pipeline integration gaps are resolved and documented in
+  `migration/phase5/summary.md`.
 
 Phase 5 may start by migrating the deterministic pipeline orchestration and
 adapting its handoff contracts to the Phase 3 models and Phase 4 engines.

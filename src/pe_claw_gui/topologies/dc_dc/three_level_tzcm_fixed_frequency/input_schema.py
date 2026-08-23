@@ -43,6 +43,8 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
     """Parse and validate raw GUI inputs into a TZCM topology spec."""
     try:
         vin = float(raw_input["vin_nom"])
+        vin_min = float(raw_input.get("vin_min", vin))
+        vin_max = float(raw_input.get("vin_max", vin))
         vout = float(raw_input["vout_nom"])
         pout = float(raw_input["pout_nom"])
         fsw_khz = float(raw_input.get("fsw_khz", DEFAULT_FSW_HZ / 1e3))
@@ -55,8 +57,12 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
             raise ValueError(str(exc)) from exc
         raise ValueError("All TZCM design inputs must be valid numbers.") from exc
 
-    if vin <= 0.0 or vout <= 0.0:
+    if vin <= 0.0 or vin_min <= 0.0 or vin_max <= 0.0 or vout <= 0.0:
         raise ValueError("Vin nominal and Vout nominal must be positive.")
+    if vin_min > vin_max:
+        raise ValueError("Vin minimum must be less than or equal to Vin maximum.")
+    if not (vin_min <= vin <= vin_max):
+        raise ValueError("Vin nominal must fall within the Vin minimum/maximum range.")
     if pout <= 0.0:
         raise ValueError("Pout nominal must be positive.")
     fsw_hz = fsw_khz * 1e3
@@ -70,8 +76,8 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
     return TopologySpec(
         topology_id=TOPOLOGY_ID,
         display_name=DISPLAY_NAME,
-        vin_min=vin,
-        vin_max=vin,
+        vin_min=vin_min,
+        vin_max=vin_max,
         vout=vout,
         pout=pout,
         fs_khz=fsw_hz / 1e3,
@@ -82,6 +88,7 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
             merge_ambient_metadata(
                 {
                     "legacy_key": LEGACY_KEY,
+                    "vin_nom": vin,
                     "izvs": izvs,
                     "vout_ripple_ratio": vout_ripple_ratio,
                     "fsw_hz": fsw_hz,

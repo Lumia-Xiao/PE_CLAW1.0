@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 from ...models.capacitor import CapacitorBankLayout, CapacitorSelectionEntry
 
 _ROLE_LABELS = {
@@ -12,11 +14,12 @@ _ROLE_LABELS = {
 
 
 def build_capacitor_bank_layout(entry: CapacitorSelectionEntry, *, side: str, role: str) -> CapacitorBankLayout:
-    """Build a deterministic layout for one parallel capacitor bank."""
+    """Build a deterministic layout for one series/parallel capacitor bank."""
 
     candidate = entry.candidate
-    if entry.parallel_count < 1 or entry.parallel_count > 5:
-        raise ValueError("Capacitor geometry supports parallel counts from 1 to 5.")
+    total_count = entry.total_capacitor_count
+    if total_count < 1 or total_count > 20:
+        raise ValueError("Capacitor geometry supports total capacitor counts from 1 to 20.")
     if candidate.diameter_mm <= 0.0 or candidate.height_mm <= 0.0:
         raise ValueError(f"Capacitor {candidate.part_number} is missing positive diameter/height dimensions.")
 
@@ -26,7 +29,7 @@ def build_capacitor_bank_layout(entry: CapacitorSelectionEntry, *, side: str, ro
     max_body_span_mm = max(body_width_mm, body_depth_mm)
     spacing_mm = max(8.0, 0.10 * max_body_span_mm)
     pitch_mm = max_body_span_mm + spacing_mm
-    positions = _positions_for_parallel_count(entry.parallel_count, pitch_mm)
+    positions, grid_columns, grid_rows = _positions_for_capacitor_count(total_count, pitch_mm)
     xs = [position[0] for position in positions]
     ys = [position[1] for position in positions]
     footprint_width_mm = (max(xs) - min(xs)) + body_width_mm
@@ -57,6 +60,9 @@ def build_capacitor_bank_layout(entry: CapacitorSelectionEntry, *, side: str, ro
         label=_ROLE_LABELS.get(role, role.replace("_", "-").title()),
         part_number=candidate.part_number,
         parallel_count=entry.parallel_count,
+        series_count=entry.series_count,
+        total_capacitor_count=total_count,
+        bank_voltage_rating_dc_v=entry.bank_voltage_rating_dc_v,
         capacitance_f=candidate.capacitance_f,
         equivalent_capacitance_f=entry.equivalent_capacitance_f,
         total_loss_w=entry.p_total_w,
@@ -75,33 +81,33 @@ def build_capacitor_bank_layout(entry: CapacitorSelectionEntry, *, side: str, ro
         terminal_pitch_secondary_mm=terminal_pitch_secondary_mm,
         terminal_type=candidate.terminal_type,
         positions_mm=positions,
+        grid_columns=grid_columns,
+        grid_rows=grid_rows,
         body_width_mm=body_width_mm,
         body_depth_mm=body_depth_mm,
         body_height_mm=body_height_mm,
+        caption_lines=[_ROLE_LABELS.get(role, role.replace("_", "-").title()), f"S={entry.series_count}, P={entry.parallel_count}"],
         notes=notes,
     )
 
 
-def _positions_for_parallel_count(parallel_count: int, pitch_mm: float) -> list[tuple[float, float]]:
-    if parallel_count == 1:
-        return [(0.0, 0.0)]
-    if parallel_count == 2:
-        return [(-0.5 * pitch_mm, 0.0), (0.5 * pitch_mm, 0.0)]
-    if parallel_count == 3:
-        return [(-pitch_mm, 0.0), (0.0, 0.0), (pitch_mm, 0.0)]
-    if parallel_count == 4:
-        return [
-            (-0.5 * pitch_mm, -0.5 * pitch_mm),
-            (0.5 * pitch_mm, -0.5 * pitch_mm),
-            (-0.5 * pitch_mm, 0.5 * pitch_mm),
-            (0.5 * pitch_mm, 0.5 * pitch_mm),
-        ]
-    if parallel_count == 5:
-        return [
-            (-pitch_mm, -0.5 * pitch_mm),
-            (0.0, -0.5 * pitch_mm),
-            (pitch_mm, -0.5 * pitch_mm),
-            (-0.5 * pitch_mm, 0.5 * pitch_mm),
-            (0.5 * pitch_mm, 0.5 * pitch_mm),
-        ]
-    raise ValueError("Capacitor geometry supports parallel counts from 1 to 5.")
+def _positions_for_capacitor_count(capacitor_count: int, pitch_mm: float) -> tuple[list[tuple[float, float]], int, int]:
+    if capacitor_count < 1 or capacitor_count > 20:
+        raise ValueError("Capacitor geometry supports total capacitor counts from 1 to 20.")
+    if capacitor_count <= 4:
+        columns = capacitor_count
+    elif capacitor_count <= 8:
+        columns = 4
+    elif capacitor_count <= 12:
+        columns = 4
+    else:
+        columns = min(5, math.ceil(math.sqrt(capacitor_count)))
+    rows = math.ceil(capacitor_count / columns)
+    positions: list[tuple[float, float]] = []
+    for index in range(capacitor_count):
+        row = index // columns
+        column = index % columns
+        x_mm = (column - 0.5 * (columns - 1)) * pitch_mm
+        y_mm = (row - 0.5 * (rows - 1)) * pitch_mm
+        positions.append((x_mm, y_mm))
+    return positions, columns, rows

@@ -16,7 +16,7 @@ from .mode import (
 
 def synthesize(spec: TopologySpec) -> TopologyCandidate:
     """Synthesize the fixed-frequency TZCM design point from the GUI inputs."""
-    vin = spec.vin_min
+    vin = float(spec.metadata.get("vin_nom", spec.vin_min))
     vout = spec.vout
     pout = spec.pout
     izvs = float(spec.metadata["izvs"])
@@ -127,8 +127,8 @@ def synthesize(spec: TopologySpec) -> TopologyCandidate:
     return TopologyCandidate(
         topology_id=spec.topology_id,
         display_name=spec.display_name,
-        vin_min=vin,
-        vin_max=vin,
+        vin_min=spec.vin_min,
+        vin_max=spec.vin_max,
         vin_nom=vin,
         vout_target=vout,
         pout_target=pout,

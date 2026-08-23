@@ -12,6 +12,7 @@ from ..engines.thermal.thermal_estimator import (
 from ..models.design_report import DesignReport
 from ..models.thermal_result import ThermalComparisonEntry, ThermalResult
 from .options import MAGNETIC_STAGE_DISABLED_NOTE, MAGNETIC_THERMAL_DISABLED_NOTE, PipelineOptions, resolve_pipeline_options
+from ..engines.magnetics.core_loss_audit import core_loss_is_comparable
 
 
 def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions | None = None) -> DesignReport:
@@ -22,6 +23,31 @@ def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions
             ambient_temp_c=resolve_ambient_temperature_c(report),
             summary=MAGNETIC_THERMAL_DISABLED_NOTE,
             notes=[MAGNETIC_STAGE_DISABLED_NOTE],
+        )
+        return replace(report, thermal=thermal_result)
+
+    if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
+        thermal_result = ThermalResult(
+            ambient_temp_c=resolve_ambient_temperature_c(report),
+            summary="LLC transformer thermal screening is reported on the Magnetics page.",
+            notes=[
+                "The separated LLC transformer screening includes a first-pass hotspot estimate.",
+                "The fixed-inductor thermal comparison stage is not applied to LLC transformer candidates.",
+            ],
+        )
+        return replace(report, thermal=thermal_result)
+
+    if report.magnetic is not None and report.magnetic.result_type == "ac_dc_sendust_reactor":
+        selection = report.magnetic.ac_dc_reactor_result
+        selected = selection.selected_candidate if selection is not None else None
+        thermal_result = ThermalResult(
+            ambient_temp_c=resolve_ambient_temperature_c(report),
+            recommended_design_id=selected.candidate_id if selected is not None else None,
+            summary="AC-DC Sendust reactor thermal model is pending; loss and geometry proxy data are reported in Magnetics.",
+            notes=[
+                "AC-DC Sendust reactor selection produced design-point copper/core loss, but a calibrated low-frequency toroid thermal model is not implemented yet.",
+                "Do not interpret this stage as a final choke temperature rise estimate.",
+            ],
         )
         return replace(report, thermal=thermal_result)
 
@@ -46,6 +72,9 @@ def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions
         )
         for design in report.magnetic.chosen_designs
     ]
+    all_entries = [*chosen_design_estimates]
+    valid_loss_entry_count = sum(entry.estimate is not None for entry in all_entries)
+    unavailable_loss_entry_count = len(all_entries) - valid_loss_entry_count
 
     best_by_stack_count: dict[int, ThermalComparisonEntry] = {}
     for stack_count, design in report.magnetic.best_by_stack_count.items():
@@ -99,6 +128,9 @@ def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions
         best_by_stack_count=best_by_stack_count,
         artifact_paths=artifact_paths,
         notes=notes,
+        status="valid" if valid_loss_entry_count else "unavailable",
+        valid_loss_entry_count=valid_loss_entry_count,
+        unavailable_loss_entry_count=unavailable_loss_entry_count,
     )
     return replace(report, thermal=thermal_result)
 
