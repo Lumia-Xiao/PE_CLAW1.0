@@ -206,6 +206,8 @@ command_duty = effective_duty + duty_loss
 
 ### 第 4 步：运行 PSFB 专项回归
 
+状态：`completed`（2026-08-24）
+
 #### 工作内容
 
 1. 运行 PSFB 7 个工况。
@@ -227,6 +229,33 @@ command_duty = effective_duty + duty_loss
 完成验证后创建独立 commit 并 push，commit message 必须包含：
 
 `PSFB Step 4: pass topology regression`
+
+第 4 步已完成。已对 `07_psfb_diode` 的 7 个工况执行 PSFB 专项回归，
+并对 duty 顺序、duty-loss 恒等式、NaN/Inf、primary-current 时间分区、
+固定硬件 checksum 和 c02 boundary 状态转换进行量化检查。差异分类仅限
+PSFB operating duty policy、primary-current、waveform 和 stress refresh。
+
+第 4 步专项验证：
+
+- 回归脚本：`scripts/validate_psfb_step4_regression.py`
+- 回归证据：`Plan/active/psfb_duty_policy_20260824/psfb_step4_regression_results.json`
+- 回归结果：`7/7 executed`、`0 boundary failure`、`0 execution error`
+- c02 状态转换：`boundary_failure -> executed`
+- 所有 duty 和派生数值：有限值，无 NaN/Inf
+- primary-current 时间分区：7/7 个工况均满足三段时间之和等于半周期
+- fixed-hardware checksum：7 个工况共享 1 个 checksum
+- 专项测试命令：`$env:PYTHONPATH='src'; python -m pytest -q tests/test_psfb_step4_regression.py tests/test_psfb_duty_policy.py tests/test_psfb_duty_policy_baseline.py`
+- 专项测试结果：`13 passed`
+- PSFB contract 测试：`1 passed, 20 deselected`
+- 编译检查：通过
+- `git diff --check`：通过
+
+### 第 4 步提交与同步记录
+
+- 实现与回归证据 commit：`7bd3a91`（`PSFB Step 4: pass topology regression`）
+- 远端分支：`origin/codex/sync-gui-backend-from-2`
+- 实现 push 结果：成功
+- 计划记录 commit：待本次记录提交后填写
 
 ---
 
