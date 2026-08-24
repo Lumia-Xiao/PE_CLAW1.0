@@ -1,0 +1,3867 @@
+{
+  "contract_version": "pe_claw_fixed_hardware_snapshot_v1",
+  "records": [
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 6.758400000000001e-05,
+        "candidate.capacitance_f": 1.6276041666666663e-05,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "G3F25MT06L",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "2f935506c8e3f4f71334180a260dac301f6cd44d5455c21d75c606f764a79c7c",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "bdb93d2a3c0c6a27bbf9ecf01bad68744823c9d6bbd86aa27d2b05d612b1da42"
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 6.758400000000001e-05,
+        "candidate.capacitance_f": 1.6276041666666663e-05,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "G3F25MT06L",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "2f935506c8e3f4f71334180a260dac301f6cd44d5455c21d75c606f764a79c7c",
+      "operating_point_input": {
+        "vin_v": 320.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "60e4ca80519b7d3eb5bd69f4d917371cb791e76f9096d50bcb11dda376b36950"
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 6.758400000000001e-05,
+        "candidate.capacitance_f": 1.6276041666666663e-05,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "G3F25MT06L",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "2f935506c8e3f4f71334180a260dac301f6cd44d5455c21d75c606f764a79c7c",
+      "operating_point_input": {
+        "vin_v": 480.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "dc6ed78ee206c7a81cc86159dd0b7ef2164ec5f1cad22321866356b87db1a027"
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 6.758400000000001e-05,
+        "candidate.capacitance_f": 1.6276041666666663e-05,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "G3F25MT06L",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "2f935506c8e3f4f71334180a260dac301f6cd44d5455c21d75c606f764a79c7c",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 0.2,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "0af3e0b7c372811de0f4f3706579203d1ea506ba3fc6cb4bc414070f175fef46"
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 6.758400000000001e-05,
+        "candidate.capacitance_f": 1.6276041666666663e-05,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "G3F25MT06L",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "2f935506c8e3f4f71334180a260dac301f6cd44d5455c21d75c606f764a79c7c",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "relaxed_validation_ripple_requirement",
+        "line_frequency_hz": null,
+        "case_id": "c05_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "f57479707df2d425965f5da44cf6fc6aee7306cba69129427a8422898328c9b3"
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0009654857142857145,
+        "candidate.capacitance_f": 1.6276041666666663e-06,
+        "candidate.fs_hz": 50000.0,
+        "candidate.vin_nom": 700.0,
+        "candidate.vout_target": 480.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "ccm_negative_current_allowed",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "sync_switch": "G3F25MT12K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "deff37272f19e0711634b57cedf8483a42daa7d47e7f48f7011bc0c5ff04e4d3",
+      "operating_point_input": {
+        "vin_v": 700.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 50000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "273382b6edc737e2d4dd6021b6ecaf0714aa921848e453ded3ecd7977f6bef62"
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0009654857142857145,
+        "candidate.capacitance_f": 1.6276041666666663e-06,
+        "candidate.fs_hz": 50000.0,
+        "candidate.vin_nom": 700.0,
+        "candidate.vout_target": 480.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "ccm_negative_current_allowed",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "sync_switch": "G3F25MT12K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "deff37272f19e0711634b57cedf8483a42daa7d47e7f48f7011bc0c5ff04e4d3",
+      "operating_point_input": {
+        "vin_v": 600.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 50000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "c9fa56da8cb1f5213f5ae0fd88b0da3625fb1f422f7be9e8dadd0e59402c0003"
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0009654857142857145,
+        "candidate.capacitance_f": 1.6276041666666663e-06,
+        "candidate.fs_hz": 50000.0,
+        "candidate.vin_nom": 700.0,
+        "candidate.vout_target": 480.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "ccm_negative_current_allowed",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "sync_switch": "G3F25MT12K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "deff37272f19e0711634b57cedf8483a42daa7d47e7f48f7011bc0c5ff04e4d3",
+      "operating_point_input": {
+        "vin_v": 800.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 50000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "60ce4d35df65d36b0532fb57e0dc4bb0006b60114b00fa9d6370f20f31355903"
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0009654857142857145,
+        "candidate.capacitance_f": 1.6276041666666663e-06,
+        "candidate.fs_hz": 50000.0,
+        "candidate.vin_nom": 700.0,
+        "candidate.vout_target": 480.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "ccm_negative_current_allowed",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "sync_switch": "G3F25MT12K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "deff37272f19e0711634b57cedf8483a42daa7d47e7f48f7011bc0c5ff04e4d3",
+      "operating_point_input": {
+        "vin_v": 700.0,
+        "load_ratio": 0.2,
+        "power_factor": null,
+        "switching_frequency_hz": 50000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "3190f6f23d0bf2326e9d1820ee0760a6000c5d3c04324b9c16dbdecf1f40ab09"
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0009654857142857145,
+        "candidate.capacitance_f": 1.6276041666666663e-06,
+        "candidate.fs_hz": 50000.0,
+        "candidate.vin_nom": 700.0,
+        "candidate.vout_target": 480.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "ccm_negative_current_allowed",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "sync_switch": "G3F25MT12K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "deff37272f19e0711634b57cedf8483a42daa7d47e7f48f7011bc0c5ff04e4d3",
+      "operating_point_input": {
+        "vin_v": 700.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 50000.0,
+        "ripple_target": "relaxed_validation_ripple_requirement",
+        "line_frequency_hz": null,
+        "case_id": "c05_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "e5d4a59388af3f4774b1f4d4ccab9b93046dfa670a3d9431876c775499c86f7d"
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.001171875,
+        "candidate.capacitance_f": 2.44140625e-06,
+        "candidate.fs_hz": 80000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 800.0,
+        "candidate.pout_target": 2000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "rectifier_diode": "CBB032M12FM3_BODY_DIODE"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "538fd0c414df7060a56dffa218600b99d89a35b89d2d0192af587230478d80cc",
+      "operating_point_input": {
+        "vin_v": 300.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 80000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "914d329519989099708d6e8f5818106aba244661c6958f5e9af460a710c94ed2"
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.001171875,
+        "candidate.capacitance_f": 2.44140625e-06,
+        "candidate.fs_hz": 80000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 800.0,
+        "candidate.pout_target": 2000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "rectifier_diode": "CBB032M12FM3_BODY_DIODE"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "538fd0c414df7060a56dffa218600b99d89a35b89d2d0192af587230478d80cc",
+      "operating_point_input": {
+        "vin_v": 200.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 80000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "5fe1c5d00a8219902dadfe2ef0bdcefe31193bf573b11d8edddbfcbb4d34d743"
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.001171875,
+        "candidate.capacitance_f": 2.44140625e-06,
+        "candidate.fs_hz": 80000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 800.0,
+        "candidate.pout_target": 2000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "rectifier_diode": "CBB032M12FM3_BODY_DIODE"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "538fd0c414df7060a56dffa218600b99d89a35b89d2d0192af587230478d80cc",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 80000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "bc646e7db8b7a0f46d49334292b8ac8d9f8f3c59a1c35815b85128966f54880d"
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.001171875,
+        "candidate.capacitance_f": 2.44140625e-06,
+        "candidate.fs_hz": 80000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 800.0,
+        "candidate.pout_target": 2000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "rectifier_diode": "CBB032M12FM3_BODY_DIODE"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "538fd0c414df7060a56dffa218600b99d89a35b89d2d0192af587230478d80cc",
+      "operating_point_input": {
+        "vin_v": 300.0,
+        "load_ratio": 0.2,
+        "power_factor": null,
+        "switching_frequency_hz": 80000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "b55093b8c4fa1f763f90cab96de472638085b9f670cc16b0b2e3fdaa31e68c83"
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.001171875,
+        "candidate.capacitance_f": 2.44140625e-06,
+        "candidate.fs_hz": 80000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 800.0,
+        "candidate.pout_target": 2000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "rectifier_diode": "CBB032M12FM3_BODY_DIODE"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "538fd0c414df7060a56dffa218600b99d89a35b89d2d0192af587230478d80cc",
+      "operating_point_input": {
+        "vin_v": 300.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 80000.0,
+        "ripple_target": "relaxed_validation_ripple_requirement",
+        "line_frequency_hz": null,
+        "case_id": "c05_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "f22cfc3103863fd154d28824f6abb6144a18a10f70a5bcb3684efe00557a6346"
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.001171875,
+        "candidate.capacitance_f": 2.44140625e-06,
+        "candidate.fs_hz": 80000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 800.0,
+        "candidate.pout_target": 2000.0,
+        "candidate.mode_capable": "ccm_negative_current_allowed",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "sync_switch": "G3F34MT12K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "16b39b4dc9783bde9d3656e456cea5901ef8137fe37baf7afb6688b85ab114c8",
+      "operating_point_input": {
+        "vin_v": 300.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 80000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "914d329519989099708d6e8f5818106aba244661c6958f5e9af460a710c94ed2"
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.001171875,
+        "candidate.capacitance_f": 2.44140625e-06,
+        "candidate.fs_hz": 80000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 800.0,
+        "candidate.pout_target": 2000.0,
+        "candidate.mode_capable": "ccm_negative_current_allowed",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "sync_switch": "G3F34MT12K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "16b39b4dc9783bde9d3656e456cea5901ef8137fe37baf7afb6688b85ab114c8",
+      "operating_point_input": {
+        "vin_v": 200.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 80000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "5fe1c5d00a8219902dadfe2ef0bdcefe31193bf573b11d8edddbfcbb4d34d743"
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.001171875,
+        "candidate.capacitance_f": 2.44140625e-06,
+        "candidate.fs_hz": 80000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 800.0,
+        "candidate.pout_target": 2000.0,
+        "candidate.mode_capable": "ccm_negative_current_allowed",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "sync_switch": "G3F34MT12K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "16b39b4dc9783bde9d3656e456cea5901ef8137fe37baf7afb6688b85ab114c8",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 80000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "bc646e7db8b7a0f46d49334292b8ac8d9f8f3c59a1c35815b85128966f54880d"
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.001171875,
+        "candidate.capacitance_f": 2.44140625e-06,
+        "candidate.fs_hz": 80000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 800.0,
+        "candidate.pout_target": 2000.0,
+        "candidate.mode_capable": "ccm_negative_current_allowed",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "sync_switch": "G3F34MT12K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "16b39b4dc9783bde9d3656e456cea5901ef8137fe37baf7afb6688b85ab114c8",
+      "operating_point_input": {
+        "vin_v": 300.0,
+        "load_ratio": 0.2,
+        "power_factor": null,
+        "switching_frequency_hz": 80000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "b55093b8c4fa1f763f90cab96de472638085b9f670cc16b0b2e3fdaa31e68c83"
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.001171875,
+        "candidate.capacitance_f": 2.44140625e-06,
+        "candidate.fs_hz": 80000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 800.0,
+        "candidate.pout_target": 2000.0,
+        "candidate.mode_capable": "ccm_negative_current_allowed",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "sync_switch": "G3F34MT12K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "16b39b4dc9783bde9d3656e456cea5901ef8137fe37baf7afb6688b85ab114c8",
+      "operating_point_input": {
+        "vin_v": 300.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 80000.0,
+        "ripple_target": "relaxed_validation_ripple_requirement",
+        "line_frequency_hz": null,
+        "case_id": "c05_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "f22cfc3103863fd154d28824f6abb6144a18a10f70a5bcb3684efe00557a6346"
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 5.7074910820451846e-05,
+        "candidate.capacitance_f": 5.986590038314176e-05,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "IPDQ65R008CM8",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "cd36b71ab38222360efa0ce98a7fb993ec738c2711f924446be33b4350ef6954",
+      "operating_point_input": {
+        "vin_v": 300.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "581bfac42a800221fb0df7617d84ff5068431a54bd2fe8737a4a83132eff2b91"
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 5.7074910820451846e-05,
+        "candidate.capacitance_f": 5.986590038314176e-05,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "IPDQ65R008CM8",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "cd36b71ab38222360efa0ce98a7fb993ec738c2711f924446be33b4350ef6954",
+      "operating_point_input": {
+        "vin_v": 200.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "a4d6dbe1bad87f52eddd007cf20bfcc761576579a7c7fb1e628775a9a5c2a485"
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 5.7074910820451846e-05,
+        "candidate.capacitance_f": 5.986590038314176e-05,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "IPDQ65R008CM8",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "cd36b71ab38222360efa0ce98a7fb993ec738c2711f924446be33b4350ef6954",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "6a8c8226c7b74d42d715bd4ff7038179a65a57c3e3120461cf6d516d569b01d5"
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 5.7074910820451846e-05,
+        "candidate.capacitance_f": 5.986590038314176e-05,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "IPDQ65R008CM8",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "cd36b71ab38222360efa0ce98a7fb993ec738c2711f924446be33b4350ef6954",
+      "operating_point_input": {
+        "vin_v": 300.0,
+        "load_ratio": 0.2,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "afd6258038591d9cbca318ac9273c2cd67b96956858b38c18a86347af319f22c"
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 5.7074910820451846e-05,
+        "candidate.capacitance_f": 5.986590038314176e-05,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 300.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_dcm",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "IPDQ65R008CM8",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "cd36b71ab38222360efa0ce98a7fb993ec738c2711f924446be33b4350ef6954",
+      "operating_point_input": {
+        "vin_v": 300.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "relaxed_validation_ripple_requirement",
+        "line_frequency_hz": null,
+        "case_id": "c05_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "e139666bd1bb77bbe4447d0ff8226301c702325456bb6e34dc6dcf3e84503422"
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "flyback_diode_rectified_isolated",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0021432599999999997,
+        "candidate.capacitance_f": 2.05078125e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 450.0,
+        "candidate.vout_target": 320.0,
+        "candidate.pout_target": 500.0,
+        "candidate.mode_capable": "bcm_dcm_ccm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "72e3a8d8c2615cabeeb9cd9cc617985dc87726fc83541ce5663c868a8c958665",
+      "operating_point_input": {
+        "vin_v": 450.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "9809fee8966974ffa9d39a577d2b301bb0dba153e684194663f87c23bfad0fd2"
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "flyback_diode_rectified_isolated",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0021432599999999997,
+        "candidate.capacitance_f": 2.05078125e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 450.0,
+        "candidate.vout_target": 320.0,
+        "candidate.pout_target": 500.0,
+        "candidate.mode_capable": "bcm_dcm_ccm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "72e3a8d8c2615cabeeb9cd9cc617985dc87726fc83541ce5663c868a8c958665",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "115349c681ace76d8f7581740c0e3609d03b1f59b2f4ee9e6ab9c8fe95ef0063"
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "flyback_diode_rectified_isolated",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0021432599999999997,
+        "candidate.capacitance_f": 2.05078125e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 450.0,
+        "candidate.vout_target": 320.0,
+        "candidate.pout_target": 500.0,
+        "candidate.mode_capable": "bcm_dcm_ccm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "72e3a8d8c2615cabeeb9cd9cc617985dc87726fc83541ce5663c868a8c958665",
+      "operating_point_input": {
+        "vin_v": 500.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "a2b1546a0c9a875ea8da5efed5beb54fd8309a59b9b4879ac5903228bbab985c"
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "flyback_diode_rectified_isolated",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0021432599999999997,
+        "candidate.capacitance_f": 2.05078125e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 450.0,
+        "candidate.vout_target": 320.0,
+        "candidate.pout_target": 500.0,
+        "candidate.mode_capable": "bcm_dcm_ccm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "72e3a8d8c2615cabeeb9cd9cc617985dc87726fc83541ce5663c868a8c958665",
+      "operating_point_input": {
+        "vin_v": 450.0,
+        "load_ratio": 0.2,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "c4b36ba1e22aac63c45891babfce9532046032621070d4f11ecfd5687ee10c84"
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "flyback_diode_rectified_isolated",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0021432599999999997,
+        "candidate.capacitance_f": 2.05078125e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 450.0,
+        "candidate.vout_target": 320.0,
+        "candidate.pout_target": 500.0,
+        "candidate.mode_capable": "bcm_dcm_ccm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CBB032M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "72e3a8d8c2615cabeeb9cd9cc617985dc87726fc83541ce5663c868a8c958665",
+      "operating_point_input": {
+        "vin_v": 450.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "relaxed_validation_ripple_requirement",
+        "line_frequency_hz": null,
+        "case_id": "c05_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "9d07e0a375ff4395d75ee830294613a4f23c298141e1b79322290ed4f8621899"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0003505688639999999,
+        "candidate.capacitance_f": 1.171875e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 750.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "fixed_frequency_phase_shift_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "operating_point_input": {
+        "vin_v": 750.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": 1.0,
+        "line_frequency_hz": null,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "3214b739bda7b71057429dbcd4835b28feab93d352bf3bf6a03110887eb2c912"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0003505688639999999,
+        "candidate.capacitance_f": 1.171875e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 750.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "fixed_frequency_phase_shift_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "operating_point_input": {
+        "vin_v": 650.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": 1.0,
+        "line_frequency_hz": null,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "0f29d368d9f229c7981c854ff4fa4bcb3f39cfee69e2c04404438e4bdeb60e90"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0003505688639999999,
+        "candidate.capacitance_f": 1.171875e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 750.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "fixed_frequency_phase_shift_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "operating_point_input": {
+        "vin_v": 850.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": 1.0,
+        "line_frequency_hz": null,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "0c41a91a31637eb9f796fea557dc6659d7ee6804245501af6757b7d361e7a339"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0003505688639999999,
+        "candidate.capacitance_f": 1.171875e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 750.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "fixed_frequency_phase_shift_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "operating_point_input": {
+        "vin_v": 750.0,
+        "load_ratio": 0.2,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": 1.0,
+        "line_frequency_hz": null,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "8d71a5bca7be5d5263346dff9fd771075c93939f8e659b3d7a85c3229bef94c0"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0003505688639999999,
+        "candidate.capacitance_f": 1.171875e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 750.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "fixed_frequency_phase_shift_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "operating_point_input": {
+        "vin_v": 750.0,
+        "load_ratio": 0.1,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": 1.0,
+        "line_frequency_hz": null,
+        "case_id": "c05_nominal_very_light_load_10pct"
+      },
+      "operating_point_input_checksum": "165416528ee3380d50625104a681d8c265fafb12423578a5c2c4b167e33c315e"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "classification": "frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0003505688639999999,
+        "candidate.capacitance_f": 1.171875e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 750.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "fixed_frequency_phase_shift_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "operating_point_input": {
+        "vin_v": 750.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 150000.0,
+        "ripple_target": 1.0,
+        "line_frequency_hz": null,
+        "case_id": "c06_nominal_high_frequency"
+      },
+      "operating_point_input_checksum": "b16ab5dc7c4c3216e2cc1646e4d53b0bf8f799e2ffed0be6189b8c526e8d8a92"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c07_nominal_high_ripple",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0003505688639999999,
+        "candidate.capacitance_f": 1.171875e-06,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 750.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 5000.0,
+        "candidate.mode_capable": "fixed_frequency_phase_shift_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "operating_point_input": {
+        "vin_v": 750.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "relaxed_validation_ripple_requirement",
+        "line_frequency_hz": null,
+        "case_id": "c07_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "8d84fd24bff6a7c33f1b60ebc076206f8e9e95e2c61bab39f261366bd8a88cd8"
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 8.718750812533417e-05,
+        "candidate.capacitance_f": 2.0175462803630594e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4050KE",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "a5efb0c786011cd0630ba6274bb780b439bbdd2a4d29afc10dabc8f4c5fcd09c",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "753fcef24feefdb45a19c6493bca776d5925da9a0d963c87f5cc85a6249ff2fd"
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware",
+      "hardware_design_case_id": "c01_nominal_full_load",
+      "hardware_snapshot": {
+        "candidate.inductance_h": 8.718750812533417e-05,
+        "candidate.capacitance_f": 2.0175462803630594e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4050KE",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "a5efb0c786011cd0630ba6274bb780b439bbdd2a4d29afc10dabc8f4c5fcd09c",
+      "operating_point_input": {
+        "vin_v": 360.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "b65ac69a23ab4f84f5acbf9382e5e18c9d2492c5e4016e1ee76941ae4defd2ac"
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware",
+      "hardware_design_case_id": "c01_nominal_full_load",
+      "hardware_snapshot": {
+        "candidate.inductance_h": 8.718750812533417e-05,
+        "candidate.capacitance_f": 2.0175462803630594e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4050KE",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "a5efb0c786011cd0630ba6274bb780b439bbdd2a4d29afc10dabc8f4c5fcd09c",
+      "operating_point_input": {
+        "vin_v": 420.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "99e11976d6d3582c57212c81577084ed7c1a291dde68c9dc089ac123134efd57"
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware",
+      "hardware_design_case_id": "c01_nominal_full_load",
+      "hardware_snapshot": {
+        "candidate.inductance_h": 8.718750812533417e-05,
+        "candidate.capacitance_f": 2.0175462803630594e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4050KE",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "a5efb0c786011cd0630ba6274bb780b439bbdd2a4d29afc10dabc8f4c5fcd09c",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 0.2,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "d05374d1e514db325a755e779dbbc9a189fc39345c53fc73faffbfdbeac324ea"
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware",
+      "hardware_design_case_id": "c01_nominal_full_load",
+      "hardware_snapshot": {
+        "candidate.inductance_h": 8.718750812533417e-05,
+        "candidate.capacitance_f": 2.0175462803630594e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4050KE",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "a5efb0c786011cd0630ba6274bb780b439bbdd2a4d29afc10dabc8f4c5fcd09c",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 0.1,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c05_nominal_very_light_load_10pct"
+      },
+      "operating_point_input_checksum": "6510c2b9af340e3874f9f6d590b67b9a34fcfe49fe29c98b7da65a414189b4e1"
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware",
+      "hardware_design_case_id": "c01_nominal_full_load",
+      "hardware_snapshot": {
+        "candidate.inductance_h": 8.718750812533417e-05,
+        "candidate.capacitance_f": 2.0175462803630594e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4050KE",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "a5efb0c786011cd0630ba6274bb780b439bbdd2a4d29afc10dabc8f4c5fcd09c",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 180000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c06_nominal_high_frequency"
+      },
+      "operating_point_input_checksum": "d44896512e0064cbc4c8585b4b8f88fce9d305f3f1dc22934db7e90d96acafa6"
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c07_nominal_relaxed_ripple",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 8.718750812533417e-05,
+        "candidate.capacitance_f": 2.0175462803630594e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4050KE",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "a5efb0c786011cd0630ba6274bb780b439bbdd2a4d29afc10dabc8f4c5fcd09c",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "relaxed_validation_ripple_requirement",
+        "line_frequency_hz": null,
+        "case_id": "c07_nominal_relaxed_ripple"
+      },
+      "operating_point_input_checksum": "99c48f0a41a12991f3c54717839c94c6ef6c2e7e6e6fffe244d3eda67119f628"
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 2.1796877031333543e-05,
+        "candidate.capacitance_f": 8.070185121452238e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB530M12BM3",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "14f658dd70d97e4b5239af39bc1d99b490a690e48f9e0616067cdfede7485976",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "753fcef24feefdb45a19c6493bca776d5925da9a0d963c87f5cc85a6249ff2fd"
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware",
+      "hardware_design_case_id": "c01_nominal_full_load",
+      "hardware_snapshot": {
+        "candidate.inductance_h": 2.1796877031333543e-05,
+        "candidate.capacitance_f": 8.070185121452238e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB530M12BM3",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "14f658dd70d97e4b5239af39bc1d99b490a690e48f9e0616067cdfede7485976",
+      "operating_point_input": {
+        "vin_v": 360.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "b65ac69a23ab4f84f5acbf9382e5e18c9d2492c5e4016e1ee76941ae4defd2ac"
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware",
+      "hardware_design_case_id": "c01_nominal_full_load",
+      "hardware_snapshot": {
+        "candidate.inductance_h": 2.1796877031333543e-05,
+        "candidate.capacitance_f": 8.070185121452238e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB530M12BM3",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "14f658dd70d97e4b5239af39bc1d99b490a690e48f9e0616067cdfede7485976",
+      "operating_point_input": {
+        "vin_v": 420.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "99e11976d6d3582c57212c81577084ed7c1a291dde68c9dc089ac123134efd57"
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware",
+      "hardware_design_case_id": "c01_nominal_full_load",
+      "hardware_snapshot": {
+        "candidate.inductance_h": 2.1796877031333543e-05,
+        "candidate.capacitance_f": 8.070185121452238e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB530M12BM3",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "14f658dd70d97e4b5239af39bc1d99b490a690e48f9e0616067cdfede7485976",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 0.2,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "d05374d1e514db325a755e779dbbc9a189fc39345c53fc73faffbfdbeac324ea"
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware",
+      "hardware_design_case_id": "c01_nominal_full_load",
+      "hardware_snapshot": {
+        "candidate.inductance_h": 2.1796877031333543e-05,
+        "candidate.capacitance_f": 8.070185121452238e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB530M12BM3",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "14f658dd70d97e4b5239af39bc1d99b490a690e48f9e0616067cdfede7485976",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 0.1,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c05_nominal_very_light_load_10pct"
+      },
+      "operating_point_input_checksum": "6510c2b9af340e3874f9f6d590b67b9a34fcfe49fe29c98b7da65a414189b4e1"
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware",
+      "hardware_design_case_id": "c01_nominal_full_load",
+      "hardware_snapshot": {
+        "candidate.inductance_h": 2.1796877031333543e-05,
+        "candidate.capacitance_f": 8.070185121452238e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB530M12BM3",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "14f658dd70d97e4b5239af39bc1d99b490a690e48f9e0616067cdfede7485976",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 180000.0,
+        "ripple_target": "1_percent_output_voltage_first_pass",
+        "line_frequency_hz": null,
+        "case_id": "c06_nominal_high_frequency"
+      },
+      "operating_point_input_checksum": "d44896512e0064cbc4c8585b4b8f88fce9d305f3f1dc22934db7e90d96acafa6"
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c07_nominal_relaxed_ripple",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 2.1796877031333543e-05,
+        "candidate.capacitance_f": 8.070185121452238e-08,
+        "candidate.fs_hz": 120000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 48.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "fha",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB530M12BM3",
+          "rectifier_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "14f658dd70d97e4b5239af39bc1d99b490a690e48f9e0616067cdfede7485976",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 120000.0,
+        "ripple_target": "relaxed_validation_ripple_requirement",
+        "line_frequency_hz": null,
+        "case_id": "c07_nominal_relaxed_ripple"
+      },
+      "operating_point_input_checksum": "99c48f0a41a12991f3c54717839c94c6ef6c2e7e6e6fffe244d3eda67119f628"
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0,
+        "candidate.capacitance_f": 0.0019036294485224791,
+        "candidate.fs_hz": 100.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 325.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "phase1_estimate",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "d2694eb294383967719dd60369a0b530025d28e6ca12d802b24b8922defbdf4c",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.95,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "205ee6eea910f4e850a84144468eb4b10383cd758441ec6107e1f7961de0d73b"
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0,
+        "candidate.capacitance_f": 0.0019036294485224791,
+        "candidate.fs_hz": 100.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 325.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "phase1_estimate",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "d2694eb294383967719dd60369a0b530025d28e6ca12d802b24b8922defbdf4c",
+      "operating_point_input": {
+        "vin_v": 207.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.95,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "9d67b9de87a68434ae8d5135c6e2aa288f83bf2113e55db86ec56c26f3954920"
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0,
+        "candidate.capacitance_f": 0.0019036294485224791,
+        "candidate.fs_hz": 100.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 325.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "phase1_estimate",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "d2694eb294383967719dd60369a0b530025d28e6ca12d802b24b8922defbdf4c",
+      "operating_point_input": {
+        "vin_v": 253.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.95,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "457ec2f11b037fe432af3dd0491d1d1a3b94637cc443723adf65ab4d46122aae"
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0,
+        "candidate.capacitance_f": 0.0019036294485224791,
+        "candidate.fs_hz": 100.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 325.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "phase1_estimate",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "d2694eb294383967719dd60369a0b530025d28e6ca12d802b24b8922defbdf4c",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 0.2,
+        "power_factor": 0.95,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "d281963845e8be6b30540db7a7e6ffc6518b446e6a30fdec493924ee242330ad"
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0,
+        "candidate.capacitance_f": 0.0019036294485224791,
+        "candidate.fs_hz": 100.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 325.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "phase1_estimate",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "d2694eb294383967719dd60369a0b530025d28e6ca12d802b24b8922defbdf4c",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.95,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_bus_voltage_ripple_10_percent_validation",
+        "line_frequency_hz": 50.0,
+        "case_id": "c05_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "b31c134b5bf6fafcda9c7c5fbfa8d34ba789f53f847465f47efbb51469e3a576"
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002,
+        "candidate.capacitance_f": 0.009420118343195267,
+        "candidate.fs_hz": 100.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 303.1987788712028,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "small_dc_reactor_pulsed_current_allowed",
+        "candidate.ccm_valid": false,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "da1276bc7464b620734c75d78ee992538d5b17d782c293c41a7db1eca1f9f38a",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_1_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "356247a0203f0d289308043de38f0d9e697b1c9d01b291e158aa1c9e08953e45"
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002,
+        "candidate.capacitance_f": 0.009420118343195267,
+        "candidate.fs_hz": 100.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 303.1987788712028,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "small_dc_reactor_pulsed_current_allowed",
+        "candidate.ccm_valid": false,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "da1276bc7464b620734c75d78ee992538d5b17d782c293c41a7db1eca1f9f38a",
+      "operating_point_input": {
+        "vin_v": 207.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_1_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "656856f1a17f430bcbed3d3d1336c0478e74ca09836e070324d0322de055c3a7"
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002,
+        "candidate.capacitance_f": 0.009420118343195267,
+        "candidate.fs_hz": 100.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 303.1987788712028,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "small_dc_reactor_pulsed_current_allowed",
+        "candidate.ccm_valid": false,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "da1276bc7464b620734c75d78ee992538d5b17d782c293c41a7db1eca1f9f38a",
+      "operating_point_input": {
+        "vin_v": 253.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_1_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "32680381f31103d890e66020f122dd117e829924757bbb477a4254fdcfda9e80"
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002,
+        "candidate.capacitance_f": 0.009420118343195267,
+        "candidate.fs_hz": 100.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 303.1987788712028,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "small_dc_reactor_pulsed_current_allowed",
+        "candidate.ccm_valid": false,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "da1276bc7464b620734c75d78ee992538d5b17d782c293c41a7db1eca1f9f38a",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 0.2,
+        "power_factor": null,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_1_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "77db6d8b50709547a14eebfb9a0e892f70b96c4274ec779134351d11f970b6da"
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002,
+        "candidate.capacitance_f": 0.009420118343195267,
+        "candidate.fs_hz": 100.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 303.1987788712028,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "small_dc_reactor_pulsed_current_allowed",
+        "candidate.ccm_valid": false,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "da1276bc7464b620734c75d78ee992538d5b17d782c293c41a7db1eca1f9f38a",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": null,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_bus_voltage_ripple_2_percent_validation",
+        "line_frequency_hz": 50.0,
+        "case_id": "c05_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "4b296d4f3eede194be168d606abf81e92e1ca24cfbf070d42b55f7e6ccd8bd6d"
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0,
+        "candidate.capacitance_f": 0.0007159546625885764,
+        "candidate.fs_hz": 300.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 554.3313607580517,
+        "candidate.pout_target": 3000.0,
+        "candidate.mode_capable": "phase1_three_phase_six_pulse_estimate",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "c1d9faf51ba029d85e5f40c45b199e25a580d0363b6e15a1296ee725e6dfa5ef",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.95,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c01_nominal_full_load"
+      },
+      "operating_point_input_checksum": "9a3f59b0e7d14583e832ee2649c224c16ee6b5f5ea1ed35d6ba4a35525274dca"
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0,
+        "candidate.capacitance_f": 0.0007159546625885764,
+        "candidate.fs_hz": 300.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 554.3313607580517,
+        "candidate.pout_target": 3000.0,
+        "candidate.mode_capable": "phase1_three_phase_six_pulse_estimate",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "c1d9faf51ba029d85e5f40c45b199e25a580d0363b6e15a1296ee725e6dfa5ef",
+      "operating_point_input": {
+        "vin_v": 360.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.95,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c02_low_input_full_load"
+      },
+      "operating_point_input_checksum": "00debcabfd04c128fc0e8878ec4b05c074142e353d5840e61f39f8b8ecb12375"
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0,
+        "candidate.capacitance_f": 0.0007159546625885764,
+        "candidate.fs_hz": 300.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 554.3313607580517,
+        "candidate.pout_target": 3000.0,
+        "candidate.mode_capable": "phase1_three_phase_six_pulse_estimate",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "c1d9faf51ba029d85e5f40c45b199e25a580d0363b6e15a1296ee725e6dfa5ef",
+      "operating_point_input": {
+        "vin_v": 440.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.95,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c03_high_input_full_load"
+      },
+      "operating_point_input_checksum": "af3edf94c65f9b59375ae331c7b109fa016b1fd10868ccb6543f6d53cbddcfb1"
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0,
+        "candidate.capacitance_f": 0.0007159546625885764,
+        "candidate.fs_hz": 300.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 554.3313607580517,
+        "candidate.pout_target": 3000.0,
+        "candidate.mode_capable": "phase1_three_phase_six_pulse_estimate",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "c1d9faf51ba029d85e5f40c45b199e25a580d0363b6e15a1296ee725e6dfa5ef",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 0.2,
+        "power_factor": 0.95,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c04_nominal_light_load_20pct"
+      },
+      "operating_point_input_checksum": "28a20d7422ec503c3fe404cb58a0a4da6160d4e01b43ba599bee39575427f791"
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0,
+        "candidate.capacitance_f": 0.0007159546625885764,
+        "candidate.fs_hz": 300.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 554.3313607580517,
+        "candidate.pout_target": 3000.0,
+        "candidate.mode_capable": "phase1_three_phase_six_pulse_estimate",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {},
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "c1d9faf51ba029d85e5f40c45b199e25a580d0363b6e15a1296ee725e6dfa5ef",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.95,
+        "switching_frequency_hz": 50.0,
+        "ripple_target": "dc_bus_voltage_ripple_10_percent_validation",
+        "line_frequency_hz": 50.0,
+        "case_id": "c05_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "cece3e176192347e66faf3f392a40fa43d7ba491bb1d23e99619593ac0e693b9"
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c01_nominal_full_load_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.000415008597373765,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_boost_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB011M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "98fc7e941e3a62a9319a4e1130ada568636fe6723f52befac48cc5f18d4717a6",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c01_nominal_full_load_50hz"
+      },
+      "operating_point_input_checksum": "6eb0911e09c50f7dab3d04e9d7d523d71d9a1994158372636ce3be450c876fdf"
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c02_low_input_full_load_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.000415008597373765,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_boost_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB011M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "98fc7e941e3a62a9319a4e1130ada568636fe6723f52befac48cc5f18d4717a6",
+      "operating_point_input": {
+        "vin_v": 180.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c02_low_input_full_load_50hz"
+      },
+      "operating_point_input_checksum": "c6a89b9672d3b820dcb53329f8a63091e91958de7101237bad61dbbe91b1e753"
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c03_high_input_full_load_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.000415008597373765,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_boost_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB011M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "98fc7e941e3a62a9319a4e1130ada568636fe6723f52befac48cc5f18d4717a6",
+      "operating_point_input": {
+        "vin_v": 265.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c03_high_input_full_load_50hz"
+      },
+      "operating_point_input_checksum": "59019d47582c11a010616584651b8a1b61efe075f3dd8de38b9d2e8a12f43e05"
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c04_nominal_light_load_20pct_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.000415008597373765,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_boost_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB011M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "98fc7e941e3a62a9319a4e1130ada568636fe6723f52befac48cc5f18d4717a6",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 0.2,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c04_nominal_light_load_20pct_50hz"
+      },
+      "operating_point_input_checksum": "3ea1f4df21226882a3711d050b8e4ba22f4951c0510474469537c20427281220"
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c05_nominal_very_light_load_10pct_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.000415008597373765,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_boost_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB011M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "98fc7e941e3a62a9319a4e1130ada568636fe6723f52befac48cc5f18d4717a6",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 0.1,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c05_nominal_very_light_load_10pct_50hz"
+      },
+      "operating_point_input_checksum": "b68ca7443ce6a9b573e2f5727447b18b03fa8b27e383f18ab971d48aa62c33a7"
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c06_nominal_high_frequency_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "classification": "frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.000415008597373765,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_boost_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB011M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "98fc7e941e3a62a9319a4e1130ada568636fe6723f52befac48cc5f18d4717a6",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 150000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c06_nominal_high_frequency_50hz"
+      },
+      "operating_point_input_checksum": "4507804b3e0f12ceaad35491df0ac678236403b77d6a64639e86be7d0491e032"
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c07_nominal_high_ripple",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.000415008597373765,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_boost_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "CAB011M12FM3",
+          "rectifier_diode": "SCS320KN"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "98fc7e941e3a62a9319a4e1130ada568636fe6723f52befac48cc5f18d4717a6",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "relaxed_validation_ripple_requirement",
+        "line_frequency_hz": 50.0,
+        "case_id": "c07_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "8e2145a354c7eedea2afcc972ac9396c4bb19e11ca40efd13a19baf8359fa953"
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c01_nominal_full_load_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0014359056643382623,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_totem_pole_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "totem_pole_hf_switch": "CAB011M12FM3",
+          "totem_pole_lf_switch": "E3M0120090D"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "96702868e1e192389200a324060a572637e28d545e0c29dd698e038476ac03fc",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c01_nominal_full_load_50hz"
+      },
+      "operating_point_input_checksum": "6eb0911e09c50f7dab3d04e9d7d523d71d9a1994158372636ce3be450c876fdf"
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c02_low_input_full_load_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0014359056643382623,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_totem_pole_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "totem_pole_hf_switch": "CAB011M12FM3",
+          "totem_pole_lf_switch": "E3M0120090D"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "96702868e1e192389200a324060a572637e28d545e0c29dd698e038476ac03fc",
+      "operating_point_input": {
+        "vin_v": 180.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c02_low_input_full_load_50hz"
+      },
+      "operating_point_input_checksum": "c6a89b9672d3b820dcb53329f8a63091e91958de7101237bad61dbbe91b1e753"
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c03_high_input_full_load_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0014359056643382623,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_totem_pole_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "totem_pole_hf_switch": "CAB011M12FM3",
+          "totem_pole_lf_switch": "E3M0120090D"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "96702868e1e192389200a324060a572637e28d545e0c29dd698e038476ac03fc",
+      "operating_point_input": {
+        "vin_v": 265.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c03_high_input_full_load_50hz"
+      },
+      "operating_point_input_checksum": "59019d47582c11a010616584651b8a1b61efe075f3dd8de38b9d2e8a12f43e05"
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c04_nominal_light_load_20pct_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0014359056643382623,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_totem_pole_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "totem_pole_hf_switch": "CAB011M12FM3",
+          "totem_pole_lf_switch": "E3M0120090D"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "96702868e1e192389200a324060a572637e28d545e0c29dd698e038476ac03fc",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 0.2,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c04_nominal_light_load_20pct_50hz"
+      },
+      "operating_point_input_checksum": "3ea1f4df21226882a3711d050b8e4ba22f4951c0510474469537c20427281220"
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c05_nominal_very_light_load_10pct_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0014359056643382623,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_totem_pole_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "totem_pole_hf_switch": "CAB011M12FM3",
+          "totem_pole_lf_switch": "E3M0120090D"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "96702868e1e192389200a324060a572637e28d545e0c29dd698e038476ac03fc",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 0.1,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c05_nominal_very_light_load_10pct_50hz"
+      },
+      "operating_point_input_checksum": "b68ca7443ce6a9b573e2f5727447b18b03fa8b27e383f18ab971d48aa62c33a7"
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c06_nominal_high_frequency_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "classification": "frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0014359056643382623,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_totem_pole_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "totem_pole_hf_switch": "CAB011M12FM3",
+          "totem_pole_lf_switch": "E3M0120090D"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "96702868e1e192389200a324060a572637e28d545e0c29dd698e038476ac03fc",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 150000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c06_nominal_high_frequency_50hz"
+      },
+      "operating_point_input_checksum": "4507804b3e0f12ceaad35491df0ac678236403b77d6a64639e86be7d0491e032"
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c07_nominal_full_load_60hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "classification": "line_frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0014359056643382623,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_totem_pole_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "totem_pole_hf_switch": "CAB011M12FM3",
+          "totem_pole_lf_switch": "E3M0120090D"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "96702868e1e192389200a324060a572637e28d545e0c29dd698e038476ac03fc",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 60.0,
+        "case_id": "c07_nominal_full_load_60hz"
+      },
+      "operating_point_input_checksum": "0f1f7f773917d09da97970b16d8515cc928ad52ed242c0d1c3eede91a59c8f8f"
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c08_nominal_high_frequency_60hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "classification": "combined_operating_point",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0014359056643382623,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_totem_pole_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "totem_pole_hf_switch": "CAB011M12FM3",
+          "totem_pole_lf_switch": "E3M0120090D"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "96702868e1e192389200a324060a572637e28d545e0c29dd698e038476ac03fc",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 150000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 60.0,
+        "case_id": "c08_nominal_high_frequency_60hz"
+      },
+      "operating_point_input_checksum": "fbfeae4344ac3d7918d35083343c20c866d8ac4ddb879077a4168741755c7648"
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c09_nominal_high_ripple",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "classification": "ripple_target",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0014359056643382623,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 100000.0,
+        "candidate.vin_nom": 230.0,
+        "candidate.vout_target": 400.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_first_pass_totem_pole_pfc",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "totem_pole_hf_switch": "CAB011M12FM3",
+          "totem_pole_lf_switch": "E3M0120090D"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "96702868e1e192389200a324060a572637e28d545e0c29dd698e038476ac03fc",
+      "operating_point_input": {
+        "vin_v": 230.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.99,
+        "switching_frequency_hz": 100000.0,
+        "ripple_target": "relaxed_validation_ripple_requirement",
+        "line_frequency_hz": 50.0,
+        "case_id": "c09_nominal_high_ripple"
+      },
+      "operating_point_input_checksum": "99bb3afe28e0dee698dc4e3c3178f6fd327456d0dd6f6939909e6c87af92f783"
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002032931995911324,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 230.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_unipolar_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4045DLL"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "e863c28ca65b51745069882714f9bf605cfd85f92ad48deeb118a45dc43c1533",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c01_nominal_dc_full_load_50hz"
+      },
+      "operating_point_input_checksum": "53e7118e848cc71ba02e5b8a3e973d31bf21b859327ed219672359c346fe6b26"
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002032931995911324,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 230.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_unipolar_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4045DLL"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "e863c28ca65b51745069882714f9bf605cfd85f92ad48deeb118a45dc43c1533",
+      "operating_point_input": {
+        "vin_v": 360.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c02_low_dc_full_load_50hz"
+      },
+      "operating_point_input_checksum": "946175e5b817c8d572ad777b24244eb96cb34c1f6a6bc80bf0442b306569a3f2"
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002032931995911324,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 230.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_unipolar_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4045DLL"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "e863c28ca65b51745069882714f9bf605cfd85f92ad48deeb118a45dc43c1533",
+      "operating_point_input": {
+        "vin_v": 420.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c03_high_dc_full_load_50hz"
+      },
+      "operating_point_input_checksum": "63d548f8691825b20f9d3eb71a9d9759b9cced6e5acbb15866df8176f13e8355"
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002032931995911324,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 230.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_unipolar_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4045DLL"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "e863c28ca65b51745069882714f9bf605cfd85f92ad48deeb118a45dc43c1533",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 0.2,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c04_nominal_dc_light_load_20pct"
+      },
+      "operating_point_input_checksum": "ce15dc99b9908992a6c7905ce8509c76d85f0b84a06d204474684694da656e3f"
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "classification": "line_frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002032931995911324,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 230.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_unipolar_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4045DLL"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "e863c28ca65b51745069882714f9bf605cfd85f92ad48deeb118a45dc43c1533",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 60.0,
+        "case_id": "c05_nominal_dc_full_load_60hz"
+      },
+      "operating_point_input_checksum": "02205798835d3f44cb5e1b76978a919cd858ea6555e03858355b9626f2b2637a"
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "classification": "frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002032931995911324,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 230.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_unipolar_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4045DLL"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "e863c28ca65b51745069882714f9bf605cfd85f92ad48deeb118a45dc43c1533",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 30000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c06_nominal_high_carrier_frequency"
+      },
+      "operating_point_input_checksum": "0440efc1703d45866f03ff0ed4d79f9bf9ad145bc6e53357ee0298f25cee06e4"
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c07_nominal_pf_0p8",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "classification": "power_factor",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.002032931995911324,
+        "candidate.capacitance_f": 0.0003978873577297383,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 400.0,
+        "candidate.vout_target": 230.0,
+        "candidate.pout_target": 1000.0,
+        "candidate.mode_capable": "ccm_unipolar_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "SCT4045DLL"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "e863c28ca65b51745069882714f9bf605cfd85f92ad48deeb118a45dc43c1533",
+      "operating_point_input": {
+        "vin_v": 400.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.8,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_5_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c07_nominal_pf_0p8"
+      },
+      "operating_point_input_checksum": "2a14cfdcfca9555c0c031f8508ff53c8635b26fa29708761631d0f20cbc09801"
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0005817538139110046,
+        "candidate.capacitance_f": 7.8125e-05,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_two_level_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "81acddf23353bc89c84517911bbe10cad2068067c185eaa67b22eebbf8ecb477",
+      "operating_point_input": {
+        "vin_v": 800.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c01_nominal_dc_full_load_50hz"
+      },
+      "operating_point_input_checksum": "0ec027ed03f007d95ed11c69432726f879fbcbd2be2f821c36ebbbabf0c44c78"
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0005817538139110046,
+        "candidate.capacitance_f": 7.8125e-05,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_two_level_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "81acddf23353bc89c84517911bbe10cad2068067c185eaa67b22eebbf8ecb477",
+      "operating_point_input": {
+        "vin_v": 650.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c02_low_dc_full_load_50hz"
+      },
+      "operating_point_input_checksum": "832681f3a3fadadaf85281be970056f147adc9f17d00c02cfc5d3392cfd8c081"
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0005817538139110046,
+        "candidate.capacitance_f": 7.8125e-05,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_two_level_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "81acddf23353bc89c84517911bbe10cad2068067c185eaa67b22eebbf8ecb477",
+      "operating_point_input": {
+        "vin_v": 850.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c03_high_dc_full_load_50hz"
+      },
+      "operating_point_input_checksum": "a31cfd8fd8a6bd4bc3ee0729e711f46bc7416e3fcde2110e10ef540600e307c8"
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0005817538139110046,
+        "candidate.capacitance_f": 7.8125e-05,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_two_level_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "81acddf23353bc89c84517911bbe10cad2068067c185eaa67b22eebbf8ecb477",
+      "operating_point_input": {
+        "vin_v": 800.0,
+        "load_ratio": 0.2,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c04_nominal_dc_light_load_20pct"
+      },
+      "operating_point_input_checksum": "c983d30f87b4fefb43717621fa808c024dc39800d519fbcf5c5443d3eecb525a"
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "classification": "line_frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0005817538139110046,
+        "candidate.capacitance_f": 7.8125e-05,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_two_level_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "81acddf23353bc89c84517911bbe10cad2068067c185eaa67b22eebbf8ecb477",
+      "operating_point_input": {
+        "vin_v": 800.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 60.0,
+        "case_id": "c05_nominal_dc_full_load_60hz"
+      },
+      "operating_point_input_checksum": "72dc81527a5108ba01ca1593c6e84fa8a7e56c5e71a5525497e156321b80e2b8"
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "classification": "frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0005817538139110046,
+        "candidate.capacitance_f": 7.8125e-05,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_two_level_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "81acddf23353bc89c84517911bbe10cad2068067c185eaa67b22eebbf8ecb477",
+      "operating_point_input": {
+        "vin_v": 800.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 30000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c06_nominal_high_carrier_frequency"
+      },
+      "operating_point_input_checksum": "c40e348a612f40d95bf67c9089fbbd35dd58a30e94d86ca86ed3c9307ea4dbea"
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c07_nominal_pf_0p8",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "classification": "power_factor",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0005817538139110046,
+        "candidate.capacitance_f": 7.8125e-05,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_two_level_spwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "main_switch": "C4MS036120K"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "81acddf23353bc89c84517911bbe10cad2068067c185eaa67b22eebbf8ecb477",
+      "operating_point_input": {
+        "vin_v": 800.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.8,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c07_nominal_pf_0p8"
+      },
+      "operating_point_input_checksum": "1086f6cc71c8d81a7d5ba598fb80b0bfb6edc2bfdaf267213ad637dc5d04446c"
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "classification": "new_design",
+      "execution_mode": "new_design",
+      "hardware_reuse_mode": "new_design",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0002908769069555023,
+        "candidate.capacitance_f": 0.0003125,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_three_level_npc_lspwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "npc_outer_switch": "IPDQ60R010S7A",
+          "npc_inner_switch": "IPDQ65R008CM8",
+          "npc_clamp_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "9cde4818b40a50838055a2842c36fe8e533ddbab10bbf71df220f0c2932632ee",
+      "operating_point_input": {
+        "vin_v": 800.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c01_nominal_dc_full_load_50hz"
+      },
+      "operating_point_input_checksum": "0ec027ed03f007d95ed11c69432726f879fbcbd2be2f821c36ebbbabf0c44c78"
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0002908769069555023,
+        "candidate.capacitance_f": 0.0003125,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_three_level_npc_lspwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "npc_outer_switch": "IPDQ60R010S7A",
+          "npc_inner_switch": "IPDQ65R008CM8",
+          "npc_clamp_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "9cde4818b40a50838055a2842c36fe8e533ddbab10bbf71df220f0c2932632ee",
+      "operating_point_input": {
+        "vin_v": 700.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c02_low_dc_full_load_50hz"
+      },
+      "operating_point_input_checksum": "311cc3342eebc8da9279a1161f1ebc518c9fbbbc917fe77c29e115b60607cf92"
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "classification": "input_voltage",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0002908769069555023,
+        "candidate.capacitance_f": 0.0003125,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_three_level_npc_lspwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "npc_outer_switch": "IPDQ60R010S7A",
+          "npc_inner_switch": "IPDQ65R008CM8",
+          "npc_clamp_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "9cde4818b40a50838055a2842c36fe8e533ddbab10bbf71df220f0c2932632ee",
+      "operating_point_input": {
+        "vin_v": 900.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c03_high_dc_full_load_50hz"
+      },
+      "operating_point_input_checksum": "0031729d12a957689c276f91e0a26c8e8efaf06feb5df1ba3eac8dd3a99974f3"
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "classification": "load_ratio",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0002908769069555023,
+        "candidate.capacitance_f": 0.0003125,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_three_level_npc_lspwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "npc_outer_switch": "IPDQ60R010S7A",
+          "npc_inner_switch": "IPDQ65R008CM8",
+          "npc_clamp_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "9cde4818b40a50838055a2842c36fe8e533ddbab10bbf71df220f0c2932632ee",
+      "operating_point_input": {
+        "vin_v": 800.0,
+        "load_ratio": 0.2,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c04_nominal_dc_light_load_20pct"
+      },
+      "operating_point_input_checksum": "c983d30f87b4fefb43717621fa808c024dc39800d519fbcf5c5443d3eecb525a"
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "classification": "line_frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0002908769069555023,
+        "candidate.capacitance_f": 0.0003125,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_three_level_npc_lspwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "npc_outer_switch": "IPDQ60R010S7A",
+          "npc_inner_switch": "IPDQ65R008CM8",
+          "npc_clamp_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "9cde4818b40a50838055a2842c36fe8e533ddbab10bbf71df220f0c2932632ee",
+      "operating_point_input": {
+        "vin_v": 800.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 60.0,
+        "case_id": "c05_nominal_dc_full_load_60hz"
+      },
+      "operating_point_input_checksum": "72dc81527a5108ba01ca1593c6e84fa8a7e56c5e71a5525497e156321b80e2b8"
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "classification": "frequency",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0002908769069555023,
+        "candidate.capacitance_f": 0.0003125,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_three_level_npc_lspwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "npc_outer_switch": "IPDQ60R010S7A",
+          "npc_inner_switch": "IPDQ65R008CM8",
+          "npc_clamp_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "9cde4818b40a50838055a2842c36fe8e533ddbab10bbf71df220f0c2932632ee",
+      "operating_point_input": {
+        "vin_v": 800.0,
+        "load_ratio": 1.0,
+        "power_factor": 1.0,
+        "switching_frequency_hz": 30000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c06_nominal_high_carrier_frequency"
+      },
+      "operating_point_input_checksum": "c40e348a612f40d95bf67c9089fbbd35dd58a30e94d86ca86ed3c9307ea4dbea"
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c07_nominal_pf_0p8",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "classification": "power_factor",
+      "execution_mode": "fixed_hardware_refresh",
+      "hardware_reuse_mode": "fixed_hardware_refresh",
+      "hardware_design_case_id": null,
+      "hardware_snapshot": {
+        "candidate.inductance_h": 0.0002908769069555023,
+        "candidate.capacitance_f": 0.0003125,
+        "candidate.fs_hz": 20000.0,
+        "candidate.vin_nom": 800.0,
+        "candidate.vout_target": 380.0,
+        "candidate.pout_target": 20000.0,
+        "candidate.mode_capable": "ccm_three_phase_three_level_npc_lspwm_first_pass",
+        "candidate.ccm_valid": true,
+        "device.selected_devices": {
+          "npc_outer_switch": "IPDQ60R010S7A",
+          "npc_inner_switch": "IPDQ65R008CM8",
+          "npc_clamp_diode": "SCS320AJ"
+        },
+        "magnetic.selected_design_id": null,
+        "magnetic.chosen_design_ids": [],
+        "capacitor.input_part_number": null,
+        "capacitor.output_part_number": null
+      },
+      "hardware_snapshot_checksum": "9cde4818b40a50838055a2842c36fe8e533ddbab10bbf71df220f0c2932632ee",
+      "operating_point_input": {
+        "vin_v": 800.0,
+        "load_ratio": 1.0,
+        "power_factor": 0.8,
+        "switching_frequency_hz": 20000.0,
+        "ripple_target": "dc_link_ripple_2_percent_first_pass",
+        "line_frequency_hz": 50.0,
+        "case_id": "c07_nominal_pf_0p8"
+      },
+      "operating_point_input_checksum": "1086f6cc71c8d81a7d5ba598fb80b0bfb6edc2bfdaf267213ad637dc5d04446c"
+    }
+  ]
+}
