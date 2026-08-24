@@ -741,7 +741,17 @@ python -m pytest tests/test_phase7_dc_ac_migration.py tests/test_phase9_dc_ac_to
 
 ### 状态
 
-`pending`
+`completed`
+
+### 第八步执行记录
+
+- 实现提交：`6ab69dc`（已 push 到 `origin/codex/sync-gui-backend-from-2`）。
+- 验证脚本：`scripts/validate_step8_libraries.py`；专项测试：`tests/test_phase8_library_migration.py`。
+- 库文件 manifest：1296 个相对路径；885 个字节级一致，408 个仅换行差异，0 个实质内容差异；目标侧 3 个磁性目录 `.gitkeep` 已标记为占位文件。
+- 运行时库记录：半导体 800 条、电容 32910 条、Sendust 磁芯 567 条、尺寸 61 条、材料 9 条；规范化磁性缓存记录数与 2.0 一致。
+- 当前注册表两代均为 19 个拓扑定义；19/19 个默认拓扑运行成功，19/19 个器件/电容选择 checksum 一致。
+- 排序策略、候选列表和跨工程对照分别记录在 `candidate_sorting_policy.md`、`candidate_selection_golden.json`、`library_migration_validation.json`。
+- 验证命令：`python scripts/validate_step8_libraries.py --reuse-runtime`；`pytest -q tests/test_phase8_library_migration.py tests/test_semiconductor_registry_structure.py tests/test_capacitor_registry.py tests/test_magnetic_library_schema.py`，结果 `14 passed`。
 
 ---
 
