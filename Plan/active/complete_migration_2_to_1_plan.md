@@ -798,7 +798,19 @@ python -m pytest tests/test_phase7_dc_ac_migration.py tests/test_phase9_dc_ac_to
 
 ### 状态
 
-`pending`
+`completed`
+
+### 第九步执行记录
+
+- 实现提交：`287481f`（已 push 到 `origin/codex/sync-gui-backend-from-2`）。
+- 验证脚本：`scripts/validate_step9_operating_points.py`；专项测试：`tests/test_phase9_operating_point_migration.py`。
+- 103 个工况全部进入矩阵；按源 request 矩阵分为 19 个新设计和 84 个固定硬件刷新，覆盖 17 个源矩阵目录和 16 个 runtime topology ID。LLC full-bridge 与 half-bridge 虽共用一个 runtime topology ID，但分别保存 c01 基线。
+- 84 个固定硬件刷新工况均通过 `run_operating_point_refresh()` 执行，硬件快照覆盖 L、C、候选设计参数、器件、磁性设计和电容 Part Number；所有固定硬件 checksum 均与本矩阵 c01 一致。
+- 修正 `run_operating_point_refresh()`：保留已有器件和几何结果，不再清空桥式整流器硬件，也不因刷新报告缺少器件而重新进入器件选择。
+- 统一保存 operating-point input checksum、waveform metrics checksum；波形后处理包含 average、RMS、peak、valley、peak-to-peak，并保留 solver、步长、采样窗口、settling cycles、convergence 等拓扑可用元数据。
+- 产物目录：`Plan/active/operating_points_20260824/`，包含 `operating_point_replay_matrix.csv`、`simulation_contract.md`、`waveform_metrics_schema.json`、`fixed_hardware_snapshots.json` 和 `operating_point_migration_validation.json`。
+- 验证命令：`python scripts/validate_step9_operating_points.py --source-root C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw --output-dir Plan/active/operating_points_20260824`；`pytest -q tests/test_phase9_operating_point_migration.py tests/test_phase9_dc_ac_topologies.py tests/test_phase8_library_migration.py`，结果 `9 passed`。
+- 已识别且保留 1 个边界状态：PSFB `c02_low_input_full_load` 在 1.0 固定硬件 refresh 中触发 `PSFB duties must satisfy 0 <= effective <= command <= 1.`。2.0 对该工况重新设计了输出电感和工作点占空比，因此该工况不能判为完全路径一致，需在后续边界策略中处理。
 
 ---
 
