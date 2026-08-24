@@ -149,7 +149,7 @@
 
 ### 状态
 
-`pending`
+`completed`
 
 ### 当前证据
 
@@ -389,7 +389,10 @@ python scripts/validate_step2_environment.py
 - test command: `python scripts/validate_step3_normalization.py --source-root C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw --requests-root C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests --golden Plan\\active\\request_contract_20260824\\request_normalization_golden.json`
 - test result: `request_count=103`, `exact_match_count=103`, `mismatch_count=0`
 - focused tests: `python -m pytest tests/test_phase3_request_normalization.py -q` -> `4 passed`
-- implementation commit: to be recorded after commit and push
+- implementation commit: `1380d94` (`Step 3: align normalized request contract`)
+- implementation branch: `codex/sync-gui-backend-from-2`
+- implementation push: successful to `origin/codex/sync-gui-backend-from-2` on 2026-08-24 (Asia/Shanghai)
+- status update: this record is committed separately after the implementation push
 
 ---
 
