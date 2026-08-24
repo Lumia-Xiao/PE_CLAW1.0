@@ -667,7 +667,38 @@ mismatch；核心字段 136/136 匹配。9 个工况完全通过，22 个工况�
 
 ### 状态
 
-`pending`
+`completed`
+
+### 第 7 步完成证据
+
+- 算法文件逐文件 SHA-256 对照：`Plan/active/dc_ac_migration_validation.json`；3 个 DC-AC
+  拓扑目录中的 18 个 Python 算法文件全部一致，0 个 mismatch。
+- 公式与频率口径：`Plan/active/dc_ac_formula_mapping.csv`。
+- DC-AC 指标语义和目标/估算/波形/应力分层契约：`Plan/active/dc_ac_metric_contract.json`。
+- 21 个 DC-AC 工况的黄金输出：`Plan/active/dc_ac_candidate_golden.json`。
+- 自动验证脚本：`scripts/validate_step7_dc_ac.py`。
+- 专项测试：`tests/test_phase7_dc_ac_migration.py`。
+
+### 第 7 步验证记录
+
+执行命令：
+
+```text
+python scripts/validate_step7_dc_ac.py
+python -m pytest tests/test_phase7_dc_ac_migration.py tests/test_phase9_dc_ac_topologies.py -q
+```
+
+结果：3/3 拓扑、18/18 算法文件一致；21/21 工况执行成功，0 个执行错误，21/21
+工况完全通过，0 个未解释 mismatch；核心字段 168/168 匹配，最大相对误差约
+0.729%；专项及 DC-AC 拓扑测试 `7 passed`。
+
+### 第 7 步提交记录
+
+- 实现 commit：`55734bd` (`Step 7: validate DC-AC algorithm parity`)
+- 远端：`origin/codex/sync-gui-backend-from-2`
+- 实现 push：成功，2026-08-24 12:53:11 +08:00（Asia/Shanghai）
+- 状态 commit：待本次状态更新提交后记录
+- 状态 push：待本次状态更新提交后记录
 
 ---
 
