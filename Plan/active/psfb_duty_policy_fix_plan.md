@@ -328,7 +328,8 @@ duty 计算均已复用 policy；`primary_current_model.py` 的物理 duty 顺�
 - 实现 commit：`6c740b4`（`PSFB Step 2: define duty policy`）
 - 远端分支：`origin/codex/sync-gui-backend-from-2`
 - 实现 push 结果：成功
-- 计划记录 commit：待本次记录提交后填写
+- 计划记录 commit：`74cf51c`（`PSFB Step 2: record duty policy validation`）
+- 计划记录 push 结果：成功
 
 ### 第 1 步提交与同步记录
 
