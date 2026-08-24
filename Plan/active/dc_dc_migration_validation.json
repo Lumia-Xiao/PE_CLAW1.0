@@ -1,0 +1,712 @@
+{
+  "step": 5,
+  "contract": "dc_dc_algorithm_migration_v1",
+  "source_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
+  "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+  "migrated_request_directory_count": 9,
+  "logical_topology_id_count": 8,
+  "topology_ids": [
+    "boost_diode_rectified_unidirectional",
+    "boost_synchronous_rectified_unidirectional",
+    "buck_boost_diode_rectified_unidirectional",
+    "buck_diode_rectified_unidirectional",
+    "buck_synchronous_rectified_unidirectional",
+    "flyback_diode_rectified_isolated",
+    "llc_resonant_converter_diode_rectifier",
+    "phase_shifted_full_bridge_diode_rectifier_isolated"
+  ],
+  "algorithm_file_parity": {
+    "file_count": 53,
+    "identical_file_count": 53,
+    "mismatch_count": 0,
+    "files": [
+      {
+        "request_directory": "03_boost_diode",
+        "topology_id": "boost_diode_rectified_unidirectional",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "dccb937dcd4901c565415c0ea0c305cef9d27ca54b8bc42c6ca29c6b381cf8b9",
+        "source_sha256": "dccb937dcd4901c565415c0ea0c305cef9d27ca54b8bc42c6ca29c6b381cf8b9",
+        "identical": true
+      },
+      {
+        "request_directory": "03_boost_diode",
+        "topology_id": "boost_diode_rectified_unidirectional",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "aa4956a04fc8f9e577c96c71c6ecc305305213eae5656f1331d07233b08d9770",
+        "source_sha256": "aa4956a04fc8f9e577c96c71c6ecc305305213eae5656f1331d07233b08d9770",
+        "identical": true
+      },
+      {
+        "request_directory": "03_boost_diode",
+        "topology_id": "boost_diode_rectified_unidirectional",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "583491ebda6f0b2b33620d799d7d54ef316105e391a2e89a5dec18f8bdfd86c0",
+        "source_sha256": "583491ebda6f0b2b33620d799d7d54ef316105e391a2e89a5dec18f8bdfd86c0",
+        "identical": true
+      },
+      {
+        "request_directory": "03_boost_diode",
+        "topology_id": "boost_diode_rectified_unidirectional",
+        "file": "mode.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "f7f96b936b3f5593c6e2540676c5ba9285f19ce17bf604e835d17b4ea705978e",
+        "source_sha256": "f7f96b936b3f5593c6e2540676c5ba9285f19ce17bf604e835d17b4ea705978e",
+        "identical": true
+      },
+      {
+        "request_directory": "03_boost_diode",
+        "topology_id": "boost_diode_rectified_unidirectional",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "c736d9ca2ee4e4ebe85c23e1df0c20f5c989cb6f05f452e126ffcb33e7e07dae",
+        "source_sha256": "c736d9ca2ee4e4ebe85c23e1df0c20f5c989cb6f05f452e126ffcb33e7e07dae",
+        "identical": true
+      },
+      {
+        "request_directory": "03_boost_diode",
+        "topology_id": "boost_diode_rectified_unidirectional",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "35153f19324df967970b1faa72b6eec9db97e1ba6bef155366042cae3d7c2238",
+        "source_sha256": "35153f19324df967970b1faa72b6eec9db97e1ba6bef155366042cae3d7c2238",
+        "identical": true
+      },
+      {
+        "request_directory": "03_boost_diode",
+        "topology_id": "boost_diode_rectified_unidirectional",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "85b63bb4f4375698282f742cb59bd87286c8f09c8dba7f24196a12856a228397",
+        "source_sha256": "85b63bb4f4375698282f742cb59bd87286c8f09c8dba7f24196a12856a228397",
+        "identical": true
+      },
+      {
+        "request_directory": "04_boost_synchronous",
+        "topology_id": "boost_synchronous_rectified_unidirectional",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "5d8bbe430cd2e36bf43773c6a53b0b449b5e49299e9072d4624fb4fadf7b9edf",
+        "source_sha256": "5d8bbe430cd2e36bf43773c6a53b0b449b5e49299e9072d4624fb4fadf7b9edf",
+        "identical": true
+      },
+      {
+        "request_directory": "04_boost_synchronous",
+        "topology_id": "boost_synchronous_rectified_unidirectional",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "3866966120a0e0db8669344575f4bc0485a9c12e55922ef46829689e0f221cf7",
+        "source_sha256": "3866966120a0e0db8669344575f4bc0485a9c12e55922ef46829689e0f221cf7",
+        "identical": true
+      },
+      {
+        "request_directory": "04_boost_synchronous",
+        "topology_id": "boost_synchronous_rectified_unidirectional",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "6a0ded9feced7dfdd7cf45c120d8ae3b484be0643cbfebf9d521310ff33cea8b",
+        "source_sha256": "6a0ded9feced7dfdd7cf45c120d8ae3b484be0643cbfebf9d521310ff33cea8b",
+        "identical": true
+      },
+      {
+        "request_directory": "04_boost_synchronous",
+        "topology_id": "boost_synchronous_rectified_unidirectional",
+        "file": "mode.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "a5982fc9b0a21af04030bf08c5df5bd76b9bca2e26c92d4b9e3887045c1466d1",
+        "source_sha256": "a5982fc9b0a21af04030bf08c5df5bd76b9bca2e26c92d4b9e3887045c1466d1",
+        "identical": true
+      },
+      {
+        "request_directory": "04_boost_synchronous",
+        "topology_id": "boost_synchronous_rectified_unidirectional",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "4e1187a7b38befcee88356dc4029369782cbfc28584a6e224309c8a4fe6696c0",
+        "source_sha256": "4e1187a7b38befcee88356dc4029369782cbfc28584a6e224309c8a4fe6696c0",
+        "identical": true
+      },
+      {
+        "request_directory": "04_boost_synchronous",
+        "topology_id": "boost_synchronous_rectified_unidirectional",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "57669dc0d1bf0dc68d030cf130a71f9646eab8ce9fbb78d049de61b3288c387f",
+        "source_sha256": "57669dc0d1bf0dc68d030cf130a71f9646eab8ce9fbb78d049de61b3288c387f",
+        "identical": true
+      },
+      {
+        "request_directory": "04_boost_synchronous",
+        "topology_id": "boost_synchronous_rectified_unidirectional",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "aefb1ef29121dcddbdfbea2d514186672a3585f62326af8970ce7b722d7a47ea",
+        "source_sha256": "aefb1ef29121dcddbdfbea2d514186672a3585f62326af8970ce7b722d7a47ea",
+        "identical": true
+      },
+      {
+        "request_directory": "05_buck_boost_diode",
+        "topology_id": "buck_boost_diode_rectified_unidirectional",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "74ed5b8c43bc0804f760aa59f88db19cbc6be959a4cde845976e81c1c6364af7",
+        "source_sha256": "74ed5b8c43bc0804f760aa59f88db19cbc6be959a4cde845976e81c1c6364af7",
+        "identical": true
+      },
+      {
+        "request_directory": "05_buck_boost_diode",
+        "topology_id": "buck_boost_diode_rectified_unidirectional",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "2af928266e877763bb9a4a3236b0259a460367ba9804c3a469ce0372f5ca6260",
+        "source_sha256": "2af928266e877763bb9a4a3236b0259a460367ba9804c3a469ce0372f5ca6260",
+        "identical": true
+      },
+      {
+        "request_directory": "05_buck_boost_diode",
+        "topology_id": "buck_boost_diode_rectified_unidirectional",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "66d90fb49b3fc61a76218ef1a4be3a8d485090e6316478a1d54cbfa2df3da1be",
+        "source_sha256": "66d90fb49b3fc61a76218ef1a4be3a8d485090e6316478a1d54cbfa2df3da1be",
+        "identical": true
+      },
+      {
+        "request_directory": "05_buck_boost_diode",
+        "topology_id": "buck_boost_diode_rectified_unidirectional",
+        "file": "mode.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "aa012b9ec1f9dea1dba8efbb666eb6c6114236ce54ffb85233cae51c21b6915b",
+        "source_sha256": "aa012b9ec1f9dea1dba8efbb666eb6c6114236ce54ffb85233cae51c21b6915b",
+        "identical": true
+      },
+      {
+        "request_directory": "05_buck_boost_diode",
+        "topology_id": "buck_boost_diode_rectified_unidirectional",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "6eb2cefd5265cc4f99fdaf406604cfb1c4f9f1000d2ecd2236979fefc2f8c119",
+        "source_sha256": "6eb2cefd5265cc4f99fdaf406604cfb1c4f9f1000d2ecd2236979fefc2f8c119",
+        "identical": true
+      },
+      {
+        "request_directory": "05_buck_boost_diode",
+        "topology_id": "buck_boost_diode_rectified_unidirectional",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "d04ec06560da8625a5b27d26270b143c1ca044a0de62b56331f204257b49cca0",
+        "source_sha256": "d04ec06560da8625a5b27d26270b143c1ca044a0de62b56331f204257b49cca0",
+        "identical": true
+      },
+      {
+        "request_directory": "05_buck_boost_diode",
+        "topology_id": "buck_boost_diode_rectified_unidirectional",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "1329171387c2ce962a248eb45f4887b0a4ca874c98b79263daec01281d2f5245",
+        "source_sha256": "1329171387c2ce962a248eb45f4887b0a4ca874c98b79263daec01281d2f5245",
+        "identical": true
+      },
+      {
+        "request_directory": "01_buck_diode",
+        "topology_id": "buck_diode_rectified_unidirectional",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "8a233e6895475f240e9771638540865a867276f57237c5649ea66713effbe176",
+        "source_sha256": "8a233e6895475f240e9771638540865a867276f57237c5649ea66713effbe176",
+        "identical": true
+      },
+      {
+        "request_directory": "01_buck_diode",
+        "topology_id": "buck_diode_rectified_unidirectional",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "1f7800a9d6243b5d9f3b40ad5fdae2826f453f390a5da0e1f8a967127b28355e",
+        "source_sha256": "1f7800a9d6243b5d9f3b40ad5fdae2826f453f390a5da0e1f8a967127b28355e",
+        "identical": true
+      },
+      {
+        "request_directory": "01_buck_diode",
+        "topology_id": "buck_diode_rectified_unidirectional",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "f1c4ae2c921b3cb506bb34d91858dbdf13788b9b13d9c90a3eaa02e9c3fc70bc",
+        "source_sha256": "f1c4ae2c921b3cb506bb34d91858dbdf13788b9b13d9c90a3eaa02e9c3fc70bc",
+        "identical": true
+      },
+      {
+        "request_directory": "01_buck_diode",
+        "topology_id": "buck_diode_rectified_unidirectional",
+        "file": "mode.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "26e06d6b7bce7c60c493aae514b7fb63a339a3aa613b7b284e79890a86d0a45f",
+        "source_sha256": "26e06d6b7bce7c60c493aae514b7fb63a339a3aa613b7b284e79890a86d0a45f",
+        "identical": true
+      },
+      {
+        "request_directory": "01_buck_diode",
+        "topology_id": "buck_diode_rectified_unidirectional",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "5cd9431247892b16b92310abe1df517eedf1739de98fb09cf864b3cf2d5e2dae",
+        "source_sha256": "5cd9431247892b16b92310abe1df517eedf1739de98fb09cf864b3cf2d5e2dae",
+        "identical": true
+      },
+      {
+        "request_directory": "01_buck_diode",
+        "topology_id": "buck_diode_rectified_unidirectional",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "bbdf7ccd5b65f1dfbb5cb2b9432726e1e73303b84bb93a37194b954e622e3149",
+        "source_sha256": "bbdf7ccd5b65f1dfbb5cb2b9432726e1e73303b84bb93a37194b954e622e3149",
+        "identical": true
+      },
+      {
+        "request_directory": "01_buck_diode",
+        "topology_id": "buck_diode_rectified_unidirectional",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "7a1dc705e394f14815beaa7fc987c53052d36566de0b931caec1a101b44bcc25",
+        "source_sha256": "7a1dc705e394f14815beaa7fc987c53052d36566de0b931caec1a101b44bcc25",
+        "identical": true
+      },
+      {
+        "request_directory": "02_buck_synchronous",
+        "topology_id": "buck_synchronous_rectified_unidirectional",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "f496fd1c37fc5045ccf092b5ca0c7aecb9b6e33184203b0af876fe64ecac9066",
+        "source_sha256": "f496fd1c37fc5045ccf092b5ca0c7aecb9b6e33184203b0af876fe64ecac9066",
+        "identical": true
+      },
+      {
+        "request_directory": "02_buck_synchronous",
+        "topology_id": "buck_synchronous_rectified_unidirectional",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "a4f198f3519e43c07528f5d996fa535de2220ffc1a1474eff5f2586f8022d99a",
+        "source_sha256": "a4f198f3519e43c07528f5d996fa535de2220ffc1a1474eff5f2586f8022d99a",
+        "identical": true
+      },
+      {
+        "request_directory": "02_buck_synchronous",
+        "topology_id": "buck_synchronous_rectified_unidirectional",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "a7c6ab607bc7544b4ca22f909736ff239c80d8e10966d49396bb1d971e9dcc22",
+        "source_sha256": "a7c6ab607bc7544b4ca22f909736ff239c80d8e10966d49396bb1d971e9dcc22",
+        "identical": true
+      },
+      {
+        "request_directory": "02_buck_synchronous",
+        "topology_id": "buck_synchronous_rectified_unidirectional",
+        "file": "mode.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "f8ef20e0d9ba3c462a256cb8510af06955362231a1369067fc79b7d6c606ea5d",
+        "source_sha256": "f8ef20e0d9ba3c462a256cb8510af06955362231a1369067fc79b7d6c606ea5d",
+        "identical": true
+      },
+      {
+        "request_directory": "02_buck_synchronous",
+        "topology_id": "buck_synchronous_rectified_unidirectional",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "b4092121ffd0aea2beb300b7f79bf0657cb2204df12eaa31f81b6d37a29acbdb",
+        "source_sha256": "b4092121ffd0aea2beb300b7f79bf0657cb2204df12eaa31f81b6d37a29acbdb",
+        "identical": true
+      },
+      {
+        "request_directory": "02_buck_synchronous",
+        "topology_id": "buck_synchronous_rectified_unidirectional",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "9951640e4f6b94219fcfca6afb03d8d6a233875b99bb4e65ce771e5b31c2c3ee",
+        "source_sha256": "9951640e4f6b94219fcfca6afb03d8d6a233875b99bb4e65ce771e5b31c2c3ee",
+        "identical": true
+      },
+      {
+        "request_directory": "02_buck_synchronous",
+        "topology_id": "buck_synchronous_rectified_unidirectional",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "4710c272a05b8445b57c1b7c8c6e560bb84664fffdf5addd92d9be814d3c76ff",
+        "source_sha256": "4710c272a05b8445b57c1b7c8c6e560bb84664fffdf5addd92d9be814d3c76ff",
+        "identical": true
+      },
+      {
+        "request_directory": "06_flyback_ccm",
+        "topology_id": "flyback_diode_rectified_isolated",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "75f001f9e6afb8388c145c7e0cb854a965375c2e7430507ebbc02dd10d1daec9",
+        "source_sha256": "75f001f9e6afb8388c145c7e0cb854a965375c2e7430507ebbc02dd10d1daec9",
+        "identical": true
+      },
+      {
+        "request_directory": "06_flyback_ccm",
+        "topology_id": "flyback_diode_rectified_isolated",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "a3467c6a8e534b3446bae69bfd39ef039f224aba331599c3a0a1fbc4fdab5c41",
+        "source_sha256": "a3467c6a8e534b3446bae69bfd39ef039f224aba331599c3a0a1fbc4fdab5c41",
+        "identical": true
+      },
+      {
+        "request_directory": "06_flyback_ccm",
+        "topology_id": "flyback_diode_rectified_isolated",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "9804029501270587471a3f8b6a243bc9a637b588b8b149f0c57b4c2f7c52257c",
+        "source_sha256": "9804029501270587471a3f8b6a243bc9a637b588b8b149f0c57b4c2f7c52257c",
+        "identical": true
+      },
+      {
+        "request_directory": "06_flyback_ccm",
+        "topology_id": "flyback_diode_rectified_isolated",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "ecf04597797c85a7c7c032ebd18f2baaa4ab984252385ca630ef9a5cf7d2c20a",
+        "source_sha256": "ecf04597797c85a7c7c032ebd18f2baaa4ab984252385ca630ef9a5cf7d2c20a",
+        "identical": true
+      },
+      {
+        "request_directory": "06_flyback_ccm",
+        "topology_id": "flyback_diode_rectified_isolated",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "11d5ca38819af8ce82d690b9995dbfbb1dd7118f7dcca831159cdddb14c8220a",
+        "source_sha256": "11d5ca38819af8ce82d690b9995dbfbb1dd7118f7dcca831159cdddb14c8220a",
+        "identical": true
+      },
+      {
+        "request_directory": "06_flyback_ccm",
+        "topology_id": "flyback_diode_rectified_isolated",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "9739ff279bc9e5cfe765c1e95cbe29bbfbfaa0c680b71047a3298fcc8df2628f",
+        "source_sha256": "9739ff279bc9e5cfe765c1e95cbe29bbfbfaa0c680b71047a3298fcc8df2628f",
+        "identical": true
+      },
+      {
+        "request_directory": "08_llc_full_bridge_diode",
+        "topology_id": "llc_resonant_converter_diode_rectifier",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "e17f1e5d6929dc58ed4e755aed135b3ffcf2d953376428ea700063d06c6087f7",
+        "source_sha256": "e17f1e5d6929dc58ed4e755aed135b3ffcf2d953376428ea700063d06c6087f7",
+        "identical": true
+      },
+      {
+        "request_directory": "08_llc_full_bridge_diode",
+        "topology_id": "llc_resonant_converter_diode_rectifier",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "c029c68c3691f01f988cf0104f8980b7f7bc28233ec053b7d42cfe6681c44606",
+        "source_sha256": "c029c68c3691f01f988cf0104f8980b7f7bc28233ec053b7d42cfe6681c44606",
+        "identical": true
+      },
+      {
+        "request_directory": "08_llc_full_bridge_diode",
+        "topology_id": "llc_resonant_converter_diode_rectifier",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "3ba255234df7f9ee6b86940b91aa095440d341013241d86af563999a381eda8d",
+        "source_sha256": "3ba255234df7f9ee6b86940b91aa095440d341013241d86af563999a381eda8d",
+        "identical": true
+      },
+      {
+        "request_directory": "08_llc_full_bridge_diode",
+        "topology_id": "llc_resonant_converter_diode_rectifier",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "8e977c8cb88e86cfc8ae6b67d9fbca21d07d95ec68078ef685563e91e2bf893b",
+        "source_sha256": "8e977c8cb88e86cfc8ae6b67d9fbca21d07d95ec68078ef685563e91e2bf893b",
+        "identical": true
+      },
+      {
+        "request_directory": "08_llc_full_bridge_diode",
+        "topology_id": "llc_resonant_converter_diode_rectifier",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "0df6de7c9108f91cb1228ec768ec9f8db9034e621ba48438aa1420d910a4d835",
+        "source_sha256": "0df6de7c9108f91cb1228ec768ec9f8db9034e621ba48438aa1420d910a4d835",
+        "identical": true
+      },
+      {
+        "request_directory": "08_llc_full_bridge_diode",
+        "topology_id": "llc_resonant_converter_diode_rectifier",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "b800161a4428713b8d6869232b0f47d45549cf91830686d4fd86cd9dd204db34",
+        "source_sha256": "b800161a4428713b8d6869232b0f47d45549cf91830686d4fd86cd9dd204db34",
+        "identical": true
+      },
+      {
+        "request_directory": "07_psfb_diode",
+        "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "6c7038991e5b2e1f6f76b5d85ed6ebea063d28287b6c37c27d5fcf2c14251fad",
+        "source_sha256": "6c7038991e5b2e1f6f76b5d85ed6ebea063d28287b6c37c27d5fcf2c14251fad",
+        "identical": true
+      },
+      {
+        "request_directory": "07_psfb_diode",
+        "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "4844d04ad0205bfa25826a82cf62a198adccacadcf51dcd9e6829ea8109e8c22",
+        "source_sha256": "4844d04ad0205bfa25826a82cf62a198adccacadcf51dcd9e6829ea8109e8c22",
+        "identical": true
+      },
+      {
+        "request_directory": "07_psfb_diode",
+        "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "c34a89b47d2088b77c503d9924a8dc99798b0f2fa82468ce6cb12410a9da4656",
+        "source_sha256": "c34a89b47d2088b77c503d9924a8dc99798b0f2fa82468ce6cb12410a9da4656",
+        "identical": true
+      },
+      {
+        "request_directory": "07_psfb_diode",
+        "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "ca057ccb53d6cb5462c888d24dd2ba5c462e773a9796f2d73876ed71777d7fa8",
+        "source_sha256": "ca057ccb53d6cb5462c888d24dd2ba5c462e773a9796f2d73876ed71777d7fa8",
+        "identical": true
+      },
+      {
+        "request_directory": "07_psfb_diode",
+        "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "2a10969694ad0eb25f90ae82c8f3c2aa06be537cfec5eabe6b2da14136b3b639",
+        "source_sha256": "2a10969694ad0eb25f90ae82c8f3c2aa06be537cfec5eabe6b2da14136b3b639",
+        "identical": true
+      },
+      {
+        "request_directory": "07_psfb_diode",
+        "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "50e431f50197df51092feb06ea1515787f7c9ef58581ec421ad7ac642a76428d",
+        "source_sha256": "50e431f50197df51092feb06ea1515787f7c9ef58581ec421ad7ac642a76428d",
+        "identical": true
+      }
+    ]
+  },
+  "replay": {
+    "case_count": 51,
+    "executed_count": 51,
+    "execution_error_count": 0,
+    "pass_count": 41,
+    "pass_with_model_boundary_count": 10,
+    "mismatch_count": 0,
+    "compared_fields": 345,
+    "matched_fields": 329,
+    "core_compared_fields": 326,
+    "core_matched_fields": 326,
+    "max_relative_error": 0.20000000000000032,
+    "by_topology": {
+      "boost_diode_rectified_unidirectional": {
+        "request_directory": "03_boost_diode",
+        "case_count": 5,
+        "executed_count": 5,
+        "execution_error_count": 0,
+        "pass_count": 5,
+        "pass_with_model_boundary_count": 0,
+        "mismatch_count": 0,
+        "compared_fields": 50,
+        "matched_fields": 50,
+        "core_compared_fields": 50,
+        "core_matched_fields": 50,
+        "max_relative_error": 0.0,
+        "boundary_fields": [],
+        "all_core_fields_match": true
+      },
+      "boost_synchronous_rectified_unidirectional": {
+        "request_directory": "04_boost_synchronous",
+        "case_count": 5,
+        "executed_count": 5,
+        "execution_error_count": 0,
+        "pass_count": 5,
+        "pass_with_model_boundary_count": 0,
+        "mismatch_count": 0,
+        "compared_fields": 50,
+        "matched_fields": 50,
+        "core_compared_fields": 50,
+        "core_matched_fields": 50,
+        "max_relative_error": 0.0,
+        "boundary_fields": [],
+        "all_core_fields_match": true
+      },
+      "buck_boost_diode_rectified_unidirectional": {
+        "request_directory": "05_buck_boost_diode",
+        "case_count": 5,
+        "executed_count": 5,
+        "execution_error_count": 0,
+        "pass_count": 5,
+        "pass_with_model_boundary_count": 0,
+        "mismatch_count": 0,
+        "compared_fields": 50,
+        "matched_fields": 50,
+        "core_compared_fields": 50,
+        "core_matched_fields": 50,
+        "max_relative_error": 0.0,
+        "boundary_fields": [],
+        "all_core_fields_match": true
+      },
+      "buck_diode_rectified_unidirectional": {
+        "request_directory": "01_buck_diode",
+        "case_count": 5,
+        "executed_count": 5,
+        "execution_error_count": 0,
+        "pass_count": 5,
+        "pass_with_model_boundary_count": 0,
+        "mismatch_count": 0,
+        "compared_fields": 50,
+        "matched_fields": 50,
+        "core_compared_fields": 50,
+        "core_matched_fields": 50,
+        "max_relative_error": 0.0,
+        "boundary_fields": [],
+        "all_core_fields_match": true
+      },
+      "buck_synchronous_rectified_unidirectional": {
+        "request_directory": "02_buck_synchronous",
+        "case_count": 5,
+        "executed_count": 5,
+        "execution_error_count": 0,
+        "pass_count": 5,
+        "pass_with_model_boundary_count": 0,
+        "mismatch_count": 0,
+        "compared_fields": 50,
+        "matched_fields": 50,
+        "core_compared_fields": 50,
+        "core_matched_fields": 50,
+        "max_relative_error": 0.0,
+        "boundary_fields": [],
+        "all_core_fields_match": true
+      },
+      "flyback_diode_rectified_isolated": {
+        "request_directory": "06_flyback_ccm",
+        "case_count": 5,
+        "executed_count": 5,
+        "execution_error_count": 0,
+        "pass_count": 1,
+        "pass_with_model_boundary_count": 4,
+        "mismatch_count": 0,
+        "compared_fields": 25,
+        "matched_fields": 21,
+        "core_compared_fields": 20,
+        "core_matched_fields": 20,
+        "max_relative_error": 0.05052375556634299,
+        "boundary_fields": [
+          "Output Capacitance"
+        ],
+        "all_core_fields_match": true
+      },
+      "llc_resonant_converter_diode_rectifier": {
+        "request_directory": "08_llc_full_bridge_diode + 09_llc_half_bridge_diode",
+        "case_count": 14,
+        "executed_count": 14,
+        "execution_error_count": 0,
+        "pass_count": 14,
+        "pass_with_model_boundary_count": 0,
+        "mismatch_count": 0,
+        "compared_fields": 28,
+        "matched_fields": 28,
+        "core_compared_fields": 28,
+        "core_matched_fields": 28,
+        "max_relative_error": 0.0,
+        "boundary_fields": [],
+        "all_core_fields_match": true
+      },
+      "phase_shifted_full_bridge_diode_rectifier_isolated": {
+        "request_directory": "07_psfb_diode",
+        "case_count": 7,
+        "executed_count": 7,
+        "execution_error_count": 0,
+        "pass_count": 1,
+        "pass_with_model_boundary_count": 6,
+        "mismatch_count": 0,
+        "compared_fields": 42,
+        "matched_fields": 30,
+        "core_compared_fields": 28,
+        "core_matched_fields": 28,
+        "max_relative_error": 0.20000000000000032,
+        "boundary_fields": [
+          "Output Capacitance",
+          "Inductor Ripple"
+        ],
+        "all_core_fields_match": true
+      }
+    }
+  },
+  "acceptance": {
+    "all_algorithm_files_identical": true,
+    "expected_case_count": 51,
+    "case_count_matches": true,
+    "all_cases_executed": true,
+    "no_unexplained_mismatch": true,
+    "all_core_fields_match": true
+  },
+  "validation_pass": true
+}
