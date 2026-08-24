@@ -596,7 +596,38 @@ python -m pytest tests/test_phase5_dc_dc_migration.py tests/test_phase7_dc_dc_to
 
 ### 状态
 
-`pending`
+`completed`
+
+### 第 6 步完成证据
+
+- 算法文件逐文件 SHA-256 对照：`Plan/active/ac_dc_migration_validation.json`；5 个 AC-DC
+  拓扑目录中的 35 个 Python 算法文件全部一致，0 个 mismatch。
+- 公式与频率口径：`Plan/active/ac_dc_formula_mapping.csv`。
+- 同名指标语义和 target/achieved 分层契约：`Plan/active/ac_dc_waveform_metric_contract.json`。
+- 31 个 AC-DC 工况的黄金波形指标：`Plan/active/ac_dc_waveform_metrics_golden.json`。
+- 自动验证脚本：`scripts/validate_step6_ac_dc.py`。
+- 专项测试：`tests/test_phase6_ac_dc_migration.py`。
+
+### 第 6 步验证记录
+
+执行命令：
+
+```text
+python scripts/validate_step6_ac_dc.py
+python -m pytest tests/test_phase6_ac_dc_migration.py tests/test_phase8_ac_dc_topologies.py -q
+```
+
+结果：5/5 拓扑、35/35 算法文件一致；31/31 工况执行成功，0 个执行错误，0 个未解释
+mismatch；核心字段 136/136 匹配。9 个工况完全通过，22 个工况仅包含已登记的被动整流
+或 Boost PFC 模型边界差异；专项及 AC-DC 拓扑测试 `7 passed`。
+
+### 第 6 步提交记录
+
+- 实现 commit：`0dccb4c` (`Step 6: validate AC-DC algorithm parity`)
+- 远端：`origin/codex/sync-gui-backend-from-2`
+- 实现 push：成功，2026-08-24 12:20:38 +08:00（Asia/Shanghai）
+- 状态 commit：待本次状态更新提交后记录
+- 状态 push：待本次状态更新提交后记录
 
 ---
 
