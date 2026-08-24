@@ -277,7 +277,9 @@ replay、duty 对比、checksum 和 validation report 均已保存。主迁移�
 
 ### 第 5 步提交与同步记录
 
-- 实现与验收证据 commit：待本次记录提交后填写
+- 实现与验收证据 commit：`87fcc3d`（`PSFB Step 5: record validation evidence`）
+- 远端分支：`origin/codex/sync-gui-backend-from-2`
+- 实现 push 结果：成功
 
 ---
 
