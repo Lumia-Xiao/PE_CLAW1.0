@@ -1026,6 +1026,14 @@ python -m pytest tests/test_phase10_structured_output.py tests/test_phase11_stru
 PSFB duty policy 修复或经批准的 2.0 兼容策略中收敛后，才能将本步骤标记
 为 `completed`。
 
+### 第 11 步提交与同步记录
+
+- 实现与证据 commit：`14611cd`（`Step 11: converge end-to-end structured parity`）
+- 远端分支：`origin/codex/sync-gui-backend-from-2`
+- push 时间：`2026-08-24T15:23:34+08:00`
+- 同步结果：成功
+- 状态结论：保持 `in_progress`，原因是 1 个已证实 PSFB boundary failure；不是未解释差异
+
 ---
 
 ## 第 12 步：最终验收、文档归档和计划关闭
