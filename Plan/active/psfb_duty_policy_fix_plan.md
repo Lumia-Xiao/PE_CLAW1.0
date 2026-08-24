@@ -351,7 +351,8 @@ PSFB stress 优先读取 operating waveform 的 primary-current metadata；设�
 - 实现 commit：`daf730d`（`PSFB Step 3: align operating-point duty`）
 - 远端分支：`origin/codex/sync-gui-backend-from-2`
 - 实现 push 结果：成功
-- 计划记录 commit：待本次记录提交后填写
+- 计划记录 commit：`88db376`（`PSFB Step 3: record operating-point validation`）
+- 计划记录 push 结果：成功
 
 ### 第 2 步提交与同步记录
 
