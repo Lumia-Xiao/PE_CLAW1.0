@@ -52,10 +52,14 @@ except ModuleNotFoundError:  # New LLC topology package is outside the 1.0 GUI s
     assess_llc_fha_input_impedance = None
 
 try:
+    from ..topologies.dc_dc.phase_shifted_full_bridge_diode_rectifier_isolated.duty_policy import (
+        calculate_psfb_duty as _calculate_psfb_duty,
+    )
     from ..topologies.dc_dc.phase_shifted_full_bridge_diode_rectifier_isolated.primary_current_model import (
         calculate_primary_current as _calculate_psfb_primary_current,
     )
 except ModuleNotFoundError:  # New PSFB topology package is outside the 1.0 GUI scope.
+    _calculate_psfb_duty = None
     _calculate_psfb_primary_current = None
 from ..models.stress_result import StressMetric, StressResult
 
@@ -951,6 +955,9 @@ def _refresh_psfb_electrical_metadata(
         leakage_h=leakage_h,
         iout_a=iout_a,
         fs_hz=fs_hz,
+        max_effective_duty=float(psfb["max_effective_duty"]),
+        max_command_duty=float(psfb["max_command_duty"]),
+        scope="design_point",
     )
     low_line = _psfb_duty_point(
         vin_v=candidate.vin_min,
@@ -960,6 +967,9 @@ def _refresh_psfb_electrical_metadata(
         leakage_h=leakage_h,
         iout_a=iout_a,
         fs_hz=fs_hz,
+        max_effective_duty=float(psfb["max_effective_duty"]),
+        max_command_duty=float(psfb["max_command_duty"]),
+        scope="operating_point",
     )
     high_line = _psfb_duty_point(
         vin_v=candidate.vin_max,
@@ -969,6 +979,9 @@ def _refresh_psfb_electrical_metadata(
         leakage_h=leakage_h,
         iout_a=iout_a,
         fs_hz=fs_hz,
+        max_effective_duty=float(psfb["max_effective_duty"]),
+        max_command_duty=float(psfb["max_command_duty"]),
+        scope="operating_point",
     )
     secondary_rectified_nom_v = candidate.vin_nom / max(turns_ratio, 1e-12) - diode_drop_total_v
     output_filter_voltage_v = secondary_rectified_nom_v - candidate.vout_target
@@ -1050,6 +1063,10 @@ def _refresh_psfb_electrical_metadata(
         "effective_duty_at_vin_max": high_line["effective_duty"],
         "duty_loss_at_vin_max": high_line["duty_loss"],
         "command_duty_at_vin_max": high_line["command_duty"],
+        "duty_policy_version": "psfb_duty_policy_v1",
+        "duty_policy_nominal": nominal["policy"],
+        "duty_policy_at_vin_min": low_line["policy"],
+        "duty_policy_at_vin_max": high_line["policy"],
         "secondary_rectified_nom_v": secondary_rectified_nom_v,
         "output_inductance_h": output_inductance_h,
         "output_inductor_current_ripple_target_pp_a": delta_il_target_a,
@@ -1145,13 +1162,29 @@ def _psfb_duty_point(
     leakage_h: float,
     iout_a: float,
     fs_hz: float,
-) -> dict[str, float]:
-    effective_duty = turns_ratio_np_ns * (vout_v + diode_drop_total_v) / max(vin_v, 1e-12)
-    duty_loss = 4.0 * leakage_h * iout_a * fs_hz / max(turns_ratio_np_ns * vin_v, 1e-12)
+    max_effective_duty: float,
+    max_command_duty: float,
+    scope: str,
+) -> dict[str, object]:
+    if _calculate_psfb_duty is None:
+        raise RuntimeError("PSFB duty policy is unavailable in the current runtime.")
+    policy = _calculate_psfb_duty(
+        vin_v=vin_v,
+        vout_v=vout_v,
+        diode_drop_total_v=diode_drop_total_v,
+        turns_ratio_np_ns=turns_ratio_np_ns,
+        leakage_h=leakage_h,
+        iout_a=iout_a,
+        fs_hz=fs_hz,
+        max_effective_duty=max_effective_duty,
+        max_command_duty=max_command_duty,
+        scope=scope,
+    )
     return {
-        "effective_duty": effective_duty,
-        "duty_loss": duty_loss,
-        "command_duty": effective_duty + duty_loss,
+        "effective_duty": policy.effective_duty,
+        "duty_loss": policy.duty_loss,
+        "command_duty": policy.command_duty,
+        "policy": policy.as_dict(),
     }
 
 

@@ -11,7 +11,15 @@ def extract_stress(candidate: TopologyCandidate, waveform_set: WaveformSet | Non
     """Build primary switch and secondary rectifier stress estimates."""
 
     psfb = candidate.metadata["psfb"]
-    primary_model = psfb.get("primary_current_model")
+    waveform_metadata = waveform_set.metadata if waveform_set is not None else {}
+    waveform_psfb = (
+        waveform_metadata.get("psfb_waveforms", {})
+        if isinstance(waveform_metadata, dict)
+        else {}
+    )
+    waveform_psfb = waveform_psfb if isinstance(waveform_psfb, dict) else {}
+    primary_model = waveform_psfb.get("primary_current_model")
+    primary_model = primary_model if isinstance(primary_model, dict) else psfb.get("primary_current_model")
     primary_model = primary_model if isinstance(primary_model, dict) else {}
     switches = primary_model.get("switches")
     switches = switches if isinstance(switches, dict) else {}
@@ -25,7 +33,9 @@ def extract_stress(candidate: TopologyCandidate, waveform_set: WaveformSet | Non
         ),
     ]
     if waveform_set is not None:
-        notes.append("Waveforms provide nominal readback; stress remains based on design-corner maxima.")
+        notes.append(
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
+        )
 
     return StressResult(
         switch=StressMetric(
@@ -35,9 +45,21 @@ def extract_stress(candidate: TopologyCandidate, waveform_set: WaveformSet | Non
         ),
         rectifier=StressMetric(
             voltage_max_v=float(psfb["diode_reverse_voltage_stress_v"]),
-            current_peak_a=candidate.il_peak,
-            current_avg_a=float(psfb.get("rectifier_avg_current_a", 0.5 * candidate.iout)),
-            current_rms_a=float(psfb["rectifier_rms_current_a"]),
+            current_peak_a=(
+                float(max(waveform_set.inductor_current_a))
+                if waveform_set is not None and waveform_set.inductor_current_a
+                else candidate.il_peak
+            ),
+            current_avg_a=(
+                float(candidate.iout * waveform_set.load_ratio * 0.5)
+                if waveform_set is not None
+                else float(psfb.get("rectifier_avg_current_a", 0.5 * candidate.iout))
+            ),
+            current_rms_a=(
+                float(psfb["rectifier_rms_current_a"] * waveform_set.load_ratio)
+                if waveform_set is not None
+                else float(psfb["rectifier_rms_current_a"])
+            ),
         ),
         notes=notes,
     )

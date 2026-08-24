@@ -5,6 +5,7 @@ from __future__ import annotations
 from ....models.operating_point import OperatingPoint
 from ....models.waveform import WaveformSet
 from ...base.candidate import TopologyCandidate
+from .duty_policy import calculate_psfb_duty
 from .primary_current_model import calculate_primary_current, sample_primary_current
 
 
@@ -24,10 +25,28 @@ def generate_waveforms(
     load_ratio = max(0.0, operating_point.load_ratio if operating_point is not None else 1.0)
     turns_ratio = float(psfb["turns_ratio_np_ns"])
     diode_drop_total_v = float(psfb["rectifier_diode_drop_total_v"])
-    effective_duty = turns_ratio * (vout + diode_drop_total_v) / max(vin, 1e-12)
-    effective_duty = max(0.0, min(effective_duty, 0.98))
-    period_s = 1.0 / candidate.fs_hz
+    switching_frequency_hz = (
+        float(operating_point.switching_frequency_hz)
+        if operating_point is not None and operating_point.switching_frequency_hz is not None
+        else candidate.fs_hz
+    )
     iout = candidate.iout * load_ratio
+    policy = calculate_psfb_duty(
+        vin_v=vin,
+        vout_v=vout,
+        diode_drop_total_v=diode_drop_total_v,
+        turns_ratio_np_ns=turns_ratio,
+        leakage_h=float(psfb["leakage_inductance_target_h"]),
+        iout_a=iout,
+        fs_hz=switching_frequency_hz,
+        max_effective_duty=float(psfb["max_effective_duty"]),
+        max_command_duty=float(psfb["max_command_duty"]),
+        scope="operating_point",
+    )
+    effective_duty = policy.effective_duty
+    command_duty = policy.command_duty
+    duty_loss = policy.duty_loss
+    period_s = 1.0 / switching_frequency_hz
     delta_il = candidate.delta_il * load_ratio
     il_min = max(0.0, iout - 0.5 * delta_il)
     il_max = iout + 0.5 * delta_il
@@ -39,10 +58,10 @@ def generate_waveforms(
         iout_a=iout,
         output_inductor_ripple_pp_a=delta_il,
         turns_ratio_np_ns=turns_ratio,
-        switching_frequency_hz=candidate.fs_hz,
-        command_duty=float(psfb["command_duty_nom"]),
+        switching_frequency_hz=switching_frequency_hz,
+        command_duty=command_duty,
         effective_duty=effective_duty,
-        duty_loss=max(0.0, float(psfb["command_duty_nom"]) - effective_duty),
+        duty_loss=duty_loss,
         magnetizing_inductance_h=float(psfb["magnetizing_inductance_h"]),
         leakage_inductance_h=float(psfb["leakage_inductance_target_h"]),
         output_inductance_h=candidate.inductance_h,
@@ -130,7 +149,10 @@ def generate_waveforms(
             "psfb_waveforms": {
                 "turns_ratio_np_ns": turns_ratio,
                 "effective_duty": effective_duty,
-            "secondary_active_voltage_v": vsec_active,
+                "duty_loss": duty_loss,
+                "command_duty": command_duty,
+                "duty_policy": policy.as_dict(),
+                "secondary_active_voltage_v": vsec_active,
                 "primary_current_model": primary_current.as_metadata(
                     blocking_voltage_peak_v=candidate.vin_max
                 ),
