@@ -38,6 +38,7 @@ agentic/AI, generated output, and unrelated topology families remain excluded.
 - `phase11/summary.md`: complete AI/agentic isolation audit, runtime cleanup, documentation updates, and regression evidence.
 - `phase12/summary.md`: full 19-topology verification, source/target backend parity, clean wheel installation, GUI smoke, and complete pytest evidence.
 - `phase13/summary.md`: final release review, fresh-clone reproducibility, wheel/GUI smoke, and GitHub delivery evidence.
+- `final_acceptance_20260824/`: current end-to-end migration acceptance evidence. The machine-readable report is blocked for release until the PSFB duty boundary is resolved.
 - `tools/phase12_parity.py`: reproducible source/target structured-contract comparison tool.
 - `tools/generate_phase1_artifacts.py`: standard-library-only reproducible generator.
 - `artifact_manifest.csv`: byte counts and SHA-256 values for migration evidence files.

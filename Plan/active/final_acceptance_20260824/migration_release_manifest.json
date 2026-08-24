@@ -1,0 +1,71 @@
+{
+  "contract_version": "pe_claw_migration_release_manifest_v1",
+  "generated_at_utc": "2026-08-24T08:01:05.698767+00:00",
+  "release_status": "blocked",
+  "release_reason": "One PSFB boundary case remains unresolved; default full-suite temp-root ACL also needs a clean environment record.",
+  "git": {
+    "commit": "fef89fcdff85b7e5ef465b3042fcf92e934a9036",
+    "branch": "codex/sync-gui-backend-from-2",
+    "status_porcelain": "M  Plan/active/complete_migration_2_to_1_plan.md\nA  Plan/active/final_acceptance_20260824/comparison/comparison_final.csv\nA  Plan/active/final_acceptance_20260824/comparison/comparison_final.json\nA  Plan/active/final_acceptance_20260824/comparison/comparison_final.md\nA  Plan/active/final_acceptance_20260824/comparison/replay_case_checksums.csv\nA  Plan/active/final_acceptance_20260824/comparison/replay_checksums.json\nA  Plan/active/final_acceptance_20260824/comparison/topology_summary_final.md\nA  Plan/active/final_acceptance_20260824/comparison/unexplained_difference_ledger.md\nAM Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.json\nA  Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.md\nA  Plan/active/final_acceptance_20260824/final_test_report.json\nA  Plan/active/final_acceptance_20260824/final_test_report.md\nA  Plan/active/final_acceptance_20260824/golden_baseline/comparison.json\nA  Plan/active/final_acceptance_20260824/golden_baseline/golden_baseline_manifest.json\nA  Plan/active/final_acceptance_20260824/golden_baseline/replay_matrix.csv\nA  Plan/active/final_acceptance_20260824/golden_baseline/source_structured_snapshots.json\nA  Plan/active/final_acceptance_20260824/golden_baseline/target_structured_snapshots.json\nA  Plan/active/final_acceptance_20260824/migration_release_manifest.json\nA  Plan/active/final_acceptance_20260824/operating_points/fixed_hardware_snapshots.json\nA  Plan/active/final_acceptance_20260824/operating_points/operating_point_migration_validation.json\nA  Plan/active/final_acceptance_20260824/operating_points/operating_point_replay_matrix.csv\nA  Plan/active/final_acceptance_20260824/operating_points/structured_output_snapshots.json\nA  Plan/active/final_acceptance_20260824/source_schema_validation.json\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_1_structured_output.csv\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_1_structured_output.md\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_1_structured_output_snapshots.json\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_1_structured_output_validation.json\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_2_structured_output.csv\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_2_structured_output.md\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_2_structured_output_snapshots.json\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_2_structured_output_validation.json\nA  Plan/active/final_acceptance_20260824/structured_outputs/structured_output_migration_validation.json\nA  Plan/active/final_acceptance_20260824/target_schema_validation.json\nM  README.md\nM  migration/README.md\nA  scripts/build_step12_acceptance.py\n?? .pytest-tmp-step12-full/\n?? .pytest-tmp-step12/\n?? Plan/active/baseline_20260824/__pycache__/\n?? outputs/\n?? scripts/__pycache__/\n?? tests/__pycache__/",
+    "remote": "https://github.com/Lumia-Xiao/PE_CLAW1.0.git"
+  },
+  "environment": {
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "python_executable": "C:\\Users\\Lumia\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "platform": "Windows-11-10.0.22621-SP0",
+    "packages": {
+      "numpy": "2.5.1",
+      "pandas": "3.0.3",
+      "scipy": "1.18.0",
+      "matplotlib": "3.11.0",
+      "pypdf": null
+    },
+    "pyproject_sha256": "6848a9cc8cb93be390517fbd2b6b4f984f75a1baccf52cca5a038df70db41aa9"
+  },
+  "golden_baseline": {
+    "source_structured_snapshots.json": "98ce9d28ec3e191922fd6ca72cada1279899abc22cc0cb65a842227f35d104e0",
+    "target_structured_snapshots.json": "93b9718627af6a18573d0bd717e56e714df12ce30507306564086fc0b665ecb4",
+    "replay_matrix.csv": "a98b57276592536930a6fe28b53ee28946549fe654612f199e217797964a3e6c",
+    "comparison.json": "d090cb52dd57d00b8b09834502c323ec5a95e9a73059958af6335dc1a870d662"
+  },
+  "evidence_sha256": {
+    "Plan\\active\\final_acceptance_20260824\\complete_migration_acceptance_report.json": "b8c8a039b9176d10762647b25a2a671eb6c0eb78c97f0de9ba46916b40e6a4b6",
+    "Plan\\active\\final_acceptance_20260824\\source_schema_validation.json": "9704793c3d452b486138ac49dff884b63eee97ae517a4477538bca68ceb99208",
+    "Plan\\active\\final_acceptance_20260824\\target_schema_validation.json": "9704793c3d452b486138ac49dff884b63eee97ae517a4477538bca68ceb99208",
+    "Plan\\active\\final_acceptance_20260824\\comparison\\comparison_final.json": "d090cb52dd57d00b8b09834502c323ec5a95e9a73059958af6335dc1a870d662",
+    "Plan\\active\\final_acceptance_20260824\\comparison\\comparison_final.csv": "407b2c51c3151ba3bf27a22226c159e4a85e9ed85de4ba97a57fca644dc3bead",
+    "Plan\\active\\final_acceptance_20260824\\comparison\\replay_case_checksums.csv": "9944e4fa35d0940898d330e937754e4c366c5ff6c6f8dd9a08491a62d26296aa",
+    "Plan\\active\\final_acceptance_20260824\\comparison\\replay_checksums.json": "1326d92325cb48de19109ed16fbe1bdee982948971f5d13ae09d8483ecabe698",
+    "Plan\\active\\final_acceptance_20260824\\operating_points\\operating_point_migration_validation.json": "c71b455efe3e86270fb9049889be18f8fda2af0eed652636994d464916762057",
+    "Plan\\active\\final_acceptance_20260824\\operating_points\\operating_point_replay_matrix.csv": "a98b57276592536930a6fe28b53ee28946549fe654612f199e217797964a3e6c",
+    "Plan\\active\\final_acceptance_20260824\\structured_outputs\\structured_output_migration_validation.json": "40080d7eb7395950c6c80f0fda0120a79879e4c8a525887468ad1a7ec5fb0e48"
+  },
+  "test_summary": {
+    "full_suite_default_command": {
+      "command": "python -m pytest -q",
+      "status": "environment_error",
+      "result": "248 passed, 1 skipped, 3 errors",
+      "reason": "pytest tmp_path could not scan the existing system directory C:\\Users\\Lumia\\AppData\\Local\\Temp\\pytest-of-Lumia (WinError 5)."
+    },
+    "full_suite_isolated_command": {
+      "command": "python -m pytest -q --basetemp .pytest-tmp-step12-full",
+      "status": "passed",
+      "result": "251 passed, 1 skipped in 751.33s"
+    },
+    "isolated_tmp_path_regression": {
+      "command": "python -m pytest -q tests/test_capacitor_selection.py::test_new_tdk_csv_metadata_preserves_terminal_and_special_flags tests/test_capacitor_selection.py::test_capacitor_pareto_csv_includes_series_and_package_metadata tests/test_capacitor_selection.py::test_jianghai_template_metadata_is_written_to_capacitor_csv --basetemp .pytest-tmp-step12/base",
+      "status": "passed",
+      "result": "3 passed in 4.09s"
+    },
+    "topology_contract_tests": {
+      "command": "python -m pytest -q tests/test_phase4_topology_contracts.py tests/test_phase3_request_normalization.py tests/test_phase8_library_migration.py",
+      "status": "passed",
+      "result": "28 passed in 12.36s"
+    },
+    "structured_comparison_tests": {
+      "command": "python -m pytest -q tests/test_phase10_structured_output.py tests/test_phase11_structured_comparison.py tests/test_phase9_operating_point_migration.py",
+      "status": "passed",
+      "result": "8 passed in 4.03s"
+    }
+  }
+}

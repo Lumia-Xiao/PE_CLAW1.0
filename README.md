@@ -772,6 +772,16 @@ Planned directions:
 
 ## Development Notes
 
+## Migration Acceptance Status
+
+The PE-Claw 2.0 to 1.0 migration evidence is recorded under
+`Plan/active/final_acceptance_20260824`. The current acceptance result is
+**blocked for release**: all 103 replay records and both 103-record structured
+output schema sets are auditable, with zero unexplained differences, but the
+PSFB case `07_psfb_diode/c02_low_input_full_load` remains an explained boundary
+failure. The plan stays in `Plan/active` until the PSFB duty policy is aligned
+and the full replay is rerun with zero boundary failures.
+
 Before modifying the codebase:
 
 1. Read `DEVELOPMENT.md` and `PROJECT_ARCHITECTURE.md`.

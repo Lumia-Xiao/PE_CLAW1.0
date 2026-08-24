@@ -10,7 +10,7 @@
 | 基准工程 | `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw` |
 | 目标工程 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0` |
 | 设计工况 | 17 个注册拓扑、103 个设计工况 |
-| 当前阶段 | 第 1 步：基准冻结与差异清单 |
+| 当前阶段 | 第 12 步：最终验收、文档归档和计划保持 active |
 | 当前目标 | 代码级完整移植，而不是仅保证核心电气字段基本一致 |
 | 状态文件位置 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\Plan\active` |
 
@@ -1040,7 +1040,9 @@ PSFB duty policy 修复或经批准的 2.0 兼容策略中收敛后，才能将�
 
 ### 目标
 
-完成工程验收、交付证据归档，并将本计划从 `Plan\active` 移到 `Plan\completed`。
+完成工程验收和交付证据归档。由于 PSFB 边界工况尚未收敛，本步骤只完成
+验收记录并保持本计划在 `Plan\active`，不得提前移动到
+`Plan\completed`。
 
 ### 详细工作
 
@@ -1079,7 +1081,24 @@ PSFB duty policy 修复或经批准的 2.0 兼容策略中收敛后，才能将�
 
 ### 状态
 
-`pending`
+`in_progress`
+
+### 第 12 步执行结果（2026-08-24）
+
+- 验收报告：`Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.md`
+- 机器报告：`Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.json`
+- 发布清单：`Plan/active/final_acceptance_20260824/migration_release_manifest.json`
+- golden baseline 归档：`Plan/active/final_acceptance_20260824/golden_baseline/`
+- 注册拓扑：19 个；设计请求矩阵：17 个；回放运行时拓扑 ID：16 个
+- 回放：103/103 记录，0 个 execution error，1 个已解释但未解决的 PSFB boundary failure
+- 结构化 schema：2.0 与 1.0 均为 103/103 valid
+- 字段差异：3412 个，0 个未解释差异
+- 默认 `python -m pytest -q`：248 passed，1 skipped，3 errors；错误均为系统临时目录 ACL（WinError 5）
+- 本地可写 basetemp 完整回归：251 passed，1 skipped
+- 专项测试：拓扑/规范化/库 28 passed；结构化/比较/回放 8 passed；临时目录受影响测试 3 passed
+- 当前验收结论：`NOT_ACCEPTED_FOR_RELEASE`；PSFB duty policy 和默认测试环境记录仍需闭环
+
+本步骤保持 `in_progress`，不将计划移动到 `Plan/completed`。
 
 ---
 
