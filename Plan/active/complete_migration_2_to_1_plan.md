@@ -810,7 +810,10 @@ python -m pytest tests/test_phase7_dc_ac_migration.py tests/test_phase9_dc_ac_to
 - 统一保存 operating-point input checksum、waveform metrics checksum；波形后处理包含 average、RMS、peak、valley、peak-to-peak，并保留 solver、步长、采样窗口、settling cycles、convergence 等拓扑可用元数据。
 - 产物目录：`Plan/active/operating_points_20260824/`，包含 `operating_point_replay_matrix.csv`、`simulation_contract.md`、`waveform_metrics_schema.json`、`fixed_hardware_snapshots.json` 和 `operating_point_migration_validation.json`。
 - 验证命令：`python scripts/validate_step9_operating_points.py --source-root C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw --output-dir Plan/active/operating_points_20260824`；`pytest -q tests/test_phase9_operating_point_migration.py tests/test_phase9_dc_ac_topologies.py tests/test_phase8_library_migration.py`，结果 `9 passed`。
-- 已识别且保留 1 个边界状态：PSFB `c02_low_input_full_load` 在 1.0 固定硬件 refresh 中触发 `PSFB duties must satisfy 0 <= effective <= command <= 1.`。2.0 对该工况重新设计了输出电感和工作点占空比，因此该工况不能判为完全路径一致，需在后续边界策略中处理。
+- 历史回放曾识别 PSFB `c02_low_input_full_load` 的 duty boundary。该问题已由
+  `Plan/active/psfb_duty_policy_20260824/` 中的 PSFB 专项修复和 7 工况回归
+  收敛：修复后 `c02` 为 `executed`，0 个 PSFB boundary failure。全量 103
+  工况尚未因本次专项修复重新回放，因此第 11、12 步仍需保持 active。
 
 ---
 
@@ -985,9 +988,10 @@ validation 文件均为 `103 valid, 0 invalid`。
    未定义的 `model_boundary` 掩盖差异。
 3. 修正 operating-point refresh 报告契约：当前工况请求和 c01 冻结硬件
    分别记录，特殊字符串纹波要求和约束中的电感纹波值按规范化规则恢复。
-4. 对 PSFB 低输入固定硬件 refresh 保留明确 `boundary_failure`，并绑定到
-   `PSFB duties must satisfy 0 <= effective <= command <= 1.` 的代码和仿真契约
-   证据；该边界没有被判定为成功。
+4. 对 PSFB 低输入固定硬件 refresh 的历史 `boundary_failure` 完成专项修复，
+   由 operating-point duty policy 统一提供 effective/command duty 和 duty loss；
+   PSFB 7 工况回归证据显示该 boundary 已转为 `executed`，但全量 103 工况
+   尚未重新回放。
 5. 新增第十一步专项测试，覆盖 103 工况、17 个矩阵目录、16 个运行时拓扑
    ID、差异审计字段和逐工况 checksum。
 
@@ -1020,11 +1024,11 @@ python -m pytest tests/test_phase10_structured_output.py tests/test_phase11_stru
 
 ### 第 11 步状态说明
 
-第 11 步暂保持 `in_progress`：当前全量回放无执行错误且无未解释差异，
-但 PSFB `c02_low_input_full_load` 仍有一个已证实的固定硬件工作点边界，
-因此尚不能满足“103/103 执行成功”的严格完成条件。该边界必须在后续
-PSFB duty policy 修复或经批准的 2.0 兼容策略中收敛后，才能将本步骤标记
-为 `completed`。
+第 11 步继续保持 `in_progress`：历史全量回放无执行错误且无未解释差异，
+PSFB `c02_low_input_full_load` 的 boundary 已由 PSFB 专项修复收敛，详见
+`Plan/active/psfb_duty_policy_20260824/psfb_validation_report.md`。但是修复
+后尚未重新执行全量 103 工况，因此仍不能满足“103/103 执行成功”的严格
+完成条件；完成第 11 步前必须先重跑 PSFB 全部工况，再重跑全量 103 工况。
 
 ### 第 11 步提交与同步记录
 
@@ -1032,7 +1036,7 @@ PSFB duty policy 修复或经批准的 2.0 兼容策略中收敛后，才能将�
 - 远端分支：`origin/codex/sync-gui-backend-from-2`
 - push 时间：`2026-08-24T15:23:34+08:00`
 - 同步结果：成功
-- 状态结论：保持 `in_progress`，原因是 1 个已证实 PSFB boundary failure；不是未解释差异
+- 状态结论：保持 `in_progress`，原因是 PSFB 修复后的全量 103 工况回放尚未完成；历史边界已由专项证据收敛
 
 ---
 
@@ -1090,13 +1094,13 @@ PSFB duty policy 修复或经批准的 2.0 兼容策略中收敛后，才能将�
 - 发布清单：`Plan/active/final_acceptance_20260824/migration_release_manifest.json`
 - golden baseline 归档：`Plan/active/final_acceptance_20260824/golden_baseline/`
 - 注册拓扑：19 个；设计请求矩阵：17 个；回放运行时拓扑 ID：16 个
-- 回放：103/103 记录，0 个 execution error，1 个已解释但未解决的 PSFB boundary failure
+- 历史回放：103/103 记录，0 个 execution error，1 个已解释的 PSFB boundary failure；该 boundary 已由 PSFB 专项修复收敛，修复后全量回放尚未执行
 - 结构化 schema：2.0 与 1.0 均为 103/103 valid
 - 字段差异：3412 个，0 个未解释差异
 - 默认 `python -m pytest -q`：248 passed，1 skipped，3 errors；错误均为系统临时目录 ACL（WinError 5）
 - 本地可写 basetemp 完整回归：251 passed，1 skipped
 - 专项测试：拓扑/规范化/库 28 passed；结构化/比较/回放 8 passed；临时目录受影响测试 3 passed
-- 当前验收结论：`NOT_ACCEPTED_FOR_RELEASE`；PSFB duty policy 和默认测试环境记录仍需闭环
+- 当前验收结论：`NOT_ACCEPTED_FOR_RELEASE`；PSFB duty policy 专项已闭环，但修复后的全量 103 工况回放和默认测试环境记录仍需闭环
 
 本步骤保持 `in_progress`，不将计划移动到 `Plan/completed`。
 
@@ -1106,7 +1110,7 @@ PSFB duty policy 修复或经批准的 2.0 兼容策略中收敛后，才能将�
 - 远端分支：`origin/codex/sync-gui-backend-from-2`
 - push 时间：`2026-08-24T16:01:29+08:00`
 - 同步结果：成功
-- 状态结论：保持 `in_progress`，因为 PSFB boundary failure 尚未修复
+- 状态结论：保持 `in_progress`，因为 PSFB 修复后的全量 103 工况回放尚未完成
 
 ---
 

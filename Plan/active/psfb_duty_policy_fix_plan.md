@@ -258,6 +258,27 @@ PSFB operating duty policy、primary-current、waveform 和 stress refresh。
 - 计划记录 commit：`85b7c1b`（`PSFB Step 4: finalize regression record`）
 - 计划记录 push 结果：成功
 
+第 5 步已完成。PSFB 专项验收证据已生成，原始 baseline 未覆盖；修复后
+replay、duty 对比、checksum 和 validation report 均已保存。主迁移计划中
+第 9 步的 PSFB boundary 引用已更新为“专项已收敛”，第 11、12 步仍保持
+`in_progress`，并明确要求重跑修复后的全量 103 工况。
+
+第 5 步专项验证：
+
+- 证据脚本：`scripts/record_psfb_step5_evidence.py`
+- replay：`Plan/active/psfb_duty_policy_20260824/psfb_replay_results.json`
+- duty 对比：`Plan/active/psfb_duty_policy_20260824/psfb_duty_comparison.csv`
+- validation report：`Plan/active/psfb_duty_policy_20260824/psfb_validation_report.md`、`psfb_validation_report.json`
+- 结果：7/7 executed、0 个修复后 boundary failure、0 个 execution error
+- c02：`boundary_failure -> executed`
+- 固定硬件：7 个工况共享 1 个 checksum，均与修复前 c01 硬件 checksum 一致
+- 专项测试：`15 passed`
+- 全量 103 工况：本步骤未重跑，主迁移计划仍保持 active
+
+### 第 5 步提交与同步记录
+
+- 实现与验收证据 commit：待本次记录提交后填写
+
 ---
 
 ### 第 5 步：更新 PSFB 验收证据和主计划状态
@@ -321,7 +342,7 @@ PSFB operating duty policy、primary-current、waveform 和 stress refresh。
 
 ## 8. 当前状态
 
-`in_progress`
+`completed`
 
 ### 第 1 步执行结果（2026-08-24）
 
@@ -352,6 +373,7 @@ duty 计算均已复用 policy；`primary_current_model.py` 的物理 duty 顺�
 - 编译命令：`python -m py_compile src/pe_claw_gui/topologies/dc_dc/phase_shifted_full_bridge_diode_rectifier_isolated/duty_policy.py src/pe_claw_gui/topologies/dc_dc/phase_shifted_full_bridge_diode_rectifier_isolated/synthesizer.py src/pe_claw_gui/topologies/dc_dc/phase_shifted_full_bridge_diode_rectifier_isolated/primary_current_model.py tests/test_psfb_duty_policy.py`
 - 结果：通过
 - `git diff --check`：通过
+
 - 设计点回归：nominal、低线和高线 duty 数值与第 1 步冻结基线一致
 - 覆盖：nominal、low-line、high-line、light-load、very-light-load、high-frequency、配置上限超限和非法 duty
 

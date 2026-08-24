@@ -1,0 +1,300 @@
+{
+  "contract_version": "pe_claw_psfb_replay_results_v1",
+  "generated_at_utc": "2026-08-24T11:33:57.137266+00:00",
+  "baseline_status": "before_psfb_duty_policy_fix",
+  "result_status": "after_psfb_duty_policy_fix",
+  "scope": {
+    "matrix_id": "07_psfb_diode",
+    "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+    "case_count": 7,
+    "executed_count": 7,
+    "execution_error_count": 0,
+    "boundary_failure_count_before": 1,
+    "boundary_failure_count_after": 0,
+    "shared_hardware_checksum_count_after": 1,
+    "all_hardware_checksums_match": true,
+    "full_103_replay_performed": false
+  },
+  "records": [
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "execution_mode": "new_design",
+      "operating_point": {
+        "vin_v": 750.0,
+        "load_ratio": 1.0,
+        "switching_frequency_hz": 100000.0
+      },
+      "status": {
+        "before": "executed",
+        "after": "executed",
+        "before_reason": "",
+        "after_reason": ""
+      },
+      "hardware": {
+        "before_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "after_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "checksum_match": true
+      },
+      "duty": {
+        "candidate_duty_before": 0.7293531886916502,
+        "candidate_duty_after": 0.7293531886916502,
+        "candidate_duty_abs_delta": 0.0,
+        "waveform_duty_before": 0.676,
+        "waveform_duty_after": 0.676,
+        "waveform_duty_abs_delta": 0.0,
+        "effective_duty_operating": 0.676,
+        "duty_loss_operating": 0.05291255752794214,
+        "command_duty_operating": 0.7289125575279422,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "status": "pass",
+        "duty_loss_consistent": true
+      },
+      "primary_current_time_partition": 5e-06,
+      "primary_current_half_period": 5e-06,
+      "difference_classification": "operating_duty_policy_and_primary_current_refresh"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_point": {
+        "vin_v": 650.0,
+        "load_ratio": 1.0,
+        "switching_frequency_hz": 100000.0
+      },
+      "status": {
+        "before": "boundary_failure",
+        "after": "executed",
+        "before_reason": "ValueError: PSFB duties must satisfy 0 <= effective <= command <= 1.",
+        "after_reason": ""
+      },
+      "hardware": {
+        "before_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "after_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "checksum_match": true
+      },
+      "duty": {
+        "candidate_duty_before": 0.7293531886916502,
+        "candidate_duty_after": 0.7293531886916502,
+        "candidate_duty_abs_delta": 0.0,
+        "waveform_duty_before": 0.676,
+        "waveform_duty_after": 0.78,
+        "waveform_duty_abs_delta": 0.10399999999999998,
+        "effective_duty_operating": 0.78,
+        "duty_loss_operating": 0.06156137156728873,
+        "command_duty_operating": 0.8415613715672887,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "status": "pass",
+        "duty_loss_consistent": true
+      },
+      "primary_current_time_partition": 5.000000000000001e-06,
+      "primary_current_half_period": 5e-06,
+      "difference_classification": "boundary_resolved_by_operating_duty_policy"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_point": {
+        "vin_v": 850.0,
+        "load_ratio": 1.0,
+        "switching_frequency_hz": 100000.0
+      },
+      "status": {
+        "before": "executed",
+        "after": "executed",
+        "before_reason": "",
+        "after_reason": ""
+      },
+      "hardware": {
+        "before_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "after_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "checksum_match": true
+      },
+      "duty": {
+        "candidate_duty_before": 0.7293531886916502,
+        "candidate_duty_after": 0.7293531886916502,
+        "candidate_duty_abs_delta": 0.0,
+        "waveform_duty_before": 0.5964705882352941,
+        "waveform_duty_after": 0.5964705882352941,
+        "waveform_duty_abs_delta": 0.0,
+        "effective_duty_operating": 0.5964705882352941,
+        "duty_loss_operating": 0.04707634296322079,
+        "command_duty_operating": 0.6435469311985149,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "status": "pass",
+        "duty_loss_consistent": true
+      },
+      "primary_current_time_partition": 5e-06,
+      "primary_current_half_period": 5e-06,
+      "difference_classification": "operating_duty_policy_and_primary_current_refresh"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_point": {
+        "vin_v": 750.0,
+        "load_ratio": 0.2,
+        "switching_frequency_hz": 100000.0
+      },
+      "status": {
+        "before": "executed",
+        "after": "executed",
+        "before_reason": "",
+        "after_reason": ""
+      },
+      "hardware": {
+        "before_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "after_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "checksum_match": true
+      },
+      "duty": {
+        "candidate_duty_before": 0.7293531886916502,
+        "candidate_duty_after": 0.7293531886916502,
+        "candidate_duty_abs_delta": 0.0,
+        "waveform_duty_before": 0.676,
+        "waveform_duty_after": 0.676,
+        "waveform_duty_abs_delta": 0.0,
+        "effective_duty_operating": 0.676,
+        "duty_loss_operating": 0.010670637738330045,
+        "command_duty_operating": 0.68667063773833,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "status": "pass",
+        "duty_loss_consistent": true
+      },
+      "primary_current_time_partition": 5e-06,
+      "primary_current_half_period": 5e-06,
+      "difference_classification": "operating_duty_policy_and_primary_current_refresh"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_point": {
+        "vin_v": 750.0,
+        "load_ratio": 0.1,
+        "switching_frequency_hz": 100000.0
+      },
+      "status": {
+        "before": "executed",
+        "after": "executed",
+        "before_reason": "",
+        "after_reason": ""
+      },
+      "hardware": {
+        "before_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "after_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "checksum_match": true
+      },
+      "duty": {
+        "candidate_duty_before": 0.7293531886916502,
+        "candidate_duty_after": 0.7293531886916502,
+        "candidate_duty_abs_delta": 0.0,
+        "waveform_duty_before": 0.676,
+        "waveform_duty_after": 0.676,
+        "waveform_duty_abs_delta": 0.0,
+        "effective_duty_operating": 0.676,
+        "duty_loss_operating": 0.005335318869165022,
+        "command_duty_operating": 0.6813353188691651,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "status": "pass",
+        "duty_loss_consistent": true
+      },
+      "primary_current_time_partition": 5e-06,
+      "primary_current_half_period": 5e-06,
+      "difference_classification": "operating_duty_policy_and_primary_current_refresh"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_point": {
+        "vin_v": 750.0,
+        "load_ratio": 1.0,
+        "switching_frequency_hz": 150000.0
+      },
+      "status": {
+        "before": "executed",
+        "after": "executed",
+        "before_reason": "",
+        "after_reason": ""
+      },
+      "hardware": {
+        "before_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "after_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "checksum_match": true
+      },
+      "duty": {
+        "candidate_duty_before": 0.7293531886916502,
+        "candidate_duty_after": 0.7293531886916502,
+        "candidate_duty_abs_delta": 0.0,
+        "waveform_duty_before": 0.676,
+        "waveform_duty_after": 0.676,
+        "waveform_duty_abs_delta": 0.0,
+        "effective_duty_operating": 0.676,
+        "duty_loss_operating": 0.08002978303747534,
+        "command_duty_operating": 0.7560297830374754,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "status": "pass",
+        "duty_loss_consistent": true
+      },
+      "primary_current_time_partition": 3.3333333333333333e-06,
+      "primary_current_half_period": 3.3333333333333333e-06,
+      "difference_classification": "operating_duty_policy_and_primary_current_refresh"
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c07_nominal_high_ripple",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_point": {
+        "vin_v": 750.0,
+        "load_ratio": 1.0,
+        "switching_frequency_hz": 100000.0
+      },
+      "status": {
+        "before": "executed",
+        "after": "executed",
+        "before_reason": "",
+        "after_reason": ""
+      },
+      "hardware": {
+        "before_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "after_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+        "checksum_match": true
+      },
+      "duty": {
+        "candidate_duty_before": 0.7293531886916502,
+        "candidate_duty_after": 0.7293531886916502,
+        "candidate_duty_abs_delta": 0.0,
+        "waveform_duty_before": 0.676,
+        "waveform_duty_after": 0.676,
+        "waveform_duty_abs_delta": 0.0,
+        "effective_duty_operating": 0.676,
+        "duty_loss_operating": 0.05335318869165022,
+        "command_duty_operating": 0.7293531886916502,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "status": "pass",
+        "duty_loss_consistent": true
+      },
+      "primary_current_time_partition": 5.000000000000001e-06,
+      "primary_current_half_period": 5e-06,
+      "difference_classification": "operating_duty_policy_and_primary_current_refresh"
+    }
+  ]
+}
