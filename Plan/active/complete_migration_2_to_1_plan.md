@@ -149,7 +149,7 @@
 
 ### 状态
 
-`completed`
+`pending`
 
 ### 当前证据
 
@@ -370,7 +370,26 @@ python scripts/validate_step2_environment.py
 
 ### 状态
 
-`pending`
+`completed`
+
+### 第 3 步完成证据
+
+- 1.0 canonical parser：`src/pe_claw_gui/parsers/design_request.py`
+- parser exports：`src/pe_claw_gui/parsers/__init__.py`
+- schema：`Plan/active/request_contract_20260824/normalized_request_schema_v2.json`
+- field matrix：`Plan/active/request_contract_20260824/request_field_mapping_matrix.csv`
+- golden：`Plan/active/request_contract_20260824/request_normalization_golden.json`
+- validator：`scripts/validate_step3_normalization.py`
+- tests：`tests/test_phase3_request_normalization.py`
+- source request inventory: 103 standard requests across the 17 registered topology directories
+- exact comparison: 103/103 normalized requirements matched the PE-Claw 2.0 parser bridge
+- unit policy: canonical layer retains Hz/H/F/V/A/W; legacy kHz and topology aliases are emitted only by `build_plugin_raw_input`
+- ripple policy: numeric percentage targets remain numeric; descriptive 2.0 strings remain strings
+- fixed hardware: LLC fixed-hardware snapshots are preserved, including scientific-notation values and reuse identifiers
+- test command: `python scripts/validate_step3_normalization.py --source-root C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw --requests-root C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests --golden Plan\\active\\request_contract_20260824\\request_normalization_golden.json`
+- test result: `request_count=103`, `exact_match_count=103`, `mismatch_count=0`
+- focused tests: `python -m pytest tests/test_phase3_request_normalization.py -q` -> `4 passed`
+- implementation commit: to be recorded after commit and push
 
 ---
 

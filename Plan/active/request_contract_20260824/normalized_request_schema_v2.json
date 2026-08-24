@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PE-Claw normalized requirement v2",
+  "type": "object",
+  "required": ["converter_family", "topology_mode", "topology_hint", "vin_nom_v", "vout_v", "pout_w", "fsw_hz", "isolation_required", "ambient_temp_c", "target_junction_temp_c", "ripple_voltage_ratio_percent", "constraints"],
+  "properties": {
+    "converter_family": {"type": ["string", "null"]},
+    "topology_mode": {"type": ["string", "null"]},
+    "topology_hint": {"type": ["string", "null"]},
+    "vin_min_v": {"type": ["number", "null"]},
+    "vin_nom_v": {"type": ["number", "null"]},
+    "vin_max_v": {"type": ["number", "null"]},
+    "vout_min_v": {"type": ["number", "null"]},
+    "vout_v": {"type": ["number", "null"]},
+    "vout_max_v": {"type": ["number", "null"]},
+    "iout_a": {"type": ["number", "null"]},
+    "pout_w": {"type": ["number", "null"]},
+    "fsw_hz": {"type": ["number", "null"]},
+    "fs_min_hz": {"type": ["number", "null"]},
+    "fs_max_hz": {"type": ["number", "null"]},
+    "isolation_required": {"type": ["boolean", "null"]},
+    "ambient_temp_c": {"type": ["number", "null"]},
+    "target_junction_temp_c": {"type": ["number", "null"]},
+    "ripple_current_ratio": {"type": ["number", "null"]},
+    "ripple_voltage_ratio_percent": {"type": ["number", "string", "null"]},
+    "constraints": {"type": "object", "additionalProperties": true}
+  },
+  "additionalProperties": false,
+  "x-unit-policy": {
+    "frequency": "Hz",
+    "inductance": "H",
+    "capacitance": "F",
+    "voltage": "V",
+    "current": "A",
+    "power": "W",
+    "ripple_voltage_ratio_percent": "percent; descriptive request text remains a string",
+    "load_ratio": "p.u."
+  },
+  "x-default-policy": {
+    "ripple_current_ratio": "0.30 for generic DC-DC; 1.20 Flyback; 0.25 PSFB; absent for LLC/AC-DC/DC-AC",
+    "ripple_voltage_ratio_percent": "1.0 only when the 2.0 capability default applies",
+    "ambient_temp_c": 25.0,
+    "target_junction_temp_c": 100.0
+  }
+}

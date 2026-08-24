@@ -1,0 +1,30 @@
+layer,source_field,normalized_field,unit,conversion_or_default,comparison_policy
+identity,topology_hint,topology_hint,dimensionless,canonical topology alias,strict
+input,input.voltage_min_v,input.voltage_min_v,V,scalar numeric,strict
+input,input.voltage_nominal_v,input.voltage_nominal_v,V,scalar numeric,strict
+input,input.voltage_max_v,input.voltage_max_v,V,strict numeric,strict
+input,input.voltage_rms_v,input.voltage_rms_v,V,scalar numeric,strict
+input,input.voltage_line_line_rms_v,input.voltage_line_line_rms_v,V,scalar numeric,strict
+output,output.voltage_v,output.voltage_v,V,output voltage primary value,strict
+output,dc_bus.voltage_nominal_v,dc_bus.voltage_nominal_v,V,retained for AC-DC fallback,strict
+power,power.output_power_w,power.output_power_w,W,scalar numeric,strict
+switching,switching.frequency_hz,switching.frequency_hz,Hz,scalar numeric,strict
+switching,switching.frequency_min_hz,switching.frequency_min_hz,Hz,scalar numeric,strict
+switching,switching.frequency_max_hz,switching.frequency_max_hz,Hz,scalar numeric,strict
+dc_bus,dc_bus.ripple_voltage_ratio_percent,dc_bus.ripple_voltage_ratio_percent,%,default 1.0 when absent,strict
+rectifier,rectifier.inductor_current_ripple_ratio,rectifier.inductor_current_ripple_ratio,p.u.,default 0.3 when absent,strict
+rectifier,rectifier.dc_reactor_inductance_mh,rectifier.dc_reactor_inductance_mh,mH,retained source unit for legacy adapter,strict
+isolation,isolation.required,isolation.required,boolean,yes/no/required aliases,strict
+thermal,thermal.ambient_c,thermal.ambient_c,C,default 25.0 when absent,strict
+thermal,thermal.target_junction_temp_c,thermal.target_junction_temp_c,C,default 100.0 when absent,strict
+constraints,constraints.hardware_reuse_mode,constraints.hardware_reuse_mode,enum,new_design when absent in LLC adapter,strict
+constraints,constraints.hardware_design_case_id,constraints.hardware_design_case_id,identifier,empty when absent in LLC adapter,strict
+constraints,constraints.load_ratio,constraints.load_ratio,p.u.,default 1.0 in LLC adapter,strict
+constraints,constraints.resonant_inductance_h,constraints.resonant_inductance_h,H,retained fixed hardware snapshot,strict
+constraints,constraints.magnetizing_inductance_h,constraints.magnetizing_inductance_h,H,retained fixed hardware snapshot,strict
+constraints,constraints.resonant_capacitance_f,constraints.resonant_capacitance_f,F,retained fixed hardware snapshot,strict
+constraints,constraints.output_capacitance_f,constraints.output_capacitance_f,F,retained fixed hardware snapshot,strict
+constraints,constraints.output_capacitor_esr_ohm,constraints.output_capacitor_esr_ohm,ohm,retained fixed hardware snapshot,strict
+constraints,constraints.transformer_primary_turns,constraints.transformer_primary_turns,count,retained fixed hardware snapshot,strict
+constraints,constraints.transformer_secondary_turns,constraints.transformer_secondary_turns,count,retained fixed hardware snapshot,strict
+constraints,constraints.load_resistance_ohm,constraints.load_resistance_ohm,ohm,retained fixed hardware snapshot,strict
