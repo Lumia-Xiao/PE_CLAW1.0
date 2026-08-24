@@ -255,7 +255,7 @@ PSFB operating duty policy、primary-current、waveform 和 stress refresh。
 - 实现与回归证据 commit：`7bd3a91`（`PSFB Step 4: pass topology regression`）
 - 远端分支：`origin/codex/sync-gui-backend-from-2`
 - 实现 push 结果：成功
-- 计划记录 commit：`b340e60`（`PSFB Step 4: record topology regression`）
+- 计划记录 commit：`85b7c1b`（`PSFB Step 4: finalize regression record`）
 - 计划记录 push 结果：成功
 
 ---
