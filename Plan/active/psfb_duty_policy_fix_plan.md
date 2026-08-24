@@ -287,4 +287,26 @@ command_duty = effective_duty + duty_loss
 
 ## 8. 当前状态
 
-`pending`
+`in_progress`
+
+### 第 1 步执行结果（2026-08-24）
+
+- 基线脚本：`scripts/freeze_psfb_duty_baseline.py`
+- 基线目录：`Plan/active/psfb_duty_policy_20260824/`
+- 基线文件：`psfb_baseline.json`、`psfb_baseline.csv`
+- PSFB 工况覆盖：7/7
+- boundary failure：1 个，仅为 `c02_low_input_full_load`
+- execution error：0 个
+- 共享硬件 checksum：1 个，7 个工况均使用同一硬件快照
+- 专项基线测试：`tests/test_psfb_duty_policy_baseline.py`
+- 验证命令：`python scripts/freeze_psfb_duty_baseline.py`；
+  `python -m pytest -q tests/test_psfb_duty_policy_baseline.py`
+
+第 1 步的基线已冻结。第 2 步尚未开始。
+
+### 第 1 步提交与同步记录
+
+- 实现与基线 commit：待本次提交生成
+- 远端分支：`origin/codex/sync-gui-backend-from-2`
+- push 结果：待本次提交完成
+- 步骤状态：`in_progress`，push 成功后更新为 `completed`
