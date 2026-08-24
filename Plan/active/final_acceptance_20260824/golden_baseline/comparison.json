@@ -7,8 +7,8 @@
   "matrix_count": 17,
   "topology_count": 16,
   "execution_error_count": 0,
-  "boundary_count": 1,
-  "expected_boundary_count": 1,
+  "boundary_count": 0,
+  "expected_boundary_count": 0,
   "difference_count": 3412,
   "unexplained_difference_count": 0,
   "verdict_counts": {
@@ -57354,7 +57354,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 13.433641975308642,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -58332,7 +58332,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 13.433641975308642,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -58725,14 +58725,8 @@
       "matrix_id": "07_psfb_diode",
       "case_id": "c02_low_input_full_load",
       "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
-      "status": "boundary_failure",
-      "boundary_evidence": {
-        "category": "expected_boundary",
-        "owner": "operating-point-replay",
-        "basis": "Boundary failures remain explicit and cannot be converted to pass.",
-        "evidence": "Plan/active/operating_points_20260824/simulation_contract.md",
-        "reason": "ValueError: PSFB duties must satisfy 0 <= effective <= command <= 1."
-      },
+      "status": "executed",
+      "boundary_evidence": null,
       "compared_fields": 67,
       "matched_fields": 24,
       "difference_count": 43,
@@ -59577,7 +59571,7 @@
         {
           "field": "ripple.output_ripple_simulated",
           "source_value": null,
-          "target_value": 1.0082057095831374,
+          "target_value": 1.0082139156367589,
           "source_unit": "V",
           "target_unit": "V",
           "absolute_error": null,
@@ -59780,7 +59774,7 @@
           "field": "stress.rectifier.voltage_max",
           "source_value": null,
           "target_value": {
-            "value": 674.6351084812624,
+            "value": 680.2531558185403,
             "unit": "V",
             "source": "stress.extraction"
           },
@@ -59826,7 +59820,7 @@
           "field": "stress.switch.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 14.041026127335355,
+            "value": 14.465449482814016,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -59849,7 +59843,7 @@
           "field": "stress.switch.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.28567035385654,
+            "value": 8.37974218635231,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -60002,7 +59996,7 @@
           "field": "waveform.operating.duty",
           "source_value": null,
           "target_value": {
-            "value": 0.676,
+            "value": 0.78,
             "unit": "ratio",
             "source": "topology.waveform"
           },
@@ -60025,7 +60019,7 @@
           "field": "waveform.operating.input_voltage",
           "source_value": null,
           "target_value": {
-            "value": 750.0,
+            "value": 650.0,
             "unit": "V",
             "source": "topology.waveform"
           },
@@ -60669,7 +60663,7 @@
         {
           "field": "ripple.output_ripple_simulated",
           "source_value": null,
-          "target_value": 1.0082057095831374,
+          "target_value": 1.0082139156367589,
           "source_unit": "V",
           "target_unit": "V",
           "absolute_error": null,
@@ -60777,7 +60771,7 @@
           "field": "stress.rectifier.voltage_max",
           "source_value": null,
           "target_value": {
-            "value": 674.6351084812624,
+            "value": 680.2531558185403,
             "unit": "V",
             "source": "stress.extraction"
           },
@@ -60823,7 +60817,7 @@
           "field": "stress.switch.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 14.041026127335355,
+            "value": 14.465449482814016,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -60846,7 +60840,7 @@
           "field": "stress.switch.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.28567035385654,
+            "value": 8.37974218635231,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -60961,7 +60955,7 @@
           "field": "waveform.operating.duty",
           "source_value": null,
           "target_value": {
-            "value": 0.676,
+            "value": 0.78,
             "unit": "ratio",
             "source": "topology.waveform"
           },
@@ -60984,7 +60978,7 @@
           "field": "waveform.operating.input_voltage",
           "source_value": null,
           "target_value": {
-            "value": 750.0,
+            "value": 650.0,
             "unit": "V",
             "source": "topology.waveform"
           },
@@ -62127,7 +62121,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 13.436588921282798,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -62219,7 +62213,7 @@
           "field": "stress.switch.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 14.041026127335355,
+            "value": 13.618427875106573,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -62242,7 +62236,7 @@
           "field": "stress.switch.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.28567035385654,
+            "value": 8.140788251643862,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -63124,7 +63118,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 13.436588921282798,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -63216,7 +63210,7 @@
           "field": "stress.switch.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 14.041026127335355,
+            "value": 13.618427875106573,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -63239,7 +63233,7 @@
           "field": "stress.switch.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.28567035385654,
+            "value": 8.140788251643862,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -64497,7 +64491,7 @@
           "field": "stress.rectifier.current_average",
           "source_value": null,
           "target_value": {
-            "value": 6.25,
+            "value": 1.25,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -64520,7 +64514,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 2.6867283950617287,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -64543,7 +64537,7 @@
           "field": "stress.rectifier.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.838834764831844,
+            "value": 1.7677669529663689,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -64612,7 +64606,7 @@
           "field": "stress.switch.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 14.041026127335355,
+            "value": 5.304441479077631,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -64635,7 +64629,7 @@
           "field": "stress.switch.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.28567035385654,
+            "value": 2.821195600368142,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -65532,7 +65526,7 @@
           "field": "stress.rectifier.current_average",
           "source_value": null,
           "target_value": {
-            "value": 6.25,
+            "value": 1.25,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -65555,7 +65549,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 2.6867283950617287,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -65578,7 +65572,7 @@
           "field": "stress.rectifier.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.838834764831844,
+            "value": 1.7677669529663689,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -65647,7 +65641,7 @@
           "field": "stress.switch.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 14.041026127335355,
+            "value": 5.304441479077631,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -65670,7 +65664,7 @@
           "field": "stress.switch.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.28567035385654,
+            "value": 2.821195600368142,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -66928,7 +66922,7 @@
           "field": "stress.rectifier.current_average",
           "source_value": null,
           "target_value": {
-            "value": 6.25,
+            "value": 0.625,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -66951,7 +66945,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 1.3433641975308643,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -66974,7 +66968,7 @@
           "field": "stress.rectifier.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.838834764831844,
+            "value": 0.8838834764831844,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -67043,7 +67037,7 @@
           "field": "stress.switch.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 14.041026127335355,
+            "value": 4.212368398045415,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -67066,7 +67060,7 @@
           "field": "stress.switch.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.28567035385654,
+            "value": 2.167715527060121,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -67963,7 +67957,7 @@
           "field": "stress.rectifier.current_average",
           "source_value": null,
           "target_value": {
-            "value": 6.25,
+            "value": 0.625,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -67986,7 +67980,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 1.3433641975308643,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -68009,7 +68003,7 @@
           "field": "stress.rectifier.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.838834764831844,
+            "value": 0.8838834764831844,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -68078,7 +68072,7 @@
           "field": "stress.switch.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 14.041026127335355,
+            "value": 4.212368398045415,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -68101,7 +68095,7 @@
           "field": "stress.switch.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.28567035385654,
+            "value": 2.167715527060121,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -69225,7 +69219,7 @@
         {
           "field": "ripple.output_ripple_simulated",
           "source_value": null,
-          "target_value": 1.0082057095831374,
+          "target_value": 0.6721371397221105,
           "source_unit": "V",
           "target_unit": "V",
           "absolute_error": null,
@@ -69382,7 +69376,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 13.433641975308642,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -69474,7 +69468,7 @@
           "field": "stress.switch.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 14.041026127335355,
+            "value": 13.000927688330954,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -69497,7 +69491,7 @@
           "field": "stress.switch.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.28567035385654,
+            "value": 7.781743922669891,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -69742,7 +69736,7 @@
           "field": "waveform.operating.switching_frequency",
           "source_value": null,
           "target_value": {
-            "value": 99999.99999999999,
+            "value": 150000.0,
             "unit": "Hz",
             "source": "topology.waveform"
           },
@@ -69765,7 +69759,7 @@
           "field": "waveform.operating.switching_period",
           "source_value": null,
           "target_value": {
-            "value": 1e-05,
+            "value": 6.666666666666667e-06,
             "unit": "s",
             "source": "topology.waveform"
           },
@@ -69788,7 +69782,7 @@
           "field": "waveform.operating.time_span",
           "source_value": null,
           "target_value": {
-            "value": 2e-05,
+            "value": 1.3333333333333333e-05,
             "unit": "s",
             "source": "topology.waveform"
           },
@@ -70336,7 +70330,7 @@
         {
           "field": "ripple.output_ripple_simulated",
           "source_value": null,
-          "target_value": 1.0082057095831374,
+          "target_value": 0.6721371397221105,
           "source_unit": "V",
           "target_unit": "V",
           "absolute_error": null,
@@ -70398,7 +70392,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 13.433641975308642,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -70490,7 +70484,7 @@
           "field": "stress.switch.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 14.041026127335355,
+            "value": 13.000927688330954,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -70513,7 +70507,7 @@
           "field": "stress.switch.current_rms",
           "source_value": null,
           "target_value": {
-            "value": 8.28567035385654,
+            "value": 7.781743922669891,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -70720,7 +70714,7 @@
           "field": "waveform.operating.switching_frequency",
           "source_value": null,
           "target_value": {
-            "value": 99999.99999999999,
+            "value": 150000.0,
             "unit": "Hz",
             "source": "topology.waveform"
           },
@@ -70743,7 +70737,7 @@
           "field": "waveform.operating.switching_period",
           "source_value": null,
           "target_value": {
-            "value": 1e-05,
+            "value": 6.666666666666667e-06,
             "unit": "s",
             "source": "topology.waveform"
           },
@@ -70766,7 +70760,7 @@
           "field": "waveform.operating.time_span",
           "source_value": null,
           "target_value": {
-            "value": 2e-05,
+            "value": 1.3333333333333333e-05,
             "unit": "s",
             "source": "topology.waveform"
           },
@@ -71795,7 +71789,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 13.433641975308642,
             "unit": "A",
             "source": "stress.extraction"
           },
@@ -72792,7 +72786,7 @@
           "field": "stress.rectifier.current_peak",
           "source_value": null,
           "target_value": {
-            "value": 13.4375,
+            "value": 13.433641975308642,
             "unit": "A",
             "source": "stress.extraction"
           },

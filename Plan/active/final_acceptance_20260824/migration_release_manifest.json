@@ -1,12 +1,12 @@
 {
   "contract_version": "pe_claw_migration_release_manifest_v1",
-  "generated_at_utc": "2026-08-24T08:03:15.281797+00:00",
-  "release_status": "blocked",
-  "release_reason": "One PSFB boundary case remains unresolved; default full-suite temp-root ACL also needs a clean environment record.",
+  "generated_at_utc": "2026-08-24T12:12:52.572063+00:00",
+  "release_status": "ready_to_close",
+  "release_reason": "Repaired full replay, schema validation, comparison and isolated full-suite verification passed.",
   "git": {
-    "commit": "c8032e00cfb22da23358f71faccdeddb3ee986ef",
+    "commit": "9cdbf61dfeefdea56cbb8c6ee9aaedaa7487e992",
     "branch": "codex/sync-gui-backend-from-2",
-    "status_porcelain_tracked": "M Plan/active/complete_migration_2_to_1_plan.md\n M Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.json\n M scripts/build_step12_acceptance.py",
+    "status_porcelain_tracked": "M Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.json\n M Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.md\n M Plan/active/final_acceptance_20260824/final_test_report.json\n M Plan/active/final_acceptance_20260824/final_test_report.md\n M Plan/active/final_acceptance_20260824/golden_baseline/comparison.json\n M Plan/active/final_acceptance_20260824/golden_baseline/golden_baseline_manifest.json\n M Plan/active/final_acceptance_20260824/golden_baseline/replay_matrix.csv\n M Plan/active/final_acceptance_20260824/golden_baseline/target_structured_snapshots.json\n M Plan/active/final_acceptance_20260824/migration_release_manifest.json\n M scripts/build_step12_acceptance.py",
     "remote": "https://github.com/Lumia-Xiao/PE_CLAW1.0.git"
   },
   "environment": {
@@ -24,28 +24,28 @@
   },
   "golden_baseline": {
     "source_structured_snapshots.json": "98ce9d28ec3e191922fd6ca72cada1279899abc22cc0cb65a842227f35d104e0",
-    "target_structured_snapshots.json": "93b9718627af6a18573d0bd717e56e714df12ce30507306564086fc0b665ecb4",
-    "replay_matrix.csv": "a98b57276592536930a6fe28b53ee28946549fe654612f199e217797964a3e6c",
-    "comparison.json": "d090cb52dd57d00b8b09834502c323ec5a95e9a73059958af6335dc1a870d662"
+    "target_structured_snapshots.json": "985284aa411838856e4f0d86571d894e19c122f39154f44d8f5d91e11f2cfd93",
+    "replay_matrix.csv": "34f19ddfc5f58fd861b7d0fa22ef5167d9fce1a2ace32ccd86a3d2badc7f55f4",
+    "comparison.json": "0ea7f0e3bc55122beed2d2e38a3ed319827f2bffeef69fa913ca540c93a3e335"
   },
   "evidence_sha256": {
-    "Plan\\active\\final_acceptance_20260824\\complete_migration_acceptance_report.json": "064b8172210929747a08f14ba2b1bf3f20fed6b3068afccd144ef185d5d4d7bc",
-    "Plan\\active\\final_acceptance_20260824\\source_schema_validation.json": "9704793c3d452b486138ac49dff884b63eee97ae517a4477538bca68ceb99208",
-    "Plan\\active\\final_acceptance_20260824\\target_schema_validation.json": "9704793c3d452b486138ac49dff884b63eee97ae517a4477538bca68ceb99208",
-    "Plan\\active\\final_acceptance_20260824\\comparison\\comparison_final.json": "d090cb52dd57d00b8b09834502c323ec5a95e9a73059958af6335dc1a870d662",
-    "Plan\\active\\final_acceptance_20260824\\comparison\\comparison_final.csv": "407b2c51c3151ba3bf27a22226c159e4a85e9ed85de4ba97a57fca644dc3bead",
-    "Plan\\active\\final_acceptance_20260824\\comparison\\replay_case_checksums.csv": "9944e4fa35d0940898d330e937754e4c366c5ff6c6f8dd9a08491a62d26296aa",
-    "Plan\\active\\final_acceptance_20260824\\comparison\\replay_checksums.json": "1326d92325cb48de19109ed16fbe1bdee982948971f5d13ae09d8483ecabe698",
-    "Plan\\active\\final_acceptance_20260824\\operating_points\\operating_point_migration_validation.json": "c71b455efe3e86270fb9049889be18f8fda2af0eed652636994d464916762057",
-    "Plan\\active\\final_acceptance_20260824\\operating_points\\operating_point_replay_matrix.csv": "a98b57276592536930a6fe28b53ee28946549fe654612f199e217797964a3e6c",
-    "Plan\\active\\final_acceptance_20260824\\structured_outputs\\structured_output_migration_validation.json": "40080d7eb7395950c6c80f0fda0120a79879e4c8a525887468ad1a7ec5fb0e48"
+    "Plan\\active\\final_acceptance_20260824\\complete_migration_acceptance_report.json": "d74e4f1f1109a94b84048a5aeafbaf1708ae850d99165691f85799e3d7b98bd6",
+    "Plan\\active\\structured_outputs_20260824_repaired\\pe_claw_2_structured_output_validation.json": "3158b9cfe0406ea9e8d967aef08854b7c44fa14480001e1db8ad5588e15a5997",
+    "Plan\\active\\structured_outputs_20260824_repaired\\pe_claw_1_structured_output_validation.json": "3158b9cfe0406ea9e8d967aef08854b7c44fa14480001e1db8ad5588e15a5997",
+    "Plan\\active\\final_comparison_20260824_repaired\\comparison_final.json": "0ea7f0e3bc55122beed2d2e38a3ed319827f2bffeef69fa913ca540c93a3e335",
+    "Plan\\active\\final_comparison_20260824_repaired\\comparison_final.csv": "f0f7801108f55cfc3205ba0836e1d44fe1f89b5ef57370f4d895eb7fd3e9b4b9",
+    "Plan\\active\\final_comparison_20260824_repaired\\replay_case_checksums.csv": "0a188e74ca13671203829e8e193c8d6ea5e4333d9976e18a937eb3cd7d7500dc",
+    "Plan\\active\\final_comparison_20260824_repaired\\replay_checksums.json": "8e0cda56a6f44ca3e7b526656474acd0b10a91745e7aa50530c8f6ca3b166d35",
+    "Plan\\active\\operating_points_20260824_repaired\\operating_point_migration_validation.json": "ff7fb5c75202dcdb68add4b8eed7a5fa8b60962cc9a1b91b436c565c987993df",
+    "Plan\\active\\operating_points_20260824_repaired\\operating_point_replay_matrix.csv": "34f19ddfc5f58fd861b7d0fa22ef5167d9fce1a2ace32ccd86a3d2badc7f55f4",
+    "Plan\\active\\structured_outputs_20260824_repaired\\structured_output_migration_validation.json": "502a224fe3799e4ec4b3de7305b919558b2a1996d596a8460f7e5b960a594149"
   },
   "test_summary": {
     "full_suite_default_command": {
-      "command": "python -m pytest -q",
-      "status": "environment_error",
-      "result": "248 passed, 1 skipped, 3 errors",
-      "reason": "pytest tmp_path could not scan the existing system directory C:\\Users\\Lumia\\AppData\\Local\\Temp\\pytest-of-Lumia (WinError 5)."
+      "command": "python -m pytest -q --basetemp .pytest-tmp-step12-full",
+      "status": "passed",
+      "result": "251 passed, 1 skipped in 751.33s",
+      "reason": "Repository-local writable basetemp used for reproducible execution under the current Windows ACL."
     },
     "full_suite_isolated_command": {
       "command": "python -m pytest -q --basetemp .pytest-tmp-step12-full",

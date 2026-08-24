@@ -18461,7 +18461,7 @@
             },
             "switch_current": {
               "average": {
-                "value": 10.252859479764231,
+                "value": 10.25285947976423,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
@@ -18476,12 +18476,12 @@
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.10536105632253268,
+                "value": 0.10536105632253978,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 13.845659537702778,
+                "value": 13.84565953770277,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -18515,7 +18515,7 @@
             },
             "input_source_current": {
               "average": {
-                "value": 10.252859479764231,
+                "value": 10.25285947976423,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
@@ -18530,12 +18530,12 @@
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.10536105632253268,
+                "value": 0.10536105632253978,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 13.845659537702778,
+                "value": 13.84565953770277,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -18628,7 +18628,7 @@
               "source": "stress.extraction"
             },
             "current_peak": {
-              "value": 13.4375,
+              "value": 13.433641975308642,
               "unit": "A",
               "source": "stress.extraction"
             },
@@ -18746,7 +18746,7 @@
             "Magnetic design stage: disabled for current semiconductor/thermal development focus.",
             "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
             "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
-            "Waveforms provide nominal readback; stress remains based on design-corner maxima.",
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based.",
             "PSFB selected-device primary-current stress was refreshed from the analytic S1-S4 model."
           ],
           "source_stages": [
@@ -18768,7 +18768,7 @@
       "matrix_id": "07_psfb_diode",
       "case_id": "c02_low_input_full_load",
       "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
-      "status": "boundary_failure",
+      "status": "executed",
       "structured_report": {
         "schema_version": "pe_claw_structured_design_report_v1",
         "report_kind": "design_report",
@@ -18931,7 +18931,7 @@
           "available": true,
           "operating": {
             "input_voltage": {
-              "value": 750.0,
+              "value": 650.0,
               "unit": "V",
               "source": "topology.waveform"
             },
@@ -18946,7 +18946,7 @@
               "source": "topology.waveform"
             },
             "duty": {
-              "value": 0.676,
+              "value": 0.78,
               "unit": "ratio",
               "source": "topology.waveform"
             },
@@ -18970,44 +18970,44 @@
           "series": {
             "switch_node_voltage": {
               "average": {
-                "value": 0.0,
+                "value": 0.5416666666666666,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 616.9481339626533,
+                "value": 574.9836954210093,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 750.0,
+                "value": 650.0,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": -750.0,
+                "value": -650.0,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 1500.0,
+                "value": 1300.0,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               }
             },
             "inductor_current": {
               "average": {
-                "value": 12.499992390483843,
+                "value": 12.5,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 12.511706276669019,
+                "value": 12.511714778138568,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 13.433641975308642,
+                "value": 13.4375,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
@@ -19017,24 +19017,24 @@
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 1.8711419753086425,
+                "value": 1.875,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
             },
             "capacitor_current": {
               "average": {
-                "value": -7.6095161565496264e-06,
+                "value": -4.2928623618839385e-17,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 0.5412801414635887,
+                "value": 0.5413009232313063,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 0.9336419753086425,
+                "value": 0.9375,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
@@ -19044,7 +19044,7 @@
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 1.8711419753086425,
+                "value": 1.875,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -19056,66 +19056,66 @@
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 400.000159195938,
+                "value": 400.0001487977132,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 400.5624692726172,
+                "value": 400.5969748359323,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 399.55426356303406,
+                "value": 399.58876092029556,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 1.0082057095831374,
+                "value": 1.0082139156367589,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               }
             },
             "switch_current": {
               "average": {
-                "value": 10.252859479764231,
+                "value": 10.066520011731752,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 10.552984021664942,
+                "value": 10.435608820842608,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 13.95102059402531,
+                "value": 14.465449482814016,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.10536105632253268,
+                "value": 0.399032559321018,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 13.845659537702778,
+                "value": 14.066416923492998,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
             },
             "diode_current": {
               "average": {
-                "value": 8.455830867850098,
+                "value": 9.78046875,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 10.289083674198475,
+                "value": 11.06692436891628,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 13.430103550295858,
+                "value": 13.4375,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
@@ -19125,51 +19125,51 @@
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 13.430103550295858,
+                "value": 13.4375,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
             },
             "input_source_current": {
               "average": {
-                "value": 10.252859479764231,
+                "value": 10.066520011731752,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 10.552984021664942,
+                "value": 10.435608820842608,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 13.95102059402531,
+                "value": 14.465449482814016,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.10536105632253268,
+                "value": 0.399032559321018,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 13.845659537702778,
+                "value": 14.066416923492998,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
             },
             "inductor_voltage": {
               "average": {
-                "value": 1.1728441814595987,
+                "value": 2.5513264743589237,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 277.31493520597286,
+                "value": 212.24628551920364,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 192.86627218934916,
+                "value": 114.44258974358968,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
@@ -19179,7 +19179,7 @@
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 592.8662721893492,
+                "value": 514.4425897435897,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               }
@@ -19223,12 +19223,12 @@
               "source": "stress.extraction"
             },
             "current_peak": {
-              "value": 14.041026127335355,
+              "value": 14.465449482814016,
               "unit": "A",
               "source": "stress.extraction"
             },
             "current_rms": {
-              "value": 8.28567035385654,
+              "value": 8.37974218635231,
               "unit": "A",
               "source": "stress.extraction"
             },
@@ -19240,7 +19240,7 @@
           },
           "rectifier": {
             "voltage_max": {
-              "value": 674.6351084812624,
+              "value": 680.2531558185403,
               "unit": "V",
               "source": "stress.extraction"
             },
@@ -19334,7 +19334,7 @@
             "source": "capacitor.selection"
           },
           "output_ripple_simulated": {
-            "value": 1.0082057095831374,
+            "value": 1.0082139156367589,
             "unit": "V",
             "source": "waveform.post_processing"
           },
@@ -19354,18 +19354,17 @@
           "ccm_valid": true,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated",
-          "replay_status": "boundary"
+          "thermal_status": "not_evaluated"
         },
         "audit": {
           "notes": [
             "PSFB first-pass topology plugin; full backend/session integration is wired through the shared PE-Claw pipeline.",
             "Secondary rectifier is modeled as an independent full-bridge diode path for future device selection.",
             "Magnetic design stage: disabled for current semiconductor/thermal development focus.",
+            "Generate Waveforms refreshed only operating-point-dependent outputs.",
             "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
             "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
-            "Waveforms provide nominal readback; stress remains based on design-corner maxima.",
-            "PSFB selected-device primary-current stress was refreshed from the analytic S1-S4 model."
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
           ],
           "source_stages": [
             "request",
@@ -19378,8 +19377,7 @@
             "status"
           ],
           "request_role": "current_replay_request",
-          "candidate_role": "frozen_c01_hardware",
-          "boundary_reason": "ValueError: PSFB duties must satisfy 0 <= effective <= command <= 1."
+          "candidate_role": "frozen_c01_hardware"
         }
       }
     },
@@ -19697,27 +19695,27 @@
             },
             "switch_current": {
               "average": {
-                "value": 9.977010623994724,
+                "value": 10.53282321576408,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 10.404765574949003,
+                "value": 10.780372104454061,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 13.922325037061427,
+                "value": 13.618427875106573,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.13919557540056537,
+                "value": 0.023678456660114477,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 13.783129461660861,
+                "value": 13.594749418446458,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -19751,27 +19749,27 @@
             },
             "input_source_current": {
               "average": {
-                "value": 9.977010623994724,
+                "value": 10.53282321576408,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 10.404765574949003,
+                "value": 10.780372104454061,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 13.922325037061427,
+                "value": 13.618427875106573,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.13919557540056537,
+                "value": 0.023678456660114477,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 13.783129461660861,
+                "value": 13.594749418446458,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -19842,12 +19840,12 @@
               "source": "stress.extraction"
             },
             "current_peak": {
-              "value": 14.041026127335355,
+              "value": 13.618427875106573,
               "unit": "A",
               "source": "stress.extraction"
             },
             "current_rms": {
-              "value": 8.28567035385654,
+              "value": 8.140788251643862,
               "unit": "A",
               "source": "stress.extraction"
             },
@@ -19864,7 +19862,7 @@
               "source": "stress.extraction"
             },
             "current_peak": {
-              "value": 13.4375,
+              "value": 13.436588921282798,
               "unit": "A",
               "source": "stress.extraction"
             },
@@ -19983,7 +19981,7 @@
             "Generate Waveforms refreshed only operating-point-dependent outputs.",
             "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
             "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
-            "Waveforms provide nominal readback; stress remains based on design-corner maxima."
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
           ],
           "source_stages": [
             "request",
@@ -20314,27 +20312,27 @@
             },
             "switch_current": {
               "average": {
-                "value": 2.7359777758540207,
+                "value": 2.7815275380082607,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 3.183047763063418,
+                "value": 3.2020930296601877,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 5.437824450806756,
+                "value": 5.304441479077631,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.0019550404356758477,
+                "value": 0.004186917389542799,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 5.4358694103710805,
+                "value": 5.300254561688088,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -20368,27 +20366,27 @@
             },
             "input_source_current": {
               "average": {
-                "value": 2.7359777758540207,
+                "value": 2.7815275380082607,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 3.183047763063418,
+                "value": 3.2020930296601877,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 5.437824450806756,
+                "value": 5.304441479077631,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.0019550404356758477,
+                "value": 0.004186917389542799,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 5.4358694103710805,
+                "value": 5.300254561688088,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -20459,12 +20457,12 @@
               "source": "stress.extraction"
             },
             "current_peak": {
-              "value": 14.041026127335355,
+              "value": 5.304441479077631,
               "unit": "A",
               "source": "stress.extraction"
             },
             "current_rms": {
-              "value": 8.28567035385654,
+              "value": 2.821195600368142,
               "unit": "A",
               "source": "stress.extraction"
             },
@@ -20481,17 +20479,17 @@
               "source": "stress.extraction"
             },
             "current_peak": {
-              "value": 13.4375,
+              "value": 2.6867283950617287,
               "unit": "A",
               "source": "stress.extraction"
             },
             "current_rms": {
-              "value": 8.838834764831844,
+              "value": 1.7677669529663689,
               "unit": "A",
               "source": "stress.extraction"
             },
             "current_average": {
-              "value": 6.25,
+              "value": 1.25,
               "unit": "A",
               "source": "stress.extraction"
             }
@@ -20600,7 +20598,7 @@
             "Generate Waveforms refreshed only operating-point-dependent outputs.",
             "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
             "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
-            "Waveforms provide nominal readback; stress remains based on design-corner maxima."
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
           ],
           "source_stages": [
             "request",
@@ -20931,27 +20929,27 @@
             },
             "switch_current": {
               "average": {
-                "value": 2.060800056453279,
+                "value": 2.0512086127897735,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 2.452007425020696,
+                "value": 2.4247450188503636,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 4.3624242412406815,
+                "value": 4.212368398045415,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.000620692368360487,
+                "value": 0.00160498257513364,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 4.361803548872321,
+                "value": 4.210763415470281,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -20985,27 +20983,27 @@
             },
             "input_source_current": {
               "average": {
-                "value": 2.060800056453279,
+                "value": 2.0512086127897735,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 2.452007425020696,
+                "value": 2.4247450188503636,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 4.3624242412406815,
+                "value": 4.212368398045415,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.000620692368360487,
+                "value": 0.00160498257513364,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 4.361803548872321,
+                "value": 4.210763415470281,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -21076,12 +21074,12 @@
               "source": "stress.extraction"
             },
             "current_peak": {
-              "value": 14.041026127335355,
+              "value": 4.212368398045415,
               "unit": "A",
               "source": "stress.extraction"
             },
             "current_rms": {
-              "value": 8.28567035385654,
+              "value": 2.167715527060121,
               "unit": "A",
               "source": "stress.extraction"
             },
@@ -21098,17 +21096,17 @@
               "source": "stress.extraction"
             },
             "current_peak": {
-              "value": 13.4375,
+              "value": 1.3433641975308643,
               "unit": "A",
               "source": "stress.extraction"
             },
             "current_rms": {
-              "value": 8.838834764831844,
+              "value": 0.8838834764831844,
               "unit": "A",
               "source": "stress.extraction"
             },
             "current_average": {
-              "value": 6.25,
+              "value": 0.625,
               "unit": "A",
               "source": "stress.extraction"
             }
@@ -21217,7 +21215,7 @@
             "Generate Waveforms refreshed only operating-point-dependent outputs.",
             "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
             "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
-            "Waveforms provide nominal readback; stress remains based on design-corner maxima."
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
           ],
           "source_stages": [
             "request",
@@ -21421,17 +21419,17 @@
               "source": "topology.waveform"
             },
             "switching_frequency": {
-              "value": 99999.99999999999,
+              "value": 150000.0,
               "unit": "Hz",
               "source": "topology.waveform"
             },
             "switching_period": {
-              "value": 1e-05,
+              "value": 6.666666666666667e-06,
               "unit": "s",
               "source": "topology.waveform"
             },
             "time_span": {
-              "value": 2e-05,
+              "value": 1.3333333333333333e-05,
               "unit": "s",
               "source": "topology.waveform"
             }
@@ -21494,7 +21492,7 @@
             },
             "capacitor_current": {
               "average": {
-                "value": -7.6095161565496264e-06,
+                "value": -7.609516156527422e-06,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
@@ -21526,49 +21524,49 @@
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 400.000159195938,
+                "value": 400.00007075375805,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 400.5624692726172,
+                "value": 400.3749795150781,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 399.55426356303406,
+                "value": 399.702842375356,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 1.0082057095831374,
+                "value": 0.6721371397221105,
                 "unit": "V",
                 "source": "topology.waveform_post_processing"
               }
             },
             "switch_current": {
               "average": {
-                "value": 10.330350819157411,
+                "value": 9.975644687226328,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 10.631334443954435,
+                "value": 10.230603764472429,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 14.041026127335355,
+                "value": 13.000927688330954,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.028480098071383964,
+                "value": 0.06106480720528573,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 14.012546029263971,
+                "value": 12.939862881125668,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -21602,27 +21600,27 @@
             },
             "input_source_current": {
               "average": {
-                "value": 10.330350819157411,
+                "value": 9.975644687226328,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 10.631334443954435,
+                "value": 10.230603764472429,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak": {
-                "value": 14.041026127335355,
+                "value": 13.000927688330954,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.028480098071383964,
+                "value": 0.06106480720528573,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 14.012546029263971,
+                "value": 12.939862881125668,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -21693,12 +21691,12 @@
               "source": "stress.extraction"
             },
             "current_peak": {
-              "value": 14.041026127335355,
+              "value": 13.000927688330954,
               "unit": "A",
               "source": "stress.extraction"
             },
             "current_rms": {
-              "value": 8.28567035385654,
+              "value": 7.781743922669891,
               "unit": "A",
               "source": "stress.extraction"
             },
@@ -21715,7 +21713,7 @@
               "source": "stress.extraction"
             },
             "current_peak": {
-              "value": 13.4375,
+              "value": 13.433641975308642,
               "unit": "A",
               "source": "stress.extraction"
             },
@@ -21804,7 +21802,7 @@
             "source": "capacitor.selection"
           },
           "output_ripple_simulated": {
-            "value": 1.0082057095831374,
+            "value": 0.6721371397221105,
             "unit": "V",
             "source": "waveform.post_processing"
           },
@@ -21834,7 +21832,7 @@
             "Generate Waveforms refreshed only operating-point-dependent outputs.",
             "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
             "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
-            "Waveforms provide nominal readback; stress remains based on design-corner maxima."
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
           ],
           "source_stages": [
             "request",
@@ -22171,7 +22169,7 @@
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 10.631334443954435,
+                "value": 10.631334443954433,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
@@ -22181,12 +22179,12 @@
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.028480098071383964,
+                "value": 0.02848009807139107,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 14.012546029263971,
+                "value": 14.012546029263964,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -22225,7 +22223,7 @@
                 "source": "topology.waveform_post_processing"
               },
               "rms": {
-                "value": 10.631334443954435,
+                "value": 10.631334443954433,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
@@ -22235,12 +22233,12 @@
                 "source": "topology.waveform_post_processing"
               },
               "valley": {
-                "value": 0.028480098071383964,
+                "value": 0.02848009807139107,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               },
               "peak_to_peak": {
-                "value": 14.012546029263971,
+                "value": 14.012546029263964,
                 "unit": "A",
                 "source": "topology.waveform_post_processing"
               }
@@ -22333,7 +22331,7 @@
               "source": "stress.extraction"
             },
             "current_peak": {
-              "value": 13.4375,
+              "value": 13.433641975308642,
               "unit": "A",
               "source": "stress.extraction"
             },
@@ -22452,7 +22450,7 @@
             "Generate Waveforms refreshed only operating-point-dependent outputs.",
             "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
             "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
-            "Waveforms provide nominal readback; stress remains based on design-corner maxima."
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
           ],
           "source_stages": [
             "request",

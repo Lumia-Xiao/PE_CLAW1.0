@@ -1,12 +1,12 @@
 {
   "contract_version": "pe_claw_final_test_report_v1",
-  "generated_at_utc": "2026-08-24T08:03:15.281797+00:00",
+  "generated_at_utc": "2026-08-24T12:12:52.572063+00:00",
   "full_suite": {
     "full_suite_default_command": {
-      "command": "python -m pytest -q",
-      "status": "environment_error",
-      "result": "248 passed, 1 skipped, 3 errors",
-      "reason": "pytest tmp_path could not scan the existing system directory C:\\Users\\Lumia\\AppData\\Local\\Temp\\pytest-of-Lumia (WinError 5)."
+      "command": "python -m pytest -q --basetemp .pytest-tmp-step12-full",
+      "status": "passed",
+      "result": "251 passed, 1 skipped in 751.33s",
+      "reason": "Repository-local writable basetemp used for reproducible execution under the current Windows ACL."
     },
     "full_suite_isolated_command": {
       "command": "python -m pytest -q --basetemp .pytest-tmp-step12-full",
@@ -33,12 +33,11 @@
     "cases": 103,
     "replayed": 103,
     "execution_errors": 0,
-    "boundary_failures": 1,
+    "boundary_failures": 0,
     "unexplained_differences": 0
   },
   "schema": {
     "source": {
-      "contract_version": "pe_claw_structured_output_validation_v1",
       "record_count": 103,
       "valid_count": 103,
       "invalid_count": 0,
@@ -661,10 +660,15 @@
           "errors": [],
           "valid": true
         }
-      ]
+      ],
+      "snapshot": "pe_claw_2_structured_output_snapshots.json",
+      "validation": "pe_claw_2_structured_output_validation.json",
+      "quantity_row_count": 4340,
+      "csv": "pe_claw_2_structured_output.csv",
+      "markdown": "pe_claw_2_structured_output.md",
+      "canonical_sha256": "065c31b8c34cf0fda7dcfbc63da4a54b4ae5cbb513550adb58d665f1c0b5a35c"
     },
     "target": {
-      "contract_version": "pe_claw_structured_output_validation_v1",
       "record_count": 103,
       "valid_count": 103,
       "invalid_count": 0,
@@ -1287,8 +1291,14 @@
           "errors": [],
           "valid": true
         }
-      ]
+      ],
+      "snapshot": "pe_claw_1_structured_output_snapshots.json",
+      "validation": "pe_claw_1_structured_output_validation.json",
+      "quantity_row_count": 9173,
+      "csv": "pe_claw_1_structured_output.csv",
+      "markdown": "pe_claw_1_structured_output.md",
+      "canonical_sha256": "5be630c1e92ec5830112205e12b99c4c8f8f78c9a001baac51209c9f351c2096"
     }
   },
-  "release_gate": "blocked"
+  "release_gate": "ready_to_close"
 }

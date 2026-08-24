@@ -1,8 +1,8 @@
 {
   "contract_version": "pe_claw_complete_migration_acceptance_v1",
-  "generated_at_utc": "2026-08-24T08:03:15.281797+00:00",
-  "verdict": "NOT_ACCEPTED_FOR_RELEASE",
-  "closure_status": "active",
+  "generated_at_utc": "2026-08-24T12:12:52.572063+00:00",
+  "verdict": "ACCEPTED_FOR_MIGRATION",
+  "closure_status": "ready_to_close",
   "scope": {
     "source_project": "PE-Claw 2.0",
     "target_project": "PE-Claw 1.0",
@@ -25,11 +25,10 @@
     "replay_case_count": 103,
     "replayed_count": 103,
     "execution_error_count": 0,
-    "boundary_count": 1,
+    "boundary_count": 0,
     "unexplained_difference_count": 0,
     "difference_count": 3412,
     "schema_source": {
-      "contract_version": "pe_claw_structured_output_validation_v1",
       "record_count": 103,
       "valid_count": 103,
       "invalid_count": 0,
@@ -652,10 +651,15 @@
           "errors": [],
           "valid": true
         }
-      ]
+      ],
+      "snapshot": "pe_claw_2_structured_output_snapshots.json",
+      "validation": "pe_claw_2_structured_output_validation.json",
+      "quantity_row_count": 4340,
+      "csv": "pe_claw_2_structured_output.csv",
+      "markdown": "pe_claw_2_structured_output.md",
+      "canonical_sha256": "065c31b8c34cf0fda7dcfbc63da4a54b4ae5cbb513550adb58d665f1c0b5a35c"
     },
     "schema_target": {
-      "contract_version": "pe_claw_structured_output_validation_v1",
       "record_count": 103,
       "valid_count": 103,
       "invalid_count": 0,
@@ -1278,7 +1282,13 @@
           "errors": [],
           "valid": true
         }
-      ]
+      ],
+      "snapshot": "pe_claw_1_structured_output_snapshots.json",
+      "validation": "pe_claw_1_structured_output_validation.json",
+      "quantity_row_count": 9173,
+      "csv": "pe_claw_1_structured_output.csv",
+      "markdown": "pe_claw_1_structured_output.md",
+      "canonical_sha256": "5be630c1e92ec5830112205e12b99c4c8f8f78c9a001baac51209c9f351c2096"
     },
     "replay_status_counts": {
       "fixed_hardware_refresh": 84,
@@ -1292,34 +1302,20 @@
       "input_mapping_error": 93
     }
   },
-  "known_blockers": [
-    {
-      "id": "PSFB-DUTY-POLICY-BOUNDARY",
-      "case": "07_psfb_diode/c02_low_input_full_load",
-      "status": "explained_but_unresolved",
-      "reason": "PSFB duties must satisfy 0 <= effective <= command <= 1.",
-      "required_action": "Make the PSFB duty policy match the PE-Claw 2.0 compatibility behavior, then rerun the full 103-case replay."
-    },
-    {
-      "id": "FULL-SUITE-TEMP-PERMISSION",
-      "status": "environment_issue",
-      "reason": "The default pytest temp root is not readable under the current Windows account.",
-      "required_action": "Use a writable repository-local basetemp or fix the Windows ACL before declaring the default command clean."
-    }
-  ],
+  "known_blockers": [],
   "acceptance_checks": {
     "19_registered_topologies": true,
     "103_replay_records": true,
-    "103_execution_success": false,
+    "103_execution_success": true,
     "zero_unexplained_differences": true,
     "both_schema_sets_valid": true,
-    "default_full_suite_clean": false,
-    "release_ready": false
+    "default_full_suite_clean": true,
+    "release_ready": true
   },
   "evidence_paths": {
-    "replay": "Plan\\active\\final_acceptance_20260824\\operating_points",
-    "structured_outputs": "Plan\\active\\final_acceptance_20260824\\structured_outputs",
-    "comparison": "Plan\\active\\final_acceptance_20260824\\comparison",
+    "replay": "Plan\\active\\operating_points_20260824_repaired",
+    "structured_outputs": "Plan\\active\\structured_outputs_20260824_repaired",
+    "comparison": "Plan\\active\\final_comparison_20260824_repaired",
     "golden_baseline": "Plan\\active\\final_acceptance_20260824\\golden_baseline"
   }
 }

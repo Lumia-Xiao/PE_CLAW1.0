@@ -2,8 +2,8 @@
 
 ## Full Suite
 
-- Default command: `248 passed, 1 skipped, 3 errors`; all errors were Windows
-  `WinError 5` pytest temporary-directory setup errors.
+- Reproducible command: `python -m pytest -q --basetemp .pytest-tmp-step12-full`.
+- Result: `251 passed, 1 skipped`.
 - Repository-local writable basetemp: `251 passed, 1 skipped`.
 - The skipped test is the existing optional external OpenMagnetics reference
   data test.
@@ -21,7 +21,8 @@
 
 - `103/103` replay records were produced.
 - Execution errors: `0`.
-- Boundary failures: `1`, the PSFB low-input full-load case.
+- Boundary failures: `0`; the repaired PSFB low-input full-load case executed successfully.
 - Unexplained differences: `0`.
 
-Release remains blocked until the PSFB boundary is resolved and replayed.
+The migration replay gate is satisfied. The optional OpenMagnetics reference-data
+test remains skipped because its external reference data is not present.

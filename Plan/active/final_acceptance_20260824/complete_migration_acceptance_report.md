@@ -2,8 +2,8 @@
 
 ## Verdict
 
-**NOT ACCEPTED FOR RELEASE.** The migration evidence is complete and auditable,
-but the plan remains active because one real PSFB boundary case is unresolved.
+**ACCEPTED FOR MIGRATION.** The repaired migration evidence is complete and
+auditable, and the plan is ready to close.
 
 ## Scope and Results
 
@@ -14,7 +14,7 @@ but the plan remains active because one real PSFB boundary case is unresolved.
 | Runtime topology IDs in replay | 16 |
 | Replay cases | 103 / 103 |
 | Execution errors | 0 |
-| Boundary failures | 1 |
+| Boundary failures | 0 |
 | Compared field differences | 3412 |
 | Unexplained differences | 0 |
 | Source schema | 103 / 103 valid |
@@ -24,23 +24,17 @@ All 3412 recorded field differences have an owner, category, tolerance, basis,
 and evidence reference. This establishes explainability, not byte-for-byte
 identity.
 
-## Blocking Boundary
+## PSFB Closure
 
-`07_psfb_diode/c02_low_input_full_load` remains a boundary failure because:
-
-`PSFB duties must satisfy 0 <= effective <= command <= 1.`
-
-The next required change is to align the PSFB duty policy with the PE-Claw 2.0
-compatibility behavior and rerun all 103 cases. The case must not be silently
-converted into a pass.
+`07_psfb_diode/c02_low_input_full_load` executed successfully after the PSFB
+duty-policy repair. The repaired PSFB 7-case replay and the repaired full
+103-case replay both report zero boundary failures.
 
 ## Tests
 
-The default `python -m pytest -q` run produced `248 passed, 1 skipped, 3
-errors`; all three errors were Windows permission errors while pytest scanned
-the existing system temp directory. The affected tests passed when run with a
-writable repository-local basetemp. The complete isolated run is recorded in
-`migration_release_manifest.json` and must be clean before release closure.
+The reproducible full-suite command uses a writable repository-local basetemp
+and produced `251 passed, 1 skipped`. The skipped test is the optional external
+OpenMagnetics reference-data test.
 
 Focused topology, structured-output, and replay-contract tests passed. Both
 source and target structured snapshots passed schema validation for all 103
@@ -57,7 +51,5 @@ records.
 
 ## Release Decision
 
-The active migration plan remains in `Plan/active`. It must not be moved to
-`Plan/completed` until the PSFB boundary is fixed, the 103-case replay has zero
-boundary failures, and the complete test command has a clean reproducible
-environment result.
+The migration acceptance gates are satisfied. The plan is ready to move from
+`Plan/active` to `Plan/completed` after the final closeout commit and push.
