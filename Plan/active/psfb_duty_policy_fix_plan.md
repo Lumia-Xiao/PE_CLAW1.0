@@ -123,6 +123,8 @@ effective_duty_operating > command_duty_nom
 
 ### 第 2 步：定义并锁定 PSFB duty policy
 
+状态：`completed`（2026-08-24）
+
 #### 工作内容
 
 1. 将 duty 计算整理为可复用的 PSFB 专用函数或明确的 policy 层。
@@ -302,7 +304,31 @@ command_duty = effective_duty + duty_loss
 - 验证命令：`python scripts/freeze_psfb_duty_baseline.py`；
   `python -m pytest -q tests/test_psfb_duty_policy_baseline.py`
 
-第 1 步的基线已冻结。第 2 步尚未开始。
+第 1 步的基线已冻结。
+
+第 2 步已完成。已新增 PSFB 专用 `duty_policy.py`，将设计点和工作点
+duty 语义分离，并由同一 policy 统一计算和审计 `effective_duty`、
+`duty_loss`、`command_duty`。`synthesizer.py` 的设计点、低线和高线
+duty 计算均已复用 policy；`primary_current_model.py` 的物理 duty 顺序
+及 duty-loss 一致性检查也已复用 policy。policy 不静默 clamp，超出物理
+范围或配置上限时返回明确的 boundary/invalid 状态。
+
+第 2 步专项验证：
+
+- 测试命令：`$env:PYTHONPATH='src'; python -m pytest -q tests/test_psfb_duty_policy.py tests/test_psfb_duty_policy_baseline.py`
+- 结果：`8 passed`
+- 编译命令：`python -m py_compile src/pe_claw_gui/topologies/dc_dc/phase_shifted_full_bridge_diode_rectifier_isolated/duty_policy.py src/pe_claw_gui/topologies/dc_dc/phase_shifted_full_bridge_diode_rectifier_isolated/synthesizer.py src/pe_claw_gui/topologies/dc_dc/phase_shifted_full_bridge_diode_rectifier_isolated/primary_current_model.py tests/test_psfb_duty_policy.py`
+- 结果：通过
+- `git diff --check`：通过
+- 设计点回归：nominal、低线和高线 duty 数值与第 1 步冻结基线一致
+- 覆盖：nominal、low-line、high-line、light-load、very-light-load、high-frequency、配置上限超限和非法 duty
+
+### 第 2 步提交与同步记录
+
+- 实现 commit：`6c740b4`（`PSFB Step 2: define duty policy`）
+- 远端分支：`origin/codex/sync-gui-backend-from-2`
+- 实现 push 结果：成功
+- 计划记录 commit：待本次记录提交后填写
 
 ### 第 1 步提交与同步记录
 
