@@ -1,0 +1,494 @@
+{
+  "step": 6,
+  "contract": "ac_dc_algorithm_migration_v1",
+  "source_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
+  "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+  "topology_count": 5,
+  "topology_ids": [
+    "single_phase_boost_pfc_diode_bridge",
+    "single_phase_diode_bridge_rectifier_capacitor_filter",
+    "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+    "single_phase_totem_pole_bridgeless_pfc",
+    "three_phase_diode_bridge_rectifier_capacitor_filter"
+  ],
+  "algorithm_file_parity": {
+    "file_count": 35,
+    "identical_file_count": 35,
+    "mismatch_count": 0,
+    "files": [
+      {
+        "request_directory": "13_diode_bridge_boost_pfc",
+        "topology_id": "single_phase_boost_pfc_diode_bridge",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "82c9a5b85249997140d15a576d3a3b86bf0b4e4981142967536c8d3af14a84e5",
+        "source_sha256": "82c9a5b85249997140d15a576d3a3b86bf0b4e4981142967536c8d3af14a84e5",
+        "identical": true
+      },
+      {
+        "request_directory": "13_diode_bridge_boost_pfc",
+        "topology_id": "single_phase_boost_pfc_diode_bridge",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "50283eaa98f21787569ffaeacf51afa3e60ca7532776e3e7001d11dc665ae50b",
+        "source_sha256": "50283eaa98f21787569ffaeacf51afa3e60ca7532776e3e7001d11dc665ae50b",
+        "identical": true
+      },
+      {
+        "request_directory": "13_diode_bridge_boost_pfc",
+        "topology_id": "single_phase_boost_pfc_diode_bridge",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "8949c0a3acc7dad7dd66d2930097b7850ce446a2a19191306ce57169b94865df",
+        "source_sha256": "8949c0a3acc7dad7dd66d2930097b7850ce446a2a19191306ce57169b94865df",
+        "identical": true
+      },
+      {
+        "request_directory": "13_diode_bridge_boost_pfc",
+        "topology_id": "single_phase_boost_pfc_diode_bridge",
+        "file": "line_cycle.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "dc02549b29f6969fa176367d38df0aa0979d1dd9e6295fad2f1fb6e7d1f10125",
+        "source_sha256": "dc02549b29f6969fa176367d38df0aa0979d1dd9e6295fad2f1fb6e7d1f10125",
+        "identical": true
+      },
+      {
+        "request_directory": "13_diode_bridge_boost_pfc",
+        "topology_id": "single_phase_boost_pfc_diode_bridge",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "c9d58514441c80da41ed368a569134094b8b90ef55c438b580f74923de7d5fa1",
+        "source_sha256": "c9d58514441c80da41ed368a569134094b8b90ef55c438b580f74923de7d5fa1",
+        "identical": true
+      },
+      {
+        "request_directory": "13_diode_bridge_boost_pfc",
+        "topology_id": "single_phase_boost_pfc_diode_bridge",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "af8680e22a310fa301bfbafc08ee60a60602d8362960cbb6bbf108a4f5b316d1",
+        "source_sha256": "af8680e22a310fa301bfbafc08ee60a60602d8362960cbb6bbf108a4f5b316d1",
+        "identical": true
+      },
+      {
+        "request_directory": "13_diode_bridge_boost_pfc",
+        "topology_id": "single_phase_boost_pfc_diode_bridge",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "61362825c1232a58c417636162e97e837540281c90bbb495b3fef5265a91fabb",
+        "source_sha256": "61362825c1232a58c417636162e97e837540281c90bbb495b3fef5265a91fabb",
+        "identical": true
+      },
+      {
+        "request_directory": "10_single_phase_capacitor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "a4bb35ddda137d0c848f358a4d0d562dd396df37ae7566ebf69e4bfed92719f3",
+        "source_sha256": "a4bb35ddda137d0c848f358a4d0d562dd396df37ae7566ebf69e4bfed92719f3",
+        "identical": true
+      },
+      {
+        "request_directory": "10_single_phase_capacitor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "d51bec10c0c4b86adcb2766ebf6eb4a5c2e22ad4cc442c860c269e127950dad5",
+        "source_sha256": "d51bec10c0c4b86adcb2766ebf6eb4a5c2e22ad4cc442c860c269e127950dad5",
+        "identical": true
+      },
+      {
+        "request_directory": "10_single_phase_capacitor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "775ad7f5235187d1b3351d5a5968c0645b93c45d5d658d46e27e7928b24a1d43",
+        "source_sha256": "775ad7f5235187d1b3351d5a5968c0645b93c45d5d658d46e27e7928b24a1d43",
+        "identical": true
+      },
+      {
+        "request_directory": "10_single_phase_capacitor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "simulation.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "c285d3ab97233cb57ccd2a1315501e8bbdd147c9f45c3400bc6ddbbe2b2fe6c9",
+        "source_sha256": "c285d3ab97233cb57ccd2a1315501e8bbdd147c9f45c3400bc6ddbbe2b2fe6c9",
+        "identical": true
+      },
+      {
+        "request_directory": "10_single_phase_capacitor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "beb16c355af5b7ba4bd2feb513e6cb882bceada56f385d7d53cd0372a1322bff",
+        "source_sha256": "beb16c355af5b7ba4bd2feb513e6cb882bceada56f385d7d53cd0372a1322bff",
+        "identical": true
+      },
+      {
+        "request_directory": "10_single_phase_capacitor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "3c6985748b1e38d9dd3390213f7d7ea4dac9c556e93c98fee316ebe34a6cbb82",
+        "source_sha256": "3c6985748b1e38d9dd3390213f7d7ea4dac9c556e93c98fee316ebe34a6cbb82",
+        "identical": true
+      },
+      {
+        "request_directory": "10_single_phase_capacitor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "973da7055de6fb70c151bee29f39690114cb162030a3b647d11c86f3ecb79528",
+        "source_sha256": "973da7055de6fb70c151bee29f39690114cb162030a3b647d11c86f3ecb79528",
+        "identical": true
+      },
+      {
+        "request_directory": "11_single_phase_dc_inductor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "ba36c049efa9080fa128db389bb8c865419621c29c6c7540f2aa728982dc1cea",
+        "source_sha256": "ba36c049efa9080fa128db389bb8c865419621c29c6c7540f2aa728982dc1cea",
+        "identical": true
+      },
+      {
+        "request_directory": "11_single_phase_dc_inductor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "68943411cf651f19bc123a56fcd58863d60c9ef59347bc9a4688a9442ef8ab8b",
+        "source_sha256": "68943411cf651f19bc123a56fcd58863d60c9ef59347bc9a4688a9442ef8ab8b",
+        "identical": true
+      },
+      {
+        "request_directory": "11_single_phase_dc_inductor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "0a05aff461105d8f621c88f307e7db5c20791118928660a83e6174726eee61ee",
+        "source_sha256": "0a05aff461105d8f621c88f307e7db5c20791118928660a83e6174726eee61ee",
+        "identical": true
+      },
+      {
+        "request_directory": "11_single_phase_dc_inductor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+        "file": "simulation.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "54d8a8fc70e4fdef9fa45b50d5efe9606c0415d699bee1ccb786f7e0fe93f8f8",
+        "source_sha256": "54d8a8fc70e4fdef9fa45b50d5efe9606c0415d699bee1ccb786f7e0fe93f8f8",
+        "identical": true
+      },
+      {
+        "request_directory": "11_single_phase_dc_inductor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "39aa1ec2d17fa72ecd32faf1d8ae2863e4ee5c10f6e16f157a96ddc2b92312ac",
+        "source_sha256": "39aa1ec2d17fa72ecd32faf1d8ae2863e4ee5c10f6e16f157a96ddc2b92312ac",
+        "identical": true
+      },
+      {
+        "request_directory": "11_single_phase_dc_inductor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "600a880fff24c2456c473cbe461634b560799f90210600500e23c8e35c7ff885",
+        "source_sha256": "600a880fff24c2456c473cbe461634b560799f90210600500e23c8e35c7ff885",
+        "identical": true
+      },
+      {
+        "request_directory": "11_single_phase_dc_inductor_rectifier",
+        "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "53121ed862ec4cfedc750319af00cdc1651de433bb35b083c961e04b336b8d5a",
+        "source_sha256": "53121ed862ec4cfedc750319af00cdc1651de433bb35b083c961e04b336b8d5a",
+        "identical": true
+      },
+      {
+        "request_directory": "14_totem_pole_pfc",
+        "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "f3c049a8cccc79038c45f7f214b4acfb5ffd17a5b88e5e362daab4a2bd6d6479",
+        "source_sha256": "f3c049a8cccc79038c45f7f214b4acfb5ffd17a5b88e5e362daab4a2bd6d6479",
+        "identical": true
+      },
+      {
+        "request_directory": "14_totem_pole_pfc",
+        "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "af22cc03ca51f5f30a30b1b1e46615a24e3dad20a27f42e5caeb2e874c5abfbf",
+        "source_sha256": "af22cc03ca51f5f30a30b1b1e46615a24e3dad20a27f42e5caeb2e874c5abfbf",
+        "identical": true
+      },
+      {
+        "request_directory": "14_totem_pole_pfc",
+        "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "5d59668a6ea163402f754ebb1c91d199d45f2b4f7bcfdb1612f5f4f52340b550",
+        "source_sha256": "5d59668a6ea163402f754ebb1c91d199d45f2b4f7bcfdb1612f5f4f52340b550",
+        "identical": true
+      },
+      {
+        "request_directory": "14_totem_pole_pfc",
+        "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+        "file": "line_cycle.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "8272240f0fcfcf5e6feb5d122fe45bcf888813b13739eb47f7fa2c0e739f4872",
+        "source_sha256": "8272240f0fcfcf5e6feb5d122fe45bcf888813b13739eb47f7fa2c0e739f4872",
+        "identical": true
+      },
+      {
+        "request_directory": "14_totem_pole_pfc",
+        "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "0538234db3726a78def29f351eb6ad2cfbb606d963a47f6473cd6b9bb8618e59",
+        "source_sha256": "0538234db3726a78def29f351eb6ad2cfbb606d963a47f6473cd6b9bb8618e59",
+        "identical": true
+      },
+      {
+        "request_directory": "14_totem_pole_pfc",
+        "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "ad3dcf5b78ceb19617c971554c19f69ca7af8979f4812d343ba7141ed8fda962",
+        "source_sha256": "ad3dcf5b78ceb19617c971554c19f69ca7af8979f4812d343ba7141ed8fda962",
+        "identical": true
+      },
+      {
+        "request_directory": "14_totem_pole_pfc",
+        "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "2d47008ef586b3aa8124b1b10138db80dc3da6d986ccea372fafc683f57b446d",
+        "source_sha256": "2d47008ef586b3aa8124b1b10138db80dc3da6d986ccea372fafc683f57b446d",
+        "identical": true
+      },
+      {
+        "request_directory": "12_three_phase_capacitor_rectifier",
+        "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "de8d161c74db2f12ced7ab894a22e432c71f14fbb0e033c7973c09c30186e6de",
+        "source_sha256": "de8d161c74db2f12ced7ab894a22e432c71f14fbb0e033c7973c09c30186e6de",
+        "identical": true
+      },
+      {
+        "request_directory": "12_three_phase_capacitor_rectifier",
+        "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "71c6bfde3235302d5614916ed95674fb17e8dc51e675e9fe327c0f82e550ff42",
+        "source_sha256": "71c6bfde3235302d5614916ed95674fb17e8dc51e675e9fe327c0f82e550ff42",
+        "identical": true
+      },
+      {
+        "request_directory": "12_three_phase_capacitor_rectifier",
+        "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "c7c727d729cf2173c66c7b7978abc85a069fa552d5d07daaef47e710acd9c028",
+        "source_sha256": "c7c727d729cf2173c66c7b7978abc85a069fa552d5d07daaef47e710acd9c028",
+        "identical": true
+      },
+      {
+        "request_directory": "12_three_phase_capacitor_rectifier",
+        "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "simulation.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "a1f4f1d13ab3c7469c45dcf7068b0cff2d9fc26c3e9baf9e7a8d33ca832d9468",
+        "source_sha256": "a1f4f1d13ab3c7469c45dcf7068b0cff2d9fc26c3e9baf9e7a8d33ca832d9468",
+        "identical": true
+      },
+      {
+        "request_directory": "12_three_phase_capacitor_rectifier",
+        "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "9a59aa49d3b5ecb4a2863550ee34d6675bc5e96911a2ddea36b3c9b9e7925cf9",
+        "source_sha256": "9a59aa49d3b5ecb4a2863550ee34d6675bc5e96911a2ddea36b3c9b9e7925cf9",
+        "identical": true
+      },
+      {
+        "request_directory": "12_three_phase_capacitor_rectifier",
+        "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "9baa98b610d2448166cd80403b09c9c0a9a415c3ff7f1ad6d4226119aa78d0fd",
+        "source_sha256": "9baa98b610d2448166cd80403b09c9c0a9a415c3ff7f1ad6d4226119aa78d0fd",
+        "identical": true
+      },
+      {
+        "request_directory": "12_three_phase_capacitor_rectifier",
+        "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "3ff1172f3dc116853c2621c56ef117012ab0f581ea238ec5675844c0ba284002",
+        "source_sha256": "3ff1172f3dc116853c2621c56ef117012ab0f581ea238ec5675844c0ba284002",
+        "identical": true
+      }
+    ]
+  },
+  "replay": {
+    "case_count": 31,
+    "executed_count": 31,
+    "execution_error_count": 0,
+    "pass_count": 9,
+    "pass_with_model_boundary_count": 22,
+    "mismatch_count": 0,
+    "compared_fields": 268,
+    "matched_fields": 206,
+    "core_compared_fields": 136,
+    "core_matched_fields": 136,
+    "max_relative_error": 24.132741228718352,
+    "by_topology": {
+      "single_phase_boost_pfc_diode_bridge": {
+        "request_directory": "13_diode_bridge_boost_pfc",
+        "case_count": 7,
+        "executed_count": 7,
+        "execution_error_count": 0,
+        "pass_count": 0,
+        "pass_with_model_boundary_count": 7,
+        "mismatch_count": 0,
+        "compared_fields": 70,
+        "matched_fields": 37,
+        "core_compared_fields": 35,
+        "core_matched_fields": 35,
+        "max_relative_error": 24.132741228718352,
+        "boundary_fields": [
+          "Inductance",
+          "Inductor Ripple",
+          "Output Ripple",
+          "Inductor Peak Current",
+          "Inductor Valley Current"
+        ],
+        "all_core_fields_match": true
+      },
+      "single_phase_diode_bridge_rectifier_capacitor_filter": {
+        "request_directory": "10_single_phase_capacitor_rectifier",
+        "case_count": 5,
+        "executed_count": 5,
+        "execution_error_count": 0,
+        "pass_count": 0,
+        "pass_with_model_boundary_count": 5,
+        "mismatch_count": 0,
+        "compared_fields": 35,
+        "matched_fields": 23,
+        "core_compared_fields": 20,
+        "core_matched_fields": 20,
+        "max_relative_error": 4.969970823422184,
+        "boundary_fields": [
+          "Output Current",
+          "Output Capacitance",
+          "Output Ripple"
+        ],
+        "all_core_fields_match": true
+      },
+      "single_phase_diode_bridge_rectifier_dc_inductor_filter": {
+        "request_directory": "11_single_phase_dc_inductor_rectifier",
+        "case_count": 5,
+        "executed_count": 5,
+        "execution_error_count": 0,
+        "pass_count": 0,
+        "pass_with_model_boundary_count": 5,
+        "mismatch_count": 0,
+        "compared_fields": 50,
+        "matched_fields": 43,
+        "core_compared_fields": 20,
+        "core_matched_fields": 20,
+        "max_relative_error": 1.9901232674828777,
+        "boundary_fields": [
+          "Output Ripple",
+          "Inductor Ripple",
+          "Inductor Peak Current",
+          "Inductor Valley Current"
+        ],
+        "all_core_fields_match": true
+      },
+      "single_phase_totem_pole_bridgeless_pfc": {
+        "request_directory": "14_totem_pole_pfc",
+        "case_count": 9,
+        "executed_count": 9,
+        "execution_error_count": 0,
+        "pass_count": 9,
+        "pass_with_model_boundary_count": 0,
+        "mismatch_count": 0,
+        "compared_fields": 63,
+        "matched_fields": 63,
+        "core_compared_fields": 36,
+        "core_matched_fields": 36,
+        "max_relative_error": 0.021806862724489777,
+        "boundary_fields": [],
+        "all_core_fields_match": true
+      },
+      "three_phase_diode_bridge_rectifier_capacitor_filter": {
+        "request_directory": "12_three_phase_capacitor_rectifier",
+        "case_count": 5,
+        "executed_count": 5,
+        "execution_error_count": 0,
+        "pass_count": 0,
+        "pass_with_model_boundary_count": 5,
+        "mismatch_count": 0,
+        "compared_fields": 50,
+        "matched_fields": 40,
+        "core_compared_fields": 25,
+        "core_matched_fields": 25,
+        "max_relative_error": 10.183622969118398,
+        "boundary_fields": [
+          "Output Ripple",
+          "Inductor Peak Current"
+        ],
+        "all_core_fields_match": true
+      }
+    }
+  },
+  "acceptance": {
+    "all_algorithm_files_identical": true,
+    "expected_case_count": 31,
+    "case_count_matches": true,
+    "all_cases_executed": true,
+    "no_unexplained_mismatch": true,
+    "all_core_fields_match": true,
+    "metric_layers_declared": true
+  },
+  "validation_pass": true
+}

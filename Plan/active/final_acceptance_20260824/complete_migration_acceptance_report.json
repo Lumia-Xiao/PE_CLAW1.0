@@ -1,0 +1,1321 @@
+{
+  "contract_version": "pe_claw_complete_migration_acceptance_v1",
+  "generated_at_utc": "2026-08-24T12:12:52.572063+00:00",
+  "verdict": "ACCEPTED_FOR_MIGRATION",
+  "closure_status": "ready_to_close",
+  "scope": {
+    "source_project": "PE-Claw 2.0",
+    "target_project": "PE-Claw 1.0",
+    "registered_topologies": 19,
+    "design_request_topology_matrices": 17,
+    "replay_runtime_topology_ids": 16,
+    "design_cases": 103
+  },
+  "migration_coverage": [
+    "request normalization and schema contract",
+    "topology registry, forms, plugins, and routing",
+    "DC-DC, AC-DC, and DC-AC deterministic pipelines",
+    "semiconductor, capacitor, magnetic libraries and selection ordering",
+    "fixed-hardware operating-point refresh",
+    "structured output schema, report fields, and audit evidence",
+    "AI/agentic runtime isolation"
+  ],
+  "verification": {
+    "registry_count": 19,
+    "replay_case_count": 103,
+    "replayed_count": 103,
+    "execution_error_count": 0,
+    "boundary_count": 0,
+    "unexplained_difference_count": 0,
+    "difference_count": 3412,
+    "schema_source": {
+      "record_count": 103,
+      "valid_count": 103,
+      "invalid_count": 0,
+      "records": [
+        {
+          "matrix_id": "01_buck_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "01_buck_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "01_buck_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "01_buck_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "01_buck_diode",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "02_buck_synchronous",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "02_buck_synchronous",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "02_buck_synchronous",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "02_buck_synchronous",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "02_buck_synchronous",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "03_boost_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "03_boost_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "03_boost_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "03_boost_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "03_boost_diode",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "04_boost_synchronous",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "04_boost_synchronous",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "04_boost_synchronous",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "04_boost_synchronous",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "04_boost_synchronous",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "05_buck_boost_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "05_buck_boost_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "05_buck_boost_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "05_buck_boost_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "05_buck_boost_diode",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "06_flyback_ccm",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "06_flyback_ccm",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "06_flyback_ccm",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "06_flyback_ccm",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "06_flyback_ccm",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c05_nominal_very_light_load_10pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c06_nominal_high_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c07_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c05_nominal_very_light_load_10pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c06_nominal_high_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c07_nominal_relaxed_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c05_nominal_very_light_load_10pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c06_nominal_high_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c07_nominal_relaxed_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "10_single_phase_capacitor_rectifier",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "10_single_phase_capacitor_rectifier",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "10_single_phase_capacitor_rectifier",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "10_single_phase_capacitor_rectifier",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "10_single_phase_capacitor_rectifier",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "11_single_phase_dc_inductor_rectifier",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "11_single_phase_dc_inductor_rectifier",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "11_single_phase_dc_inductor_rectifier",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "11_single_phase_dc_inductor_rectifier",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "11_single_phase_dc_inductor_rectifier",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "12_three_phase_capacitor_rectifier",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "12_three_phase_capacitor_rectifier",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "12_three_phase_capacitor_rectifier",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "12_three_phase_capacitor_rectifier",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "12_three_phase_capacitor_rectifier",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c01_nominal_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c02_low_input_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c03_high_input_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c04_nominal_light_load_20pct_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c05_nominal_very_light_load_10pct_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c06_nominal_high_frequency_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c07_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c01_nominal_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c02_low_input_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c03_high_input_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c04_nominal_light_load_20pct_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c05_nominal_very_light_load_10pct_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c06_nominal_high_frequency_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c07_nominal_full_load_60hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c08_nominal_high_frequency_60hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c09_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c01_nominal_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c02_low_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c03_high_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c04_nominal_dc_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c05_nominal_dc_full_load_60hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c06_nominal_high_carrier_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c07_nominal_pf_0p8",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c01_nominal_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c02_low_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c03_high_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c04_nominal_dc_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c05_nominal_dc_full_load_60hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c06_nominal_high_carrier_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c07_nominal_pf_0p8",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c01_nominal_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c02_low_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c03_high_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c04_nominal_dc_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c05_nominal_dc_full_load_60hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c06_nominal_high_carrier_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c07_nominal_pf_0p8",
+          "errors": [],
+          "valid": true
+        }
+      ],
+      "snapshot": "pe_claw_2_structured_output_snapshots.json",
+      "validation": "pe_claw_2_structured_output_validation.json",
+      "quantity_row_count": 4340,
+      "csv": "pe_claw_2_structured_output.csv",
+      "markdown": "pe_claw_2_structured_output.md",
+      "canonical_sha256": "065c31b8c34cf0fda7dcfbc63da4a54b4ae5cbb513550adb58d665f1c0b5a35c"
+    },
+    "schema_target": {
+      "record_count": 103,
+      "valid_count": 103,
+      "invalid_count": 0,
+      "records": [
+        {
+          "matrix_id": "01_buck_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "01_buck_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "01_buck_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "01_buck_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "01_buck_diode",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "02_buck_synchronous",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "02_buck_synchronous",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "02_buck_synchronous",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "02_buck_synchronous",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "02_buck_synchronous",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "03_boost_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "03_boost_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "03_boost_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "03_boost_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "03_boost_diode",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "04_boost_synchronous",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "04_boost_synchronous",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "04_boost_synchronous",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "04_boost_synchronous",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "04_boost_synchronous",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "05_buck_boost_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "05_buck_boost_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "05_buck_boost_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "05_buck_boost_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "05_buck_boost_diode",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "06_flyback_ccm",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "06_flyback_ccm",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "06_flyback_ccm",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "06_flyback_ccm",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "06_flyback_ccm",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c05_nominal_very_light_load_10pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c06_nominal_high_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "07_psfb_diode",
+          "case_id": "c07_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c05_nominal_very_light_load_10pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c06_nominal_high_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "08_llc_full_bridge_diode",
+          "case_id": "c07_nominal_relaxed_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c05_nominal_very_light_load_10pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c06_nominal_high_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "09_llc_half_bridge_diode",
+          "case_id": "c07_nominal_relaxed_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "10_single_phase_capacitor_rectifier",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "10_single_phase_capacitor_rectifier",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "10_single_phase_capacitor_rectifier",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "10_single_phase_capacitor_rectifier",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "10_single_phase_capacitor_rectifier",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "11_single_phase_dc_inductor_rectifier",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "11_single_phase_dc_inductor_rectifier",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "11_single_phase_dc_inductor_rectifier",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "11_single_phase_dc_inductor_rectifier",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "11_single_phase_dc_inductor_rectifier",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "12_three_phase_capacitor_rectifier",
+          "case_id": "c01_nominal_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "12_three_phase_capacitor_rectifier",
+          "case_id": "c02_low_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "12_three_phase_capacitor_rectifier",
+          "case_id": "c03_high_input_full_load",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "12_three_phase_capacitor_rectifier",
+          "case_id": "c04_nominal_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "12_three_phase_capacitor_rectifier",
+          "case_id": "c05_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c01_nominal_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c02_low_input_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c03_high_input_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c04_nominal_light_load_20pct_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c05_nominal_very_light_load_10pct_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c06_nominal_high_frequency_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "13_diode_bridge_boost_pfc",
+          "case_id": "c07_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c01_nominal_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c02_low_input_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c03_high_input_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c04_nominal_light_load_20pct_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c05_nominal_very_light_load_10pct_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c06_nominal_high_frequency_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c07_nominal_full_load_60hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c08_nominal_high_frequency_60hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "14_totem_pole_pfc",
+          "case_id": "c09_nominal_high_ripple",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c01_nominal_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c02_low_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c03_high_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c04_nominal_dc_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c05_nominal_dc_full_load_60hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c06_nominal_high_carrier_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "15_single_phase_full_bridge_inverter",
+          "case_id": "c07_nominal_pf_0p8",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c01_nominal_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c02_low_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c03_high_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c04_nominal_dc_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c05_nominal_dc_full_load_60hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c06_nominal_high_carrier_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "16_three_phase_two_level_vsi",
+          "case_id": "c07_nominal_pf_0p8",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c01_nominal_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c02_low_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c03_high_dc_full_load_50hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c04_nominal_dc_light_load_20pct",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c05_nominal_dc_full_load_60hz",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c06_nominal_high_carrier_frequency",
+          "errors": [],
+          "valid": true
+        },
+        {
+          "matrix_id": "17_three_phase_three_level_npc",
+          "case_id": "c07_nominal_pf_0p8",
+          "errors": [],
+          "valid": true
+        }
+      ],
+      "snapshot": "pe_claw_1_structured_output_snapshots.json",
+      "validation": "pe_claw_1_structured_output_validation.json",
+      "quantity_row_count": 9173,
+      "csv": "pe_claw_1_structured_output.csv",
+      "markdown": "pe_claw_1_structured_output.md",
+      "canonical_sha256": "5be630c1e92ec5830112205e12b99c4c8f8f78c9a001baac51209c9f351c2096"
+    },
+    "replay_status_counts": {
+      "fixed_hardware_refresh": 84,
+      "new_design": 19
+    },
+    "comparison_category_counts": {
+      "field_semantic_difference": 358,
+      "formula_difference": 389,
+      "ordering_difference": 638,
+      "simulation_numerical_difference": 1934,
+      "input_mapping_error": 93
+    }
+  },
+  "known_blockers": [],
+  "acceptance_checks": {
+    "19_registered_topologies": true,
+    "103_replay_records": true,
+    "103_execution_success": true,
+    "zero_unexplained_differences": true,
+    "both_schema_sets_valid": true,
+    "default_full_suite_clean": true,
+    "release_ready": true
+  },
+  "evidence_paths": {
+    "replay": "Plan\\active\\operating_points_20260824_repaired",
+    "structured_outputs": "Plan\\active\\structured_outputs_20260824_repaired",
+    "comparison": "Plan\\active\\final_comparison_20260824_repaired",
+    "golden_baseline": "Plan\\active\\final_acceptance_20260824\\golden_baseline"
+  }
+}

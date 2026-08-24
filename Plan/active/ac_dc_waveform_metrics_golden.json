@@ -1,0 +1,1894 @@
+{
+  "contract": "ac_dc_waveform_metrics_golden_v1",
+  "source": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\migration_parity_2_to_1_20260824_final2\\comparison.json",
+  "scope": "31 AC-DC design cases",
+  "metric_layers": {
+    "design_target": [
+      "Output Voltage",
+      "Output Ripple"
+    ],
+    "theoretical_estimate": [
+      "Output Current",
+      "Inductance",
+      "Output Capacitance",
+      "Inductor Ripple"
+    ],
+    "waveform_prediction": [
+      "Operating Output Voltage",
+      "Inductor Peak Current",
+      "Inductor Valley Current"
+    ],
+    "stress_and_feasibility": [
+      "Switch Voltage Max",
+      "Switch Current Peak",
+      "Rectifier Voltage Max",
+      "Rectifier Current Peak",
+      "CCM Valid",
+      "Feasible"
+    ]
+  },
+  "comparison_policy": {
+    "absolute_tolerance": 1e-09,
+    "relative_tolerance": 0.05,
+    "boundary_fields_are_explicit": true,
+    "library_selection_fields_excluded": true
+  },
+  "cases": [
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 3.0173081882197788,
+          "target": 3.076923076923077,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.008199999999999999,
+          "target": 0.0019036294485224791,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Ripple": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 3.299976320040116,
+          "target": 16.163455967290595,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.7143122966386897,
+          "target": 3.076923076923077,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Capacitance": {
+          "source": 0.01,
+          "target": 0.002116598827751916,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Ripple": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 2.4351401329477653,
+          "target": 14.537110370561535,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 3.3216602428897537,
+          "target": 3.076923076923077,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Capacitance": {
+          "source": 0.01,
+          "target": 0.0017295994369865462,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Ripple": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 2.979880821900224,
+          "target": 17.789801564019655,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 0.6078389833762462,
+          "target": 0.6153846153846154,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.0014999999999999998,
+          "target": 0.00038072588970449584,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Ripple": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 3.7870021929250584,
+          "target": 16.163455967290595,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.986971731781933,
+          "target": 3.076923076923077,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.001875,
+          "target": 0.0009518147242612396,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Ripple": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 14.05888886226586,
+          "target": 32.32691193458119,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.844728773201106,
+          "target": 2.8705209833960033,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.002,
+          "target": 0.002,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.009420118343195267,
+          "target": 0.009420118343195267,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 14.438818821330063,
+          "target": 14.951905989542468,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 1.421110318173362,
+          "target": 2.158108944252433,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 14.438818821330063,
+          "target": 14.951905989542468,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": false,
+          "target": false,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5707557205644225,
+          "target": 2.581806789804879,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.002,
+          "target": 0.002,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.009420118343195266,
+          "target": 0.009420118343195266,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 13.164567988191736,
+          "target": 13.432456987170786,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 1.009279986036745,
+          "target": 1.9417222800959735,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 13.164567988191736,
+          "target": 13.432456987170786,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": false,
+          "target": false,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 3.1311327159319107,
+          "target": 3.157358081316175,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.002,
+          "target": 0.002,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.009420118343195266,
+          "target": 0.009420118343195266,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 15.855861426970456,
+          "target": 16.698385018993683,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Ripple": {
+          "source": 1.470692312836377,
+          "target": 2.4346111459793747,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 15.855861426970456,
+          "target": 16.698385018993683,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": false,
+          "target": false,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 0.593945780704755,
+          "target": 0.5956943137714632,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.002,
+          "target": 0.002,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.0018840236686390533,
+          "target": 0.0018840236686390533,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 4.5622210043738125,
+          "target": 4.680365461421965,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 0.844061421840081,
+          "target": 2.5238476966287067,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 4.5622210043738125,
+          "target": 4.680365461421965,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": false,
+          "target": false,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.84588290687858,
+          "target": 2.875410318062263,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.002,
+          "target": 0.002,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.00468639053254438,
+          "target": 0.00468639053254438,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 14.488932655886089,
+          "target": 15.13514922092199,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 2.0049748554410485,
+          "target": 4.348516602137352,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 14.488932655886089,
+          "target": 15.13514922092199,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": false,
+          "target": false,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 5.758276449995429,
+          "target": 5.702997538663082,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.0007159546625885764,
+          "target": 0.0007159546625885764,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 2.212775863763227,
+          "target": 18.76416092251077,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 38.553160928858006,
+          "target": 31.246720754533044,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 5.180401114473314,
+          "target": 5.1242261346996445,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.0006441051700125924,
+          "target": 0.0006441051700125924,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 1.9907816365465578,
+          "target": 18.44058159373776,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 34.68873718501925,
+          "target": 27.244155389058733,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 6.33506367152362,
+          "target": 6.281995526807517,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.0007878041551645606,
+          "target": 0.0007878041551645606,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 3.3063101872634206,
+          "target": 19.036083043285657,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 42.29756370609266,
+          "target": 35.29490863668457,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 1.1567219705816016,
+          "target": 1.141725492381148,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.0001431909325177153,
+          "target": 0.0001431909325177153,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 1.7182432292105432,
+          "target": 19.216184444731198,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 13.10406775053707,
+          "target": 7.271162544060417,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 1.0,
+          "target": 1.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 5.752802644795471,
+          "target": 5.648166451348811,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.0003579773312942882,
+          "target": 0.0003579773312942882,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 5.327484280583235,
+          "target": 32.44709524720736,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 37.92731065639714,
+          "target": 24.4410890780955,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 0.0,
+          "target": 0.0,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c01_nominal_full_load_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0013919493684911724,
+          "target": 0.000415008597373765,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Capacitance": {
+          "source": 0.0003978873577297383,
+          "target": 0.0003978873577297383,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.407313549837609,
+          "target": 1.1799632016960087,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Ripple": {
+          "source": 2.9473137609610243,
+          "target": 20.0,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 6.676030058090865,
+          "target": 7.062354884020065,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 6.268716508253257,
+          "target": 5.882391682324057,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c02_low_input_full_load_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 0.36360389693210715,
+          "target": 0.36360389693210715,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0008902456412460356,
+          "target": 0.00030304730055257114,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Capacitance": {
+          "source": 0.0003978873577297383,
+          "target": 0.0003978873577297383,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.9347018292419842,
+          "target": 2.296465975588002,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Ripple": {
+          "source": 2.9473137609610243,
+          "target": 20.0,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 8.737605665340848,
+          "target": 9.418487738513857,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 7.802903836098864,
+          "target": 7.122021762925854,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c03_high_input_full_load_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 0.06308351492782449,
+          "target": 0.06308351492782449,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.001790606188524221,
+          "target": 0.0004933512000934219,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Capacitance": {
+          "source": 0.0003978873577297383,
+          "target": 0.0003978873577297383,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.12504769196447224,
+          "target": 0.39844183386075316,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Ripple": {
+          "source": 2.9473137609610243,
+          "target": 20.0,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 5.680055374773081,
+          "target": 5.816752445721222,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 5.5550076828086095,
+          "target": 5.418310611860469,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c04_nominal_light_load_20pct_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.006959746842455863,
+          "target": 0.0024750429868688256,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Capacitance": {
+          "source": 7.957747154594766e-05,
+          "target": 7.957747154594766e-05,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.08607832646400135,
+          "target": 0.23599264033920173,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Ripple": {
+          "source": 1.0610329539459686,
+          "target": 20.0,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 1.3375138198664127,
+          "target": 1.412470976804013,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 1.2514354934024114,
+          "target": 1.1764783364648113,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c05_nominal_very_light_load_10pct_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 0.25,
+          "target": 0.25,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.013919493684911726,
+          "target": 0.005050085973737651,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Capacitance": {
+          "source": 3.978873577297383e-05,
+          "target": 3.978873577297383e-05,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.04334615836463033,
+          "target": 0.11799632016960086,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Ripple": {
+          "source": 0.7957747154594765,
+          "target": 20.0,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 0.6689104074995212,
+          "target": 0.7062354884020065,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 0.6255642491348908,
+          "target": 0.5882391682324056,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c06_nominal_high_frequency_50hz",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0009279662456607816,
+          "target": 0.00024333906491584334,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Capacitance": {
+          "source": 0.0003978873577297383,
+          "target": 0.0003978873577297383,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.3941058026131923,
+          "target": 1.1799632016960087,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Ripple": {
+          "source": 2.9473137609610243,
+          "target": 20.0,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 6.669426184478657,
+          "target": 7.062354884020065,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 6.275320381865465,
+          "target": 5.882391682324057,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c07_nominal_high_ripple",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "verdict": "pass_with_model_boundary",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0008351696210947034,
+          "target": 0.00020900515842425902,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Capacitance": {
+          "source": 0.0003978873577297383,
+          "target": 0.0003978873577297383,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.6498192196906045,
+          "target": 1.9666053361600146,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Output Ripple": {
+          "source": 2.9473137609610243,
+          "target": 20.0,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Peak Current": {
+          "source": 6.797282893017363,
+          "target": 7.4556759512520685,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "Inductor Valley Current": {
+          "source": 6.147463673326759,
+          "target": 5.489070615092054,
+          "basis": "model_boundary",
+          "matched": false
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c01_nominal_full_load_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.4232110845096312,
+          "target": 0.4232110845096312,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 6.3603601612682725,
+          "target": 6.485844949411405,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 5.937149076758641,
+          "target": 6.062633864901773,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c02_low_input_full_load_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.36360389693210715,
+          "target": 0.36360389693210715,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 1.0078681141460462,
+          "target": 1.0078681141460462,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 8.360676070256885,
+          "target": 8.52101774399533,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 7.352807956110839,
+          "target": 7.513149629849284,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c03_high_input_full_load_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.06308351492782449,
+          "target": 0.06308351492782449,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.12798945915387838,
+          "target": 0.12798945915387838,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 5.400649681928242,
+          "target": 5.509561007486432,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 5.2726602227743635,
+          "target": 5.381571548332553,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c04_nominal_light_load_20pct_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.08464221690192625,
+          "target": 0.08464221690192625,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 1.2720720322536545,
+          "target": 1.2971689898822811,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 1.1874298153517282,
+          "target": 1.2125267729803548,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c05_nominal_very_light_load_10pct_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 0.25,
+          "target": 0.25,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.042321108450963124,
+          "target": 0.042321108450963124,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 0.6360360161268273,
+          "target": 0.6485844949411406,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 0.5937149076758641,
+          "target": 0.6062633864901774,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c06_nominal_high_frequency_50hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.4232110845096312,
+          "target": 0.4232110845096312,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 6.3603601612682725,
+          "target": 6.485844949411405,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 5.937149076758641,
+          "target": 6.062633864901773,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c07_nominal_full_load_60hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.4232110845096312,
+          "target": 0.4232110845096312,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 6.3603601612682725,
+          "target": 6.485844949411405,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 5.937149076758641,
+          "target": 6.062633864901773,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c08_nominal_high_frequency_60hz",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.4232110845096312,
+          "target": 0.4232110845096312,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 6.3603601612682725,
+          "target": 6.485844949411405,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 5.937149076758641,
+          "target": 6.062633864901773,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c09_nominal_high_ripple",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.18682720163547029,
+          "target": 0.18682720163547029,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 2.5,
+          "target": 2.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 0.705351807516052,
+          "target": 0.705351807516052,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 6.501430522771483,
+          "target": 6.626915310914615,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": 5.7960787152554305,
+          "target": 5.921563503398563,
+          "basis": "model_boundary",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    }
+  ]
+}

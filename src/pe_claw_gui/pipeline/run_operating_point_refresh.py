@@ -9,17 +9,11 @@ from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
 from ..topology_capabilities import has_semiconductor_selection_path, is_first_pass_topology_only
 from .run_capacitor_pipeline import run_capacitor_operating_point_refresh
-from .run_device_pipeline import run_device_operating_point_refresh, run_device_pipeline
+from .run_device_pipeline import run_device_operating_point_refresh
 from .run_loss_pipeline import run_loss_pipeline
 from .options import PipelineOptions, resolve_pipeline_options
-from .run_semiconductor_geometry_pipeline import run_semiconductor_geometry_pipeline
 from .run_thermal_pipeline import run_thermal_pipeline
 
-AC_DC_DIODE_BRIDGE_TOPOLOGIES = {
-    "single_phase_diode_bridge_rectifier_capacitor_filter",
-    "single_phase_diode_bridge_rectifier_dc_inductor_filter",
-    "three_phase_diode_bridge_rectifier_capacitor_filter",
-}
 MAGNETIC_REFRESH_DISABLED_TOPOLOGIES = {
     "single_phase_full_bridge_inverter",
 }
@@ -51,8 +45,12 @@ def run_operating_point_refresh(
         stress=stress_result,
         topology_result=topology_result,
         magnetic=report.magnetic,
-        device=None if report.spec.topology_id in AC_DC_DIODE_BRIDGE_TOPOLOGIES else report.device,
-        semiconductor_geometry=None if report.spec.topology_id in AC_DC_DIODE_BRIDGE_TOPOLOGIES else report.semiconductor_geometry,
+        # A replay is a fixed-hardware operation.  In particular, a bridge
+        # rectifier report may carry a selected device or geometry supplied by
+        # an earlier stage; clearing it here would make the refresh look like
+        # a new design and would erase the audit trail.
+        device=report.device,
+        semiconductor_geometry=report.semiconductor_geometry,
         notes=[
             *report.notes,
             "Generate Waveforms refreshed only operating-point-dependent outputs.",
@@ -62,15 +60,11 @@ def run_operating_point_refresh(
         if refreshed_report.capacitor is not None:
             refreshed_report = run_capacitor_operating_point_refresh(refreshed_report)
         return refreshed_report
-    uses_bridge_rectifier_selector = refreshed_report.spec.topology_id in AC_DC_DIODE_BRIDGE_TOPOLOGIES
     uses_semiconductor_selector = has_semiconductor_selection_path(refreshed_report.spec.topology_id)
-    if uses_semiconductor_selector and (
-        refreshed_report.device is None or (
-            not refreshed_report.device.selected_devices and not refreshed_report.device.design_point_losses
-        )
-    ):
-        refreshed_report = run_device_pipeline(refreshed_report, plugin=plugin)
-        refreshed_report = run_semiconductor_geometry_pipeline(refreshed_report)
+    # A refresh is deliberately not allowed to promote a missing device
+    # result into a new selection run.  The caller must supply a report whose
+    # fixed hardware has already been selected; otherwise the absence is an
+    # auditable skip, not permission to redesign the hardware.
     if uses_semiconductor_selector:
         refreshed_report = run_device_operating_point_refresh(refreshed_report, plugin=plugin)
     if (

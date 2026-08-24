@@ -1,0 +1,1205 @@
+{
+  "contract": "dc_ac_candidate_golden_v1",
+  "source": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\migration_parity_2_to_1_20260824_final2\\comparison.json",
+  "scope": "21 DC-AC design cases",
+  "strict_fields": [
+    "Duty",
+    "Output Current",
+    "Inductance",
+    "Output Capacitance",
+    "Inductor Ripple",
+    "Output Ripple",
+    "Inductor Peak Current",
+    "Inductor Valley Current",
+    "CCM Valid",
+    "Feasible",
+    "Switch Voltage Max",
+    "Switch Current Peak",
+    "Rectifier Voltage Max",
+    "Rectifier Current Peak"
+  ],
+  "comparison_policy": {
+    "absolute_tolerance": 1e-09,
+    "relative_tolerance": 0.05,
+    "all_fields_are_core_for_dc_ac": true,
+    "device_library_fields_excluded": true
+  },
+  "cases": [
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 4.347508943389853,
+          "target": 4.3478260869565215,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 4.347569167261576,
+          "target": 4.3478260869565215,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 4.347476456465371,
+          "target": 4.3478260869565215,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 0.8695018385591321,
+          "target": 0.8695652173913043,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 4.347369422204801,
+          "target": 4.3478260869565215,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 4.347685056381971,
+          "target": 4.3478260869565215,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c07_nominal_pf_0p8",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 5.395449045365117,
+          "target": 5.434782608695652,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 30.3868562731382,
+          "target": 30.3868562731382,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0005817538139110046,
+          "target": 0.0005817538139110046,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 7.8125e-05,
+          "target": 7.8125e-05,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 8.594700851870803,
+          "target": 8.594700851870803,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 16.0,
+          "target": 16.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 47.27085468528941,
+          "target": 47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -47.27085468528941,
+          "target": -47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 30.3868562731382,
+          "target": 30.3868562731382,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0004726749738026913,
+          "target": 0.0004726749738026913,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.00011834319526627219,
+          "target": 0.00011834319526627219,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 8.594700851870803,
+          "target": 8.594700851870803,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 13.0,
+          "target": 13.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 47.27085468528941,
+          "target": 47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -47.27085468528941,
+          "target": -47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 30.3868562731382,
+          "target": 30.3868562731382,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0006181134272804425,
+          "target": 0.0006181134272804425,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 6.920415224913495e-05,
+          "target": 6.920415224913495e-05,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 8.594700851870803,
+          "target": 8.594700851870803,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 17.0,
+          "target": 17.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 47.27085468528941,
+          "target": 47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -47.27085468528941,
+          "target": -47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 6.07737125462764,
+          "target": 6.07737125462764,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.002908769069555024,
+          "target": 0.002908769069555024,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 1.5625e-05,
+          "target": 1.5625e-05,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 1.7189401703741602,
+          "target": 1.7189401703741602,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 16.0,
+          "target": 16.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 9.454170937057881,
+          "target": 9.454170937057881,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -9.454170937057881,
+          "target": -9.454170937057881,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 30.3868562731382,
+          "target": 30.3868562731382,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0005817538139110046,
+          "target": 0.0005817538139110046,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 7.8125e-05,
+          "target": 7.8125e-05,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 8.594700851870803,
+          "target": 8.594700851870803,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 16.0,
+          "target": 16.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 47.27085468528941,
+          "target": 47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -47.27085468528941,
+          "target": -47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 30.3868562731382,
+          "target": 30.3868562731382,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.00038783587594066977,
+          "target": 0.00038783587594066977,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 5.208333333333334e-05,
+          "target": 5.208333333333334e-05,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 8.594700851870803,
+          "target": 8.594700851870803,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 16.0,
+          "target": 16.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 47.27085468528941,
+          "target": 47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -47.27085468528941,
+          "target": -47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c07_nominal_pf_0p8",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 37.98357034142275,
+          "target": 37.98357034142275,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.00046540305112880375,
+          "target": 0.00046540305112880375,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 7.8125e-05,
+          "target": 7.8125e-05,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 10.743376064838502,
+          "target": 10.743376064838502,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 16.0,
+          "target": 16.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 59.08856835661176,
+          "target": 59.08856835661176,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -59.08856835661176,
+          "target": -59.08856835661176,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 30.3868562731382,
+          "target": 30.3868562731382,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0002908769069555023,
+          "target": 0.0002908769069555023,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.0003125,
+          "target": 0.0003125,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 8.594700851870803,
+          "target": 8.594700851870803,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 16.0,
+          "target": 16.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 47.27085468528941,
+          "target": 47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -47.27085468528941,
+          "target": -47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 30.3868562731382,
+          "target": 30.3868562731382,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.00025451729358606453,
+          "target": 0.00025451729358606453,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.00040816326530612246,
+          "target": 0.00040816326530612246,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 8.594700851870803,
+          "target": 8.594700851870803,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 14.0,
+          "target": 14.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 47.27085468528941,
+          "target": 47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -47.27085468528941,
+          "target": -47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 30.3868562731382,
+          "target": 30.3868562731382,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0003272365203249401,
+          "target": 0.0003272365203249401,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.0002469135802469136,
+          "target": 0.0002469135802469136,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 8.594700851870803,
+          "target": 8.594700851870803,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 18.0,
+          "target": 18.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 47.27085468528941,
+          "target": 47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -47.27085468528941,
+          "target": -47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 6.07737125462764,
+          "target": 6.07737125462764,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.001454384534777512,
+          "target": 0.001454384534777512,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 6.25e-05,
+          "target": 6.25e-05,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 1.7189401703741602,
+          "target": 1.7189401703741602,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 16.0,
+          "target": 16.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 9.454170937057881,
+          "target": 9.454170937057881,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -9.454170937057881,
+          "target": -9.454170937057881,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 30.3868562731382,
+          "target": 30.3868562731382,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.0002908769069555023,
+          "target": 0.0002908769069555023,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.0003125,
+          "target": 0.0003125,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 8.594700851870803,
+          "target": 8.594700851870803,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 16.0,
+          "target": 16.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 47.27085468528941,
+          "target": 47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -47.27085468528941,
+          "target": -47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 30.3868562731382,
+          "target": 30.3868562731382,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.00019391793797033489,
+          "target": 0.00019391793797033489,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.00020833333333333335,
+          "target": 0.00020833333333333335,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 8.594700851870803,
+          "target": 8.594700851870803,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 16.0,
+          "target": 16.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 47.27085468528941,
+          "target": 47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -47.27085468528941,
+          "target": -47.27085468528941,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c07_nominal_pf_0p8",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "verdict": "pass",
+      "metrics": {
+        "Duty": {
+          "source": 0.5,
+          "target": 0.5,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Current": {
+          "source": 37.98357034142275,
+          "target": 37.98357034142275,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductance": {
+          "source": 0.00023270152556440187,
+          "target": 0.00023270152556440187,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Capacitance": {
+          "source": 0.0003125,
+          "target": 0.0003125,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Ripple": {
+          "source": 10.743376064838502,
+          "target": 10.743376064838502,
+          "basis": "core",
+          "matched": true
+        },
+        "Output Ripple": {
+          "source": 16.0,
+          "target": 16.0,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Peak Current": {
+          "source": 59.08856835661176,
+          "target": 59.08856835661176,
+          "basis": "core",
+          "matched": true
+        },
+        "Inductor Valley Current": {
+          "source": -59.08856835661176,
+          "target": -59.08856835661176,
+          "basis": "core",
+          "matched": true
+        },
+        "CCM Valid": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        },
+        "Feasible": {
+          "source": true,
+          "target": true,
+          "basis": "core",
+          "matched": true
+        }
+      }
+    }
+  ]
+}

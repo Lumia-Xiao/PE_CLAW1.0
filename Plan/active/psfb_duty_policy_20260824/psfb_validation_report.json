@@ -1,0 +1,64 @@
+{
+  "contract_version": "pe_claw_psfb_validation_report_v1",
+  "generated_at_utc": "2026-08-24T11:33:57.137266+00:00",
+  "validation_status": "PSFB_SPECIALIST_VALIDATED",
+  "release_scope": "PSFB topology only",
+  "migration_plan_scope": "The main 103-case migration plan remains active.",
+  "acceptance": {
+    "case_count": 7,
+    "executed_count": 7,
+    "boundary_failure_count_before": 1,
+    "boundary_failure_count_after": 0,
+    "execution_error_count": 0,
+    "shared_hardware_checksum_count": 1,
+    "all_hardware_checksums_match": true,
+    "all_values_finite": true,
+    "all_primary_current_time_partitions_valid": true,
+    "c02_boundary_resolved": true,
+    "full_103_replay_required": true
+  },
+  "duty_policy": {
+    "invariant": "0 <= effective_duty <= command_duty <= 1",
+    "operating_fields": [
+      "effective_duty_operating",
+      "duty_loss_operating",
+      "command_duty_operating"
+    ],
+    "nominal_fields_preserved": true,
+    "silent_clamp_used": false
+  },
+  "evidence": {
+    "baseline_json": {
+      "path": "Plan\\active\\psfb_duty_policy_20260824\\psfb_baseline.json",
+      "sha256": "69831e7d11cf44590de84bbadc829efdce3b94a883691546db988253e480084d"
+    },
+    "baseline_csv": {
+      "path": "Plan\\active\\psfb_duty_policy_20260824\\psfb_baseline.csv",
+      "sha256": "bab2bcee376f8d90ef0f96e5dcf1d75499fc0d2026e92f2e906fcbc172e17201"
+    },
+    "step3_refresh_results": {
+      "path": "Plan\\active\\psfb_duty_policy_20260824\\psfb_step3_refresh_results.json",
+      "sha256": "05695f5ee27a49f35f07c93b350edcad224beec00dcdad5d33eb7cc2853b806c"
+    },
+    "step4_regression_results": {
+      "path": "Plan\\active\\psfb_duty_policy_20260824\\psfb_step4_regression_results.json",
+      "sha256": "8803103a17b6c67b3652da625101ea13b98b33f91eb502329c7eb5668079af5a"
+    }
+  },
+  "test_commands": [
+    "python scripts/validate_psfb_step3_refresh.py --source-root C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
+    "python scripts/validate_psfb_step4_regression.py",
+    "$env:PYTHONPATH='src'; python -m pytest -q tests/test_psfb_step4_regression.py tests/test_psfb_duty_policy.py tests/test_psfb_duty_policy_baseline.py",
+    "$env:PYTHONPATH='src'; python -m pytest -q tests/test_phase4_topology_contracts.py -k 'migrated_directory_routes_to_registered_plugin and 07_psfb_diode'"
+  ],
+  "test_results": {
+    "step4_and_policy_tests": "13 passed",
+    "psfb_contract_test": "1 passed, 20 deselected",
+    "compile": "passed",
+    "diff_check": "passed"
+  },
+  "known_limitations": [
+    "The full 103-case replay was not rerun in Step 5; the main migration plan remains active.",
+    "The historical 2.0/1.0 field-level comparison is not replaced by this PSFB-only evidence."
+  ]
+}

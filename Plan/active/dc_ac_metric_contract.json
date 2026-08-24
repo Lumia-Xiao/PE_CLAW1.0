@@ -1,0 +1,45 @@
+{
+  "contract": "dc_ac_metric_contract_v1",
+  "layers": {
+    "design_target": {
+      "meaning": "Requirement supplied by the design request; not an achieved waveform value.",
+      "fields": ["vdc_nom_v", "vac_rms_v", "vac_ll_rms_v", "pout_w", "f_line_hz", "fsw_hz", "power_factor"]
+    },
+    "theoretical_estimate": {
+      "meaning": "Closed-form modulation, output filter, DC-link and current-ripple sizing estimate.",
+      "fields": ["duty_nom", "modulation_index", "inductance_required_h", "cdc_required_f", "delta_il_target_a"]
+    },
+    "waveform_prediction": {
+      "meaning": "Generated line-cycle and switching waveform summary, separate from sizing targets.",
+      "fields": ["output_voltage_rms_v", "output_current_rms_a", "phase_current_rms_a", "line_line_voltage_rms_v", "output_ripple_vpp"]
+    },
+    "stress_and_feasibility": {
+      "meaning": "Electrical stress and feasibility derived from the candidate and waveform stages.",
+      "fields": ["switch_voltage_max_v", "switch_current_peak_a", "clamp_diode_stress", "feasible"]
+    }
+  },
+  "topology_specific_contracts": {
+    "single_phase_full_bridge_inverter": {
+      "modulation": "unipolar_spwm",
+      "current_definition": "single_phase_output_current_rms",
+      "boundary": "TCM remains a staged first-pass mode and is not silently compared with CCM."
+    },
+    "three_phase_two_level_voltage_source_inverter": {
+      "modulation": "fixed_frequency_spwm",
+      "voltage_definition": "line_line_rms_request and phase_neutral waveform are distinct",
+      "boundary": "DC-link ripple remains a first-pass switching-ripple proxy."
+    },
+    "three_phase_three_level_npc_inverter": {
+      "modulation": "phase_disposition_level_shifted_spwm",
+      "device_roles": "12 active switch positions and 6 clamp diode positions",
+      "boundary": "Neutral-point balancing and detailed parasitic validation remain explicit first-pass limits."
+    }
+  },
+  "policy": {
+    "same_name_different_meaning": "forbidden",
+    "target_and_achieved_must_be_distinct": true,
+    "line_line_and_phase_rms_must_be_named": true,
+    "carrier_and_line_frequency_must_be_named": true,
+    "library_selected_parts_are_out_of_scope": true
+  }
+}

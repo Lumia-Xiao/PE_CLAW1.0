@@ -1,0 +1,9 @@
+{
+  "contract_version": "pe_claw_golden_baseline_archive_v1",
+  "files": {
+    "source_structured_snapshots.json": "98ce9d28ec3e191922fd6ca72cada1279899abc22cc0cb65a842227f35d104e0",
+    "target_structured_snapshots.json": "985284aa411838856e4f0d86571d894e19c122f39154f44d8f5d91e11f2cfd93",
+    "replay_matrix.csv": "34f19ddfc5f58fd861b7d0fa22ef5167d9fce1a2ace32ccd86a3d2badc7f55f4",
+    "comparison.json": "0ea7f0e3bc55122beed2d2e38a3ed319827f2bffeef69fa913ca540c93a3e335"
+  }
+}

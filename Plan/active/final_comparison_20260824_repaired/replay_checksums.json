@@ -1,0 +1,10 @@
+{
+  "contract_version": "pe_claw_step11_replay_checksum_v1",
+  "source_snapshot_sha256": "98ce9d28ec3e191922fd6ca72cada1279899abc22cc0cb65a842227f35d104e0",
+  "target_snapshot_sha256": "985284aa411838856e4f0d86571d894e19c122f39154f44d8f5d91e11f2cfd93",
+  "comparison_sha256": "0ea7f0e3bc55122beed2d2e38a3ed319827f2bffeef69fa913ca540c93a3e335",
+  "case_count": 103,
+  "execution_status_counts": {
+    "executed": 103
+  }
+}

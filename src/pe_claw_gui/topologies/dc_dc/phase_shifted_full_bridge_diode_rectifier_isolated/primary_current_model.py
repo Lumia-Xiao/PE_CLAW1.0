@@ -5,6 +5,8 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+from .duty_policy import assess_psfb_duty
+
 
 _SWITCH_POSITIONS = ("s1", "s2", "s3", "s4")
 
@@ -152,14 +154,17 @@ def calculate_primary_current(
     invalid = [name for name, value in positive_values.items() if value <= 0.0]
     if invalid:
         raise ValueError(f"PSFB primary-current inputs must be positive: {', '.join(invalid)}")
-    if not 0.0 <= effective_duty <= command_duty <= 1.0:
+    duty_policy = assess_psfb_duty(
+        effective_duty=effective_duty,
+        duty_loss=duty_loss,
+        command_duty=command_duty,
+        max_effective_duty=1.0,
+        max_command_duty=1.0,
+        scope="operating_point",
+    )
+    if not duty_policy.within_physical_range:
         raise ValueError("PSFB duties must satisfy 0 <= effective <= command <= 1.")
-    if duty_loss < 0.0 or not math.isclose(
-        command_duty - effective_duty,
-        duty_loss,
-        rel_tol=1e-7,
-        abs_tol=1e-10,
-    ):
+    if not duty_policy.duty_loss_consistent:
         raise ValueError("PSFB duty_loss must equal command_duty - effective_duty.")
 
     period_s = 1.0 / switching_frequency_hz

@@ -1,0 +1,782 @@
+{
+  "contract": "dc_dc_candidate_golden_v1",
+  "source": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\migration_parity_2_to_1_20260824_final2\\comparison.json",
+  "scope": "51 DC-DC design cases",
+  "strict_fields": [
+    "Duty",
+    "Output Current",
+    "Inductance",
+    "Output Capacitance",
+    "Inductor Ripple",
+    "Output Ripple",
+    "Inductor Peak Current",
+    "Inductor Valley Current",
+    "CCM Valid",
+    "Feasible",
+    "Switch Voltage Max",
+    "Switch Current Peak",
+    "Rectifier Voltage Max",
+    "Rectifier Current Peak"
+  ],
+  "comparison_policy": {
+    "absolute_tolerance": 1e-09,
+    "relative_tolerance": 0.05,
+    "boundary_fields_are_explicit": true,
+    "device_library_fields_excluded": true
+  },
+  "cases": [
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.12,
+        "Output Current": 20.833333333333332,
+        "Inductance": 6.758400000000001e-05,
+        "Output Capacitance": 1.6276041666666663e-05,
+        "Inductor Ripple": 6.249999999999999,
+        "Output Ripple": 0.48,
+        "Inductor Peak Current": 23.958333333333332,
+        "Inductor Valley Current": 17.708333333333332,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.12,
+        "Output Current": 20.833333333333332,
+        "Inductance": 6.758400000000001e-05,
+        "Output Capacitance": 1.6276041666666663e-05,
+        "Inductor Ripple": 6.249999999999999,
+        "Output Ripple": 0.48,
+        "Inductor Peak Current": 23.958333333333332,
+        "Inductor Valley Current": 17.708333333333332,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.12,
+        "Output Current": 20.833333333333332,
+        "Inductance": 6.758400000000001e-05,
+        "Output Capacitance": 1.6276041666666663e-05,
+        "Inductor Ripple": 6.249999999999999,
+        "Output Ripple": 0.48,
+        "Inductor Peak Current": 23.958333333333332,
+        "Inductor Valley Current": 17.708333333333332,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.12,
+        "Output Current": 4.166666666666667,
+        "Inductance": 0.00033791999999999996,
+        "Output Capacitance": 3.2552083333333335e-06,
+        "Inductor Ripple": 1.25,
+        "Output Ripple": 0.48,
+        "Inductor Peak Current": 4.791666666666667,
+        "Inductor Valley Current": 3.541666666666667,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.12,
+        "Output Current": 20.833333333333332,
+        "Inductance": 4.05504e-05,
+        "Output Capacitance": 2.712673611111111e-05,
+        "Inductor Ripple": 10.416666666666666,
+        "Output Ripple": 0.48,
+        "Inductor Peak Current": 26.041666666666664,
+        "Inductor Valley Current": 15.625,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.6857142857142857,
+        "Output Current": 10.416666666666666,
+        "Inductance": 0.0009654857142857145,
+        "Output Capacitance": 1.6276041666666663e-06,
+        "Inductor Ripple": 3.1249999999999996,
+        "Output Ripple": 4.8,
+        "Inductor Peak Current": 11.979166666666666,
+        "Inductor Valley Current": 8.854166666666666,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.6857142857142857,
+        "Output Current": 10.416666666666666,
+        "Inductance": 0.0009654857142857145,
+        "Output Capacitance": 1.6276041666666663e-06,
+        "Inductor Ripple": 3.1249999999999996,
+        "Output Ripple": 4.8,
+        "Inductor Peak Current": 11.979166666666666,
+        "Inductor Valley Current": 8.854166666666666,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.6857142857142857,
+        "Output Current": 10.416666666666666,
+        "Inductance": 0.0009654857142857145,
+        "Output Capacitance": 1.6276041666666663e-06,
+        "Inductor Ripple": 3.1249999999999996,
+        "Output Ripple": 4.8,
+        "Inductor Peak Current": 11.979166666666666,
+        "Inductor Valley Current": 8.854166666666666,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.6857142857142857,
+        "Output Current": 2.0833333333333335,
+        "Inductance": 0.004827428571428572,
+        "Output Capacitance": 3.255208333333333e-07,
+        "Inductor Ripple": 0.625,
+        "Output Ripple": 4.8,
+        "Inductor Peak Current": 2.3958333333333335,
+        "Inductor Valley Current": 1.7708333333333335,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.6857142857142857,
+        "Output Current": 10.416666666666666,
+        "Inductance": 0.0005792914285714286,
+        "Output Capacitance": 2.712673611111111e-06,
+        "Inductor Ripple": 5.208333333333333,
+        "Output Ripple": 4.8,
+        "Inductor Peak Current": 13.020833333333332,
+        "Inductor Valley Current": 7.8125,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.625,
+        "Output Current": 2.5,
+        "Inductance": 0.001171875,
+        "Output Capacitance": 2.44140625e-06,
+        "Inductor Ripple": 2.0,
+        "Output Ripple": 8.0,
+        "Inductor Peak Current": 7.666666666666667,
+        "Inductor Valley Current": 5.666666666666667,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.625,
+        "Output Current": 2.5,
+        "Inductance": 0.001171875,
+        "Output Capacitance": 2.44140625e-06,
+        "Inductor Ripple": 2.0,
+        "Output Ripple": 8.0,
+        "Inductor Peak Current": 7.666666666666667,
+        "Inductor Valley Current": 5.666666666666667,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.625,
+        "Output Current": 2.5,
+        "Inductance": 0.001171875,
+        "Output Capacitance": 2.44140625e-06,
+        "Inductor Ripple": 2.0,
+        "Output Ripple": 8.0,
+        "Inductor Peak Current": 7.666666666666667,
+        "Inductor Valley Current": 5.666666666666667,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.625,
+        "Output Current": 0.5,
+        "Inductance": 0.005859375000000001,
+        "Output Capacitance": 4.8828125e-07,
+        "Inductor Ripple": 0.39999999999999997,
+        "Output Ripple": 8.0,
+        "Inductor Peak Current": 1.5333333333333332,
+        "Inductor Valley Current": 1.1333333333333333,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.625,
+        "Output Current": 2.5,
+        "Inductance": 0.000703125,
+        "Output Capacitance": 2.44140625e-06,
+        "Inductor Ripple": 3.3333333333333335,
+        "Output Ripple": 8.0,
+        "Inductor Peak Current": 8.333333333333334,
+        "Inductor Valley Current": 5.0,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.625,
+        "Output Current": 2.5,
+        "Inductance": 0.001171875,
+        "Output Capacitance": 2.44140625e-06,
+        "Inductor Ripple": 2.0,
+        "Output Ripple": 8.0,
+        "Inductor Peak Current": 7.666666666666667,
+        "Inductor Valley Current": 5.666666666666667,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.625,
+        "Output Current": 2.5,
+        "Inductance": 0.001171875,
+        "Output Capacitance": 2.44140625e-06,
+        "Inductor Ripple": 2.0,
+        "Output Ripple": 8.0,
+        "Inductor Peak Current": 7.666666666666667,
+        "Inductor Valley Current": 5.666666666666667,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.625,
+        "Output Current": 2.5,
+        "Inductance": 0.001171875,
+        "Output Capacitance": 2.44140625e-06,
+        "Inductor Ripple": 2.0,
+        "Output Ripple": 8.0,
+        "Inductor Peak Current": 7.666666666666667,
+        "Inductor Valley Current": 5.666666666666667,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.625,
+        "Output Current": 0.5,
+        "Inductance": 0.005859375000000001,
+        "Output Capacitance": 4.8828125e-07,
+        "Inductor Ripple": 0.39999999999999997,
+        "Output Ripple": 8.0,
+        "Inductor Peak Current": 1.5333333333333332,
+        "Inductor Valley Current": 1.1333333333333333,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.625,
+        "Output Current": 2.5,
+        "Inductance": 0.000703125,
+        "Output Capacitance": 2.44140625e-06,
+        "Inductor Ripple": 3.3333333333333335,
+        "Output Ripple": 8.0,
+        "Inductor Peak Current": 8.333333333333334,
+        "Inductor Valley Current": 5.0,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.13793103448275862,
+        "Output Current": 20.833333333333332,
+        "Inductance": 5.7074910820451846e-05,
+        "Output Capacitance": 5.986590038314176e-05,
+        "Inductor Ripple": 7.25,
+        "Output Ripple": 0.48,
+        "Inductor Peak Current": 27.791666666666668,
+        "Inductor Valley Current": 20.541666666666668,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.13793103448275862,
+        "Output Current": 20.833333333333332,
+        "Inductance": 5.7074910820451846e-05,
+        "Output Capacitance": 5.986590038314176e-05,
+        "Inductor Ripple": 7.25,
+        "Output Ripple": 0.48,
+        "Inductor Peak Current": 27.791666666666668,
+        "Inductor Valley Current": 20.541666666666668,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.13793103448275862,
+        "Output Current": 20.833333333333332,
+        "Inductance": 5.7074910820451846e-05,
+        "Output Capacitance": 5.986590038314176e-05,
+        "Inductor Ripple": 7.25,
+        "Output Ripple": 0.48,
+        "Inductor Peak Current": 27.791666666666668,
+        "Inductor Valley Current": 20.541666666666668,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.13793103448275862,
+        "Output Current": 4.166666666666667,
+        "Inductance": 0.00028537455410225916,
+        "Output Capacitance": 1.1973180076628355e-05,
+        "Inductor Ripple": 1.4500000000000002,
+        "Output Ripple": 0.48,
+        "Inductor Peak Current": 5.558333333333334,
+        "Inductor Valley Current": 4.108333333333334,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.13793103448275862,
+        "Output Current": 20.833333333333332,
+        "Inductance": 3.42449464922711e-05,
+        "Output Capacitance": 5.986590038314176e-05,
+        "Inductor Ripple": 12.083333333333334,
+        "Output Ripple": 0.48,
+        "Inductor Peak Current": 30.208333333333336,
+        "Inductor Valley Current": 18.125,
+        "CCM Valid": true,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "flyback_diode_rectified_isolated",
+      "verdict": "pass_with_model_boundary",
+      "target_candidate_fields": {
+        "Duty": 0.42,
+        "Output Current": 1.5625,
+        "Output Capacitance": 2.05078125e-06,
+        "Output Ripple": 3.2,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "flyback_diode_rectified_isolated",
+      "verdict": "pass_with_model_boundary",
+      "target_candidate_fields": {
+        "Duty": 0.42,
+        "Output Current": 1.5625,
+        "Output Capacitance": 2.05078125e-06,
+        "Output Ripple": 3.2,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "flyback_diode_rectified_isolated",
+      "verdict": "pass_with_model_boundary",
+      "target_candidate_fields": {
+        "Duty": 0.42,
+        "Output Current": 1.5625,
+        "Output Capacitance": 2.05078125e-06,
+        "Output Ripple": 3.2,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "flyback_diode_rectified_isolated",
+      "verdict": "pass_with_model_boundary",
+      "target_candidate_fields": {
+        "Duty": 0.42,
+        "Output Current": 0.3125,
+        "Output Capacitance": 4.1015625e-07,
+        "Output Ripple": 3.2,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c05_nominal_high_ripple",
+      "topology_id": "flyback_diode_rectified_isolated",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.42,
+        "Output Current": 1.5625,
+        "Output Capacitance": 2.05078125e-06,
+        "Output Ripple": 3.2,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "verdict": "pass_with_model_boundary",
+      "target_candidate_fields": {
+        "Duty": 0.7293531886916502,
+        "Output Current": 12.5,
+        "Output Capacitance": 1.171875e-06,
+        "Inductor Ripple": 1.8750000000000002,
+        "Output Ripple": 4.0,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "verdict": "pass_with_model_boundary",
+      "target_candidate_fields": {
+        "Duty": 0.8415613715672887,
+        "Output Current": 12.5,
+        "Output Capacitance": 1.171875e-06,
+        "Inductor Ripple": 1.875,
+        "Output Ripple": 4.0,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "verdict": "pass_with_model_boundary",
+      "target_candidate_fields": {
+        "Duty": 0.6435469311985149,
+        "Output Current": 12.5,
+        "Output Capacitance": 1.171875e-06,
+        "Inductor Ripple": 1.8750000000000002,
+        "Output Ripple": 4.0,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "verdict": "pass_with_model_boundary",
+      "target_candidate_fields": {
+        "Duty": 0.68667063773833,
+        "Output Current": 2.5,
+        "Output Capacitance": 2.34375e-07,
+        "Inductor Ripple": 0.375,
+        "Output Ripple": 4.0,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "verdict": "pass_with_model_boundary",
+      "target_candidate_fields": {
+        "Duty": 0.6813353188691651,
+        "Output Current": 1.25,
+        "Output Capacitance": 1.171875e-07,
+        "Inductor Ripple": 0.1875,
+        "Output Ripple": 4.0,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "verdict": "pass_with_model_boundary",
+      "target_candidate_fields": {
+        "Duty": 0.7560297830374754,
+        "Output Current": 12.5,
+        "Output Capacitance": 7.8125e-07,
+        "Inductor Ripple": 1.8749999999999998,
+        "Output Ripple": 4.0,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c07_nominal_high_ripple",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.7293531886916502,
+        "Output Current": 12.5,
+        "Output Capacitance": 1.953125e-06,
+        "Inductor Ripple": 3.1249999999999996,
+        "Output Ripple": 4.0,
+        "Feasible": true
+      }
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 20.833333333333332
+      }
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 20.833333333333332
+      }
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 20.833333333333332
+      }
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 4.166666666666667
+      }
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 2.0833333333333335
+      }
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 20.833333333333332
+      }
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c07_nominal_relaxed_ripple",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 20.833333333333332
+      }
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 20.833333333333332
+      }
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 20.833333333333332
+      }
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 20.833333333333332
+      }
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 4.166666666666667
+      }
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 2.0833333333333335
+      }
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 20.833333333333332
+      }
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c07_nominal_relaxed_ripple",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "verdict": "pass",
+      "target_candidate_fields": {
+        "Duty": 0.5,
+        "Output Current": 20.833333333333332
+      }
+    }
+  ]
+}

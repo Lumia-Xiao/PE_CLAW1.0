@@ -1,0 +1,23 @@
+{
+  "contract_version": "pe_claw_environment_manifest_v1",
+  "captured_at_utc": "2026-08-24T01:59:24.617751+00:00",
+  "project_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
+  "git_commit": "6726f508fcf0e545f69512654d1ea5543e6333cf",
+  "git_branch": "main",
+  "git_status_porcelain": "",
+  "python_executable": "C:\\Users\\Lumia\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+  "python_version": "3.12.10",
+  "platform": "Windows-11-10.0.22621-SP0",
+  "machine": "AMD64",
+  "locale_encoding": "cp936",
+  "filesystem_encoding": "utf-8",
+  "timezone": "China Standard Time",
+  "pyproject_sha256": "c36822b0d8cbe10fa233f4590611c555c4394b37e71ff6ba614f698a79a76213",
+  "runtime_packages": {
+    "matplotlib": "3.11.0",
+    "numpy": "2.5.1",
+    "pandas": "3.0.3",
+    "scipy": "1.18.0",
+    "pypdf": null
+  }
+}

@@ -253,3 +253,4 @@ def _select_best_record(records: list[SemiconductorPriceRecord]) -> Semiconducto
             record.purchasable_part_number,
         ),
     )[0]
+

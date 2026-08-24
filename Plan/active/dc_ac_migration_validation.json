@@ -1,0 +1,270 @@
+{
+  "step": 7,
+  "contract": "dc_ac_algorithm_migration_v1",
+  "source_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
+  "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+  "topology_count": 3,
+  "topology_ids": [
+    "single_phase_full_bridge_inverter",
+    "three_phase_three_level_npc_inverter",
+    "three_phase_two_level_voltage_source_inverter"
+  ],
+  "algorithm_file_parity": {
+    "file_count": 18,
+    "identical_file_count": 18,
+    "mismatch_count": 0,
+    "files": [
+      {
+        "request_directory": "15_single_phase_full_bridge_inverter",
+        "topology_id": "single_phase_full_bridge_inverter",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "767e89beb077580d67c29c7949edae41ccfbc1fc9388c566875da369a88e499a",
+        "source_sha256": "767e89beb077580d67c29c7949edae41ccfbc1fc9388c566875da369a88e499a",
+        "identical": true
+      },
+      {
+        "request_directory": "15_single_phase_full_bridge_inverter",
+        "topology_id": "single_phase_full_bridge_inverter",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "cf7cd547af690ee2f7ce4e21facbf3edc8e3184127be713f060d78836b15a48f",
+        "source_sha256": "cf7cd547af690ee2f7ce4e21facbf3edc8e3184127be713f060d78836b15a48f",
+        "identical": true
+      },
+      {
+        "request_directory": "15_single_phase_full_bridge_inverter",
+        "topology_id": "single_phase_full_bridge_inverter",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "56abb6640ee9a9bb234c9de9e7c772a594b02bc57cb4cd6ed950a47e71869ca3",
+        "source_sha256": "56abb6640ee9a9bb234c9de9e7c772a594b02bc57cb4cd6ed950a47e71869ca3",
+        "identical": true
+      },
+      {
+        "request_directory": "15_single_phase_full_bridge_inverter",
+        "topology_id": "single_phase_full_bridge_inverter",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "aaefe36055adff5dbeaf894140e6176cc3f00accb83c3766b3ecadc23fb60e6d",
+        "source_sha256": "aaefe36055adff5dbeaf894140e6176cc3f00accb83c3766b3ecadc23fb60e6d",
+        "identical": true
+      },
+      {
+        "request_directory": "15_single_phase_full_bridge_inverter",
+        "topology_id": "single_phase_full_bridge_inverter",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "f6db607c1226675aaefb8767f08b0bab7e8726deedf08779c15ee79bb18638c3",
+        "source_sha256": "f6db607c1226675aaefb8767f08b0bab7e8726deedf08779c15ee79bb18638c3",
+        "identical": true
+      },
+      {
+        "request_directory": "15_single_phase_full_bridge_inverter",
+        "topology_id": "single_phase_full_bridge_inverter",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "d125550f917435b5505473b9b31088eb795a8d9042b93602f6ef8b5c50ac459b",
+        "source_sha256": "d125550f917435b5505473b9b31088eb795a8d9042b93602f6ef8b5c50ac459b",
+        "identical": true
+      },
+      {
+        "request_directory": "17_three_phase_three_level_npc",
+        "topology_id": "three_phase_three_level_npc_inverter",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "a2e84078c38a19c5ea546f3101c2ddf8cff860ae00c68063fc9b159a31954360",
+        "source_sha256": "a2e84078c38a19c5ea546f3101c2ddf8cff860ae00c68063fc9b159a31954360",
+        "identical": true
+      },
+      {
+        "request_directory": "17_three_phase_three_level_npc",
+        "topology_id": "three_phase_three_level_npc_inverter",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "e46fcfb23bc2508ba666a2aebaa882e6816a3fb3e86ad67edd58d09e56e5e891",
+        "source_sha256": "e46fcfb23bc2508ba666a2aebaa882e6816a3fb3e86ad67edd58d09e56e5e891",
+        "identical": true
+      },
+      {
+        "request_directory": "17_three_phase_three_level_npc",
+        "topology_id": "three_phase_three_level_npc_inverter",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "d1f112f0ba6d325c928342b14575607ab5e6fe20289dc535410d320447b70575",
+        "source_sha256": "d1f112f0ba6d325c928342b14575607ab5e6fe20289dc535410d320447b70575",
+        "identical": true
+      },
+      {
+        "request_directory": "17_three_phase_three_level_npc",
+        "topology_id": "three_phase_three_level_npc_inverter",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "6220c0c25ffef213b673e2485efd141c63f846ab5f5534532d461a372f599e3a",
+        "source_sha256": "6220c0c25ffef213b673e2485efd141c63f846ab5f5534532d461a372f599e3a",
+        "identical": true
+      },
+      {
+        "request_directory": "17_three_phase_three_level_npc",
+        "topology_id": "three_phase_three_level_npc_inverter",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "0a139268fef426112514aee36d4a102ec693c3359b712de03f57eaa765c039f0",
+        "source_sha256": "0a139268fef426112514aee36d4a102ec693c3359b712de03f57eaa765c039f0",
+        "identical": true
+      },
+      {
+        "request_directory": "17_three_phase_three_level_npc",
+        "topology_id": "three_phase_three_level_npc_inverter",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "b3941301d8a806085d432b2e9a49c457393b7dd737980d9e229f0fcc16ff3363",
+        "source_sha256": "b3941301d8a806085d432b2e9a49c457393b7dd737980d9e229f0fcc16ff3363",
+        "identical": true
+      },
+      {
+        "request_directory": "16_three_phase_two_level_vsi",
+        "topology_id": "three_phase_two_level_voltage_source_inverter",
+        "file": "__init__.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "f50ba2d5bd9390c27fcfee5f1d490c0e42cf2abd78e204f9525afea172d87bcd",
+        "source_sha256": "f50ba2d5bd9390c27fcfee5f1d490c0e42cf2abd78e204f9525afea172d87bcd",
+        "identical": true
+      },
+      {
+        "request_directory": "16_three_phase_two_level_vsi",
+        "topology_id": "three_phase_two_level_voltage_source_inverter",
+        "file": "evaluator.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "89a6a46c2df89b313fdc90ae917f21b3d4acf341270f4a71002a8e57af1bf0ed",
+        "source_sha256": "89a6a46c2df89b313fdc90ae917f21b3d4acf341270f4a71002a8e57af1bf0ed",
+        "identical": true
+      },
+      {
+        "request_directory": "16_three_phase_two_level_vsi",
+        "topology_id": "three_phase_two_level_voltage_source_inverter",
+        "file": "input_schema.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "32b758ad8d433f96a85f1d43542515feede219c0b7f5694ce231b80be5ecd41b",
+        "source_sha256": "32b758ad8d433f96a85f1d43542515feede219c0b7f5694ce231b80be5ecd41b",
+        "identical": true
+      },
+      {
+        "request_directory": "16_three_phase_two_level_vsi",
+        "topology_id": "three_phase_two_level_voltage_source_inverter",
+        "file": "stress.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "733b9b8b7029eb49d2ebe8f4414560f72d00909c1b3675a930e584ebc872dd6b",
+        "source_sha256": "733b9b8b7029eb49d2ebe8f4414560f72d00909c1b3675a930e584ebc872dd6b",
+        "identical": true
+      },
+      {
+        "request_directory": "16_three_phase_two_level_vsi",
+        "topology_id": "three_phase_two_level_voltage_source_inverter",
+        "file": "synthesizer.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "a4a13e6090fd50e6e18d5ed92db191d1f8c72f5f4c713b544a8e8aa94722c092",
+        "source_sha256": "a4a13e6090fd50e6e18d5ed92db191d1f8c72f5f4c713b544a8e8aa94722c092",
+        "identical": true
+      },
+      {
+        "request_directory": "16_three_phase_two_level_vsi",
+        "topology_id": "three_phase_two_level_voltage_source_inverter",
+        "file": "waveform.py",
+        "target_exists": true,
+        "source_exists": true,
+        "target_sha256": "03eee88cfc22740aa246633af43ce20734c7072753b6c4c7c60db7221ed66319",
+        "source_sha256": "03eee88cfc22740aa246633af43ce20734c7072753b6c4c7c60db7221ed66319",
+        "identical": true
+      }
+    ]
+  },
+  "replay": {
+    "case_count": 21,
+    "executed_count": 21,
+    "execution_error_count": 0,
+    "pass_count": 21,
+    "pass_with_model_boundary_count": 0,
+    "mismatch_count": 0,
+    "compared_fields": 168,
+    "matched_fields": 168,
+    "core_compared_fields": 168,
+    "core_matched_fields": 168,
+    "max_relative_error": 0.007290137113670659,
+    "by_topology": {
+      "single_phase_full_bridge_inverter": {
+        "request_directory": "15_single_phase_full_bridge_inverter",
+        "case_count": 7,
+        "executed_count": 7,
+        "execution_error_count": 0,
+        "pass_count": 7,
+        "pass_with_model_boundary_count": 0,
+        "mismatch_count": 0,
+        "compared_fields": 28,
+        "matched_fields": 28,
+        "core_compared_fields": 28,
+        "core_matched_fields": 28,
+        "max_relative_error": 0.007290137113670659,
+        "all_core_fields_match": true
+      },
+      "three_phase_three_level_npc_inverter": {
+        "request_directory": "17_three_phase_three_level_npc",
+        "case_count": 7,
+        "executed_count": 7,
+        "execution_error_count": 0,
+        "pass_count": 7,
+        "pass_with_model_boundary_count": 0,
+        "mismatch_count": 0,
+        "compared_fields": 70,
+        "matched_fields": 70,
+        "core_compared_fields": 70,
+        "core_matched_fields": 70,
+        "max_relative_error": 0.0,
+        "all_core_fields_match": true
+      },
+      "three_phase_two_level_voltage_source_inverter": {
+        "request_directory": "16_three_phase_two_level_vsi",
+        "case_count": 7,
+        "executed_count": 7,
+        "execution_error_count": 0,
+        "pass_count": 7,
+        "pass_with_model_boundary_count": 0,
+        "mismatch_count": 0,
+        "compared_fields": 70,
+        "matched_fields": 70,
+        "core_compared_fields": 70,
+        "core_matched_fields": 70,
+        "max_relative_error": 0.0,
+        "all_core_fields_match": true
+      }
+    }
+  },
+  "acceptance": {
+    "all_algorithm_files_identical": true,
+    "expected_case_count": 21,
+    "case_count_matches": true,
+    "all_cases_executed": true,
+    "all_cases_pass": true,
+    "no_unexplained_mismatch": true,
+    "all_core_fields_match": true,
+    "metric_layers_declared": true
+  },
+  "validation_pass": true
+}

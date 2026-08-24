@@ -1,0 +1,19 @@
+{
+  "contract_version": "pe_claw_step1_validation_v1",
+  "topology_count": 17,
+  "case_count": 103,
+  "expected_topology_count": 17,
+  "expected_case_count": 103,
+  "required_artifact_counts": {
+    "request_sha256": 103,
+    "result_sha256": 103,
+    "backend_readback_sha256": 103,
+    "runner_readback_sha256": 103,
+    "final_report_sha256": 103
+  },
+  "all_execution_ok": true,
+  "all_status_executed": true,
+  "all_reports_structured": true,
+  "duplicate_case_keys": 0,
+  "validation_pass": true
+}
