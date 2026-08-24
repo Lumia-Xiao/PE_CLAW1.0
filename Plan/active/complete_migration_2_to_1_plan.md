@@ -519,7 +519,40 @@ python -m pytest tests/test_phase4_topology_contracts.py tests/test_phase12_veri
 
 ### 状态
 
-`pending`
+`completed`
+
+### 第 5 步完成证据
+
+- 算法文件逐文件 SHA-256 对照：`Plan/active/dc_dc_migration_validation.json`。
+- 公式与频率口径：`Plan/active/dc_dc_formula_mapping.csv`。
+- 51 个 DC-DC 工况的候选黄金输出：`Plan/active/dc_dc_candidate_golden.json`。
+- 自动验证脚本：`scripts/validate_step5_dc_dc.py`。
+- 专项测试：`tests/test_phase5_dc_dc_migration.py`。
+- 9 个迁移请求目录对应 8 个逻辑 topology ID；LLC 全桥/半桥共用 diode LLC
+  插件但保留桥型和整流器参数。
+- 01-09 的 53 个算法文件与 PE-Claw 2.0 对应文件 SHA-256 全部一致。
+
+### 第 5 步验证记录
+
+执行命令：
+
+```text
+python scripts/validate_step5_dc_dc.py
+python -m pytest tests/test_phase5_dc_dc_migration.py tests/test_phase7_dc_dc_topologies.py tests/test_phase5_pipeline_closure.py -q
+```
+
+结果：51/51 工况执行成功，0 个执行错误，0 个未解释 mismatch；核心字段
+326/326 匹配；41 个工况完全通过，10 个工况仅包含已登记的 Flyback/PSFB
+模型边界字段；最大相对差异 20% 仅出现在已登记的 PSFB 边界字段；专项及
+既有 DC-DC 流程测试 `10 passed`。
+
+### 第 5 步提交记录
+
+- 实现 commit：`bedec91` (`Step 5: validate DC-DC algorithm parity`)
+- 远端：`origin/codex/sync-gui-backend-from-2`
+- 实现 push：成功，2026-08-24（Asia/Shanghai）
+- 状态 commit：待本次状态更新提交后记录
+- 状态 push：待本次状态更新提交后记录
 
 ---
 
