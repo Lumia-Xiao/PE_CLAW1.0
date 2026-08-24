@@ -256,6 +256,10 @@ python Plan\\active\\baseline_20260824\\freeze_step1_baseline.py
 - `environment_manifest_1.json`
 - `dependency_diff.md`
 - `runtime_reproducibility_policy.md`
+- `src/pe_claw_gui/runtime/reproducibility.py`
+- `tests/test_phase2_reproducibility.py`
+- `scripts/validate_step2_environment.py`
+- `step2_validation.json`
 
 ### 验证方法
 
@@ -269,6 +273,35 @@ python Plan\\active\\baseline_20260824\\freeze_step1_baseline.py
 ### 状态
 
 `pending`
+
+### 第 2 步已实施修改
+
+1. 新增 `pe_claw_gui.runtime` 运行时契约，在 GUI/流水线导入前统一设置
+   `PYTHONHASHSEED`、UTC 时区、C locale 和数值后端单线程环境变量。
+2. 新增稳定 JSON 编码和 SHA-256 指纹，递归排序对象键并统一处理绝对路径、
+   session/output 路径、时间戳和运行时长等 volatile 字段。
+3. 新增第 2 步环境快照和验证脚本；两代 `pyproject.toml` 均确认 Python
+   `>=3.10`、`matplotlib>=3.8`、`numpy>=1.24`、`pandas>=2.0`、`scipy>=1.10`
+   及可选 `pypdf>=4.0` 声明一致。两代均无 lock 文件，因此安装包快照仍需在
+   后续隔离环境中单独冻结。
+4. 新增 4 项第 2 步测试，覆盖运行时变量、路径/时间戳规范化、19 个注册拓扑
+   默认 spec/candidate/evaluation 的重复指纹和环境快照字段。
+
+### 第 2 步验证记录
+
+验证命令：
+
+```text
+python -m pytest tests/test_phase2_reproducibility.py tests/test_phase2_packaging.py tests/test_phase12_verification.py -q
+python scripts/validate_step2_environment.py
+```
+
+结果：测试 `11 passed`；环境验证 `validation_pass=true`；19 个注册拓扑的
+默认设计契约重复构造指纹一致；运行时策略变量全部为约定值。证据目录：
+`Plan\\active\\environment_20260824`。
+
+当前仍保留的环境限制：2.0 的独立安装包版本未从源工程运行环境直接读取，
+因此未宣称两代已安装包完全一致；这属于环境快照和隔离 replay 的后续闭环项。
 
 ---
 
