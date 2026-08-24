@@ -1,0 +1,27 @@
+{
+  "contract": "ac_dc_waveform_metric_contract_v1",
+  "layers": {
+    "design_target": {
+      "meaning": "Requirement supplied by the design request; not an achieved simulation value.",
+      "fields": ["vout_target", "dc_bus_ripple_limit_vpp", "requested_power_w"]
+    },
+    "theoretical_estimate": {
+      "meaning": "Closed-form sizing estimate used to construct the candidate.",
+      "fields": ["cdc_required_f", "ldc_required_h", "lboost_required_h", "duty_nom", "idc_a"]
+    },
+    "waveform_prediction": {
+      "meaning": "Settled line-cycle or state-space simulation metric.",
+      "fields": ["vdc_avg_v", "vdc_ripple_pp_v", "output_current_avg_a", "input_current_rms_a", "input_current_peak_a", "il_peak_a", "il_min_a", "power_factor"]
+    },
+    "stress_and_feasibility": {
+      "meaning": "Electrical stress and gate result derived from the candidate or waveform.",
+      "fields": ["switch_voltage_max_v", "switch_current_peak_a", "rectifier_voltage_max_v", "rectifier_current_peak_a", "feasible"]
+    }
+  },
+  "policy": {
+    "same_name_different_meaning": "forbidden",
+    "target_and_achieved_must_be_distinct": true,
+    "library_selected_parts_are_out_of_scope": true,
+    "first_pass_control_and_emi_limits_must_be_named": true
+  }
+}
