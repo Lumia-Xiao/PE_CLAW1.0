@@ -149,7 +149,7 @@
 
 ### 状态
 
-`in_progress`
+`completed`
 
 ### 当前证据
 
@@ -893,8 +893,15 @@ python -m pytest tests/test_phase7_dc_ac_migration.py tests/test_phase9_dc_ac_to
 
 其中 `pe_claw_2_structured_output_snapshots.json` 和
 `pe_claw_1_structured_output_snapshots.json` 各包含 103 条记录；对应
-validation 文件均为 `103 valid, 0 invalid`。第十步代码和证据已在本地
-完成，待本次独立 commit/push 后补记 commit hash、远端分支和 push 时间。
+validation 文件均为 `103 valid, 0 invalid`。
+
+### 第 10 步提交与同步记录
+
+- 实现与证据 commit：`21ff309`（`Step 10: unify structured output and report contract`）
+- 远端分支：`origin/codex/sync-gui-backend-from-2`
+- push 时间：`2026-08-24T15:00:52+08:00`
+- 同步结果：成功
+- 状态变更：本记录 commit/push 成功后将第 10 步标记为 `completed`
 
 ---
 
