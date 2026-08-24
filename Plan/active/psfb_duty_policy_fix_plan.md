@@ -281,6 +281,18 @@ replay、duty 对比、checksum 和 validation report 均已保存。主迁移�
 - 远端分支：`origin/codex/sync-gui-backend-from-2`
 - 实现 push 结果：成功
 
+### 修复后 PSFB 全部工况重跑记录（2026-08-24）
+
+- 重跑结果：`Plan/active/psfb_duty_policy_20260824/psfb_rerun_results_20260824.json`
+- 重跑回归：`Plan/active/psfb_duty_policy_20260824/psfb_rerun_regression_results_20260824.json`
+- 覆盖：7/7 PSFB 工况
+- 结果：7/7 `executed`、0 个 boundary failure、0 个 execution error
+- 硬件：7 个工况共享 1 个 hardware checksum
+- 重复性：case ID、输入、执行模式和硬件 checksum 与上一轮修复后结果一致
+- 回归判定：所有 duty 数值有限，c02 boundary 已解决，7/7 主电流时间分区有效
+- 专项测试：`15 passed`
+- 本次仍未运行全量 103 工况，主迁移计划第 11、12 步保持 `in_progress`
+
 ---
 
 ### 第 5 步：更新 PSFB 验收证据和主计划状态
