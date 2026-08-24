@@ -10,7 +10,7 @@
 | 基准工程 | `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw` |
 | 目标工程 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0` |
 | 设计工况 | 19 个注册拓扑、17 个设计请求矩阵、103 个设计工况 |
-| 当前阶段 | 第 12 步：最终验收、文档归档和计划保持 active |
+| 当前阶段 | 第 12 步：最终验收、文档归档和计划关闭准备 |
 | 当前目标 | 代码级完整移植，而不是仅保证核心电气字段基本一致 |
 | 状态文件位置 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\Plan\active` |
 
@@ -990,8 +990,7 @@ validation 文件均为 `103 valid, 0 invalid`。
    分别记录，特殊字符串纹波要求和约束中的电感纹波值按规范化规则恢复。
 4. 对 PSFB 低输入固定硬件 refresh 的历史 `boundary_failure` 完成专项修复，
    由 operating-point duty policy 统一提供 effective/command duty 和 duty loss；
-   PSFB 7 工况回归证据显示该 boundary 已转为 `executed`，但全量 103 工况
-   尚未重新回放。
+   PSFB 7 工况及修复后全量 103 工况回放均显示该 boundary 已转为 `executed`。
 5. 新增第十一步专项测试，覆盖 103 工况、17 个矩阵目录、16 个运行时拓扑
    ID、差异审计字段和逐工况 checksum。
 
@@ -1007,15 +1006,21 @@ python scripts/compare_step11_structured_outputs.py --source Plan/active/structu
 python -m pytest tests/test_phase10_structured_output.py tests/test_phase11_structured_comparison.py tests/test_phase9_operating_point_migration.py -q
 ```
 
-结果：103/103 replay records，0 execution errors，1 个显式 boundary failure，
-3412 个字段差异均已量化，0 个 unexplained difference；专项测试 `8 passed`。
+结果：修复后 103/103 replay records，0 execution errors，0 个 boundary failure，
+3412 个字段差异均已量化，0 个 unexplained difference；专项测试 `27 passed`。
 差异分类计数为：`formula_difference=389`、
 `simulation_numerical_difference=1934`、`field_semantic_difference=358`、
 `ordering_difference=638`、`input_mapping_error=93`。所有差异均带有 owner
 和证据路径；边界证据单独记录在 comparison JSON 的 `boundary_evidence` 中。
 
-证据目录：
-`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\Plan\active\final_comparison_20260824`
+修复后证据目录：
+`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\Plan\active\final_comparison_20260824_repaired`
+
+修复后回放目录：
+`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\Plan\active\operating_points_20260824_repaired`
+
+修复后结构化输出目录：
+`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\Plan\active\structured_outputs_20260824_repaired`
 
 主证据：`comparison_final.json`、`comparison_final.csv`、
 `comparison_final.md`、`topology_summary_final.md`、
@@ -1024,19 +1029,20 @@ python -m pytest tests/test_phase10_structured_output.py tests/test_phase11_stru
 
 ### 第 11 步状态说明
 
-第 11 步继续保持 `in_progress`：历史全量回放无执行错误且无未解释差异，
-PSFB `c02_low_input_full_load` 的 boundary 已由 PSFB 专项修复收敛，详见
-`Plan/active/psfb_duty_policy_20260824/psfb_validation_report.md`。但是修复
-后尚未重新执行全量 103 工况，因此仍不能满足“103/103 执行成功”的严格
-完成条件；完成第 11 步前必须先重跑 PSFB 全部工况，再重跑全量 103 工况。
+第 11 步已完成。修复后全量回放满足 `103/103` 执行成功、0 个 execution
+error、0 个 boundary failure 和 0 个 unexplained difference；PSFB
+`c02_low_input_full_load` 已由 `boundary_failure` 转为 `executed`。3412 个
+字段差异全部具有分类、owner、容差、依据和证据路径，详见修复后对比目录。
 
 ### 第 11 步提交与同步记录
 
-- 实现与证据 commit：`14611cd`（`Step 11: converge end-to-end structured parity`）
+- 历史实现与证据 commit：`14611cd`（`Step 11: converge end-to-end structured parity`）
+- 修复后全量回放证据 commit：`7646d2f`（`Migration: record repaired full 103-case replay`）
+- 本次状态记录 commit：待本次修改提交后记录
 - 远端分支：`origin/codex/sync-gui-backend-from-2`
-- push 时间：`2026-08-24T15:23:34+08:00`
-- 同步结果：成功
-- 状态结论：保持 `in_progress`，原因是 PSFB 修复后的全量 103 工况回放尚未完成；历史边界已由专项证据收敛
+- push 时间：待本次修改 push 后记录
+- 同步结果：待本次修改 push 后记录
+- 状态结论：`completed`
 
 ---
 
@@ -1044,9 +1050,8 @@ PSFB `c02_low_input_full_load` 的 boundary 已由 PSFB 专项修复收敛，详
 
 ### 目标
 
-完成工程验收和交付证据归档。由于 PSFB 边界工况尚未收敛，本步骤只完成
-验收记录并保持本计划在 `Plan\active`，不得提前移动到
-`Plan\completed`。
+完成工程验收和交付证据归档。修复后的 PSFB 边界工况和全量 103 工况已经
+收敛，本步骤负责重新生成最终报告、记录最终版本并关闭计划。
 
 ### 详细工作
 
@@ -1087,20 +1092,21 @@ PSFB `c02_low_input_full_load` 的 boundary 已由 PSFB 专项修复收敛，详
 
 `in_progress`
 
-### 第 12 步执行结果（2026-08-24）
+### 第 12 步执行结果（2026-08-24，修复后回放更新）
 
 - 验收报告：`Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.md`
 - 机器报告：`Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.json`
 - 发布清单：`Plan/active/final_acceptance_20260824/migration_release_manifest.json`
 - golden baseline 归档：`Plan/active/final_acceptance_20260824/golden_baseline/`
 - 注册拓扑：19 个；设计请求矩阵：17 个；回放运行时拓扑 ID：16 个
-- 历史回放：103/103 记录，0 个 execution error，1 个已解释的 PSFB boundary failure；该 boundary 已由 PSFB 专项修复收敛，修复后全量回放尚未执行
+- 修复后全量回放：103/103 记录，0 个 execution error，0 个 PSFB boundary failure
+- 修复后回放、结构化输出和字段对比证据已生成并通过校验：103/103、0 个 unexplained difference
 - 结构化 schema：2.0 与 1.0 均为 103/103 valid
 - 字段差异：3412 个，0 个未解释差异
 - 默认 `python -m pytest -q`：248 passed，1 skipped，3 errors；错误均为系统临时目录 ACL（WinError 5）
 - 本地可写 basetemp 完整回归：251 passed，1 skipped
 - 专项测试：拓扑/规范化/库 28 passed；结构化/比较/回放 8 passed；临时目录受影响测试 3 passed
-- 当前验收结论：`NOT_ACCEPTED_FOR_RELEASE`；PSFB duty policy 专项已闭环，但修复后的全量 103 工况回放和默认测试环境记录仍需闭环
+- 当前阶段结论：PSFB 和全量回放验收条件已满足；最终验收报告需切换到修复后证据并完成归档后关闭计划
 
 本步骤保持 `in_progress`，不将计划移动到 `Plan/completed`。
 
@@ -1110,7 +1116,7 @@ PSFB `c02_low_input_full_load` 的 boundary 已由 PSFB 专项修复收敛，详
 - 远端分支：`origin/codex/sync-gui-backend-from-2`
 - push 时间：`2026-08-24T16:01:29+08:00`
 - 同步结果：成功
-- 状态结论：保持 `in_progress`，因为 PSFB 修复后的全量 103 工况回放尚未完成
+- 状态结论：保持 `in_progress`，等待修复后最终验收报告重新生成和计划关闭
 
 ---
 
