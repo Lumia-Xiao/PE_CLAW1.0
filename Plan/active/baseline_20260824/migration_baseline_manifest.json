@@ -1,0 +1,1663 @@
+{
+  "contract_version": "pe_claw_migration_baseline_v1",
+  "baseline_status": "frozen_input_result_inventory",
+  "created_at": "2026-08-24",
+  "source_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
+  "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+  "source_git_commit": "6726f508fcf0e545f69512654d1ea5543e6333cf",
+  "target_git_commit": "b7de822f26a3542ef8bf73bfe02f7383de2c8510",
+  "topology_count": 17,
+  "case_count": 103,
+  "request_count": 103,
+  "result_count": 103,
+  "artifacts": [
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\01_buck_diode\\c01_nominal_full_load\\design_request.md",
+      "sha256": "b380a600eb4f8a32cf78136b5c34a62494394d1255f28a6b95a3baef45ce5ec0",
+      "bytes": 4861
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\01_buck_diode\\c01_nominal_full_load\\design_result.md",
+      "sha256": "0c97c6d3e709ee7f07ff361abece8d828c0ea2ad7c4baa04dac28a82fa14cfd6",
+      "bytes": 28140
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\01_buck_diode\\c02_low_input_full_load\\design_request.md",
+      "sha256": "e61a5efa35d323757749bb9493106ea72e595d6bec39c1dfa142ef598d570cf1",
+      "bytes": 4865
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\01_buck_diode\\c02_low_input_full_load\\design_result.md",
+      "sha256": "9730807cecf75372eba33679d97e11c2d84cf04366489256123f53674ebddcd8",
+      "bytes": 28134
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\01_buck_diode\\c03_high_input_full_load\\design_request.md",
+      "sha256": "8b1bf5ea3222fd141ab206e92975cdc8e6eae6fcf8676f3fd8deaf498498bfe4",
+      "bytes": 4867
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\01_buck_diode\\c03_high_input_full_load\\design_result.md",
+      "sha256": "b67fb2d1f136bd362ca81d244814262deeedd9367639a6f3a073b9f63072ac85",
+      "bytes": 28149
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\01_buck_diode\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "26aff10b030f9c1fd42463051d4231f5d01bb0894e0d08b76cf142385676e49d",
+      "bytes": 4874
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\01_buck_diode\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "08fb7d71df6bd3b3f780ff0290898055d8e2dc71452d2bb291638aa12abc3c2b",
+      "bytes": 28297
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\01_buck_diode\\c05_nominal_high_ripple\\design_request.md",
+      "sha256": "f22695e1c4673b2048487b770fdfaed0702783bdda36a49cf4ce0e7e7b97a075",
+      "bytes": 4867
+    },
+    {
+      "matrix_id": "01_buck_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\01_buck_diode\\c05_nominal_high_ripple\\design_result.md",
+      "sha256": "b015855598a933ae66f81f42a4ba51da31f29b885a1e49ec3861680aafe14fc8",
+      "bytes": 28223
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\02_buck_synchronous\\c01_nominal_full_load\\design_request.md",
+      "sha256": "0468377be9c4f16211c900d45eaadd46f1a0e94f178a2e2ace4510d200e03868",
+      "bytes": 4942
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\02_buck_synchronous\\c01_nominal_full_load\\design_result.md",
+      "sha256": "7d9edcac12680209f1372b723fd08d861fbf33c7fe05fca551d5dabc3785745a",
+      "bytes": 29313
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\02_buck_synchronous\\c02_low_input_full_load\\design_request.md",
+      "sha256": "35b904423f2dc3d8f66277a7b98f278ae25d399cde83cc5a05dfae8332e67ba3",
+      "bytes": 4946
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\02_buck_synchronous\\c02_low_input_full_load\\design_result.md",
+      "sha256": "914c161b67d801fda22c15ebc0981d40b830b94cb75b0971a2927fda63feb1a6",
+      "bytes": 29324
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\02_buck_synchronous\\c03_high_input_full_load\\design_request.md",
+      "sha256": "4798774a8b992bfc24537b516feab7108352603163d858842a0e1cc805970305",
+      "bytes": 4948
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\02_buck_synchronous\\c03_high_input_full_load\\design_result.md",
+      "sha256": "7f403e0aaf4d3a1b456be8b41f47d139647c13a2b0866e165a814c1d196650b8",
+      "bytes": 29314
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\02_buck_synchronous\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "487321bb8ce54ca883b44738d80a782e4031fb6857b1937096089784de8921f3",
+      "bytes": 4956
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\02_buck_synchronous\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "bf92c2989a01e7365122998aef2bef6681d9292f29ec3e46c6b7013dc7b36807",
+      "bytes": 29556
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\02_buck_synchronous\\c05_nominal_high_ripple\\design_request.md",
+      "sha256": "16ea25e9061d1fe55437b1bed935df8e4c68c3f7f348daabd23aeeb5666b044c",
+      "bytes": 4948
+    },
+    {
+      "matrix_id": "02_buck_synchronous",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\02_buck_synchronous\\c05_nominal_high_ripple\\design_result.md",
+      "sha256": "591f7cda28a3a1a1bca6b6bd480c68d6e503c689b7ffbeb272604a6b70ad43f9",
+      "bytes": 29369
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\03_boost_diode\\c01_nominal_full_load\\design_request.md",
+      "sha256": "d36322a91958062c8b5f7ca0ae15e5b2e52db2e74f5446852c5374e551aa4ee8",
+      "bytes": 4975
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\03_boost_diode\\c01_nominal_full_load\\design_result.md",
+      "sha256": "7d55f3a38adbab4fb232bd5ffd2b21fa7b598d43c7657d09c7d31296d2003c1b",
+      "bytes": 28157
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\03_boost_diode\\c02_low_input_full_load\\design_request.md",
+      "sha256": "87eae7350ad40a7e3450cb650c905bcd69baee6033035d80bbf702c885862ff4",
+      "bytes": 4979
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\03_boost_diode\\c02_low_input_full_load\\design_result.md",
+      "sha256": "834c9bdd6a3555cf3d3c0b41301bcdee6fa476239f3e436c0587386f306f649e",
+      "bytes": 28129
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\03_boost_diode\\c03_high_input_full_load\\design_request.md",
+      "sha256": "bbf42bf5bc724a8334e01487ae92f15bb86c3ae50f3b7d16c68742c1093a8efc",
+      "bytes": 4981
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\03_boost_diode\\c03_high_input_full_load\\design_result.md",
+      "sha256": "7a5cefcb4eed97f21e17f4512ef5a37e1b9e8dded1158ca728a8a68c469e1d66",
+      "bytes": 28173
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\03_boost_diode\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "2eca0879b141cb5f6e98ddeaa3e59df9d55b1c7c6b11a48c36575096a54c8c09",
+      "bytes": 4988
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\03_boost_diode\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "3fd49eaf6931179ce24b20c713fa66c39d450147c2fbb484e875e53e4a59fd17",
+      "bytes": 28257
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\03_boost_diode\\c05_nominal_high_ripple\\design_request.md",
+      "sha256": "119856ba8d0c533d89cfbd7cd81e540a38daf930ae850aabce362b3000b3852a",
+      "bytes": 4981
+    },
+    {
+      "matrix_id": "03_boost_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\03_boost_diode\\c05_nominal_high_ripple\\design_result.md",
+      "sha256": "5e2acdceb76fd39017b034f480bac3e78a6de2bc755f44aeabc8fc054c9e2a4d",
+      "bytes": 28171
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\04_boost_synchronous\\c01_nominal_full_load\\design_request.md",
+      "sha256": "853bf1addb454fa9db8d3736e84f3549d67247c5cbabca135c9dce9f70af3f3b",
+      "bytes": 5035
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\04_boost_synchronous\\c01_nominal_full_load\\design_result.md",
+      "sha256": "122c63a4bbd6ceb9b6aed0db90456825b7a375eb57c07cc8112d5082bd089026",
+      "bytes": 28195
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\04_boost_synchronous\\c02_low_input_full_load\\design_request.md",
+      "sha256": "21747be19dd8aae8762f39e4e8806fe8d8de4bcab1bcf70800f7a742b85637d4",
+      "bytes": 5039
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\04_boost_synchronous\\c02_low_input_full_load\\design_result.md",
+      "sha256": "f9247da715d07011cbe1a6fb4b7be71c0f7252a7c5cdf9a384c942edbab4dd2e",
+      "bytes": 28147
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\04_boost_synchronous\\c03_high_input_full_load\\design_request.md",
+      "sha256": "c00f4d724d694892ff078510082f2f90b90b49ce32e9ea84791e3d4d1982fdbe",
+      "bytes": 5041
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\04_boost_synchronous\\c03_high_input_full_load\\design_result.md",
+      "sha256": "2756f082b3aa790a11e741a2acfb82cc9b6be6a30fed9f3a209ef5e9183cd3a4",
+      "bytes": 28206
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\04_boost_synchronous\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "62b6c66aa2dc793519856cc4d569fb8770335a23d0e815d85d8e5f35cb60e394",
+      "bytes": 5048
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\04_boost_synchronous\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "b2a303bce609b0b43f19c8bee62f293de91f191eae1fc7d2f5c8f46887e5653c",
+      "bytes": 28270
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\04_boost_synchronous\\c05_nominal_high_ripple\\design_request.md",
+      "sha256": "fad28bc62ac123ccac10f7ba4bafa721b7fb8374970414a8cb4b958efb0d2fdf",
+      "bytes": 5041
+    },
+    {
+      "matrix_id": "04_boost_synchronous",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\04_boost_synchronous\\c05_nominal_high_ripple\\design_result.md",
+      "sha256": "657845348cbf2d374b2cb85132eec1c8aaad8df486a00fbb85eaa8ef796c531f",
+      "bytes": 28207
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\05_buck_boost_diode\\c01_nominal_full_load\\design_request.md",
+      "sha256": "6e573ac222d1e292a4914ba64c0a5668f36fc9a892c1b23f2c6aa371d7df6284",
+      "bytes": 5257
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\05_buck_boost_diode\\c01_nominal_full_load\\design_result.md",
+      "sha256": "4e2267e5c7f7d6cd221d7946f67de85ea685452d5d2ec2d84e4e591746c57134",
+      "bytes": 28278
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\05_buck_boost_diode\\c02_low_input_full_load\\design_request.md",
+      "sha256": "c1f4d3aaf1a845ce12a283b2dbf1ff32027f2b59bc862cdce22da70dc8432623",
+      "bytes": 5261
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\05_buck_boost_diode\\c02_low_input_full_load\\design_result.md",
+      "sha256": "5797cc50076c744c5c39cbf681426b16e185aace113d3259086feb429db39e7a",
+      "bytes": 28277
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\05_buck_boost_diode\\c03_high_input_full_load\\design_request.md",
+      "sha256": "5a570516942d8cdd31a8c8d10804c99f9415cabfcb193e7777bd452ce3de987e",
+      "bytes": 5263
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\05_buck_boost_diode\\c03_high_input_full_load\\design_result.md",
+      "sha256": "d5f2c3f08b68057e5cbae541f8f2d92c6acf632fe14fee960677297f2b214657",
+      "bytes": 28281
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\05_buck_boost_diode\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "c5353f6702870dbc4a12fcc5d64f5b63e3a82cdccd896ee37f6397e0066d8a5a",
+      "bytes": 5270
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\05_buck_boost_diode\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "fbfa8ad535b71eee68287139269f1799a0e8f1d0e989cffca5ba004d75ff1ea0",
+      "bytes": 28266
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\05_buck_boost_diode\\c05_nominal_high_ripple\\design_request.md",
+      "sha256": "2e09734f14da3b169dcb048c97d95854b23e32b3de4b223ceb807cd024db4c4f",
+      "bytes": 5263
+    },
+    {
+      "matrix_id": "05_buck_boost_diode",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\05_buck_boost_diode\\c05_nominal_high_ripple\\design_result.md",
+      "sha256": "c207c0e4cd78b1f17b80dc7334153526d0c8612913f5c6972eb76025c0388a27",
+      "bytes": 28263
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\06_flyback_ccm\\c01_nominal_full_load\\design_request.md",
+      "sha256": "f8a3b977b76df26cd7c903b425e459eaa121b0d0850d5f5b74551c2ab343d296",
+      "bytes": 5664
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\06_flyback_ccm\\c01_nominal_full_load\\design_result.md",
+      "sha256": "2803a4ebc1c41ce8e74e81a648cd016ed6ada3be73b9576c8a9dd3808b7da6a8",
+      "bytes": 29113
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\06_flyback_ccm\\c02_low_input_full_load\\design_request.md",
+      "sha256": "ccbc383eb22fdc369ae56f3b011bc905971d4c6d3f68102193a894e6542c1262",
+      "bytes": 5668
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\06_flyback_ccm\\c02_low_input_full_load\\design_result.md",
+      "sha256": "908487ff48750a93f15db1c56f5471a8662aa62d0d1e62d8e6c0dc5e77499907",
+      "bytes": 29130
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\06_flyback_ccm\\c03_high_input_full_load\\design_request.md",
+      "sha256": "25c67de059f5a90a53fae2f3039a8c28175dc2efb1406ba9f5073464995ce8c4",
+      "bytes": 5670
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\06_flyback_ccm\\c03_high_input_full_load\\design_result.md",
+      "sha256": "5c3e6e588758f922fdbcd93a6af8ea0b0fe234bd2d95ea1768b658a9616e7e30",
+      "bytes": 29128
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\06_flyback_ccm\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "46e3385c4b149871eec59acac2417fd49cb212b4fcbab6e453573a9e3f70f1e3",
+      "bytes": 5678
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\06_flyback_ccm\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "688e5032f5b3a817978c6d6790dde3a251d2e49f8a3f3a93bdd628c9a3348d11",
+      "bytes": 29332
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\06_flyback_ccm\\c05_nominal_high_ripple\\design_request.md",
+      "sha256": "83cd372f49d5b532aee0d5d3fddfeecbe274fdedfa45537d36a6295dcd4b7f77",
+      "bytes": 5674
+    },
+    {
+      "matrix_id": "06_flyback_ccm",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\06_flyback_ccm\\c05_nominal_high_ripple\\design_result.md",
+      "sha256": "fefccad57fa4027b7d979514429256818e62fc1f3fbc58f4ed29a82f65819744",
+      "bytes": 22665
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c01_nominal_full_load\\design_request.md",
+      "sha256": "4002c898489ae54350db14b12fd1b0ec1a989946225143dd202a15cfb7b23986",
+      "bytes": 6484
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c01_nominal_full_load\\design_result.md",
+      "sha256": "33ea6ac797b2484cd4b42ba4265177b0782602bfcc1a9a20bb1b85e8690ac987",
+      "bytes": 29638
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c02_low_input_full_load\\design_request.md",
+      "sha256": "2606f16f80ac1620e37180b1849b8d5bd6207dc2f03e599182731dd10dac8158",
+      "bytes": 6488
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c02_low_input_full_load\\design_result.md",
+      "sha256": "92e587d4d2453d20edca7075750186071bb2cedd063b01ba305de7e3e0c12a63",
+      "bytes": 29623
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c03_high_input_full_load\\design_request.md",
+      "sha256": "d81fd1cc69303025026de0a9ded95ca31a7ad4b681ec8fd0e85ba5d39093c649",
+      "bytes": 6490
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c03_high_input_full_load\\design_result.md",
+      "sha256": "5725d6f5e0b33c3f725a14bcefb715cdbc9a7af753ab57bfbd13d41fb13a0d41",
+      "bytes": 29657
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "6fb9824ac2530cf4d5d61f6d2edfed9fa9c000ab66aa10f41b0b16dd00354c69",
+      "bytes": 6498
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "86aa1e05449aaef73d0a92ab3458061bb1990d81d0e623303d9f98f608e535aa",
+      "bytes": 29625
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c05_nominal_very_light_load_10pct\\design_request.md",
+      "sha256": "4c6fa5e0803a9af07cb449e194b3c1dac94d639f45357a3d6e746785e66327cf",
+      "bytes": 6507
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c05_nominal_very_light_load_10pct\\design_result.md",
+      "sha256": "6a04e869c6d7d9ad11ccb77e6ae7f4c4eaa218c057d7f4a7c5d948f6eddeae36",
+      "bytes": 29609
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c06_nominal_high_frequency\\design_request.md",
+      "sha256": "9a28c6d9b3144f823cf9a864ec08a64e8248f20b8c6735d7df79999ecac4b52b",
+      "bytes": 6494
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c06_nominal_high_frequency\\design_result.md",
+      "sha256": "06e5e8537bd06c8e9d6cb41e651835a82a273dc9aa32355941d3b8b0c68bf122",
+      "bytes": 29655
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c07_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c07_nominal_high_ripple\\design_request.md",
+      "sha256": "4bccb7bbd2295e14d6d139165b2b7cbb8983a564db2ea53a401d9cf73fd132bb",
+      "bytes": 6526
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c07_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\07_psfb_diode\\c07_nominal_high_ripple\\design_result.md",
+      "sha256": "324c644bd0c7d4d42ec27702d5fc7e03d5b051f40d46326d4791cdc0f225970e",
+      "bytes": 29614
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c01_nominal_full_load\\design_request.md",
+      "sha256": "bca1f203264764c494b907f46490e25e2be3957f97b406363537227b1fa3ea8b",
+      "bytes": 5746
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c01_nominal_full_load\\design_result.md",
+      "sha256": "73248ba93467dc6ab13d4580f366dfb4c1271203759cb5266f66fee1efde0fbe",
+      "bytes": 49180
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c02_low_input_full_load\\design_request.md",
+      "sha256": "5a52c09db18ab2cf19472c971f35287e1b0415c0800a55d04a80d7e015562ea8",
+      "bytes": 6077
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c02_low_input_full_load\\design_result.md",
+      "sha256": "75b8fba883d4553feef0797bb8ffaf99205bdaa912e5b89bd11d0edbb35fe20b",
+      "bytes": 49555
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c03_high_input_full_load\\design_request.md",
+      "sha256": "f2533244b2e4fe0072f580ec571d2b5798a25c2d5fcd2f68ad930797f2900802",
+      "bytes": 6079
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c03_high_input_full_load\\design_result.md",
+      "sha256": "ce54f710b91accb0300f5c983c7dc76dfdcff76527b3a9663cc7f638cd02b8e4",
+      "bytes": 49502
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "b3c8c00030e4cdf6253f6ffe6b09fc0045a79e3cfb46107e38f70a154b260747",
+      "bytes": 6105
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "9b50990647103b79d677540b3ea7b889ca16f8bb58c9685cd8ba29c0d367abed",
+      "bytes": 49515
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c05_nominal_very_light_load_10pct\\design_request.md",
+      "sha256": "0ab0f6de711e942a550427f41bad1ca1c92d1bcd27088985a61d9623bbea9abb",
+      "bytes": 6115
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c05_nominal_very_light_load_10pct\\design_result.md",
+      "sha256": "1ccf5e5085af54567d40ff22c4502f4b24d4bde8470c8c4c983e3e81374560d7",
+      "bytes": 49517
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c06_nominal_high_frequency\\design_request.md",
+      "sha256": "5cbd5231f2a8727793b5b7f399c379347c8d60b821f8baaa861aa4bee9e23094",
+      "bytes": 6083
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c06_nominal_high_frequency\\design_result.md",
+      "sha256": "553b5cf8bba18a4562490451e4cd405c2b95ac8eb138ad92290ace15cc75c16c",
+      "bytes": 49634
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c07_nominal_relaxed_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c07_nominal_relaxed_ripple\\design_request.md",
+      "sha256": "af512a0a552c1d5a5d82ba2a069a42a60839846d1ad2dd8dd57bb7ff12b6cb00",
+      "bytes": 5762
+    },
+    {
+      "matrix_id": "08_llc_full_bridge_diode",
+      "case_id": "c07_nominal_relaxed_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\08_llc_full_bridge_diode\\c07_nominal_relaxed_ripple\\design_result.md",
+      "sha256": "7845fd425b26b1f158dccf1101eac152bc960a26fe4ae096d1adf53b6f16a2a3",
+      "bytes": 49180
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c01_nominal_full_load\\design_request.md",
+      "sha256": "11fe7fb04fc3b2c5071acbf9d8feffec21d5bb9c7e70a7674fb019606ebdb919",
+      "bytes": 5758
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c01_nominal_full_load\\design_result.md",
+      "sha256": "464877972dbc002284c0fa9ce0bd29c2b450585e05c1ff2066047fa875ab0cd4",
+      "bytes": 48758
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c02_low_input_full_load\\design_request.md",
+      "sha256": "999a32b5e10ba72abd467331c31339f2100c6010228a9cd5b22fd8dad55f0ed7",
+      "bytes": 6087
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c02_low_input_full_load\\design_result.md",
+      "sha256": "806cfbf60ebe90229753ffefd93a11b643a955fb7f23409cffdf5c7dcbccaeb0",
+      "bytes": 49076
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c03_high_input_full_load\\design_request.md",
+      "sha256": "2f22d0999565e6bb616c94e6661c0c353bbd0f13386a3d669fd078472d2758b3",
+      "bytes": 6089
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c03_high_input_full_load\\design_result.md",
+      "sha256": "6f7c8384567ffe342da620de4c354524c811a9d7351aced643b2fce0e41b5fff",
+      "bytes": 49045
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "4a6b744ef5d5dd7ac2a51ea206667734a12e96a28d5e983d703ec9e485619dd7",
+      "bytes": 6115
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "f4fb4230f97dbf673a5ae79f531ea88e2f130c132a3620a2a7c4c009379b1527",
+      "bytes": 49208
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c05_nominal_very_light_load_10pct\\design_request.md",
+      "sha256": "be10fb6a93090c1dba80a1c32cc9adf7073c0a1cfb3ede8cb6cf598e9157d454",
+      "bytes": 6125
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c05_nominal_very_light_load_10pct\\design_result.md",
+      "sha256": "fd1d93b5660a9cfe76bac3671c5493c55b1af1166dfbe10dd3a4c815b9f0bd6f",
+      "bytes": 49290
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c06_nominal_high_frequency\\design_request.md",
+      "sha256": "3a0c15c4ad0620151d145fb7dcccd9de1346b90f58471ebd50b90892e6d624c6",
+      "bytes": 6093
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c06_nominal_high_frequency\\design_result.md",
+      "sha256": "987cea0b59d57ba516fc934fef206f6cf7c48e1ee4061c5271c29f7061f3eade",
+      "bytes": 49162
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c07_nominal_relaxed_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c07_nominal_relaxed_ripple\\design_request.md",
+      "sha256": "b496b3c90eaaf6912731292cb0d4003919dc0b3772693d62e90cc39a0e7fda76",
+      "bytes": 5774
+    },
+    {
+      "matrix_id": "09_llc_half_bridge_diode",
+      "case_id": "c07_nominal_relaxed_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\09_llc_half_bridge_diode\\c07_nominal_relaxed_ripple\\design_result.md",
+      "sha256": "cd94fbaff1ea82de386a5abe49b6af31d0ac343ba4dd6e577955ac79a8cb2c1c",
+      "bytes": 48758
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\10_single_phase_capacitor_rectifier\\c01_nominal_full_load\\design_request.md",
+      "sha256": "536dbded7ebe1ef6544885541f00afa890f7d61cc5fadc78a6f3e4517e75272b",
+      "bytes": 5354
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\10_single_phase_capacitor_rectifier\\c01_nominal_full_load\\design_result.md",
+      "sha256": "34669f597c129987ba68e0f3b6e2c6bbcf8f1a35d249e09da3ccef5db8ef8159",
+      "bytes": 20271
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\10_single_phase_capacitor_rectifier\\c02_low_input_full_load\\design_request.md",
+      "sha256": "c404d1c42b0442b9ce12a4c9e208389a11c38be1dee8d1dbff2e87fccbb4dee3",
+      "bytes": 5362
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\10_single_phase_capacitor_rectifier\\c02_low_input_full_load\\design_result.md",
+      "sha256": "9e6f12cdc2d683c19940c658d4383d8666058e175585a84d527026a4036403ca",
+      "bytes": 20159
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\10_single_phase_capacitor_rectifier\\c03_high_input_full_load\\design_request.md",
+      "sha256": "e9b49632aec71f071352e89a5faf64ced4f21133c7ec7aa0acb8d8cf433101e1",
+      "bytes": 5364
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\10_single_phase_capacitor_rectifier\\c03_high_input_full_load\\design_result.md",
+      "sha256": "f3090653a2f6625ad23dd5032fb7494328e9a40a2e40417b07a3b1dbe95f2fd9",
+      "bytes": 20207
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\10_single_phase_capacitor_rectifier\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "39df3fe19508cbd648bc874da617de8e84637fe210af8509213f2820d9221829",
+      "bytes": 5386
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\10_single_phase_capacitor_rectifier\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "3cf19bde65903c60a860e88b78d0c5b2915f5ba64af16dc2419af4a3113eb3ef",
+      "bytes": 20334
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\10_single_phase_capacitor_rectifier\\c05_nominal_high_ripple\\design_request.md",
+      "sha256": "e056048f4018c1655abddb3c01234f26fff873a980ff6256d69adc021c1e7349",
+      "bytes": 5365
+    },
+    {
+      "matrix_id": "10_single_phase_capacitor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\10_single_phase_capacitor_rectifier\\c05_nominal_high_ripple\\design_result.md",
+      "sha256": "a20da9daf107b36c021dcced7d63f031868f0ad001880c91eb86e226ac6fcafc",
+      "bytes": 20269
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\11_single_phase_dc_inductor_rectifier\\c01_nominal_full_load\\design_request.md",
+      "sha256": "f8c28efc05004d70d9cfc0d8ef088dae22f7a0d557df065050979618927a716a",
+      "bytes": 5749
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\11_single_phase_dc_inductor_rectifier\\c01_nominal_full_load\\design_result.md",
+      "sha256": "07cc12a4328d0e12d10df31880bdcff78ab6aedc5731dc36594a38c16d6a5de3",
+      "bytes": 26141
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\11_single_phase_dc_inductor_rectifier\\c02_low_input_full_load\\design_request.md",
+      "sha256": "063b833f556385da936a6318221cd7e7ed1834bc2705967ccb9e347b590a1b10",
+      "bytes": 5757
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\11_single_phase_dc_inductor_rectifier\\c02_low_input_full_load\\design_result.md",
+      "sha256": "e61fac25e302004a51b15c1ef0c47b6f28f28b984de2884d217baa2128d8dc65",
+      "bytes": 26125
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\11_single_phase_dc_inductor_rectifier\\c03_high_input_full_load\\design_request.md",
+      "sha256": "742e65202096722eda9aa7fc9ced6f67880e84d4392d99e4e1bf9d6a73c59995",
+      "bytes": 5759
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\11_single_phase_dc_inductor_rectifier\\c03_high_input_full_load\\design_result.md",
+      "sha256": "21bd7025312f8c6783d576db3e99146a9978acd1810c423aa45e4ca59d8c7698",
+      "bytes": 26223
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\11_single_phase_dc_inductor_rectifier\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "f0009dbcef30dbfe83cdda16b5a8375b0f4b14533780a4baa4b0f3fa7adfa7c6",
+      "bytes": 5781
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\11_single_phase_dc_inductor_rectifier\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "15d02be87113c6e9880cd4aeca8b67abc92b97ddc5e4797f19fc6975d4f373bf",
+      "bytes": 26163
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\11_single_phase_dc_inductor_rectifier\\c05_nominal_high_ripple\\design_request.md",
+      "sha256": "7fbf5e1e6c1f9c06f16a1cd755c2e95d2c7b2aaf6f6e5634b598518e1a8d0569",
+      "bytes": 5758
+    },
+    {
+      "matrix_id": "11_single_phase_dc_inductor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\11_single_phase_dc_inductor_rectifier\\c05_nominal_high_ripple\\design_result.md",
+      "sha256": "8e48309906172bb987636245169fd53c4c030e2e1241bfba1a65ec14cf5e3a40",
+      "bytes": 26144
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\12_three_phase_capacitor_rectifier\\c01_nominal_full_load\\design_request.md",
+      "sha256": "8bab240a615836a58e3c08e414c44ef5ffd44749067e1aaea92e5ca5f4a9948e",
+      "bytes": 5418
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c01_nominal_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\12_three_phase_capacitor_rectifier\\c01_nominal_full_load\\design_result.md",
+      "sha256": "088f9184b11b98cdfefc28bb7cd316922e0c8f5a5240d0122f9c1aac331fe4b9",
+      "bytes": 20527
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\12_three_phase_capacitor_rectifier\\c02_low_input_full_load\\design_request.md",
+      "sha256": "5b96a0f73af73b62f3ce7284955c656ca6673a10ac71ba67e55146ba5cadd7f8",
+      "bytes": 5426
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c02_low_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\12_three_phase_capacitor_rectifier\\c02_low_input_full_load\\design_result.md",
+      "sha256": "c1afa9bbac650a552b923fb28a0b67aa9770f293cf5ff83f344f777faa00e5c9",
+      "bytes": 20551
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\12_three_phase_capacitor_rectifier\\c03_high_input_full_load\\design_request.md",
+      "sha256": "34feb3defa8fc08ed52121e0999be42628e66bb0c1ad5742b8b1393f4917efb0",
+      "bytes": 5428
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c03_high_input_full_load",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\12_three_phase_capacitor_rectifier\\c03_high_input_full_load\\design_result.md",
+      "sha256": "6101dc7bf099e2f6b86477924255db890e843b15ea91f8f2e87242d35dc5f781",
+      "bytes": 20529
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\12_three_phase_capacitor_rectifier\\c04_nominal_light_load_20pct\\design_request.md",
+      "sha256": "c9b41dce210297b8ca6bbc5209af30927e1755375f6a1f59a38fb9cb2c79660d",
+      "bytes": 5450
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c04_nominal_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\12_three_phase_capacitor_rectifier\\c04_nominal_light_load_20pct\\design_result.md",
+      "sha256": "c54d004fec18c9124806b815037736ff2865549a0781f83b49c85c66d2ea24c3",
+      "bytes": 20570
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\12_three_phase_capacitor_rectifier\\c05_nominal_high_ripple\\design_request.md",
+      "sha256": "26ef9ffb15cf2469b4aca465f636826ee6fb3643ec1fcc2039a406f2379ff6e8",
+      "bytes": 5429
+    },
+    {
+      "matrix_id": "12_three_phase_capacitor_rectifier",
+      "case_id": "c05_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\12_three_phase_capacitor_rectifier\\c05_nominal_high_ripple\\design_result.md",
+      "sha256": "a2ce5d7b47e91a20cbbf0c707c07b13a85580de98550f4d3fd82de14c0a7c367",
+      "bytes": 20512
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c01_nominal_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c01_nominal_full_load_50hz\\design_request.md",
+      "sha256": "e9fd45d3e036c41e0d731019def51785b519981a875ae00a148cde578bf0c444",
+      "bytes": 6101
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c01_nominal_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c01_nominal_full_load_50hz\\design_result.md",
+      "sha256": "a86df9ff311326a1cb26145f6268bd060236108cab671f82c726a9185e9e6ce2",
+      "bytes": 28783
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c02_low_input_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c02_low_input_full_load_50hz\\design_request.md",
+      "sha256": "43c0851e024723351ef82e1c782411e0b28bfa53f0968c42d584b22394559df8",
+      "bytes": 6105
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c02_low_input_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c02_low_input_full_load_50hz\\design_result.md",
+      "sha256": "71e072702cbd413514df01492ef1ac72939577c5d807c27cf81c09262faee759",
+      "bytes": 28898
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c03_high_input_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c03_high_input_full_load_50hz\\design_request.md",
+      "sha256": "12c55ce56cb9057aee867c147e36a5124c8edf6f87cdee6dec4f4d77a9b37dbf",
+      "bytes": 6107
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c03_high_input_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c03_high_input_full_load_50hz\\design_result.md",
+      "sha256": "6ae19c626fda4255cae36a810f0466430b1137b818f29b545d581e9d4f2ce478",
+      "bytes": 28918
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c04_nominal_light_load_20pct_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c04_nominal_light_load_20pct_50hz\\design_request.md",
+      "sha256": "f953abe4dde6d22830c6f0b32ae5c984ac357d5e79bc5fdb22ec3182173470d5",
+      "bytes": 6114
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c04_nominal_light_load_20pct_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c04_nominal_light_load_20pct_50hz\\design_result.md",
+      "sha256": "40ba00dd2106b663219671d6bcf4c0d1faec47c1eeadce1a6c671dc72f5b9187",
+      "bytes": 28849
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c05_nominal_very_light_load_10pct_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c05_nominal_very_light_load_10pct_50hz\\design_request.md",
+      "sha256": "db737f02cf4688dd574b1b5d663936835ea24cdc6bdd9a3e7695184e566b492e",
+      "bytes": 6124
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c05_nominal_very_light_load_10pct_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c05_nominal_very_light_load_10pct_50hz\\design_result.md",
+      "sha256": "8c3f96e8602f9be7df5081eb7331b7b83b5ab9c13a11079e43dbd6139b0fb18c",
+      "bytes": 28927
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c06_nominal_high_frequency_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c06_nominal_high_frequency_50hz\\design_request.md",
+      "sha256": "d68b7cac81bb3951a49a232a8d22d5ce793df928ae736bb58bd5a2232913605c",
+      "bytes": 6111
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c06_nominal_high_frequency_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c06_nominal_high_frequency_50hz\\design_result.md",
+      "sha256": "adea26cd9c51faffd86ccf59fdd78a0ddc65b1501639094a35c84801d5fb9de9",
+      "bytes": 28734
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c07_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c07_nominal_high_ripple\\design_request.md",
+      "sha256": "e8fd8934a48860727263528cc5bcf79518aa235b0b1bf9a80209b299debf1a69",
+      "bytes": 6097
+    },
+    {
+      "matrix_id": "13_diode_bridge_boost_pfc",
+      "case_id": "c07_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\13_diode_bridge_boost_pfc\\c07_nominal_high_ripple\\design_result.md",
+      "sha256": "1cc06e79f76d59b465ecc706b8a17cda85cdd908cf9d8055bba8beae6d91bd37",
+      "bytes": 28750
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c01_nominal_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c01_nominal_full_load_50hz\\design_request.md",
+      "sha256": "909f19f8a05f39ac1cef123700466cbdbedfd514fd85896b5a35fe7b46f8f7e5",
+      "bytes": 6745
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c01_nominal_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c01_nominal_full_load_50hz\\design_result.md",
+      "sha256": "782a91fc1c715bd9f2eecc0238a2e6c85d25ac990294e2cb48a8c0268efca4d9",
+      "bytes": 29609
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c02_low_input_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c02_low_input_full_load_50hz\\design_request.md",
+      "sha256": "3150d2a473852d71e71e2cdf347b9ccb892362ce6dd81fe1078cc995aefda63f",
+      "bytes": 6749
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c02_low_input_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c02_low_input_full_load_50hz\\design_result.md",
+      "sha256": "1032eb4bbfbdf83cb70b2f3dcd3274b4c9c43c1e282546b634b7f9149df85cb4",
+      "bytes": 29610
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c03_high_input_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c03_high_input_full_load_50hz\\design_request.md",
+      "sha256": "9c68be21432025a7af85d943e9de482b92d95f477cabf78a1e730a71d6b425c7",
+      "bytes": 6751
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c03_high_input_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c03_high_input_full_load_50hz\\design_result.md",
+      "sha256": "dd62a3f0b77041ac78ab2bc3eead09368f22c114304c3e87022a8c13e1b4d976",
+      "bytes": 29613
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c04_nominal_light_load_20pct_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c04_nominal_light_load_20pct_50hz\\design_request.md",
+      "sha256": "4468aa8db56424edc7bf1720b2dc482ed0a5360b07e83bb48bfb6c10ef52a7d1",
+      "bytes": 6758
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c04_nominal_light_load_20pct_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c04_nominal_light_load_20pct_50hz\\design_result.md",
+      "sha256": "add20353b942c72cbd0469d249cffdf966b5f54a96eaa29715e1a29d9528b9e0",
+      "bytes": 29669
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c05_nominal_very_light_load_10pct_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c05_nominal_very_light_load_10pct_50hz\\design_request.md",
+      "sha256": "d1605bc3343804f58dcace5a15ffc9ea929a456667f65fe7bc51e6551b35d9af",
+      "bytes": 6768
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c05_nominal_very_light_load_10pct_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c05_nominal_very_light_load_10pct_50hz\\design_result.md",
+      "sha256": "cd44f2d2de1b4be00eda018785c778cb06196a0f0c24b5e9f824533b3ef921cb",
+      "bytes": 29663
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c06_nominal_high_frequency_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c06_nominal_high_frequency_50hz\\design_request.md",
+      "sha256": "22dd5fdf64668fac0de4019278ba564f093059d1116f8055dca333d126744ed5",
+      "bytes": 6755
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c06_nominal_high_frequency_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c06_nominal_high_frequency_50hz\\design_result.md",
+      "sha256": "c32e888a67d836f83478099c0798f5d0ab75cb69ecf79b1005153ab8ce0ffc3f",
+      "bytes": 29587
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c07_nominal_full_load_60hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c07_nominal_full_load_60hz\\design_request.md",
+      "sha256": "5f8dcdaf8675578a828ba440931515e3ea68cbda1305b07b4ebe5f1a3bbc917f",
+      "bytes": 6745
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c07_nominal_full_load_60hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c07_nominal_full_load_60hz\\design_result.md",
+      "sha256": "d9c70a196d243fadede0106c15210428976bbac7b860cc7e49465f3b5b639ce5",
+      "bytes": 29645
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c08_nominal_high_frequency_60hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c08_nominal_high_frequency_60hz\\design_request.md",
+      "sha256": "bbd169bfb183336995879efd68f08e205cab58f720a204aef2811aa0d7583bdf",
+      "bytes": 6755
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c08_nominal_high_frequency_60hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c08_nominal_high_frequency_60hz\\design_result.md",
+      "sha256": "e8478223da5d99282bb9576aa2f6455da570766c2fbfb2e0696bc308fab2afbf",
+      "bytes": 29623
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c09_nominal_high_ripple",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c09_nominal_high_ripple\\design_request.md",
+      "sha256": "2eba437d09f316e9bb04ef583ddf9cf16c22895aadd0e50b05c1c44da3300aa0",
+      "bytes": 6741
+    },
+    {
+      "matrix_id": "14_totem_pole_pfc",
+      "case_id": "c09_nominal_high_ripple",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\14_totem_pole_pfc\\c09_nominal_high_ripple\\design_result.md",
+      "sha256": "8198c35d3b8531afae901356e693630d039fb57cb4b9d2725c3bc33102944fd9",
+      "bytes": 29589
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c01_nominal_dc_full_load_50hz\\design_request.md",
+      "sha256": "0350589490f30a0b369c324bda2145ac78bb5837bce4b93f5597e8a369bc506f",
+      "bytes": 4887
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c01_nominal_dc_full_load_50hz\\design_result.md",
+      "sha256": "f6ec3bb5fc91c4179c7afd2a394519c2a7b356f613af4f7bdb86eed659632ba6",
+      "bytes": 29993
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c02_low_dc_full_load_50hz\\design_request.md",
+      "sha256": "75d34e508505350c273d770e87c6fe1df8409b46a35b8b7f83e6cc739d8a7341",
+      "bytes": 4879
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c02_low_dc_full_load_50hz\\design_result.md",
+      "sha256": "43257584756d884f6aa7cdbbb0a9014fa938487f2b831553a6851deb1eb8c10d",
+      "bytes": 29961
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c03_high_dc_full_load_50hz\\design_request.md",
+      "sha256": "7bbaf55c448d91d2bdd814ffc3d398665bbc6e88aa33248658785d4029ba3ff8",
+      "bytes": 4881
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c03_high_dc_full_load_50hz\\design_result.md",
+      "sha256": "6bc5a96bbb70d3846307f87692aa77094516aaeff093f7018a9ef3668fb88d3c",
+      "bytes": 29994
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c04_nominal_dc_light_load_20pct\\design_request.md",
+      "sha256": "62d9729e31ab4c4b5d97549b0af4e654cae624736126e45989fd62b23c3bbe5b",
+      "bytes": 4890
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c04_nominal_dc_light_load_20pct\\design_result.md",
+      "sha256": "bb0137527df7a3aba9419ad9d819354f3c1b62bc9a8cfc1678cc9ff632fa9fb0",
+      "bytes": 30087
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c05_nominal_dc_full_load_60hz\\design_request.md",
+      "sha256": "39370811eaf666ab6aa508ba4e20f74239ff651f78e7f5d06a6a16da9b652ebe",
+      "bytes": 4887
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c05_nominal_dc_full_load_60hz\\design_result.md",
+      "sha256": "0837cd75d218639baa82653e39aea5555f9ba42086e81d3964bf121354eb781c",
+      "bytes": 29989
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c06_nominal_high_carrier_frequency\\design_request.md",
+      "sha256": "5aab2050ea90b02175f9d4293bb1f438ca765bf1e5a1889267c53958f3acf18f",
+      "bytes": 4897
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c06_nominal_high_carrier_frequency\\design_result.md",
+      "sha256": "96b1da401b7202b53f32b213483eea1d38374e18523e306956ad380266099101",
+      "bytes": 29960
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c07_nominal_pf_0p8",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c07_nominal_pf_0p8\\design_request.md",
+      "sha256": "eade118c5d079e636db640a394bfaebdcdb3d0f4cb78abb8cea5dbb44d9afe12",
+      "bytes": 4865
+    },
+    {
+      "matrix_id": "15_single_phase_full_bridge_inverter",
+      "case_id": "c07_nominal_pf_0p8",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\15_single_phase_full_bridge_inverter\\c07_nominal_pf_0p8\\design_result.md",
+      "sha256": "64aa1925e4e9a4bfd15153438c87bd1e07a63734d26bebbe05bd75b87f194460",
+      "bytes": 29999
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c01_nominal_dc_full_load_50hz\\design_request.md",
+      "sha256": "3bd37dcb8d0ff0be1afe858d05db356901bd2b8c099b897d95448d67feaf0bc4",
+      "bytes": 4939
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c01_nominal_dc_full_load_50hz\\design_result.md",
+      "sha256": "53dd6c857856e4711d2195d07f23b4c6ed7339621a1122bd07177cae50e64d89",
+      "bytes": 28946
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c02_low_dc_full_load_50hz\\design_request.md",
+      "sha256": "eda80e9f9677def24121cc7d67d327c9d266f8b178370321bdd948384bafb1bb",
+      "bytes": 4931
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c02_low_dc_full_load_50hz\\design_result.md",
+      "sha256": "9ab238fd5562274708f09e35424e8100a7de8e7ab2b4ddaeb52489a21b80d40a",
+      "bytes": 29001
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c03_high_dc_full_load_50hz\\design_request.md",
+      "sha256": "91b657307dbc15333d4b6e0b8aa0bc900a3ed9d75f458c2fa92e912bce2c0412",
+      "bytes": 4933
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c03_high_dc_full_load_50hz\\design_result.md",
+      "sha256": "16373e4e6f456c5dd892b5a095bcb25d76b4cb0c6d567f234b3539581e164c3c",
+      "bytes": 28997
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c04_nominal_dc_light_load_20pct\\design_request.md",
+      "sha256": "d09b8f87254cad41d97374a881948a38722749b8d6144d8d328c49b2566328d6",
+      "bytes": 4942
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c04_nominal_dc_light_load_20pct\\design_result.md",
+      "sha256": "12c10155c2198ca95ab324089e27e50890ec01bfed42b55af7dfa8c736cc6674",
+      "bytes": 29002
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c05_nominal_dc_full_load_60hz\\design_request.md",
+      "sha256": "dd9582b7efb6ed239465bf7313bf2d1edccbbd4c773fac6253d993cf3ca83396",
+      "bytes": 4939
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c05_nominal_dc_full_load_60hz\\design_result.md",
+      "sha256": "f44a78daa7a742c46b44f947ffa7e8831f1e91ca62685830adcb073bfc7228fb",
+      "bytes": 28951
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c06_nominal_high_carrier_frequency\\design_request.md",
+      "sha256": "0f056c9c4ae5b463a9dc5a140c936ea6cc98d319ea41818b9cdf76152fb48e92",
+      "bytes": 4949
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c06_nominal_high_carrier_frequency\\design_result.md",
+      "sha256": "12f1729d51225747bf268709f9aae009c6bf119ad6915c88a1eb174c9d202610",
+      "bytes": 29009
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c07_nominal_pf_0p8",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c07_nominal_pf_0p8\\design_request.md",
+      "sha256": "94e68a693dfb84ce4a2f35e8441509793c0277dd7fbbc541c19ae0aff7f84189",
+      "bytes": 4917
+    },
+    {
+      "matrix_id": "16_three_phase_two_level_vsi",
+      "case_id": "c07_nominal_pf_0p8",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\16_three_phase_two_level_vsi\\c07_nominal_pf_0p8\\design_result.md",
+      "sha256": "46aea12542a89edf942abc4c571c08ae33b63acddf9b7fed547e7954dddc279c",
+      "bytes": 28973
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c01_nominal_dc_full_load_50hz\\design_request.md",
+      "sha256": "f9168f2b2df038b5fdf4eaafb1f8abd9a1303ef488a0a6d7c730ac6e1a6c179c",
+      "bytes": 5146
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c01_nominal_dc_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c01_nominal_dc_full_load_50hz\\design_result.md",
+      "sha256": "b0acaa3f387ef0dad796dbe1961bd38901cffb1477a1829c931d9292352377e1",
+      "bytes": 38436
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c02_low_dc_full_load_50hz\\design_request.md",
+      "sha256": "fe3b8ba4ad4e93aae2548d9d21287edea5e4576715fd28ef4fa927fd7606d019",
+      "bytes": 5138
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c02_low_dc_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c02_low_dc_full_load_50hz\\design_result.md",
+      "sha256": "31ce1c072d942a6e4cd1837ec65c6292ac189798b2769223397f8fa6809a58ce",
+      "bytes": 38441
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c03_high_dc_full_load_50hz\\design_request.md",
+      "sha256": "bb0169f05d1582bda9968e6cf397fa7d4c5d33243fc51b8a0c940bde342e278b",
+      "bytes": 5140
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c03_high_dc_full_load_50hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c03_high_dc_full_load_50hz\\design_result.md",
+      "sha256": "c1fb88593aabba408fc5e79f4d37fb206482ab36ca5d1f3160d94011ed184ce7",
+      "bytes": 38402
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c04_nominal_dc_light_load_20pct\\design_request.md",
+      "sha256": "08c6e4a7224ebfd85c4b3fd78e85452a31b3d6c0e0c4d727b16735a860eeaf54",
+      "bytes": 5168
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c04_nominal_dc_light_load_20pct",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c04_nominal_dc_light_load_20pct\\design_result.md",
+      "sha256": "82791f881c8d310626f6c3552332e87d5156f2aa8e76de8d892a2be51cb63f65",
+      "bytes": 38390
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c05_nominal_dc_full_load_60hz\\design_request.md",
+      "sha256": "86fbdbe1bd2cacf7f9ba6cd3e028692e01269b9645a21a149faf89f87cbb5205",
+      "bytes": 5146
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c05_nominal_dc_full_load_60hz",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c05_nominal_dc_full_load_60hz\\design_result.md",
+      "sha256": "d2919db9f149dc217b3616f1a310bff2358b833b655b2f0e0e9e9178ac55625b",
+      "bytes": 38448
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c06_nominal_high_carrier_frequency\\design_request.md",
+      "sha256": "23576a8b41080f41ab99e17cb8d8625628597e28551a11e6797f14c3ef32f53a",
+      "bytes": 5156
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c06_nominal_high_carrier_frequency",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c06_nominal_high_carrier_frequency\\design_result.md",
+      "sha256": "c6274df1ba72e1f2da5e31bc6e1b08ad23959da317c98643d957611e991de744",
+      "bytes": 38401
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c07_nominal_pf_0p8",
+      "artifact": "design_request.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c07_nominal_pf_0p8\\design_request.md",
+      "sha256": "62deb4458e663e872c3064edc887061a51da9b090d05ba82298b6d54f8b474bc",
+      "bytes": 5124
+    },
+    {
+      "matrix_id": "17_three_phase_three_level_npc",
+      "case_id": "c07_nominal_pf_0p8",
+      "artifact": "design_result.md",
+      "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw\\design_requests\\17_three_phase_three_level_npc\\c07_nominal_pf_0p8\\design_result.md",
+      "sha256": "504b2190515a30d9ec595fd0b4edfad8edcb1364f9b6c4e1d2ea0957d7c52842",
+      "bytes": 38478
+    }
+  ]
+}

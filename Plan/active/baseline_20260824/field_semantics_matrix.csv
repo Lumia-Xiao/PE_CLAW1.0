@@ -1,0 +1,36 @@
+layer,canonical_field,source_or_target_path,semantic_definition,type,unit,comparison_policy
+request,topology_id,design_request.md,Input topology identifier,string,dimensionless,strict; request checksum is frozen
+request,input_voltage_min_v,design_request.md,Minimum input voltage,number,V,strict after normalization
+request,input_voltage_max_v,design_request.md,Maximum input voltage,number,V,strict after normalization
+request,output_voltage_v,design_request.md,Target output voltage,number,V,strict after normalization
+request,output_power_w,design_request.md,Target output power,number,W,strict after normalization
+request,switching_frequency_hz,design_request.md,Switching frequency,number,Hz,strict; display kHz converted to Hz
+request,output_ripple_target,design_request.md,Requested output ripple,number,ratio or V by topology,semantic policy required
+normalized_input,normalized_request,not captured in frozen readback,"Canonical request after parsing, defaults and units",object,mixed,must be added before final parity
+candidate,duty_nom,final_report.sections[electrical_design] / Duty,Nominal duty ratio,number,ratio,core numeric; source report label
+candidate,iout,final_report.sections[electrical_design] / Output Current,Design output current,number,A,core numeric
+candidate,fs_hz,final_report.sections[electrical_design] / Switching Frequency,Candidate switching frequency,number,Hz,core numeric
+candidate,inductance_h,final_report.sections[electrical_design] / Inductance,Designed inductance,number,H,core except model-boundary topologies
+candidate,capacitance_f,final_report.sections[electrical_design] / Output Capacitance,Designed output capacitance,number,F,core except model-boundary topologies
+candidate,feasible,final_report.sections[electrical_design] / Feasible,Candidate feasibility status,boolean,dimensionless,strict
+candidate,ccm_valid,final_report.sections[electrical_design] / CCM Valid,Continuous-conduction validity,boolean,dimensionless,strict
+waveform,operating_vin_v,final_report.sections[topology_operating_point] / Operating Input Voltage,Operating input voltage,number,V,strict numeric
+waveform,operating_vout_v,final_report.sections[topology_operating_point] / Operating Output Voltage,Operating output voltage,number,V,semantic review; may be null
+waveform,load_ratio,final_report.sections[topology_operating_point] / Load Ratio,Operating load ratio,number,p.u.,strict numeric
+waveform,duty,final_report.sections[electrical_design] / Duty,Waveform or operating duty,number,ratio,distinguish candidate and waveform duty
+waveform,output_ripple,final_report.sections[electrical_design] / Output Ripple,Output ripple metric,number,V or ratio,must retain target/estimated/predicted/simulated provenance
+stress,switch.voltage_max_v,backend report model / stress,Maximum switch voltage,number,V,strict numeric
+stress,switch.current_peak_a,backend report model / stress,Peak switch current,number,A,strict numeric
+stress,rectifier.voltage_max_v,backend report model / stress,Maximum rectifier voltage,number,V,strict numeric
+stress,rectifier.current_peak_a,backend report model / stress,Peak rectifier current,number,A,strict numeric
+magnetic,inductance_h,final_report.sections[magnetic_design],Magnetic component inductance,number,H,separate target and selected hardware
+magnetic,core_id,final_report.sections[magnetic_design],Selected magnetic core identifier,string,dimensionless,strict only with identical library snapshot
+magnetic,peak_flux_density_t,final_report.sections[magnetic_design],Peak flux density,number,T,strict with identical model and library
+capacitor,equivalent_capacitance_f,final_report.sections[capacitor_bank],Equivalent selected capacitance,number,F,strict with identical library snapshot
+capacitor,parallel_count,final_report.sections[capacitor_bank],Recommended parallel count,number,count,strict with identical library and sorting
+capacitor,part_number,final_report.sections[capacitor_bank],Selected capacitor part,string,dimensionless,strict only with identical library snapshot
+report,report_format,reports/final_report.json,Structured report contract,string,dimensionless,strict
+report,section_ids,reports/final_report.json,Ordered report section identifiers,array,dimensionless,strict order and membership
+report,efficiency,final_report.sections[efficiency_sweep],System efficiency from fixed-hardware sweep,number,ratio,compare only with same sweep policy
+report,loss_breakdown,final_report.sections[loss_breakdown],System and stage loss terms,object,W,field provenance required
+report,validation_audit,final_report.sections[validation_audit],Structural validation audit status,object,dimensionless,strict status and issue codes

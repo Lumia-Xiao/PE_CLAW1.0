@@ -1,0 +1,12 @@
+{
+  "baseline_status": "baseline_not_final",
+  "comparison_artifact": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\migration_parity_2_to_1_20260824_final2\\comparison.json",
+  "comparison_sha256": "30c734379b9d23234d4a2ff7d2a5aa1f9d2bc039fc2fb106ced27129d18409a5",
+  "cases": 103,
+  "executed": 103,
+  "execution_errors": 0,
+  "pass": 71,
+  "pass_with_model_boundary": 32,
+  "mismatch": 0,
+  "note": "This replay proves current input mapping and core parity only; full migration acceptance remains active."
+}
