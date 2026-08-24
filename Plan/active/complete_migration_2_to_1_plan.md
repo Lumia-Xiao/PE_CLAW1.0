@@ -272,7 +272,7 @@ python Plan\\active\\baseline_20260824\\freeze_step1_baseline.py
 
 ### 状态
 
-`in_progress`
+`completed`
 
 ### 第 2 步已实施修改
 
@@ -310,7 +310,10 @@ python scripts/validate_step2_environment.py
 - 远端：`origin/codex/sync-gui-backend-from-2`
 - push 结果：成功
 - 实现验证：11 项第 2 步及关键回归测试通过；环境验证 `validation_pass=true`；第 1 步 103 工况基线复核通过。
-- 当前状态：实现已同步，待提交状态关闭记录。
+- 状态 commit：`781f52b` (`Step 2: record runtime sync`)
+- 状态 push 时间：`2026-08-24`（Asia/Shanghai）
+- 状态 push 结果：成功
+- 当前状态：实现和状态记录均已同步，允许关闭本步骤。
 
 ---
 
