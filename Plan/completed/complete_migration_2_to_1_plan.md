@@ -1145,7 +1145,7 @@ error、0 个 boundary failure 和 0 个 unexplained difference；PSFB
 
 ## 7. 计划关闭条件
 
-第 1 至第 12 步已完成，最终验收标准全部满足。本文件已完成关闭准备，随后移动到
+第 1 至第 12 步已完成，最终验收标准全部满足。本文件已完成关闭准备，现移动到
 `Plan\completed` 作为正式归档：
 
 1. 将计划状态改为 `completed`。
