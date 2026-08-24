@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from importlib import import_module
 
 from .category import ConverterCategory
+from .capabilities import TopologyCapability, get_topology_capability
 from .interface import TopologyPlugin
 from .metadata import CONVERTER_CATEGORY_BY_ID, list_converter_categories
 
@@ -40,6 +41,11 @@ class TopologyRegistry:
         """Register a topology definition."""
         if definition.category_id not in self._categories:
             raise ValueError(f"Unsupported converter category: {definition.category_id}")
+        if definition.topology_id in self._definitions:
+            raise ValueError(f"Duplicate topology id: {definition.topology_id}")
+        for existing in self._definitions.values():
+            if definition.legacy_key and existing.legacy_key == definition.legacy_key:
+                raise ValueError(f"Duplicate topology legacy key: {definition.legacy_key}")
         self._definitions[definition.topology_id] = definition
 
     def list_categories(self) -> list[ConverterCategory]:
@@ -71,6 +77,22 @@ class TopologyRegistry:
             return self._definitions[topology_id]
         except KeyError as exc:
             raise ValueError(f"Unsupported topology: {topology_id}") from exc
+
+    def resolve_topology_id(self, topology_hint: str) -> str:
+        """Resolve an explicit topology ID or legacy key without a default fallback."""
+        token = str(topology_hint or "").strip()
+        if token in self._definitions:
+            return token
+        folded = token.casefold()
+        for definition in self._definitions.values():
+            if definition.legacy_key and definition.legacy_key.casefold() == folded:
+                return definition.topology_id
+        raise ValueError(f"Unsupported topology: {topology_hint}")
+
+    def get_capability(self, topology_id: str) -> TopologyCapability:
+        """Return the capability declaration for a registered topology."""
+        self.get_definition(topology_id)
+        return get_topology_capability(topology_id)
 
     def get_plugin(self, topology_id: str) -> TopologyPlugin:
         """Load and cache the plugin instance for a topology."""
