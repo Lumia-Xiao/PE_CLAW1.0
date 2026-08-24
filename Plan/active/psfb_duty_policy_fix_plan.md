@@ -306,7 +306,14 @@ command_duty = effective_duty + duty_loss
 
 ### 第 1 步提交与同步记录
 
-- 实现与基线 commit：待本次提交生成
+- 实现与基线 commit：`6ceb845`（`PSFB Step 1: freeze duty policy baseline`）
 - 远端分支：`origin/codex/sync-gui-backend-from-2`
-- push 结果：待本次提交完成
-- 步骤状态：`in_progress`，push 成功后更新为 `completed`
+- 实现 push 时间：`2026-08-24T18:28:32+08:00`
+- 实现 push 结果：成功
+- 验证命令：`python scripts/freeze_psfb_duty_baseline.py`；
+  `python -m pytest -q tests/test_psfb_duty_policy_baseline.py`；
+  `python -m py_compile scripts/freeze_psfb_duty_baseline.py tests/test_psfb_duty_policy_baseline.py`；
+  `git diff --check`
+- 验证结果：7/7 PSFB 工况基线，1 个已知 boundary，0 个 execution error；
+  `3 passed`；编译通过；diff check 通过
+- 步骤状态：`completed`
