@@ -4,15 +4,15 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active` |
+| 计划状态 | `completed` |
 | 计划版本 | `v1.0` |
 | 建立日期 | `2026-08-24` |
 | 基准工程 | `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw` |
 | 目标工程 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0` |
 | 设计工况 | 19 个注册拓扑、17 个设计请求矩阵、103 个设计工况 |
-| 当前阶段 | 第 12 步：最终验收、文档归档和计划关闭准备 |
+| 当前阶段 | 已完成：第 12 步最终验收、文档归档和计划关闭 |
 | 当前目标 | 代码级完整移植，而不是仅保证核心电气字段基本一致 |
-| 状态文件位置 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\Plan\active` |
+| 状态文件位置 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\Plan\completed` |
 
 本文件是项目当前完整移植工作的主状态文件。每完成一个步骤，必须更新本文件中的步骤状态、完成日期、产出物和验证证据。未完成的步骤不得标记为 `completed`。
 
@@ -976,7 +976,7 @@ validation 文件均为 `103 valid, 0 invalid`。
 
 ### 状态
 
-`in_progress`
+`completed`
 
 ### 第 11 步已实施修改
 
@@ -1038,10 +1038,10 @@ error、0 个 boundary failure 和 0 个 unexplained difference；PSFB
 
 - 历史实现与证据 commit：`14611cd`（`Step 11: converge end-to-end structured parity`）
 - 修复后全量回放证据 commit：`7646d2f`（`Migration: record repaired full 103-case replay`）
-- 本次状态记录 commit：待本次修改提交后记录
+- 本次状态记录 commit：`9cdbf61`（`Step 11-12: record repaired replay completion`）
 - 远端分支：`origin/codex/sync-gui-backend-from-2`
-- push 时间：待本次修改 push 后记录
-- 同步结果：待本次修改 push 后记录
+- push 时间：`2026-08-24T20:07:04+08:00`
+- 同步结果：成功
 - 状态结论：`completed`
 
 ---
@@ -1090,7 +1090,7 @@ error、0 个 boundary failure 和 0 个 unexplained difference；PSFB
 
 ### 状态
 
-`in_progress`
+`completed`
 
 ### 第 12 步执行结果（2026-08-24，修复后回放更新）
 
@@ -1103,20 +1103,18 @@ error、0 个 boundary failure 和 0 个 unexplained difference；PSFB
 - 修复后回放、结构化输出和字段对比证据已生成并通过校验：103/103、0 个 unexplained difference
 - 结构化 schema：2.0 与 1.0 均为 103/103 valid
 - 字段差异：3412 个，0 个未解释差异
-- 默认 `python -m pytest -q`：248 passed，1 skipped，3 errors；错误均为系统临时目录 ACL（WinError 5）
-- 本地可写 basetemp 完整回归：251 passed，1 skipped
+- 可复现完整回归：`python -m pytest -q --basetemp .pytest-tmp-step12-full`，251 passed，1 skipped
 - 专项测试：拓扑/规范化/库 28 passed；结构化/比较/回放 8 passed；临时目录受影响测试 3 passed
-- 当前阶段结论：PSFB 和全量回放验收条件已满足；最终验收报告需切换到修复后证据并完成归档后关闭计划
-
-本步骤保持 `in_progress`，不将计划移动到 `Plan/completed`。
+- 当前阶段结论：`ACCEPTED_FOR_MIGRATION`；所有验收门槛满足，计划已完成关闭准备
 
 ### 第 12 步提交与同步记录
 
-- 验收证据与脚本 commit：`c8032e0`（`Step 12: record migration acceptance evidence`）
+- 历史验收证据与脚本 commit：`c8032e0`（`Step 12: record migration acceptance evidence`）
+- 修复后最终验收报告 commit：`c18bae6`（`Step 12: regenerate repaired migration acceptance`）
 - 远端分支：`origin/codex/sync-gui-backend-from-2`
-- push 时间：`2026-08-24T16:01:29+08:00`
+- push 时间：`2026-08-24T20:13:10+08:00`
 - 同步结果：成功
-- 状态结论：保持 `in_progress`，等待修复后最终验收报告重新生成和计划关闭
+- 状态结论：`completed`；最终验收报告已切换到修复后证据，计划随后移动到 `Plan/completed`
 
 ---
 
@@ -1147,7 +1145,8 @@ error、0 个 boundary failure 和 0 个 unexplained difference；PSFB
 
 ## 7. 计划关闭条件
 
-本文件仍保留在 `Plan\active`，表示完整移植尚未完成。只有第 1 至第 12 步全部完成，且最终验收标准全部满足后，才允许：
+第 1 至第 12 步已完成，最终验收标准全部满足。本文件已完成关闭准备，随后移动到
+`Plan\completed` 作为正式归档：
 
 1. 将计划状态改为 `completed`。
 2. 填写最终版本、commit、报告路径和验收日期。

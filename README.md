@@ -28,6 +28,13 @@ PE-Claw 1.0 focuses on a transparent engineering pipeline rather than a black-bo
 > DC-DC. AI Design, agentic execution, natural-language design intake, and
 > autonomous design loops are intentionally outside this release.
 
+> **Migration acceptance (2026-08-24):** The PE-Claw 2.0 to 1.0 migration was
+> validated with 19 registered topologies, 17 request matrices, and 103
+> operating points. The repaired replay completed 103/103 cases with zero
+> execution errors, zero boundary failures, and zero unexplained differences.
+> The acceptance evidence is stored under `Plan/active/final_acceptance_20260824`
+> and references the repaired replay, structured-output, and comparison sets.
+
 ---
 
 ## Highlights
