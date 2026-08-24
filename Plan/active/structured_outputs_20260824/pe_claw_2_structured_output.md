@@ -3685,7 +3685,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -3697,7 +3697,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -3709,7 +3709,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 20.833333333333332 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -3719,7 +3719,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 1.0 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 48.0 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -3777,7 +3777,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -3789,7 +3789,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -3801,7 +3801,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 20.833333333333332 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -3811,7 +3811,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 0.9999999999999999 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 43.200000000008515 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -3869,7 +3869,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -3881,7 +3881,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -3893,7 +3893,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 20.833333333333332 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -3903,7 +3903,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 0.9999999999999999 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 50.40000000000993 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -3961,7 +3961,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -3973,7 +3973,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -3985,7 +3985,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 4.166666666666667 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -3995,7 +3995,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 0.2 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 48.000000000009464 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -4053,7 +4053,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -4065,7 +4065,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -4077,7 +4077,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 2.0833333333333335 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -4087,7 +4087,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 0.1 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 48.000000000009464 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -4145,7 +4145,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -4157,7 +4157,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -4169,7 +4169,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 20.833333333333332 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -4179,7 +4179,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 0.9999999999999999 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 39.55981042085673 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -4237,7 +4237,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -4249,7 +4249,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -4261,7 +4261,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 20.833333333333332 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -4271,7 +4271,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 1.0 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 48.0 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -4329,7 +4329,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -4341,7 +4341,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -4353,7 +4353,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 20.833333333333332 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -4363,7 +4363,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 1.0 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 48.0 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -4421,7 +4421,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -4433,7 +4433,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -4445,7 +4445,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 20.833333333333332 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -4455,7 +4455,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 0.9999999999999999 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 43.20000000000575 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -4513,7 +4513,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -4525,7 +4525,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -4537,7 +4537,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 20.833333333333332 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -4547,7 +4547,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 0.9999999999999999 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 50.400000000006706 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -4605,7 +4605,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -4617,7 +4617,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -4629,7 +4629,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 4.166666666666667 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -4639,7 +4639,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 0.2 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 48.000000000006395 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -4697,7 +4697,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -4709,7 +4709,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -4721,7 +4721,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 2.0833333333333335 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -4731,7 +4731,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 0.1 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 48.000000000006395 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -4789,7 +4789,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -4801,7 +4801,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -4813,7 +4813,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 20.833333333333332 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -4823,7 +4823,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 0.9999999999999999 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 39.55981042088198 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 
@@ -4881,7 +4881,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | ccm_valid | None |
 | zvs_status | pass |
 | pf_status | not_evaluated |
-| thermal_status | not_evaluated |
+| thermal_status | pass |
 
 ## Request
 
@@ -4893,7 +4893,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | output_voltage | 48.0 | V | pe_claw_2.final_report.input_specification |
 | ripple_current_ratio | 0.3 | ratio | pe_claw_2.final_report.input_specification |
 | ripple_voltage_ratio | 0.01 | ratio | pe_claw_2.final_report.input_specification |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.input_specification |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.input_specification |
 
 ## Candidate
 
@@ -4905,7 +4905,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | inductor_ripple | None | A | pe_claw_2.final_report.electrical_design |
 | output_current | 20.833333333333332 | A | pe_claw_2.final_report.electrical_design |
 | output_ripple_estimated | None | V | pe_claw_2.final_report.electrical_design |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.electrical_design |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.electrical_design |
 
 ## Operating Point
 
@@ -4915,7 +4915,7 @@ Schema Version: `pe_claw_structured_design_report_v1`
 | load_ratio | 1.0 | p.u. | pe_claw_2.final_report.topology_operating_point |
 | output_voltage | 48.0 | V | pe_claw_2.final_report.topology_operating_point |
 | power_factor | None | ratio | pe_claw_2.final_report.topology_operating_point |
-| switching_frequency | 120.0 | Hz | pe_claw_2.final_report.topology_operating_point |
+| switching_frequency | 120000.0 | Hz | pe_claw_2.final_report.topology_operating_point |
 
 ## Magnetic
 

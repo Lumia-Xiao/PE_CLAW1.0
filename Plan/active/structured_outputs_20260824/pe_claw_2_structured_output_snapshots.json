@@ -12438,7 +12438,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -12476,7 +12476,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -12517,7 +12517,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -12629,7 +12629,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -12680,7 +12680,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -12738,7 +12738,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -12776,7 +12776,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -12817,7 +12817,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -12929,7 +12929,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -12980,7 +12980,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -13038,7 +13038,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -13076,7 +13076,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -13117,7 +13117,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -13229,7 +13229,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -13280,7 +13280,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -13338,7 +13338,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -13376,7 +13376,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -13417,7 +13417,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -13529,7 +13529,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -13580,7 +13580,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -13638,7 +13638,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -13676,7 +13676,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -13717,7 +13717,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -13829,7 +13829,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -13880,7 +13880,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -13938,7 +13938,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -13976,7 +13976,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -14017,7 +14017,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -14129,7 +14129,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -14180,7 +14180,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -14238,7 +14238,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -14276,7 +14276,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -14317,7 +14317,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -14429,7 +14429,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -14480,7 +14480,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -14538,7 +14538,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -14576,7 +14576,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -14617,7 +14617,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -14729,7 +14729,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -14780,7 +14780,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -14838,7 +14838,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -14876,7 +14876,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -14917,7 +14917,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -15029,7 +15029,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -15080,7 +15080,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -15138,7 +15138,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -15176,7 +15176,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -15217,7 +15217,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -15329,7 +15329,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -15380,7 +15380,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -15438,7 +15438,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -15476,7 +15476,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -15517,7 +15517,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -15629,7 +15629,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -15680,7 +15680,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -15738,7 +15738,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -15776,7 +15776,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -15817,7 +15817,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -15929,7 +15929,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -15980,7 +15980,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -16038,7 +16038,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -16076,7 +16076,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -16117,7 +16117,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -16229,7 +16229,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -16280,7 +16280,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [
@@ -16338,7 +16338,7 @@
             "source": "pe_claw_2.final_report.input_specification"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.input_specification"
           },
@@ -16376,7 +16376,7 @@
             "source": "pe_claw_2.final_report.electrical_design"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.electrical_design"
           },
@@ -16417,7 +16417,7 @@
             "source": "pe_claw_2.final_report.topology_operating_point"
           },
           "switching_frequency": {
-            "value": 120.0,
+            "value": 120000.0,
             "unit": "Hz",
             "source": "pe_claw_2.final_report.topology_operating_point"
           }
@@ -16529,7 +16529,7 @@
         },
         "thermal": {
           "available": true,
-          "status": "not_evaluated",
+          "status": "pass",
           "metrics": {},
           "metadata": {}
         },
@@ -16580,7 +16580,7 @@
           "ccm_valid": null,
           "zvs_status": "pass",
           "pf_status": "not_evaluated",
-          "thermal_status": "not_evaluated"
+          "thermal_status": "pass"
         },
         "audit": {
           "notes": [

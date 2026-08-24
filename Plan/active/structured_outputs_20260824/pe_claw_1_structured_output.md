@@ -29,13 +29,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 480.0 | V | request.normalized |
-| input_voltage_min | 320.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 480.0 | V | replay_request.normalized |
+| input_voltage_min | 320.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -53,11 +53,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -173,13 +173,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 480.0 | V | request.normalized |
-| input_voltage_min | 320.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 480.0 | V | replay_request.normalized |
+| input_voltage_min | 320.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -197,11 +197,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 320.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 320.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -317,13 +317,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 480.0 | V | request.normalized |
-| input_voltage_min | 320.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 480.0 | V | replay_request.normalized |
+| input_voltage_min | 320.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -341,11 +341,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 480.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 480.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -461,13 +461,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 480.0 | V | request.normalized |
-| input_voltage_min | 320.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 480.0 | V | replay_request.normalized |
+| input_voltage_min | 320.0 | V | replay_request.normalized |
+| output_power | 200.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -485,11 +485,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -605,13 +605,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 480.0 | V | request.normalized |
-| input_voltage_min | 320.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 480.0 | V | replay_request.normalized |
+| input_voltage_min | 320.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -629,11 +629,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -749,13 +749,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 600.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 480.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 50000.0 | Hz | request.normalized |
+| input_voltage_max | 800.0 | V | replay_request.normalized |
+| input_voltage_min | 600.0 | V | replay_request.normalized |
+| output_power | 5000.0 | W | replay_request.normalized |
+| output_voltage | 480.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 50000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -773,11 +773,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 700.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 50000.0 | Hz | operating_point.input |
+| input_voltage | 700.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 480.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 50000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -893,13 +893,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 600.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 480.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 50000.0 | Hz | request.normalized |
+| input_voltage_max | 800.0 | V | replay_request.normalized |
+| input_voltage_min | 600.0 | V | replay_request.normalized |
+| output_power | 5000.0 | W | replay_request.normalized |
+| output_voltage | 480.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 50000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -917,11 +917,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 600.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 50000.0 | Hz | operating_point.input |
+| input_voltage | 600.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 480.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 50000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -1037,13 +1037,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 600.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 480.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 50000.0 | Hz | request.normalized |
+| input_voltage_max | 800.0 | V | replay_request.normalized |
+| input_voltage_min | 600.0 | V | replay_request.normalized |
+| output_power | 5000.0 | W | replay_request.normalized |
+| output_voltage | 480.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 50000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -1061,11 +1061,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 800.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 50000.0 | Hz | operating_point.input |
+| input_voltage | 800.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 480.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 50000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -1181,13 +1181,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 600.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 480.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 50000.0 | Hz | request.normalized |
+| input_voltage_max | 800.0 | V | replay_request.normalized |
+| input_voltage_min | 600.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 480.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 50000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -1205,11 +1205,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 700.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 50000.0 | Hz | operating_point.input |
+| input_voltage | 700.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 480.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 50000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -1325,13 +1325,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 600.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 480.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 50000.0 | Hz | request.normalized |
+| input_voltage_max | 800.0 | V | replay_request.normalized |
+| input_voltage_min | 600.0 | V | replay_request.normalized |
+| output_power | 5000.0 | W | replay_request.normalized |
+| output_voltage | 480.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 50000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -1349,11 +1349,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 700.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 50000.0 | Hz | operating_point.input |
+| input_voltage | 700.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 480.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 50000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -1469,13 +1469,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 2000.0 | W | request.normalized |
-| output_voltage | 800.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 80000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 2000.0 | W | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -1493,11 +1493,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 300.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 80000.0 | Hz | operating_point.input |
+| input_voltage | 300.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -1613,13 +1613,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 2000.0 | W | request.normalized |
-| output_voltage | 800.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 80000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 2000.0 | W | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -1637,11 +1637,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 200.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 80000.0 | Hz | operating_point.input |
+| input_voltage | 200.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -1757,13 +1757,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 2000.0 | W | request.normalized |
-| output_voltage | 800.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 80000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 2000.0 | W | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -1781,11 +1781,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 80000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -1901,13 +1901,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 2000.0 | W | request.normalized |
-| output_voltage | 800.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 80000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 400.0 | W | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -1925,11 +1925,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 300.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 80000.0 | Hz | operating_point.input |
+| input_voltage | 300.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -2045,13 +2045,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 2000.0 | W | request.normalized |
-| output_voltage | 800.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 80000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 2000.0 | W | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -2069,11 +2069,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 300.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 80000.0 | Hz | operating_point.input |
+| input_voltage | 300.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -2189,13 +2189,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 2000.0 | W | request.normalized |
-| output_voltage | 800.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 80000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 2000.0 | W | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -2213,11 +2213,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 300.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 80000.0 | Hz | operating_point.input |
+| input_voltage | 300.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -2333,13 +2333,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 2000.0 | W | request.normalized |
-| output_voltage | 800.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 80000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 2000.0 | W | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -2357,11 +2357,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 200.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 80000.0 | Hz | operating_point.input |
+| input_voltage | 200.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -2477,13 +2477,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 2000.0 | W | request.normalized |
-| output_voltage | 800.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 80000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 2000.0 | W | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -2501,11 +2501,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 80000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -2621,13 +2621,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 2000.0 | W | request.normalized |
-| output_voltage | 800.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 80000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 400.0 | W | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -2645,11 +2645,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 300.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 80000.0 | Hz | operating_point.input |
+| input_voltage | 300.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -2765,13 +2765,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 2000.0 | W | request.normalized |
-| output_voltage | 800.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 80000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 2000.0 | W | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -2789,11 +2789,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 300.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 80000.0 | Hz | operating_point.input |
+| input_voltage | 300.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 800.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 80000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -2909,13 +2909,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -2933,11 +2933,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 300.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 300.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -3053,13 +3053,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -3077,11 +3077,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 200.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 200.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -3197,13 +3197,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -3221,11 +3221,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -3341,13 +3341,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 200.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -3365,11 +3365,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 300.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 300.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -3485,13 +3485,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 200.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 400.0 | V | replay_request.normalized |
+| input_voltage_min | 200.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -3509,11 +3509,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 300.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 300.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -3629,13 +3629,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 500.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 500.0 | W | request.normalized |
-| output_voltage | 320.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 500.0 | V | replay_request.normalized |
+| input_voltage_min | 400.0 | V | replay_request.normalized |
+| output_power | 500.0 | W | replay_request.normalized |
+| output_voltage | 320.0 | V | replay_request.normalized |
+| ripple_current_ratio | 1.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -3653,11 +3653,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 450.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 450.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 320.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -3780,13 +3780,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 500.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 500.0 | W | request.normalized |
-| output_voltage | 320.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 500.0 | V | replay_request.normalized |
+| input_voltage_min | 400.0 | V | replay_request.normalized |
+| output_power | 500.0 | W | replay_request.normalized |
+| output_voltage | 320.0 | V | replay_request.normalized |
+| ripple_current_ratio | 1.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -3804,11 +3804,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 320.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -3931,13 +3931,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 500.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 500.0 | W | request.normalized |
-| output_voltage | 320.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 500.0 | V | replay_request.normalized |
+| input_voltage_min | 400.0 | V | replay_request.normalized |
+| output_power | 500.0 | W | replay_request.normalized |
+| output_voltage | 320.0 | V | replay_request.normalized |
+| ripple_current_ratio | 1.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -3955,11 +3955,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 500.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 500.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 320.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -4082,13 +4082,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 500.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 500.0 | W | request.normalized |
-| output_voltage | 320.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 500.0 | V | replay_request.normalized |
+| input_voltage_min | 400.0 | V | replay_request.normalized |
+| output_power | 100.0 | W | replay_request.normalized |
+| output_voltage | 320.0 | V | replay_request.normalized |
+| ripple_current_ratio | 1.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -4106,11 +4106,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 450.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 450.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 320.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -4233,13 +4233,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 500.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 500.0 | W | request.normalized |
-| output_voltage | 320.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 500.0 | V | replay_request.normalized |
+| input_voltage_min | 400.0 | V | replay_request.normalized |
+| output_power | 500.0 | W | replay_request.normalized |
+| output_voltage | 320.0 | V | replay_request.normalized |
+| ripple_current_ratio | 1.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -4257,11 +4257,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 450.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 450.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 320.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -4384,13 +4384,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 850.0 | V | request.normalized |
-| input_voltage_min | 650.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 5000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.25 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -4408,11 +4408,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 750.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 750.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -4529,13 +4529,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 850.0 | V | request.normalized |
-| input_voltage_min | 650.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 5000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.25 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -4553,11 +4553,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 750.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 650.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -4673,13 +4673,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 850.0 | V | request.normalized |
-| input_voltage_min | 650.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 5000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.25 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -4697,11 +4697,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 850.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 850.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -4817,13 +4817,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 850.0 | V | request.normalized |
-| input_voltage_min | 650.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.25 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -4841,11 +4841,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 750.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 750.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -4961,13 +4961,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 850.0 | V | request.normalized |
-| input_voltage_min | 650.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 500.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.25 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -4985,11 +4985,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 750.0 | V | operating_point.input |
-| load_ratio | 0.1 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 750.0 | V | replay_request.normalized |
+| load_ratio | 0.1 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -5105,13 +5105,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 850.0 | V | request.normalized |
-| input_voltage_min | 650.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 5000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.25 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 150000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -5129,11 +5129,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 750.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 150000.0 | Hz | operating_point.input |
+| input_voltage | 750.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 150000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -5249,13 +5249,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 850.0 | V | request.normalized |
-| input_voltage_min | 650.0 | V | request.normalized |
-| output_power | 5000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 5000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.25 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -5273,11 +5273,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 750.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 750.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -5393,13 +5393,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -5417,11 +5417,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -5537,13 +5537,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -5561,11 +5561,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 360.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 360.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -5681,13 +5681,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -5705,11 +5705,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 420.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 420.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -5825,13 +5825,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 200.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -5849,11 +5849,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -5969,13 +5969,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 100.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -5993,11 +5993,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 0.1 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 0.1 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -6113,13 +6113,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 180000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -6137,11 +6137,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 180000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 180000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -6257,13 +6257,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.5 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -6281,11 +6281,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -6401,13 +6401,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -6425,11 +6425,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -6545,13 +6545,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -6569,11 +6569,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 360.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 360.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -6689,13 +6689,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -6713,11 +6713,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 420.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 420.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -6833,13 +6833,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 200.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -6857,11 +6857,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -6977,13 +6977,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 100.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -7001,11 +7001,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 0.1 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 0.1 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -7121,13 +7121,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 180000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -7145,11 +7145,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 180000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 180000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -7265,13 +7265,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 420.0 | V | request.normalized |
-| input_voltage_min | 360.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 48.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 120000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.5 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -7289,11 +7289,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 120000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 48.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 120000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -7409,13 +7409,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 230.0 | V | request.normalized |
-| input_voltage_min | 230.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 325.0 | V | request.normalized |
-| ripple_current_ratio | 0.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -7433,11 +7433,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.95 | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| power_factor | 0.95 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -7566,13 +7566,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 230.0 | V | request.normalized |
-| input_voltage_min | 230.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 325.0 | V | request.normalized |
-| ripple_current_ratio | 0.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -7590,11 +7590,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 207.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.95 | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 207.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| power_factor | 0.95 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -7723,13 +7723,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 230.0 | V | request.normalized |
-| input_voltage_min | 230.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 325.0 | V | request.normalized |
-| ripple_current_ratio | 0.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -7747,11 +7747,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 253.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.95 | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 253.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| power_factor | 0.95 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -7880,13 +7880,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 230.0 | V | request.normalized |
-| input_voltage_min | 230.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 325.0 | V | request.normalized |
-| ripple_current_ratio | 0.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 200.0 | W | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -7904,11 +7904,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.95 | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| power_factor | 0.95 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -8037,13 +8037,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 230.0 | V | request.normalized |
-| input_voltage_min | 230.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 325.0 | V | request.normalized |
-| ripple_current_ratio | 0.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.1 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -8061,11 +8061,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.95 | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| power_factor | 0.95 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -8194,13 +8194,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 230.0 | V | request.normalized |
-| input_voltage_min | 230.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 325.0 | V | request.normalized |
-| ripple_current_ratio | 1.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| ripple_current_ratio | 1.0 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -8218,11 +8218,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -8351,13 +8351,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 230.0 | V | request.normalized |
-| input_voltage_min | 230.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 325.0 | V | request.normalized |
-| ripple_current_ratio | 1.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| ripple_current_ratio | 1.0 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -8375,11 +8375,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 207.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 207.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -8508,13 +8508,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 230.0 | V | request.normalized |
-| input_voltage_min | 230.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 325.0 | V | request.normalized |
-| ripple_current_ratio | 1.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| ripple_current_ratio | 1.0 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -8532,11 +8532,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 253.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 253.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -8665,13 +8665,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 230.0 | V | request.normalized |
-| input_voltage_min | 230.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 325.0 | V | request.normalized |
-| ripple_current_ratio | 1.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 200.0 | W | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| ripple_current_ratio | 1.0 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.01 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -8689,11 +8689,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -8822,13 +8822,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 230.0 | V | request.normalized |
-| input_voltage_min | 230.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 325.0 | V | request.normalized |
-| ripple_current_ratio | 1.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.01 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| ripple_current_ratio | 1.0 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -8846,11 +8846,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | None | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 325.0 | V | replay_request.normalized |
+| power_factor | None | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -8979,13 +8979,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 3000.0 | W | request.normalized |
-| output_voltage | 540.0 | V | request.normalized |
-| ripple_current_ratio | 0.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 3000.0 | W | replay_request.normalized |
+| output_voltage | 540.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -9003,11 +9003,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.95 | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 540.0 | V | replay_request.normalized |
+| power_factor | 0.95 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -9136,13 +9136,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 3000.0 | W | request.normalized |
-| output_voltage | 540.0 | V | request.normalized |
-| ripple_current_ratio | 0.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 3000.0 | W | replay_request.normalized |
+| output_voltage | 540.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -9160,11 +9160,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 360.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.95 | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 360.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 540.0 | V | replay_request.normalized |
+| power_factor | 0.95 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -9293,13 +9293,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 3000.0 | W | request.normalized |
-| output_voltage | 540.0 | V | request.normalized |
-| ripple_current_ratio | 0.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 3000.0 | W | replay_request.normalized |
+| output_voltage | 540.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -9317,11 +9317,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 440.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.95 | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 440.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 540.0 | V | replay_request.normalized |
+| power_factor | 0.95 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -9450,13 +9450,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 3000.0 | W | request.normalized |
-| output_voltage | 540.0 | V | request.normalized |
-| ripple_current_ratio | 0.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 600.0 | W | replay_request.normalized |
+| output_voltage | 540.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -9474,11 +9474,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.95 | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 540.0 | V | replay_request.normalized |
+| power_factor | 0.95 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -9607,13 +9607,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 3000.0 | W | request.normalized |
-| output_voltage | 540.0 | V | request.normalized |
-| ripple_current_ratio | 0.0 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 50.0 | Hz | request.normalized |
+| input_voltage_max | None | V | replay_request.normalized |
+| input_voltage_min | None | V | replay_request.normalized |
+| output_power | 3000.0 | W | replay_request.normalized |
+| output_voltage | 540.0 | V | replay_request.normalized |
+| ripple_current_ratio | None | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.1 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -9631,11 +9631,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.95 | ratio | operating_point.input |
-| switching_frequency | 50.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 540.0 | V | replay_request.normalized |
+| power_factor | 0.95 | ratio | replay_request.normalized |
+| switching_frequency | 50.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -9764,13 +9764,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -9788,11 +9788,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -9908,13 +9908,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -9932,11 +9932,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 180.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 180.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -10052,13 +10052,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -10076,11 +10076,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 265.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 265.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -10196,13 +10196,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 200.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -10220,11 +10220,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -10340,13 +10340,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 100.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -10364,11 +10364,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 0.1 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 0.1 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -10484,13 +10484,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 150000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -10508,11 +10508,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 150000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 150000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -10628,13 +10628,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.5 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -10652,11 +10652,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -10772,13 +10772,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -10796,11 +10796,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -10916,13 +10916,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -10940,11 +10940,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 180.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 180.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -11060,13 +11060,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -11084,11 +11084,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 265.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 265.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -11204,13 +11204,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 200.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -11228,11 +11228,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -11348,13 +11348,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 100.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -11372,11 +11372,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 0.1 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 0.1 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -11492,13 +11492,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 150000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -11516,11 +11516,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 150000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 150000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -11636,13 +11636,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -11660,11 +11660,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -11780,13 +11780,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.3 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 150000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -11804,11 +11804,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 150000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 150000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -11924,13 +11924,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 265.0 | V | request.normalized |
-| input_voltage_min | 180.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 400.0 | V | request.normalized |
-| ripple_current_ratio | 0.3 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 100000.0 | Hz | request.normalized |
+| input_voltage_max | 265.0 | V | replay_request.normalized |
+| input_voltage_min | 180.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.5 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -11948,11 +11948,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 230.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.99 | ratio | operating_point.input |
-| switching_frequency | 100000.0 | Hz | operating_point.input |
+| input_voltage | 230.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 400.0 | V | replay_request.normalized |
+| power_factor | 0.99 | ratio | replay_request.normalized |
+| switching_frequency | 100000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -12068,13 +12068,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 230.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -12092,11 +12092,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | 229.98322310937886 | V | operating_point.input |
-| power_factor | 0.9999999999823657 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -12204,13 +12204,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 230.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -12228,11 +12228,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 360.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 360.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -12340,13 +12340,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 230.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -12364,11 +12364,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 420.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 420.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -12476,13 +12476,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 230.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 200.0 | W | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -12500,11 +12500,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -12612,13 +12612,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 230.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -12636,11 +12636,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -12748,13 +12748,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 230.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 30000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -12772,11 +12772,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 30000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 30000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -12884,13 +12884,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 400.0 | V | request.normalized |
-| input_voltage_min | 400.0 | V | request.normalized |
-| output_power | 1000.0 | W | request.normalized |
-| output_voltage | 230.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.05 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 420.0 | V | replay_request.normalized |
+| input_voltage_min | 360.0 | V | replay_request.normalized |
+| output_power | 1000.0 | W | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.05 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -12908,11 +12908,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 400.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.8 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 400.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 230.0 | V | replay_request.normalized |
+| power_factor | 0.8 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -13020,13 +13020,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -13044,11 +13044,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 800.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 800.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -13164,13 +13164,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -13188,11 +13188,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 650.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 650.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -13308,13 +13308,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -13332,11 +13332,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 850.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 850.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -13452,13 +13452,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 4000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -13476,11 +13476,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 800.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 800.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -13596,13 +13596,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -13620,11 +13620,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 800.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 800.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -13740,13 +13740,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 30000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -13764,11 +13764,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 800.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 30000.0 | Hz | operating_point.input |
+| input_voltage | 800.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 30000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -13884,13 +13884,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 850.0 | V | replay_request.normalized |
+| input_voltage_min | 650.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -13908,11 +13908,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 800.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.8 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 800.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 0.8 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -14028,13 +14028,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 900.0 | V | replay_request.normalized |
+| input_voltage_min | 700.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -14052,11 +14052,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 800.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 800.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -14172,13 +14172,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 900.0 | V | replay_request.normalized |
+| input_voltage_min | 700.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -14196,11 +14196,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 700.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 700.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -14316,13 +14316,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 900.0 | V | replay_request.normalized |
+| input_voltage_min | 700.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -14340,11 +14340,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 900.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 900.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -14460,13 +14460,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 900.0 | V | replay_request.normalized |
+| input_voltage_min | 700.0 | V | replay_request.normalized |
+| output_power | 4000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -14484,11 +14484,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 800.0 | V | operating_point.input |
-| load_ratio | 0.2 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 800.0 | V | replay_request.normalized |
+| load_ratio | 0.2 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -14604,13 +14604,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 900.0 | V | replay_request.normalized |
+| input_voltage_min | 700.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -14628,11 +14628,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 800.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 800.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -14748,13 +14748,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 900.0 | V | replay_request.normalized |
+| input_voltage_min | 700.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 30000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -14772,11 +14772,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 800.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 1.0 | ratio | operating_point.input |
-| switching_frequency | 30000.0 | Hz | operating_point.input |
+| input_voltage | 800.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 1.0 | ratio | replay_request.normalized |
+| switching_frequency | 30000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 
@@ -14892,13 +14892,13 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage_max | 800.0 | V | request.normalized |
-| input_voltage_min | 800.0 | V | request.normalized |
-| output_power | 20000.0 | W | request.normalized |
-| output_voltage | 380.0 | V | request.normalized |
-| ripple_current_ratio | 0.2 | ratio | request.normalized |
-| ripple_voltage_ratio | 0.02 | ratio | request.normalized |
-| switching_frequency | 20000.0 | Hz | request.normalized |
+| input_voltage_max | 900.0 | V | replay_request.normalized |
+| input_voltage_min | 700.0 | V | replay_request.normalized |
+| output_power | 20000.0 | W | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| ripple_current_ratio | 0.2 | ratio | replay_request.normalized |
+| ripple_voltage_ratio | 0.02 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Candidate
 
@@ -14916,11 +14916,11 @@ Schema Version: `pe_claw_structured_design_report_v1`
 
 | Field | Value | Unit | Source |
 | --- | ---: | --- | --- |
-| input_voltage | 800.0 | V | operating_point.input |
-| load_ratio | 1.0 | p.u. | operating_point.input |
-| output_voltage | None | V | operating_point.input |
-| power_factor | 0.8 | ratio | operating_point.input |
-| switching_frequency | 20000.0 | Hz | operating_point.input |
+| input_voltage | 800.0 | V | replay_request.normalized |
+| load_ratio | 1.0 | p.u. | replay_request.normalized |
+| output_voltage | 380.0 | V | replay_request.normalized |
+| power_factor | 0.8 | ratio | replay_request.normalized |
+| switching_frequency | 20000.0 | Hz | replay_request.normalized |
 
 ## Waveform
 

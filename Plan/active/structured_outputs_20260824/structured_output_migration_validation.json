@@ -631,7 +631,7 @@
       "quantity_row_count": 4340,
       "csv": "pe_claw_2_structured_output.csv",
       "markdown": "pe_claw_2_structured_output.md",
-      "canonical_sha256": "8866cd1af183a85d4bcea549dcfca8185e2d9f17f9ccf437a74cbe577996aada"
+      "canonical_sha256": "065c31b8c34cf0fda7dcfbc63da4a54b4ae5cbb513550adb58d665f1c0b5a35c"
     },
     "pe_claw_1": {
       "record_count": 103,
@@ -1262,7 +1262,7 @@
       "quantity_row_count": 9173,
       "csv": "pe_claw_1_structured_output.csv",
       "markdown": "pe_claw_1_structured_output.md",
-      "canonical_sha256": "6dc7782ca16e65fe5409d54b937b764ebb397c1a2ce911ea7b74b5ddc910d443"
+      "canonical_sha256": "746203b25d69a077c9d6a2bef2169e9de63dd070f9b2382b89732e333ac118f6"
     }
   },
   "comparability": {

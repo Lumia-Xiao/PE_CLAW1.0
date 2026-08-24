@@ -216,6 +216,39 @@ def _operating_point_input(normalized: dict[str, Any], baseline: dict[str, Any],
     }
 
 
+def _apply_replay_request(structured: dict[str, Any], normalized: dict[str, Any], op: Any, *, fixed_hardware: bool) -> None:
+    """Make refresh reports carry the current request while retaining c01 hardware."""
+    request = structured.get("request", {})
+    source = "replay_request.normalized"
+
+    def quantity(value: Any, unit: str) -> dict[str, Any]:
+        return {"value": value if isinstance(value, (int, float)) and not isinstance(value, bool) else None, "unit": unit, "source": source}
+
+    request["raw_input"] = dict(normalized)
+    request["input_voltage_min"] = quantity(normalized.get("vin_min_v"), "V")
+    request["input_voltage_max"] = quantity(normalized.get("vin_max_v"), "V")
+    request["output_voltage"] = quantity(normalized.get("vout_v"), "V")
+    request["output_power"] = quantity(normalized.get("pout_w"), "W")
+    request["switching_frequency"] = quantity(normalized.get("fsw_hz"), "Hz")
+    constraints = normalized.get("constraints") or {}
+    ripple_current = normalized.get("ripple_current_ratio")
+    if not isinstance(ripple_current, (int, float)):
+        ripple_current = constraints.get("rectifier_inductor_current_ripple_ratio")
+    request["ripple_current_ratio"] = quantity(ripple_current, "ratio")
+    ripple = normalized.get("ripple_voltage_ratio_percent")
+    if not isinstance(ripple, (int, float)):
+        ripple = constraints.get("dc_bus_ripple_voltage_ratio_percent")
+    request["ripple_voltage_ratio"] = quantity(float(ripple) / 100.0 if isinstance(ripple, (int, float)) else None, "ratio")
+    operating = structured.get("operating_point", {})
+    operating["input_voltage"] = quantity(op.vin_v, "V")
+    operating["load_ratio"] = quantity(op.load_ratio, "p.u.")
+    operating["power_factor"] = quantity(op.power_factor, "ratio")
+    operating["switching_frequency"] = quantity(op.switching_frequency_hz, "Hz")
+    operating["output_voltage"] = quantity(normalized.get("vout_v"), "V")
+    structured.setdefault("audit", {})["request_role"] = "current_replay_request"
+    structured["audit"]["candidate_role"] = "frozen_c01_hardware" if fixed_hardware else "current_design"
+
+
 def _run_case(registry: Any, case_dir: Path, baseline: dict[str, Any], baseline_report: Any | None) -> tuple[dict[str, Any], Any | None]:
     from pe_claw_gui.parsers.design_request import normalize_design_request_file
     from pe_claw_gui.pipeline.options import PipelineOptions
@@ -245,6 +278,7 @@ def _run_case(registry: Any, case_dir: Path, baseline: dict[str, Any], baseline_
         fixed_snapshot = _hardware_snapshot(baseline_report) if baseline_report is not None else {}
         structured = build_structured_report(baseline_report) if baseline_report is not None else {}
         if structured:
+            _apply_replay_request(structured, normalized, op, fixed_hardware=execution_mode == "fixed_hardware_refresh")
             structured["status"]["replay_status"] = "boundary"
             structured["audit"]["boundary_reason"] = error
         return {
@@ -269,6 +303,7 @@ def _run_case(registry: Any, case_dir: Path, baseline: dict[str, Any], baseline_
     hardware = _hardware_snapshot(report)
     metrics = _waveform_metrics(report)
     structured = build_structured_report(report)
+    _apply_replay_request(structured, normalized, op, fixed_hardware=execution_mode == "fixed_hardware_refresh")
     record = {
         "matrix_id": case_dir.parent.name,
         "case_id": case_dir.name,

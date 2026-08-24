@@ -53,6 +53,16 @@ def _number(values: dict[str, dict[str, Any]], *labels: str) -> float | None:
     return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
 
 
+def _number_scaled(values: dict[str, dict[str, Any]], *labels: str) -> float | None:
+    item = _first(values, *labels)
+    value = item.get("value") if item else None
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return None
+    unit = str(item.get("unit") or "").strip().casefold()
+    scale = 1000.0 if unit == "khz" else 1.0
+    return float(value) * scale
+
+
 def _bool(values: dict[str, dict[str, Any]], *labels: str) -> bool | None:
     item = _first(values, *labels)
     value = item.get("value") if item else None
@@ -63,6 +73,10 @@ def _status(values: dict[str, dict[str, Any]], *labels: str) -> str:
     value = _bool(values, *labels)
     if value is not None:
         return "pass" if value else "fail"
+    item = _first(values, *labels)
+    text = str(item.get("value", "")).strip().casefold() if item else ""
+    if text in {"pass", "fail", "not_evaluated", "boundary", "unknown"}:
+        return text
     return "not_evaluated"
 
 
@@ -99,7 +113,7 @@ def legacy_report_to_structured(report: dict[str, Any], case: dict[str, Any]) ->
             "input_voltage_max": _quantity(_number(values, "Input Voltage Max", "vin_max"), "V", "pe_claw_2.final_report.input_specification"),
             "output_voltage": _quantity(vout, "V", "pe_claw_2.final_report.input_specification"),
             "output_power": _quantity(_number(values, "Output Power", "requested_output_power_w"), "W", "pe_claw_2.final_report.input_specification"),
-            "switching_frequency": _quantity(_number(values, "Switching Frequency", "switching_frequency_hz"), "Hz", "pe_claw_2.final_report.input_specification"),
+            "switching_frequency": _quantity(_number_scaled(values, "Switching Frequency", "switching_frequency_hz"), "Hz", "pe_claw_2.final_report.input_specification"),
             "ripple_current_ratio": _quantity(_number(values, "Inductor Ripple Ratio", "Inductor Ripple-Ratio Target"), "ratio", "pe_claw_2.final_report.input_specification"),
             "ripple_voltage_ratio": _quantity(output_target_ratio / 100.0 if output_target_ratio is not None else None, "ratio", "pe_claw_2.final_report.input_specification"),
         },
@@ -109,14 +123,14 @@ def legacy_report_to_structured(report: dict[str, Any], case: dict[str, Any]) ->
             "capacitance": _quantity(_number(values, "Output Capacitance", "DC-Link Capacitance", "output_capacitance_f"), "F", "pe_claw_2.final_report.electrical_design"),
             "duty": _quantity(_number(values, "Duty", "modulation_index"), "ratio", "pe_claw_2.final_report.electrical_design"),
             "output_current": _quantity(_number(values, "Output Current", "achieved_output_current_a"), "A", "pe_claw_2.final_report.electrical_design"),
-            "switching_frequency": _quantity(_number(values, "Switching Frequency", "switching_frequency_hz"), "Hz", "pe_claw_2.final_report.electrical_design"),
+            "switching_frequency": _quantity(_number_scaled(values, "Switching Frequency", "switching_frequency_hz"), "Hz", "pe_claw_2.final_report.electrical_design"),
             "inductor_ripple": _quantity(_number(values, "Inductor Ripple", "inductor_ripple_max_local_pp_a"), "A", "pe_claw_2.final_report.electrical_design"),
             "output_ripple_estimated": _quantity(estimated, "V", "pe_claw_2.final_report.electrical_design"),
             "feasible": _bool(values, "Feasible", "Hard Constraints Passed"),
             "ccm_valid": _bool(values, "CCM Valid", "Flyback CCM Valid"),
             "mode": None,
         },
-        "operating_point": {"available": True, "input_voltage": _quantity(_number(values, "Operating Input Voltage", "operating_input_voltage_v"), "V", "pe_claw_2.final_report.topology_operating_point"), "load_ratio": _quantity(_number(values, "Load Ratio", "load_ratio"), "p.u.", "pe_claw_2.final_report.topology_operating_point"), "output_voltage": _quantity(_number(values, "Operating Output Voltage", "operating_output_voltage_avg_v"), "V", "pe_claw_2.final_report.topology_operating_point"), "power_factor": _quantity(_number(values, "Power Factor", "operating_power_factor"), "ratio", "pe_claw_2.final_report.topology_operating_point"), "switching_frequency": _quantity(_number(values, "Switching Frequency", "switching_frequency_hz"), "Hz", "pe_claw_2.final_report.topology_operating_point")},
+        "operating_point": {"available": True, "input_voltage": _quantity(_number(values, "Operating Input Voltage", "operating_input_voltage_v"), "V", "pe_claw_2.final_report.topology_operating_point"), "load_ratio": _quantity(_number(values, "Load Ratio", "load_ratio"), "p.u.", "pe_claw_2.final_report.topology_operating_point"), "output_voltage": _quantity(_number(values, "Operating Output Voltage", "operating_output_voltage_avg_v"), "V", "pe_claw_2.final_report.topology_operating_point"), "power_factor": _quantity(_number(values, "Power Factor", "operating_power_factor"), "ratio", "pe_claw_2.final_report.topology_operating_point"), "switching_frequency": _quantity(_number_scaled(values, "Switching Frequency", "switching_frequency_hz"), "Hz", "pe_claw_2.final_report.topology_operating_point")},
         "waveform": {"available": False, "operating": {}, "series": {}, "metadata": {"source": "pe_claw_2.final_report"}},
         "stress": {"available": False, "switch": {}, "rectifier": {}},
         "magnetic": _report_section("magnetic_design", {k: v for k, v in values.items() if v.get("section") == "magnetic_design"}),

@@ -959,6 +959,9 @@ validation 文件均为 `103 valid, 0 invalid`。
 - `comparison_final.md`
 - `topology_summary_final.md`
 - `unexplained_difference_ledger.md`
+- `replay_case_checksums.csv`
+- `replay_checksums.json`
+- `compare_step11_structured_outputs.py`
 - 103 工况回放日志和 checksum
 
 ### 完成条件
@@ -970,7 +973,58 @@ validation 文件均为 `103 valid, 0 invalid`。
 
 ### 状态
 
-`pending`
+`in_progress`
+
+### 第 11 步已实施修改
+
+1. 新增结构化快照比较器，以第十步的 2.0/1.0 snapshot 为唯一比较输入，
+   逐路径比较拓扑、请求、候选、工作点、波形、应力、磁性、电容、热和
+   状态字段。
+2. 数值差异统一记录 source value、target value、单位、absolute error、
+   relative error、tolerance、basis、category、owner 和 evidence；不再用
+   未定义的 `model_boundary` 掩盖差异。
+3. 修正 operating-point refresh 报告契约：当前工况请求和 c01 冻结硬件
+   分别记录，特殊字符串纹波要求和约束中的电感纹波值按规范化规则恢复。
+4. 对 PSFB 低输入固定硬件 refresh 保留明确 `boundary_failure`，并绑定到
+   `PSFB duties must satisfy 0 <= effective <= command <= 1.` 的代码和仿真契约
+   证据；该边界没有被判定为成功。
+5. 新增第十一步专项测试，覆盖 103 工况、17 个矩阵目录、16 个运行时拓扑
+   ID、差异审计字段和逐工况 checksum。
+
+### 第 11 步验证记录
+
+验证命令：
+
+```text
+python scripts/validate_step9_operating_points.py --source-root C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw --output-dir Plan/active/operating_points_20260824
+python scripts/report_schema_validation.py Plan/active/operating_points_20260824/structured_output_snapshots.json --output Plan/active/operating_points_20260824/structured_output_validation.json
+python scripts/build_step10_structured_outputs.py --inventory Plan/active/baseline_20260824/structured_readback_inventory.json --one-snapshot Plan/active/operating_points_20260824/structured_output_snapshots.json --output-dir Plan/active/structured_outputs_20260824
+python scripts/compare_step11_structured_outputs.py --source Plan/active/structured_outputs_20260824/pe_claw_2_structured_output_snapshots.json --target Plan/active/structured_outputs_20260824/pe_claw_1_structured_output_snapshots.json --replay-matrix Plan/active/operating_points_20260824/operating_point_replay_matrix.csv --output-dir Plan/active/final_comparison_20260824
+python -m pytest tests/test_phase10_structured_output.py tests/test_phase11_structured_comparison.py tests/test_phase9_operating_point_migration.py -q
+```
+
+结果：103/103 replay records，0 execution errors，1 个显式 boundary failure，
+3412 个字段差异均已量化，0 个 unexplained difference；专项测试 `8 passed`。
+差异分类计数为：`formula_difference=389`、
+`simulation_numerical_difference=1934`、`field_semantic_difference=358`、
+`ordering_difference=638`、`input_mapping_error=93`。所有差异均带有 owner
+和证据路径；边界证据单独记录在 comparison JSON 的 `boundary_evidence` 中。
+
+证据目录：
+`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\Plan\active\final_comparison_20260824`
+
+主证据：`comparison_final.json`、`comparison_final.csv`、
+`comparison_final.md`、`topology_summary_final.md`、
+`unexplained_difference_ledger.md`、`replay_case_checksums.csv` 和
+`replay_checksums.json`。
+
+### 第 11 步状态说明
+
+第 11 步暂保持 `in_progress`：当前全量回放无执行错误且无未解释差异，
+但 PSFB `c02_low_input_full_load` 仍有一个已证实的固定硬件工作点边界，
+因此尚不能满足“103/103 执行成功”的严格完成条件。该边界必须在后续
+PSFB duty policy 修复或经批准的 2.0 兼容策略中收敛后，才能将本步骤标记
+为 `completed`。
 
 ---
 
