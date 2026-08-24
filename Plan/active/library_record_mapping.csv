@@ -1,0 +1,12 @@
+library,metric,source_value,target_value,match
+semiconductors,record_count,800,800,True
+semiconductors,vendor_count,5,5,True
+capacitors,record_count,32910,32910,True
+magnetics,sendust_core_count,567,567,True
+magnetics,sendust_size_count,61,61,True
+magnetics,sendust_material_count,9,9,True
+magnetics_v2_cache,materials,647,647,True
+magnetics_v2_cache,shapes,890,890,True
+magnetics_v2_cache,wires,4352,4352,True
+magnetics_v2_cache,commercial_cores,10318,10318,True
+magnetics_v2_cache,stock_cores,1573,1573,True
