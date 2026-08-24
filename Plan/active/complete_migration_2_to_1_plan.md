@@ -272,7 +272,7 @@ python Plan\\active\\baseline_20260824\\freeze_step1_baseline.py
 
 ### 状态
 
-`pending`
+`in_progress`
 
 ### 第 2 步已实施修改
 
@@ -302,6 +302,15 @@ python scripts/validate_step2_environment.py
 
 当前仍保留的环境限制：2.0 的独立安装包版本未从源工程运行环境直接读取，
 因此未宣称两代已安装包完全一致；这属于环境快照和隔离 replay 的后续闭环项。
+
+### 第 2 步提交记录
+
+- 步骤：第 2 步：工程和依赖环境对齐
+- 实现 commit：`b8157fa` (`Step 2: align runtime reproducibility`)
+- 远端：`origin/codex/sync-gui-backend-from-2`
+- push 结果：成功
+- 实现验证：11 项第 2 步及关键回归测试通过；环境验证 `validation_pass=true`；第 1 步 103 工况基线复核通过。
+- 当前状态：实现已同步，待提交状态关闭记录。
 
 ---
 
