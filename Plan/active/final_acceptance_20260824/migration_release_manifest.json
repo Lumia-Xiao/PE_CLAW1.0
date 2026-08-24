@@ -1,12 +1,12 @@
 {
   "contract_version": "pe_claw_migration_release_manifest_v1",
-  "generated_at_utc": "2026-08-24T08:01:05.698767+00:00",
+  "generated_at_utc": "2026-08-24T08:03:15.281797+00:00",
   "release_status": "blocked",
   "release_reason": "One PSFB boundary case remains unresolved; default full-suite temp-root ACL also needs a clean environment record.",
   "git": {
-    "commit": "fef89fcdff85b7e5ef465b3042fcf92e934a9036",
+    "commit": "c8032e00cfb22da23358f71faccdeddb3ee986ef",
     "branch": "codex/sync-gui-backend-from-2",
-    "status_porcelain": "M  Plan/active/complete_migration_2_to_1_plan.md\nA  Plan/active/final_acceptance_20260824/comparison/comparison_final.csv\nA  Plan/active/final_acceptance_20260824/comparison/comparison_final.json\nA  Plan/active/final_acceptance_20260824/comparison/comparison_final.md\nA  Plan/active/final_acceptance_20260824/comparison/replay_case_checksums.csv\nA  Plan/active/final_acceptance_20260824/comparison/replay_checksums.json\nA  Plan/active/final_acceptance_20260824/comparison/topology_summary_final.md\nA  Plan/active/final_acceptance_20260824/comparison/unexplained_difference_ledger.md\nAM Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.json\nA  Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.md\nA  Plan/active/final_acceptance_20260824/final_test_report.json\nA  Plan/active/final_acceptance_20260824/final_test_report.md\nA  Plan/active/final_acceptance_20260824/golden_baseline/comparison.json\nA  Plan/active/final_acceptance_20260824/golden_baseline/golden_baseline_manifest.json\nA  Plan/active/final_acceptance_20260824/golden_baseline/replay_matrix.csv\nA  Plan/active/final_acceptance_20260824/golden_baseline/source_structured_snapshots.json\nA  Plan/active/final_acceptance_20260824/golden_baseline/target_structured_snapshots.json\nA  Plan/active/final_acceptance_20260824/migration_release_manifest.json\nA  Plan/active/final_acceptance_20260824/operating_points/fixed_hardware_snapshots.json\nA  Plan/active/final_acceptance_20260824/operating_points/operating_point_migration_validation.json\nA  Plan/active/final_acceptance_20260824/operating_points/operating_point_replay_matrix.csv\nA  Plan/active/final_acceptance_20260824/operating_points/structured_output_snapshots.json\nA  Plan/active/final_acceptance_20260824/source_schema_validation.json\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_1_structured_output.csv\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_1_structured_output.md\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_1_structured_output_snapshots.json\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_1_structured_output_validation.json\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_2_structured_output.csv\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_2_structured_output.md\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_2_structured_output_snapshots.json\nA  Plan/active/final_acceptance_20260824/structured_outputs/pe_claw_2_structured_output_validation.json\nA  Plan/active/final_acceptance_20260824/structured_outputs/structured_output_migration_validation.json\nA  Plan/active/final_acceptance_20260824/target_schema_validation.json\nM  README.md\nM  migration/README.md\nA  scripts/build_step12_acceptance.py\n?? .pytest-tmp-step12-full/\n?? .pytest-tmp-step12/\n?? Plan/active/baseline_20260824/__pycache__/\n?? outputs/\n?? scripts/__pycache__/\n?? tests/__pycache__/",
+    "status_porcelain_tracked": "M Plan/active/complete_migration_2_to_1_plan.md\n M Plan/active/final_acceptance_20260824/complete_migration_acceptance_report.json\n M scripts/build_step12_acceptance.py",
     "remote": "https://github.com/Lumia-Xiao/PE_CLAW1.0.git"
   },
   "environment": {
@@ -29,7 +29,7 @@
     "comparison.json": "d090cb52dd57d00b8b09834502c323ec5a95e9a73059958af6335dc1a870d662"
   },
   "evidence_sha256": {
-    "Plan\\active\\final_acceptance_20260824\\complete_migration_acceptance_report.json": "b8c8a039b9176d10762647b25a2a671eb6c0eb78c97f0de9ba46916b40e6a4b6",
+    "Plan\\active\\final_acceptance_20260824\\complete_migration_acceptance_report.json": "064b8172210929747a08f14ba2b1bf3f20fed6b3068afccd144ef185d5d4d7bc",
     "Plan\\active\\final_acceptance_20260824\\source_schema_validation.json": "9704793c3d452b486138ac49dff884b63eee97ae517a4477538bca68ceb99208",
     "Plan\\active\\final_acceptance_20260824\\target_schema_validation.json": "9704793c3d452b486138ac49dff884b63eee97ae517a4477538bca68ceb99208",
     "Plan\\active\\final_acceptance_20260824\\comparison\\comparison_final.json": "d090cb52dd57d00b8b09834502c323ec5a95e9a73059958af6335dc1a870d662",

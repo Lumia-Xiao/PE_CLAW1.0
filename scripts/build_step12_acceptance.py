@@ -193,7 +193,7 @@ def main() -> None:
         "git": {
             "commit": git("rev-parse", "HEAD"),
             "branch": git("branch", "--show-current"),
-            "status_porcelain": git("status", "--porcelain"),
+            "status_porcelain_tracked": git("status", "--porcelain", "--untracked-files=no"),
             "remote": git("remote", "get-url", "origin"),
         },
         "environment": {

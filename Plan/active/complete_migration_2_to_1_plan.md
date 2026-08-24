@@ -1100,6 +1100,14 @@ PSFB duty policy 修复或经批准的 2.0 兼容策略中收敛后，才能将�
 
 本步骤保持 `in_progress`，不将计划移动到 `Plan/completed`。
 
+### 第 12 步提交与同步记录
+
+- 验收证据与脚本 commit：`c8032e0`（`Step 12: record migration acceptance evidence`）
+- 远端分支：`origin/codex/sync-gui-backend-from-2`
+- push 时间：`2026-08-24T16:01:29+08:00`
+- 同步结果：成功
+- 状态结论：保持 `in_progress`，因为 PSFB boundary failure 尚未修复
+
 ---
 
 ## 5. 变更管理规则
