@@ -149,7 +149,7 @@
 
 ### 状态
 
-`in_progress`
+`completed`
 
 ### 当前证据
 
@@ -221,6 +221,15 @@ python Plan\\active\\baseline_20260824\\freeze_step1_baseline.py
 结构化报告均为 `final_report_sections_v1`；重复工况键为 0；验证通过。
 
 脚本支持 `--validate-only`，用于后续不改写基线文件的完整性复核。
+
+### 第 1 步提交记录
+
+- 步骤：第 1 步：基准冻结与差异清单
+- commit：`751e63c` (`Step 1: freeze migration baseline`)
+- 远端：`origin/codex/sync-gui-backend-from-2`
+- push 时间：`2026-08-24`（Asia/Shanghai）
+- push 结果：成功
+- 状态变更依据：独立 commit 已创建且已成功 push，因此本步骤允许关闭。
 
 ---
 
