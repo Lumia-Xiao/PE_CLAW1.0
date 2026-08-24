@@ -1,0 +1,36 @@
+{
+  "schema_version": "pe_claw_waveform_metrics_v1",
+  "series_metric_fields": ["average", "rms", "peak", "valley", "peak_to_peak"],
+  "series": [
+    "switch_node_voltage_v",
+    "inductor_current_a",
+    "capacitor_current_a",
+    "output_voltage_v",
+    "switch_current_a",
+    "diode_current_a",
+    "input_source_current_a",
+    "inductor_voltage_v",
+    "vox_voltage_v",
+    "output_ripple_v"
+  ],
+  "operating_fields": [
+    "operating_vin_v",
+    "operating_vout_v",
+    "load_ratio",
+    "duty",
+    "switching_frequency_hz",
+    "switching_period_s",
+    "time_span_s",
+    "mode"
+  ],
+  "optional_solver_metadata": [
+    "solver",
+    "step_size_s",
+    "samples_per_period",
+    "samples_per_line_cycle",
+    "cycles_simulated",
+    "settling_cycles_discarded",
+    "converged",
+    "convergence_status"
+  ]
+}
