@@ -439,7 +439,41 @@ python scripts/validate_step2_environment.py
 
 ### 状态
 
-`pending`
+`completed`
+
+### 第 4 步完成证据
+
+- 新增统一能力声明：`src/pe_claw_gui/topologies/base/capabilities.py`。
+- registry 现在拒绝重复 `topology_id`、重复 `legacy_key`，并提供不带默认回退的
+  `resolve_topology_id` 与能力查询接口。
+- 17 个迁移目录对应 16 个唯一逻辑 `topology_id`；LLC 全桥/半桥共用 LLC 二极管
+  插件，但通过 `primary_bridge_type` 和 `secondary_rectifier_type` 保留变体语义。
+- registry 映射：`Plan/active/topology_registry_mapping.csv`。
+- 能力映射：`Plan/active/topology_capability_mapping.csv`。
+- 103 个请求路由报告：`Plan/active/topology_routing_consistency.json`。
+- 自动验证脚本：`scripts/validate_step4_topology_registry.py`。
+- 契约测试：`tests/test_phase4_topology_contracts.py`。
+
+### 第 4 步验证记录
+
+执行命令：
+
+```text
+python scripts/validate_step4_topology_registry.py
+python -m pytest tests/test_phase4_topology_contracts.py tests/test_phase12_verification.py tests/test_phase3_request_normalization.py -q
+```
+
+结果：17/17 迁移目录、103/103 请求路由匹配；registry 元数据与 2.0 的 17 项
+全部匹配；19 个注册拓扑 ID 唯一；LLC 变体约束 14/14 匹配；路由报告
+`validation_pass=true`；相关测试 `29 passed`。
+
+### 第 4 步提交记录
+
+- 实现 commit：`b18a579` (`Step 4: align topology registry contracts`)
+- 远端：`origin/codex/sync-gui-backend-from-2`
+- 实现 push：成功，2026-08-24（Asia/Shanghai）
+- 状态 commit：待本次状态更新提交后记录
+- 状态 push：待本次状态更新提交后记录
 
 ---
 
