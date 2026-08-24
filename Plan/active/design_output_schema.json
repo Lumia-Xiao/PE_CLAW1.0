@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pe_claw_structured_design_report_v1",
+  "title": "PE-Claw Structured Design Report",
+  "type": "object",
+  "required": ["schema_version", "report_kind", "topology", "request", "candidate", "operating_point", "waveform", "stress", "magnetic", "capacitor", "thermal", "hardware", "ripple", "status", "audit"],
+  "properties": {
+    "schema_version": {"const": "pe_claw_structured_design_report_v1"},
+    "report_kind": {"const": "design_report"},
+    "topology": {"type": "object", "required": ["id", "display_name"], "properties": {"id": {"type": "string", "minLength": 1}, "display_name": {"type": "string"}}, "additionalProperties": false},
+    "request": {"$ref": "#/$defs/section"},
+    "candidate": {"$ref": "#/$defs/section"},
+    "operating_point": {"$ref": "#/$defs/section"},
+    "waveform": {"type": "object", "required": ["available", "operating", "series", "metadata"], "properties": {"available": {"type": "boolean"}, "operating": {"type": "object"}, "series": {"type": "object"}, "metadata": {"type": "object"}}, "additionalProperties": true},
+    "stress": {"type": "object", "required": ["available", "switch", "rectifier"], "properties": {"available": {"type": "boolean"}, "switch": {"$ref": "#/$defs/section"}, "rectifier": {"$ref": "#/$defs/section"}}, "additionalProperties": false},
+    "magnetic": {"type": "object", "required": ["available", "selected_design_id", "chosen_design_ids", "metrics", "metadata"], "properties": {"available": {"type": "boolean"}, "selected_design_id": {"type": ["string", "null"]}, "chosen_design_ids": {"type": "array", "items": {"type": ["string", "null"]}}, "metrics": {"type": "object"}, "metadata": {"type": "object"}}, "additionalProperties": true},
+    "capacitor": {"type": "object", "required": ["available", "input", "output", "metadata"], "properties": {"available": {"type": "boolean"}, "input": {"type": "object"}, "output": {"type": "object"}, "metadata": {"type": "object"}}, "additionalProperties": true},
+    "thermal": {"type": "object", "required": ["available", "status", "metrics", "metadata"], "properties": {"available": {"type": "boolean"}, "status": {"enum": ["pass", "fail", "not_evaluated", "boundary", "unknown"]}, "metrics": {"type": "object"}, "metadata": {"type": "object"}}, "additionalProperties": true},
+    "hardware": {"type": "object", "required": ["semiconductor", "magnetic", "capacitor"], "properties": {"semiconductor": {"type": "object"}, "magnetic": {"type": "object"}, "capacitor": {"type": "object"}}, "additionalProperties": false},
+    "ripple": {"type": "object", "required": ["output_ripple_target", "output_ripple_estimated", "output_ripple_predicted", "output_ripple_simulated", "dc_link_ripple_limit", "dc_link_ripple_predicted"], "properties": {"output_ripple_target": {"$ref": "#/$defs/quantity"}, "output_ripple_estimated": {"$ref": "#/$defs/quantity"}, "output_ripple_predicted": {"$ref": "#/$defs/quantity"}, "output_ripple_simulated": {"$ref": "#/$defs/quantity"}, "dc_link_ripple_limit": {"$ref": "#/$defs/quantity"}, "dc_link_ripple_predicted": {"$ref": "#/$defs/quantity"}}, "additionalProperties": false},
+    "status": {"type": "object", "required": ["feasible", "ccm_valid", "zvs_status", "pf_status", "thermal_status"], "properties": {"feasible": {"type": ["boolean", "null"]}, "ccm_valid": {"type": ["boolean", "null"]}, "zvs_status": {"enum": ["pass", "fail", "not_evaluated", "boundary", "unknown"]}, "pf_status": {"enum": ["pass", "fail", "not_evaluated", "boundary", "unknown"]}, "thermal_status": {"enum": ["pass", "fail", "not_evaluated", "boundary", "unknown"]}}, "additionalProperties": true},
+    "audit": {"type": "object", "required": ["notes", "source_stages"], "properties": {"notes": {"type": "array", "items": {"type": "string"}}, "source_stages": {"type": "array", "items": {"type": "string"}}}, "additionalProperties": true}
+  },
+  "$defs": {
+    "quantity": {"type": "object", "required": ["value", "unit", "source"], "properties": {"value": {"type": ["number", "null"]}, "unit": {"type": "string"}, "source": {"type": "string"}}, "additionalProperties": false},
+    "section": {"type": "object", "additionalProperties": true},
+    "metric_section": {"type": "object", "additionalProperties": {"$ref": "#/$defs/quantity"}}
+  }
+}

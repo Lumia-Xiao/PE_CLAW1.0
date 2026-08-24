@@ -149,7 +149,7 @@
 
 ### 状态
 
-`completed`
+`in_progress`
 
 ### 当前证据
 
@@ -848,22 +848,53 @@ python -m pytest tests/test_phase7_dc_ac_migration.py tests/test_phase9_dc_ac_to
 - `design_output_schema.json`
 - `report_field_dictionary.md`
 - `report_schema_validation.py`
-- 2.0/1.0 structured output snapshots
+- `build_step10_structured_outputs.py`
+- 2.0/1.0 structured output snapshots、CSV 和 Markdown 视图
+- `structured_output_migration_validation.json`
 
 ### 验证方法
 
-- 103 个结果均通过 JSON schema validation。
-- 同一字段在两代的名称、单位和语义一致。
-- Markdown 与 JSON 的值一致，不再出现展示层和结构化层不一致。
+- `python scripts/validate_step9_operating_points.py --source-root C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw --output-dir Plan/active/operating_points_20260824`
+  重新生成 1.0 的 103 条结构化快照。
+- `python scripts/build_step10_structured_outputs.py --inventory Plan/active/baseline_20260824/structured_readback_inventory.json --one-snapshot Plan/active/operating_points_20260824/structured_output_snapshots.json --output-dir Plan/active/structured_outputs_20260824`
+  生成两代快照和三种报告视图。
+- `python scripts/report_schema_validation.py Plan/active/operating_points_20260824/structured_output_snapshots.json --output Plan/active/operating_points_20260824/structured_output_validation.json`
+  结果为 103 valid、0 invalid；跨代生成器结果为 2.0: 103 valid、0 invalid，1.0: 103 valid、0 invalid。
+- `python -m pytest tests/test_phase10_structured_output.py tests/test_phase9_operating_point_migration.py -q`
+  结果为 `5 passed`。
+- 专项测试确认同一结构化对象生成的 CSV 行数与 JSON quantity 数量一致，Markdown 值来自相同 quantity 对象，canonical checksum 可复现。
 
 ### 完成条件
 
 - 0 个语义不明的通用字段。
 - 0 个通过字符串解析才能恢复单位的关键字段。
+- 2.0 和 1.0 均有 103 条可校验的结构化快照。
 
 ### 状态
 
-`pending`
+`completed`
+
+### 第 10 步已实施修改
+
+1. 新增跨代稳定结构化报告适配层，显式提供 `request`、`candidate`、
+   `operating_point`、`waveform`、`stress`、`magnetic`、`capacitor`、
+   `thermal`、`hardware`、`ripple`、`status` 和 `audit` 分区。
+2. 关键数值统一为 `{value, unit, source}`；纹波字段拆分为目标、估算、
+   预测、仿真以及 DC-link 限值/预测，状态字段使用固定枚举。
+3. 新增 JSON schema、字段字典、schema validator、2.0 legacy
+   `final_report.json` 适配器和从结构化对象导出 CSV/Markdown 的脚本。
+4. 新增第十步专项测试，锁定两代快照覆盖、字段契约、视图同源和确定性
+   checksum。
+
+### 第 10 步证据
+
+证据目录：
+`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\Plan\active\structured_outputs_20260824`
+
+其中 `pe_claw_2_structured_output_snapshots.json` 和
+`pe_claw_1_structured_output_snapshots.json` 各包含 103 条记录；对应
+validation 文件均为 `103 valid, 0 invalid`。第十步代码和证据已在本地
+完成，待本次独立 commit/push 后补记 commit hash、远端分支和 push 时间。
 
 ---
 

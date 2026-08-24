@@ -221,6 +221,7 @@ def _run_case(registry: Any, case_dir: Path, baseline: dict[str, Any], baseline_
     from pe_claw_gui.pipeline.options import PipelineOptions
     from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
     from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
+    from pe_claw_gui.reports.structured_output import build_structured_report
     from scripts.compare_pe_claw_2_to_1_design_requests import _parse_front_matter, map_request
 
     request = _parse_front_matter(case_dir / "design_request.md")
@@ -242,6 +243,10 @@ def _run_case(registry: Any, case_dir: Path, baseline: dict[str, Any], baseline_
     except Exception as exc:  # preserve operating-point boundary evidence
         error = f"{type(exc).__name__}: {exc}"
         fixed_snapshot = _hardware_snapshot(baseline_report) if baseline_report is not None else {}
+        structured = build_structured_report(baseline_report) if baseline_report is not None else {}
+        if structured:
+            structured["status"]["replay_status"] = "boundary"
+            structured["audit"]["boundary_reason"] = error
         return {
             "matrix_id": case_dir.parent.name,
             "case_id": case_dir.name,
@@ -257,11 +262,13 @@ def _run_case(registry: Any, case_dir: Path, baseline: dict[str, Any], baseline_
             "hardware_snapshot_checksum": _sha256(fixed_snapshot) if fixed_snapshot else None,
             "waveform_metrics_checksum": None,
             "waveform_metrics": {},
+            "structured_report": structured,
             "status": "boundary_failure" if path == "run_operating_point_refresh" else "failed",
             "reason": error,
         }, baseline_report
     hardware = _hardware_snapshot(report)
     metrics = _waveform_metrics(report)
+    structured = build_structured_report(report)
     record = {
         "matrix_id": case_dir.parent.name,
         "case_id": case_dir.name,
@@ -277,6 +284,7 @@ def _run_case(registry: Any, case_dir: Path, baseline: dict[str, Any], baseline_
         "hardware_snapshot_checksum": _sha256(hardware),
         "waveform_metrics_checksum": _sha256(metrics),
         "waveform_metrics": metrics,
+        "structured_report": structured,
         "status": "executed",
         "reason": "",
     }
@@ -327,6 +335,28 @@ def main() -> int:
     )
     (args.output_dir / "operating_point_migration_validation.json").write_text(
         json.dumps({"contract_version": "pe_claw_operating_point_migration_validation_v1", "case_count": len(records), "topology_count": len({record["topology_id"] for record in records}), "classification_counts": {key: sum(record["classification"] == key for record in records) for key in sorted({record["classification"] for record in records})}, "execution_mode_counts": {key: sum(record["execution_mode"] == key for record in records) for key in sorted({record["execution_mode"] for record in records})}, "execution_path_counts": {key: sum(record["execution_path"] == key for record in records) for key in sorted({record["execution_path"] for record in records})}, "records": [{key: record[key] for key in ("matrix_id", "case_id", "topology_id", "classification", "execution_mode", "execution_path", "status", "reason", "hardware_snapshot_checksum", "operating_point_input_checksum", "waveform_metrics_checksum")} for record in records]}, indent=2, ensure_ascii=True) + "\n",
+        encoding="ascii",
+    )
+    (args.output_dir / "structured_output_snapshots.json").write_text(
+        json.dumps(
+            {
+                "contract_version": "pe_claw_structured_output_snapshot_set_v1",
+                "case_count": len(records),
+                "records": [
+                    {
+                        "matrix_id": record["matrix_id"],
+                        "case_id": record["case_id"],
+                        "topology_id": record["topology_id"],
+                        "status": record["status"],
+                        "structured_report": record["structured_report"],
+                    }
+                    for record in records
+                ],
+            },
+            indent=2,
+            ensure_ascii=True,
+        )
+        + "\n",
         encoding="ascii",
     )
     print(json.dumps({"cases": len(records), "topologies": len({record["topology_id"] for record in records}), "output_dir": str(args.output_dir)}, indent=2))
