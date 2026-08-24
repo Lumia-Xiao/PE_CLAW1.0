@@ -168,6 +168,8 @@ command_duty = effective_duty + duty_loss
 
 ### 第 3 步：修复 operating-point 调用链
 
+状态：`completed`（2026-08-24）
+
 #### 工作内容
 
 1. 修改 PSFB operating-point waveform 生成，使其使用当前工况的
@@ -322,6 +324,34 @@ duty 计算均已复用 policy；`primary_current_model.py` 的物理 duty 顺�
 - `git diff --check`：通过
 - 设计点回归：nominal、低线和高线 duty 数值与第 1 步冻结基线一致
 - 覆盖：nominal、low-line、high-line、light-load、very-light-load、high-frequency、配置上限超限和非法 duty
+
+第 3 步已完成。PSFB waveform 现在根据当前 operating point 的 `vin`、
+`vout`、负载和开关频率调用统一 duty policy，并将同一组
+`effective_duty`、`duty_loss`、`command_duty` 传入 primary-current model。
+PSFB stress 优先读取 operating waveform 的 primary-current metadata；设备
+刷新路径复用 duty policy，并保留设计点 `*_nom` 字段和 operating policy
+字段。固定硬件 refresh 未重新选择器件，名义设计参数保持不变。
+
+第 3 步专项验证：
+
+- replay 脚本：`scripts/validate_psfb_step3_refresh.py`
+- replay 证据：`Plan/active/psfb_duty_policy_20260824/psfb_step3_refresh_results.json`
+- replay 结果：`7/7 executed`、`0 boundary failure`、`0 execution error`
+- 共享硬件 checksum：`1`，7 个工况一致
+- 低输入验证：`effective_duty=0.780000`，`command_duty=0.8415613715672887`，`status=pass`
+- 低输入设计点对照：`command_duty_nom=0.7293531886916502`，未再与 operating effective duty 混用
+- 专项测试命令：`$env:PYTHONPATH='src'; python -m pytest -q tests/test_psfb_duty_policy.py tests/test_psfb_duty_policy_baseline.py`
+- 专项测试结果：`11 passed`
+- PSFB contract 测试：`1 passed, 20 deselected`
+- 编译检查：通过
+- `git diff --check`：通过
+
+### 第 3 步提交与同步记录
+
+- 实现 commit：`daf730d`（`PSFB Step 3: align operating-point duty`）
+- 远端分支：`origin/codex/sync-gui-backend-from-2`
+- 实现 push 结果：成功
+- 计划记录 commit：待本次记录提交后填写
 
 ### 第 2 步提交与同步记录
 
