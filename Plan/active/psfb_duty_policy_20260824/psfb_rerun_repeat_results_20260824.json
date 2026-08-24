@@ -1,0 +1,4401 @@
+{
+  "contract_version": "pe_claw_psfb_step3_refresh_v1",
+  "matrix_id": "07_psfb_diode",
+  "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+  "case_count": 7,
+  "executed_count": 7,
+  "boundary_failure_count": 0,
+  "execution_error_count": 0,
+  "shared_hardware_checksum_count": 1,
+  "records": [
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c01_nominal_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "status": "executed",
+      "execution_mode": "new_design",
+      "operating_vin_v": 750.0,
+      "load_ratio": 1.0,
+      "operating_frequency_hz": 100000.0,
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "duty_policy": {
+        "scope": "operating_point",
+        "effective_duty": 0.676,
+        "duty_loss": 0.05291255752794214,
+        "command_duty": 0.7289125575279422,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "within_physical_range": true,
+        "duty_loss_consistent": true,
+        "within_configured_limits": true,
+        "status": "pass",
+        "failure_reason": null,
+        "feasible": true
+      },
+      "primary_current_duty": {
+        "zero_state_duration_per_half_cycle_s": 1.3554372123602893e-06,
+        "commutation_duration_per_half_cycle_s": 2.645627876397107e-07,
+        "power_transfer_duration_per_half_cycle_s": 3.3800000000000007e-06
+      },
+      "stress": {
+        "primary_current_rms_a": 8.28567035385654,
+        "primary_current_peak_a": 14.041026127335355
+      },
+      "structured_report": {
+        "schema_version": "pe_claw_structured_design_report_v1",
+        "report_kind": "design_report",
+        "topology": {
+          "id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+          "display_name": "Phase-Shifted Full-Bridge Diode Rectifier Isolated"
+        },
+        "request": {
+          "raw_input": {
+            "vin_min": "650.0",
+            "vin_nom": "750.0",
+            "vin_max": "850.0",
+            "vout": "400.0",
+            "pout": "5000.0",
+            "fs_khz": "100.0",
+            "ripple_current_ratio": "0.3",
+            "ripple_voltage_ratio_percent": "1.0",
+            "max_effective_duty": "0.78",
+            "max_command_duty": "0.9",
+            "deadtime_ns": "150.0",
+            "zvs_load_ratio_min": "0.5",
+            "target_bmax_t": "0.18",
+            "turns_ratio_np_ns": "auto",
+            "leakage_inductance_target_uh": "10.0",
+            "magnetizing_inductance_uh": "600.0",
+            "rectifier_diode_drop_v": "1.2",
+            "primary_switch_eoss_uj": "30.0",
+            "primary_switch_qoss_nc": "100.0",
+            "secondary_rectifier_type": "full_bridge_diode",
+            "semiconductor_device_type": "Any",
+            "semiconductor_manufacturer": "Any",
+            "main_switch_category": "Any active switch",
+            "sync_switch_category": "Any active switch",
+            "rectifier_diode_category": "Any diode",
+            "switch_implementation_category": "Any compatible active switch",
+            "diode_binding_policy": "independent"
+          },
+          "input_voltage_min": {
+            "value": 650.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "input_voltage_max": {
+            "value": 850.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_voltage": {
+            "value": 400.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_power": {
+            "value": 5000.0,
+            "unit": "W",
+            "source": "request.normalized"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "request.normalized"
+          },
+          "ripple_current_ratio": {
+            "value": 0.3,
+            "unit": "ratio",
+            "source": "request.normalized"
+          },
+          "ripple_voltage_ratio": {
+            "value": 0.01,
+            "unit": "ratio",
+            "source": "request.normalized"
+          }
+        },
+        "candidate": {
+          "available": true,
+          "inductance": {
+            "value": 0.0003505688639999999,
+            "unit": "H",
+            "source": "candidate.synthesis"
+          },
+          "capacitance": {
+            "value": 1.171875e-06,
+            "unit": "F",
+            "source": "candidate.synthesis"
+          },
+          "duty": {
+            "value": 0.7293531886916502,
+            "unit": "ratio",
+            "source": "candidate.synthesis"
+          },
+          "output_current": {
+            "value": 12.5,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "candidate.synthesis"
+          },
+          "inductor_ripple": {
+            "value": 1.8750000000000002,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "feasible": true,
+          "ccm_valid": true,
+          "mode": "fixed_frequency_phase_shift_first_pass"
+        },
+        "operating_point": {
+          "available": true,
+          "input_voltage": {
+            "value": 750.0,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "load_ratio": {
+            "value": 1.0,
+            "unit": "p.u.",
+            "source": "operating_point.input"
+          },
+          "output_voltage": {
+            "value": null,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "power_factor": {
+            "value": null,
+            "unit": "ratio",
+            "source": "operating_point.input"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "operating_point.input"
+          }
+        },
+        "waveform": {
+          "available": true,
+          "operating": {
+            "input_voltage": {
+              "value": 750.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "output_voltage": {
+              "value": 400.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "load_ratio": {
+              "value": 1.0,
+              "unit": "p.u.",
+              "source": "topology.waveform"
+            },
+            "duty": {
+              "value": 0.676,
+              "unit": "ratio",
+              "source": "topology.waveform"
+            },
+            "switching_frequency": {
+              "value": 99999.99999999999,
+              "unit": "Hz",
+              "source": "topology.waveform"
+            },
+            "switching_period": {
+              "value": 1e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            },
+            "time_span": {
+              "value": 2e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            }
+          },
+          "mode": "PSFB_FIRST_PASS",
+          "series": {
+            "switch_node_voltage": {
+              "average": {
+                "value": 0.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 616.9481339626533,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 750.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -750.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1500.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_current": {
+              "average": {
+                "value": 12.499992390483843,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 12.511706276669019,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.433641975308642,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 11.5625,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.8711419753086425,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "capacitor_current": {
+              "average": {
+                "value": -7.6095161565496264e-06,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 0.5412801414635887,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 0.9336419753086425,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -0.9375,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.8711419753086425,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_voltage": {
+              "average": {
+                "value": 400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 400.000159195938,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 400.5624692726172,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 399.55426356303406,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.0082057095831374,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "switch_current": {
+              "average": {
+                "value": 10.25285947976423,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.552984021664942,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.95102059402531,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.10536105632253978,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 13.84565953770277,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "diode_current": {
+              "average": {
+                "value": 8.455830867850098,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.289083674198475,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.430103550295858,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.0,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 13.430103550295858,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "input_source_current": {
+              "average": {
+                "value": 10.25285947976423,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.552984021664942,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.95102059402531,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.10536105632253978,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 13.84565953770277,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_voltage": {
+              "average": {
+                "value": 1.1728441814595987,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 277.31493520597286,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 192.86627218934916,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 592.8662721893492,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_ripple": {
+              "average": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            }
+          },
+          "metadata": {}
+        },
+        "stress": {
+          "available": true,
+          "switch": {
+            "voltage_max": {
+              "value": 850.0,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 14.041026127335355,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 8.28567035385654,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": null,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          },
+          "rectifier": {
+            "voltage_max": {
+              "value": 674.6351084812624,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 13.433641975308642,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 8.838834764831844,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": 6.25,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          }
+        },
+        "magnetic": {
+          "available": false,
+          "selected_design_id": null,
+          "chosen_design_ids": [],
+          "metrics": {},
+          "metadata": {}
+        },
+        "capacitor": {
+          "available": false,
+          "input": {},
+          "output": {},
+          "metadata": {}
+        },
+        "thermal": {
+          "available": true,
+          "status": "not_evaluated",
+          "metrics": {
+            "ambient_temperature": {
+              "value": 25.0,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "hotspot_temperature": {
+              "value": null,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "total_loss": {
+              "value": null,
+              "unit": "W",
+              "source": "thermal.evaluation"
+            }
+          },
+          "metadata": {
+            "summary": "Magnetic thermal stage disabled by pipeline option."
+          }
+        },
+        "hardware": {
+          "semiconductor": {
+            "selected_devices": {
+              "main_switch": "C4MS036120K",
+              "rectifier_diode": "SCS320KN"
+            },
+            "selection_status": "pass"
+          },
+          "magnetic": {
+            "selected_design_id": null,
+            "chosen_design_ids": [],
+            "selection_status": "not_evaluated"
+          },
+          "capacitor": {
+            "input_part_number": null,
+            "output_part_number": null,
+            "selection_status": "not_evaluated"
+          }
+        },
+        "ripple": {
+          "output_ripple_target": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          },
+          "output_ripple_simulated": {
+            "value": 1.0082057095831374,
+            "unit": "V",
+            "source": "waveform.post_processing"
+          },
+          "dc_link_ripple_limit": {
+            "value": null,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "dc_link_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          }
+        },
+        "status": {
+          "feasible": true,
+          "ccm_valid": true,
+          "zvs_status": "pass",
+          "pf_status": "not_evaluated",
+          "thermal_status": "not_evaluated"
+        },
+        "audit": {
+          "notes": [
+            "PSFB first-pass topology plugin; full backend/session integration is wired through the shared PE-Claw pipeline.",
+            "Secondary rectifier is modeled as an independent full-bridge diode path for future device selection.",
+            "Magnetic design stage: disabled for current semiconductor/thermal development focus.",
+            "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
+            "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based.",
+            "PSFB selected-device primary-current stress was refreshed from the analytic S1-S4 model."
+          ],
+          "source_stages": [
+            "request",
+            "candidate",
+            "waveform",
+            "stress",
+            "magnetic",
+            "capacitor",
+            "thermal",
+            "status"
+          ]
+        }
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c02_low_input_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "status": "executed",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_vin_v": 650.0,
+      "load_ratio": 1.0,
+      "operating_frequency_hz": 100000.0,
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "duty_policy": {
+        "scope": "operating_point",
+        "effective_duty": 0.78,
+        "duty_loss": 0.06156137156728873,
+        "command_duty": 0.8415613715672887,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "within_physical_range": true,
+        "duty_loss_consistent": true,
+        "within_configured_limits": true,
+        "status": "pass",
+        "failure_reason": null,
+        "feasible": true
+      },
+      "primary_current_duty": {
+        "zero_state_duration_per_half_cycle_s": 7.921931421635565e-07,
+        "commutation_duration_per_half_cycle_s": 3.0780685783644364e-07,
+        "power_transfer_duration_per_half_cycle_s": 3.900000000000001e-06
+      },
+      "stress": {
+        "primary_current_rms_a": 8.37974218635231,
+        "primary_current_peak_a": 14.465449482814016
+      },
+      "structured_report": {
+        "schema_version": "pe_claw_structured_design_report_v1",
+        "report_kind": "design_report",
+        "topology": {
+          "id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+          "display_name": "Phase-Shifted Full-Bridge Diode Rectifier Isolated"
+        },
+        "request": {
+          "raw_input": {
+            "vin_min": "650.0",
+            "vin_nom": "750.0",
+            "vin_max": "850.0",
+            "vout": "400.0",
+            "pout": "5000.0",
+            "fs_khz": "100.0",
+            "ripple_current_ratio": "0.3",
+            "ripple_voltage_ratio_percent": "1.0",
+            "max_effective_duty": "0.78",
+            "max_command_duty": "0.9",
+            "deadtime_ns": "150.0",
+            "zvs_load_ratio_min": "0.5",
+            "target_bmax_t": "0.18",
+            "turns_ratio_np_ns": "auto",
+            "leakage_inductance_target_uh": "10.0",
+            "magnetizing_inductance_uh": "600.0",
+            "rectifier_diode_drop_v": "1.2",
+            "primary_switch_eoss_uj": "30.0",
+            "primary_switch_qoss_nc": "100.0",
+            "secondary_rectifier_type": "full_bridge_diode",
+            "semiconductor_device_type": "Any",
+            "semiconductor_manufacturer": "Any",
+            "main_switch_category": "Any active switch",
+            "sync_switch_category": "Any active switch",
+            "rectifier_diode_category": "Any diode",
+            "switch_implementation_category": "Any compatible active switch",
+            "diode_binding_policy": "independent"
+          },
+          "input_voltage_min": {
+            "value": 650.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "input_voltage_max": {
+            "value": 850.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_voltage": {
+            "value": 400.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_power": {
+            "value": 5000.0,
+            "unit": "W",
+            "source": "request.normalized"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "request.normalized"
+          },
+          "ripple_current_ratio": {
+            "value": 0.3,
+            "unit": "ratio",
+            "source": "request.normalized"
+          },
+          "ripple_voltage_ratio": {
+            "value": 0.01,
+            "unit": "ratio",
+            "source": "request.normalized"
+          }
+        },
+        "candidate": {
+          "available": true,
+          "inductance": {
+            "value": 0.0003505688639999999,
+            "unit": "H",
+            "source": "candidate.synthesis"
+          },
+          "capacitance": {
+            "value": 1.171875e-06,
+            "unit": "F",
+            "source": "candidate.synthesis"
+          },
+          "duty": {
+            "value": 0.7293531886916502,
+            "unit": "ratio",
+            "source": "candidate.synthesis"
+          },
+          "output_current": {
+            "value": 12.5,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "candidate.synthesis"
+          },
+          "inductor_ripple": {
+            "value": 1.8750000000000002,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "feasible": true,
+          "ccm_valid": true,
+          "mode": "fixed_frequency_phase_shift_first_pass"
+        },
+        "operating_point": {
+          "available": true,
+          "input_voltage": {
+            "value": 650.0,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "load_ratio": {
+            "value": 1.0,
+            "unit": "p.u.",
+            "source": "operating_point.input"
+          },
+          "output_voltage": {
+            "value": null,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "power_factor": {
+            "value": null,
+            "unit": "ratio",
+            "source": "operating_point.input"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "operating_point.input"
+          }
+        },
+        "waveform": {
+          "available": true,
+          "operating": {
+            "input_voltage": {
+              "value": 650.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "output_voltage": {
+              "value": 400.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "load_ratio": {
+              "value": 1.0,
+              "unit": "p.u.",
+              "source": "topology.waveform"
+            },
+            "duty": {
+              "value": 0.78,
+              "unit": "ratio",
+              "source": "topology.waveform"
+            },
+            "switching_frequency": {
+              "value": 99999.99999999999,
+              "unit": "Hz",
+              "source": "topology.waveform"
+            },
+            "switching_period": {
+              "value": 1e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            },
+            "time_span": {
+              "value": 2e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            }
+          },
+          "mode": "PSFB_FIRST_PASS",
+          "series": {
+            "switch_node_voltage": {
+              "average": {
+                "value": 0.5416666666666666,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 574.9836954210093,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 650.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -650.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1300.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_current": {
+              "average": {
+                "value": 12.5,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 12.511714778138568,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.4375,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 11.5625,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.875,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "capacitor_current": {
+              "average": {
+                "value": -4.2928623618839385e-17,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 0.5413009232313063,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 0.9375,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -0.9375,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.875,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_voltage": {
+              "average": {
+                "value": 400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 400.0001487977132,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 400.5969748359323,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 399.58876092029556,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.0082139156367589,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "switch_current": {
+              "average": {
+                "value": 10.066520011731752,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.435608820842608,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 14.465449482814016,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.399032559321018,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 14.066416923492998,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "diode_current": {
+              "average": {
+                "value": 9.78046875,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 11.06692436891628,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.4375,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.0,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 13.4375,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "input_source_current": {
+              "average": {
+                "value": 10.066520011731752,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.435608820842608,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 14.465449482814016,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.399032559321018,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 14.066416923492998,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_voltage": {
+              "average": {
+                "value": 2.5513264743589237,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 212.24628551920364,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 114.44258974358968,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 514.4425897435897,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_ripple": {
+              "average": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            }
+          },
+          "metadata": {}
+        },
+        "stress": {
+          "available": true,
+          "switch": {
+            "voltage_max": {
+              "value": 850.0,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 14.465449482814016,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 8.37974218635231,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": null,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          },
+          "rectifier": {
+            "voltage_max": {
+              "value": 680.2531558185403,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 13.4375,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 8.838834764831844,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": 6.25,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          }
+        },
+        "magnetic": {
+          "available": false,
+          "selected_design_id": null,
+          "chosen_design_ids": [],
+          "metrics": {},
+          "metadata": {}
+        },
+        "capacitor": {
+          "available": false,
+          "input": {},
+          "output": {},
+          "metadata": {}
+        },
+        "thermal": {
+          "available": true,
+          "status": "not_evaluated",
+          "metrics": {
+            "ambient_temperature": {
+              "value": 25.0,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "hotspot_temperature": {
+              "value": null,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "total_loss": {
+              "value": null,
+              "unit": "W",
+              "source": "thermal.evaluation"
+            }
+          },
+          "metadata": {
+            "summary": "Magnetic thermal stage disabled by pipeline option."
+          }
+        },
+        "hardware": {
+          "semiconductor": {
+            "selected_devices": {
+              "main_switch": "C4MS036120K",
+              "rectifier_diode": "SCS320KN"
+            },
+            "selection_status": "pass"
+          },
+          "magnetic": {
+            "selected_design_id": null,
+            "chosen_design_ids": [],
+            "selection_status": "not_evaluated"
+          },
+          "capacitor": {
+            "input_part_number": null,
+            "output_part_number": null,
+            "selection_status": "not_evaluated"
+          }
+        },
+        "ripple": {
+          "output_ripple_target": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          },
+          "output_ripple_simulated": {
+            "value": 1.0082139156367589,
+            "unit": "V",
+            "source": "waveform.post_processing"
+          },
+          "dc_link_ripple_limit": {
+            "value": null,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "dc_link_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          }
+        },
+        "status": {
+          "feasible": true,
+          "ccm_valid": true,
+          "zvs_status": "pass",
+          "pf_status": "not_evaluated",
+          "thermal_status": "not_evaluated"
+        },
+        "audit": {
+          "notes": [
+            "PSFB first-pass topology plugin; full backend/session integration is wired through the shared PE-Claw pipeline.",
+            "Secondary rectifier is modeled as an independent full-bridge diode path for future device selection.",
+            "Magnetic design stage: disabled for current semiconductor/thermal development focus.",
+            "Generate Waveforms refreshed only operating-point-dependent outputs.",
+            "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
+            "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
+          ],
+          "source_stages": [
+            "request",
+            "candidate",
+            "waveform",
+            "stress",
+            "magnetic",
+            "capacitor",
+            "thermal",
+            "status"
+          ]
+        }
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c03_high_input_full_load",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "status": "executed",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_vin_v": 850.0,
+      "load_ratio": 1.0,
+      "operating_frequency_hz": 100000.0,
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "duty_policy": {
+        "scope": "operating_point",
+        "effective_duty": 0.5964705882352941,
+        "duty_loss": 0.04707634296322079,
+        "command_duty": 0.6435469311985149,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "within_physical_range": true,
+        "duty_loss_consistent": true,
+        "within_configured_limits": true,
+        "status": "pass",
+        "failure_reason": null,
+        "feasible": true
+      },
+      "primary_current_duty": {
+        "zero_state_duration_per_half_cycle_s": 1.7822653440074257e-06,
+        "commutation_duration_per_half_cycle_s": 2.3538171481610397e-07,
+        "power_transfer_duration_per_half_cycle_s": 2.9823529411764707e-06
+      },
+      "stress": {
+        "primary_current_rms_a": 8.140788251643862,
+        "primary_current_peak_a": 13.618427875106573
+      },
+      "structured_report": {
+        "schema_version": "pe_claw_structured_design_report_v1",
+        "report_kind": "design_report",
+        "topology": {
+          "id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+          "display_name": "Phase-Shifted Full-Bridge Diode Rectifier Isolated"
+        },
+        "request": {
+          "raw_input": {
+            "vin_min": "650.0",
+            "vin_nom": "750.0",
+            "vin_max": "850.0",
+            "vout": "400.0",
+            "pout": "5000.0",
+            "fs_khz": "100.0",
+            "ripple_current_ratio": "0.3",
+            "ripple_voltage_ratio_percent": "1.0",
+            "max_effective_duty": "0.78",
+            "max_command_duty": "0.9",
+            "deadtime_ns": "150.0",
+            "zvs_load_ratio_min": "0.5",
+            "target_bmax_t": "0.18",
+            "turns_ratio_np_ns": "auto",
+            "leakage_inductance_target_uh": "10.0",
+            "magnetizing_inductance_uh": "600.0",
+            "rectifier_diode_drop_v": "1.2",
+            "primary_switch_eoss_uj": "30.0",
+            "primary_switch_qoss_nc": "100.0",
+            "secondary_rectifier_type": "full_bridge_diode",
+            "semiconductor_device_type": "Any",
+            "semiconductor_manufacturer": "Any",
+            "main_switch_category": "Any active switch",
+            "sync_switch_category": "Any active switch",
+            "rectifier_diode_category": "Any diode",
+            "switch_implementation_category": "Any compatible active switch",
+            "diode_binding_policy": "independent"
+          },
+          "input_voltage_min": {
+            "value": 650.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "input_voltage_max": {
+            "value": 850.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_voltage": {
+            "value": 400.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_power": {
+            "value": 5000.0,
+            "unit": "W",
+            "source": "request.normalized"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "request.normalized"
+          },
+          "ripple_current_ratio": {
+            "value": 0.3,
+            "unit": "ratio",
+            "source": "request.normalized"
+          },
+          "ripple_voltage_ratio": {
+            "value": 0.01,
+            "unit": "ratio",
+            "source": "request.normalized"
+          }
+        },
+        "candidate": {
+          "available": true,
+          "inductance": {
+            "value": 0.0003505688639999999,
+            "unit": "H",
+            "source": "candidate.synthesis"
+          },
+          "capacitance": {
+            "value": 1.171875e-06,
+            "unit": "F",
+            "source": "candidate.synthesis"
+          },
+          "duty": {
+            "value": 0.7293531886916502,
+            "unit": "ratio",
+            "source": "candidate.synthesis"
+          },
+          "output_current": {
+            "value": 12.5,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "candidate.synthesis"
+          },
+          "inductor_ripple": {
+            "value": 1.8750000000000002,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "feasible": true,
+          "ccm_valid": true,
+          "mode": "fixed_frequency_phase_shift_first_pass"
+        },
+        "operating_point": {
+          "available": true,
+          "input_voltage": {
+            "value": 850.0,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "load_ratio": {
+            "value": 1.0,
+            "unit": "p.u.",
+            "source": "operating_point.input"
+          },
+          "output_voltage": {
+            "value": null,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "power_factor": {
+            "value": null,
+            "unit": "ratio",
+            "source": "operating_point.input"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "operating_point.input"
+          }
+        },
+        "waveform": {
+          "available": true,
+          "operating": {
+            "input_voltage": {
+              "value": 850.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "output_voltage": {
+              "value": 400.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "load_ratio": {
+              "value": 1.0,
+              "unit": "p.u.",
+              "source": "topology.waveform"
+            },
+            "duty": {
+              "value": 0.5964705882352941,
+              "unit": "ratio",
+              "source": "topology.waveform"
+            },
+            "switching_frequency": {
+              "value": 99999.99999999999,
+              "unit": "Hz",
+              "source": "topology.waveform"
+            },
+            "switching_period": {
+              "value": 1e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            },
+            "time_span": {
+              "value": 2e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            }
+          },
+          "mode": "PSFB_FIRST_PASS",
+          "series": {
+            "switch_node_voltage": {
+              "average": {
+                "value": 0.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 656.5757128211999,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 850.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -850.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1700.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_current": {
+              "average": {
+                "value": 12.499997604000745,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 12.511711769481215,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.436588921282798,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 11.5625,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.874088921282798,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "capacitor_current": {
+              "average": {
+                "value": -2.3959992563193923e-06,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 0.5412867101233402,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 0.936588921282798,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -0.9375,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.874088921282798,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_voltage": {
+              "average": {
+                "value": 400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 400.0001639528813,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 400.53610518796563,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 399.5278732120353,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.0082319759303573,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "switch_current": {
+              "average": {
+                "value": 10.53282321576408,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.780372104454061,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.618427875106573,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.023678456660114477,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 13.594749418446458,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "diode_current": {
+              "average": {
+                "value": 7.455391190006575,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 9.660773352363035,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.427638067061144,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.0,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 13.427638067061144,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "input_source_current": {
+              "average": {
+                "value": 10.53282321576408,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.780372104454061,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.618427875106573,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.023678456660114477,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 13.594749418446458,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_voltage": {
+              "average": {
+                "value": 2.452952971729081,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 330.8972982929683,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 274.50215581854036,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 674.5021558185404,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_ripple": {
+              "average": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            }
+          },
+          "metadata": {}
+        },
+        "stress": {
+          "available": true,
+          "switch": {
+            "voltage_max": {
+              "value": 850.0,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 13.618427875106573,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 8.140788251643862,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": null,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          },
+          "rectifier": {
+            "voltage_max": {
+              "value": 680.2531558185403,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 13.436588921282798,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 8.838834764831844,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": 6.25,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          }
+        },
+        "magnetic": {
+          "available": false,
+          "selected_design_id": null,
+          "chosen_design_ids": [],
+          "metrics": {},
+          "metadata": {}
+        },
+        "capacitor": {
+          "available": false,
+          "input": {},
+          "output": {},
+          "metadata": {}
+        },
+        "thermal": {
+          "available": true,
+          "status": "not_evaluated",
+          "metrics": {
+            "ambient_temperature": {
+              "value": 25.0,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "hotspot_temperature": {
+              "value": null,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "total_loss": {
+              "value": null,
+              "unit": "W",
+              "source": "thermal.evaluation"
+            }
+          },
+          "metadata": {
+            "summary": "Magnetic thermal stage disabled by pipeline option."
+          }
+        },
+        "hardware": {
+          "semiconductor": {
+            "selected_devices": {
+              "main_switch": "C4MS036120K",
+              "rectifier_diode": "SCS320KN"
+            },
+            "selection_status": "pass"
+          },
+          "magnetic": {
+            "selected_design_id": null,
+            "chosen_design_ids": [],
+            "selection_status": "not_evaluated"
+          },
+          "capacitor": {
+            "input_part_number": null,
+            "output_part_number": null,
+            "selection_status": "not_evaluated"
+          }
+        },
+        "ripple": {
+          "output_ripple_target": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          },
+          "output_ripple_simulated": {
+            "value": 1.0082319759303573,
+            "unit": "V",
+            "source": "waveform.post_processing"
+          },
+          "dc_link_ripple_limit": {
+            "value": null,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "dc_link_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          }
+        },
+        "status": {
+          "feasible": true,
+          "ccm_valid": true,
+          "zvs_status": "pass",
+          "pf_status": "not_evaluated",
+          "thermal_status": "not_evaluated"
+        },
+        "audit": {
+          "notes": [
+            "PSFB first-pass topology plugin; full backend/session integration is wired through the shared PE-Claw pipeline.",
+            "Secondary rectifier is modeled as an independent full-bridge diode path for future device selection.",
+            "Magnetic design stage: disabled for current semiconductor/thermal development focus.",
+            "Generate Waveforms refreshed only operating-point-dependent outputs.",
+            "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
+            "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
+          ],
+          "source_stages": [
+            "request",
+            "candidate",
+            "waveform",
+            "stress",
+            "magnetic",
+            "capacitor",
+            "thermal",
+            "status"
+          ]
+        }
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c04_nominal_light_load_20pct",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "status": "executed",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_vin_v": 750.0,
+      "load_ratio": 0.2,
+      "operating_frequency_hz": 100000.0,
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "duty_policy": {
+        "scope": "operating_point",
+        "effective_duty": 0.676,
+        "duty_loss": 0.010670637738330045,
+        "command_duty": 0.68667063773833,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "within_physical_range": true,
+        "duty_loss_consistent": true,
+        "within_configured_limits": true,
+        "status": "pass",
+        "failure_reason": null,
+        "feasible": true
+      },
+      "primary_current_duty": {
+        "zero_state_duration_per_half_cycle_s": 1.5666468113083499e-06,
+        "commutation_duration_per_half_cycle_s": 5.335318869165023e-08,
+        "power_transfer_duration_per_half_cycle_s": 3.3800000000000007e-06
+      },
+      "stress": {
+        "primary_current_rms_a": 2.821195600368142,
+        "primary_current_peak_a": 5.304441479077631
+      },
+      "structured_report": {
+        "schema_version": "pe_claw_structured_design_report_v1",
+        "report_kind": "design_report",
+        "topology": {
+          "id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+          "display_name": "Phase-Shifted Full-Bridge Diode Rectifier Isolated"
+        },
+        "request": {
+          "raw_input": {
+            "vin_min": "650.0",
+            "vin_nom": "750.0",
+            "vin_max": "850.0",
+            "vout": "400.0",
+            "pout": "5000.0",
+            "fs_khz": "100.0",
+            "ripple_current_ratio": "0.3",
+            "ripple_voltage_ratio_percent": "1.0",
+            "max_effective_duty": "0.78",
+            "max_command_duty": "0.9",
+            "deadtime_ns": "150.0",
+            "zvs_load_ratio_min": "0.5",
+            "target_bmax_t": "0.18",
+            "turns_ratio_np_ns": "auto",
+            "leakage_inductance_target_uh": "10.0",
+            "magnetizing_inductance_uh": "600.0",
+            "rectifier_diode_drop_v": "1.2",
+            "primary_switch_eoss_uj": "30.0",
+            "primary_switch_qoss_nc": "100.0",
+            "secondary_rectifier_type": "full_bridge_diode",
+            "semiconductor_device_type": "Any",
+            "semiconductor_manufacturer": "Any",
+            "main_switch_category": "Any active switch",
+            "sync_switch_category": "Any active switch",
+            "rectifier_diode_category": "Any diode",
+            "switch_implementation_category": "Any compatible active switch",
+            "diode_binding_policy": "independent"
+          },
+          "input_voltage_min": {
+            "value": 650.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "input_voltage_max": {
+            "value": 850.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_voltage": {
+            "value": 400.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_power": {
+            "value": 5000.0,
+            "unit": "W",
+            "source": "request.normalized"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "request.normalized"
+          },
+          "ripple_current_ratio": {
+            "value": 0.3,
+            "unit": "ratio",
+            "source": "request.normalized"
+          },
+          "ripple_voltage_ratio": {
+            "value": 0.01,
+            "unit": "ratio",
+            "source": "request.normalized"
+          }
+        },
+        "candidate": {
+          "available": true,
+          "inductance": {
+            "value": 0.0003505688639999999,
+            "unit": "H",
+            "source": "candidate.synthesis"
+          },
+          "capacitance": {
+            "value": 1.171875e-06,
+            "unit": "F",
+            "source": "candidate.synthesis"
+          },
+          "duty": {
+            "value": 0.7293531886916502,
+            "unit": "ratio",
+            "source": "candidate.synthesis"
+          },
+          "output_current": {
+            "value": 12.5,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "candidate.synthesis"
+          },
+          "inductor_ripple": {
+            "value": 1.8750000000000002,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "feasible": true,
+          "ccm_valid": true,
+          "mode": "fixed_frequency_phase_shift_first_pass"
+        },
+        "operating_point": {
+          "available": true,
+          "input_voltage": {
+            "value": 750.0,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "load_ratio": {
+            "value": 0.2,
+            "unit": "p.u.",
+            "source": "operating_point.input"
+          },
+          "output_voltage": {
+            "value": null,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "power_factor": {
+            "value": null,
+            "unit": "ratio",
+            "source": "operating_point.input"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "operating_point.input"
+          }
+        },
+        "waveform": {
+          "available": true,
+          "operating": {
+            "input_voltage": {
+              "value": 750.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "output_voltage": {
+              "value": 400.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "load_ratio": {
+              "value": 0.2,
+              "unit": "p.u.",
+              "source": "topology.waveform"
+            },
+            "duty": {
+              "value": 0.676,
+              "unit": "ratio",
+              "source": "topology.waveform"
+            },
+            "switching_frequency": {
+              "value": 99999.99999999999,
+              "unit": "Hz",
+              "source": "topology.waveform"
+            },
+            "switching_period": {
+              "value": 1e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            },
+            "time_span": {
+              "value": 2e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            }
+          },
+          "mode": "PSFB_FIRST_PASS",
+          "series": {
+            "switch_node_voltage": {
+              "average": {
+                "value": 0.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 616.9481339626533,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 750.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -750.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1500.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_current": {
+              "average": {
+                "value": 2.4999984780967686,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 2.502341255333804,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 2.6867283950617287,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 2.3125,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 0.37422839506172867,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "capacitor_current": {
+              "average": {
+                "value": -1.5219032313048183e-06,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 0.10825602829271776,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 0.18672839506172867,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -0.1875,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 0.37422839506172867,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_voltage": {
+              "average": {
+                "value": 400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 400.00000636783875,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 400.11249385452345,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 399.9108527126068,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 0.20164114191663884,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "switch_current": {
+              "average": {
+                "value": 2.7815275380082607,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 3.2020930296601877,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 5.304441479077631,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.004186917389542799,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 5.300254561688088,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "diode_current": {
+              "average": {
+                "value": 1.6911661735700196,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 2.0578167348396947,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 2.6860207100591715,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.0,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 2.6860207100591715,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "input_source_current": {
+              "average": {
+                "value": 2.7815275380082607,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 3.2020930296601877,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 5.304441479077631,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.004186917389542799,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 5.300254561688088,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_voltage": {
+              "average": {
+                "value": 2.2596389151873293,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 278.07288772517177,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 194.47237278106502,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 594.472372781065,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_ripple": {
+              "average": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            }
+          },
+          "metadata": {}
+        },
+        "stress": {
+          "available": true,
+          "switch": {
+            "voltage_max": {
+              "value": 850.0,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 5.304441479077631,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 2.821195600368142,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": null,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          },
+          "rectifier": {
+            "voltage_max": {
+              "value": 680.2531558185403,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 2.6867283950617287,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 1.7677669529663689,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": 1.25,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          }
+        },
+        "magnetic": {
+          "available": false,
+          "selected_design_id": null,
+          "chosen_design_ids": [],
+          "metrics": {},
+          "metadata": {}
+        },
+        "capacitor": {
+          "available": false,
+          "input": {},
+          "output": {},
+          "metadata": {}
+        },
+        "thermal": {
+          "available": true,
+          "status": "not_evaluated",
+          "metrics": {
+            "ambient_temperature": {
+              "value": 25.0,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "hotspot_temperature": {
+              "value": null,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "total_loss": {
+              "value": null,
+              "unit": "W",
+              "source": "thermal.evaluation"
+            }
+          },
+          "metadata": {
+            "summary": "Magnetic thermal stage disabled by pipeline option."
+          }
+        },
+        "hardware": {
+          "semiconductor": {
+            "selected_devices": {
+              "main_switch": "C4MS036120K",
+              "rectifier_diode": "SCS320KN"
+            },
+            "selection_status": "pass"
+          },
+          "magnetic": {
+            "selected_design_id": null,
+            "chosen_design_ids": [],
+            "selection_status": "not_evaluated"
+          },
+          "capacitor": {
+            "input_part_number": null,
+            "output_part_number": null,
+            "selection_status": "not_evaluated"
+          }
+        },
+        "ripple": {
+          "output_ripple_target": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          },
+          "output_ripple_simulated": {
+            "value": 0.20164114191663884,
+            "unit": "V",
+            "source": "waveform.post_processing"
+          },
+          "dc_link_ripple_limit": {
+            "value": null,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "dc_link_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          }
+        },
+        "status": {
+          "feasible": true,
+          "ccm_valid": true,
+          "zvs_status": "pass",
+          "pf_status": "not_evaluated",
+          "thermal_status": "not_evaluated"
+        },
+        "audit": {
+          "notes": [
+            "PSFB first-pass topology plugin; full backend/session integration is wired through the shared PE-Claw pipeline.",
+            "Secondary rectifier is modeled as an independent full-bridge diode path for future device selection.",
+            "Magnetic design stage: disabled for current semiconductor/thermal development focus.",
+            "Generate Waveforms refreshed only operating-point-dependent outputs.",
+            "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
+            "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
+          ],
+          "source_stages": [
+            "request",
+            "candidate",
+            "waveform",
+            "stress",
+            "magnetic",
+            "capacitor",
+            "thermal",
+            "status"
+          ]
+        }
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c05_nominal_very_light_load_10pct",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "status": "executed",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_vin_v": 750.0,
+      "load_ratio": 0.1,
+      "operating_frequency_hz": 100000.0,
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "duty_policy": {
+        "scope": "operating_point",
+        "effective_duty": 0.676,
+        "duty_loss": 0.005335318869165022,
+        "command_duty": 0.6813353188691651,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "within_physical_range": true,
+        "duty_loss_consistent": true,
+        "within_configured_limits": true,
+        "status": "pass",
+        "failure_reason": null,
+        "feasible": true
+      },
+      "primary_current_duty": {
+        "zero_state_duration_per_half_cycle_s": 1.5933234056541747e-06,
+        "commutation_duration_per_half_cycle_s": 2.6676594345825114e-08,
+        "power_transfer_duration_per_half_cycle_s": 3.3800000000000007e-06
+      },
+      "stress": {
+        "primary_current_rms_a": 2.167715527060121,
+        "primary_current_peak_a": 4.212368398045415
+      },
+      "structured_report": {
+        "schema_version": "pe_claw_structured_design_report_v1",
+        "report_kind": "design_report",
+        "topology": {
+          "id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+          "display_name": "Phase-Shifted Full-Bridge Diode Rectifier Isolated"
+        },
+        "request": {
+          "raw_input": {
+            "vin_min": "650.0",
+            "vin_nom": "750.0",
+            "vin_max": "850.0",
+            "vout": "400.0",
+            "pout": "5000.0",
+            "fs_khz": "100.0",
+            "ripple_current_ratio": "0.3",
+            "ripple_voltage_ratio_percent": "1.0",
+            "max_effective_duty": "0.78",
+            "max_command_duty": "0.9",
+            "deadtime_ns": "150.0",
+            "zvs_load_ratio_min": "0.5",
+            "target_bmax_t": "0.18",
+            "turns_ratio_np_ns": "auto",
+            "leakage_inductance_target_uh": "10.0",
+            "magnetizing_inductance_uh": "600.0",
+            "rectifier_diode_drop_v": "1.2",
+            "primary_switch_eoss_uj": "30.0",
+            "primary_switch_qoss_nc": "100.0",
+            "secondary_rectifier_type": "full_bridge_diode",
+            "semiconductor_device_type": "Any",
+            "semiconductor_manufacturer": "Any",
+            "main_switch_category": "Any active switch",
+            "sync_switch_category": "Any active switch",
+            "rectifier_diode_category": "Any diode",
+            "switch_implementation_category": "Any compatible active switch",
+            "diode_binding_policy": "independent"
+          },
+          "input_voltage_min": {
+            "value": 650.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "input_voltage_max": {
+            "value": 850.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_voltage": {
+            "value": 400.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_power": {
+            "value": 5000.0,
+            "unit": "W",
+            "source": "request.normalized"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "request.normalized"
+          },
+          "ripple_current_ratio": {
+            "value": 0.3,
+            "unit": "ratio",
+            "source": "request.normalized"
+          },
+          "ripple_voltage_ratio": {
+            "value": 0.01,
+            "unit": "ratio",
+            "source": "request.normalized"
+          }
+        },
+        "candidate": {
+          "available": true,
+          "inductance": {
+            "value": 0.0003505688639999999,
+            "unit": "H",
+            "source": "candidate.synthesis"
+          },
+          "capacitance": {
+            "value": 1.171875e-06,
+            "unit": "F",
+            "source": "candidate.synthesis"
+          },
+          "duty": {
+            "value": 0.7293531886916502,
+            "unit": "ratio",
+            "source": "candidate.synthesis"
+          },
+          "output_current": {
+            "value": 12.5,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "candidate.synthesis"
+          },
+          "inductor_ripple": {
+            "value": 1.8750000000000002,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "feasible": true,
+          "ccm_valid": true,
+          "mode": "fixed_frequency_phase_shift_first_pass"
+        },
+        "operating_point": {
+          "available": true,
+          "input_voltage": {
+            "value": 750.0,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "load_ratio": {
+            "value": 0.1,
+            "unit": "p.u.",
+            "source": "operating_point.input"
+          },
+          "output_voltage": {
+            "value": null,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "power_factor": {
+            "value": null,
+            "unit": "ratio",
+            "source": "operating_point.input"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "operating_point.input"
+          }
+        },
+        "waveform": {
+          "available": true,
+          "operating": {
+            "input_voltage": {
+              "value": 750.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "output_voltage": {
+              "value": 400.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "load_ratio": {
+              "value": 0.1,
+              "unit": "p.u.",
+              "source": "topology.waveform"
+            },
+            "duty": {
+              "value": 0.676,
+              "unit": "ratio",
+              "source": "topology.waveform"
+            },
+            "switching_frequency": {
+              "value": 99999.99999999999,
+              "unit": "Hz",
+              "source": "topology.waveform"
+            },
+            "switching_period": {
+              "value": 1e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            },
+            "time_span": {
+              "value": 2e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            }
+          },
+          "mode": "PSFB_FIRST_PASS",
+          "series": {
+            "switch_node_voltage": {
+              "average": {
+                "value": 0.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 616.9481339626533,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 750.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -750.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1500.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_current": {
+              "average": {
+                "value": 1.2499992390483843,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 1.251170627666902,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 1.3433641975308643,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 1.15625,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 0.18711419753086433,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "capacitor_current": {
+              "average": {
+                "value": -7.609516156524092e-07,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 0.05412801414635888,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 0.09336419753086433,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -0.09375,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 0.18711419753086433,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_voltage": {
+              "average": {
+                "value": 399.99999999999994,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 400.0000015919597,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 400.05624692726167,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 399.95542635630335,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 0.10082057095831942,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "switch_current": {
+              "average": {
+                "value": 2.0512086127897735,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 2.4247450188503636,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 4.212368398045415,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.00160498257513364,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 4.210763415470281,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "diode_current": {
+              "average": {
+                "value": 0.8455830867850098,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 1.0289083674198474,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 1.3430103550295858,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.0,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.3430103550295858,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "input_source_current": {
+              "average": {
+                "value": 2.0512086127897735,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 2.4247450188503636,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 4.212368398045415,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.00160498257513364,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 4.210763415470281,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_voltage": {
+              "average": {
+                "value": 2.2596389151873293,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 278.07288772517177,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 194.47237278106502,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 594.472372781065,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_ripple": {
+              "average": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            }
+          },
+          "metadata": {}
+        },
+        "stress": {
+          "available": true,
+          "switch": {
+            "voltage_max": {
+              "value": 850.0,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 4.212368398045415,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 2.167715527060121,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": null,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          },
+          "rectifier": {
+            "voltage_max": {
+              "value": 680.2531558185403,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 1.3433641975308643,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 0.8838834764831844,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": 0.625,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          }
+        },
+        "magnetic": {
+          "available": false,
+          "selected_design_id": null,
+          "chosen_design_ids": [],
+          "metrics": {},
+          "metadata": {}
+        },
+        "capacitor": {
+          "available": false,
+          "input": {},
+          "output": {},
+          "metadata": {}
+        },
+        "thermal": {
+          "available": true,
+          "status": "not_evaluated",
+          "metrics": {
+            "ambient_temperature": {
+              "value": 25.0,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "hotspot_temperature": {
+              "value": null,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "total_loss": {
+              "value": null,
+              "unit": "W",
+              "source": "thermal.evaluation"
+            }
+          },
+          "metadata": {
+            "summary": "Magnetic thermal stage disabled by pipeline option."
+          }
+        },
+        "hardware": {
+          "semiconductor": {
+            "selected_devices": {
+              "main_switch": "C4MS036120K",
+              "rectifier_diode": "SCS320KN"
+            },
+            "selection_status": "pass"
+          },
+          "magnetic": {
+            "selected_design_id": null,
+            "chosen_design_ids": [],
+            "selection_status": "not_evaluated"
+          },
+          "capacitor": {
+            "input_part_number": null,
+            "output_part_number": null,
+            "selection_status": "not_evaluated"
+          }
+        },
+        "ripple": {
+          "output_ripple_target": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          },
+          "output_ripple_simulated": {
+            "value": 0.10082057095831942,
+            "unit": "V",
+            "source": "waveform.post_processing"
+          },
+          "dc_link_ripple_limit": {
+            "value": null,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "dc_link_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          }
+        },
+        "status": {
+          "feasible": true,
+          "ccm_valid": true,
+          "zvs_status": "pass",
+          "pf_status": "not_evaluated",
+          "thermal_status": "not_evaluated"
+        },
+        "audit": {
+          "notes": [
+            "PSFB first-pass topology plugin; full backend/session integration is wired through the shared PE-Claw pipeline.",
+            "Secondary rectifier is modeled as an independent full-bridge diode path for future device selection.",
+            "Magnetic design stage: disabled for current semiconductor/thermal development focus.",
+            "Generate Waveforms refreshed only operating-point-dependent outputs.",
+            "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
+            "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
+          ],
+          "source_stages": [
+            "request",
+            "candidate",
+            "waveform",
+            "stress",
+            "magnetic",
+            "capacitor",
+            "thermal",
+            "status"
+          ]
+        }
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c06_nominal_high_frequency",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "status": "executed",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_vin_v": 750.0,
+      "load_ratio": 1.0,
+      "operating_frequency_hz": 150000.0,
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "duty_policy": {
+        "scope": "operating_point",
+        "effective_duty": 0.676,
+        "duty_loss": 0.08002978303747534,
+        "command_duty": 0.7560297830374754,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "within_physical_range": true,
+        "duty_loss_consistent": true,
+        "within_configured_limits": true,
+        "status": "pass",
+        "failure_reason": null,
+        "feasible": true
+      },
+      "primary_current_duty": {
+        "zero_state_duration_per_half_cycle_s": 8.132340565417488e-07,
+        "commutation_duration_per_half_cycle_s": 2.667659434582511e-07,
+        "power_transfer_duration_per_half_cycle_s": 2.2533333333333335e-06
+      },
+      "stress": {
+        "primary_current_rms_a": 7.781743922669891,
+        "primary_current_peak_a": 13.000927688330954
+      },
+      "structured_report": {
+        "schema_version": "pe_claw_structured_design_report_v1",
+        "report_kind": "design_report",
+        "topology": {
+          "id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+          "display_name": "Phase-Shifted Full-Bridge Diode Rectifier Isolated"
+        },
+        "request": {
+          "raw_input": {
+            "vin_min": "650.0",
+            "vin_nom": "750.0",
+            "vin_max": "850.0",
+            "vout": "400.0",
+            "pout": "5000.0",
+            "fs_khz": "100.0",
+            "ripple_current_ratio": "0.3",
+            "ripple_voltage_ratio_percent": "1.0",
+            "max_effective_duty": "0.78",
+            "max_command_duty": "0.9",
+            "deadtime_ns": "150.0",
+            "zvs_load_ratio_min": "0.5",
+            "target_bmax_t": "0.18",
+            "turns_ratio_np_ns": "auto",
+            "leakage_inductance_target_uh": "10.0",
+            "magnetizing_inductance_uh": "600.0",
+            "rectifier_diode_drop_v": "1.2",
+            "primary_switch_eoss_uj": "30.0",
+            "primary_switch_qoss_nc": "100.0",
+            "secondary_rectifier_type": "full_bridge_diode",
+            "semiconductor_device_type": "Any",
+            "semiconductor_manufacturer": "Any",
+            "main_switch_category": "Any active switch",
+            "sync_switch_category": "Any active switch",
+            "rectifier_diode_category": "Any diode",
+            "switch_implementation_category": "Any compatible active switch",
+            "diode_binding_policy": "independent"
+          },
+          "input_voltage_min": {
+            "value": 650.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "input_voltage_max": {
+            "value": 850.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_voltage": {
+            "value": 400.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_power": {
+            "value": 5000.0,
+            "unit": "W",
+            "source": "request.normalized"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "request.normalized"
+          },
+          "ripple_current_ratio": {
+            "value": 0.3,
+            "unit": "ratio",
+            "source": "request.normalized"
+          },
+          "ripple_voltage_ratio": {
+            "value": 0.01,
+            "unit": "ratio",
+            "source": "request.normalized"
+          }
+        },
+        "candidate": {
+          "available": true,
+          "inductance": {
+            "value": 0.0003505688639999999,
+            "unit": "H",
+            "source": "candidate.synthesis"
+          },
+          "capacitance": {
+            "value": 1.171875e-06,
+            "unit": "F",
+            "source": "candidate.synthesis"
+          },
+          "duty": {
+            "value": 0.7293531886916502,
+            "unit": "ratio",
+            "source": "candidate.synthesis"
+          },
+          "output_current": {
+            "value": 12.5,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "candidate.synthesis"
+          },
+          "inductor_ripple": {
+            "value": 1.8750000000000002,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "feasible": true,
+          "ccm_valid": true,
+          "mode": "fixed_frequency_phase_shift_first_pass"
+        },
+        "operating_point": {
+          "available": true,
+          "input_voltage": {
+            "value": 750.0,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "load_ratio": {
+            "value": 1.0,
+            "unit": "p.u.",
+            "source": "operating_point.input"
+          },
+          "output_voltage": {
+            "value": null,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "power_factor": {
+            "value": null,
+            "unit": "ratio",
+            "source": "operating_point.input"
+          },
+          "switching_frequency": {
+            "value": 150000.0,
+            "unit": "Hz",
+            "source": "operating_point.input"
+          }
+        },
+        "waveform": {
+          "available": true,
+          "operating": {
+            "input_voltage": {
+              "value": 750.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "output_voltage": {
+              "value": 400.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "load_ratio": {
+              "value": 1.0,
+              "unit": "p.u.",
+              "source": "topology.waveform"
+            },
+            "duty": {
+              "value": 0.676,
+              "unit": "ratio",
+              "source": "topology.waveform"
+            },
+            "switching_frequency": {
+              "value": 150000.0,
+              "unit": "Hz",
+              "source": "topology.waveform"
+            },
+            "switching_period": {
+              "value": 6.666666666666667e-06,
+              "unit": "s",
+              "source": "topology.waveform"
+            },
+            "time_span": {
+              "value": 1.3333333333333333e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            }
+          },
+          "mode": "PSFB_FIRST_PASS",
+          "series": {
+            "switch_node_voltage": {
+              "average": {
+                "value": 0.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 616.9481339626533,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 750.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -750.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1500.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_current": {
+              "average": {
+                "value": 12.499992390483843,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 12.511706276669019,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.433641975308642,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 11.5625,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.8711419753086425,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "capacitor_current": {
+              "average": {
+                "value": -7.609516156527422e-06,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 0.5412801414635887,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 0.9336419753086425,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -0.9375,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.8711419753086425,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_voltage": {
+              "average": {
+                "value": 400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 400.00007075375805,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 400.3749795150781,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 399.702842375356,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 0.6721371397221105,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "switch_current": {
+              "average": {
+                "value": 9.975644687226328,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.230603764472429,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.000927688330954,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.06106480720528573,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 12.939862881125668,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "diode_current": {
+              "average": {
+                "value": 8.455830867850098,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.289083674198475,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.430103550295858,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.0,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 13.430103550295858,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "input_source_current": {
+              "average": {
+                "value": 9.975644687226328,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.230603764472429,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.000927688330954,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.06106480720528573,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 12.939862881125668,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_voltage": {
+              "average": {
+                "value": 2.2596389151873293,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 278.07288772517177,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 194.47237278106502,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 594.472372781065,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_ripple": {
+              "average": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            }
+          },
+          "metadata": {}
+        },
+        "stress": {
+          "available": true,
+          "switch": {
+            "voltage_max": {
+              "value": 850.0,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 13.000927688330954,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 7.781743922669891,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": null,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          },
+          "rectifier": {
+            "voltage_max": {
+              "value": 680.2531558185403,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 13.433641975308642,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 8.838834764831844,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": 6.25,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          }
+        },
+        "magnetic": {
+          "available": false,
+          "selected_design_id": null,
+          "chosen_design_ids": [],
+          "metrics": {},
+          "metadata": {}
+        },
+        "capacitor": {
+          "available": false,
+          "input": {},
+          "output": {},
+          "metadata": {}
+        },
+        "thermal": {
+          "available": true,
+          "status": "not_evaluated",
+          "metrics": {
+            "ambient_temperature": {
+              "value": 25.0,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "hotspot_temperature": {
+              "value": null,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "total_loss": {
+              "value": null,
+              "unit": "W",
+              "source": "thermal.evaluation"
+            }
+          },
+          "metadata": {
+            "summary": "Magnetic thermal stage disabled by pipeline option."
+          }
+        },
+        "hardware": {
+          "semiconductor": {
+            "selected_devices": {
+              "main_switch": "C4MS036120K",
+              "rectifier_diode": "SCS320KN"
+            },
+            "selection_status": "pass"
+          },
+          "magnetic": {
+            "selected_design_id": null,
+            "chosen_design_ids": [],
+            "selection_status": "not_evaluated"
+          },
+          "capacitor": {
+            "input_part_number": null,
+            "output_part_number": null,
+            "selection_status": "not_evaluated"
+          }
+        },
+        "ripple": {
+          "output_ripple_target": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          },
+          "output_ripple_simulated": {
+            "value": 0.6721371397221105,
+            "unit": "V",
+            "source": "waveform.post_processing"
+          },
+          "dc_link_ripple_limit": {
+            "value": null,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "dc_link_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          }
+        },
+        "status": {
+          "feasible": true,
+          "ccm_valid": true,
+          "zvs_status": "pass",
+          "pf_status": "not_evaluated",
+          "thermal_status": "not_evaluated"
+        },
+        "audit": {
+          "notes": [
+            "PSFB first-pass topology plugin; full backend/session integration is wired through the shared PE-Claw pipeline.",
+            "Secondary rectifier is modeled as an independent full-bridge diode path for future device selection.",
+            "Magnetic design stage: disabled for current semiconductor/thermal development focus.",
+            "Generate Waveforms refreshed only operating-point-dependent outputs.",
+            "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
+            "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
+          ],
+          "source_stages": [
+            "request",
+            "candidate",
+            "waveform",
+            "stress",
+            "magnetic",
+            "capacitor",
+            "thermal",
+            "status"
+          ]
+        }
+      }
+    },
+    {
+      "matrix_id": "07_psfb_diode",
+      "case_id": "c07_nominal_high_ripple",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "status": "executed",
+      "execution_mode": "fixed_hardware_refresh",
+      "operating_vin_v": 750.0,
+      "load_ratio": 1.0,
+      "operating_frequency_hz": 100000.0,
+      "hardware_snapshot_checksum": "3b8a9e9004ee311d464147bc5f985f36bc4bb2a0ae40c2da0b9e29ede303c09d",
+      "duty_policy": {
+        "scope": "operating_point",
+        "effective_duty": 0.676,
+        "duty_loss": 0.05335318869165022,
+        "command_duty": 0.7293531886916502,
+        "max_effective_duty": 0.78,
+        "max_command_duty": 0.9,
+        "within_physical_range": true,
+        "duty_loss_consistent": true,
+        "within_configured_limits": true,
+        "status": "pass",
+        "failure_reason": null,
+        "feasible": true
+      },
+      "primary_current_duty": {
+        "zero_state_duration_per_half_cycle_s": 1.353234056541749e-06,
+        "commutation_duration_per_half_cycle_s": 2.667659434582511e-07,
+        "power_transfer_duration_per_half_cycle_s": 3.3800000000000007e-06
+      },
+      "stress": {
+        "primary_current_rms_a": 8.28567035385654,
+        "primary_current_peak_a": 14.041026127335355
+      },
+      "structured_report": {
+        "schema_version": "pe_claw_structured_design_report_v1",
+        "report_kind": "design_report",
+        "topology": {
+          "id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+          "display_name": "Phase-Shifted Full-Bridge Diode Rectifier Isolated"
+        },
+        "request": {
+          "raw_input": {
+            "vin_min": "650.0",
+            "vin_nom": "750.0",
+            "vin_max": "850.0",
+            "vout": "400.0",
+            "pout": "5000.0",
+            "fs_khz": "100.0",
+            "ripple_current_ratio": "0.3",
+            "ripple_voltage_ratio_percent": "1.0",
+            "max_effective_duty": "0.78",
+            "max_command_duty": "0.9",
+            "deadtime_ns": "150.0",
+            "zvs_load_ratio_min": "0.5",
+            "target_bmax_t": "0.18",
+            "turns_ratio_np_ns": "auto",
+            "leakage_inductance_target_uh": "10.0",
+            "magnetizing_inductance_uh": "600.0",
+            "rectifier_diode_drop_v": "1.2",
+            "primary_switch_eoss_uj": "30.0",
+            "primary_switch_qoss_nc": "100.0",
+            "secondary_rectifier_type": "full_bridge_diode",
+            "semiconductor_device_type": "Any",
+            "semiconductor_manufacturer": "Any",
+            "main_switch_category": "Any active switch",
+            "sync_switch_category": "Any active switch",
+            "rectifier_diode_category": "Any diode",
+            "switch_implementation_category": "Any compatible active switch",
+            "diode_binding_policy": "independent"
+          },
+          "input_voltage_min": {
+            "value": 650.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "input_voltage_max": {
+            "value": 850.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_voltage": {
+            "value": 400.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_power": {
+            "value": 5000.0,
+            "unit": "W",
+            "source": "request.normalized"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "request.normalized"
+          },
+          "ripple_current_ratio": {
+            "value": 0.3,
+            "unit": "ratio",
+            "source": "request.normalized"
+          },
+          "ripple_voltage_ratio": {
+            "value": 0.01,
+            "unit": "ratio",
+            "source": "request.normalized"
+          }
+        },
+        "candidate": {
+          "available": true,
+          "inductance": {
+            "value": 0.0003505688639999999,
+            "unit": "H",
+            "source": "candidate.synthesis"
+          },
+          "capacitance": {
+            "value": 1.171875e-06,
+            "unit": "F",
+            "source": "candidate.synthesis"
+          },
+          "duty": {
+            "value": 0.7293531886916502,
+            "unit": "ratio",
+            "source": "candidate.synthesis"
+          },
+          "output_current": {
+            "value": 12.5,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "candidate.synthesis"
+          },
+          "inductor_ripple": {
+            "value": 1.8750000000000002,
+            "unit": "A",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "feasible": true,
+          "ccm_valid": true,
+          "mode": "fixed_frequency_phase_shift_first_pass"
+        },
+        "operating_point": {
+          "available": true,
+          "input_voltage": {
+            "value": 750.0,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "load_ratio": {
+            "value": 1.0,
+            "unit": "p.u.",
+            "source": "operating_point.input"
+          },
+          "output_voltage": {
+            "value": null,
+            "unit": "V",
+            "source": "operating_point.input"
+          },
+          "power_factor": {
+            "value": null,
+            "unit": "ratio",
+            "source": "operating_point.input"
+          },
+          "switching_frequency": {
+            "value": 100000.0,
+            "unit": "Hz",
+            "source": "operating_point.input"
+          }
+        },
+        "waveform": {
+          "available": true,
+          "operating": {
+            "input_voltage": {
+              "value": 750.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "output_voltage": {
+              "value": 400.0,
+              "unit": "V",
+              "source": "topology.waveform"
+            },
+            "load_ratio": {
+              "value": 1.0,
+              "unit": "p.u.",
+              "source": "topology.waveform"
+            },
+            "duty": {
+              "value": 0.676,
+              "unit": "ratio",
+              "source": "topology.waveform"
+            },
+            "switching_frequency": {
+              "value": 99999.99999999999,
+              "unit": "Hz",
+              "source": "topology.waveform"
+            },
+            "switching_period": {
+              "value": 1e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            },
+            "time_span": {
+              "value": 2e-05,
+              "unit": "s",
+              "source": "topology.waveform"
+            }
+          },
+          "mode": "PSFB_FIRST_PASS",
+          "series": {
+            "switch_node_voltage": {
+              "average": {
+                "value": 0.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 616.9481339626533,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 750.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -750.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1500.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_current": {
+              "average": {
+                "value": 12.499992390483843,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 12.511706276669019,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.433641975308642,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 11.5625,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.8711419753086425,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "capacitor_current": {
+              "average": {
+                "value": -7.6095161565496264e-06,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 0.5412801414635887,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 0.9336419753086425,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -0.9375,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.8711419753086425,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_voltage": {
+              "average": {
+                "value": 400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 400.000159195938,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 400.5624692726172,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 399.55426356303406,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 1.0082057095831374,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "switch_current": {
+              "average": {
+                "value": 10.330350819157411,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.631334443954433,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 14.041026127335355,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.02848009807139107,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 14.012546029263964,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "diode_current": {
+              "average": {
+                "value": 8.455830867850098,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.289083674198475,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 13.430103550295858,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.0,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 13.430103550295858,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "input_source_current": {
+              "average": {
+                "value": 10.330350819157411,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 10.631334443954433,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 14.041026127335355,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": 0.02848009807139107,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 14.012546029263964,
+                "unit": "A",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "inductor_voltage": {
+              "average": {
+                "value": 2.2596389151873293,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": 278.07288772517177,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": 194.47237278106502,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": -400.0,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": 594.472372781065,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            },
+            "output_ripple": {
+              "average": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "rms": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "valley": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              },
+              "peak_to_peak": {
+                "value": null,
+                "unit": "V",
+                "source": "topology.waveform_post_processing"
+              }
+            }
+          },
+          "metadata": {}
+        },
+        "stress": {
+          "available": true,
+          "switch": {
+            "voltage_max": {
+              "value": 850.0,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 14.041026127335355,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 8.28567035385654,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": null,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          },
+          "rectifier": {
+            "voltage_max": {
+              "value": 680.2531558185403,
+              "unit": "V",
+              "source": "stress.extraction"
+            },
+            "current_peak": {
+              "value": 13.433641975308642,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_rms": {
+              "value": 8.838834764831844,
+              "unit": "A",
+              "source": "stress.extraction"
+            },
+            "current_average": {
+              "value": 6.25,
+              "unit": "A",
+              "source": "stress.extraction"
+            }
+          }
+        },
+        "magnetic": {
+          "available": false,
+          "selected_design_id": null,
+          "chosen_design_ids": [],
+          "metrics": {},
+          "metadata": {}
+        },
+        "capacitor": {
+          "available": false,
+          "input": {},
+          "output": {},
+          "metadata": {}
+        },
+        "thermal": {
+          "available": true,
+          "status": "not_evaluated",
+          "metrics": {
+            "ambient_temperature": {
+              "value": 25.0,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "hotspot_temperature": {
+              "value": null,
+              "unit": "degC",
+              "source": "thermal.evaluation"
+            },
+            "total_loss": {
+              "value": null,
+              "unit": "W",
+              "source": "thermal.evaluation"
+            }
+          },
+          "metadata": {
+            "summary": "Magnetic thermal stage disabled by pipeline option."
+          }
+        },
+        "hardware": {
+          "semiconductor": {
+            "selected_devices": {
+              "main_switch": "C4MS036120K",
+              "rectifier_diode": "SCS320KN"
+            },
+            "selection_status": "pass"
+          },
+          "magnetic": {
+            "selected_design_id": null,
+            "chosen_design_ids": [],
+            "selection_status": "not_evaluated"
+          },
+          "capacitor": {
+            "input_part_number": null,
+            "output_part_number": null,
+            "selection_status": "not_evaluated"
+          }
+        },
+        "ripple": {
+          "output_ripple_target": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "output_ripple_estimated": {
+            "value": 4.0,
+            "unit": "V",
+            "source": "candidate.synthesis"
+          },
+          "output_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          },
+          "output_ripple_simulated": {
+            "value": 1.0082057095831374,
+            "unit": "V",
+            "source": "waveform.post_processing"
+          },
+          "dc_link_ripple_limit": {
+            "value": null,
+            "unit": "V",
+            "source": "request.normalized"
+          },
+          "dc_link_ripple_predicted": {
+            "value": null,
+            "unit": "V",
+            "source": "capacitor.selection"
+          }
+        },
+        "status": {
+          "feasible": true,
+          "ccm_valid": true,
+          "zvs_status": "pass",
+          "pf_status": "not_evaluated",
+          "thermal_status": "not_evaluated"
+        },
+        "audit": {
+          "notes": [
+            "PSFB first-pass topology plugin; full backend/session integration is wired through the shared PE-Claw pipeline.",
+            "Secondary rectifier is modeled as an independent full-bridge diode path for future device selection.",
+            "Magnetic design stage: disabled for current semiconductor/thermal development focus.",
+            "Generate Waveforms refreshed only operating-point-dependent outputs.",
+            "PSFB primary switch voltage is treated as the maximum DC-link voltage in this first-pass model.",
+            "Secondary full-bridge diode reverse stress uses the reflected high-line transformer secondary voltage; leakage/clamp spike margin is a first-pass follow-up.",
+            "Operating-point waveform metadata supplies the PSFB primary-current stress; voltage stress remains design-corner based."
+          ],
+          "source_stages": [
+            "request",
+            "candidate",
+            "waveform",
+            "stress",
+            "magnetic",
+            "capacitor",
+            "thermal",
+            "status"
+          ]
+        }
+      }
+    }
+  ]
+}
