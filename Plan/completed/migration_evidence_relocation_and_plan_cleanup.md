@@ -13,8 +13,8 @@
 | Change type | Documentation, evidence relocation, and path-reference maintenance; no topology or formula changes |
 
 This plan is the approved execution record. Sections 1-7 authorize the
-documented evidence relocation and reference updates; Step 8 retains the
-separate validation, review, commit, and push gate.
+documented evidence relocation and reference updates; Step 8 records the
+completed validation, review, commit, and push closeout.
 
 ## 2. Problem Statement
 
@@ -693,5 +693,5 @@ before the affected move or validation step begins.
 - Rebuilt final acceptance evidence. Current result: `103/103` replayed,
   zero execution errors, zero boundary failures, zero unexplained differences,
   and both schema sets valid for all 103 records.
-- Step 8 is complete. A focused closeout commit is being created after the
-  final staged-diff review; remote push remains a separate operator action.
+- Step 8 is complete. Focused closeout commit `6a7c21c` was created after the
+  final staged-diff review and pushed to `origin/master`.

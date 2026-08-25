@@ -263,8 +263,8 @@ test remains skipped because its external reference data is not present.
 
 ## Verdict
 
-**ACCEPTED FOR MIGRATION.** The repaired migration evidence is complete and
-auditable, and the plan is ready to close.
+**ACCEPTED FOR MIGRATION.** The repaired migration evidence is complete,
+auditable, and archived with the completed plan.
 
 ## Scope and Results
 
@@ -312,8 +312,10 @@ records.
 
 ## Release Decision
 
-The migration acceptance gates are satisfied. The plan is ready to move from
-`Plan/active` to `Plan/completed` after the final closeout commit and push.
+The migration acceptance gates are satisfied. The plan is archived at
+`Plan/completed/migration_evidence_relocation_and_plan_cleanup.md`. The final
+closeout commit `6a7c21c` was created and pushed to `origin/master` after the
+acceptance evidence was validated.
 """
     (EVIDENCE / "complete_migration_acceptance_report.md").write_text(md, encoding="utf-8")
 

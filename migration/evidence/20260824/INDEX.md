@@ -22,12 +22,14 @@ record and must not be regenerated after relocation under the same filename.
 
 ## Active Plans Retained In Place
 
-The following Markdown plans remain under `Plan/active/` and are not evidence
-artifacts:
+The following unfinished Markdown plan remains under `Plan/active/` and is not
+an evidence artifact:
 
 - `psfb_duty_policy_fix_plan.md` — unfinished PSFB repair plan.
-- `migration_evidence_relocation_and_plan_cleanup.md` — active plan governing
-  this evidence reorganization.
+
+The completed evidence-reorganization plan is archived at
+`Plan/completed/migration_evidence_relocation_and_plan_cleanup.md` and governs
+the records below.
 
 ## Approved Destination Groups
 
@@ -221,5 +223,5 @@ Step 6 validation summary:
 - The final acceptance report and test report now record the current result:
   `103/103` replayed, zero execution errors, zero boundary failures, zero
   unexplained differences, and both schema sets `103/103` valid.
-- Step 8 review gate: validation is complete; commit/push remains an explicit
-  operator action and was not performed in this step.
+- Step 8 review and closeout are complete. Closeout commit `6a7c21c`
+  was created and pushed to `origin/master`.
