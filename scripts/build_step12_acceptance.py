@@ -16,14 +16,14 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EVIDENCE = ROOT / "Plan" / "active" / "final_acceptance_20260824"
+EVIDENCE = ROOT / "migration" / "evidence" / "20260824" / "step12_final_acceptance"
 COMPARISON = EVIDENCE / "comparison"
 REPLAY = EVIDENCE / "operating_points"
 STRUCTURED = EVIDENCE / "structured_outputs"
 ARCHIVE = EVIDENCE / "golden_baseline"
-REPAIRED_REPLAY = ROOT / "Plan" / "active" / "operating_points_20260824_repaired"
-REPAIRED_COMPARISON = ROOT / "Plan" / "active" / "final_comparison_20260824_repaired"
-REPAIRED_STRUCTURED = ROOT / "Plan" / "active" / "structured_outputs_20260824_repaired"
+REPAIRED_REPLAY = ROOT / "migration" / "evidence" / "20260824" / "step9_operating_points" / "current_repaired"
+REPAIRED_COMPARISON = ROOT / "migration" / "evidence" / "20260824" / "step11_comparison" / "current_repaired"
+REPAIRED_STRUCTURED = ROOT / "migration" / "evidence" / "20260824" / "step10_structured_outputs" / "current_repaired"
 
 
 def sha256(path: Path) -> str:
@@ -61,13 +61,13 @@ def test_summary() -> dict[str, Any]:
         "full_suite_default_command": {
             "command": "python -m pytest -q --basetemp .pytest-tmp-step12-full",
             "status": "passed",
-            "result": "251 passed, 1 skipped in 751.33s",
+            "result": "266 passed, 1 skipped in 761.10s",
             "reason": "Repository-local writable basetemp used for reproducible execution under the current Windows ACL.",
         },
         "full_suite_isolated_command": {
             "command": "python -m pytest -q --basetemp .pytest-tmp-step12-full",
             "status": "passed",
-            "result": "251 passed, 1 skipped in 751.33s",
+            "result": "266 passed, 1 skipped in 761.10s",
         },
         "isolated_tmp_path_regression": {
             "command": "python -m pytest -q tests/test_capacitor_selection.py::test_new_tdk_csv_metadata_preserves_terminal_and_special_flags tests/test_capacitor_selection.py::test_capacitor_pareto_csv_includes_series_and_package_metadata tests/test_capacitor_selection.py::test_jianghai_template_metadata_is_written_to_capacitor_csv --basetemp .pytest-tmp-step12/base",
@@ -228,8 +228,8 @@ def main() -> None:
 ## Full Suite
 
 - Reproducible command: `python -m pytest -q --basetemp .pytest-tmp-step12-full`.
-- Result: `251 passed, 1 skipped`.
-- Repository-local writable basetemp: `251 passed, 1 skipped`.
+- Result: `266 passed, 1 skipped`.
+- Repository-local writable basetemp: `266 passed, 1 skipped`.
 - The skipped test is the existing optional external OpenMagnetics reference
   data test.
 

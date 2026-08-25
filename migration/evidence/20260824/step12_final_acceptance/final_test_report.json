@@ -1,17 +1,17 @@
 {
   "contract_version": "pe_claw_final_test_report_v1",
-  "generated_at_utc": "2026-08-24T12:12:52.572063+00:00",
+  "generated_at_utc": "2026-08-25T05:42:43.562198+00:00",
   "full_suite": {
     "full_suite_default_command": {
       "command": "python -m pytest -q --basetemp .pytest-tmp-step12-full",
       "status": "passed",
-      "result": "251 passed, 1 skipped in 751.33s",
+      "result": "266 passed, 1 skipped in 761.10s",
       "reason": "Repository-local writable basetemp used for reproducible execution under the current Windows ACL."
     },
     "full_suite_isolated_command": {
       "command": "python -m pytest -q --basetemp .pytest-tmp-step12-full",
       "status": "passed",
-      "result": "251 passed, 1 skipped in 751.33s"
+      "result": "266 passed, 1 skipped in 761.10s"
     },
     "isolated_tmp_path_regression": {
       "command": "python -m pytest -q tests/test_capacitor_selection.py::test_new_tdk_csv_metadata_preserves_terminal_and_special_flags tests/test_capacitor_selection.py::test_capacitor_pareto_csv_includes_series_and_package_metadata tests/test_capacitor_selection.py::test_jianghai_template_metadata_is_written_to_capacitor_csv --basetemp .pytest-tmp-step12/base",

@@ -85,10 +85,10 @@ def _policy_reference() -> dict[str, Any]:
 
 
 def build_baseline(output_dir: Path) -> dict[str, Any]:
-    comparison_path = ROOT / "Plan" / "active" / "final_acceptance_20260824" / "comparison" / "comparison_final.json"
-    replay_path = ROOT / "Plan" / "active" / "operating_points_20260824" / "operating_point_migration_validation.json"
-    target_path = ROOT / "Plan" / "active" / "structured_outputs_20260824" / "pe_claw_1_structured_output_snapshots.json"
-    source_path = ROOT / "Plan" / "active" / "structured_outputs_20260824" / "pe_claw_2_structured_output_snapshots.json"
+    comparison_path = ROOT / "migration" / "evidence" / "20260824" / "step12_final_acceptance" / "comparison" / "comparison_final.json"
+    replay_path = ROOT / "migration" / "evidence" / "20260824" / "step9_operating_points" / "historical" / "operating_point_migration_validation.json"
+    target_path = ROOT / "migration" / "evidence" / "20260824" / "step10_structured_outputs" / "historical" / "pe_claw_1_structured_output_snapshots.json"
+    source_path = ROOT / "migration" / "evidence" / "20260824" / "step10_structured_outputs" / "historical" / "pe_claw_2_structured_output_snapshots.json"
 
     comparison = _load(comparison_path)
     replay = _load(replay_path)
@@ -195,7 +195,7 @@ def main() -> None:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=ROOT / "Plan" / "active" / "psfb_duty_policy_20260824",
+        default=ROOT / "migration" / "evidence" / "20260824" / "psfb_duty_policy",
     )
     args = parser.parse_args()
     baseline = build_baseline(args.output_dir)

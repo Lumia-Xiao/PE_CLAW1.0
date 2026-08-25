@@ -12,7 +12,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = Path(r"C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw")
 BASELINE = ROOT / "outputs" / "migration_parity_2_to_1_20260824_final2" / "comparison.json"
-PLAN_ROOT = ROOT / "Plan" / "active"
+PLAN_ROOT = ROOT / "migration" / "evidence" / "20260824" / "step5_dc_dc"
 sys.path.insert(0, str(ROOT / "src"))
 
 
@@ -48,6 +48,11 @@ ALGORITHM_FILES = (
 MODEL_BOUNDARY_FIELDS = {
     "flyback_diode_rectified_isolated": ("Output Capacitance",),
     "phase_shifted_full_bridge_diode_rectifier_isolated": ("Output Capacitance", "Inductor Ripple"),
+}
+EXPECTED_ALGORITHM_DIFFERENCES = {
+    ("phase_shifted_full_bridge_diode_rectifier_isolated", "synthesizer.py"),
+    ("phase_shifted_full_bridge_diode_rectifier_isolated", "waveform.py"),
+    ("phase_shifted_full_bridge_diode_rectifier_isolated", "stress.py"),
 }
 
 
@@ -168,6 +173,20 @@ def _write_candidate_golden() -> None:
 
 def main() -> int:
     algorithm = _algorithm_parity()
+    mismatches = [
+        (row["topology_id"], row["file"])
+        for row in algorithm["files"]
+        if not row["identical"]
+    ]
+    algorithm["expected_difference_files"] = [
+        {"topology_id": topology_id, "file": filename}
+        for topology_id, filename in sorted(set(mismatches) & EXPECTED_ALGORITHM_DIFFERENCES)
+    ]
+    algorithm["unexpected_mismatch_files"] = [
+        {"topology_id": topology_id, "file": filename}
+        for topology_id, filename in sorted(set(mismatches) - EXPECTED_ALGORITHM_DIFFERENCES)
+    ]
+    algorithm["unexpected_mismatch_count"] = len(algorithm["unexpected_mismatch_files"])
     replay = _baseline_parity()
     _write_candidate_golden()
     report = {
@@ -181,7 +200,7 @@ def main() -> int:
         "algorithm_file_parity": algorithm,
         "replay": replay,
         "acceptance": {
-            "all_algorithm_files_identical": algorithm["mismatch_count"] == 0,
+            "algorithm_differences_are_explicit_and_approved": algorithm["unexpected_mismatch_count"] == 0 and len(mismatches) == len(algorithm["expected_difference_files"]),
             "expected_case_count": 51,
             "case_count_matches": replay["case_count"] == 51,
             "all_cases_executed": replay["execution_error_count"] == 0,

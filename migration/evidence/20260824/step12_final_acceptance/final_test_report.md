@@ -3,8 +3,8 @@
 ## Full Suite
 
 - Reproducible command: `python -m pytest -q --basetemp .pytest-tmp-step12-full`.
-- Result: `251 passed, 1 skipped`.
-- Repository-local writable basetemp: `251 passed, 1 skipped`.
+- Result: `266 passed, 1 skipped`.
+- Repository-local writable basetemp: `266 passed, 1 skipped`.
 - The skipped test is the existing optional external OpenMagnetics reference
   data test.
 

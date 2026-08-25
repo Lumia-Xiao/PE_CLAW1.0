@@ -22,7 +22,7 @@ from typing import Any
 
 SOURCE_ROOT = Path(r"C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw")
 TARGET_ROOT = Path(r"C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0")
-BASELINE_ROOT = TARGET_ROOT / "Plan" / "active" / "baseline_20260824"
+BASELINE_ROOT = TARGET_ROOT / "migration" / "evidence" / "20260824" / "step1_baseline"
 TOPOLOGY_COUNT = 17
 REQUIRED_FILES = (
     "design_request.md",

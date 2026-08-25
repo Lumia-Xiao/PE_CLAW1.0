@@ -1,6 +1,6 @@
 {
   "contract_version": "pe_claw_complete_migration_acceptance_v1",
-  "generated_at_utc": "2026-08-24T12:12:52.572063+00:00",
+  "generated_at_utc": "2026-08-25T05:42:43.562198+00:00",
   "verdict": "ACCEPTED_FOR_MIGRATION",
   "closure_status": "ready_to_close",
   "scope": {
@@ -1313,9 +1313,9 @@
     "release_ready": true
   },
   "evidence_paths": {
-    "replay": "Plan\\active\\operating_points_20260824_repaired",
-    "structured_outputs": "Plan\\active\\structured_outputs_20260824_repaired",
-    "comparison": "Plan\\active\\final_comparison_20260824_repaired",
-    "golden_baseline": "Plan\\active\\final_acceptance_20260824\\golden_baseline"
+    "replay": "migration\\evidence\\20260824\\step9_operating_points\\current_repaired",
+    "structured_outputs": "migration\\evidence\\20260824\\step10_structured_outputs\\current_repaired",
+    "comparison": "migration\\evidence\\20260824\\step11_comparison\\current_repaired",
+    "golden_baseline": "migration\\evidence\\20260824\\step12_final_acceptance\\golden_baseline"
   }
 }

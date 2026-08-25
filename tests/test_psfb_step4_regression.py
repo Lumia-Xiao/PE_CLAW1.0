@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EVIDENCE = ROOT / "Plan" / "active" / "psfb_duty_policy_20260824" / "psfb_step4_regression_results.json"
+EVIDENCE = ROOT / "migration" / "evidence" / "20260824" / "psfb_duty_policy" / "psfb_step4_regression_results.json"
 CASES = {
     "c01_nominal_full_load",
     "c02_low_input_full_load",

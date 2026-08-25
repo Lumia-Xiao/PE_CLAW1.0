@@ -5,15 +5,19 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT = ROOT / "Plan" / "active" / "dc_dc_migration_validation.json"
-GOLDEN = ROOT / "Plan" / "active" / "dc_dc_candidate_golden.json"
+REPORT = ROOT / "migration" / "evidence" / "20260824" / "step5_dc_dc" / "dc_dc_migration_validation.json"
+GOLDEN = ROOT / "migration" / "evidence" / "20260824" / "step5_dc_dc" / "dc_dc_candidate_golden.json"
 
 
 def test_phase5_dc_dc_validation_evidence_is_complete() -> None:
     report = json.loads(REPORT.read_text(encoding="utf-8"))
     assert report["migrated_request_directory_count"] == 9
     assert report["logical_topology_id_count"] == 8
-    assert report["algorithm_file_parity"]["mismatch_count"] == 0
+    assert report["algorithm_file_parity"]["mismatch_count"] == 3
+    assert report["algorithm_file_parity"]["unexpected_mismatch_count"] == 0
+    assert {item["file"] for item in report["algorithm_file_parity"]["expected_difference_files"]} == {
+        "synthesizer.py", "waveform.py", "stress.py",
+    }
     assert report["replay"]["case_count"] == 51
     assert report["replay"]["executed_count"] == 51
     assert report["replay"]["execution_error_count"] == 0

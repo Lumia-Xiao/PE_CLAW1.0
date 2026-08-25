@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLAN = ROOT / "Plan" / "active" / "operating_points_20260824"
+PLAN = ROOT / "migration" / "evidence" / "20260824" / "step9_operating_points" / "historical"
 
 
 def _rows() -> list[dict[str, str]]:

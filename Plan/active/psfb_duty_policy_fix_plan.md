@@ -103,8 +103,8 @@ effective_duty_operating > command_duty_nom
 
 #### 主要证据
 
-- `Plan/active/final_acceptance_20260824/comparison/comparison_final.json`
-- `Plan/active/operating_points_20260824/operating_point_replay_matrix.csv`
+- `migration/evidence/20260824/step12_final_acceptance/comparison/comparison_final.json`
+- `migration/evidence/20260824/step9_operating_points/current_repaired/operating_point_replay_matrix.csv`
 - 新增 PSFB 专项基线 JSON/CSV。
 
 #### 完成条件
@@ -238,7 +238,7 @@ PSFB operating duty policy、primary-current、waveform 和 stress refresh。
 第 4 步专项验证：
 
 - 回归脚本：`scripts/validate_psfb_step4_regression.py`
-- 回归证据：`Plan/active/psfb_duty_policy_20260824/psfb_step4_regression_results.json`
+- 回归证据：`migration/evidence/20260824/psfb_duty_policy/psfb_step4_regression_results.json`
 - 回归结果：`7/7 executed`、`0 boundary failure`、`0 execution error`
 - c02 状态转换：`boundary_failure -> executed`
 - 所有 duty 和派生数值：有限值，无 NaN/Inf
@@ -266,9 +266,9 @@ replay、duty 对比、checksum 和 validation report 均已保存。主迁移�
 第 5 步专项验证：
 
 - 证据脚本：`scripts/record_psfb_step5_evidence.py`
-- replay：`Plan/active/psfb_duty_policy_20260824/psfb_replay_results.json`
-- duty 对比：`Plan/active/psfb_duty_policy_20260824/psfb_duty_comparison.csv`
-- validation report：`Plan/active/psfb_duty_policy_20260824/psfb_validation_report.md`、`psfb_validation_report.json`
+- replay：`migration/evidence/20260824/psfb_duty_policy/psfb_replay_results.json`
+- duty 对比：`migration/evidence/20260824/psfb_duty_policy/psfb_duty_comparison.csv`
+- validation report：`migration/evidence/20260824/psfb_duty_policy/psfb_validation_report.md`、`psfb_validation_report.json`
 - 结果：7/7 executed、0 个修复后 boundary failure、0 个 execution error
 - c02：`boundary_failure -> executed`
 - 固定硬件：7 个工况共享 1 个 checksum，均与修复前 c01 硬件 checksum 一致
@@ -283,8 +283,8 @@ replay、duty 对比、checksum 和 validation report 均已保存。主迁移�
 
 ### 修复后 PSFB 全部工况重跑记录（2026-08-24）
 
-- 重跑结果：`Plan/active/psfb_duty_policy_20260824/psfb_rerun_results_20260824.json`
-- 重跑回归：`Plan/active/psfb_duty_policy_20260824/psfb_rerun_regression_results_20260824.json`
+- 重跑结果：`migration/evidence/20260824/psfb_duty_policy/psfb_rerun_results_20260824.json`
+- 重跑回归：`migration/evidence/20260824/psfb_duty_policy/psfb_rerun_regression_results_20260824.json`
 - 覆盖：7/7 PSFB 工况
 - 结果：7/7 `executed`、0 个 boundary failure、0 个 execution error
 - 硬件：7 个工况共享 1 个 hardware checksum
@@ -309,11 +309,11 @@ replay、duty 对比、checksum 和 validation report 均已保存。主迁移�
 
 #### 主要产出物
 
-- `Plan/active/psfb_duty_policy_20260824/psfb_baseline.json`
-- `Plan/active/psfb_duty_policy_20260824/psfb_replay_results.json`
-- `Plan/active/psfb_duty_policy_20260824/psfb_duty_comparison.csv`
-- `Plan/active/psfb_duty_policy_20260824/psfb_validation_report.md`
-- `Plan/active/psfb_duty_policy_20260824/psfb_validation_report.json`
+- `migration/evidence/20260824/psfb_duty_policy/psfb_baseline.json`
+- `migration/evidence/20260824/psfb_duty_policy/psfb_replay_results.json`
+- `migration/evidence/20260824/psfb_duty_policy/psfb_duty_comparison.csv`
+- `migration/evidence/20260824/psfb_duty_policy/psfb_validation_report.md`
+- `migration/evidence/20260824/psfb_duty_policy/psfb_validation_report.json`
 - 主计划中第 9、11、12 步的更新记录。
 
 #### 完成条件
@@ -361,7 +361,7 @@ replay、duty 对比、checksum 和 validation report 均已保存。主迁移�
 ### 第 1 步执行结果（2026-08-24）
 
 - 基线脚本：`scripts/freeze_psfb_duty_baseline.py`
-- 基线目录：`Plan/active/psfb_duty_policy_20260824/`
+- 基线目录：`migration/evidence/20260824/psfb_duty_policy/`
 - 基线文件：`psfb_baseline.json`、`psfb_baseline.csv`
 - PSFB 工况覆盖：7/7
 - boundary failure：1 个，仅为 `c02_low_input_full_load`
@@ -401,7 +401,7 @@ PSFB stress 优先读取 operating waveform 的 primary-current metadata；设�
 第 3 步专项验证：
 
 - replay 脚本：`scripts/validate_psfb_step3_refresh.py`
-- replay 证据：`Plan/active/psfb_duty_policy_20260824/psfb_step3_refresh_results.json`
+- replay 证据：`migration/evidence/20260824/psfb_duty_policy/psfb_step3_refresh_results.json`
 - replay 结果：`7/7 executed`、`0 boundary failure`、`0 execution error`
 - 共享硬件 checksum：`1`，7 个工况一致
 - 低输入验证：`effective_duty=0.780000`，`command_duty=0.8415613715672887`，`status=pass`

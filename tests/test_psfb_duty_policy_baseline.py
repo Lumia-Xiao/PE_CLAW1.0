@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE = ROOT / "Plan" / "active" / "psfb_duty_policy_20260824"
+BASELINE = ROOT / "migration" / "evidence" / "20260824" / "psfb_duty_policy"
 EXPECTED_CASES = {
     "c01_nominal_full_load",
     "c02_low_input_full_load",

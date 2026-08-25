@@ -14,7 +14,7 @@ from pe_claw_gui.reports.structured_output import canonical_json, flatten_quanti
 from scripts.report_schema_validation import validate_report
 
 
-EVIDENCE = ROOT / "Plan" / "active" / "structured_outputs_20260824"
+EVIDENCE = ROOT / "migration" / "evidence" / "20260824" / "step10_structured_outputs" / "historical"
 
 
 def _snapshot(name: str) -> dict:

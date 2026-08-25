@@ -12,7 +12,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = Path(r"C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw")
 BASELINE = ROOT / "outputs" / "migration_parity_2_to_1_20260824_final2" / "comparison.json"
-PLAN_ROOT = ROOT / "Plan" / "active"
+PLAN_ROOT = ROOT / "migration" / "evidence" / "20260824" / "step7_dc_ac"
 sys.path.insert(0, str(ROOT / "src"))
 
 

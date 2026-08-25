@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = Path(r"C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw")
-EVIDENCE_ROOT = ROOT / "Plan" / "active" / "environment_20260824"
+EVIDENCE_ROOT = ROOT / "migration" / "evidence" / "20260824" / "step2_environment"
 
 sys.path.insert(0, str(ROOT / "src"))
 

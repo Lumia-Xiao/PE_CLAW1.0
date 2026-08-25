@@ -38,12 +38,64 @@ agentic/AI, generated output, and unrelated topology families remain excluded.
 - `phase11/summary.md`: complete AI/agentic isolation audit, runtime cleanup, documentation updates, and regression evidence.
 - `phase12/summary.md`: full 19-topology verification, source/target backend parity, clean wheel installation, GUI smoke, and complete pytest evidence.
 - `phase13/summary.md`: final release review, fresh-clone reproducibility, wheel/GUI smoke, and GitHub delivery evidence.
-- `final_acceptance_20260824/`: current end-to-end migration acceptance evidence. The machine-readable report is blocked for release until the PSFB duty boundary is resolved.
+- `evidence/20260824/`: relocated migration evidence tree. This is the current
+  artifact authority for the 2026-08-24 migration closeout.
+- `evidence/20260824/step12_final_acceptance/`: the single dated final
+  acceptance location. There is no release duplicate.
+- `evidence/20260824/runs/`: reserved for one explicitly validated final
+  parity run; it remains empty when no run satisfies the promotion gate.
 - `tools/phase12_parity.py`: reproducible source/target structured-contract comparison tool.
 - `tools/generate_phase1_artifacts.py`: standard-library-only reproducible generator.
-- `artifact_manifest.csv`: byte counts and SHA-256 values for migration evidence files.
+- `artifact_manifest.csv`: byte counts and SHA-256 values for the complete
+  migration tree, including the relocated evidence tree and legacy phase
+  records, but excluding runtime outputs, caches, and temporary files.
 
 CSV files use UTF-8 with BOM for reliable spreadsheet import on Windows.
+
+## Current Evidence Authority (2026-08-24)
+
+The relocated evidence is organized by migration stage:
+
+```text
+evidence/20260824/
+  step1_baseline/
+  step2_environment/
+  step3_request_contract/
+  step4_topology_registry/
+  step5_dc_dc/
+  step6_ac_dc/
+  step7_dc_ac/
+  step8_libraries/
+  step9_operating_points/
+    historical/
+    current_repaired/
+  step10_structured_outputs/
+    historical/
+    current_repaired/
+    design_output_schema.json
+  step11_comparison/
+    historical/
+    current_repaired/
+  step12_final_acceptance/
+  psfb_duty_policy/
+  runs/
+  INDEX.md
+```
+
+`current_repaired/` is the current repaired candidate only when its validation
+record passes. The corresponding non-repaired directory is retained as
+`historical` evidence. A timestamp or directory name alone never establishes
+authority. The `runs/` directory accepts only the final valid parity run after
+completeness, execution status, checksum, and final-acceptance checks; no
+promotable `outputs/migration_parity_*` run was present during this relocation,
+so it is intentionally empty.
+
+`design_output_schema.json` has one authoritative copy under
+`step10_structured_outputs/`. Final acceptance has one authoritative location
+under `step12_final_acceptance/`. The evidence `INDEX.md` records source and
+destination paths, status, authority, hashes, and validation results. JSON/CSV
+snapshots remain byte-preserved; embedded source-path strings are historical
+provenance and are not runtime path configuration.
 
 Regenerate the Phase 1 CSV/JSON files from the frozen commits with:
 

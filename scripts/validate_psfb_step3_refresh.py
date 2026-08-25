@@ -140,7 +140,7 @@ def main() -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        default=ROOT / "Plan" / "active" / "psfb_duty_policy_20260824" / "psfb_step3_refresh_results.json",
+        default=ROOT / "migration" / "evidence" / "20260824" / "psfb_duty_policy" / "psfb_step3_refresh_results.json",
     )
     args = parser.parse_args()
     result = _run(args.source_root)

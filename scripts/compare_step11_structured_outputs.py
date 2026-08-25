@@ -70,21 +70,21 @@ def _tolerance(path: str) -> tuple[float, float, str]:
 
 def _evidence(topology_id: str, path: str) -> dict[str, str] | None:
     if path.startswith("request."):
-        return {"category": "input_mapping_error", "owner": "request-contract", "basis": "Step 3 normalized request contract and 103/103 request checksum parity", "evidence": "Plan/active/request_contract_20260824"}
+        return {"category": "input_mapping_error", "owner": "request-contract", "basis": "Step 3 normalized request contract and 103/103 request checksum parity", "evidence": "migration/evidence/20260824/step3_request_contract/request_contract_20260824"}
     if path in IDENTITY_PATHS:
-        return {"category": "field_semantic_difference", "owner": "report-contract", "basis": "Step 10 status and identity contract", "evidence": "Plan/active/design_output_schema.json; tests/test_phase10_structured_output.py"}
+        return {"category": "field_semantic_difference", "owner": "report-contract", "basis": "Step 10 status and identity contract", "evidence": "migration/evidence/20260824/step10_structured_outputs/design_output_schema.json; tests/test_phase10_structured_output.py"}
     if path.startswith("hardware."):
-        return {"category": "library_difference", "owner": "library-selection", "basis": "Step 8 library snapshot and candidate ordering policy", "evidence": "Plan/active/library_migration_validation.json; Plan/active/candidate_sorting_policy.md"}
+        return {"category": "library_difference", "owner": "library-selection", "basis": "Step 8 library snapshot and candidate ordering policy", "evidence": "migration/evidence/20260824/step8_libraries/library_migration_validation.json; migration/evidence/20260824/step8_libraries/candidate_sorting_policy.md"}
     if path.startswith("magnetic.") or path.startswith("capacitor."):
-        return {"category": "ordering_difference", "owner": "downstream-selection", "basis": "Stage output availability and representative ordering are not core electrical parity fields", "evidence": "Plan/active/report_field_dictionary.md; Plan/active/candidate_sorting_policy.md"}
+        return {"category": "ordering_difference", "owner": "downstream-selection", "basis": "Stage output availability and representative ordering are not core electrical parity fields", "evidence": "migration/evidence/20260824/step10_structured_outputs/report_field_dictionary.md; migration/evidence/20260824/step8_libraries/candidate_sorting_policy.md"}
     if path.startswith("thermal."):
-        return {"category": "field_semantic_difference", "owner": "thermal-stage", "basis": "Thermal stage availability differs by pipeline options", "evidence": "Plan/active/operating_points_20260824/simulation_contract.md; Plan/active/report_field_dictionary.md"}
+        return {"category": "field_semantic_difference", "owner": "thermal-stage", "basis": "Thermal stage availability differs by pipeline options", "evidence": "migration/evidence/20260824/step9_operating_points/historical/simulation_contract.md; migration/evidence/20260824/step10_structured_outputs/report_field_dictionary.md"}
     if topology_id in {"flyback_diode_rectified_isolated"} and ("capacitance" in path or "ripple" in path):
-        return {"category": "formula_difference", "owner": "flyback-model", "basis": "Flyback output-capacitance/ripple formula is a registered open difference", "evidence": "Plan/active/baseline_20260824/migration_difference_ledger.md; Plan/active/complete_migration_2_to_1_plan.md:49"}
+        return {"category": "formula_difference", "owner": "flyback-model", "basis": "Flyback output-capacitance/ripple formula is a registered open difference", "evidence": "migration/evidence/20260824/step1_baseline/migration_difference_ledger.md; Plan/active/complete_migration_2_to_1_plan.md:49"}
     if topology_id == "phase_shifted_full_bridge_diode_rectifier_isolated" and ("inductor_ripple" in path or "capacitance" in path or "ripple" in path):
-        return {"category": "formula_difference", "owner": "psfb-model", "basis": "PSFB ripple and output-capacitance formula is a registered open difference", "evidence": "Plan/active/baseline_20260824/migration_difference_ledger.md; Plan/active/complete_migration_2_to_1_plan.md:50"}
+        return {"category": "formula_difference", "owner": "psfb-model", "basis": "PSFB ripple and output-capacitance formula is a registered open difference", "evidence": "migration/evidence/20260824/step1_baseline/migration_difference_ledger.md; Plan/active/complete_migration_2_to_1_plan.md:50"}
     if path.startswith("waveform.") or path.startswith("stress.") or "ripple" in path:
-        return {"category": "simulation_numerical_difference", "owner": "waveform-model", "basis": "Waveform solver, sampling and post-processing contract", "evidence": "Plan/active/operating_points_20260824/simulation_contract.md; Plan/active/operating_points_20260824/waveform_metrics_schema.json"}
+        return {"category": "simulation_numerical_difference", "owner": "waveform-model", "basis": "Waveform solver, sampling and post-processing contract", "evidence": "migration/evidence/20260824/step9_operating_points/historical/simulation_contract.md; migration/evidence/20260824/step9_operating_points/historical/waveform_metrics_schema.json"}
     if path.startswith("candidate.") or path.startswith("operating_point."):
         return {"category": "formula_difference", "owner": "topology-algorithm", "basis": "Candidate and operating-point field comparison under deterministic formula tolerance", "evidence": "Plan/active/complete_migration_2_to_1_plan.md:949"}
     return None
@@ -146,7 +146,7 @@ def compare_case(source: dict[str, Any], target: dict[str, Any]) -> dict[str, An
             "category": "expected_boundary",
             "owner": "operating-point-replay",
             "basis": "Boundary failures remain explicit and cannot be converted to pass.",
-            "evidence": "Plan/active/operating_points_20260824/simulation_contract.md",
+            "evidence": "migration/evidence/20260824/step9_operating_points/historical/simulation_contract.md",
             "reason": target.get("structured_report", {}).get("audit", {}).get("boundary_reason", ""),
         }
     return {"matrix_id": source["matrix_id"], "case_id": source["case_id"], "topology_id": source["topology_id"], "status": target["status"], "boundary_evidence": boundary_evidence, "compared_fields": len(fields), "matched_fields": len(fields) - len(differences), "difference_count": len(differences), "unexplained_count": len(unexplained), "max_relative_error": max((field["relative_error"] for field in differences if field["relative_error"] is not None), default=0.0), "difference_categories": dict(sorted(categories.items())), "verdict": "pass" if not differences else ("explained_difference" if not unexplained else "unexplained_difference"), "fields": fields, "differences": differences}

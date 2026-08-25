@@ -7,8 +7,8 @@
   "source_registered_topology_count": 19,
   "file_manifest_comparison": {
     "relative_path_count": 1296,
-    "identical_count": 885,
-    "newline_only_count": 408,
+    "identical_count": 884,
+    "newline_only_count": 409,
     "content_difference_count": 0,
     "missing_target_count": 0,
     "missing_source_count": 0,
@@ -2348,6 +2348,14 @@
         "source_sha256": "3d1360fd7c5c3b2288dcefd08b1830827d8b79497631543200a14738e81a8709",
         "target_normalized_sha256": "3d1360fd7c5c3b2288dcefd08b1830827d8b79497631543200a14738e81a8709",
         "source_normalized_sha256": "3d1360fd7c5c3b2288dcefd08b1830827d8b79497631543200a14738e81a8709",
+        "status": "newline_only"
+      },
+      {
+        "path": "src/pe_claw_gui/libraries/semiconductors/pricing.py",
+        "target_sha256": "b49437e4ef32b45c11d0ac6008c71763b9b853eeb93a5f38994c18d174f3013f",
+        "source_sha256": "82beb9aaf01eceb9eebb02a04e62eff06c08e9d619d73fa0f8795357b35a93bc",
+        "target_normalized_sha256": "82beb9aaf01eceb9eebb02a04e62eff06c08e9d619d73fa0f8795357b35a93bc",
+        "source_normalized_sha256": "82beb9aaf01eceb9eebb02a04e62eff06c08e9d619d73fa0f8795357b35a93bc",
         "status": "newline_only"
       },
       {

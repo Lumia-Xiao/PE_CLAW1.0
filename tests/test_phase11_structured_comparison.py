@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EVIDENCE = ROOT / "Plan" / "active" / "final_comparison_20260824"
+EVIDENCE = ROOT / "migration" / "evidence" / "20260824" / "step11_comparison" / "historical"
 
 
 def test_phase11_replays_all_cases_and_has_no_unexplained_difference() -> None:

@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLAN = ROOT / "Plan" / "active"
+PLAN = ROOT / "migration" / "evidence" / "20260824" / "step8_libraries"
 
 
 def test_phase8_library_manifest_is_complete() -> None:

@@ -10,7 +10,7 @@
     "pypdf": null
   },
   "source_git_commit": "6726f508fcf0e545f69512654d1ea5543e6333cf",
-  "target_git_commit": "53f976b424ef055144049deec2c0ecd8ca03cae3",
+  "target_git_commit": "cc2740d531b1de253d4f93d117eb76343d5303b5",
   "source_declared_dependencies": [
     "matplotlib>=3.8",
     "numpy>=1.24",

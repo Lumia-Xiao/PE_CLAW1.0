@@ -5,9 +5,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT = ROOT / "Plan" / "active" / "dc_ac_migration_validation.json"
-GOLDEN = ROOT / "Plan" / "active" / "dc_ac_candidate_golden.json"
-CONTRACT = ROOT / "Plan" / "active" / "dc_ac_metric_contract.json"
+REPORT = ROOT / "migration" / "evidence" / "20260824" / "step7_dc_ac" / "dc_ac_migration_validation.json"
+GOLDEN = ROOT / "migration" / "evidence" / "20260824" / "step7_dc_ac" / "dc_ac_candidate_golden.json"
+CONTRACT = ROOT / "migration" / "evidence" / "20260824" / "step7_dc_ac" / "dc_ac_metric_contract.json"
 
 
 def test_phase7_dc_ac_validation_evidence_is_complete() -> None:

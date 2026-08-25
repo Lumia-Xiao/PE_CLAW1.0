@@ -17,8 +17,8 @@
   ],
   "algorithm_file_parity": {
     "file_count": 53,
-    "identical_file_count": 53,
-    "mismatch_count": 0,
+    "identical_file_count": 50,
+    "mismatch_count": 3,
     "files": [
       {
         "request_directory": "03_boost_diode",
@@ -516,9 +516,9 @@
         "file": "synthesizer.py",
         "target_exists": true,
         "source_exists": true,
-        "target_sha256": "c34a89b47d2088b77c503d9924a8dc99798b0f2fa82468ce6cb12410a9da4656",
+        "target_sha256": "7e703b20f093d23c9455732f1060d47ab8932489146a5203db82fea64820f263",
         "source_sha256": "c34a89b47d2088b77c503d9924a8dc99798b0f2fa82468ce6cb12410a9da4656",
-        "identical": true
+        "identical": false
       },
       {
         "request_directory": "07_psfb_diode",
@@ -526,9 +526,9 @@
         "file": "waveform.py",
         "target_exists": true,
         "source_exists": true,
-        "target_sha256": "ca057ccb53d6cb5462c888d24dd2ba5c462e773a9796f2d73876ed71777d7fa8",
+        "target_sha256": "cec594d7fa5ec94196e7fcc363f356f48762f54b923585cd915652929c44d807",
         "source_sha256": "ca057ccb53d6cb5462c888d24dd2ba5c462e773a9796f2d73876ed71777d7fa8",
-        "identical": true
+        "identical": false
       },
       {
         "request_directory": "07_psfb_diode",
@@ -536,9 +536,9 @@
         "file": "stress.py",
         "target_exists": true,
         "source_exists": true,
-        "target_sha256": "2a10969694ad0eb25f90ae82c8f3c2aa06be537cfec5eabe6b2da14136b3b639",
+        "target_sha256": "5a32d9bcc7cf52b668fdabd40d09374f62fed863696a102beeb73747560b6cb0",
         "source_sha256": "2a10969694ad0eb25f90ae82c8f3c2aa06be537cfec5eabe6b2da14136b3b639",
-        "identical": true
+        "identical": false
       },
       {
         "request_directory": "07_psfb_diode",
@@ -550,7 +550,23 @@
         "source_sha256": "50e431f50197df51092feb06ea1515787f7c9ef58581ec421ad7ac642a76428d",
         "identical": true
       }
-    ]
+    ],
+    "expected_difference_files": [
+      {
+        "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+        "file": "stress.py"
+      },
+      {
+        "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+        "file": "synthesizer.py"
+      },
+      {
+        "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+        "file": "waveform.py"
+      }
+    ],
+    "unexpected_mismatch_files": [],
+    "unexpected_mismatch_count": 0
   },
   "replay": {
     "case_count": 51,
@@ -701,7 +717,7 @@
     }
   },
   "acceptance": {
-    "all_algorithm_files_identical": true,
+    "algorithm_differences_are_explicit_and_approved": true,
     "expected_case_count": 51,
     "case_count_matches": true,
     "all_cases_executed": true,

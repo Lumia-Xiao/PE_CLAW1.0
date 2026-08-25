@@ -23,7 +23,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = Path(r"C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw")
-PLAN_ROOT = ROOT / "Plan" / "active"
+PLAN_ROOT = ROOT / "migration" / "evidence" / "20260824" / "step8_libraries"
 LIBRARY_RELATIVE_ROOT = Path("src") / "pe_claw_gui" / "libraries"
 
 

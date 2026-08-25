@@ -32,8 +32,11 @@ PE-Claw 1.0 focuses on a transparent engineering pipeline rather than a black-bo
 > validated with 19 registered topologies, 17 request matrices, and 103
 > operating points. The repaired replay completed 103/103 cases with zero
 > execution errors, zero boundary failures, and zero unexplained differences.
-> The acceptance evidence is stored under `Plan/active/final_acceptance_20260824`
-> and references the repaired replay, structured-output, and comparison sets.
+> The acceptance evidence is stored under
+> `migration/evidence/20260824/step12_final_acceptance/` and references the
+> repaired replay, structured-output, and comparison sets. The evidence tree
+> is complete; the final migration closeout still follows the repository's
+> Step 8 validation and commit gate.
 
 ---
 
@@ -782,12 +785,11 @@ Planned directions:
 ## Migration Acceptance Status
 
 The PE-Claw 2.0 to 1.0 migration evidence is recorded under
-`Plan/active/final_acceptance_20260824`. The current acceptance result is
-**blocked for release**: all 103 replay records and both 103-record structured
-output schema sets are auditable, with zero unexplained differences, but the
-PSFB case `07_psfb_diode/c02_low_input_full_load` remains an explained boundary
-failure. The plan stays in `Plan/active` until the PSFB duty policy is aligned
-and the full replay is rerun with zero boundary failures.
+`migration/evidence/20260824/step12_final_acceptance/`. The repaired acceptance
+report is **accepted for migration**: all 103 replay records and both
+103-record structured-output schema sets are auditable, with zero unexplained
+differences and zero PSFB boundary failures. The migration plan remains under
+review until its final Step 8 validation and closeout commit are completed.
 
 Before modifying the codebase:
 

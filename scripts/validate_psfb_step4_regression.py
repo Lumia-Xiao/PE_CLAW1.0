@@ -11,7 +11,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE_DIR = ROOT / "Plan" / "active" / "psfb_duty_policy_20260824"
+BASELINE_DIR = ROOT / "migration" / "evidence" / "20260824" / "psfb_duty_policy"
 CASES = (
     "c01_nominal_full_load",
     "c02_low_input_full_load",
