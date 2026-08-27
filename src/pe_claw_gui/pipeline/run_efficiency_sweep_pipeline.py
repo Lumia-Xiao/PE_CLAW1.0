@@ -67,14 +67,7 @@ def run_efficiency_sweep(
 
     points: list[EfficiencySweepPoint] = []
     for load_pu in load_grid:
-        if _is_single_phase_boost_pfc_topology(report):
-            point, point_warnings = _evaluate_single_phase_boost_pfc_load_point(report, plugin, load_pu)
-        elif _is_single_phase_totem_pole_pfc_topology(report):
-            point, point_warnings = _evaluate_single_phase_totem_pole_pfc_load_point(report, plugin, load_pu)
-        elif _is_ac_dc_bridge_topology(report):
-            point, point_warnings = _evaluate_ac_dc_load_point(report, plugin, load_pu)
-        else:
-            point, point_warnings = _evaluate_load_point(report, plugin, load_pu)
+        point, point_warnings = _evaluate_sweep_load_point(report, plugin, load_pu)
         points.append(point)
         warnings.extend(point_warnings)
 
@@ -101,6 +94,42 @@ def run_efficiency_sweep(
         pf_sweep_points=pf_sweep_points,
         pf_sweep_artifact_paths=pf_sweep_artifacts,
     )
+
+
+def _evaluate_sweep_load_point(
+    report: DesignReport,
+    plugin: TopologyPlugin,
+    load_pu: float,
+) -> tuple[EfficiencySweepPoint, list[str]]:
+    """Isolate one failed operating point so the remaining sweep can finish."""
+
+    try:
+        if _is_single_phase_boost_pfc_topology(report):
+            return _evaluate_single_phase_boost_pfc_load_point(report, plugin, load_pu)
+        if _is_single_phase_totem_pole_pfc_topology(report):
+            return _evaluate_single_phase_totem_pole_pfc_load_point(report, plugin, load_pu)
+        if _is_ac_dc_bridge_topology(report):
+            return _evaluate_ac_dc_load_point(report, plugin, load_pu)
+        return _evaluate_load_point(report, plugin, load_pu)
+    except Exception as exc:
+        warning = (
+            f"Efficiency sweep failed at {load_pu:.1f} p.u.: "
+            f"{type(exc).__name__}: {exc}"
+        )
+        return (
+            EfficiencySweepPoint(
+                load_pu=load_pu,
+                output_power_w=0.0,
+                total_loss_w=None,
+                efficiency=None,
+                semiconductor_loss_w=None,
+                magnetic_loss_w=None,
+                capacitor_loss_w=None,
+                other_loss_w=None,
+                warnings=(warning,),
+            ),
+            [warning],
+        )
 
 
 def _evaluate_load_point(
