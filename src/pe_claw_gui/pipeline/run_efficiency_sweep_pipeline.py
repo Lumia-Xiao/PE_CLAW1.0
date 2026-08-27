@@ -189,6 +189,14 @@ def _blocking_warning(report: DesignReport, plugin: TopologyPlugin | None) -> st
         return "Run Design before running Efficiency Sweep."
     if plugin is None:
         return "Efficiency sweep requires the active topology plugin."
+    return efficiency_sweep_blocking_warning(report)
+
+
+def efficiency_sweep_blocking_warning(report: DesignReport | None) -> str | None:
+    """Return the shared hardware prerequisite warning for an efficiency sweep."""
+
+    if report is None or report.candidate is None:
+        return "Run Design before running Efficiency Sweep."
     if _is_single_phase_boost_pfc_topology(report):
         return _boost_pfc_fixed_hardware_warning(report)
     if _is_single_phase_totem_pole_pfc_topology(report):
@@ -197,6 +205,8 @@ def _blocking_warning(report: DesignReport, plugin: TopologyPlugin | None) -> st
         bridge = report.bridge_rectifier
         if bridge is None or bridge.selected_candidate is None:
             return "Efficiency sweep requires selected AC-DC bridge rectifier hardware from Run Design."
+        if _is_ac_dc_reactor_topology(report) and _selected_ac_dc_reactor_candidate(report) is None:
+            return "Efficiency sweep requires selected AC-DC reactor hardware from Run Magnetics."
         return None
     device = report.device
     if device is None or (not device.selected_devices and not device.design_point_losses and not device.scheme_results):

@@ -159,7 +159,14 @@ class PEClawMainWindow(tk.Tk):
 
     def _on_run_efficiency_sweep(self) -> None:
         try:
-            report = self.efficiency_sweep_controller.run_active_efficiency_sweep()
+            if self.workspace.active_form is None:
+                raise RuntimeError("Select a topology before running Efficiency Sweep.")
+            raw_input = self.workspace.active_form.get_raw_input()
+            self.design_controller.ensure_active_topology_current(raw_input)
+            operating_point = self.workspace.active_form.get_operating_point()
+            report = self.efficiency_sweep_controller.run_active_efficiency_sweep(
+                operating_point=operating_point,
+            )
             self.workspace.render_report(report)
             if self.workspace.results_notebook is not None and self.workspace.efficiency_view is not None:
                 self.workspace.results_notebook.select(self.workspace.efficiency_view)

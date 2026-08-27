@@ -8,6 +8,7 @@ from tkinter import ttk
 from .base_form import BaseTopologyForm, TopologyField
 from ...models.design_report import DesignReport
 from ...models.operating_point import OperatingPoint
+from ...pipeline.run_efficiency_sweep_pipeline import efficiency_sweep_blocking_warning
 
 
 class SinglePhaseBoostPFCDiodeBridgeForm(BaseTopologyForm):
@@ -137,26 +138,4 @@ class SinglePhaseBoostPFCDiodeBridgeForm(BaseTopologyForm):
 
 
 def _has_fixed_pfc_hardware(report: DesignReport | None) -> bool:
-    if report is None or report.candidate is None:
-        return False
-    bridge = report.bridge_rectifier
-    if bridge is None or bridge.selected_candidate is None:
-        return False
-    device = report.device
-    if device is None:
-        return False
-    selected_roles = set(device.selected_devices)
-    if not {"main_switch", "rectifier_diode"}.issubset(selected_roles):
-        return False
-    capacitor = report.capacitor
-    if capacitor is None or capacitor.output_selection is None or capacitor.output_selection.recommended is None:
-        return False
-    magnetic = report.magnetic
-    if magnetic is None:
-        return False
-    if magnetic.selected_design_id:
-        return True
-    if magnetic.chosen_designs:
-        return True
-    reactor = magnetic.ac_dc_reactor_result
-    return reactor is not None and reactor.selected_candidate is not None
+    return efficiency_sweep_blocking_warning(report) is None

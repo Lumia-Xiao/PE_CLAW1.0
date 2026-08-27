@@ -77,7 +77,6 @@ def test_ac_dc_efficiency_sweep_baseline(
     assert result.load_grid == (0.5, 1.0)
     if topology_id in {
         "single_phase_diode_bridge_rectifier_capacitor_filter",
-        "single_phase_diode_bridge_rectifier_dc_inductor_filter",
         "three_phase_diode_bridge_rectifier_capacitor_filter",
     }:
         assert len(result.points) == 2
@@ -86,15 +85,14 @@ def test_ac_dc_efficiency_sweep_baseline(
         assert result.points == ()
     if topology_id in {
         "single_phase_diode_bridge_rectifier_capacitor_filter",
-        "single_phase_diode_bridge_rectifier_dc_inductor_filter",
         "three_phase_diode_bridge_rectifier_capacitor_filter",
     }:
         assert all(point.efficiency is not None for point in result.points)
-        if topology_id == "single_phase_diode_bridge_rectifier_dc_inductor_filter":
-            assert "AC-DC reactor magnetic design has not been run; magnetic loss is omitted." in result.warnings
-            assert any("Selected AC-DC reactor loss was unavailable" in warning for warning in result.warnings)
-        else:
-            assert any("Selected DC-link capacitor loss was unavailable" in warning for warning in result.warnings)
+        assert any("Selected DC-link capacitor loss was unavailable" in warning for warning in result.warnings)
+    elif topology_id == "single_phase_diode_bridge_rectifier_dc_inductor_filter":
+        assert result.warnings == (
+            "Efficiency sweep requires selected AC-DC reactor hardware from Run Magnetics.",
+        )
     elif topology_id == "single_phase_boost_pfc_diode_bridge":
         assert result.warnings == (
             "Boost PFC efficiency sweep requires selected DC-link capacitor hardware from Run Capacitor.",
