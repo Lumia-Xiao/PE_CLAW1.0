@@ -98,7 +98,8 @@ listed here.
   - `git diff --check`: passed before commit.
 - Git:
   - Branch: `codex/sync-gui-backend-from-2`.
-  - Step commit and push: pending at the time of this record.
+  - Step commit: `00b408aad6afac72f12d95c8a4ca43f9c1e1b33c` (`feat: register dc-ac topology family`).
+  - Push: passed to `origin/codex/sync-gui-backend-from-2`; remote hash verified.
 
 ## 2026-08-26
 
