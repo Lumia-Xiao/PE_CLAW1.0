@@ -23,6 +23,10 @@ from ..models.operating_point import OperatingPoint
 from ..models.waveform import WaveformSet
 from ..topologies.base import TopologyPlugin
 from .options import PipelineOptions
+from .run_bridge_rectifier_pipeline import (
+    SUPPORTED_BRIDGE_RECTIFIER_TOPOLOGIES,
+    build_bridge_rectifier_selection_request,
+)
 from .run_capacitor_pipeline import run_capacitor_operating_point_refresh
 from .run_device_pipeline import run_device_operating_point_refresh
 from .run_loss_pipeline import run_loss_pipeline
@@ -32,15 +36,6 @@ DEFAULT_LOAD_POINTS: tuple[float, ...] = tuple(round(index / 20.0, 2) for index 
 DEFAULT_INVERTER_PF_POINTS: tuple[float, ...] = tuple(round(index / 10.0, 1) for index in range(-10, 11) if index != 0)
 SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID = "single_phase_boost_pfc_diode_bridge"
 SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID = "single_phase_totem_pole_bridgeless_pfc"
-SUPPORTED_BRIDGE_RECTIFIER_TOPOLOGIES = frozenset(
-    {
-        "single_phase_diode_bridge_rectifier_capacitor_filter",
-        "single_phase_diode_bridge_rectifier_dc_inductor_filter",
-        "three_phase_diode_bridge_rectifier_capacitor_filter",
-    }
-)
-
-
 def run_efficiency_sweep(
     report: DesignReport,
     plugin: TopologyPlugin | None = None,
@@ -61,12 +56,25 @@ def run_efficiency_sweep(
 
     if report.capacitor is None:
         warnings.append("Capacitor design has not been run; capacitor loss is omitted.")
-    if report.magnetic is None or not report.magnetic.chosen_designs:
+    if _is_single_phase_pfc_topology(report):
+        if report.magnetic is None or not _has_selected_magnetic_design(report):
+            warnings.append("PFC magnetic design has not been run; boost-inductor loss is omitted.")
+    elif _is_ac_dc_bridge_topology(report):
+        if _is_ac_dc_reactor_topology(report) and _selected_ac_dc_reactor_candidate(report) is None:
+            warnings.append("AC-DC reactor magnetic design has not been run; magnetic loss is omitted.")
+    elif report.magnetic is None or not report.magnetic.chosen_designs:
         warnings.append("Magnetic design has not been run; magnetic loss is omitted.")
 
     points: list[EfficiencySweepPoint] = []
     for load_pu in load_grid:
-        point, point_warnings = _evaluate_load_point(report, plugin, load_pu)
+        if _is_single_phase_boost_pfc_topology(report):
+            point, point_warnings = _evaluate_single_phase_boost_pfc_load_point(report, plugin, load_pu)
+        elif _is_single_phase_totem_pole_pfc_topology(report):
+            point, point_warnings = _evaluate_single_phase_totem_pole_pfc_load_point(report, plugin, load_pu)
+        elif _is_ac_dc_bridge_topology(report):
+            point, point_warnings = _evaluate_ac_dc_load_point(report, plugin, load_pu)
+        else:
+            point, point_warnings = _evaluate_load_point(report, plugin, load_pu)
         points.append(point)
         warnings.extend(point_warnings)
 
