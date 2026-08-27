@@ -26,7 +26,8 @@ listed here.
   - Weekly ZIP opened and manifest read; SHA-256 `3E3395A51F3EF47505899887480C27A2B6CE6C2C8D7099BF3AB209CB374C7A2A`.
 - Git:
   - Branch: `codex/sync-gui-backend-from-2`.
-  - Commit and push: pending at the time of this record.
+  - Step commit: `faf5e3f06f2874a25d106a68144c5cc78eeb6032` (`chore: record dc-ac migration baseline`).
+  - Push: passed to `origin/codex/sync-gui-backend-from-2`; remote hash verified.
 
 ## 2026-08-26
 

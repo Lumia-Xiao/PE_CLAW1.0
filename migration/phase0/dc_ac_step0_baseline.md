@@ -81,6 +81,13 @@ are the authoritative Step 0 validation.
 
 ## Step 0 Acceptance
 
-Step 0 is ready for its independent commit and push to
-`origin/codex/sync-gui-backend-from-2`. Runtime topology source migration has
-not started in this step.
+Step 0 was committed and pushed independently. Runtime topology source
+migration has not started in this step.
+
+| Item | Value |
+| --- | --- |
+| Commit | `faf5e3f06f2874a25d106a68144c5cc78eeb6032` |
+| Commit message | `chore: record dc-ac migration baseline` |
+| Push target | `origin/codex/sync-gui-backend-from-2` |
+| Push result | Passed |
+| Remote verification | `faf5e3f06f2874a25d106a68144c5cc78eeb6032` |

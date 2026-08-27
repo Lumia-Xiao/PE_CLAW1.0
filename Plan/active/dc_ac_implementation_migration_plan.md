@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active`，第 0 步执行中 |
+| 计划状态 | `active`，第 0 步已完成，等待开始第 1 步 |
 | 建立日期 | 2026-08-27 |
 | 计划类型 | DC-AC 实现及 GUI 运行链路专项迁移 |
 | 源工程 | `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw` |
@@ -630,7 +630,7 @@ docs: finalize dc-ac migration evidence and acceptance
 | 日期 | 步骤 | 状态 | 说明 | Commit | 验证 |
 | --- | --- | --- | --- | --- | --- |
 | 2026-08-27 | 计划建立 | completed | 已完成源/目标工程结构检查和 DC-AC 范围定义；尚未修改 runtime 代码 | - | 只读检查通过 |
-| 2026-08-27 | 第 0 步 | In progress | 已完成备份、仓库基线和 focused validation；待独立 commit + push | Pending | `migration/phase0/dc_ac_step0_baseline.md`; registry 3; focused DC-AC/GUI tests passed |
+| 2026-08-27 | 第 0 步 | Completed | 已完成备份、仓库基线、focused validation、独立 commit 和 push | `faf5e3f06f2874a25d106a68144c5cc78eeb6032` | `migration/phase0/dc_ac_step0_baseline.md`; registry 3; 12 focused tests passed; remote verified |
 |  | 第 1 步 | Pending | 待建立迁移矩阵 | - | - |
 |  | 第 2 步 | Pending | 待迁移公共契约 | - | - |
 |  | 第 3 步 | Pending | 待注册 DC-AC 和替换 category page | - | - |
