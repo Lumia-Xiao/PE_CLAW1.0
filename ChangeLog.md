@@ -10,7 +10,7 @@ listed here.
   - Added target-engineering contract coverage for the single-phase full-bridge inverter.
   - Covered CCM and TCM input boundaries, unipolar-SPWM/refined waveform metadata, switch stress,
     full-pipeline report assembly, operating-point refresh, and GUI form fields.
-  - Marked Step 4 in progress in the active migration plan pending push completion.
+  - Marked Step 4 completed in the active migration plan after remote push verification.
 - Why:
   - The target single-phase full-bridge runtime and form already match the source implementation;
     this step locks the migrated behavior with target-local deterministic acceptance tests.
@@ -19,7 +19,8 @@ listed here.
   - `Plan/active/dc_ac_implementation_migration_plan.md`
 - Validation:
   - `python -m pytest -q tests/test_dc_ac_single_phase_full_bridge_contract.py tests/test_phase9_dc_ac_topologies.py tests/test_phase10_gui_integration.py`: 17 passed.
-  - Implementation commit and remote push are recorded by the Step 4 post-push receipt.
+  - Implementation commit: `3fe828f5cdbd64dfbacf0bd0ecca6f0b0690ee16`.
+  - Push: verified on `origin/codex/sync-gui-backend-from-2`.
 
 ## 2026-08-27 DC-AC Migration Step 0 Baseline
 
