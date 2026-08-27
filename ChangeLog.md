@@ -4,6 +4,30 @@ This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
 
+## 2026-08-27 DC-AC Migration Step 0 Baseline
+
+- What changed:
+  - Recorded the source/target repository baseline and dedicated DC-AC Step 0 evidence.
+  - Created the weekly target backup and documented preserved untracked outputs.
+  - Made `scripts/backup_weekly.ps1` compatible with the active Windows PowerShell runtime.
+- Why:
+  - Establish a recoverable, independently auditable starting point before runtime migration.
+- Files:
+  - `migration/phase0/dc_ac_step0_baseline.md`
+  - `Plan/active/dc_ac_implementation_migration_plan.md`
+  - `scripts/backup_weekly.ps1`
+  - `ChangeLog.md`
+- Validation:
+  - DC-AC registry: 3 implemented topologies.
+  - `python -B -m compileall -q src/pe_claw_gui`: passed.
+  - DC-AC migration, topology, GUI integration, and GUI bootstrap tests: 12 passed.
+  - GUI startup smoke: passed.
+  - Full pytest collection: 267 tests collected.
+  - Weekly ZIP opened and manifest read; SHA-256 `3E3395A51F3EF47505899887480C27A2B6CE6C2C8D7099BF3AB209CB374C7A2A`.
+- Git:
+  - Branch: `codex/sync-gui-backend-from-2`.
+  - Commit and push: pending at the time of this record.
+
 ## 2026-08-26
 
 - What changed:
