@@ -255,3 +255,35 @@ listed here.
   - Planned step commit: `docs: finalize dc-ac migration evidence and acceptance`.
   - Commit and push receipt are recorded in a separate plan update after the
     implementation push succeeds.
+
+## 2026-08-27 DC-AC Migration Step 12 Delivery Archive
+
+- What changed:
+  - Added a reproducible DC-AC delivery manifest and user-acceptance checklist.
+  - Verified the Step 0 through Step 11 commit chain and checksummed the focused
+    Step 9 through Step 11 evidence set.
+  - Documented the dedicated 2026-08-27 DC-AC evidence authority and release
+    boundary in `migration/README.md`.
+  - Moved the DC-AC migration plan from `Plan/active` to `Plan/completed` with
+    Step 12 kept in progress until the subject commit is pushed and verified.
+- Why:
+  - Close the dedicated migration as an auditable delivery without treating
+    plan completion as permission to merge, tag, release, or push to `master`.
+- Files:
+  - `scripts/build_dc_ac_step12_delivery.py`
+  - `migration/evidence/20260827/step12_dc_ac/`
+  - `migration/README.md`
+  - `Plan/completed/dc_ac_implementation_migration_plan.md`
+  - `ChangeLog.md`
+- Validation:
+  - Delivery manifest generator verifies the pre-Step-12 local/remote commit
+    `9268813a6e7d8a0e86b31c3afb47577075b63ef4` and the expected migration
+    commit chain.
+  - DC-AC registry, target integration, packaged GUI, and AI-isolation smoke
+    tests are rerun before the Step 12 commit.
+  - Compileall, runtime source-path scan, agentic/AI import scan, plan archive
+    checks, and `git diff --check` are required before commit.
+- Git:
+  - Branch: `codex/sync-gui-backend-from-2`.
+  - Planned step commit: `docs: archive dc-ac migration delivery`.
+  - Merge, tag, release, and `master` push are not part of this step.

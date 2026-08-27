@@ -42,6 +42,9 @@ agentic/AI, generated output, and unrelated topology families remain excluded.
   artifact authority for the 2026-08-24 migration closeout.
 - `evidence/20260824/step12_final_acceptance/`: the single dated final
   acceptance location. There is no release duplicate.
+- `evidence/20260827/step9_dc_ac/` through `step12_dc_ac/`: the dedicated
+  DC-AC repair, packaged GUI, final acceptance, and delivery-closeout evidence
+  for branch `codex/sync-gui-backend-from-2`.
 - `evidence/20260824/runs/`: reserved for one explicitly validated final
   parity run; it remains empty when no run satisfies the promotion gate.
 - `tools/phase12_parity.py`: reproducible source/target structured-contract comparison tool.
@@ -96,6 +99,14 @@ under `step12_final_acceptance/`. The evidence `INDEX.md` records source and
 destination paths, status, authority, hashes, and validation results. JSON/CSV
 snapshots remain byte-preserved; embedded source-path strings are historical
 provenance and are not runtime path configuration.
+
+The later dedicated DC-AC closeout does not replace the 2026-08-24 complete
+migration authority. Its focused evidence authority is
+`evidence/20260827/step11_dc_ac/`, and its delivery manifest is
+`evidence/20260827/step12_dc_ac/dc_ac_delivery_manifest.json`. The associated
+plan is archived at `Plan/completed/dc_ac_implementation_migration_plan.md`.
+Merge, tag, release, and pushes to `master` remain outside that closeout and
+require separate user approval.
 
 Regenerate the Phase 1 CSV/JSON files from the frozen commits with:
 

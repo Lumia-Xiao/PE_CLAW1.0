@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active`，第 11 步已完成，等待用户验收；暂不 merge/tag/master push |
+| 计划状态 | `in_progress`，第 12 步交付产物和归档已生成，等待主体 commit/push 回执 |
 | 建立日期 | 2026-08-27 |
 | 计划类型 | DC-AC 实现及 GUI 运行链路专项迁移 |
 | 源工程 | `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw` |
@@ -476,6 +476,34 @@ result view 和下游直接依赖，不依赖人工点击才能证明核心链�
 - push：`origin/codex/sync-gui-backend-from-2`；
 - 完成条件：所有失败均有解释，证据完整，commit 和 push 均成功；之后才可请求用户验收。
 
+### 第 12 步：交付确认与计划归档
+
+安排：
+
+1. 将用户的“执行第十二步”视为进入专项收尾阶段的授权，不视为 merge、tag 或
+   向 `master` push 的授权。
+2. 核验第 0 至第 11 步主体提交、回执提交和远端同步记录。
+3. 核验 Step 9 至 Step 11 的目标 fixture、GUI runtime、acceptance matrix、
+   source/target comparison 和最终验证报告均存在并记录 SHA-256。
+4. 生成 `migration/evidence/20260827/step12_dc_ac/` 下的交付 manifest 和用户验收清单。
+5. 更新 `migration/README.md` 与 `ChangeLog.md`，明确专项证据权威位置和 release boundary。
+6. 将本计划状态标记为 `completed`，并从 `Plan/active` 移至 `Plan/completed`。
+7. 运行交付生成器、DC-AC 关键 smoke、compileall、路径/agentic 扫描和
+   `git diff --check`。
+
+验收门：Step 0 至 Step 11 提交链和证据哈希完整；计划已归档；目标分支保持独立；
+没有执行 merge、tag 或 `master` push。
+
+本步提交/推送：
+
+- commit message：`docs: archive dc-ac migration delivery`；
+- commit 内容：Step 12 manifest/checklist、迁移说明、ChangeLog 和归档后的专项计划；
+- focused validation：交付生成器、DC-AC registry/target/package smoke、compileall、
+  路径/agentic 扫描和 `git diff --check`；
+- push：`origin/codex/sync-gui-backend-from-2`；
+- 完成条件：主体 commit/push 成功后再创建独立回执 commit 并 push；用户验收前不
+  merge/tag/向 `master` push。
+
 ## 7. 文件迁移矩阵初稿
 
 | 文件/目录 | 处理方式 | 说明 |
@@ -597,9 +625,10 @@ feat: integrate dc-ac downstream engineering stages
 test: add dc-ac target integration coverage
 test: verify dc-ac packaged gui runtime
 docs: finalize dc-ac migration evidence and acceptance
+docs: archive dc-ac migration delivery
 ```
 
-第 0 步至第 11 步每一步完成后必须依次执行：
+第 0 步至第 12 步每一步完成后必须依次执行：
 
 1. 检查 `git diff` 和 `git status`；
 2. 排除缓存、`outputs/` 和无关文件；
@@ -659,6 +688,8 @@ docs: finalize dc-ac migration evidence and acceptance
 - [x] 第 0 步至第 11 步均已各自完成独立 commit 和 push。
 - [x] 每一步的远端 commit hash、push 结果、验证命令和证据路径均已记录。
 - [x] 不存在跨步骤合并提交、补推或未记录的远端提交。
+- [x] 第 12 步交付 manifest/checklist 已生成，专项计划已预归档至 `Plan/completed`。
+- [ ] 第 12 步主体 commit/push 与独立回执等待本次执行完成。
 
 ## 14. 计划执行记录
 
@@ -677,3 +708,4 @@ docs: finalize dc-ac migration evidence and acceptance
 | 2026-08-27 | 第 9 步 | Completed | 已新增目标工程 DC-AC 集成覆盖、三拓扑结构化 fixture、controller 闭环、结果摘要和禁止依赖测试；独立 commit + push 已完成，回执随后提交 | `7357c99` | `tests/test_dc_ac_target_integration.py`；`migration/evidence/20260827/step9_dc_ac/dc_ac_target_fixtures.json`；与既有 DC-AC/GUI/isolation 测试合计 `64 passed`；compileall/diff check 通过；source/target 默认 fixture 对照通过；remote verified |
 | 2026-08-27 | 第 10 步 | Completed | 已完成 editable install、目标包路径与资源检查、bat startup check、三种 DC-AC 默认设计/波形 GUI smoke；并修复 BaseTopologyForm 缺失的 numeric parsing helpers；主体 commit + push 已完成，回执随后提交 | `91be103` | `tests/test_dc_ac_packaged_gui_runtime.py`; `migration/evidence/20260827/step10_dc_ac/packaged_gui_runtime_validation.json`; `26 passed`; editable install passed; 19 topologies/3 DC-AC/3 PNG resources verified; bat startup check passed; compileall/diff check passed; remote verified |
 | 2026-08-27 | 第 11 步 | Completed | 已完成 DC-AC 专项、下游相关回归、完整 pytest、源/目标对照、路径/依赖扫描及交付证据；主体 commit/push 和独立回执均已完成 | `865ae126bf794f8ae76459d0edbd21fda6f0e930` | `migration/evidence/20260827/step11_dc_ac/`; focused `183 passed, 1 skipped`; full `323 passed, 1 skipped`; 0 failures/errors/warnings; 45 source/target fields, 0 differences; runtime path/agentic scan 0 hits; push remote verified |
+| 2026-08-27 | 第 12 步 | In Progress | 已进入交付确认与计划归档；生成最终 manifest/checklist，归档计划，并保持 feature branch release boundary | pending | `migration/evidence/20260827/step12_dc_ac/`; waiting for focused validation and push receipt |

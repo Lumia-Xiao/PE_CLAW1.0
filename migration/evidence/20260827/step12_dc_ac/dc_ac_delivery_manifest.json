@@ -1,0 +1,176 @@
+{
+  "contract": "dc_ac_step12_delivery_manifest_v1",
+  "status": "READY_FOR_USER_ACCEPTANCE",
+  "date": "2026-08-27",
+  "source_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
+  "source_commit": "6726f508fcf0e545f69512654d1ea5543e6333cf",
+  "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+  "target_baseline": "e8b5eac",
+  "target_branch": "codex/sync-gui-backend-from-2",
+  "remote": "origin/codex/sync-gui-backend-from-2",
+  "target_commit_before_step12": "9268813a6e7d8a0e86b31c3afb47577075b63ef4",
+  "plan_path": "Plan\\completed\\dc_ac_implementation_migration_plan.md",
+  "plan_sha256_at_delivery_generation": "e1e6c393d5ea97e2f031885a0c3f58f3e1ff2138a329a0dff7137b6f95f5bc04",
+  "commit_chain_verified": true,
+  "steps_0_through_11_commit_and_receipt_count": 24,
+  "commits": [
+    {
+      "commit": "faf5e3f06f2874a25d106a68144c5cc78eeb6032",
+      "subject": "chore: record dc-ac migration baseline"
+    },
+    {
+      "commit": "22cbaef7505f47c8b96238f793b3144be3e0ba9d",
+      "subject": "docs: record dc-ac step 0 push receipt"
+    },
+    {
+      "commit": "f9c85d58c38d86b4d4d3bc410879ce7333ddf097",
+      "subject": "docs: add dc-ac migration dependency matrix"
+    },
+    {
+      "commit": "5d7ae16e716fcf61786b22c7631c22a5f57ca26f",
+      "subject": "docs: record dc-ac step 1 push receipt"
+    },
+    {
+      "commit": "01a2d1fa76a36d448ccf7826b61d30dd58e41612",
+      "subject": "refactor: merge shared dc-ac runtime contracts"
+    },
+    {
+      "commit": "d6dc6df615f4036ca19f1bb780ef05797c4ceed5",
+      "subject": "docs: record dc-ac step 2 push receipt"
+    },
+    {
+      "commit": "00b408aad6afac72f12d95c8a4ca43f9c1e1b33c",
+      "subject": "feat: register dc-ac topology family"
+    },
+    {
+      "commit": "16db74f4154c0108ae8de12bc3dcf35b5a905acb",
+      "subject": "docs: record dc-ac step 3 push receipt"
+    },
+    {
+      "commit": "3fe828f5cdbd64dfbacf0bd0ecca6f0b0690ee16",
+      "subject": "feat: migrate single-phase full-bridge inverter"
+    },
+    {
+      "commit": "35ff845f997ee8a94d32dfd5234035c755fccb3c",
+      "subject": "docs: record dc-ac step 4 push receipt"
+    },
+    {
+      "commit": "209807872d3095cc464b45c194c01933b3704837",
+      "subject": "feat: migrate three-phase two-level vsi"
+    },
+    {
+      "commit": "2d1c4f1141fac4080f6affdb9362f8a281171ad4",
+      "subject": "docs: record dc-ac step 5 push receipt"
+    },
+    {
+      "commit": "2ebc79fc08e8df0d1bb81dc726d1eb3f710a5b98",
+      "subject": "feat: migrate three-phase three-level npc"
+    },
+    {
+      "commit": "650bfa82512673174f75e9f2a6777f75da51806b",
+      "subject": "docs: record dc-ac step 6 push receipt"
+    },
+    {
+      "commit": "342ebf8f973089b94e14e957d56fd29b54646701",
+      "subject": "feat: connect dc-ac waveform refresh and result views"
+    },
+    {
+      "commit": "5e37571f2c5d90159eb49286d1d0afb197c67251",
+      "subject": "docs: record dc-ac step 7 push receipt"
+    },
+    {
+      "commit": "57e080b22776fe46ceac0f949f0bc949f7e80573",
+      "subject": "feat: integrate dc-ac downstream engineering stages"
+    },
+    {
+      "commit": "387ce6fdaccb4b23b8e53cedd09f23422b39dd48",
+      "subject": "docs: record dc-ac step 8 push receipt"
+    },
+    {
+      "commit": "7357c995c77d92109b4d74acacb866bcf3a64112",
+      "subject": "test: add dc-ac target integration coverage"
+    },
+    {
+      "commit": "7183ea5d62d8619484e7d07a9251795237b5876c",
+      "subject": "docs: record dc-ac step 9 push receipt"
+    },
+    {
+      "commit": "91be10342a739838a0ca0c028145d5ce8ec7e068",
+      "subject": "test: verify dc-ac packaged gui runtime"
+    },
+    {
+      "commit": "6438f7a3260ff2cbcd96ebd153924f7660e1404e",
+      "subject": "docs: record dc-ac step 10 push receipt"
+    },
+    {
+      "commit": "865ae126bf794f8ae76459d0edbd21fda6f0e930",
+      "subject": "docs: finalize dc-ac migration evidence and acceptance"
+    },
+    {
+      "commit": "9268813a6e7d8a0e86b31c3afb47577075b63ef4",
+      "subject": "docs: record dc-ac step 11 push receipt"
+    }
+  ],
+  "acceptance": {
+    "topology_count": 3,
+    "source_target_field_count": 45,
+    "source_target_difference_count": 0,
+    "focused_passed": 183,
+    "focused_skipped": 1,
+    "full_suite_passed": 323,
+    "full_suite_skipped": 1,
+    "failures": 0,
+    "errors": 0,
+    "warnings": 0,
+    "runtime_source_path_hits": 0,
+    "runtime_ai_agentic_hits": 0
+  },
+  "release_boundary": {
+    "user_acceptance_required": true,
+    "merge_performed": false,
+    "master_push_performed": false,
+    "accepted_skip": "Optional legacy external OpenMagnetics debug/reference database unavailable; packaged normalized production path passed."
+  },
+  "evidence": [
+    {
+      "path": "migration\\evidence\\20260827\\step9_dc_ac\\dc_ac_target_fixtures.json",
+      "size_bytes": 2858,
+      "sha256": "dde39e5a08d96cd3ad66598a0d1264a62cdf746ebd849f0079cfa8adfcd5bf26"
+    },
+    {
+      "path": "migration\\evidence\\20260827\\step10_dc_ac\\packaged_gui_runtime_validation.json",
+      "size_bytes": 1805,
+      "sha256": "fa097e90c760636822b315963002fea5a11163be42ccb50691d58aafd3d0b47b"
+    },
+    {
+      "path": "migration\\evidence\\20260827\\step11_dc_ac\\dc_ac_acceptance_matrix.csv",
+      "size_bytes": 783,
+      "sha256": "dffaaa7d068e3458e252e2c0f1984c0f0b59760aaacd5f261862c0a7b0db3642"
+    },
+    {
+      "path": "migration\\evidence\\20260827\\step11_dc_ac\\source_target_comparison.csv",
+      "size_bytes": 8973,
+      "sha256": "028e2d3dc8ec471cf21c468cbcde65c7e5b58f55a3351f977975f9994dd37313"
+    },
+    {
+      "path": "migration\\evidence\\20260827\\step11_dc_ac\\source_target_comparison.json",
+      "size_bytes": 563,
+      "sha256": "b72a51b5e7bf2a2341739f861d6f814a7b9c1040616a303805106008907022e5"
+    },
+    {
+      "path": "migration\\evidence\\20260827\\step11_dc_ac\\final_validation_report.json",
+      "size_bytes": 2778,
+      "sha256": "d25315e54ac6abe8f5895c37109610cd83ae35a70d285742d1c31348288383bf"
+    },
+    {
+      "path": "migration\\evidence\\20260827\\step11_dc_ac\\final_validation_report.md",
+      "size_bytes": 1166,
+      "sha256": "d4b926e0d8a5328d8a59cb7d59bc2796fe85e89f4084f891c29d5ec2ea20397d"
+    },
+    {
+      "path": "migration\\evidence\\20260827\\step12_dc_ac\\dc_ac_delivery_checklist.md",
+      "size_bytes": 1362,
+      "sha256": "19e6021846ecafe85235cb8dca69d21516ab6087518e17d7f85f14f494678298"
+    }
+  ]
+}
