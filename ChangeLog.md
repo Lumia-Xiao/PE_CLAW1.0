@@ -4,6 +4,23 @@ This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
 
+## 2026-08-27 DC-AC Migration Step 5 Three-Phase Two-Level VSI Contract
+
+- What changed:
+  - Added target-engineering contract coverage for the three-phase two-level voltage-source inverter.
+  - Covered line-line RMS input normalization, six-switch SPWM metadata, phase voltage/current and
+    DC-link current waveforms, waveform-backed stress, operating-point refresh, and GUI controls.
+  - Marked Step 5 in progress in the active migration plan pending push completion.
+- Why:
+  - The target three-phase two-level VSI runtime and form already match the source implementation;
+    this step locks the migrated behavior with target-local deterministic acceptance tests.
+- Files:
+  - `tests/test_dc_ac_three_phase_two_level_contract.py`
+  - `Plan/active/dc_ac_implementation_migration_plan.md`
+- Validation:
+  - `python -m pytest -q tests/test_dc_ac_three_phase_two_level_contract.py tests/test_phase9_dc_ac_topologies.py tests/test_phase10_gui_integration.py`: 16 passed.
+  - Implementation commit and remote push are recorded by the Step 5 post-push receipt.
+
 ## 2026-08-27 DC-AC Migration Step 4 Single-Phase Full-Bridge Contract
 
 - What changed:
