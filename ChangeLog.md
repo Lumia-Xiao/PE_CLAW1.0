@@ -287,3 +287,26 @@ listed here.
   - Branch: `codex/sync-gui-backend-from-2`.
   - Planned step commit: `docs: archive dc-ac migration delivery`.
   - Merge, tag, release, and `master` push are not part of this step.
+
+## 2026-08-27 DC-AC Step 12 Manifest Reproducibility Repair
+
+- What changed:
+  - Updated the Step 12 delivery generator to validate the final archived
+    `completed` plan instead of the temporary pre-receipt state.
+  - Added the Step 12 subject and receipt commits to the verified chain, for a
+    total of 26 migration subject/receipt commits through delivery closure.
+  - Regenerated the final manifest with the current archived-plan SHA-256 and
+    explicit Step 12 closure commits.
+- Why:
+  - The original generator intentionally targeted the pre-push state and could
+    not be rerun after the plan and remote branch reached their final state.
+- Validation:
+  - Two consecutive generator runs produced byte-identical manifest SHA-256
+    `D08CDD2D3B353FF3112C3E05588E279D0395E71C2348CB1677319CCE2AFA5614`.
+  - Manifest contract `dc_ac_step12_delivery_manifest_v2` records 26 commits,
+    Step 12 subject/receipt hashes, and the current archived-plan SHA-256.
+  - The generator verifies local and remote ancestry from the Step 12 receipt;
+    `origin/master` does not contain Step 12 and no containing tag exists.
+  - DC-AC delivery smoke: `23 passed`.
+  - Manifest evidence hashes: 0 mismatches; runtime source-path and AI/agentic
+    import scans: 0 hits; compileall and `git diff --check`: passed.

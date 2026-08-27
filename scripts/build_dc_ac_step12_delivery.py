@@ -16,6 +16,8 @@ REMOTE = f"origin/{BRANCH}"
 BASELINE = "e8b5eac"
 SOURCE_COMMIT = "6726f508fcf0e545f69512654d1ea5543e6333cf"
 PRE_STEP12_COMMIT = "9268813a6e7d8a0e86b31c3afb47577075b63ef4"
+STEP12_SUBJECT_COMMIT = "b15e7b87a6cce412ef291418789c66d03c6081ea"
+STEP12_RECEIPT_COMMIT = "70efb1ac086c22b3edd48e1ec51396f025e6cf40"
 
 EXPECTED_COMMITS = (
     ("faf5e3f06f2874a25d106a68144c5cc78eeb6032", "chore: record dc-ac migration baseline"),
@@ -42,6 +44,8 @@ EXPECTED_COMMITS = (
     ("6438f7a3260ff2cbcd96ebd153924f7660e1404e", "docs: record dc-ac step 10 push receipt"),
     ("865ae126bf794f8ae76459d0edbd21fda6f0e930", "docs: finalize dc-ac migration evidence and acceptance"),
     ("9268813a6e7d8a0e86b31c3afb47577075b63ef4", "docs: record dc-ac step 11 push receipt"),
+    ("b15e7b87a6cce412ef291418789c66d03c6081ea", "docs: archive dc-ac migration delivery"),
+    ("70efb1ac086c22b3edd48e1ec51396f025e6cf40", "docs: record dc-ac step 12 push receipt"),
 )
 
 
@@ -58,6 +62,20 @@ def run(*args: str) -> str:
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def is_ancestor(ancestor: str, descendant: str) -> bool:
+    completed = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", ancestor, descendant],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    if completed.returncode not in (0, 1):
+        raise RuntimeError(completed.stderr.strip() or "git merge-base failed")
+    return completed.returncode == 0
 
 
 def verify_commit_chain() -> list[dict[str, str]]:
@@ -99,18 +117,27 @@ def main() -> None:
     if not PLAN.is_file():
         raise RuntimeError(f"The migration plan must be archived before delivery: {PLAN}")
     plan_text = PLAN.read_text(encoding="utf-8")
-    if "计划状态 | `in_progress`" not in plan_text:
-        raise RuntimeError("Pre-receipt archived plan is not marked in_progress")
-    if "第 11 步 | Completed" not in plan_text:
-        raise RuntimeError("Archived plan does not record completed Step 11")
+    if "计划状态 | `completed`" not in plan_text:
+        raise RuntimeError("Archived plan is not marked completed")
+    if "第 12 步 | Completed" not in plan_text:
+        raise RuntimeError("Archived plan does not record completed Step 12")
 
     commit_chain = verify_commit_chain()
     evidence = verify_evidence()
     head = run("git", "rev-parse", "HEAD")
     remote_head = run("git", "rev-parse", REMOTE)
-    if remote_head != PRE_STEP12_COMMIT:
-        raise RuntimeError(f"Unexpected pre-Step-12 remote state: {remote_head}")
-    run("git", "merge-base", "--is-ancestor", PRE_STEP12_COMMIT, head)
+    if run("git", "branch", "--show-current") != BRANCH:
+        raise RuntimeError(f"Delivery generator must run on {BRANCH}")
+    if not is_ancestor(STEP12_RECEIPT_COMMIT, head):
+        raise RuntimeError(f"Local HEAD does not contain Step 12 closure: {head}")
+    if not is_ancestor(STEP12_RECEIPT_COMMIT, remote_head):
+        raise RuntimeError(f"Remote branch does not contain Step 12 closure: {remote_head}")
+    master = run("git", "rev-parse", "origin/master")
+    if is_ancestor(STEP12_SUBJECT_COMMIT, master):
+        raise RuntimeError("Step 12 subject commit is already contained in origin/master")
+    containing_tags = run("git", "tag", "--contains", STEP12_SUBJECT_COMMIT).splitlines()
+    if containing_tags:
+        raise RuntimeError(f"Step 12 subject commit is tagged: {containing_tags}")
 
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     checklist = """# DC-AC Step 12 Delivery Checklist
@@ -159,7 +186,7 @@ migration branch and has not been merged or pushed to `master`.
     )
 
     manifest = {
-        "contract": "dc_ac_step12_delivery_manifest_v1",
+        "contract": "dc_ac_step12_delivery_manifest_v2",
         "status": "READY_FOR_USER_ACCEPTANCE",
         "date": "2026-08-27",
         "source_root": r"C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw",
@@ -169,10 +196,13 @@ migration branch and has not been merged or pushed to `master`.
         "target_branch": BRANCH,
         "remote": REMOTE,
         "target_commit_before_step12": PRE_STEP12_COMMIT,
+        "step12_subject_commit": STEP12_SUBJECT_COMMIT,
+        "step12_receipt_commit": STEP12_RECEIPT_COMMIT,
+        "delivery_closure_commit": STEP12_RECEIPT_COMMIT,
         "plan_path": str(PLAN.relative_to(ROOT)),
-        "plan_sha256_at_delivery_generation": sha256(PLAN),
+        "plan_sha256": sha256(PLAN),
         "commit_chain_verified": True,
-        "steps_0_through_11_commit_and_receipt_count": len(commit_chain),
+        "steps_0_through_12_commit_and_receipt_count": len(commit_chain),
         "commits": commit_chain,
         "acceptance": {
             "topology_count": 3,
@@ -192,6 +222,8 @@ migration branch and has not been merged or pushed to `master`.
             "user_acceptance_required": True,
             "merge_performed": False,
             "master_push_performed": False,
+            "tag_performed": False,
+            "origin_master_checked_at": master,
             "accepted_skip": "Optional legacy external OpenMagnetics debug/reference database unavailable; packaged normalized production path passed.",
         },
         "evidence": evidence,

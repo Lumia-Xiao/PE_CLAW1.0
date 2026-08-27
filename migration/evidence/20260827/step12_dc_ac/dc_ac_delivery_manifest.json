@@ -1,5 +1,5 @@
 {
-  "contract": "dc_ac_step12_delivery_manifest_v1",
+  "contract": "dc_ac_step12_delivery_manifest_v2",
   "status": "READY_FOR_USER_ACCEPTANCE",
   "date": "2026-08-27",
   "source_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
@@ -9,10 +9,13 @@
   "target_branch": "codex/sync-gui-backend-from-2",
   "remote": "origin/codex/sync-gui-backend-from-2",
   "target_commit_before_step12": "9268813a6e7d8a0e86b31c3afb47577075b63ef4",
+  "step12_subject_commit": "b15e7b87a6cce412ef291418789c66d03c6081ea",
+  "step12_receipt_commit": "70efb1ac086c22b3edd48e1ec51396f025e6cf40",
+  "delivery_closure_commit": "70efb1ac086c22b3edd48e1ec51396f025e6cf40",
   "plan_path": "Plan\\completed\\dc_ac_implementation_migration_plan.md",
-  "plan_sha256_at_delivery_generation": "e1e6c393d5ea97e2f031885a0c3f58f3e1ff2138a329a0dff7137b6f95f5bc04",
+  "plan_sha256": "416fa1f1b2219a1635ea50a4d716d8488c4528d6f1d3ba6d96891a81d30a811c",
   "commit_chain_verified": true,
-  "steps_0_through_11_commit_and_receipt_count": 24,
+  "steps_0_through_12_commit_and_receipt_count": 26,
   "commits": [
     {
       "commit": "faf5e3f06f2874a25d106a68144c5cc78eeb6032",
@@ -109,6 +112,14 @@
     {
       "commit": "9268813a6e7d8a0e86b31c3afb47577075b63ef4",
       "subject": "docs: record dc-ac step 11 push receipt"
+    },
+    {
+      "commit": "b15e7b87a6cce412ef291418789c66d03c6081ea",
+      "subject": "docs: archive dc-ac migration delivery"
+    },
+    {
+      "commit": "70efb1ac086c22b3edd48e1ec51396f025e6cf40",
+      "subject": "docs: record dc-ac step 12 push receipt"
     }
   ],
   "acceptance": {
@@ -129,6 +140,8 @@
     "user_acceptance_required": true,
     "merge_performed": false,
     "master_push_performed": false,
+    "tag_performed": false,
+    "origin_master_checked_at": "e8b5eac5ac9342cf1d8fa88836cf79c7def711a6",
     "accepted_skip": "Optional legacy external OpenMagnetics debug/reference database unavailable; packaged normalized production path passed."
   },
   "evidence": [
