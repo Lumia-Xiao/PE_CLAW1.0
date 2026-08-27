@@ -51,7 +51,8 @@ listed here.
   - `git diff --check`: passed before commit.
 - Git:
   - Branch: `codex/sync-gui-backend-from-2`.
-  - Commit and push: pending at the time of this record.
+  - Step commit: `f9c85d58c38d86b4d4d3bc410879ce7333ddf097` (`docs: add dc-ac migration dependency matrix`).
+  - Push: passed to `origin/codex/sync-gui-backend-from-2`; remote hash verified.
 
 ## 2026-08-26
 

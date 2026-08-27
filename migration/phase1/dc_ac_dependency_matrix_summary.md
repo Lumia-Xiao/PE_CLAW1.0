@@ -89,3 +89,13 @@ not migration inputs and must remain outside every commit.
 - Agentic, generated, placeholder, and non-runtime content is explicitly
   excluded.
 - No row is `review_required`.
+
+## Commit And Push Receipt
+
+| Item | Value |
+| --- | --- |
+| Step commit | `f9c85d58c38d86b4d4d3bc410879ce7333ddf097` |
+| Commit message | `docs: add dc-ac migration dependency matrix` |
+| Push target | `origin/codex/sync-gui-backend-from-2` |
+| Push result | Passed |
+| Remote verification | `f9c85d58c38d86b4d4d3bc410879ce7333ddf097` |
