@@ -34,6 +34,18 @@ class WaveformView(ttk.Frame):
 
         waveform = report.waveform
         time_us = [t * 1e6 for t in waveform.time_s]
+        refined = waveform.metadata.get("single_phase_inverter_refined_waveforms")
+        if report.spec.topology_id == "single_phase_full_bridge_inverter" and isinstance(refined, dict):
+            self._render_single_phase_inverter_waveforms(report, refined)
+            return
+        three_phase = waveform.metadata.get("three_phase_two_level_spwm_waveforms")
+        if report.spec.topology_id == "three_phase_two_level_voltage_source_inverter" and isinstance(three_phase, dict):
+            self._render_three_phase_two_level_waveforms(report, three_phase)
+            return
+        npc = waveform.metadata.get("three_phase_npc_pd_spwm_waveforms")
+        if report.spec.topology_id == "three_phase_three_level_npc_inverter" and isinstance(npc, dict):
+            self._render_three_phase_npc_waveforms(report, npc)
+            return
         if report.spec.topology_id == "three_level_tzcm_fixed_frequency":
             from ...models.operating_point import OperatingPoint
             from ...topologies.dc_dc.three_level_tzcm_fixed_frequency.mode import build_operating_state
@@ -113,3 +125,124 @@ class WaveformView(ttk.Frame):
         )
         self.figure.tight_layout(rect=[0, 0, 1, 0.97])
         self.canvas.draw_idle()
+
+    def _render_single_phase_inverter_waveforms(self, report: DesignReport, data: dict[str, object]) -> None:
+        time_ms = [float(value) * 1e3 for value in _series(data, "time_s")]
+        if not time_ms:
+            return
+        axes = [self.figure.add_subplot(5, 1, index + 1) for index in range(5)]
+        gates = [("S1", 3.0), ("S2", 2.0), ("S3", 1.0), ("S4", 0.0)]
+        for label, offset in gates:
+            axes[0].step(time_ms, [value + offset for value in _series(data, f"gate_{label.lower()}")], where="post", label=label)
+        axes[0].set_title("Single-phase unipolar SPWM gate states", fontsize=9)
+        axes[0].set_yticks([3.5, 2.5, 1.5, 0.5], labels=[label for label, _ in gates])
+        axes[0].grid(True, alpha=0.35)
+        axes[1].plot(time_ms, _series(data, "mod_a"), label="m_A")
+        axes[1].plot(time_ms, _series(data, "mod_b"), label="m_B")
+        axes[1].plot(time_ms, _series(data, "carrier"), linewidth=0.6, label="carrier")
+        axes[1].set_title("SPWM references and carrier", fontsize=9)
+        axes[1].legend(fontsize=7, ncol=3)
+        axes[1].grid(True, alpha=0.35)
+        axes[2].step(time_ms, _series(data, "v_ab_pwm_v"), where="post", label="v_ab PWM")
+        axes[2].plot(time_ms, _series(data, "vac_fundamental_v"), label="v_ac fundamental")
+        axes[2].set_title("Bridge output voltage", fontsize=9)
+        axes[2].set_ylabel("Voltage [V]")
+        axes[2].legend(fontsize=7)
+        axes[2].grid(True, alpha=0.35)
+        axes[3].plot(time_ms, _series(data, "inductor_current_a"), label="i_L")
+        axes[3].plot(time_ms, _series(data, "i_ac_fundamental_a"), label="i_ac fundamental")
+        axes[3].set_title("Output inductor current", fontsize=9)
+        axes[3].set_ylabel("Current [A]")
+        axes[3].legend(fontsize=7)
+        axes[3].grid(True, alpha=0.35)
+        axes[4].plot(time_ms, _series(data, "dc_link_capacitor_current_pwm_a"), label="i_Cdc")
+        axes[4].plot(time_ms, _series(data, "dc_link_voltage_v"), label="v_dc")
+        axes[4].set_title("DC-link capacitor current and voltage", fontsize=9)
+        axes[4].set_xlabel("Time [ms]")
+        axes[4].legend(fontsize=7)
+        axes[4].grid(True, alpha=0.35)
+        self._finish_inverter_plot(report, axes, "Vac", "single-phase first-pass preview")
+
+    def _render_three_phase_two_level_waveforms(self, report: DesignReport, data: dict[str, object]) -> None:
+        time_ms = [float(value) * 1e3 for value in _series(data, "time_s")]
+        if not time_ms:
+            return
+        axes = [self.figure.add_subplot(4, 1, index + 1) for index in range(4)]
+        for key, label in (("va_phase_v", "v_aN"), ("vb_phase_v", "v_bN"), ("vc_phase_v", "v_cN")):
+            axes[0].plot(time_ms, _series(data, key), label=label)
+        axes[0].set_title("Three-phase phase voltages", fontsize=9)
+        axes[0].set_ylabel("Voltage [V]")
+        axes[0].legend(fontsize=7, ncol=3)
+        axes[0].grid(True, alpha=0.35)
+        for key, label in (("ia_a", "i_a"), ("ib_a", "i_b"), ("ic_a", "i_c")):
+            axes[1].plot(time_ms, _series(data, key), label=label)
+        axes[1].set_title("Three-phase phase currents", fontsize=9)
+        axes[1].set_ylabel("Current [A]")
+        axes[1].legend(fontsize=7, ncol=3)
+        axes[1].grid(True, alpha=0.35)
+        for key, label in (("mod_a", "m_a"), ("mod_b", "m_b"), ("mod_c", "m_c"), ("carrier", "carrier")):
+            axes[2].plot(time_ms, _series(data, key), label=label)
+        axes[2].set_title("SPWM references, carrier, and upper-switch states", fontsize=9)
+        axes[2].legend(fontsize=7, ncol=4)
+        axes[2].grid(True, alpha=0.35)
+        axes[3].plot(time_ms, _series(data, "dc_link_bus_current_pwm_a"), label="i_Cdc proxy")
+        axes[3].plot(time_ms, _series(data, "dc_link_voltage_v"), label="v_dc")
+        axes[3].set_title("DC-link current proxy and voltage", fontsize=9)
+        axes[3].set_xlabel("Time [ms]")
+        axes[3].legend(fontsize=7)
+        axes[3].grid(True, alpha=0.35)
+        self._finish_inverter_plot(report, axes, "VLL", "three-phase two-level SPWM first-pass preview")
+
+    def _render_three_phase_npc_waveforms(self, report: DesignReport, data: dict[str, object]) -> None:
+        time_ms = [float(value) * 1e3 for value in _series(data, "time_s")]
+        if not time_ms:
+            return
+        axes = [self.figure.add_subplot(5, 1, index + 1) for index in range(5)]
+        for key, label in (("va_phase_v", "v_aN"), ("vb_phase_v", "v_bN"), ("vc_phase_v", "v_cN")):
+            axes[0].plot(time_ms, _series(data, key), label=label)
+        axes[0].set_title("NPC phase voltages", fontsize=9)
+        axes[0].legend(fontsize=7, ncol=3)
+        axes[0].grid(True, alpha=0.35)
+        for key, label in (("ia_a", "i_a"), ("ib_a", "i_b"), ("ic_a", "i_c")):
+            axes[1].plot(time_ms, _series(data, key), label=label)
+        axes[1].set_title("NPC phase currents", fontsize=9)
+        axes[1].legend(fontsize=7, ncol=3)
+        axes[1].grid(True, alpha=0.35)
+        for key, label in (("va_pole_v", "v_aO"), ("vb_pole_v", "v_bO"), ("vc_pole_v", "v_cO"), ("vab_pwm_v", "v_ab PWM")):
+            axes[2].step(time_ms, _series(data, key), where="post", label=label)
+        axes[2].set_title("NPC pole and line-line PWM voltages", fontsize=9)
+        axes[2].legend(fontsize=7, ncol=4)
+        axes[2].grid(True, alpha=0.35)
+        for key, label in (("mod_a", "m_a"), ("mod_b", "m_b"), ("mod_c", "m_c"), ("carrier_upper", "carrier upper"), ("carrier_lower", "carrier lower")):
+            axes[3].plot(time_ms, _series(data, key), label=label)
+        axes[3].set_title("PD-SPWM references and carriers", fontsize=9)
+        axes[3].legend(fontsize=7, ncol=5)
+        axes[3].grid(True, alpha=0.35)
+        for key, label in (("dc_link_capacitor_current_pwm_a", "i_Cdc"), ("upper_dc_link_capacitor_current_pwm_a", "i_Cupper"), ("lower_dc_link_capacitor_current_pwm_a", "i_Clower"), ("neutral_point_current_a", "i_neutral")):
+            axes[4].plot(time_ms, _series(data, key), label=label)
+        axes[4].set_title("Split DC-link and neutral-point current proxies", fontsize=9)
+        axes[4].set_xlabel("Time [ms]")
+        axes[4].legend(fontsize=7, ncol=4)
+        axes[4].grid(True, alpha=0.35)
+        self._finish_inverter_plot(report, axes, "VLL", "three-phase three-level NPC PD-SPWM first-pass preview")
+
+    def _finish_inverter_plot(self, report: DesignReport, axes, voltage_label: str, mode_label: str) -> None:
+        waveform = report.waveform
+        for axis in axes:
+            axis.set_xlim(axes[0].lines[0].get_xdata()[0], axes[0].lines[0].get_xdata()[-1])
+        pf = waveform.metadata.get("operating_power_factor") if waveform is not None else None
+        pf_text = f" | PF={float(pf):.3f}" if pf is not None else ""
+        self.figure.suptitle(
+            f"{report.spec.display_name} | Vdc={waveform.operating_vin_v:.3f} V | {voltage_label}={waveform.operating_vout_v:.3f} Vrms | Load={waveform.load_ratio:.3f} pu{pf_text}",
+            fontsize=11,
+        )
+        self.figure.text(0.5, 0.01, f"{mode_label}; dead-time, Coss, and parasitic transients are not modeled.", ha="center", va="bottom", fontsize=7)
+        self.figure.tight_layout(rect=[0, 0.035, 1, 0.97])
+        self.canvas.draw_idle()
+
+
+def _series(data: dict[str, object], key: str) -> list[float]:
+    values = data.get(key, [])
+    if not isinstance(values, list):
+        return []
+    return [float(value) for value in values]

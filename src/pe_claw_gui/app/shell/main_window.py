@@ -125,6 +125,10 @@ class PEClawMainWindow(tk.Tk):
 
     def _on_run_capacitor(self) -> None:
         try:
+            if self.workspace.active_form is None:
+                raise RuntimeError("Select a topology before running capacitors.")
+            raw_input = self.workspace.active_form.get_raw_input()
+            self.design_controller.ensure_active_topology_current(raw_input)
             report = self.design_controller.run_active_capacitors()
             self.workspace.render_report(report)
             if self.workspace.results_notebook is not None and self.workspace.capacitor_view is not None:
@@ -139,6 +143,8 @@ class PEClawMainWindow(tk.Tk):
         try:
             if self.workspace.active_form is None:
                 raise RuntimeError("Select a topology before generating waveforms.")
+            raw_input = self.workspace.active_form.get_raw_input()
+            self.design_controller.ensure_active_topology_current(raw_input)
             operating_point = self.workspace.active_form.get_operating_point()
             runtime_overrides = self.workspace.active_form.get_runtime_overrides()
             report = self.waveform_controller.generate_waveforms(operating_point, runtime_overrides=runtime_overrides)

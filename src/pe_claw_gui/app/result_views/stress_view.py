@@ -28,7 +28,12 @@ class StressView(ttk.Frame):
         self.text.configure(state="disabled")
 
 
-def build_stress_summary_lines(report: DesignReport | None, fallback: str = "Stress results are not available.") -> list[str]:
+def build_stress_summary_lines(
+    report: DesignReport | None,
+    fallback: str = "Stress results are not available.",
+    *,
+    include_notes: bool = True,
+) -> list[str]:
     """Build compact electrical stress summary lines."""
 
     if report is None or report.stress is None:
@@ -77,18 +82,46 @@ def build_stress_summary_lines(report: DesignReport | None, fallback: str = "Str
             rectifier_peak_label = "I_SR_peak"
             rectifier_avg_label = "I_SR_avg"
             rectifier_rms_label = "I_SR_rms"
+    if report.spec.topology_id == "single_phase_full_bridge_inverter":
+        switch_title = "Full-bridge switch stress"
+        rectifier_title = "Antiparallel/freewheel path stress"
+        rectifier_voltage_label = "V_FW_block_max"
+        rectifier_peak_label = "I_FW_peak"
+        rectifier_avg_label = "I_FW_avg"
+        rectifier_rms_label = "I_FW_rms"
+    if report.spec.topology_id == "three_phase_two_level_voltage_source_inverter":
+        switch_title = "Six-switch bridge switch stress"
+        rectifier_title = "Antiparallel/freewheel path stress"
+        rectifier_voltage_label = "V_FW_block_max"
+        rectifier_peak_label = "I_FW_peak"
+        rectifier_avg_label = "I_FW_avg"
+        rectifier_rms_label = "I_FW_rms"
+    if report.spec.topology_id == "three_phase_three_level_npc_inverter":
+        switch_title = "NPC active switch stress"
+        switch_voltage_label = "V_SW_block_max"
+        rectifier_title = "NPC clamp diode stress"
+        rectifier_voltage_label = "V_CLAMP_block_max"
+        rectifier_peak_label = "I_CLAMP_peak"
+        rectifier_avg_label = "I_CLAMP_avg"
+        rectifier_rms_label = "I_CLAMP_rms"
     lines = [
         switch_title,
         f"  {switch_voltage_label} = {stress.switch.voltage_max_v:.6f} V",
-        f"  {switch_peak_label} = {stress.switch.current_peak_a:.6f} A",
-        f"  {switch_rms_label} = {(stress.switch.current_rms_a or 0.0):.6f} A",
+        f"  {switch_peak_label} = {_fmt_current(stress.switch.current_peak_a)}",
+        f"  {switch_rms_label} = {_fmt_current(stress.switch.current_rms_a)}",
         "",
         rectifier_title,
         f"  {rectifier_voltage_label} = {stress.rectifier.voltage_max_v:.6f} V",
-        f"  {rectifier_peak_label} = {stress.rectifier.current_peak_a:.6f} A",
-        f"  {rectifier_avg_label} = {(stress.rectifier.current_avg_a or 0.0):.6f} A",
-        f"  {rectifier_rms_label} = {(stress.rectifier.current_rms_a or 0.0):.6f} A",
+        f"  {rectifier_peak_label} = {_fmt_current(stress.rectifier.current_peak_a)}",
+        f"  {rectifier_avg_label} = {_fmt_current(stress.rectifier.current_avg_a)}",
+        f"  {rectifier_rms_label} = {_fmt_current(stress.rectifier.current_rms_a)}",
     ]
-    if stress.notes:
+    if include_notes and stress.notes:
         lines.extend(["", "Stress notes", *[f"  {note}" for note in stress.notes]])
     return lines
+
+
+def _fmt_current(value: float | None) -> str:
+    if value is None:
+        return "N/A"
+    return f"{value:.6f} A"

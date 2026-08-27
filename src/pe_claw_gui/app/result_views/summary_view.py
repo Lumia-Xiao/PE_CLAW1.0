@@ -79,17 +79,7 @@ class SummaryView(ttk.Frame):
                     f"Topology ID: {report.spec.topology_id}",
                     "",
                     "Electrical parameters",
-                    f"  Vin_nom = {candidate.vin_nom:.6f} V",
-                    f"  Duty_nom = {candidate.duty_nom:.6f}",
-                    f"  Iout = {candidate.iout:.6f} A",
-                    f"  fs = {candidate.fs_hz:.2f} Hz",
-                    f"  L = {candidate.inductance_h * 1e6:.6f} uH",
-                    f"  C = {candidate.capacitance_f * 1e6:.6f} uF",
-                    f"  Delta_iL = {candidate.delta_il:.6f} A",
-                    f"  Delta_vo = {candidate.delta_vo:.6f} V",
-                    f"  I_L_peak = {candidate.il_peak:.6f} A",
-                    f"  I_L_valley = {candidate.il_valley:.6f} A",
-                    f"  CCM valid = {candidate.ccm_valid}",
+                    *_build_electrical_parameter_lines(report),
                 ]
             if report.topology_result is not None and report.topology_result.summary_lines:
                 lines.extend(["", "Topology evaluation", *report.topology_result.summary_lines])
@@ -106,6 +96,120 @@ class SummaryView(ttk.Frame):
         self.text.delete("1.0", "end")
         self.text.insert("1.0", "\n".join(lines))
         self.text.configure(state="disabled")
+
+
+def _build_electrical_parameter_lines(report: DesignReport) -> list[str]:
+    """Return topology-specific electrical and operating-point readback lines."""
+
+    candidate = report.candidate
+    if candidate is None:
+        return []
+    topology_id = report.spec.topology_id
+    metadata = candidate.metadata
+    waveform_metadata = report.waveform.metadata if report.waveform is not None else {}
+    if topology_id == "single_phase_full_bridge_inverter":
+        lines = [
+            f"  Vdc_nom = {candidate.vin_nom:.6f} V",
+            f"  Vac_rms = {candidate.vout_target:.6f} V",
+            f"  Pout = {candidate.pout_target:.6f} W",
+            f"  fsw = {candidate.fs_hz:.2f} Hz",
+            f"  modulation index = {_fmt_float(metadata.get('modulation_index'))}",
+            f"  Lout = {candidate.inductance_h * 1e6:.6f} uH",
+            f"  Cdc = {candidate.capacitance_f * 1e6:.6f} uF",
+            f"  DC-link ripple target = {candidate.delta_vo:.6f} Vpp",
+            f"  Iac rms = {_fmt_float(metadata.get('iac_rms_a'))} A",
+            f"  Iac peak = {_fmt_float(metadata.get('iac_peak_a'))} A",
+            f"  CCM valid = {candidate.ccm_valid}",
+        ]
+        if waveform_metadata:
+            lines.extend([
+                f"  Operating load ratio = {_fmt_float(report.waveform.load_ratio)} pu",
+                f"  Operating PF = {_fmt_float(waveform_metadata.get('operating_power_factor'))}",
+                f"  Operating Iac rms = {_fmt_float(waveform_metadata.get('operating_iac_rms_a'))} A",
+                f"  Operating Idc avg = {_fmt_float(waveform_metadata.get('operating_idc_avg_a'))} A",
+            ])
+        return lines
+    if topology_id == "three_phase_two_level_voltage_source_inverter":
+        lines = [
+            f"  Vdc_nom = {candidate.vin_nom:.6f} V",
+            f"  Vac line-line rms = {candidate.vout_target:.6f} V",
+            f"  Vac phase rms = {_fmt_float(metadata.get('vac_phase_rms_v'))} V",
+            f"  Pout = {candidate.pout_target:.6f} W",
+            f"  PF = {_fmt_float(metadata.get('power_factor'))}",
+            f"  fsw = {candidate.fs_hz:.2f} Hz",
+            f"  modulation index = {_fmt_float(metadata.get('modulation_index'))}",
+            f"  L_phase = {candidate.inductance_h * 1e6:.6f} uH",
+            f"  Cdc proxy = {candidate.capacitance_f * 1e6:.6f} uF",
+            f"  DC-link ripple target = {candidate.delta_vo:.6f} Vpp",
+            f"  I_phase rms = {_fmt_float(metadata.get('i_phase_rms_a'))} A",
+            f"  I_phase peak = {_fmt_float(metadata.get('i_phase_peak_a'))} A",
+            f"  CCM valid = {candidate.ccm_valid}",
+        ]
+        return _append_operating_readback(lines, report, "operating_i_phase_rms_a", "operating_i_phase_peak_a")
+    if topology_id == "three_phase_three_level_npc_inverter":
+        lines = [
+            f"  Vdc_nom = {candidate.vin_nom:.6f} V",
+            f"  Vac line-line rms = {candidate.vout_target:.6f} V",
+            f"  Vac phase rms = {_fmt_float(metadata.get('vac_phase_rms_v'))} V",
+            f"  Pout = {candidate.pout_target:.6f} W",
+            f"  PF = {_fmt_float(metadata.get('power_factor'))}",
+            f"  fsw = {candidate.fs_hz:.2f} Hz",
+            "  modulation scheme = PD level-shifted SPWM first-pass",
+            f"  modulation index = {_fmt_float(metadata.get('modulation_index'))}",
+            f"  L_phase = {candidate.inductance_h * 1e6:.6f} uH",
+            f"  Cdc half-link proxy = {candidate.capacitance_f * 1e6:.6f} uF",
+            f"  DC-link ripple target = {candidate.delta_vo:.6f} Vpp",
+            f"  I_phase rms = {_fmt_float(metadata.get('i_phase_rms_a'))} A",
+            f"  I_phase peak = {_fmt_float(metadata.get('i_phase_peak_a'))} A",
+            f"  switch positions = {int(metadata.get('switch_position_count', 0))}",
+            f"  clamp diode positions = {int(metadata.get('clamp_diode_count', 0))}",
+            f"  CCM valid = {candidate.ccm_valid}",
+        ]
+        return _append_operating_readback(lines, report, "operating_i_phase_rms_a", "operating_i_phase_peak_a")
+    return [
+        f"  Vin_nom = {candidate.vin_nom:.6f} V",
+        f"  Duty_nom = {candidate.duty_nom:.6f}",
+        f"  Iout = {candidate.iout:.6f} A",
+        f"  fs = {candidate.fs_hz:.2f} Hz",
+        f"  L = {candidate.inductance_h * 1e6:.6f} uH",
+        f"  C = {candidate.capacitance_f * 1e6:.6f} uF",
+        f"  Delta_iL = {candidate.delta_il:.6f} A",
+        f"  Delta_vo = {candidate.delta_vo:.6f} V",
+        f"  I_L_peak = {candidate.il_peak:.6f} A",
+        f"  I_L_valley = {candidate.il_valley:.6f} A",
+        f"  CCM valid = {candidate.ccm_valid}",
+    ]
+
+
+def _append_operating_readback(
+    lines: list[str],
+    report: DesignReport,
+    rms_key: str,
+    peak_key: str,
+) -> list[str]:
+    """Append refresh values only when a waveform operating point exists."""
+
+    waveform = report.waveform
+    if waveform is None:
+        return lines
+    metadata = waveform.metadata
+    lines.extend([
+        f"  Operating load ratio = {_fmt_float(waveform.load_ratio)} pu",
+        f"  Operating PF = {_fmt_float(metadata.get('operating_power_factor'))}",
+        f"  Operating I_phase rms = {_fmt_float(metadata.get(rms_key))} A",
+        f"  Operating I_phase peak = {_fmt_float(metadata.get(peak_key))} A",
+        f"  Operating Idc avg = {_fmt_float(metadata.get('operating_idc_avg_a'))} A",
+    ])
+    return lines
+
+
+def _fmt_float(value) -> str:
+    if value is None:
+        return "-"
+    try:
+        return f"{float(value):.6g}"
+    except (TypeError, ValueError):
+        return "-"
 
 
 def build_stage_runtime_lines(report: DesignReport | None) -> list[str]:

@@ -59,6 +59,16 @@ class RunDesignController:
         self._state_store.design_report = report
         return report
 
+    def ensure_active_topology_current(self, raw_input: dict[str, str]):
+        """Return a report matching the current form inputs, redesigning when needed."""
+
+        report = self._state_store.design_report
+        if report is None or report.candidate is None:
+            return self.run_active_topology(raw_input)
+        if self._state_store.last_raw_input != raw_input:
+            return self.run_active_topology(raw_input)
+        return report
+
     def run_active_capacitors(self):
         """Run capacitor selection and geometry stages on the current design report."""
         report = self._state_store.design_report
