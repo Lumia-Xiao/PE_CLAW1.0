@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active`，第 7 步已完成，等待开始第 8 步 |
+| 计划状态 | `active`，第 8 步已完成，等待开始第 9 步 |
 | 建立日期 | 2026-08-27 |
 | 计划类型 | DC-AC 实现及 GUI 运行链路专项迁移 |
 | 源工程 | `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw` |
@@ -638,7 +638,7 @@ docs: finalize dc-ac migration evidence and acceptance
 | 2026-08-27 | 第 5 步 | Completed | 已确认三相两电平核心 runtime/form 与源工程一致，补齐专项契约测试并完成独立 commit + push | `209807872d3095cc464b45c194c01933b3704837` | `tests/test_dc_ac_three_phase_two_level_contract.py`; 16 passed; compileall passed; diff check passed; remote verified |
 | 2026-08-27 | 第 6 步 | Completed | 已确认三相三电平 NPC 核心 runtime/form 与源工程一致，补齐专项契约测试并完成独立 commit + push | `2ebc79fc08e8df0d1bb81dc726d1eb3f710a5b98` | `tests/test_dc_ac_three_phase_three_level_npc_contract.py`; 16 passed; compileall passed; diff check passed; remote verified |
 | 2026-08-27 | 第 7 步 | Completed | 已完成 operating-point refresh、DC-AC 专用 waveform/summary/stress 路由、专项测试、独立主体提交和 push | `342ebf8f973089b94e14e957d56fd29b54646701` | `5 + 37 + 7` tests passed; compileall/diff check passed; remote verified; receipt follows |
-|  | 第 8 步 | Pending | 待合并 downstream 工程能力 | - | - |
+| 2026-08-27 | 第 8 步 | Completed | 已完成 DC-AC downstream 工程阶段与结果页面合并；补齐效率管线 AC-DC 兼容引用和桥式整流拓扑集合；主体 commit + push 已完成，回执随后提交 | `57e080b` | DC-AC focused `51 passed`; 三拓扑 downstream smoke 均通过（各 2 load points + 20 PF points）；compileall/diff check 通过；full pytest `305 passed, 1 skipped, 3 errors`，3 errors 均为 pytest tmp_path 对系统临时目录 WinError 5 权限环境问题；无源工程绝对路径/agentic 命中；remote verified |
 |  | 第 9 步 | Pending | 待移植和新增专项测试 | - | - |
 |  | 第 10 步 | Pending | 待执行打包、启动和 GUI 检查 | - | - |
 |  | 第 11 步 | Pending | 待完成回归和交付审查 | - | - |
