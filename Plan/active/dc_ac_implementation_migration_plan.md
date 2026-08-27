@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active`，第 2 步已完成，等待开始第 3 步 |
+| 计划状态 | `active`，第 3 步执行中 |
 | 建立日期 | 2026-08-27 |
 | 计划类型 | DC-AC 实现及 GUI 运行链路专项迁移 |
 | 源工程 | `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw` |
@@ -633,7 +633,7 @@ docs: finalize dc-ac migration evidence and acceptance
 | 2026-08-27 | 第 0 步 | Completed | 已完成备份、仓库基线、focused validation、独立 commit 和 push | `faf5e3f06f2874a25d106a68144c5cc78eeb6032` | `migration/phase0/dc_ac_step0_baseline.md`; registry 3; 12 focused tests passed; remote verified |
 | 2026-08-27 | 第 1 步 | Completed | 已完成文件/import/资源/测试/排除扫描、独立 commit 和 push | `f9c85d58c38d86b4d4d3bc410879ce7333ddf097` | `migration/phase1/dc_ac_dependency_matrix.csv`; 58 rows; 0 review_required; remote verified |
 | 2026-08-27 | 第 2 步 | Completed | 已补齐 DC-AC 公共 topology capability 导出和共享契约测试，并完成独立 commit + push | `01a2d1fa76a36d448ccf7826b61d30dd58e41612` | `tests/test_dc_ac_shared_contracts.py`; 33 focused tests passed; DC-AC regression 7 passed; remote verified |
-|  | 第 3 步 | Pending | 待注册 DC-AC 和替换 category page | - | - |
+| 2026-08-27 | 第 3 步 | In progress | 已完成 registry/category/resource 合并和专项验证；待独立 commit + push | Pending | `tests/test_dc_ac_registry_category.py`; 33 focused tests passed; source-path scan passed |
 |  | 第 4 步 | Pending | 待迁移单相全桥 | - | - |
 |  | 第 5 步 | Pending | 待迁移三相两电平 VSI | - | - |
 |  | 第 6 步 | Pending | 待迁移三相三电平 NPC | - | - |

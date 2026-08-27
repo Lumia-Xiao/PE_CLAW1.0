@@ -78,6 +78,28 @@ listed here.
   - Step commit: `01a2d1fa76a36d448ccf7826b61d30dd58e41612` (`refactor: merge shared dc-ac runtime contracts`).
   - Push: passed to `origin/codex/sync-gui-backend-from-2`; remote hash verified.
 
+## 2026-08-27 DC-AC Migration Step 3 Registry And Category
+
+- What changed:
+  - Removed placeholder wording from the DC-AC category page and fallback label.
+  - Added registry, form, category hint, packaged-image, and source-path contract tests.
+  - Updated the active migration plan to mark Step 3 in progress.
+- Why:
+  - Lock the three implemented DC-AC topology entries and package-resource boundary before controller migration.
+- Files:
+  - `src/pe_claw_gui/app/category_views/dc_ac_page.py`
+  - `tests/test_dc_ac_registry_category.py`
+  - `Plan/active/dc_ac_implementation_migration_plan.md`
+  - `ChangeLog.md`
+- Validation:
+  - Registry/category/resource, shared-contract, topology, and GUI integration tests: 33 passed.
+  - `python -B -m compileall -q src/pe_claw_gui tests/test_dc_ac_registry_category.py`: passed.
+  - Source absolute-path scan for registry/category/resource runtime: passed.
+  - `git diff --check`: passed before commit.
+- Git:
+  - Branch: `codex/sync-gui-backend-from-2`.
+  - Step commit and push: pending at the time of this record.
+
 ## 2026-08-26
 
 - What changed:
