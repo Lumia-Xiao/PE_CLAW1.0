@@ -54,6 +54,29 @@ listed here.
   - Step commit: `f9c85d58c38d86b4d4d3bc410879ce7333ddf097` (`docs: add dc-ac migration dependency matrix`).
   - Push: passed to `origin/codex/sync-gui-backend-from-2`; remote hash verified.
 
+## 2026-08-27 DC-AC Migration Step 2 Shared Contracts
+
+- What changed:
+  - Exported `TopologyCapability` and `get_topology_capability` from the public topology package.
+  - Added DC-AC shared-contract tests for registry, capabilities, models, and package data.
+  - Updated the active migration plan to mark Step 2 in progress.
+- Why:
+  - Make the DC-AC runtime contract explicit and testable before topology registry and GUI routing changes.
+- Files:
+  - `src/pe_claw_gui/topologies/__init__.py`
+  - `tests/test_dc_ac_shared_contracts.py`
+  - `Plan/active/dc_ac_implementation_migration_plan.md`
+  - `ChangeLog.md`
+- Validation:
+  - Shared-contract, Phase 2 packaging, Phase 3 shared-contract, and Phase 4 topology tests: 33 passed.
+  - DC-AC topology and GUI bootstrap regression: 7 passed.
+  - `python -B -m compileall -q src/pe_claw_gui tests/test_dc_ac_shared_contracts.py`: passed.
+  - Deterministic runtime prohibited-import scan: passed.
+  - `git diff --check`: passed before commit.
+- Git:
+  - Branch: `codex/sync-gui-backend-from-2`.
+  - Commit and push: pending at the time of this record.
+
 ## 2026-08-26
 
 - What changed:
