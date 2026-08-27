@@ -1,0 +1,176 @@
+from __future__ import annotations
+
+from importlib import import_module
+import inspect
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from pe_claw_gui.app.topology_forms.three_phase_three_level_npc_inverter_form import (
+    ThreePhaseThreeLevelNPCInverterForm,
+)
+from pe_claw_gui.models.operating_point import OperatingPoint
+from pe_claw_gui.pipeline.options import PipelineOptions
+from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
+from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
+from pe_claw_gui.topologies.base.registry import build_default_registry
+
+
+TOPOLOGY_ID = "three_phase_three_level_npc_inverter"
+MODULE = import_module("pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter")
+NO_DOWNSTREAM = PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False)
+
+
+def _plugin():
+    return build_default_registry().get_plugin(TOPOLOGY_ID)
+
+
+def test_default_npc_inputs_preserve_three_level_split_link_contract() -> None:
+    plugin = _plugin()
+    spec = plugin.build_spec(MODULE.build_default_inputs())
+    candidate = plugin.synthesize(spec)
+
+    assert spec.topology_id == TOPOLOGY_ID
+    assert spec.metadata["vac_ll_rms_v"] == pytest.approx(400.0)
+    assert spec.metadata["conduction_mode"] == "ccm"
+    assert spec.metadata["modulation_scheme"] == "phase_disposition_level_shifted_spwm_first_pass"
+    assert spec.metadata["topology_level_count"] == 3
+    assert candidate.mode_capable == "ccm_three_phase_three_level_npc_lspwm_first_pass"
+    assert candidate.metadata["phase_count"] == 3
+    assert candidate.metadata["switch_position_count"] == 12
+    assert candidate.metadata["clamp_diode_count"] == 6
+    assert candidate.metadata["dc_link_split_capacitor_count"] == 2
+    assert candidate.metadata["npc_half_bus_voltage_v"] == pytest.approx(350.0)
+    assert candidate.metadata["dc_link_series_equivalent_capacitance_f"] > 0.0
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("vdc_nom", "0", "positive"),
+        ("vac_ll_rms", "0", "positive"),
+        ("fsw_hz", "not-a-number", "valid numbers"),
+        ("power_factor", "1.1", "range"),
+    ],
+)
+def test_invalid_npc_inputs_are_rejected(field: str, value: str, message: str) -> None:
+    raw = MODULE.build_default_inputs()
+    raw[field] = value
+
+    with pytest.raises(ValueError, match=message):
+        _plugin().build_spec(raw)
+
+
+def test_npc_waveform_contains_pd_spwm_three_level_signals_and_split_link_data() -> None:
+    plugin = _plugin()
+    candidate = plugin.synthesize(plugin.build_spec(MODULE.build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    details = waveform.metadata["three_phase_npc_pd_spwm_waveforms"]
+
+    assert waveform.mode == "three-phase three-level NPC PD-SPWM first-pass preview"
+    assert len(waveform.time_s) == 9_601
+    assert len(details["time_s"]) == len(details["vab_pwm_v"])
+    assert all(details[key] for key in ("carrier_lower", "carrier_upper", "mod_a", "mod_b", "mod_c"))
+    assert all(details[key] for key in ("phase_state_a", "phase_state_b", "phase_state_c"))
+    assert all(details[key] for key in ("gate_a_s1", "gate_a_s2", "gate_a_s3", "gate_a_s4"))
+    assert all(details[key] for key in ("gate_b_s1", "gate_b_s2", "gate_b_s3", "gate_b_s4"))
+    assert all(details[key] for key in ("gate_c_s1", "gate_c_s2", "gate_c_s3", "gate_c_s4"))
+    assert all(details[key] for key in ("va_phase_neutral_pwm_v", "vb_phase_neutral_pwm_v", "vc_phase_neutral_pwm_v"))
+    assert all(details[key] for key in ("upper_dc_link_capacitor_current_pwm_a", "lower_dc_link_capacitor_current_pwm_a"))
+    assert waveform.metadata["upper_dc_link_capacitor_current_rms_pwm_a"] > 0.0
+    assert waveform.metadata["lower_dc_link_capacitor_current_rms_pwm_a"] > 0.0
+    assert waveform.metadata["npc_neutral_point_current_rms_a"] > 0.0
+    assert waveform.metadata["line_line_voltage_phase_shift_deg"] == pytest.approx(30.0)
+
+
+def test_npc_stress_preserves_outer_inner_and_clamp_roles() -> None:
+    plugin = _plugin()
+    candidate = plugin.synthesize(plugin.build_spec(MODULE.build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    stress = plugin.extract_stress(candidate, waveform)
+    roles = waveform.metadata["three_phase_npc_device_currents"]["roles"]
+
+    assert stress.switch.voltage_max_v == pytest.approx(350.0)
+    assert stress.rectifier.voltage_max_v == pytest.approx(350.0)
+    assert stress.switch.current_peak_a == pytest.approx(roles["inner_switch"]["peak_absolute_current_a"])
+    assert stress.switch.current_rms_a == pytest.approx(roles["inner_switch"]["rms_current_a"])
+    assert stress.rectifier.current_rms_a == pytest.approx(roles["clamp_diode"]["rms_current_a"])
+    assert roles["outer_switch"]["physical_position_count"] == 6
+    assert roles["inner_switch"]["physical_position_count"] == 6
+    assert roles["clamp_diode"]["physical_position_count"] == 6
+    assert any("neutral-point balancing" in note.lower() for note in stress.notes)
+
+
+def test_full_pipeline_returns_npc_specific_report_and_device_roles() -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+
+    assert report.spec.topology_id == TOPOLOGY_ID
+    assert report.candidate is not None
+    assert report.waveform is not None
+    assert report.stress is not None
+    assert report.topology_result is not None
+    assert report.device is not None
+    assert set(report.device.selected_devices) >= {"npc_outer_switch", "npc_inner_switch", "npc_clamp_diode"}
+    assert any("NPC PD level-shifted SPWM" in line for line in report.topology_result.summary_lines)
+    assert any("split DC-link capacitor" in line for line in report.topology_result.summary_lines)
+    assert all("buck" not in line.lower() and "boost" not in line.lower() for line in report.topology_result.summary_lines)
+    assert any("neutral-point balancing" in note.lower() for note in report.notes)
+
+
+def test_operating_refresh_updates_npc_load_and_pf_without_redesigning_hardware() -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+    assert report.waveform is not None
+    assert report.device is not None
+    selected_devices = dict(report.device.selected_devices)
+
+    refreshed = run_operating_point_refresh(
+        report,
+        plugin,
+        OperatingPoint(vin_v=700.0, load_ratio=0.5, power_factor=0.8),
+        pipeline_options=NO_DOWNSTREAM,
+    )
+
+    assert refreshed.waveform is not None
+    assert refreshed.waveform.load_ratio == pytest.approx(0.5)
+    assert refreshed.waveform.metadata["operating_power_factor"] == pytest.approx(0.8)
+    assert refreshed.waveform.metadata["operating_i_phase_rms_a"] < report.waveform.metadata["operating_i_phase_rms_a"]
+    assert refreshed.candidate is report.candidate
+    assert refreshed.device is not None
+    assert refreshed.device.selected_devices == selected_devices
+
+
+def test_npc_form_exposes_design_and_operating_point_controls() -> None:
+    form = ThreePhaseThreeLevelNPCInverterForm
+    assert form.topology_id == TOPOLOGY_ID
+    assert form.implemented is True
+    assert [field.key for field in form.design_fields] == [
+        "vdc_nom",
+        "vac_ll_rms",
+        "f_line_hz",
+        "fsw_hz",
+        "pout_w",
+        "power_factor",
+        "inductor_current_ripple_ratio",
+        "dc_link_voltage_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c",
+    ]
+    form_source = inspect.getsource(form)
+    assert '"load_ratio": tk.StringVar' in form_source
+    assert '"power_factor": tk.StringVar' in form_source
+    assert "Generate Waveforms" in form_source

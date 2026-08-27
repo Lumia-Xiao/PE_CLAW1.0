@@ -4,6 +4,25 @@ This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
 
+## 2026-08-27 DC-AC Migration Step 6 Three-Phase Three-Level NPC Contract
+
+- What changed:
+  - Added target-engineering contract coverage for the three-phase three-level NPC inverter.
+  - Covered PD level-shifted SPWM, 12 active-switch positions, six clamp-diode positions,
+    split upper/lower DC-link capacitor data, NPC role stress, operating-point refresh, and GUI controls.
+  - Preserved first-pass limitations for neutral-point balancing, dead-time, Coss, commutation overlap,
+    and parasitic transients.
+  - Marked Step 6 in progress in the active migration plan pending push completion.
+- Why:
+  - The target NPC runtime and form already match the source implementation; this step locks the
+    migrated behavior with target-local deterministic acceptance tests.
+- Files:
+  - `tests/test_dc_ac_three_phase_three_level_npc_contract.py`
+  - `Plan/active/dc_ac_implementation_migration_plan.md`
+- Validation:
+  - `python -m pytest -q tests/test_dc_ac_three_phase_three_level_npc_contract.py tests/test_phase9_dc_ac_topologies.py tests/test_phase10_gui_integration.py`: 16 passed.
+  - Implementation commit and remote push are recorded by the Step 6 post-push receipt.
+
 ## 2026-08-27 DC-AC Migration Step 5 Three-Phase Two-Level VSI Contract
 
 - What changed:
