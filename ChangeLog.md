@@ -29,6 +29,30 @@ listed here.
   - Step commit: `faf5e3f06f2874a25d106a68144c5cc78eeb6032` (`chore: record dc-ac migration baseline`).
   - Push: passed to `origin/codex/sync-gui-backend-from-2`; remote hash verified.
 
+## 2026-08-27 DC-AC Migration Step 1 Dependency Matrix
+
+- What changed:
+  - Added the current-baseline DC-AC file, import, static-resource, test, and exclusion matrix.
+  - Added the matrix summary with explicit ownership, merge/adapt steps, and prohibited dependency audit.
+  - Updated the active migration plan to mark Step 1 in progress.
+- Why:
+  - Freeze the migration boundary before changing shared runtime contracts or copying implementation files.
+- Files:
+  - `migration/phase1/dc_ac_dependency_matrix.csv`
+  - `migration/phase1/dc_ac_dependency_matrix_summary.md`
+  - `Plan/active/dc_ac_implementation_migration_plan.md`
+  - `ChangeLog.md`
+- Validation:
+  - CSV parsed with 58 rows, 11 columns, and 0 malformed rows.
+  - Classification counts: keep 24, merge 11, adapt 12, add 3, exclude 8.
+  - No `review_required` rows.
+  - Source/target hash and file-ownership scans completed.
+  - Deterministic DC-AC runtime prohibited-import scan found no agentic/AI/skills imports.
+  - `git diff --check`: passed before commit.
+- Git:
+  - Branch: `codex/sync-gui-backend-from-2`.
+  - Commit and push: pending at the time of this record.
+
 ## 2026-08-26
 
 - What changed:
