@@ -8,6 +8,10 @@ from ..models.design_report import DesignReport
 from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
 from ..topology_capabilities import has_semiconductor_selection_path, is_first_pass_topology_only
+from .run_bridge_rectifier_pipeline import (
+    SUPPORTED_BRIDGE_RECTIFIER_TOPOLOGIES,
+    run_bridge_rectifier_pipeline,
+)
 from .run_capacitor_pipeline import run_capacitor_pipeline
 from .run_device_pipeline import run_device_operating_point_refresh, run_device_pipeline
 from .run_geometry_pipeline import run_geometry_pipeline
@@ -19,7 +23,11 @@ from .run_thermal_pipeline import run_thermal_pipeline
 from .run_topology_pipeline import run_topology_pipeline
 from ..engines.magnetics.data_backend import MagneticDataBackendConfig, get_production_magnetic_backend_config
 
-AC_DC_DIODE_BRIDGE_TOPOLOGIES: set[str] = set()
+AC_DC_DIODE_BRIDGE_TOPOLOGIES = {
+    "single_phase_diode_bridge_rectifier_capacitor_filter",
+    "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+    "three_phase_diode_bridge_rectifier_capacitor_filter",
+}
 SELECTION_ONLY_TOPOLOGIES = {
     "single_phase_full_bridge_inverter",
     "flyback_diode_rectified_isolated",
@@ -72,6 +80,11 @@ def run_full_pipeline(
     report = run_loss_pipeline(report, pipeline_options=options)
     report = run_thermal_pipeline(report, pipeline_options=options)
     report = run_geometry_pipeline(report, pipeline_options=options)
+    if (
+        options.enable_bridge_rectifier_selection
+        and report.spec.topology_id in SUPPORTED_BRIDGE_RECTIFIER_TOPOLOGIES
+    ):
+        report = run_bridge_rectifier_pipeline(report)
     if options.enable_capacitor_design:
         report = run_capacitor_pipeline(report, plugin=plugin)
     return report

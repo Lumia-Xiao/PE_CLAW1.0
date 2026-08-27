@@ -16,6 +16,7 @@ class PipelineOptions:
 
     enable_magnetic_design: bool = False
     enable_capacitor_design: bool = True
+    enable_bridge_rectifier_selection: bool = True
 
 
 def resolve_pipeline_options(options: PipelineOptions | None = None) -> PipelineOptions:
