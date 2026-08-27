@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active`，第 11 步主体已完成验证，等待主体 commit/push 回执 |
+| 计划状态 | `active`，第 11 步已完成，等待用户验收；暂不 merge/tag/master push |
 | 建立日期 | 2026-08-27 |
 | 计划类型 | DC-AC 实现及 GUI 运行链路专项迁移 |
 | 源工程 | `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw` |
@@ -656,8 +656,8 @@ docs: finalize dc-ac migration evidence and acceptance
 - [x] 完整目标 pytest suite 已运行，所有 failure/error/skip/warning 均已分类。
 - [x] `ChangeLog.md`、适用 evidence ledger、迁移 evidence 和本计划状态已更新。
 - [ ] 用户审查通过后，才执行 merge/tag/向 `master` push。
-- [ ] 第 0 步至第 11 步均已各自完成独立 commit 和 push；第 11 步等待本次主体 push 回执。
-- [ ] 每一步的远端 commit hash、push 结果、验证命令和证据路径均已记录；第 11 步等待回执。
+- [x] 第 0 步至第 11 步均已各自完成独立 commit 和 push。
+- [x] 每一步的远端 commit hash、push 结果、验证命令和证据路径均已记录。
 - [x] 不存在跨步骤合并提交、补推或未记录的远端提交。
 
 ## 14. 计划执行记录
@@ -676,4 +676,4 @@ docs: finalize dc-ac migration evidence and acceptance
 | 2026-08-27 | 第 8 步 | Completed | 已完成 DC-AC downstream 工程阶段与结果页面合并；补齐效率管线 AC-DC 兼容引用和桥式整流拓扑集合；主体 commit + push 已完成，回执随后提交 | `57e080b` | DC-AC focused `51 passed`; 三拓扑 downstream smoke 均通过（各 2 load points + 20 PF points）；compileall/diff check 通过；full pytest `305 passed, 1 skipped, 3 errors`，3 errors 均为 pytest tmp_path 对系统临时目录 WinError 5 权限环境问题；无源工程绝对路径/agentic 命中；remote verified |
 | 2026-08-27 | 第 9 步 | Completed | 已新增目标工程 DC-AC 集成覆盖、三拓扑结构化 fixture、controller 闭环、结果摘要和禁止依赖测试；独立 commit + push 已完成，回执随后提交 | `7357c99` | `tests/test_dc_ac_target_integration.py`；`migration/evidence/20260827/step9_dc_ac/dc_ac_target_fixtures.json`；与既有 DC-AC/GUI/isolation 测试合计 `64 passed`；compileall/diff check 通过；source/target 默认 fixture 对照通过；remote verified |
 | 2026-08-27 | 第 10 步 | Completed | 已完成 editable install、目标包路径与资源检查、bat startup check、三种 DC-AC 默认设计/波形 GUI smoke；并修复 BaseTopologyForm 缺失的 numeric parsing helpers；主体 commit + push 已完成，回执随后提交 | `91be103` | `tests/test_dc_ac_packaged_gui_runtime.py`; `migration/evidence/20260827/step10_dc_ac/packaged_gui_runtime_validation.json`; `26 passed`; editable install passed; 19 topologies/3 DC-AC/3 PNG resources verified; bat startup check passed; compileall/diff check passed; remote verified |
-| 2026-08-27 | 第 11 步 | In Progress | 已完成 DC-AC 专项、下游相关回归、完整 pytest、源/目标对照、路径/依赖扫描及交付证据；等待主体 commit/push 后补远端回执 | pending | `migration/evidence/20260827/step11_dc_ac/`; focused `183 passed, 1 skipped`; full `323 passed, 1 skipped`; 0 failures/errors/warnings; 45 source/target fields, 0 differences; runtime path/agentic scan 0 hits |
+| 2026-08-27 | 第 11 步 | Completed | 已完成 DC-AC 专项、下游相关回归、完整 pytest、源/目标对照、路径/依赖扫描及交付证据；主体 commit/push 和独立回执均已完成 | `865ae126bf794f8ae76459d0edbd21fda6f0e930` | `migration/evidence/20260827/step11_dc_ac/`; focused `183 passed, 1 skipped`; full `323 passed, 1 skipped`; 0 failures/errors/warnings; 45 source/target fields, 0 differences; runtime path/agentic scan 0 hits; push remote verified |
