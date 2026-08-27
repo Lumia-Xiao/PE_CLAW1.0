@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `in_progress`，第 12 步交付产物和归档已生成，等待主体 commit/push 回执 |
+| 计划状态 | `completed`，第 12 步交付确认、计划归档、主体 commit/push 均已完成 |
 | 建立日期 | 2026-08-27 |
 | 计划类型 | DC-AC 实现及 GUI 运行链路专项迁移 |
 | 源工程 | `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw` |
@@ -689,7 +689,7 @@ docs: archive dc-ac migration delivery
 - [x] 每一步的远端 commit hash、push 结果、验证命令和证据路径均已记录。
 - [x] 不存在跨步骤合并提交、补推或未记录的远端提交。
 - [x] 第 12 步交付 manifest/checklist 已生成，专项计划已预归档至 `Plan/completed`。
-- [ ] 第 12 步主体 commit/push 与独立回执等待本次执行完成。
+- [x] 第 12 步主体 commit/push 已完成，独立回执在本次提交中记录并推送。
 
 ## 14. 计划执行记录
 
@@ -708,4 +708,4 @@ docs: archive dc-ac migration delivery
 | 2026-08-27 | 第 9 步 | Completed | 已新增目标工程 DC-AC 集成覆盖、三拓扑结构化 fixture、controller 闭环、结果摘要和禁止依赖测试；独立 commit + push 已完成，回执随后提交 | `7357c99` | `tests/test_dc_ac_target_integration.py`；`migration/evidence/20260827/step9_dc_ac/dc_ac_target_fixtures.json`；与既有 DC-AC/GUI/isolation 测试合计 `64 passed`；compileall/diff check 通过；source/target 默认 fixture 对照通过；remote verified |
 | 2026-08-27 | 第 10 步 | Completed | 已完成 editable install、目标包路径与资源检查、bat startup check、三种 DC-AC 默认设计/波形 GUI smoke；并修复 BaseTopologyForm 缺失的 numeric parsing helpers；主体 commit + push 已完成，回执随后提交 | `91be103` | `tests/test_dc_ac_packaged_gui_runtime.py`; `migration/evidence/20260827/step10_dc_ac/packaged_gui_runtime_validation.json`; `26 passed`; editable install passed; 19 topologies/3 DC-AC/3 PNG resources verified; bat startup check passed; compileall/diff check passed; remote verified |
 | 2026-08-27 | 第 11 步 | Completed | 已完成 DC-AC 专项、下游相关回归、完整 pytest、源/目标对照、路径/依赖扫描及交付证据；主体 commit/push 和独立回执均已完成 | `865ae126bf794f8ae76459d0edbd21fda6f0e930` | `migration/evidence/20260827/step11_dc_ac/`; focused `183 passed, 1 skipped`; full `323 passed, 1 skipped`; 0 failures/errors/warnings; 45 source/target fields, 0 differences; runtime path/agentic scan 0 hits; push remote verified |
-| 2026-08-27 | 第 12 步 | In Progress | 已进入交付确认与计划归档；生成最终 manifest/checklist，归档计划，并保持 feature branch release boundary | pending | `migration/evidence/20260827/step12_dc_ac/`; waiting for focused validation and push receipt |
+| 2026-08-27 | 第 12 步 | Completed | 已生成最终 manifest/checklist、核验 24 条主体/回执提交链、归档计划，并保持 feature branch release boundary；主体 commit/push 已完成 | `b15e7b87a6cce412ef291418789c66d03c6081ea` | `migration/evidence/20260827/step12_dc_ac/`; DC-AC delivery smoke `23 passed`; compileall passed; runtime source path/agentic scan 0 hits; active plan absent/completed plan present; push remote verified |
