@@ -75,7 +75,8 @@ listed here.
   - `git diff --check`: passed before commit.
 - Git:
   - Branch: `codex/sync-gui-backend-from-2`.
-  - Commit and push: pending at the time of this record.
+  - Step commit: `01a2d1fa76a36d448ccf7826b61d30dd58e41612` (`refactor: merge shared dc-ac runtime contracts`).
+  - Push: passed to `origin/codex/sync-gui-backend-from-2`; remote hash verified.
 
 ## 2026-08-26
 
