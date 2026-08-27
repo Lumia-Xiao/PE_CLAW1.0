@@ -4,6 +4,32 @@ This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
 
+## 2026-08-27 DC-AC Migration Step 10 Packaged GUI Runtime
+
+- What changed:
+  - Restored the shared `BaseTopologyForm` numeric parsing helpers required by
+    DC-AC operating-point controls.
+  - Added packaged GUI runtime coverage for editable installation, target
+    package/resource resolution, Windows launcher startup, and the three DC-AC
+    design-to-waveform GUI flows.
+  - Recorded Step 10 startup and GUI smoke evidence.
+- Why:
+  - The first packaged GUI smoke exposed an `AttributeError` when the single-phase
+    full-bridge form read its default operating point. The missing shared helper
+    also affected both three-phase inverter forms.
+- Files:
+  - `src/pe_claw_gui/app/topology_forms/base_form.py`
+  - `tests/test_dc_ac_packaged_gui_runtime.py`
+  - `migration/evidence/20260827/step10_dc_ac/packaged_gui_runtime_validation.json`
+  - `Plan/active/dc_ac_implementation_migration_plan.md`
+- Validation:
+  - Editable install in isolated `.step10-venv`: passed.
+  - Packaged runtime: 19 registered topologies, 3 DC-AC topologies, 3 DC-AC
+    resources, and Windows launcher startup check passed.
+  - GUI/package regression: `26 passed`.
+  - `python -m compileall -q src tests`: passed.
+  - `git diff --check`: passed.
+
 ## 2026-08-27 DC-AC Migration Step 6 Three-Phase Three-Level NPC Contract
 
 - What changed:

@@ -240,9 +240,30 @@ class BaseTopologyForm(ttk.Frame):
 
     def get_operating_point(self) -> OperatingPoint:
         """Return the requested operating point for waveform generation."""
-        vin_value = float(self.operating_vars.get("vin_v", tk.StringVar(value="0")).get())
-        load_ratio = float(self.operating_vars.get("load_ratio", tk.StringVar(value="1.0")).get())
+        vin_value = self._parse_operating_float("vin_v", "Operating Vin [V]", default="0")
+        load_ratio = self._parse_operating_float("load_ratio", "Load ratio", default="1.0")
         return OperatingPoint(vin_v=vin_value, load_ratio=load_ratio)
+
+    def _parse_design_float(self, key: str, label: str) -> float:
+        """Parse a design input and raise a user-facing validation error."""
+
+        var = self.design_vars.get(key)
+        value = var.get() if var is not None else None
+        return self._parse_numeric_value(value, label)
+
+    def _parse_operating_float(self, key: str, label: str, *, default: str | None = None) -> float:
+        """Parse an operating-point input and raise a user-facing validation error."""
+
+        var = self.operating_vars.get(key)
+        value = default if var is None else var.get()
+        return self._parse_numeric_value(value, label)
+
+    @staticmethod
+    def _parse_numeric_value(value: object, label: str) -> float:
+        try:
+            return float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"{label} must be a valid number.") from exc
 
     def update_from_report(self, report: DesignReport) -> None:
         """Allow a form to react to a generated report."""

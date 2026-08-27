@@ -1,0 +1,44 @@
+{
+  "step": 10,
+  "contract": "dc_ac_packaged_gui_runtime_validation_v1",
+  "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+  "python": "3.12.10",
+  "editable_install": {
+    "command": "python -m venv .step10-venv --system-site-packages; .\\.step10-venv\\Scripts\\python.exe -m pip install --no-deps -e .",
+    "status": "passed",
+    "package": "pe-claw-gui==0.1.0"
+  },
+  "runtime": {
+    "package_path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\src\\pe_claw_gui\\__init__.py",
+    "registered_topology_count": 19,
+    "dc_ac_topology_ids": [
+      "single_phase_full_bridge_inverter",
+      "three_phase_two_level_voltage_source_inverter",
+      "three_phase_three_level_npc_inverter"
+    ],
+    "dc_ac_resource_files": [true, true, true],
+    "bat_startup_check": "passed"
+  },
+  "gui_smoke": {
+    "topologies": [
+      "single_phase_full_bridge_inverter",
+      "three_phase_two_level_voltage_source_inverter",
+      "three_phase_three_level_npc_inverter"
+    ],
+    "default_design": "passed",
+    "generate_waveforms": "passed",
+    "waveform_axes_and_layout": "passed",
+    "controller_and_navigation_regression": "26 passed"
+  },
+  "commands": [
+    "python -m pytest -q tests/test_dc_ac_packaged_gui_runtime.py tests/test_phase10_gui_integration.py tests/test_phase10_structured_output.py tests/test_phase2_packaging.py tests/test_phase2_gui_bootstrap.py tests/test_dc_ac_target_integration.py",
+    "python -m compileall -q src tests",
+    "git diff --check"
+  ],
+  "results": [
+    "26 passed",
+    "compileall passed",
+    "git diff --check passed"
+  ],
+  "known_issue_fixed": "BaseTopologyForm was missing _parse_design_float and _parse_operating_float, which blocked DC-AC form operating-point reads; shared helpers were restored and the GUI smoke passed."
+}
