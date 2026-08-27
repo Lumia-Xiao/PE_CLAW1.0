@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active`，第 5 步执行中 |
+| 计划状态 | `active`，第 5 步已完成，等待开始第 6 步 |
 | 建立日期 | 2026-08-27 |
 | 计划类型 | DC-AC 实现及 GUI 运行链路专项迁移 |
 | 源工程 | `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw` |
@@ -635,7 +635,7 @@ docs: finalize dc-ac migration evidence and acceptance
 | 2026-08-27 | 第 2 步 | Completed | 已补齐 DC-AC 公共 topology capability 导出和共享契约测试，并完成独立 commit + push | `01a2d1fa76a36d448ccf7826b61d30dd58e41612` | `tests/test_dc_ac_shared_contracts.py`; 33 focused tests passed; DC-AC regression 7 passed; remote verified |
 | 2026-08-27 | 第 3 步 | Completed | 已完成 registry/category/resource 合并、独立 commit 和 push | `00b408aad6afac72f12d95c8a4ca43f9c1e1b33c` | `tests/test_dc_ac_registry_category.py`; 33 focused tests passed; source-path scan passed; remote verified |
 | 2026-08-27 | 第 4 步 | Completed | 已确认单相全桥核心 runtime/form 与源工程一致，补齐专项契约测试并完成独立 commit + push | `3fe828f5cdbd64dfbacf0bd0ecca6f0b0690ee16` | `tests/test_dc_ac_single_phase_full_bridge_contract.py`; 17 passed; compileall passed; diff check passed; remote verified |
-| 2026-08-27 | 第 5 步 | In progress | 已确认三相两电平核心 runtime/form 与源工程一致；已补齐三相波形、PF/load refresh、应力和表单专项契约测试，待完成提交推送 | - | 16 passed; compileall pending |
+| 2026-08-27 | 第 5 步 | Completed | 已确认三相两电平核心 runtime/form 与源工程一致，补齐专项契约测试并完成独立 commit + push | `209807872d3095cc464b45c194c01933b3704837` | `tests/test_dc_ac_three_phase_two_level_contract.py`; 16 passed; compileall passed; diff check passed; remote verified |
 |  | 第 6 步 | Pending | 待迁移三相三电平 NPC | - | - |
 |  | 第 7 步 | Pending | 待接通 operating-point refresh | - | - |
 |  | 第 8 步 | Pending | 待合并 downstream 工程能力 | - | - |

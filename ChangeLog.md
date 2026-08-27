@@ -10,7 +10,7 @@ listed here.
   - Added target-engineering contract coverage for the three-phase two-level voltage-source inverter.
   - Covered line-line RMS input normalization, six-switch SPWM metadata, phase voltage/current and
     DC-link current waveforms, waveform-backed stress, operating-point refresh, and GUI controls.
-  - Marked Step 5 in progress in the active migration plan pending push completion.
+  - Marked Step 5 completed in the active migration plan after remote push verification.
 - Why:
   - The target three-phase two-level VSI runtime and form already match the source implementation;
     this step locks the migrated behavior with target-local deterministic acceptance tests.
@@ -19,7 +19,8 @@ listed here.
   - `Plan/active/dc_ac_implementation_migration_plan.md`
 - Validation:
   - `python -m pytest -q tests/test_dc_ac_three_phase_two_level_contract.py tests/test_phase9_dc_ac_topologies.py tests/test_phase10_gui_integration.py`: 16 passed.
-  - Implementation commit and remote push are recorded by the Step 5 post-push receipt.
+  - Implementation commit: `209807872d3095cc464b45c194c01933b3704837`.
+  - Push: verified on `origin/codex/sync-gui-backend-from-2`.
 
 ## 2026-08-27 DC-AC Migration Step 4 Single-Phase Full-Bridge Contract
 
