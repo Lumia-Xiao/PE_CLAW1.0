@@ -1,0 +1,87 @@
+{
+  "contract": "dc_ac_target_fixture_v1",
+  "source_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
+  "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+  "comparison_policy": {
+    "source_and_target_must_match": true,
+    "relative_tolerance": 1e-09,
+    "scope": "deterministic topology candidate, waveform mode/sample count, and stress core fields"
+  },
+  "cases": [
+    {
+      "topology_id": "single_phase_full_bridge_inverter",
+      "candidate": {
+        "mode_capable": "ccm_unipolar_spwm_first_pass",
+        "vin_nom": 400.0,
+        "vout_target": 230.0,
+        "pout_target": 1000.0,
+        "fs_hz": 20000.0,
+        "inductance_h": 0.002032931995911324,
+        "capacitance_f": 0.0003978873577297383,
+        "feasible": true
+      },
+      "waveform": {
+        "mode": "ccm unipolar SPWM refined preview",
+        "sample_count": 721
+      },
+      "stress": {
+        "switch_voltage_max_v": 400.0,
+        "switch_current_peak_a": 6.148754619013457,
+        "rectifier_voltage_max_v": 400.0,
+        "rectifier_current_peak_a": 6.148754619013457
+      }
+    },
+    {
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "candidate": {
+        "mode_capable": "ccm_three_phase_two_level_spwm_first_pass",
+        "vin_nom": 700.0,
+        "vout_target": 400.0,
+        "pout_target": 10000.0,
+        "fs_hz": 20000.0,
+        "inductance_h": 0.0010716517624676405,
+        "capacitance_f": 0.000020408163265306123,
+        "feasible": true,
+        "phase_count": 3,
+        "switch_position_count": 6
+      },
+      "waveform": {
+        "mode": "three-phase two-level SPWM first-pass preview",
+        "sample_count": 38401
+      },
+      "stress": {
+        "switch_voltage_max_v": 700.0,
+        "switch_current_peak_a": 22.41332088881693,
+        "rectifier_voltage_max_v": 700.0,
+        "rectifier_current_peak_a": 22.41332088881693
+      }
+    },
+    {
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "candidate": {
+        "mode_capable": "ccm_three_phase_three_level_npc_lspwm_first_pass",
+        "vin_nom": 700.0,
+        "vout_target": 400.0,
+        "pout_target": 10000.0,
+        "fs_hz": 20000.0,
+        "inductance_h": 0.0005358258812338203,
+        "capacitance_f": 0.00008163265306122449,
+        "feasible": true,
+        "phase_count": 3,
+        "switch_position_count": 12,
+        "clamp_diode_count": 6,
+        "dc_link_split_capacitor_count": 2
+      },
+      "waveform": {
+        "mode": "three-phase three-level NPC PD-SPWM first-pass preview",
+        "sample_count": 9601
+      },
+      "stress": {
+        "switch_voltage_max_v": 350.0,
+        "switch_current_peak_a": 23.447360371034268,
+        "rectifier_voltage_max_v": 350.0,
+        "rectifier_current_peak_a": 23.447360371034268
+      }
+    }
+  ]
+}
