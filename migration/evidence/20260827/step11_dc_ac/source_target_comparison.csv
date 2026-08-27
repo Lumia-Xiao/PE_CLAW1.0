@@ -1,0 +1,46 @@
+topology_id,field,source_value,target_value,absolute_error,relative_error,tolerance,status,owner,category,evidence
+single_phase_full_bridge_inverter,candidate.capacitance_f,0.0003978873577297383,0.0003978873577297383,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+single_phase_full_bridge_inverter,candidate.feasible,True,True,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+single_phase_full_bridge_inverter,candidate.fs_hz,20000.0,20000.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+single_phase_full_bridge_inverter,candidate.inductance_h,0.002032931995911324,0.002032931995911324,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+single_phase_full_bridge_inverter,candidate.mode_capable,ccm_unipolar_spwm_first_pass,ccm_unipolar_spwm_first_pass,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+single_phase_full_bridge_inverter,candidate.pout_target,1000.0,1000.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+single_phase_full_bridge_inverter,candidate.vin_nom,400.0,400.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+single_phase_full_bridge_inverter,candidate.vout_target,230.0,230.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+single_phase_full_bridge_inverter,stress.rectifier_current_peak_a,6.148754619013457,6.148754619013457,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+single_phase_full_bridge_inverter,stress.rectifier_voltage_max_v,400.0,400.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+single_phase_full_bridge_inverter,stress.switch_current_peak_a,6.148754619013457,6.148754619013457,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+single_phase_full_bridge_inverter,stress.switch_voltage_max_v,400.0,400.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+single_phase_full_bridge_inverter,topology_id,single_phase_full_bridge_inverter,single_phase_full_bridge_inverter,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,topology_id,source_target_comparison.csv
+single_phase_full_bridge_inverter,waveform.mode,ccm unipolar SPWM refined preview,ccm unipolar SPWM refined preview,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,waveform,source_target_comparison.csv
+single_phase_full_bridge_inverter,waveform.sample_count,721,721,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,waveform,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,candidate.capacitance_f,2.0408163265306123e-05,2.0408163265306123e-05,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,candidate.feasible,True,True,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,candidate.fs_hz,20000.0,20000.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,candidate.inductance_h,0.0010716517624676405,0.0010716517624676405,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,candidate.mode_capable,ccm_three_phase_two_level_spwm_first_pass,ccm_three_phase_two_level_spwm_first_pass,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,candidate.pout_target,10000.0,10000.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,candidate.vin_nom,700.0,700.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,candidate.vout_target,400.0,400.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,stress.rectifier_current_peak_a,22.41332088881693,22.41332088881693,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,stress.rectifier_voltage_max_v,700.0,700.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,stress.switch_current_peak_a,22.41332088881693,22.41332088881693,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,stress.switch_voltage_max_v,700.0,700.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,topology_id,three_phase_two_level_voltage_source_inverter,three_phase_two_level_voltage_source_inverter,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,topology_id,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,waveform.mode,three-phase two-level SPWM first-pass preview,three-phase two-level SPWM first-pass preview,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,waveform,source_target_comparison.csv
+three_phase_two_level_voltage_source_inverter,waveform.sample_count,38401,38401,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,waveform,source_target_comparison.csv
+three_phase_three_level_npc_inverter,candidate.capacitance_f,8.163265306122449e-05,8.163265306122449e-05,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_three_level_npc_inverter,candidate.feasible,True,True,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_three_level_npc_inverter,candidate.fs_hz,20000.0,20000.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_three_level_npc_inverter,candidate.inductance_h,0.0005358258812338203,0.0005358258812338203,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_three_level_npc_inverter,candidate.mode_capable,ccm_three_phase_three_level_npc_lspwm_first_pass,ccm_three_phase_three_level_npc_lspwm_first_pass,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_three_level_npc_inverter,candidate.pout_target,10000.0,10000.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_three_level_npc_inverter,candidate.vin_nom,700.0,700.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_three_level_npc_inverter,candidate.vout_target,400.0,400.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,candidate,source_target_comparison.csv
+three_phase_three_level_npc_inverter,stress.rectifier_current_peak_a,23.447360371034268,23.447360371034268,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+three_phase_three_level_npc_inverter,stress.rectifier_voltage_max_v,350.0,350.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+three_phase_three_level_npc_inverter,stress.switch_current_peak_a,23.447360371034268,23.447360371034268,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+three_phase_three_level_npc_inverter,stress.switch_voltage_max_v,350.0,350.0,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,stress,source_target_comparison.csv
+three_phase_three_level_npc_inverter,topology_id,three_phase_three_level_npc_inverter,three_phase_three_level_npc_inverter,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,topology_id,source_target_comparison.csv
+three_phase_three_level_npc_inverter,waveform.mode,three-phase three-level NPC PD-SPWM first-pass preview,three-phase three-level NPC PD-SPWM first-pass preview,,,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,waveform,source_target_comparison.csv
+three_phase_three_level_npc_inverter,waveform.sample_count,9601,9601,0.0,0.0,1e-9 relative or exact nonnumeric,passed,dc_ac_migration,waveform,source_target_comparison.csv

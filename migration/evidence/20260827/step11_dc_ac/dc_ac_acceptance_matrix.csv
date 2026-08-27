@@ -1,0 +1,4 @@
+topology_id,registry,form,schema,synthesis,waveform,stress,refresh,gui_view,downstream,source_target,status,evidence
+single_phase_full_bridge_inverter,passed,passed,passed,passed,passed,passed,passed,passed,passed,passed,passed,tests/test_dc_ac_*.py; source_target_comparison.csv; ../step10_dc_ac/packaged_gui_runtime_validation.json
+three_phase_two_level_voltage_source_inverter,passed,passed,passed,passed,passed,passed,passed,passed,passed,passed,passed,tests/test_dc_ac_*.py; source_target_comparison.csv; ../step10_dc_ac/packaged_gui_runtime_validation.json
+three_phase_three_level_npc_inverter,passed,passed,passed,passed,passed,passed,passed,passed,passed,passed,passed,tests/test_dc_ac_*.py; source_target_comparison.csv; ../step10_dc_ac/packaged_gui_runtime_validation.json

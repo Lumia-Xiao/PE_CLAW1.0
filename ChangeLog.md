@@ -219,3 +219,39 @@ listed here.
 - Git:
   - Step implementation commit: `342ebf8f973089b94e14e957d56fd29b54646701` (`feat: connect dc-ac waveform refresh and result views`).
   - Push: passed to `origin/codex/sync-gui-backend-from-2`; remote hash verified.
+
+## 2026-08-27 DC-AC Migration Step 11 Final Acceptance
+
+- What changed:
+  - Added a reproducible Step 11 evidence builder for source/target DC-AC probes,
+    field-level comparison, acceptance matrix, changed-file inventory, and
+    runtime path/dependency scans.
+  - Added the final DC-AC acceptance evidence under
+    `migration/evidence/20260827/step11_dc_ac/`.
+  - Updated the active plan with the final validation classifications and
+    evidence paths while leaving the remote receipt pending until push.
+- Why:
+  - Close the DC-AC migration with auditable evidence for all three topologies
+    and classify full-suite failures, errors, skips, and warnings explicitly.
+- Files:
+  - `scripts/build_dc_ac_step11_evidence.py`
+  - `migration/evidence/20260827/step11_dc_ac/`
+  - `Plan/active/dc_ac_implementation_migration_plan.md`
+  - `ChangeLog.md`
+- Validation:
+  - Focused DC-AC, operating refresh, GUI, device, capacitor, magnetic, loss,
+    and efficiency regression: `183 passed, 1 skipped`.
+  - Full suite with repository-local basetemp: `323 passed, 1 skipped` in
+    `1018.49s`; `0 failures`, `0 errors`, and `0 warnings`.
+  - The one skip is the optional legacy external OpenMagnetics reference path;
+    the packaged normalized production magnetic chain passed.
+  - Source/target deterministic comparison: 3 topologies, 45 fields,
+    0 differences at 1e-9 relative tolerance or exact nonnumeric equality.
+  - Runtime source-workspace absolute-path scan: 0 hits.
+  - Runtime AI/agentic/skills import and package-directory scan: 0 hits.
+  - `python -B -m py_compile scripts/build_dc_ac_step11_evidence.py`: passed.
+- Git:
+  - Branch: `codex/sync-gui-backend-from-2`.
+  - Planned step commit: `docs: finalize dc-ac migration evidence and acceptance`.
+  - Commit and push receipt are recorded in a separate plan update after the
+    implementation push succeeds.

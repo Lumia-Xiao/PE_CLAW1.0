@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active`，第 10 步已完成，等待开始第 11 步 |
+| 计划状态 | `active`，第 11 步主体已完成验证，等待主体 commit/push 回执 |
 | 建立日期 | 2026-08-27 |
 | 计划类型 | DC-AC 实现及 GUI 运行链路专项迁移 |
 | 源工程 | `C:\Users\Lumia\Documents\PE_Claw\PE_Claw260517_1_extracted\PE_Claw` |
@@ -506,13 +506,19 @@ result view 和下游直接依赖，不依赖人工点击才能证明核心链�
 
 | 拓扑 | Registry | Form | Schema | Synthesis | Waveform | Stress | Refresh | GUI view | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `single_phase_full_bridge_inverter` | Pending | Pending | Pending | Pending | Pending | Pending | Pending | Pending | Pending |
-| `three_phase_two_level_voltage_source_inverter` | Pending | Pending | Pending | Pending | Pending | Pending | Pending | Pending | Pending |
-| `three_phase_three_level_npc_inverter` | Pending | Pending | Pending | Pending | Pending | Pending | Pending | Pending | Pending |
+| `single_phase_full_bridge_inverter` | Passed | Passed | Passed | Passed | Passed | Passed | Passed | Passed | Passed |
+| `three_phase_two_level_voltage_source_inverter` | Passed | Passed | Passed | Passed | Passed | Passed | Passed | Passed | Passed |
+| `three_phase_three_level_npc_inverter` | Passed | Passed | Passed | Passed | Passed | Passed | Passed | Passed | Passed |
 
 每一列必须填入测试命令、结果和证据路径。`Status` 只有在本行所有必要列通过后才能标记
 为 `passed`。源工程本身存在的 first-pass 限制应记录为 `accepted limitation`，不应被视为
 迁移失败，也不能被隐藏。
+
+第 11 步逐项命令、结果和证据路径记录在
+`migration/evidence/20260827/step11_dc_ac/dc_ac_acceptance_matrix.csv`；源/目标
+45 个确定性字段对照为 0 difference，详见同目录
+`source_target_comparison.csv`。三种拓扑保留源工程声明的 first-pass preview/model
+边界，属于已接受能力边界，不影响迁移一致性结论。
 
 ## 9. 验证命令安排
 
@@ -534,6 +540,35 @@ python -m pytest -q tests/test_operating_refresh_semiconductor_roles_complete.py
 python -m pytest -q --basetemp .pytest-tmp-full
 git diff --check
 ```
+
+第 11 步实际执行命令：
+
+```powershell
+$dcAc = Get-ChildItem tests -File -Filter 'test_dc_ac_*.py'
+python -m pytest -q -ra --junitxml=.pytest-step11-focused.xml `
+  --basetemp .pytest-tmp-step11 $dcAc `
+  tests/test_phase7_dc_ac_migration.py `
+  tests/test_phase9_dc_ac_topologies.py `
+  tests/test_phase9_operating_point_migration.py `
+  tests/test_phase10_gui_integration.py `
+  tests/test_phase11_ai_isolation.py `
+  tests/test_device_selector_rejects_overstress.py `
+  tests/test_device_selector_single_candidate.py `
+  tests/test_capacitor_registry.py tests/test_capacitor_selection.py `
+  tests/test_magnetic_library_schema.py tests/test_magnetic_loss_contract.py `
+  tests/test_magnetic_static_registry.py tests/test_core_loss_kernel.py `
+  tests/test_core_loss_router.py `
+  tests/test_default_packaged_normalized_magnetic_backend.py
+python -m pytest -q --basetemp .pytest-tmp-full -rA
+python -B scripts/build_dc_ac_step11_evidence.py
+python -B -m compileall -q src tests scripts/build_dc_ac_step11_evidence.py
+git diff --check
+```
+
+实际结果为 focused `183 passed, 1 skipped`，完整 suite `323 passed, 1 skipped`；
+`failure=0`、`error=0`、`warning=0`。唯一 skip 是可选 legacy external
+OpenMagnetics debug/reference 数据库不可用，目标工程默认 packaged normalized production
+路径已通过。
 
 最小功能验收必须得到：
 
@@ -607,23 +642,23 @@ docs: finalize dc-ac migration evidence and acceptance
 
 ## 13. 最终完成条件
 
-- [ ] 计划已获用户批准，备份和基线完成。
-- [ ] import、文件、静态数据和测试依赖矩阵无未决项。
-- [ ] 三个 DC-AC 拓扑已注册并可加载 plugin/form。
-- [ ] 三个拓扑都能完成 `Run Design -> Generate Waveforms`。
-- [ ] Waveform view 能显示各拓扑专用波形和正确单位。
-- [ ] operating-point refresh、PF/load 变化和重复运行行为正确。
-- [ ] 器件、DC-link capacitor、output magnetic、loss、thermal、efficiency 和 geometry
+- [x] 计划已获用户批准，备份和基线完成。
+- [x] import、文件、静态数据和测试依赖矩阵无未决项。
+- [x] 三个 DC-AC 拓扑已注册并可加载 plugin/form。
+- [x] 三个拓扑都能完成 `Run Design -> Generate Waveforms`。
+- [x] Waveform view 能显示各拓扑专用波形和正确单位。
+- [x] operating-point refresh、PF/load 变化和重复运行行为正确。
+- [x] 器件、DC-link capacitor、output magnetic、loss、thermal、efficiency 和 geometry
   的源工程支持能力已迁移或明确记录为 limitation。
-- [ ] 目标工程不依赖源工程绝对路径。
-- [ ] 目标工程不依赖 AI/agentic/skills 代码。
-- [ ] DC-AC 专项测试和相关回归通过。
-- [ ] 完整目标 pytest suite 已运行，所有失败均有解释和处理结论。
-- [ ] `ChangeLog.md`、categorized ledger、迁移 evidence 和本计划状态已更新。
-- [ ] 用户审查通过后，才执行 push/merge。
-- [ ] 第 0 步至第 11 步均已各自完成独立 commit 和 push。
-- [ ] 每一步的远端 commit hash、push 结果、验证命令和证据路径均已记录。
-- [ ] 不存在跨步骤合并提交、补推或未记录的远端提交。
+- [x] 目标工程 runtime 不依赖源工程绝对路径；测试/冻结证据仅保留来源 provenance。
+- [x] 目标工程不依赖 AI/agentic/skills 代码。
+- [x] DC-AC 专项测试和相关回归通过。
+- [x] 完整目标 pytest suite 已运行，所有 failure/error/skip/warning 均已分类。
+- [x] `ChangeLog.md`、适用 evidence ledger、迁移 evidence 和本计划状态已更新。
+- [ ] 用户审查通过后，才执行 merge/tag/向 `master` push。
+- [ ] 第 0 步至第 11 步均已各自完成独立 commit 和 push；第 11 步等待本次主体 push 回执。
+- [ ] 每一步的远端 commit hash、push 结果、验证命令和证据路径均已记录；第 11 步等待回执。
+- [x] 不存在跨步骤合并提交、补推或未记录的远端提交。
 
 ## 14. 计划执行记录
 
@@ -641,4 +676,4 @@ docs: finalize dc-ac migration evidence and acceptance
 | 2026-08-27 | 第 8 步 | Completed | 已完成 DC-AC downstream 工程阶段与结果页面合并；补齐效率管线 AC-DC 兼容引用和桥式整流拓扑集合；主体 commit + push 已完成，回执随后提交 | `57e080b` | DC-AC focused `51 passed`; 三拓扑 downstream smoke 均通过（各 2 load points + 20 PF points）；compileall/diff check 通过；full pytest `305 passed, 1 skipped, 3 errors`，3 errors 均为 pytest tmp_path 对系统临时目录 WinError 5 权限环境问题；无源工程绝对路径/agentic 命中；remote verified |
 | 2026-08-27 | 第 9 步 | Completed | 已新增目标工程 DC-AC 集成覆盖、三拓扑结构化 fixture、controller 闭环、结果摘要和禁止依赖测试；独立 commit + push 已完成，回执随后提交 | `7357c99` | `tests/test_dc_ac_target_integration.py`；`migration/evidence/20260827/step9_dc_ac/dc_ac_target_fixtures.json`；与既有 DC-AC/GUI/isolation 测试合计 `64 passed`；compileall/diff check 通过；source/target 默认 fixture 对照通过；remote verified |
 | 2026-08-27 | 第 10 步 | Completed | 已完成 editable install、目标包路径与资源检查、bat startup check、三种 DC-AC 默认设计/波形 GUI smoke；并修复 BaseTopologyForm 缺失的 numeric parsing helpers；主体 commit + push 已完成，回执随后提交 | `91be103` | `tests/test_dc_ac_packaged_gui_runtime.py`; `migration/evidence/20260827/step10_dc_ac/packaged_gui_runtime_validation.json`; `26 passed`; editable install passed; 19 topologies/3 DC-AC/3 PNG resources verified; bat startup check passed; compileall/diff check passed; remote verified |
-|  | 第 11 步 | Pending | 待完成回归和交付审查 | - | - |
+| 2026-08-27 | 第 11 步 | In Progress | 已完成 DC-AC 专项、下游相关回归、完整 pytest、源/目标对照、路径/依赖扫描及交付证据；等待主体 commit/push 后补远端回执 | pending | `migration/evidence/20260827/step11_dc_ac/`; focused `183 passed, 1 skipped`; full `323 passed, 1 skipped`; 0 failures/errors/warnings; 45 source/target fields, 0 differences; runtime path/agentic scan 0 hits |
