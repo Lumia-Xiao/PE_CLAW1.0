@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from importlib import import_module
 import importlib
 from pathlib import Path
@@ -12,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from pe_claw_gui.pipeline import run_efficiency_sweep, run_full_pipeline
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.topologies.base.registry import build_default_registry
+from pe_claw_gui.app.result_views.efficiency_view import build_efficiency_summary_text
 
 
 EFFICIENCY_SWEEP_PIPELINE = importlib.import_module(
@@ -135,3 +137,78 @@ def test_efficiency_sweep_isolates_a_failed_ac_dc_load_point(monkeypatch: pytest
     assert result.points[0].efficiency is None
     assert "synthetic waveform failure" in result.points[0].warnings[0]
     assert result.points[1].efficiency is not None
+
+
+def test_ac_dc_result_names_bridge_loss_and_writes_artifacts(tmp_path: Path) -> None:
+    registry = build_default_registry()
+    plugin = registry.get_plugin("single_phase_diode_bridge_rectifier_capacitor_filter")
+    topology_module = import_module(plugin.__module__)
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=topology_module.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+    )
+
+    result = run_efficiency_sweep(report, plugin=plugin, load_points=(0.1, 1.0), output_dir=tmp_path)
+
+    assert all(point.bridge_rectifier_loss_w is not None for point in result.points)
+    assert all(point.semiconductor_loss_w is None for point in result.points)
+    assert all(point.loss_breakdown_w.get("bridge_rectifier") is not None for point in result.points)
+    assert result.peak_efficiency == max(point.efficiency for point in result.points if point.efficiency is not None)
+    assert result.full_load_efficiency == result.points[1].efficiency
+    assert result.light_load_efficiency == result.points[0].efficiency
+    assert result.sweep_basis["included_losses"] == ("bridge rectifier",)
+    assert set(result.artifact_paths) == {"efficiency_curve", "loss_breakdown_stacked"}
+    assert all(Path(path).exists() for path in result.artifact_paths.values())
+    assert "bridge rectifier:" in build_efficiency_summary_text(result)
+
+
+def test_efficiency_sweep_signature_invalidates_when_bridge_parameters_change(tmp_path: Path) -> None:
+    registry = build_default_registry()
+    plugin = registry.get_plugin("single_phase_diode_bridge_rectifier_capacitor_filter")
+    topology_module = import_module(plugin.__module__)
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=topology_module.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+    )
+    first = run_efficiency_sweep(report, plugin=plugin, load_points=(0.5, 1.0), output_dir=tmp_path)
+    bridge = report.bridge_rectifier
+    assert bridge is not None and bridge.selected_candidate is not None
+    changed_candidate = replace(bridge.selected_candidate, vf_max_v=bridge.selected_candidate.vf_max_v + 0.01)
+    changed_report = replace(
+        report,
+        bridge_rectifier=replace(bridge, selected_candidate=changed_candidate),
+        efficiency_sweep=first,
+    )
+
+    second = run_efficiency_sweep(changed_report, plugin=plugin, load_points=(0.5, 1.0), output_dir=tmp_path)
+
+    assert second.signature != first.signature
+
+
+def test_efficiency_sweep_regenerates_missing_artifacts(tmp_path: Path) -> None:
+    registry = build_default_registry()
+    plugin = registry.get_plugin("single_phase_diode_bridge_rectifier_capacitor_filter")
+    topology_module = import_module(plugin.__module__)
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=topology_module.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+    )
+    first = run_efficiency_sweep(report, plugin=plugin, load_points=(0.5, 1.0), output_dir=tmp_path)
+    curve_path = Path(first.artifact_paths["efficiency_curve"])
+    curve_path.unlink()
+
+    second = run_efficiency_sweep(
+        replace(report, efficiency_sweep=first),
+        plugin=plugin,
+        load_points=(0.5, 1.0),
+        output_dir=tmp_path,
+    )
+
+    assert second.signature == first.signature
+    assert curve_path.exists()

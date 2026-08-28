@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from dataclasses import replace
+from dataclasses import asdict, replace
 from pathlib import Path
 from collections.abc import Sequence
 
@@ -47,7 +47,7 @@ def run_efficiency_sweep(
     load_grid = _normalize_load_grid(load_points)
     warnings: list[str] = []
     signature = _build_signature(report, load_grid)
-    if report.efficiency_sweep is not None and report.efficiency_sweep.signature == signature:
+    if _can_reuse_sweep_result(report.efficiency_sweep, signature, output_dir):
         return report.efficiency_sweep
 
     blocking_warning = _blocking_warning(report, plugin)
@@ -207,6 +207,11 @@ def _evaluate_load_point(
             magnetic_loss_w=magnetic_loss_w,
             capacitor_loss_w=capacitor_loss_w,
             other_loss_w=0.0,
+            loss_breakdown_w=_loss_breakdown(
+                semiconductor=semiconductor_loss_w,
+                magnetic=magnetic_loss_w,
+                capacitor=capacitor_loss_w,
+            ),
             warnings=tuple(point_warnings),
         ),
         point_warnings,
@@ -350,7 +355,14 @@ def _evaluate_single_phase_boost_pfc_load_point(
             semiconductor_loss_w=semiconductor_loss_w,
             magnetic_loss_w=magnetic_loss_w,
             capacitor_loss_w=capacitor_loss_w,
-            other_loss_w=bridge_loss_w,
+            other_loss_w=None,
+            bridge_rectifier_loss_w=bridge_loss_w,
+            loss_breakdown_w=_loss_breakdown(
+                semiconductor=semiconductor_loss_w,
+                bridge_rectifier=bridge_loss_w,
+                magnetic=magnetic_loss_w,
+                capacitor=capacitor_loss_w,
+            ),
             warnings=tuple(point_warnings),
         ),
         point_warnings,
@@ -409,8 +421,8 @@ def _evaluate_ac_dc_load_point(
         stress=stress_result,
         topology_result=topology_result,
     )
-    semiconductor_loss_w = _ac_dc_bridge_loss_w(refreshed, load_pu)
-    if semiconductor_loss_w is None:
+    bridge_loss_w = _ac_dc_bridge_loss_w(refreshed, load_pu)
+    if bridge_loss_w is None:
         point_warnings.append(f"Selected bridge loss was unavailable at {load_pu:.1f} p.u.")
     magnetic_loss_w = _ac_dc_reactor_loss_w(refreshed)
     if _is_ac_dc_reactor_topology(base_report) and magnetic_loss_w is None:
@@ -420,7 +432,7 @@ def _evaluate_ac_dc_load_point(
     if base_report.capacitor is not None and capacitor_loss_w is None:
         point_warnings.append(f"Selected DC-link capacitor loss was unavailable at {load_pu:.1f} p.u.")
 
-    available_losses = [semiconductor_loss_w, magnetic_loss_w, capacitor_loss_w]
+    available_losses = [bridge_loss_w, magnetic_loss_w, capacitor_loss_w]
     total_loss_w = sum(loss for loss in available_losses if loss is not None)
     if not any(loss is not None for loss in available_losses):
         total_loss_w = None
@@ -439,10 +451,16 @@ def _evaluate_ac_dc_load_point(
             output_power_w=output_power_w,
             total_loss_w=total_loss_w,
             efficiency=efficiency,
-            semiconductor_loss_w=semiconductor_loss_w,
+            semiconductor_loss_w=None,
             magnetic_loss_w=magnetic_loss_w,
             capacitor_loss_w=capacitor_loss_w,
-            other_loss_w=0.0,
+            other_loss_w=None,
+            bridge_rectifier_loss_w=bridge_loss_w,
+            loss_breakdown_w=_loss_breakdown(
+                bridge_rectifier=bridge_loss_w,
+                magnetic=magnetic_loss_w,
+                capacitor=capacitor_loss_w,
+            ),
             warnings=tuple(point_warnings),
         ),
         point_warnings,
@@ -682,6 +700,12 @@ def _capacitor_loss_w(report: DesignReport) -> float | None:
     return total if found else None
 
 
+def _loss_breakdown(**components: float | None) -> dict[str, float | None]:
+    """Return named loss components while omitting unavailable values."""
+
+    return {name: value for name, value in components.items() if value is not None}
+
+
 def _build_result(
     points: list[EfficiencySweepPoint],
     load_grid: tuple[float, ...],
@@ -710,19 +734,24 @@ def _sweep_basis(report: DesignReport, load_grid: tuple[float, ...], points: lis
     if full_load is None:
         full_load = points[-1] if points else None
     if full_load is not None:
+        loss_labels = _loss_labels(report)
         if full_load.semiconductor_loss_w is not None:
-            included_losses.append("semiconductor")
+            included_losses.append(loss_labels["semiconductor"])
+        if full_load.bridge_rectifier_loss_w is not None:
+            included_losses.append(loss_labels["bridge_rectifier"])
         if full_load.magnetic_loss_w is not None:
-            included_losses.append("output inductor" if _is_single_phase_inverter_topology(report) else "magnetic")
+            included_losses.append(loss_labels["magnetic"])
         if full_load.capacitor_loss_w is not None:
-            included_losses.append("DC-link capacitor" if _is_single_phase_inverter_topology(report) else "capacitor")
+            included_losses.append(loss_labels["capacitor"])
         if full_load.other_loss_w is not None and full_load.other_loss_w > 0.0:
-            included_losses.append("input bridge rectifier" if _is_single_phase_boost_pfc_topology(report) else "other")
+            included_losses.append(loss_labels["other"])
     return {
         "load_grid": tuple(load_grid),
         "operating_power_factor": _operating_power_factor_for_report(report),
         "fixed_hardware": _fixed_hardware_label(report),
         "included_losses": tuple(included_losses),
+        "loss_breakdown": dict(full_load.loss_breakdown_w) if full_load is not None else {},
+        "loss_labels": _loss_labels(report),
         "pf_sweep_mode": (
             "three_phase_npc_first_pass"
             if _is_three_phase_npc_inverter_topology(report)
@@ -774,6 +803,37 @@ def _fixed_hardware_label(report: DesignReport) -> str:
     if _is_ac_dc_bridge_topology(report):
         return "selected bridge rectifier and available passive hardware"
     return "selected semiconductor, magnetic, and capacitor hardware"
+
+
+def _loss_labels(report: DesignReport) -> dict[str, str]:
+    labels = {
+        "semiconductor": "semiconductor",
+        "bridge_rectifier": "bridge rectifier",
+        "magnetic": "magnetic",
+        "capacitor": "capacitor",
+        "other": "other",
+    }
+    if _is_single_phase_boost_pfc_topology(report):
+        labels.update(
+            semiconductor="boost switch / diode",
+            bridge_rectifier="input bridge rectifier",
+            magnetic="boost inductor",
+            capacitor="DC-link capacitor",
+        )
+    elif _is_single_phase_totem_pole_pfc_topology(report):
+        labels.update(
+            semiconductor="Totem-Pole HF / LF switches",
+            magnetic="boost inductor",
+            capacitor="DC-link capacitor",
+        )
+    elif _is_ac_dc_bridge_topology(report):
+        labels.update(
+            magnetic="AC-DC reactor" if _is_ac_dc_reactor_topology(report) else "magnetic",
+            capacitor="DC-link capacitor",
+        )
+    elif _is_single_phase_inverter_topology(report):
+        labels.update(magnetic="output inductor", capacitor="DC-link capacitor")
+    return labels
 
 
 def _efficiency_at(points: list[EfficiencySweepPoint], load_pu: float) -> float | None:
@@ -989,7 +1049,8 @@ def _write_efficiency_curve(result: EfficiencySweepResult, path: Path) -> None:
     axis.set_xlabel("Load [p.u.]")
     axis.set_ylabel("Efficiency [%]")
     axis.grid(True, alpha=0.3)
-    axis.set_xlim(0.1, 1.0)
+    if x_values:
+        axis.set_xlim(min(x_values) - 0.03, max(x_values) + 0.03)
     figure.tight_layout()
     figure.savefig(path)
     figure.clear()
@@ -998,14 +1059,22 @@ def _write_efficiency_curve(result: EfficiencySweepResult, path: Path) -> None:
 def _write_loss_breakdown(result: EfficiencySweepResult, path: Path) -> None:
     figure = Figure(figsize=(5.8, 3.2), dpi=120)
     axis = figure.add_subplot(111)
-    x_values = [point.load_pu for point in result.points]
-    components = (
-        ("Semiconductor", [point.semiconductor_loss_w or 0.0 for point in result.points], "#4c78a8"),
-        ("Magnetic", [point.magnetic_loss_w or 0.0 for point in result.points], "#f58518"),
-        ("Capacitor", [point.capacitor_loss_w or 0.0 for point in result.points], "#54a24b"),
-        ("Other / unavailable", [point.other_loss_w or 0.0 for point in result.points], "#b279a2"),
+    valid_points = [point for point in result.points if point.total_loss_w is not None]
+    x_values = [point.load_pu for point in valid_points]
+    loss_labels = result.sweep_basis.get("loss_labels") or {}
+    component_specs = (
+        (str(loss_labels.get("semiconductor") or "Semiconductor"), "semiconductor_loss_w", "#4c78a8"),
+        (str(loss_labels.get("bridge_rectifier") or "Bridge rectifier"), "bridge_rectifier_loss_w", "#e45756"),
+        (str(loss_labels.get("magnetic") or "Magnetic"), "magnetic_loss_w", "#f58518"),
+        (str(loss_labels.get("capacitor") or "Capacitor"), "capacitor_loss_w", "#54a24b"),
+        (str(loss_labels.get("other") or "Other"), "other_loss_w", "#b279a2"),
     )
-    bottoms = [0.0 for _ in result.points]
+    components = tuple(
+        (label, [getattr(point, attr) or 0.0 for point in valid_points], color)
+        for label, attr, color in component_specs
+        if any(getattr(point, attr) is not None for point in valid_points)
+    )
+    bottoms = [0.0 for _ in valid_points]
     width = 0.065
     for label, values, color in components:
         axis.bar(x_values, values, width=width, bottom=bottoms, label=label, color=color)
@@ -1013,7 +1082,8 @@ def _write_loss_breakdown(result: EfficiencySweepResult, path: Path) -> None:
     axis.set_xlabel("Load [p.u.]")
     axis.set_ylabel("Loss [W]")
     axis.grid(True, axis="y", alpha=0.3)
-    axis.legend(loc="best", fontsize=8)
+    if components:
+        axis.legend(loc="best", fontsize=8)
     figure.tight_layout()
     figure.savefig(path)
     figure.clear()
@@ -1025,22 +1095,13 @@ def _build_signature(report: DesignReport, load_grid: tuple[float, ...]) -> str:
     magnetic = report.magnetic
     bridge = report.bridge_rectifier
     payload = {
-        "efficiency_sweep_model_version": 2,
+        "efficiency_sweep_model_version": 3,
         "topology_id": report.spec.topology_id,
         "raw_input": report.spec.raw_input,
-        "candidate": {
-            "vin_nom": getattr(report.candidate, "vin_nom", None),
-            "vout_target": getattr(report.candidate, "vout_target", None),
-            "pout_target": getattr(report.candidate, "pout_target", None),
-            "fs_hz": getattr(report.candidate, "fs_hz", None),
-        },
+        "candidate": _candidate_signature(report.candidate),
         "semiconductor_scheme": getattr(device, "active_scheme_id", None) or getattr(device, "recommended_scheme_id", None),
         "selected_devices": getattr(device, "selected_devices", {}),
-        "selected_bridge_rectifier": (
-            getattr(bridge.selected_candidate, "candidate_id", None)
-            if bridge is not None and bridge.selected_candidate is not None
-            else None
-        ),
+        "selected_bridge_rectifier": _bridge_rectifier_signature(bridge),
         "capacitor_parts": _capacitor_signature(capacitor),
         "magnetic_design_id": _magnetic_design_signature(magnetic),
         "load_grid": load_grid,
@@ -1049,6 +1110,57 @@ def _build_signature(report: DesignReport, load_grid: tuple[float, ...]) -> str:
     }
     encoded = json.dumps(payload, sort_keys=True, default=str).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def _candidate_signature(candidate) -> dict[str, object]:
+    if candidate is None:
+        return {}
+    values = asdict(candidate) if hasattr(candidate, "__dataclass_fields__") else vars(candidate)
+    return {
+        "topology_id": values.get("topology_id"),
+        "vin_nom": values.get("vin_nom"),
+        "vout_target": values.get("vout_target"),
+        "pout_target": values.get("pout_target"),
+        "fs_hz": values.get("fs_hz"),
+        "inductance_h": values.get("inductance_h"),
+        "capacitance_f": values.get("capacitance_f"),
+        "duty_nom": values.get("duty_nom"),
+        "iout": values.get("iout"),
+        "metadata": values.get("metadata", {}),
+    }
+
+
+def _bridge_rectifier_signature(bridge) -> dict[str, object] | None:
+    if bridge is None or bridge.selected_candidate is None:
+        return None
+    candidate = bridge.selected_candidate
+    values = asdict(candidate) if hasattr(candidate, "__dataclass_fields__") else vars(candidate)
+    return {
+        "candidate_id": values.get("candidate_id"),
+        "part_number": values.get("part_number"),
+        "manufacturer": values.get("manufacturer"),
+        "v_rrm_v": values.get("v_rrm_v"),
+        "io_avg_rectified_a": values.get("io_avg_rectified_a"),
+        "vf_max_v": values.get("vf_max_v"),
+        "vf_test_current_a": values.get("vf_test_current_a"),
+        "rth_jc_k_per_w": values.get("rth_jc_k_per_w"),
+        "rth_ja_k_per_w": values.get("rth_ja_k_per_w"),
+        "topology_kind": values.get("topology_kind"),
+    }
+
+
+def _can_reuse_sweep_result(result: EfficiencySweepResult | None, signature: str, output_dir) -> bool:
+    if result is None or result.signature != signature:
+        return False
+    paths = result.artifact_paths
+    if not paths or any(not Path(path).exists() for path in paths.values()):
+        return False
+    expected_dir = (
+        Path(output_dir).resolve()
+        if output_dir is not None
+        else (_project_root() / "outputs" / "efficiency_sweep").resolve()
+    )
+    return all(Path(path).resolve().parent == expected_dir for path in paths.values())
 
 
 def _capacitor_signature(capacitor) -> dict[str, str | None]:
@@ -1063,7 +1175,14 @@ def _capacitor_signature(capacitor) -> dict[str, str | None]:
 def _capacitor_part(side_result) -> str | None:
     if side_result is None or side_result.recommended is None:
         return None
-    return side_result.recommended.candidate.part_number
+    recommended = side_result.recommended
+    return ":".join(
+        (
+            recommended.candidate.part_number,
+            str(recommended.series_count),
+            str(recommended.parallel_count),
+        )
+    )
 
 
 def _dedupe(values: list[str]) -> list[str]:

@@ -17,6 +17,8 @@ class EfficiencySweepPoint:
     magnetic_loss_w: float | None
     capacitor_loss_w: float | None
     other_loss_w: float | None
+    bridge_rectifier_loss_w: float | None = None
+    loss_breakdown_w: dict[str, float | None] = field(default_factory=dict)
     warnings: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, object]:

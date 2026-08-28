@@ -173,6 +173,7 @@ def build_efficiency_summary_text(result: EfficiencySweepResult | None) -> str:
         return "\n".join(lines)
 
     full_load = _full_load_point(result)
+    loss_labels = result.sweep_basis.get("loss_labels") or {}
     lines = [
         "Efficiency sweep",
         "",
@@ -188,9 +189,10 @@ def build_efficiency_summary_text(result: EfficiencySweepResult | None) -> str:
         f"  0.1 p.u. efficiency: {_fmt_eff(result.light_load_efficiency)}",
         "",
         "Full-load loss breakdown",
-        f"  semiconductor: {_fmt_w(None if full_load is None else full_load.semiconductor_loss_w)}",
-        f"  output inductor/magnetic: {_fmt_w(None if full_load is None else full_load.magnetic_loss_w)}",
-        f"  DC-link capacitor: {_fmt_w(None if full_load is None else full_load.capacitor_loss_w)}",
+        f"  {_loss_label(loss_labels, 'semiconductor', 'semiconductor')}: {_fmt_w(None if full_load is None else full_load.semiconductor_loss_w)}",
+        f"  {_loss_label(loss_labels, 'bridge_rectifier', 'bridge rectifier')}: {_fmt_w(None if full_load is None else full_load.bridge_rectifier_loss_w)}",
+        f"  {_loss_label(loss_labels, 'magnetic', 'output inductor/magnetic')}: {_fmt_w(None if full_load is None else full_load.magnetic_loss_w)}",
+        f"  {_loss_label(loss_labels, 'capacitor', 'DC-link capacitor')}: {_fmt_w(None if full_load is None else full_load.capacitor_loss_w)}",
         f"  total: {_fmt_w(None if full_load is None else full_load.total_loss_w)}",
         f"  dominant component: {_dominant_full_load_component(result) or '-'}",
         "",
@@ -234,11 +236,13 @@ def _dominant_full_load_component(result: EfficiencySweepResult) -> str | None:
     full_load_point = _full_load_point(result)
     if full_load_point is None:
         return None
+    labels = result.sweep_basis.get("loss_labels") or {}
     components = {
-        "Semiconductor": full_load_point.semiconductor_loss_w,
-        "Magnetic": full_load_point.magnetic_loss_w,
-        "Capacitor": full_load_point.capacitor_loss_w,
-        "Other": full_load_point.other_loss_w,
+        _loss_label(labels, "semiconductor", "Semiconductor"): full_load_point.semiconductor_loss_w,
+        _loss_label(labels, "bridge_rectifier", "Bridge rectifier"): full_load_point.bridge_rectifier_loss_w,
+        _loss_label(labels, "magnetic", "Magnetic"): full_load_point.magnetic_loss_w,
+        _loss_label(labels, "capacitor", "Capacitor"): full_load_point.capacitor_loss_w,
+        _loss_label(labels, "other", "Other"): full_load_point.other_loss_w,
     }
     available = {name: value for name, value in components.items() if value is not None}
     if not available:
@@ -266,6 +270,14 @@ def _included_losses_label(value: object) -> str:
     if isinstance(value, (tuple, list)) and value:
         return ", ".join(str(item) for item in value)
     return "-"
+
+
+def _loss_label(labels: object, key: str, fallback: str) -> str:
+    if isinstance(labels, dict):
+        value = labels.get(key)
+        if value:
+            return str(value)
+    return fallback
 
 
 def _fmt_eff(value: float | None) -> str:
