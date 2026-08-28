@@ -498,7 +498,7 @@ LLC 变压器搜索当前约使用：
 | ---: | --- | --- | --- | --- |
 | 1 | `completed` | `8310634` | `0fed73e` | 4/4 baseline cases completed; 0 timeout; 0 error; LLC regression 7 passed |
 | 2 | `completed` | `ff8fc27` | `5cc6955` | FHA cache tests 10 passed; baseline 4/4 completed; real cache hits recorded |
-| 3 | `completed` | `e4c2141` | 待本次计划记录提交 | 68 项专项/LLC 回归通过；四档基准 4/4 完成；中规模变压器核心损耗阶段约 0.96 s 降至约 0.11--0.13 s，外置 `Lr` 约 8.17 s 降至约 0.85--0.99 s；候选数、可行数、拒绝分类和代表性结果保持一致 |
+| 3 | `completed` | `e4c2141` | `4774027` | 68 项专项/LLC 回归通过；四档基准 4/4 完成；中规模变压器核心损耗阶段约 0.96 s 降至约 0.11--0.13 s，外置 `Lr` 约 8.17 s 降至约 0.85--0.99 s；候选数、可行数、拒绝分类和代表性结果保持一致 |
 | 4 | `pending` | - | - | - |
 | 5 | `pending` | - | - | - |
 | 6 | `pending` | - | - | - |
@@ -610,5 +610,5 @@ LLC 变压器搜索当前约使用：
 - 实现 commit：`e4c2141`（`LLC Step 3: optimize core-loss evaluation`）。
 - 实现 push 分支：`origin/codex/sync-gui-backend-from-2`。
 - 实现 push 结果：成功。
-- 计划记录 commit：待本次计划记录提交后填写。
-- 计划记录 push 结果：待本次计划记录提交后填写。
+- 计划记录 commit：`4774027`（`docs: record LLC Step 3 core-loss optimization`）。
+- 计划记录 push 结果：成功。
