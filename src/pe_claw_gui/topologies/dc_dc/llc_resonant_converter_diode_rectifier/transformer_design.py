@@ -2945,6 +2945,7 @@ def _build_external_lr_candidate(
             effective_area_m2=core.ae_m2, turns=turns, inductance_h=actual_l_h,
             b_peak_t=b_peak_t, steinmetz_ranges=material.steinmetz_ranges,
             source_role="llc_external_resonant_inductor_core", source_component_id=f"{core.core_id}:N{turns}",
+            requested_sample_count=5,
         )
         core_loss_status = routed.validity_status.value
         core_loss_method = routed.method_used
@@ -3516,6 +3517,7 @@ def _screen_transformer_candidate(
             b_peak_t=worst_flux.b_peak_t, steinmetz_ranges=material.steinmetz_ranges,
             source_role="llc_transformer_core", source_component_id=f"{core.core_id}:{material.material_id}:Np{turns.np}:Ns{turns.ns}",
             dc_offset_policy="zero_cycle_average",
+            requested_sample_count=5,
         )
         core_loss_status = routed.validity_status.value
         if routed.core_loss_w is not None:

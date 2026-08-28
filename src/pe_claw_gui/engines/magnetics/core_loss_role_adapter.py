@@ -26,6 +26,7 @@ def evaluate_candidate_core_loss(
     source_role: str,
     source_component_id: str,
     dc_offset_policy: str | None = None,
+    requested_sample_count: int = 1001,
 ) -> tuple[CoreLossResult, CoreLossExcitationBuildResult]:
     """Build a scalar role excitation and route it through normalized-v2 logic.
 
@@ -65,6 +66,7 @@ def evaluate_candidate_core_loss(
         declared_bpp=declared_bpp,
         declared_offset=declared_offset,
         dc_offset_policy=dc_offset_policy,
+        requested_sample_count=requested_sample_count,
     )
     built = build_core_loss_excitation(request)
     material = legacy_material_v2(
@@ -88,6 +90,7 @@ def _build_request(
     inductance_h: float | None, current_a: tuple[float, ...], template: str,
     declared_peak: float | None, declared_bpp: float | None,
     declared_offset: float | None, dc_offset_policy: str | None,
+    requested_sample_count: int,
 ):
     from ...models.magnetic_loss_contract import CoreLossExcitationBuildRequest
 
@@ -103,6 +106,7 @@ def _build_request(
         declared_flux_dc_offset_t=declared_offset,
         declared_flux_absolute_peak_t=declared_peak,
         dc_offset_policy=dc_offset_policy,
+        requested_sample_count=requested_sample_count,
         source_fields=("candidate scalar design fields", "step9 shared role adapter"),
     )
 

@@ -6,10 +6,14 @@ import pytest
 
 from pe_claw_gui.engines.magnetics.core_loss_kernel import (
     calculate_igse_loss,
+    clear_scalar_triangular_loss_cache,
     calculate_steinmetz_loss,
+    scalar_triangular_loss_cache_info,
     select_steinmetz_model,
 )
-from pe_claw_gui.models.magnetic_loss_contract import CoreLossExcitation, CoreLossValidityStatus
+from pe_claw_gui.engines.magnetics.core_loss_excitation_builder import build_core_loss_excitation
+from pe_claw_gui.engines.magnetics.core_loss_role_adapter import evaluate_candidate_core_loss
+from pe_claw_gui.models.magnetic_loss_contract import CoreLossExcitation, CoreLossExcitationBuildRequest, CoreLossValidityStatus
 
 
 MODEL = {
@@ -190,3 +194,94 @@ def test_nonperiodic_waveform_is_rejected() -> None:
     result = calculate_igse_loss(model=MODEL, excitation=excitation)
     assert result.validity_status is CoreLossValidityStatus.INVALID_EXCITATION
     assert result.core_loss_w is None
+
+
+def _scalar_request(template: str, *, b_peak_t: float = 0.1) -> CoreLossExcitationBuildRequest:
+    return CoreLossExcitationBuildRequest(
+        frequency_hz=100_000.0,
+        temperature_c=25.0,
+        source_topology="llc_full_bridge_diode_rectifier",
+        source_role="transformer_core",
+        source_component_id="fixture",
+        effective_area_m2=1.0e-4,
+        effective_volume_m3=1.0e-5,
+        turns=10,
+        inductance_h=100.0e-6,
+        current_a=(),
+        scalar_waveform_template=template,
+        declared_flux_ac_peak_t=b_peak_t,
+        declared_flux_peak_to_peak_t=2.0 * b_peak_t,
+        declared_flux_dc_offset_t=0.0,
+        declared_flux_absolute_peak_t=b_peak_t,
+    )
+
+
+def test_scalar_triangle_builder_uses_exact_breakpoints() -> None:
+    request = _scalar_request("bipolar_triangular")
+    built = build_core_loss_excitation(
+        CoreLossExcitationBuildRequest(**{**request.to_dict(), "requested_sample_count": 5})
+    )
+
+    assert built.excitation is not None
+    assert built.waveform_sample_count == 5
+    assert built.excitation.flux_waveform_t == pytest.approx((0.0, 0.1, 0.0, -0.1, 0.0))
+
+
+def test_scalar_triangle_builder_keeps_requested_detail_resolution() -> None:
+    built = build_core_loss_excitation(_scalar_request("bipolar_triangular"))
+
+    assert built.waveform_sample_count == 1001
+
+
+def test_scalar_triangle_analytic_path_matches_dense_waveform_and_caches() -> None:
+    clear_scalar_triangular_loss_cache()
+    request = _scalar_request("bipolar_triangular")
+    built = build_core_loss_excitation(
+        CoreLossExcitationBuildRequest(**{**request.to_dict(), "requested_sample_count": 5})
+    )
+    assert built.excitation is not None
+    optimized = calculate_igse_loss(model=MODEL, excitation=built.excitation)
+
+    dense = _excitation(tuple(
+        0.1 * (4.0 * (index / 1000.0) if index / 1000.0 < 0.25 else
+                2.0 - 4.0 * (index / 1000.0) if index / 1000.0 < 0.75 else
+                -4.0 + 4.0 * (index / 1000.0))
+        for index in range(1001)
+    ))
+    reference = calculate_igse_loss(model=MODEL, excitation=dense)
+    assert optimized.volumetric_loss_w_per_m3 == pytest.approx(reference.volumetric_loss_w_per_m3, rel=1.0e-12)
+    assert optimized.model_evaluation_details["igse_path"] == "scalar_triangular_analytic"
+    first_info = scalar_triangular_loss_cache_info()
+    calculate_igse_loss(model=MODEL, excitation=built.excitation)
+    second_info = scalar_triangular_loss_cache_info()
+    assert second_info.hits == first_info.hits + 1
+
+
+def test_non_scalar_waveform_definition_keeps_waveform_fallback() -> None:
+    excitation = _excitation((0.0, 0.1, 0.0, -0.1, 0.0))
+    result = calculate_igse_loss(model=MODEL, excitation=excitation)
+
+    assert result.model_evaluation_details["igse_path"] == "waveform_piecewise_linear"
+
+
+def test_candidate_adapter_uses_screening_resolution_only_when_requested() -> None:
+    common = {
+        "material_id": "fixture-material",
+        "material_name": "fixture-material",
+        "frequency_hz": 100_000.0,
+        "effective_volume_m3": 1.0e-5,
+        "effective_area_m2": 1.0e-4,
+        "turns": 10,
+        "inductance_h": 100.0e-6,
+        "b_peak_t": 0.1,
+        "steinmetz_ranges": [MODEL],
+        "source_role": "fixture-core",
+        "source_component_id": "fixture",
+    }
+    _, detailed = evaluate_candidate_core_loss(**common)
+    _, screening = evaluate_candidate_core_loss(**common, requested_sample_count=5)
+
+    assert detailed.waveform_sample_count == 1001
+    assert screening.waveform_sample_count == 5
+    assert screening.excitation is not None
+    assert screening.excitation.flux_waveform_t == pytest.approx((0.0, 0.1, 0.0, -0.1, 0.0))

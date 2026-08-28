@@ -8,6 +8,7 @@ frequency selection, temperature handling, and volume conversion.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from math import gamma, isfinite, pi
 from typing import Any, Iterable, Mapping
 
@@ -19,6 +20,14 @@ from ...models.magnetic_loss_contract import (
     NormalizedMagneticMaterialV2,
     SourceProvenance,
 )
+
+
+_SCALAR_TRIANGULAR_MODEL_VERSION = "llc_scalar_triangular_igse_v1"
+_SCALAR_TRIANGULAR_WAVEFORMS = frozenset({
+    "scalar_bipolar_triangular_flux_template",
+    "scalar_dc_biased_triangular_flux_template",
+    "scalar_piecewise_linear_current_flux_template",
+})
 
 
 @dataclass(frozen=True)
@@ -223,16 +232,32 @@ def _calculate_igse_loss_unchecked(
         flux_ac_peak_t=excitation.flux_ac_peak_t,
         temperature_c=excitation.temperature_c,
     )
-    integral = 0.0
-    for left_t, right_t, left_b, right_b in zip(excitation.flux_waveform_time_s, excitation.flux_waveform_time_s[1:], b, b[1:]):
-        dt = right_t - left_t
-        slope = abs((right_b - left_b) / dt)
-        if slope:
-            integral += (slope ** alpha) * (excitation.flux_peak_to_peak_t ** max(beta - alpha, 0.0)) * dt
     period = excitation.flux_waveform_time_s[-1] - excitation.flux_waveform_time_s[0]
     i_cos = 2.0 * ((pi ** 0.5) * gamma((alpha + 1.0) / 2.0) / gamma((alpha + 2.0) / 2.0))
     ki = k * (2.0 * pi) ** (1.0 - alpha) * 2.0 ** (alpha - beta) / i_cos
-    density = ki * temperature_factor * integral / period
+    optimized = _scalar_triangular_density(
+        model=selected,
+        excitation=excitation,
+        material_id=material_id,
+        alpha=alpha,
+        beta=beta,
+        k=k,
+        temperature_factor=temperature_factor,
+        ki=ki,
+        period=period,
+    )
+    if optimized is None:
+        integral = 0.0
+        for left_t, right_t, left_b, right_b in zip(excitation.flux_waveform_time_s, excitation.flux_waveform_time_s[1:], b, b[1:]):
+            dt = right_t - left_t
+            slope = abs((right_b - left_b) / dt)
+            if slope:
+                integral += (slope ** alpha) * (excitation.flux_peak_to_peak_t ** max(beta - alpha, 0.0)) * dt
+        density = ki * temperature_factor * integral / period
+        calculation_detail = "iGSE calculated from closed periodic flux waveform."
+    else:
+        density = optimized
+        calculation_detail = "iGSE analytical triangular path used for a scalar piecewise-linear excitation."
     total = density * excitation.effective_volume_m3 if excitation.effective_volume_m3 is not None else None
     mass_loss = density / (excitation.effective_volume_m3 / excitation.core_mass_kg) if excitation.effective_volume_m3 and excitation.core_mass_kg else None
     status = {
@@ -254,9 +279,7 @@ def _calculate_igse_loss_unchecked(
         flux_ac_peak_t=excitation.flux_ac_peak_t,
         flux_dc_offset_t=excitation.flux_dc_offset_t,
         validity_status=status,
-        validity_messages=selection.messages + (
-            "iGSE calculated from closed periodic flux waveform.",
-        ),
+        validity_messages=selection.messages + (calculation_detail,),
         interpolated=False,
         fitted=False,
         extrapolated=selection.extrapolated,
@@ -271,7 +294,119 @@ def _calculate_igse_loss_unchecked(
         temperature_correction_source=temperature_source,
         calculation_mode=calculation_mode,
         unit_conversion_policy="W_per_m3_times_m3_equals_W_once",
+        model_evaluation_details={
+            "igse_path": "scalar_triangular_analytic" if optimized is not None else "waveform_piecewise_linear",
+            "model_version": _SCALAR_TRIANGULAR_MODEL_VERSION if optimized is not None else "igse_waveform_v1",
+            "waveform_definition": excitation.waveform_definition,
+        },
     )
+
+
+def _scalar_triangular_density(
+    *,
+    model: MaterialLossModel,
+    excitation: CoreLossExcitation,
+    material_id: str,
+    alpha: float,
+    beta: float,
+    k: float,
+    temperature_factor: float,
+    ki: float,
+    period: float,
+) -> float | None:
+    """Return exact iGSE density for the known scalar triangle templates.
+
+    The path is deliberately gated by the builder's explicit waveform label
+    and its five exact breakpoints.  Arbitrary waveforms continue through the
+    existing point-by-point integration below.
+    """
+
+    if excitation.waveform_definition not in _SCALAR_TRIANGULAR_WAVEFORMS:
+        return None
+    times = excitation.flux_waveform_time_s
+    values = excitation.flux_waveform_t
+    if len(times) != 5 or len(values) != 5:
+        return None
+    normalized_times = tuple((value - times[0]) / period for value in times)
+    if any(abs(actual - expected) > 1.0e-12 for actual, expected in zip(normalized_times, (0.0, 0.25, 0.5, 0.75, 1.0))):
+        return None
+    if abs(values[0] - values[-1]) > max(1.0e-9, excitation.flux_peak_to_peak_t * 1.0e-6):
+        return None
+    peak_to_peak = excitation.flux_peak_to_peak_t
+    if peak_to_peak <= 0.0:
+        return 0.0
+    dc_offset = excitation.flux_dc_offset_t
+    expected_values = (
+        dc_offset,
+        dc_offset + peak_to_peak / 2.0,
+        dc_offset,
+        dc_offset - peak_to_peak / 2.0,
+        dc_offset,
+    )
+    tolerance = max(1.0e-12, peak_to_peak * 1.0e-9)
+    if any(abs(actual - expected) > tolerance for actual, expected in zip(values, expected_values)):
+        return None
+    return _cached_scalar_triangular_density(
+        _SCALAR_TRIANGULAR_MODEL_VERSION,
+        material_id,
+        model.model_id,
+        excitation.waveform_definition,
+        excitation.frequency_hz,
+        peak_to_peak,
+        excitation.temperature_c,
+        k,
+        alpha,
+        beta,
+        temperature_factor,
+        ki,
+        tuple(
+            (name, float(model.coefficients[name]))
+            for name in ("k", "alpha", "beta", "ct0", "ct1", "ct2")
+            if name in model.coefficients
+        ),
+    )
+
+
+@lru_cache(maxsize=4096)
+def _cached_scalar_triangular_density(
+    model_version: str,
+    material_id: str,
+    model_id: str,
+    waveform_shape: str,
+    frequency_hz: float,
+    flux_peak_to_peak_t: float,
+    temperature_c: float,
+    k: float,
+    alpha: float,
+    beta: float,
+    temperature_factor: float,
+    ki: float,
+    model_coefficients: tuple[tuple[str, float], ...],
+) -> float:
+    """Cache only the reusable density; volume and mass stay candidate-local."""
+
+    del model_version, material_id, model_id, waveform_shape, temperature_c, model_coefficients
+    # For a triangle, |dB/dt| is 2*f*Bpp on each half-cycle.  This is the
+    # exact integral used by _calculate_igse_loss_unchecked, including its
+    # historical max(beta - alpha, 0) convention.
+    slope = 2.0 * frequency_hz * flux_peak_to_peak_t
+    integral_per_period = slope**alpha * flux_peak_to_peak_t ** max(beta - alpha, 0.0)
+    density = ki * temperature_factor * integral_per_period
+    if not isfinite(density) or density < 0.0:
+        raise ValueError("Analytical triangular iGSE result is not finite and nonnegative.")
+    return density
+
+
+def clear_scalar_triangular_loss_cache() -> None:
+    """Clear the process-local scalar triangular loss cache."""
+
+    _cached_scalar_triangular_density.cache_clear()
+
+
+def scalar_triangular_loss_cache_info():
+    """Return cache hit/miss statistics for performance evidence and tests."""
+
+    return _cached_scalar_triangular_density.cache_info()
 
 
 def calculate_igse_loss(
@@ -498,7 +633,9 @@ __all__ = [
     "calculate_core_loss",
     "calculate_igse_loss",
     "calculate_steinmetz_loss",
+    "clear_scalar_triangular_loss_cache",
     "select_steinmetz_coefficients",
     "select_steinmetz_model",
+    "scalar_triangular_loss_cache_info",
     "steinmetz_loss_density_w_per_m3",
 ]

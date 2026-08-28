@@ -40,6 +40,9 @@ def test_llc_baseline_script_has_bounded_repeatable_cases() -> None:
         assert case["registered_database_counts"]["cores"] > 0
         assert case["fha_boundary_cache"]["solver_version"] == "fha-grid-scan-v1"
         assert case["fha_boundary_cache"]["maxsize"] == 512
+        assert case["scalar_triangular_loss_cache"]["maxsize"] == 4096
+        assert case["scalar_triangular_loss_cache"]["misses"] > 0
+        assert case["scalar_triangular_loss_cache"]["size"] <= 4096
         assert case["transformer"]["counts"]["evaluated_candidate_count"] > 0
         assert case["transformer"]["timing"]["total_seconds"] >= 0.0
     finally:
