@@ -498,7 +498,7 @@ LLC 变压器搜索当前约使用：
 | ---: | --- | --- | --- | --- |
 | 1 | `completed` | `8310634` | `0fed73e` | 4/4 baseline cases completed; 0 timeout; 0 error; LLC regression 7 passed |
 | 2 | `completed` | `ff8fc27` | `5cc6955` | FHA cache tests 10 passed; baseline 4/4 completed; real cache hits recorded |
-| 3 | `pending` | - | - | - |
+| 3 | `completed` | `e4c2141` | 待本次计划记录提交 | 68 项专项/LLC 回归通过；四档基准 4/4 完成；中规模变压器核心损耗阶段约 0.96 s 降至约 0.11--0.13 s，外置 `Lr` 约 8.17 s 降至约 0.85--0.99 s；候选数、可行数、拒绝分类和代表性结果保持一致 |
 | 4 | `pending` | - | - | - |
 | 5 | `pending` | - | - | - |
 | 6 | `pending` | - | - | - |
@@ -519,9 +519,10 @@ LLC 变压器搜索当前约使用：
 
 ## 9. 当前状态
 
-第 1、2 步已完成，后续从第 3 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
-第 2 步加入了 FHA 边界频率有界缓存并验证了实际缓存命中。后续步骤仍必须
-严格按照本文件的范围、完成条件和提交同步规则推进。
+第 1、2、3 步已完成，后续从第 4 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
+第 2 步加入了 FHA 边界频率有界缓存并验证了实际缓存命中，第 3 步完成了标准标量
+三角波的精确分段损耗路径、候选筛选采样优化和有界缓存。后续步骤仍必须严格按照
+本文件的范围、完成条件和提交同步规则推进。
 
 ### 第 1 步执行结果（2026-08-28）
 
@@ -581,3 +582,33 @@ LLC 变压器搜索当前约使用：
 - 计划记录 commit：待本次计划记录提交后填写
 - 计划记录 commit：`5cc6955`（`docs: record LLC Step 2 FHA cache`）
 - 计划记录 push 结果：成功
+
+### 第 3 步执行结果（2026-08-28）
+
+- 标准 `bipolar_triangular`、`dc_biased_triangular` 和
+  `piecewise_linear_current` 标量激励在 LLC 候选筛选中显式使用 5 个精确节点，
+  不再为每个候选生成约 1001 点波形；共享 builder 的默认详细分辨率仍保持
+  `requested_sample_count=1001`。
+- `core_loss_kernel.py` 增加标准五节点三角波的解析 iGSE 路径。解析路径只在波形
+  标签、周期断点、直流偏置和四段斜率均满足校验时启用，不满足时继续使用原有逐点
+  iGSE fallback。
+- 增加版本化有界 LRU 缓存，最大容量为 `4096`；缓存 key 覆盖模型版本、材料、
+  模型、波形形状、频率、磁通峰峰值、温度、Steinmetz 系数和温度修正因子；候选
+  体积和质量保持候选本地换算，不会串用总瓦数。
+- `CoreLossResult.model_evaluation_details` 记录 `igse_path`、模型版本和波形定义；
+  基准脚本记录三角损耗缓存容量、命中、未命中和当前大小。生产基准中命中为 0
+  是因为受控候选的材料/频率/摆幅组合没有重复；专项单元测试验证了重复输入命中。
+- 增加了精确五节点、默认 1001 点详细路径、解析与 1001 点逐点 iGSE 等价、非标准
+  波形 fallback、缓存命中和候选适配器分辨率隔离测试。
+- 优化后证据：`migration/evidence/20260828/llc_magnetic_performance_step3/llc_magnetic_performance_baseline.json`。
+- 专项验证命令：
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_core_loss_kernel.py tests/test_core_loss_router.py tests/test_magnetic_loss_contract.py tests/test_llc_magnetic_performance_baseline.py tests/test_phase7_dc_dc_topologies.py`
+- 专项验证结果：`68 passed`；另有 LLC FHA、拓扑回归 `9 passed`，编译检查和
+  `git diff --check` 通过。
+- 四档受控基准：`4/4 completed`、`0 timeout`、`0 error`；变压器候选/可行数分别
+  保持 `90/0`、`352/9`，外置 `Lr` 候选/可行数保持 `414/0`、`3020/186`。
+- 实现 commit：`e4c2141`（`LLC Step 3: optimize core-loss evaluation`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`。
+- 实现 push 结果：成功。
+- 计划记录 commit：待本次计划记录提交后填写。
+- 计划记录 push 结果：待本次计划记录提交后填写。
