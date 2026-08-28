@@ -707,3 +707,41 @@ git push
 - 真实 GUI 按钮链已经通过隔离进程端到端测试证明。
 - 全量测试、分组测试和 artifact 清单已在最终报告中更新。
 - 报告和 Manifest 不再把未验证的链路标记为已完成。
+
+## 10. 第十二步执行记录
+
+状态：`技术验证完成，等待第十二步主体提交与 push 回执`
+
+已完成内容：
+
+1. 已将原伪造 `SimpleNamespace` 报告、手工 PNG 和 mock sweep 的 GUI 测试替换为真实 `PEClawMainWindow` 隔离进程测试。
+2. 五个 AC-DC 拓扑均通过真实表单动作执行 `Run Design -> Run Capacitor -> 必要的 Run Magnetics -> Generate Waveforms -> Run Efficiency Sweep`。
+3. 正式测试未 mock `run_efficiency_sweep`；只把真实负载网格限制为 `(0.5, 1.0)`，并注入证据输出目录。
+4. 已验证真实 candidate、桥式/无桥语义、电容、磁性器件、波形数据、Waveform 结果页 axes、Efficiency 页签、固定硬件说明、warning 和真实 artifact。
+5. 五个拓扑各保留 `efficiency_curve.png` 与 `loss_breakdown_stacked.png`，共 10 个文件，SHA-256 已写入 `gui_artifact_manifest.json`。
+6. 缺少硬件时按钮禁用和设计输入变化失效由 GUI 模块覆盖；单负载点失败隔离由 AC-DC backend 回归覆盖。
+
+验证结果：
+
+- 最终真实 GUI 专项：`3 passed in 404.71s`。
+- AC-DC 分组：`32 passed in 742.86s`。
+- DC-AC 分组：`64 passed in 92.83s`。
+- DC-DC/PSFB 分组：`25 passed in 113.67s`。
+- GUI/打包分组：`14 passed in 459.18s`。
+- 全量 pytest：`343 passed, 1 skipped in 1572.68s`，无 failure/error。
+- `python -B -m compileall -q src tests`：通过。
+- `git diff --check`：通过。
+
+交付证据：
+
+- `migration/evidence/20260828/step12_ac_dc_efficiency_sweep/ac_dc_efficiency_sweep_final_report.md`
+- `migration/evidence/20260828/step12_ac_dc_efficiency_sweep/ac_dc_efficiency_sweep_delivery_manifest.json`
+- `migration/evidence/20260828/step12_ac_dc_efficiency_sweep/gui_artifact_manifest.json`
+- `migration/evidence/20260828/step12_ac_dc_efficiency_sweep/gui_artifacts/`
+
+待完成的提交收口：
+
+1. 使用指定信息创建第十二步主体提交：`test: complete AC-DC GUI efficiency sweep delivery`。
+2. push 主体提交到 `origin/codex/sync-gui-backend-from-2` 并验证远端包含关系。
+3. 使用独立 push 回执提交，将主体 commit 哈希和 push 状态写回报告、Manifest 和本计划。
+4. 完成回执后将本计划移动到 `Plan/completed`，最终状态标记为 `COMPLETED - READY_FOR_USER_ACCEPTANCE`。

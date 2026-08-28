@@ -4,6 +4,27 @@ This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
 
+## 2026-08-28 AC-DC Efficiency Sweep Step 12 Real GUI Delivery
+
+- What changed:
+  - Replaced the synthetic AC-DC GUI result test with a real isolated
+    `PEClawMainWindow` five-topology button-chain test.
+  - Drove real design, capacitor, required magnetics, waveform, and efficiency
+    controllers without mocking `run_efficiency_sweep`.
+  - Retained ten production-generated GUI efficiency artifacts and recorded
+    their sizes and SHA-256 values.
+  - Added the Step 12 delivery report and machine-readable manifest.
+- Validation:
+  - Final real GUI chain: `3 passed` in `404.71s`.
+  - AC-DC: `32 passed`; DC-AC: `64 passed`; DC-DC/PSFB: `25 passed`.
+  - GUI/packaging: `14 passed`.
+  - Full suite: `343 passed, 1 skipped`; no failures or errors.
+  - Compileall and `git diff --check`: passed.
+- Git:
+  - Steps 10 and 11 are present on `origin/codex/sync-gui-backend-from-2`.
+  - Step 12 subject commit and independent push receipt remain to be recorded.
+  - Merge, tag, release, and `master` push are outside this step.
+
 ## 2026-08-27 DC-AC Migration Step 10 Packaged GUI Runtime
 
 - What changed:

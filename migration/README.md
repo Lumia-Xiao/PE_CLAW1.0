@@ -48,6 +48,10 @@ agentic/AI, generated output, and unrelated topology families remain excluded.
 - `evidence/20260828/step9_ac_dc_efficiency_sweep/`: final report and
   machine-readable delivery manifest for the nine-step AC-DC efficiency-sweep
   repair on branch `codex/sync-gui-backend-from-2`.
+- `evidence/20260828/step12_ac_dc_efficiency_sweep/`: additional remediation
+  evidence for bridge-stage ordering, design-input invalidation, and the real
+  five-topology GUI button chain. This directory becomes the focused AC-DC
+  delivery authority after its Step 12 push receipt is recorded.
 - `evidence/20260824/runs/`: reserved for one explicitly validated final
   parity run; it remains empty when no run satisfies the promotion gate.
 - `tools/phase12_parity.py`: reproducible source/target structured-contract comparison tool.
@@ -111,9 +115,11 @@ plan is archived at `Plan/completed/dc_ac_implementation_migration_plan.md`.
 Merge, tag, release, and pushes to `master` remain outside that closeout and
 require separate user approval.
 
-The focused AC-DC efficiency-sweep repair is recorded separately under
-`evidence/20260828/step9_ac_dc_efficiency_sweep/`. Its completed plan is
-archived at `Plan/completed/ac_dc_efficiency_sweep_fix_plan.md`. This focused
+The original nine-step AC-DC efficiency-sweep repair is retained under
+`evidence/20260828/step9_ac_dc_efficiency_sweep/`. Additional remediation and
+the real GUI-chain evidence are under
+`evidence/20260828/step12_ac_dc_efficiency_sweep/`. Until the Step 12 subject
+push and receipt are complete, the plan remains in `Plan/active`. This focused
 delivery does not replace the complete migration authority and does not imply
 permission to merge or release.
 

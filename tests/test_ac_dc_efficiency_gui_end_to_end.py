@@ -47,13 +47,11 @@ def test_ac_dc_gui_forms_and_efficiency_result_view_end_to_end() -> None:
     result = _run_isolated(
         r'''
 from pathlib import Path
-from types import SimpleNamespace
+import os
 from tempfile import TemporaryDirectory
-
-from matplotlib.figure import Figure
+from unittest.mock import patch
 
 from pe_claw_gui.app.shell.main_window import PEClawMainWindow
-from pe_claw_gui.models.efficiency_sweep import EfficiencySweepPoint, EfficiencySweepResult
 
 
 TOPOLOGY_IDS = (
@@ -65,103 +63,6 @@ TOPOLOGY_IDS = (
 )
 
 
-def complete_report(topology_id):
-    bridge = (
-        None
-        if topology_id == "single_phase_totem_pole_bridgeless_pfc"
-        else SimpleNamespace(selected_candidate=SimpleNamespace(candidate_id="BRIDGE-1"))
-    )
-    if topology_id == "single_phase_diode_bridge_rectifier_dc_inductor_filter":
-        magnetic = SimpleNamespace(
-            result_type="ac_dc_sendust_reactor",
-            selected_design_id=None,
-            chosen_designs=[],
-            ac_dc_reactor_result=SimpleNamespace(
-                selected_candidate=SimpleNamespace(candidate_id="REACTOR-1")
-            ),
-        )
-    elif topology_id in {
-        "single_phase_boost_pfc_diode_bridge",
-        "single_phase_totem_pole_bridgeless_pfc",
-    }:
-        magnetic = SimpleNamespace(
-            result_type="fixed_inductor",
-            selected_design_id="BOOST-L1",
-            chosen_designs=[],
-            ac_dc_reactor_result=None,
-        )
-    else:
-        magnetic = None
-
-    if topology_id == "single_phase_boost_pfc_diode_bridge":
-        selected_devices = {"main_switch": "Q1", "rectifier_diode": "D1"}
-    elif topology_id == "single_phase_totem_pole_bridgeless_pfc":
-        selected_devices = {
-            "totem_pole_hf_switch": "QHF",
-            "totem_pole_lf_switch": "QLF",
-        }
-    else:
-        selected_devices = {}
-
-    return SimpleNamespace(
-        candidate=SimpleNamespace(),
-        spec=SimpleNamespace(topology_id=topology_id),
-        bridge_rectifier=bridge,
-        magnetic=magnetic,
-        capacitor=SimpleNamespace(
-            output_selection=SimpleNamespace(recommended=SimpleNamespace())
-        ),
-        device=SimpleNamespace(selected_devices=selected_devices),
-    )
-
-
-def write_plot(path, title):
-    figure = Figure(figsize=(3.2, 2.0), dpi=80)
-    axis = figure.add_subplot(111)
-    axis.plot([0.5, 1.0], [97.5, 98.2], marker="o")
-    axis.set_title(title)
-    figure.tight_layout()
-    figure.savefig(path)
-    figure.clear()
-
-
-def magnetic_required(topology_id):
-    return topology_id in {
-        "single_phase_diode_bridge_rectifier_dc_inductor_filter",
-        "single_phase_boost_pfc_diode_bridge",
-        "single_phase_totem_pole_bridgeless_pfc",
-    }
-
-
-def fixed_hardware_label(topology_id):
-    if topology_id == "single_phase_boost_pfc_diode_bridge":
-        return "selected input bridge rectifier, boost switch/diode, boost inductor, and DC-link capacitor bank"
-    if topology_id == "single_phase_totem_pole_bridgeless_pfc":
-        return "selected Totem-Pole HF/LF switches, boost inductor, and DC-link capacitor bank"
-    return "selected bridge rectifier and available passive hardware"
-
-
-def included_losses(topology_id):
-    values = ["DC-link capacitor"]
-    if topology_id != "single_phase_totem_pole_bridgeless_pfc":
-        values.insert(0, "bridge rectifier")
-    if magnetic_required(topology_id):
-        values.append("magnetic")
-    if "pfc" in topology_id:
-        values.insert(0, "semiconductor")
-    return tuple(values)
-
-
-def loss_labels(topology_id):
-    return {
-        "semiconductor": "semiconductor",
-        "bridge_rectifier": "bridge rectifier",
-        "magnetic": "magnetic",
-        "capacitor": "DC-link capacitor",
-        "other": "other",
-    }
-
-
 app = PEClawMainWindow()
 app.withdraw()
 app.update_idletasks()
@@ -170,66 +71,130 @@ try:
     assert app.state_store.selected_category_id == "ac_dc"
     assert len(app.workspace.active_page._topology_buttons) == 5
 
-    with TemporaryDirectory() as temporary_directory:
-        artifact_dir = Path(temporary_directory)
-        curve_path = artifact_dir / "efficiency_curve.png"
-        loss_path = artifact_dir / "loss_breakdown_stacked.png"
-        write_plot(curve_path, "Efficiency Curve")
-        write_plot(loss_path, "Loss Breakdown")
+    evidence_root = os.environ.get("PE_CLAW_STEP12_GUI_OUTPUT_ROOT")
+    temporary_directory = None if evidence_root else TemporaryDirectory()
+    try:
+        output_root = Path(evidence_root or temporary_directory.name)
+        output_root.mkdir(parents=True, exist_ok=True)
+        with patch(
+            "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline.DEFAULT_LOAD_POINTS",
+            (0.5, 1.0),
+        ), patch(
+            "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline._project_root",
+        ) as project_root:
+            for topology_id in TOPOLOGY_IDS:
+                project_root.return_value = output_root / topology_id
+                app._on_topology_selected(topology_id)
+                form = app.workspace.active_form
+                assert form is not None
+                assert form.topology_id == topology_id
+                assert str(form.run_efficiency_sweep_button["state"]) == "disabled"
 
-        for topology_id in TOPOLOGY_IDS:
-            app._on_topology_selected(topology_id)
-            form = app.workspace.active_form
-            assert form is not None
-            assert form.topology_id == topology_id
-            assert str(form.run_efficiency_sweep_button["state"]) == "disabled"
+                # These invokes are the real GUI callbacks wired by Workspace/MainWindow.
+                form.run_design_button.invoke()
+                app.update_idletasks()
+                report = app.state_store.design_report
+                assert report is not None
+                assert report.candidate is not None
 
-            report = complete_report(topology_id)
-            form.update_from_report(report)
-            assert str(form.run_efficiency_sweep_button["state"]) == "normal"
+                assert form.run_capacitor_button is not None
+                form.run_capacitor_button.invoke()
+                app.update_idletasks()
+                report = app.state_store.design_report
+                assert report is not None
+                assert report.capacitor is not None
+                assert report.capacitor.output_selection.recommended is not None
 
-            point = EfficiencySweepPoint(
-                load_pu=1.0,
-                output_power_w=1000.0,
-                total_loss_w=20.0,
-                efficiency=1000.0 / 1020.0,
-                semiconductor_loss_w=(8.0 if "pfc" in topology_id else None),
-                magnetic_loss_w=(6.0 if magnetic_required(topology_id) else None),
-                capacitor_loss_w=2.0,
-                other_loss_w=None,
-                bridge_rectifier_loss_w=(4.0 if report.bridge_rectifier is not None else None),
-            )
-            sweep = EfficiencySweepResult(
-                points=(point,),
-                load_grid=(1.0,),
-                peak_efficiency=point.efficiency,
-                peak_efficiency_load_pu=1.0,
-                full_load_efficiency=point.efficiency,
-                artifact_paths={
-                    "efficiency_curve": str(curve_path),
-                    "loss_breakdown_stacked": str(loss_path),
-                },
-                sweep_basis={
-                    "fixed_hardware": fixed_hardware_label(topology_id),
-                    "included_losses": included_losses(topology_id),
-                    "loss_labels": loss_labels(topology_id),
-                    "pf_sweep_mode": "not_applicable",
-                },
-            )
-            app.workspace.efficiency_view.render(
-                SimpleNamespace(efficiency_sweep=sweep)
-            )
-            app.workspace.results_notebook.select(app.workspace.efficiency_view)
-            app.update_idletasks()
+                if topology_id in {
+                    "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+                    "single_phase_boost_pfc_diode_bridge",
+                    "single_phase_totem_pole_bridgeless_pfc",
+                }:
+                    assert form.run_magnetics_button is not None
+                    form.run_magnetics_button.invoke()
+                    app.update_idletasks()
+                    report = app.state_store.design_report
+                    assert report is not None
+                    assert report.magnetic is not None
+                    if topology_id == "single_phase_diode_bridge_rectifier_dc_inductor_filter":
+                        assert report.magnetic.ac_dc_reactor_result is not None
+                        assert report.magnetic.ac_dc_reactor_result.selected_candidate is not None
+                    else:
+                        assert report.magnetic.selected_design_id
 
-            selected_tab = app.workspace.results_notebook.select()
-            assert app.workspace.results_notebook.tab(selected_tab, "text") == "Efficiency"
-            summary = app.workspace.efficiency_view.summary_text.get("1.0", "end")
-            assert "Fixed hardware" not in summary
-            assert "fixed hardware:" in summary
-            assert "efficiency curve: generated" in summary
-            assert "loss breakdown: generated" in summary
-            assert len(app.workspace.efficiency_view._canvases) == 2
+                form._trigger_waveforms()
+                app.update_idletasks()
+                report = app.state_store.design_report
+                assert report is not None
+                assert report.waveform is not None
+                assert report.waveform.time_s
+                assert report.waveform.output_voltage_v
+                assert app.workspace.waveform_view.figure.axes
+                assert any(axis.lines for axis in app.workspace.waveform_view.figure.axes)
+                assert str(form.run_efficiency_sweep_button["state"]) == "normal"
+
+                form.run_efficiency_sweep_button.invoke()
+                app.update_idletasks()
+                report = app.state_store.design_report
+                assert report is not None
+                sweep = report.efficiency_sweep
+                assert sweep is not None
+                assert sweep.load_grid == (0.5, 1.0)
+                assert len(sweep.points) == 2
+                assert all(point.efficiency is not None for point in sweep.points)
+                assert all(0.0 < point.efficiency <= 1.0 for point in sweep.points)
+                assert sweep.warnings == ()
+                assert set(sweep.artifact_paths) == {
+                    "efficiency_curve",
+                    "loss_breakdown_stacked",
+                }
+                assert all(
+                    Path(path).exists() and Path(path).stat().st_size > 0
+                    for path in sweep.artifact_paths.values()
+                )
+                assert all(
+                    topology_id in Path(path).parts
+                    for path in sweep.artifact_paths.values()
+                )
+
+                if topology_id == "single_phase_totem_pole_bridgeless_pfc":
+                    assert report.bridge_rectifier is None
+                    assert all(point.bridge_rectifier_loss_w is None for point in sweep.points)
+                    assert {"totem_pole_hf_switch", "totem_pole_lf_switch"}.issubset(
+                        report.device.selected_devices
+                    )
+                else:
+                    assert report.bridge_rectifier is not None
+                    assert report.bridge_rectifier.selected_candidate is not None
+                    assert all(
+                        point.bridge_rectifier_loss_w is not None
+                        for point in sweep.points
+                    )
+
+                if topology_id == "single_phase_boost_pfc_diode_bridge":
+                    assert {"main_switch", "rectifier_diode"}.issubset(
+                        report.device.selected_devices
+                    )
+                    assert all(point.semiconductor_loss_w is not None for point in sweep.points)
+                if topology_id == "single_phase_totem_pole_bridgeless_pfc":
+                    assert all(point.semiconductor_loss_w is not None for point in sweep.points)
+                if topology_id in {
+                    "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+                    "single_phase_boost_pfc_diode_bridge",
+                    "single_phase_totem_pole_bridgeless_pfc",
+                }:
+                    assert all(point.magnetic_loss_w is not None for point in sweep.points)
+
+                selected_tab = app.workspace.results_notebook.select()
+                assert app.workspace.results_notebook.tab(selected_tab, "text") == "Efficiency"
+                summary = app.workspace.efficiency_view.summary_text.get("1.0", "end")
+                assert "fixed hardware:" in summary
+                assert "efficiency curve: generated" in summary
+                assert "loss breakdown: generated" in summary
+                assert len(app.workspace.efficiency_view._canvases) == 2
+    finally:
+        if temporary_directory is not None:
+            temporary_directory.cleanup()
 finally:
     app.destroy()
 '''

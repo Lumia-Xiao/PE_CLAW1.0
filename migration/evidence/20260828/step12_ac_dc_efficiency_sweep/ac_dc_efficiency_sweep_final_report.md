@@ -1,0 +1,89 @@
+# AC-DC Efficiency Sweep Step 12 Delivery Report
+
+## Delivery Status
+
+`VALIDATED - AWAITING STEP 12 SUBJECT PUSH`
+
+The additional remediation work for the AC-DC efficiency sweep is implemented
+and validated on `codex/sync-gui-backend-from-2`. Steps 10 and 11 are already
+present on the remote branch. This report will be finalized by an independent
+push-receipt commit after the Step 12 subject commit is pushed.
+
+## Real GUI Chain
+
+The former synthetic GUI test was replaced with an isolated process that
+creates a real `PEClawMainWindow` and selects all five AC-DC topology forms.
+For each topology it drives the production callbacks from the form:
+
+1. `Run Design` through `run_design_button.invoke()`.
+2. `Run Capacitor` through `run_capacitor_button.invoke()`.
+3. `Run Magnetics` through `run_magnetics_button.invoke()` when required.
+4. `Generate Waveforms` through the form waveform callback.
+5. `Run Efficiency Sweep` through `run_efficiency_sweep_button.invoke()`.
+
+The test does not mock `run_efficiency_sweep`. It only limits the production
+sweep to `(0.5, 1.0)` and injects an evidence output root. It verifies the
+real design report, fixed hardware, waveform data, waveform-view axes,
+efficiency points, selected Efficiency tab, fixed-hardware summary, warnings,
+and generated plot canvases.
+
+| Topology | Real staged actions | Result |
+| --- | --- | --- |
+| Single-phase diode bridge, capacitor filter | Design, capacitor, waveform, sweep | 2 valid points; bridge and capacitor losses; 2 PNG files |
+| Single-phase diode bridge, DC-inductor filter | Design, capacitor, magnetics, waveform, sweep | 2 valid points; bridge, reactor, and capacitor losses; 2 PNG files |
+| Three-phase diode bridge, capacitor filter | Design, capacitor, waveform, sweep | 2 valid points; bridge and capacitor losses; 2 PNG files |
+| Single-phase Boost PFC | Design, capacitor, magnetics, waveform, sweep | 2 valid points; bridge, switch/diode, inductor, and capacitor losses; 2 PNG files |
+| Single-phase Totem-Pole PFC | Design, capacitor, magnetics, waveform, sweep | 2 valid points; HF/LF switch, inductor, and capacitor losses; no bridge; 2 PNG files |
+
+All five sweeps completed without warnings. Missing-hardware button behavior
+and design-input invalidation are covered by the same GUI test module. Isolated
+load-point failure handling remains covered by
+`tests/test_ac_dc_efficiency_sweep.py`.
+
+## Artifact Evidence
+
+The real GUI evidence run retained ten production-generated PNG files under
+`gui_artifacts/`, one efficiency curve and one stacked loss breakdown for each
+topology. File sizes and SHA-256 values are recorded in
+`gui_artifact_manifest.json`. No PNG was manually constructed by the test.
+
+## Validation Results
+
+| Validation | Result |
+| --- | --- |
+| Final real GUI chain and state regressions | `3 passed` in `404.71s` |
+| AC-DC focused regression | `32 passed` in `742.86s` |
+| DC-AC regression | `64 passed` in `92.83s` |
+| DC-DC and PSFB regression | `25 passed` in `113.67s` |
+| GUI and packaging regression | `14 passed` in `459.18s` |
+| Full pytest suite | `343 passed, 1 skipped` in `1572.68s` |
+| `python -B -m compileall -q src tests` | passed |
+| `git diff --check` | passed |
+
+The single skip is the existing optional legacy external OpenMagnetics
+reference-database check. Production normalized magnetic data tests passed.
+
+## Additional Remediation Commits
+
+| Step | Commit | Subject | Remote state |
+| --- | --- | --- | --- |
+| 10 | `70600e262da9e61f5280c3886bcdcf0997caef1c` | `fix: order AC-DC bridge selection before dependent stages` | present on remote branch |
+| 11 | `3698f0b2fa1d677b809881c29e5026feac997dfa` | `fix: invalidate AC-DC sweep after design changes` | present on remote branch |
+| 12 | recorded by the independent push receipt | `test: complete AC-DC GUI efficiency sweep delivery` | pending subject push |
+
+## Remaining Limits
+
+- The three-phase bridge loss sweep still uses the documented scaled six-step,
+  continuous-DC-current approximation rather than switching-transient or
+  harmonic-compliance simulation.
+- Accuracy remains bounded by the analytical component, magnetic, capacitor,
+  device, and bridge models and the available library records.
+- Merge, tag, release, release packaging, and pushes to `master` are outside
+  this focused repair and were not performed.
+
+## Verdict
+
+The technical acceptance conditions for Step 12 are satisfied. Final status
+becomes `COMPLETED - READY_FOR_USER_ACCEPTANCE` only after the subject commit
+is pushed, remote containment is verified, this report and the manifest are
+updated with the real commit hash, and the plan is moved to `Plan/completed`.
