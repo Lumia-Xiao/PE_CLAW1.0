@@ -15,6 +15,14 @@
       },
       "case": "transformer-small",
       "external_lr": null,
+      "fha_boundary_cache": {
+        "hits": 366,
+        "maxsize": 512,
+        "misses": 1575,
+        "scan_points": 1501,
+        "size": 512,
+        "solver_version": "fha-grid-scan-v1"
+      },
       "input_sha256": "78ff14f66ef428a4c270398e245e2234cec919f27159c70046a8d5faca31b7cd",
       "platform": "Windows-11-10.0.22621-SP0",
       "python_version": "3.12.10",
@@ -52,13 +60,13 @@
         },
         "representative": null,
         "timing": {
-          "candidate_evaluation_seconds": 0.26771300000109477,
-          "candidate_generation_seconds": 0.0001329000006080605,
-          "core_loss_seconds": 0.24770489997899858,
-          "debug_output_seconds": 1.00000761449337e-07,
-          "parameter_preparation_seconds": 0.02469849999761209,
-          "thermal_seconds": 0.00046870003279764205,
-          "total_seconds": 0.2936628000024939
+          "candidate_evaluation_seconds": 0.2966729000036139,
+          "candidate_generation_seconds": 0.00025299999833805487,
+          "core_loss_seconds": 0.26986060001217993,
+          "debug_output_seconds": 9.999348549172282e-08,
+          "parameter_preparation_seconds": 0.026221100000839215,
+          "thermal_seconds": 0.0005915000510867685,
+          "total_seconds": 0.3247047000040766
         }
       }
     },
@@ -77,6 +85,14 @@
       },
       "case": "transformer-medium",
       "external_lr": null,
+      "fha_boundary_cache": {
+        "hits": 1422,
+        "maxsize": 512,
+        "misses": 1575,
+        "scan_points": 1501,
+        "size": 512,
+        "solver_version": "fha-grid-scan-v1"
+      },
       "input_sha256": "3ed5c75868b98801773b4ee9b200ad95c6568c5798b6b779122ee00f099d2779",
       "platform": "Windows-11-10.0.22621-SP0",
       "python_version": "3.12.10",
@@ -123,13 +139,13 @@
           "total_loss_w": 9.128990431756671
         },
         "timing": {
-          "candidate_evaluation_seconds": 1.071155199999339,
-          "candidate_generation_seconds": 0.00027459999546408653,
-          "core_loss_seconds": 0.9829672000196297,
-          "debug_output_seconds": 2.00001522898674e-07,
-          "parameter_preparation_seconds": 0.025585399998817593,
-          "thermal_seconds": 0.0020861999655608088,
-          "total_seconds": 1.1032537999999477
+          "candidate_evaluation_seconds": 1.0607718999963254,
+          "candidate_generation_seconds": 0.00043149999692104757,
+          "core_loss_seconds": 0.9600028001150349,
+          "debug_output_seconds": 1.00000761449337e-07,
+          "parameter_preparation_seconds": 0.023947000001498964,
+          "thermal_seconds": 0.001958999964699615,
+          "total_seconds": 1.089862799999537
         }
       }
     },
@@ -170,14 +186,22 @@
         },
         "representative": null,
         "timing": {
-          "candidate_evaluation_seconds": 1.2038479000038933,
-          "core_loss_seconds": 1.1757794999721227,
+          "candidate_evaluation_seconds": 1.2539477000027546,
+          "core_loss_seconds": 1.2243338000189397,
           "debug_output_seconds": 1.00000761449337e-07,
-          "parameter_preparation_seconds": 0.02554960000270512,
-          "pareto_seconds": 2.3000029614195228e-06,
-          "thermal_seconds": 0.002476000016031321,
-          "total_seconds": 1.2295419000001857
+          "parameter_preparation_seconds": 0.026296399999409914,
+          "pareto_seconds": 2.1000014385208488e-06,
+          "thermal_seconds": 0.0027542000025277957,
+          "total_seconds": 1.2803751999963424
         }
+      },
+      "fha_boundary_cache": {
+        "hits": 1422,
+        "maxsize": 512,
+        "misses": 1575,
+        "scan_points": 1501,
+        "size": 512,
+        "solver_version": "fha-grid-scan-v1"
       },
       "input_sha256": "1b95ee9e261d5de651c567349ae9a35959b3817de1cd25a84e31f98d0da101bc",
       "platform": "Windows-11-10.0.22621-SP0",
@@ -224,13 +248,13 @@
           "total_loss_w": 9.128990431756671
         },
         "timing": {
-          "candidate_evaluation_seconds": 0.9956712999992305,
-          "candidate_generation_seconds": 0.00021159999596420676,
-          "core_loss_seconds": 0.9166866000086884,
-          "debug_output_seconds": 1.9999424694105983e-07,
-          "parameter_preparation_seconds": 0.024113399995258078,
-          "thermal_seconds": 0.001824899882194586,
-          "total_seconds": 1.0242318000018713
+          "candidate_evaluation_seconds": 1.0602026999986265,
+          "candidate_generation_seconds": 0.0004687999971793033,
+          "core_loss_seconds": 0.9617456001069513,
+          "debug_output_seconds": 1.00000761449337e-07,
+          "parameter_preparation_seconds": 0.02453830000013113,
+          "thermal_seconds": 0.0019420999742578715,
+          "total_seconds": 1.0896413999944343
         }
       }
     },
@@ -279,14 +303,22 @@
           "turns": 7
         },
         "timing": {
-          "candidate_evaluation_seconds": 8.268441100000928,
-          "core_loss_seconds": 8.069242099787516,
+          "candidate_evaluation_seconds": 8.373336100004963,
+          "core_loss_seconds": 8.171445900232357,
           "debug_output_seconds": 1.00000761449337e-07,
-          "parameter_preparation_seconds": 0.023744099999021273,
-          "pareto_seconds": 0.0009275999982492067,
-          "thermal_seconds": 0.01705019996734336,
-          "total_seconds": 8.293824299995322
+          "parameter_preparation_seconds": 0.024311200002557598,
+          "pareto_seconds": 0.0009214000019710511,
+          "thermal_seconds": 0.01765940024779411,
+          "total_seconds": 8.399345199999516
         }
+      },
+      "fha_boundary_cache": {
+        "hits": 1422,
+        "maxsize": 512,
+        "misses": 1575,
+        "scan_points": 1501,
+        "size": 512,
+        "solver_version": "fha-grid-scan-v1"
       },
       "input_sha256": "945828703123eaeb2432d3af32aea719a2d6df6ca0fb53eefdc34626c92cea09",
       "platform": "Windows-11-10.0.22621-SP0",
@@ -333,18 +365,18 @@
           "total_loss_w": 9.128990431756671
         },
         "timing": {
-          "candidate_evaluation_seconds": 0.98500989999593,
-          "candidate_generation_seconds": 0.0005421000023488887,
-          "core_loss_seconds": 0.9049254000419751,
-          "debug_output_seconds": 1.00000761449337e-07,
-          "parameter_preparation_seconds": 0.027560500006075017,
-          "thermal_seconds": 0.0018366999211139046,
-          "total_seconds": 1.0175716000012471
+          "candidate_evaluation_seconds": 1.0223303000020678,
+          "candidate_generation_seconds": 0.0004398000019136816,
+          "core_loss_seconds": 0.9300819000272895,
+          "debug_output_seconds": 1.9999424694105983e-07,
+          "parameter_preparation_seconds": 0.02404680000472581,
+          "thermal_seconds": 0.0018412999997963198,
+          "total_seconds": 1.0527723999985028
         }
       }
     }
   ],
-  "created_at_utc": "2026-08-28T11:05:16.170187+00:00",
+  "created_at_utc": "2026-08-28T11:23:14.154983+00:00",
   "repository": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
   "schema_version": "llc_magnetic_performance_baseline_v1",
   "summary": {

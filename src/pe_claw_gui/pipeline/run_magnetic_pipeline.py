@@ -24,6 +24,7 @@ try:
     from ..topologies.dc_dc.llc_resonant_converter_diode_rectifier.fha_design import (
         LLCFHADesign,
         LLCOperatingPointResult,
+        fha_boundary_frequency_cache_info,
     )
     from ..topologies.dc_dc.llc_resonant_converter_diode_rectifier.transformer_design import (
         build_llc_external_resonant_inductor_target,
@@ -42,6 +43,7 @@ except ModuleNotFoundError:  # New LLC topology package is outside the 1.0 GUI s
     generate_llc_external_resonant_inductor_candidates = None
     generate_separated_llc_transformer_candidates = None
     make_fha_boundary_frequency_solver = None
+    fha_boundary_frequency_cache_info = None
 
 try:
     from ..topologies.dc_dc.flyback_diode_rectified_isolated.coupled_inductor_design import (
@@ -957,6 +959,11 @@ def _run_llc_transformer_magnetic_pipeline(
                 "external_lr_counts": (
                     external_lr_search_result.performance_counts
                     if external_lr_search_result is not None
+                    else {}
+                ),
+                "fha_boundary_cache": (
+                    fha_boundary_frequency_cache_info()
+                    if fha_boundary_frequency_cache_info is not None
                     else {}
                 ),
             },

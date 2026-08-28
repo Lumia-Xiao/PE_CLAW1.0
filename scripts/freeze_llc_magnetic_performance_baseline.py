@@ -26,7 +26,9 @@ from pe_claw_gui.engines.magnetics.data_backend import (  # noqa: E402
     resolve_magnetic_data_backend,
 )
 from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier.fha_design import (  # noqa: E402
+    clear_fha_boundary_frequency_cache,
     design_llc_fha,
+    fha_boundary_frequency_cache_info,
 )
 from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier.input_schema import (  # noqa: E402
     build_default_inputs,
@@ -89,6 +91,7 @@ def _representative(candidate: object | None, *, external: bool = False) -> dict
 def _run_case(case_name: str) -> dict[str, object]:
     limits = CASES[case_name]
     transformer_limits = EXTERNAL_LR_TRANSFORMER_SEED_LIMITS if case_name.startswith("external-lr") else limits
+    clear_fha_boundary_frequency_cache()
     spec = build_spec(build_default_inputs())
     fha_design = design_llc_fha(spec)
     transformer_inputs = build_transformer_design_inputs_from_fha(fha_design)
@@ -115,6 +118,7 @@ def _run_case(case_name: str) -> dict[str, object]:
             "wires": len(backend_bundle.wires),
         },
         "search_limits": limits,
+        "fha_boundary_cache": None,
         "transformer": None,
         "external_lr": None,
     }
@@ -147,6 +151,7 @@ def _run_case(case_name: str) -> dict[str, object]:
             },
             "representative": _representative(transformer_result.recommended_preliminary_candidate),
         }
+        result["fha_boundary_cache"] = fha_boundary_frequency_cache_info()
         if case_name.startswith("external-lr") and transformer_result.recommended_preliminary_candidate is not None:
             external_target = build_llc_external_resonant_inductor_target(
                 fha_design,

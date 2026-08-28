@@ -7,7 +7,7 @@ import re
 from time import perf_counter
 from collections import Counter
 from statistics import median
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from math import ceil, pi, sqrt
 from typing import Any, Callable, Iterable, Mapping
@@ -2248,6 +2248,7 @@ def make_fha_boundary_frequency_solver(design: object) -> FrequencySolver:
     """Build a boundary frequency solver that reuses FHA coverage when present, then solves."""
 
     coverage = list(getattr(design, "coverage_results", []))
+    from .fha_design import _cache_fha_boundary_result, _fha_boundary_cache_key, _get_cached_fha_boundary_result
 
     def _solver(
         inputs: LLCTransformerDesignInputs,
@@ -2262,6 +2263,11 @@ def make_fha_boundary_frequency_solver(design: object) -> FrequencySolver:
                 and abs(float(getattr(result, "vout_v", float("nan"))) - vout_v) <= 1e-9
                 and abs(float(getattr(result, "pout_w", float("nan"))) - pout_w) <= 1e-9
             ):
+                cache_key = _fha_boundary_cache_key(design, vin_v, vout_v, pout_w)
+                cached_result = _get_cached_fha_boundary_result(cache_key)
+                if cached_result is not None:
+                    return float(cached_result.fs_hz)
+                _cache_fha_boundary_result(cache_key, replace(result, label=""))
                 return float(getattr(result, "fs_hz"))
         from .fha_design import solve_operating_frequency
 
