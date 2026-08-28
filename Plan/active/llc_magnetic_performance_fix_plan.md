@@ -497,7 +497,7 @@ LLC 变压器搜索当前约使用：
 | 步骤 | 状态 | 实现 commit | 计划记录 commit | 验证摘要 |
 | ---: | --- | --- | --- | --- |
 | 1 | `completed` | `8310634` | `0fed73e` | 4/4 baseline cases completed; 0 timeout; 0 error; LLC regression 7 passed |
-| 2 | `pending` | - | - | - |
+| 2 | `completed` | `ff8fc27` | `PENDING_PLAN_COMMIT` | FHA cache tests 10 passed; baseline 4/4 completed; real cache hits recorded |
 | 3 | `pending` | - | - | - |
 | 4 | `pending` | - | - | - |
 | 5 | `pending` | - | - | - |
@@ -519,8 +519,8 @@ LLC 变压器搜索当前约使用：
 
 ## 9. 当前状态
 
-第 1 步已完成，后续从第 2 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
-并将阶段计时接入 LLC 变压器、外置 `Lr` 搜索和磁件 pipeline。后续步骤仍必须
+第 1、2 步已完成，后续从第 3 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
+第 2 步加入了 FHA 边界频率有界缓存并验证了实际缓存命中。后续步骤仍必须
 严格按照本文件的范围、完成条件和提交同步规则推进。
 
 ### 第 1 步执行结果（2026-08-28）
@@ -552,3 +552,30 @@ LLC 变压器搜索当前约使用：
 - 实现 push 结果：成功
 - 计划记录 commit：`0fed73e`（`docs: record LLC Step 1 baseline`）
 - 计划记录 push 结果：成功
+
+### 第 2 步执行结果（2026-08-28）
+
+- FHA 边界频率扫描结果加入进程内有界 LRU 缓存，最大容量为 `512`。
+- 缓存 key 覆盖求解器版本、拓扑、`vin`、`vout`、`pout`、`Zr`、变比、桥臂
+  增益、`fr`、`Ln`、频率上下限和扫描点数 `1501`。
+- 缓存结果使用不可变 `LLCOperatingPointResult`；扫描异常保存异常类型和消息，
+  后续重复失败会恢复相同异常类别和消息。
+- FHA coverage 已接入同一缓存，避免磁件候选循环绕过缓存统计。
+- 提供 `clear_fha_boundary_frequency_cache()` 和
+  `fha_boundary_frequency_cache_info()` 用于隔离测试和性能证据。
+- LLC pipeline 结构化计时中增加 `fha_boundary_cache` 命中/未命中/容量信息。
+- 专项测试：`tests/test_llc_fha_boundary_cache.py`
+- 专项验证命令：
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_fha_boundary_cache.py tests/test_llc_magnetic_performance_baseline.py tests/test_phase7_dc_dc_topologies.py`
+- 专项验证结果：`10 passed`
+- 正式四档基线：`4/4 completed`、`0 timeout`、`0 error`
+- FHA 缓存证据：medium 变压器档 `1422 hits / 1575 misses`；四档均记录了
+  cache size、solver version 和 scan points。
+- 结果回归：变压器 medium `352 candidates / 9 feasible`；外置 `Lr` medium
+  `3020 candidates / 186 feasible`，与第 1 步规模基线一致。
+- 编译检查：通过
+- `git diff --check`：通过
+- 实现 commit：`ff8fc27`（`LLC Step 2: cache FHA boundary solves`）
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`
+- 实现 push 结果：成功
+- 计划记录 commit：待本次计划记录提交后填写
