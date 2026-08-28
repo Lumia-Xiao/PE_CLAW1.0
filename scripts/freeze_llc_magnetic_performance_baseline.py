@@ -155,6 +155,7 @@ def _run_case(case_name: str) -> dict[str, object]:
                 "rejected_by_thermal_count": transformer_result.rejected_by_thermal_count,
                 "rejected_by_missing_data_count": transformer_result.rejected_by_missing_data_count,
             },
+            "search_bounds": transformer_result.search_bounds,
             "representative": _representative(transformer_result.recommended_preliminary_candidate),
         }
         result["fha_boundary_cache"] = fha_boundary_frequency_cache_info()
@@ -187,6 +188,7 @@ def _run_case(case_name: str) -> dict[str, object]:
                     **external_result.performance_counts,
                     "rejection_counts": external_result.rejection_counts,
                 },
+                "search_bounds": external_result.search_bounds,
                 "representative": _representative(external_result.recommended_candidate, external=True),
             }
     return result

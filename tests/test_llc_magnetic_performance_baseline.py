@@ -5,12 +5,16 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+import pytest
 
 from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier.transformer_design import (
     LLCTransformerTurnsCandidate,
     _NormalizedCoreRecord,
     _NormalizedWireRecord,
     _prefilter_transformer_candidate,
+    _select_search_cores,
+    _select_search_wires,
+    build_llc_magnetic_search_bounds,
     build_transformer_design_inputs_from_fha,
 )
 from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier.fha_design import design_llc_fha
@@ -18,6 +22,9 @@ from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier.input_s
     build_default_inputs,
     build_spec,
 )
+from pe_claw_gui.pipeline.options import PipelineOptions
+from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
+from pe_claw_gui.topologies.base.registry import build_default_registry
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -129,6 +136,122 @@ def test_transformer_prefilter_reports_current_density_rejection() -> None:
     assert "current_density_limit" in reasons
 
 
+def test_llc_search_bounds_are_design_driven_and_auditable() -> None:
+    inputs, _core, _wires = _prefilter_fixture()
+
+    bounds = build_llc_magnetic_search_bounds(inputs, mode="fast")
+
+    assert bounds.mode == "fast"
+    assert bounds.transformer_core_limit is not None
+    assert bounds.transformer_material_limit is not None
+    assert bounds.transformer_wire_limit is not None
+    assert bounds.design_basis["pout_max_w"] == inputs.pout_max_w
+    serialized = bounds.to_dict()
+    assert serialized["selection_policy"]
+    assert serialized["transformer"]["core_limit"] == bounds.transformer_core_limit
+    assert serialized["external_lr"]["max_turns"] == bounds.external_lr_max_turns
+
+
+def test_llc_full_search_removes_catalog_truncation() -> None:
+    inputs, _core, _wires = _prefilter_fixture()
+
+    bounds = build_llc_magnetic_search_bounds(inputs, mode="full_search")
+
+    assert bounds.mode == "full"
+    assert bounds.transformer_core_limit is None
+    assert bounds.transformer_material_limit is None
+    assert bounds.transformer_wire_limit is None
+    assert bounds.external_lr_core_limit is None
+    assert bounds.external_lr_max_turns == 180
+
+
+def test_llc_search_bounds_reject_unknown_mode() -> None:
+    inputs, _core, _wires = _prefilter_fixture()
+
+    with pytest.raises(ValueError, match="must be 'fast' or 'full'"):
+        build_llc_magnetic_search_bounds(inputs, mode="database_magic")
+
+
+def test_llc_fast_selection_is_stable_when_database_order_changes() -> None:
+    inputs, core, wires = _prefilter_fixture()
+    cores = [
+        core,
+        _NormalizedCoreRecord(
+            core_id="larger-core",
+            ae_m2=2.0e-4,
+            ae_source_field="fixture",
+            le_m=0.1,
+            ve_m3=2.0e-5,
+            window_area_m2=2.0e-4,
+            outer_width_m=0.02,
+            outer_height_m=0.02,
+            mean_length_per_turn_m=0.04,
+            gross_volume_m3=2.0e-5,
+        ),
+        _NormalizedCoreRecord(
+            core_id="middle-core",
+            ae_m2=1.5e-4,
+            ae_source_field="fixture",
+            le_m=0.1,
+            ve_m3=1.5e-5,
+            window_area_m2=1.5e-4,
+            outer_width_m=0.02,
+            outer_height_m=0.02,
+            mean_length_per_turn_m=0.04,
+            gross_volume_m3=1.5e-5,
+        ),
+    ]
+    wires = [
+        *wires,
+        _NormalizedWireRecord(
+            wire_id="larger-wire",
+            strand_diameter_m=0.0002,
+            strands_per_bundle=100,
+            bundle_copper_area_m2=2.0e-5,
+            outer_diameter_m=0.002,
+            equivalent_bundle_diameter_m=0.002,
+        ),
+        _NormalizedWireRecord(
+            wire_id="middle-wire",
+            strand_diameter_m=0.00015,
+            strands_per_bundle=100,
+            bundle_copper_area_m2=1.5e-5,
+            outer_diameter_m=0.0015,
+            equivalent_bundle_diameter_m=0.0015,
+        ),
+    ]
+
+    selected_cores = _select_search_cores(cores, inputs, 2)
+    selected_cores_reversed = _select_search_cores(list(reversed(cores)), inputs, 2)
+    selected_wires = _select_search_wires(wires, inputs, 2)
+    selected_wires_reversed = _select_search_wires(list(reversed(wires)), inputs, 2)
+
+    assert [item.core_id for item in selected_cores] == [item.core_id for item in selected_cores_reversed]
+    assert [item.wire_id for item in selected_wires] == [item.wire_id for item in selected_wires_reversed]
+
+
+def test_llc_search_selection_handles_empty_candidate_pools() -> None:
+    inputs, _core, _wires = _prefilter_fixture()
+
+    assert _select_search_cores([], inputs, 4) == []
+    assert _select_search_wires([], inputs, 4) == []
+
+
+def test_llc_pipeline_exposes_selected_search_bounds() -> None:
+    plugin = build_default_registry().get_plugin("llc_resonant_converter_diode_rectifier")
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=build_default_inputs(),
+        include_waveforms=False,
+        pipeline_options=PipelineOptions(enable_magnetic_design=True, enable_capacitor_design=False),
+    )
+
+    assert report.magnetic is not None
+    bounds = report.magnetic.design_requirements["magnetic_search_bounds"]
+    assert bounds["mode"] == "fast"
+    assert report.magnetic.performance_timing["search_bounds"] == bounds
+
+
 def test_llc_baseline_script_has_bounded_repeatable_cases() -> None:
     output_dir = ROOT / ".test-llc-baseline-output"
     shutil.rmtree(output_dir, ignore_errors=True)
@@ -163,6 +286,7 @@ def test_llc_baseline_script_has_bounded_repeatable_cases() -> None:
         assert case["scalar_triangular_loss_cache"]["size"] <= 4096
         assert case["transformer"]["counts"]["evaluated_candidate_count"] > 0
         assert case["transformer"]["timing"]["total_seconds"] >= 0.0
+        assert case["transformer"]["search_bounds"]["mode"] == "explicit"
         counts = case["transformer"]["counts"]
         assert counts["generated_candidate_count"] == (
             counts["prefilter_rejected_candidate_count"]

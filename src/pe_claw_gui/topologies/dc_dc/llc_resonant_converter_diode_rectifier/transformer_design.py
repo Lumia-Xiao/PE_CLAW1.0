@@ -53,6 +53,42 @@ FrequencySolver = Callable[["LLCTransformerDesignInputs", str, float, float, flo
 
 
 @dataclass(frozen=True)
+class LLCMagneticSearchBounds:
+    """Explicit search bounds shared by transformer and external Lr searches."""
+
+    mode: str
+    max_scale_factor: int
+    transformer_core_limit: int | None
+    transformer_material_limit: int | None
+    transformer_wire_limit: int | None
+    external_lr_core_limit: int | None
+    external_lr_material_limit: int | None
+    external_lr_wire_limit: int | None
+    external_lr_max_turns: int
+    design_basis: dict[str, float | int | str]
+    selection_policy: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "mode": self.mode,
+            "max_scale_factor": self.max_scale_factor,
+            "transformer": {
+                "core_limit": self.transformer_core_limit,
+                "material_limit": self.transformer_material_limit,
+                "wire_limit": self.transformer_wire_limit,
+            },
+            "external_lr": {
+                "core_limit": self.external_lr_core_limit,
+                "material_limit": self.external_lr_material_limit,
+                "wire_limit": self.external_lr_wire_limit,
+                "max_turns": self.external_lr_max_turns,
+            },
+            "design_basis": dict(self.design_basis),
+            "selection_policy": self.selection_policy,
+        }
+
+
+@dataclass(frozen=True)
 class LLCTransformerDesignInputs:
     """Electrical targets for a separated first-pass LLC transformer design."""
 
@@ -86,6 +122,82 @@ class LLCTransformerDesignInputs:
     lm_tolerance_percent: float = 10.0
     leakage_fraction_estimate: float = 0.02
     leakage_limit_h: float = 0.0
+
+
+def build_llc_magnetic_search_bounds(
+    inputs: LLCTransformerDesignInputs,
+    *,
+    mode: str = "fast",
+) -> LLCMagneticSearchBounds:
+    """Build auditable LLC search bounds from design inputs.
+
+    ``fast`` keeps the database breadth bounded while retaining the existing
+    physical selectors. ``full`` removes catalog truncation and leaves only
+    explicit physical enumeration ceilings for turns.
+    """
+
+    normalized_mode = str(mode).strip().lower()
+    if normalized_mode in {"full", "full_search", "audit"}:
+        return LLCMagneticSearchBounds(
+            mode="full",
+            max_scale_factor=120,
+            transformer_core_limit=None,
+            transformer_material_limit=None,
+            transformer_wire_limit=None,
+            external_lr_core_limit=None,
+            external_lr_material_limit=None,
+            external_lr_wire_limit=None,
+            external_lr_max_turns=EXTERNAL_LR_MAX_TURNS_ABSOLUTE,
+            design_basis={
+                "pout_max_w": inputs.pout_max_w,
+                "fs_min_hz": inputs.fs_min_hz,
+                "fs_nom_hz": inputs.fs_nom_hz,
+                "fs_max_hz": inputs.fs_max_hz,
+            },
+            selection_policy="full catalog search; deterministic id/geometry ordering; explicit turns ceilings",
+        )
+    if normalized_mode not in {"fast", "quick", "bounded"}:
+        raise ValueError("LLC magnetic search mode must be 'fast' or 'full'.")
+
+    power_w = max(float(inputs.pout_max_w), 1.0)
+    current_a = max(float(inputs.primary_current_rms_a), float(inputs.secondary_current_rms_a), 1.0)
+    frequency_span = max(inputs.fs_max_hz / max(inputs.fs_min_hz, 1.0), 1.0)
+    core_limit = min(
+        48,
+        max(12, 16 + 8 * int(power_w >= 2000.0) + 8 * int(power_w >= 3500.0) + 16 * int(power_w >= 4000.0)),
+    )
+    material_limit = min(16, max(8, 8 + 4 * int(frequency_span >= 1.5) + 4 * int(power_w >= 4000.0)))
+    wire_limit = min(16, max(8, 8 + 4 * int(current_a >= 8.0) + 4 * int(current_a >= 50.0)))
+    max_scale_factor = min(
+        80,
+        max(48, 40 + 8 * int(power_w >= 2000.0) + 8 * int(power_w >= 3500.0) + 24 * int(power_w >= 4000.0)),
+    )
+    external_core_limit = min(24, max(8, core_limit // 2 + 8 * int(power_w >= 4000.0)))
+    external_material_limit = min(12, max(4, material_limit))
+    external_wire_limit = min(12, max(6, wire_limit))
+    return LLCMagneticSearchBounds(
+        mode="fast",
+        max_scale_factor=max_scale_factor,
+        transformer_core_limit=core_limit,
+        transformer_material_limit=material_limit,
+        transformer_wire_limit=wire_limit,
+        external_lr_core_limit=external_core_limit,
+        external_lr_material_limit=external_material_limit,
+        external_lr_wire_limit=external_wire_limit,
+        external_lr_max_turns=min(EXTERNAL_LR_MAX_TURNS_ABSOLUTE, max(80, 80 + int(current_a * 5.0))),
+        design_basis={
+            "pout_max_w": power_w,
+            "max_winding_current_rms_a": current_a,
+            "fs_min_hz": inputs.fs_min_hz,
+            "fs_nom_hz": inputs.fs_nom_hz,
+            "fs_max_hz": inputs.fs_max_hz,
+            "frequency_span_ratio": frequency_span,
+        },
+        selection_policy=(
+            "design-driven physical preselection, then deterministic geometry/current/Bsat ordering "
+            "with evenly spread records across the retained range"
+        ),
+    )
 
 
 @dataclass(frozen=True)
@@ -443,6 +555,7 @@ class LLCTransformerCandidateSearchResult:
     scale_search_diagnostics: dict[str, object] = field(default_factory=dict)
     leakage_rejection_audit: dict[str, object] = field(default_factory=dict)
     prefilter_rejection_counts: dict[str, int] = field(default_factory=dict)
+    search_bounds: dict[str, object] = field(default_factory=dict)
     performance_timing: dict[str, float] = field(default_factory=dict)
     performance_counts: dict[str, int] = field(default_factory=dict)
     artifact_paths: list[str] = field(default_factory=list)
@@ -1147,6 +1260,7 @@ def generate_separated_llc_transformer_candidates(
     core_limit: int | None = 24,
     material_limit: int | None = 8,
     wire_limit: int | None = 16,
+    search_bounds: LLCMagneticSearchBounds | None = None,
     write_debug_csv: bool = False,
     output_dir: Path | None = None,
 ) -> LLCTransformerCandidateSearchResult:
@@ -1167,6 +1281,23 @@ def generate_separated_llc_transformer_candidates(
     cores, missing_core_count = _normalize_core_records(raw_cores)
     materials, missing_material_count = _normalize_material_records(raw_materials)
     wires, missing_wire_count = _normalize_wire_records(raw_wires)
+    resolved_bounds = search_bounds or LLCMagneticSearchBounds(
+        mode="explicit",
+        max_scale_factor=max_scale_factor,
+        transformer_core_limit=core_limit,
+        transformer_material_limit=material_limit,
+        transformer_wire_limit=wire_limit,
+        external_lr_core_limit=None,
+        external_lr_material_limit=None,
+        external_lr_wire_limit=None,
+        external_lr_max_turns=EXTERNAL_LR_MAX_TURNS_ABSOLUTE,
+        design_basis={},
+        selection_policy="caller-supplied explicit bounds",
+    )
+    max_scale_factor = resolved_bounds.max_scale_factor
+    core_limit = resolved_bounds.transformer_core_limit
+    material_limit = resolved_bounds.transformer_material_limit
+    wire_limit = resolved_bounds.transformer_wire_limit
     cores = _select_search_cores(cores, transformer_inputs, core_limit)
     materials = _limit_records(
         sorted(materials, key=lambda item: (-item.b_sat_t, item.material_id)),
@@ -1364,6 +1495,7 @@ def generate_separated_llc_transformer_candidates(
             "total_seconds": perf_counter() - total_started,
         },
         performance_counts=counts,
+        search_bounds=resolved_bounds.to_dict(),
         artifact_paths=artifact_paths,
         notes=notes,
         warnings=_dedupe_text([
@@ -2375,6 +2507,7 @@ def generate_llc_external_resonant_inductor_candidates(
     core_limit: int | None = 18,
     material_limit: int | None = 4,
     wire_limit: int | None = 10,
+    search_bounds: LLCMagneticSearchBounds | None = None,
     write_csv: bool = True,
     output_dir: Path | None = None,
 ) -> LlcExternalResonantInductorSearchResult:
@@ -2387,6 +2520,22 @@ def generate_llc_external_resonant_inductor_candidates(
     rejection_counts = _external_lr_rejection_counter()
     warnings: list[str] = []
     notes: list[str] = []
+    resolved_bounds = search_bounds or LLCMagneticSearchBounds(
+        mode="explicit",
+        max_scale_factor=8,
+        transformer_core_limit=None,
+        transformer_material_limit=None,
+        transformer_wire_limit=None,
+        external_lr_core_limit=core_limit,
+        external_lr_material_limit=material_limit,
+        external_lr_wire_limit=wire_limit,
+        external_lr_max_turns=EXTERNAL_LR_MAX_TURNS_ABSOLUTE,
+        design_basis={},
+        selection_policy="caller-supplied explicit bounds",
+    )
+    core_limit = resolved_bounds.external_lr_core_limit
+    material_limit = resolved_bounds.external_lr_material_limit
+    wire_limit = resolved_bounds.external_lr_wire_limit
     if request.warning:
         warnings.append(request.warning)
     if not request.is_design_required or request.external_lr_target_h <= EXTERNAL_LR_TARGET_TOLERANCE_H:
@@ -2396,6 +2545,7 @@ def generate_llc_external_resonant_inductor_candidates(
         )
         return LlcExternalResonantInductorSearchResult(
             request=request,
+            search_bounds=resolved_bounds.to_dict(),
             rejection_counts=rejection_counts,
             notes=["External Lr candidate search did not run because no positive external Lr target is required."],
             warnings=_dedupe_text([*warnings, warning]),
@@ -2404,6 +2554,7 @@ def generate_llc_external_resonant_inductor_candidates(
         rejection_counts["invalid_target"] += 1
         return LlcExternalResonantInductorSearchResult(
             request=request,
+            search_bounds=resolved_bounds.to_dict(),
             rejection_counts=rejection_counts,
             notes=["External Lr candidate search did not run because current/frequency basis is invalid."],
             warnings=_dedupe_text([*warnings, "External Lr search requires positive Irms, Ipeak, and fs basis."]),
@@ -2427,9 +2578,10 @@ def generate_llc_external_resonant_inductor_candidates(
         for material in materials
         if _material_loss_model_covers_frequency(material, request.fs_basis_hz)
     ]
+    materials_for_search = materials if resolved_bounds.mode == "full" else materials_with_frequency_coverage
     materials = _limit_records(
         sorted(
-            materials_with_frequency_coverage,
+            materials_for_search,
             key=lambda item: (-item.b_sat_t, item.material_id),
         ),
         material_limit,
@@ -2442,6 +2594,11 @@ def generate_llc_external_resonant_inductor_candidates(
         f"with a core-loss model covering {request.fs_basis_hz:.6g} Hz; "
         f"{len(materials)} entered the bounded Bsat-ranked search."
     )
+    if resolved_bounds.mode == "full":
+        notes.append(
+            "Full search retains all normalized materials, including records without a loss model, "
+            "so missing-data outcomes remain auditable."
+        )
     if not materials:
         warnings.append(
             "No normalized magnetic material has a core-loss model covering the external Lr loss frequency."
@@ -2458,7 +2615,7 @@ def generate_llc_external_resonant_inductor_candidates(
                 rejection_counts["missing_data"] += 1
                 continue
             n_min = max(1, ceil(request.external_lr_target_h * request.current_peak_a / (b_limit_t * core.ae_m2)))
-            n_max = min(max(n_min + 40, n_min), EXTERNAL_LR_MAX_TURNS_ABSOLUTE)
+            n_max = min(max(n_min + 40, n_min), resolved_bounds.external_lr_max_turns)
             turns_candidate_count += n_max - n_min + 1
             for turns in range(n_min, n_max + 1):
                 for wire in wires:
@@ -2572,6 +2729,7 @@ def generate_llc_external_resonant_inductor_candidates(
         plot_diagnostics=plot_diagnostics,
         performance_timing={**timing, "total_seconds": perf_counter() - total_started},
         performance_counts=counts,
+        search_bounds=resolved_bounds.to_dict(),
     )
 
 

@@ -41,6 +41,7 @@ def run_full_pipeline(
     include_waveforms: bool = False,
     pipeline_options: PipelineOptions | None = None,
     magnetic_backend_config: MagneticDataBackendConfig | None = None,
+    llc_search_mode: str = "fast",
 ) -> DesignReport:
     """Run the currently supported runtime stages through a design report."""
     options = resolve_pipeline_options(pipeline_options)
@@ -75,6 +76,7 @@ def run_full_pipeline(
         report = run_magnetic_pipeline(
             report,
             backend_config=magnetic_backend_config or get_production_magnetic_backend_config(),
+            llc_search_mode=llc_search_mode,
         )
     else:
         report = replace(

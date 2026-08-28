@@ -29,6 +29,7 @@ try:
     from ..topologies.dc_dc.llc_resonant_converter_diode_rectifier.transformer_design import (
         build_llc_external_resonant_inductor_target,
         build_llc_transformer_pareto_result,
+        build_llc_magnetic_search_bounds,
         build_transformer_design_inputs_from_fha,
         generate_llc_external_resonant_inductor_candidates,
         generate_separated_llc_transformer_candidates,
@@ -39,6 +40,7 @@ except ModuleNotFoundError:  # New LLC topology package is outside the 1.0 GUI s
     LLCOperatingPointResult = None
     build_llc_external_resonant_inductor_target = None
     build_llc_transformer_pareto_result = None
+    build_llc_magnetic_search_bounds = None
     build_transformer_design_inputs_from_fha = None
     generate_llc_external_resonant_inductor_candidates = None
     generate_separated_llc_transformer_candidates = None
@@ -90,8 +92,6 @@ LLC_TRANSFORMER_TOPOLOGY_IDS = {
     "llc_resonant_converter_diode_rectifier",
     "llc_resonant_converter_synchronous_rectifier",
 }
-LLC_TRANSFORMER_MATERIAL_LIMIT = 16
-LLC_EXTERNAL_LR_MATERIAL_LIMIT = 16
 FLYBACK_MATERIAL_LIMIT = 16
 
 
@@ -99,6 +99,7 @@ def run_magnetic_pipeline(
     report: DesignReport,
     *,
     backend_config: MagneticDataBackendConfig | None = None,
+    llc_search_mode: str = "fast",
 ) -> DesignReport:
     """Attach magnetic design plus a shadow-only core-loss excitation audit."""
 
@@ -106,7 +107,11 @@ def run_magnetic_pipeline(
         attach_core_loss_excitation_audit,
     )
 
-    completed = _run_magnetic_pipeline_without_excitation_audit(report, backend_config=backend_config)
+    completed = _run_magnetic_pipeline_without_excitation_audit(
+        report,
+        backend_config=backend_config,
+        llc_search_mode=llc_search_mode,
+    )
     return attach_core_loss_excitation_audit(completed)
 
 
@@ -114,6 +119,7 @@ def _run_magnetic_pipeline_without_excitation_audit(
     report: DesignReport,
     *,
     backend_config: MagneticDataBackendConfig | None = None,
+    llc_search_mode: str = "fast",
 ) -> DesignReport:
     """Attach the inductor magnetic stage to a design report."""
     geometry_result = report.geometry or GeometryResult(notes=["Geometry estimation remains a placeholder stage."])
@@ -132,6 +138,7 @@ def _run_magnetic_pipeline_without_excitation_audit(
             report,
             geometry_result,
             backend_config=resolved_backend_config,
+            llc_search_mode=llc_search_mode,
         )
 
     if report.spec.topology_id == "flyback_diode_rectified_isolated":
@@ -746,6 +753,7 @@ def _run_llc_transformer_magnetic_pipeline(
     geometry_result: GeometryResult,
     *,
     backend_config: MagneticDataBackendConfig | None = None,
+    llc_search_mode: str = "fast",
 ) -> DesignReport:
     """Run separated LLC transformer first-pass magnetic screening from Run Magnetics."""
 
@@ -779,6 +787,7 @@ def _run_llc_transformer_magnetic_pipeline(
         )
         fha_design = _rebuild_llc_fha_design(llc_fha_metadata)
         transformer_inputs = build_transformer_design_inputs_from_fha(fha_design)
+        search_bounds = build_llc_magnetic_search_bounds(transformer_inputs, mode=llc_search_mode)
         pipeline_timing["parameter_preparation_seconds"] = perf_counter() - preparation_started
         transformer_search_started = perf_counter()
         search_result = generate_separated_llc_transformer_candidates(
@@ -786,11 +795,9 @@ def _run_llc_transformer_magnetic_pipeline(
             core_records=(backend_bundle.cores if backend_bundle is not None else None),
             material_records=(backend_bundle.materials if backend_bundle is not None else None),
             wire_records=(backend_bundle.wires if backend_bundle is not None else None),
-            max_scale_factor=80,
+            max_scale_factor=search_bounds.max_scale_factor,
             frequency_solver=make_fha_boundary_frequency_solver(fha_design),
-            core_limit=48,
-            material_limit=LLC_TRANSFORMER_MATERIAL_LIMIT,
-            wire_limit=16,
+            search_bounds=search_bounds,
             write_debug_csv=True,
         )
         pipeline_timing["transformer_search_seconds"] = perf_counter() - transformer_search_started
@@ -814,13 +821,14 @@ def _run_llc_transformer_magnetic_pipeline(
                 core_records=(backend_bundle.cores if backend_bundle is not None else None),
                 material_records=(backend_bundle.materials if backend_bundle is not None else None),
                 wire_records=(backend_bundle.wires if backend_bundle is not None else None),
-                material_limit=LLC_EXTERNAL_LR_MATERIAL_LIMIT,
+                search_bounds=search_bounds,
             )
             if external_lr_target is not None
             else None
         )
         pipeline_timing["external_lr_search_seconds"] = perf_counter() - external_lr_search_started
         design_requirements = _llc_transformer_design_requirements(transformer_target, search_result)
+        design_requirements["magnetic_search_bounds"] = search_bounds.to_dict()
         design_requirements["transformer_pareto_count"] = pareto_result.pareto_count
         design_requirements["transformer_chosen_count"] = pareto_result.chosen_count
         if external_lr_target is not None:
@@ -951,6 +959,7 @@ def _run_llc_transformer_magnetic_pipeline(
                 "pipeline": pipeline_timing,
                 "transformer_search": search_result.performance_timing,
                 "transformer_counts": search_result.performance_counts,
+                "search_bounds": search_bounds.to_dict(),
                 "external_lr_search": (
                     external_lr_search_result.performance_timing
                     if external_lr_search_result is not None

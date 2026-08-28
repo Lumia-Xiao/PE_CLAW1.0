@@ -162,6 +162,7 @@ class LlcExternalResonantInductorSearchResult:
     plot_diagnostics: dict[str, object] = field(default_factory=dict)
     performance_timing: dict[str, float] = field(default_factory=dict)
     performance_counts: dict[str, int] = field(default_factory=dict)
+    search_bounds: dict[str, object] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
