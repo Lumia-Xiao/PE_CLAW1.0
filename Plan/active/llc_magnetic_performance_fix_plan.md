@@ -499,7 +499,7 @@ LLC 变压器搜索当前约使用：
 | 1 | `completed` | `8310634` | `0fed73e` | 4/4 baseline cases completed; 0 timeout; 0 error; LLC regression 7 passed |
 | 2 | `completed` | `ff8fc27` | `5cc6955` | FHA cache tests 10 passed; baseline 4/4 completed; real cache hits recorded |
 | 3 | `completed` | `e4c2141` | `4774027` | 68 项专项/LLC 回归通过；四档基准 4/4 完成；中规模变压器核心损耗阶段约 0.96 s 降至约 0.11--0.13 s，外置 `Lr` 约 8.17 s 降至约 0.85--0.99 s；候选数、可行数、拒绝分类和代表性结果保持一致 |
-| 4 | `pending` | - | - | - |
+| 4 | `completed` | `0a20914` | 待本次计划记录提交后填写 | 预筛选专项 5 passed；磁损/LLC 回归 67 passed；四档基准 4/4 completed；中规模变压器 352 生成候选中 336 个预筛选淘汰、16 个精评、9 个可行，代表候选保持一致 |
 | 5 | `pending` | - | - | - |
 | 6 | `pending` | - | - | - |
 | 7 | `pending` | - | - | - |
@@ -519,9 +519,10 @@ LLC 变压器搜索当前约使用：
 
 ## 9. 当前状态
 
-第 1、2、3 步已完成，后续从第 4 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
+第 1、2、3、4 步已完成，后续从第 5 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
 第 2 步加入了 FHA 边界频率有界缓存并验证了实际缓存命中，第 3 步完成了标准标量
-三角波的精确分段损耗路径、候选筛选采样优化和有界缓存。后续步骤仍必须严格按照
+三角波的精确分段损耗路径、候选筛选采样优化和有界缓存，第 4 步完成了变压器候选
+的确定性廉价预筛选和可审计统计。后续步骤仍必须严格按照
 本文件的范围、完成条件和提交同步规则推进。
 
 ### 第 1 步执行结果（2026-08-28）
@@ -612,3 +613,35 @@ LLC 变压器搜索当前约使用：
 - 实现 push 结果：成功。
 - 计划记录 commit：`4774027`（`docs: record LLC Step 3 core-loss optimization`）。
 - 计划记录 push 结果：成功。
+
+### 第 4 步执行结果（2026-08-28）
+
+- 在变压器完整候选精评前增加确定性的廉价预筛选，覆盖饱和所需最小匝数、`Lm`/
+  气隙边界、绕组最低电流承载能力和理论最小窗口填充；预筛选使用与完整筛选相同
+  的单位、边界关系和额定设计电流。
+- 预筛选不替代已有完整评估。通过预筛选的候选继续执行原有绕组、漏感、磁芯损耗、
+  热和可行性判定；缺少导线记录时保留既有缺失数据处理路径，不将缺失数据误判为
+  电流承载失败。
+- 搜索结果新增 `prefilter_rejection_counts`，性能统计新增生成候选数、预筛选淘汰
+  数、预筛选通过数、精确评估数，以及按饱和、`Lm`/气隙、电流密度、填充和缺失数据
+  分类的淘汰计数。
+- 新增饱和失败、边界通过、缺失导线数据和电流密度失败测试，验证预筛选边界和原因
+  可审计性。
+- 受控四档基准证据：
+  `migration/evidence/20260828/llc_magnetic_performance_step4/llc_magnetic_performance_baseline.json`。
+  四档均 `completed`，`0 timeout`，`0 error`。变压器 small 为 `90 -> 6` 精评、
+  medium 为 `352 -> 16` 精评；medium 仍有 `9` 个可行候选，代表候选仍为
+  `T_134_77_155_FT-3M_Np16_Ns2`。外置 `Lr` medium 仍为 `3020` 候选、`186`
+  个可行候选。
+- medium 变压器预筛选原因计数允许重叠：饱和 `16`、`Lm`/气隙 `260`、填充 `268`、
+  电流密度 `0`、缺失数据 `0`；候选总数守恒为 `352 = 336 + 16`。
+- 专项验证命令：
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_magnetic_performance_baseline.py`
+- 专项验证结果：`5 passed`。相关回归命令：
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_core_loss_kernel.py tests/test_core_loss_router.py tests/test_magnetic_loss_contract.py tests/test_phase7_dc_dc_topologies.py`
+- 相关回归结果：`67 passed`；编译检查和 `git diff --check` 通过。
+- 实现 commit：`0a20914`（`LLC Step 4: add transformer prefilters`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`。
+- 实现 push 结果：成功。
+- 计划记录 commit：待本次计划记录提交后填写。
+- 计划记录 push 结果：待本次计划记录提交后填写。
