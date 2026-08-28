@@ -526,7 +526,7 @@ C:\Users\Lumia\Documents\ChatGPT\PE-Claw1.0
 | 6 | `ce1de2c52f727d316cbd0e0add833670dae6f2c7` | `fix: complete AC-DC efficiency sweep result artifacts` | 已推送 |
 | 7 | `2728fd4284200af39ba8adc06163a86bef95ed37` | `test: cover AC-DC efficiency sweep regressions` | 已推送 |
 | 8 | `309e65fc0a993d855205d329fe0b5a74209ac0b4` | `test: validate AC-DC efficiency sweep end to end` | 已推送 |
-| 9 | 推送后回执更新记录 | `docs: finalize AC-DC efficiency sweep delivery` | 待本步骤 subject commit 推送后确认 |
+| 9 | `e95183924f871745bfec624ad4857faa24744c91` | `docs: finalize AC-DC efficiency sweep delivery` | 主体提交已推送并验证；本回执独立提交 |
 
 ### 6.2 最终验证
 
@@ -539,4 +539,6 @@ C:\Users\Lumia\Documents\ChatGPT\PE-Claw1.0
   `loss_breakdown_stacked.png`。
 - Step 1 至 Step 8 均已存在于
   `origin/codex/sync-gui-backend-from-2`。
+- Step 9 主体提交 `e95183924f871745bfec624ad4857faa24744c91`
+  已推送，且远端分支包含关系已验证。
 - 未执行 merge、tag、release 或 `master` push。

@@ -6,6 +6,8 @@
   "branch": "codex/sync-gui-backend-from-2",
   "remote": "origin/codex/sync-gui-backend-from-2",
   "remote_head_before_step9": "309e65fc0a993d855205d329fe0b5a74209ac0b4",
+  "step9_subject_commit": "e95183924f871745bfec624ad4857faa24744c91",
+  "step9_subject_push_verified": true,
   "plan_path": "Plan\\completed\\ac_dc_efficiency_sweep_fix_plan.md",
   "topologies": [
     {
@@ -56,7 +58,8 @@
     {"step": 5, "commit": "5ac1bb98d059f40b030e3b036cba438887ca22c6", "subject": "fix: refresh AC-DC sweep operating-point losses"},
     {"step": 6, "commit": "ce1de2c52f727d316cbd0e0add833670dae6f2c7", "subject": "fix: complete AC-DC efficiency sweep result artifacts"},
     {"step": 7, "commit": "2728fd4284200af39ba8adc06163a86bef95ed37", "subject": "test: cover AC-DC efficiency sweep regressions"},
-    {"step": 8, "commit": "309e65fc0a993d855205d329fe0b5a74209ac0b4", "subject": "test: validate AC-DC efficiency sweep end to end"}
+    {"step": 8, "commit": "309e65fc0a993d855205d329fe0b5a74209ac0b4", "subject": "test: validate AC-DC efficiency sweep end to end"},
+    {"step": 9, "commit": "e95183924f871745bfec624ad4857faa24744c91", "subject": "docs: finalize AC-DC efficiency sweep delivery"}
   ],
   "release_boundary": {
     "user_acceptance_required": true,

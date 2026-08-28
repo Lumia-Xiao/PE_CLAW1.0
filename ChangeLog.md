@@ -331,7 +331,8 @@ listed here.
     syntax, and whitespace checks are required before the delivery commit.
 - Git:
   - Branch: `codex/sync-gui-backend-from-2`.
-  - Planned subject commit: `docs: finalize AC-DC efficiency sweep delivery`.
-  - The exact Step 9 commit and push result are recorded by a post-push receipt
-    update.
+  - Step 9 subject commit: `e95183924f871745bfec624ad4857faa24744c91`
+    (`docs: finalize AC-DC efficiency sweep delivery`).
+  - Subject push passed and the remote branch containment check succeeded; this
+    metadata update is the independent push receipt.
   - Merge, tag, release, and `master` push are outside this step.

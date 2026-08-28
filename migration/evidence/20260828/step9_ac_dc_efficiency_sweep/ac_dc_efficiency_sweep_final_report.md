@@ -128,12 +128,16 @@ used by production tests passed.
 | 6 | `ce1de2c52f727d316cbd0e0add833670dae6f2c7` | `fix: complete AC-DC efficiency sweep result artifacts` | present on remote branch |
 | 7 | `2728fd4284200af39ba8adc06163a86bef95ed37` | `test: cover AC-DC efficiency sweep regressions` | present on remote branch |
 | 8 | `309e65fc0a993d855205d329fe0b5a74209ac0b4` | `test: validate AC-DC efficiency sweep end to end` | present on remote branch |
-| 9 | recorded by the post-push receipt update | `docs: finalize AC-DC efficiency sweep delivery` | verified after subject push |
+| 9 | `e95183924f871745bfec624ad4857faa24744c91` | `docs: finalize AC-DC efficiency sweep delivery` | present on remote branch; receipt recorded separately |
 
 Before Step 9, `git ls-remote` resolved the remote branch to
 `309e65fc0a993d855205d329fe0b5a74209ac0b4`, proving that Steps 1 through 8
 were pushed. No containing release tag exists, and `origin/master` does not
 contain the Step 8 commit.
+
+After the Step 9 subject push, `git ls-remote` resolved the remote branch to
+`e95183924f871745bfec624ad4857faa24744c91`, and `git branch -r --contains`
+confirmed `origin/codex/sync-gui-backend-from-2` contains that commit.
 
 ## Remaining Limits
 
