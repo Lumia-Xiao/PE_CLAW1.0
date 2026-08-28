@@ -66,6 +66,11 @@ def run_full_pipeline(
         report.spec.topology_id != "flyback_diode_rectified_isolated" or not options.enable_magnetic_design
     ):
         return report
+    if (
+        options.enable_bridge_rectifier_selection
+        and report.spec.topology_id in SUPPORTED_BRIDGE_RECTIFIER_TOPOLOGIES
+    ):
+        report = run_bridge_rectifier_pipeline(report)
     if options.enable_magnetic_design:
         report = run_magnetic_pipeline(
             report,
@@ -80,11 +85,6 @@ def run_full_pipeline(
     report = run_loss_pipeline(report, pipeline_options=options)
     report = run_thermal_pipeline(report, pipeline_options=options)
     report = run_geometry_pipeline(report, pipeline_options=options)
-    if (
-        options.enable_bridge_rectifier_selection
-        and report.spec.topology_id in SUPPORTED_BRIDGE_RECTIFIER_TOPOLOGIES
-    ):
-        report = run_bridge_rectifier_pipeline(report)
     if options.enable_capacitor_design:
         report = run_capacitor_pipeline(report, plugin=plugin)
     return report

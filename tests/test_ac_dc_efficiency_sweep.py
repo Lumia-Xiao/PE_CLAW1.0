@@ -96,6 +96,58 @@ def full_ac_dc_cases(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Full
     return cases
 
 
+@pytest.mark.parametrize("topology_id", sorted(AC_DC_BRIDGE_TOPOLOGY_IDS))
+def test_bridge_selection_precedes_dependent_full_pipeline_stages(
+    topology_id: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Bridge hardware must exist before dependent design stages run."""
+
+    registry = build_default_registry()
+    plugin = registry.get_plugin(topology_id)
+    topology_module = import_module(plugin.__module__)
+    pipeline_module = importlib.import_module("pe_claw_gui.pipeline.run_full_pipeline")
+    events: list[str] = []
+
+    original_bridge = pipeline_module.run_bridge_rectifier_pipeline
+
+    def record_bridge(report, *args, **kwargs):
+        events.append("bridge")
+        return original_bridge(report, *args, **kwargs)
+
+    def record_stage(name: str):
+        def stage(report, *args, **kwargs):
+            events.append(name)
+            return report
+
+        return stage
+
+    monkeypatch.setattr(pipeline_module, "run_bridge_rectifier_pipeline", record_bridge)
+    monkeypatch.setattr(pipeline_module, "run_magnetic_pipeline", record_stage("magnetic"))
+    monkeypatch.setattr(pipeline_module, "run_loss_pipeline", record_stage("loss"))
+    monkeypatch.setattr(pipeline_module, "run_thermal_pipeline", record_stage("thermal"))
+    monkeypatch.setattr(pipeline_module, "run_geometry_pipeline", record_stage("geometry"))
+
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=topology_module.build_default_inputs(),
+        include_waveforms=False,
+        pipeline_options=PipelineOptions(
+            enable_magnetic_design=True,
+            enable_capacitor_design=False,
+            enable_bridge_rectifier_selection=True,
+        ),
+    )
+
+    assert report.bridge_rectifier is not None
+    assert report.bridge_rectifier.selected_candidate is not None
+    assert report.bridge_rectifier.passed_candidate_count > 0
+    assert events.index("bridge") < events.index("magnetic")
+    assert events.index("bridge") < events.index("loss")
+    assert events.index("bridge") < events.index("thermal")
+    assert events.index("bridge") < events.index("geometry")
+
+
 @pytest.mark.parametrize("topology_id", AC_DC_TOPOLOGY_IDS)
 def test_ac_dc_complete_design_and_efficiency_sweep(
     full_ac_dc_cases: dict[str, FullAcDcCase],
