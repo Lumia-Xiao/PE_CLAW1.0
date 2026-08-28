@@ -500,7 +500,7 @@ LLC 变压器搜索当前约使用：
 | 2 | `completed` | `ff8fc27` | `5cc6955` | FHA cache tests 10 passed; baseline 4/4 completed; real cache hits recorded |
 | 3 | `completed` | `e4c2141` | `4774027` | 68 项专项/LLC 回归通过；四档基准 4/4 完成；中规模变压器核心损耗阶段约 0.96 s 降至约 0.11--0.13 s，外置 `Lr` 约 8.17 s 降至约 0.85--0.99 s；候选数、可行数、拒绝分类和代表性结果保持一致 |
 | 4 | `completed` | `0a20914` | `9320bd3` | 预筛选专项 5 passed；磁损/LLC 回归 67 passed；四档基准 4/4 completed；中规模变压器 352 生成候选中 336 个预筛选淘汰、16 个精评、9 个可行，代表候选保持一致 |
-| 5 | `pending` | - | - | - |
+| 5 | `completed` | `b4dce50` | 待本次计划记录提交后填写 | LLC 边界专项 11 passed；四档基准 4/4 completed；默认 fast 保持原 golden 代表候选；支持显式 full 审计搜索 |
 | 6 | `pending` | - | - | - |
 | 7 | `pending` | - | - | - |
 | 8 | `pending` | - | - | - |
@@ -519,10 +519,11 @@ LLC 变压器搜索当前约使用：
 
 ## 9. 当前状态
 
-第 1、2、3、4 步已完成，后续从第 5 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
+第 1、2、3、4、5 步已完成，后续从第 6 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
 第 2 步加入了 FHA 边界频率有界缓存并验证了实际缓存命中，第 3 步完成了标准标量
 三角波的精确分段损耗路径、候选筛选采样优化和有界缓存，第 4 步完成了变压器候选
-的确定性廉价预筛选和可审计统计。后续步骤仍必须严格按照
+的确定性廉价预筛选和可审计统计，第 5 步完成了 LLC 磁性搜索边界的统一配置化和
+快速/完整模式切换。后续步骤仍必须严格按照
 本文件的范围、完成条件和提交同步规则推进。
 
 ### 第 1 步执行结果（2026-08-28）
@@ -613,6 +614,40 @@ LLC 变压器搜索当前约使用：
 - 实现 push 结果：成功。
 - 计划记录 commit：`4774027`（`docs: record LLC Step 3 core-loss optimization`）。
 - 计划记录 push 结果：成功。
+
+### 第 5 步执行结果（2026-08-28）
+
+- 新增不可变 `LLCMagneticSearchBounds`，统一描述变压器和外置 `Lr` 的核心、材料、
+  导线、变压器匝数缩放及外置 `Lr` 匝数上限；搜索结果、`design_requirements` 和
+  `performance_timing` 均保存完整边界字典和选择策略。
+- 生产 pipeline 新增 `llc_search_mode` 参数，默认使用设计驱动的 `fast` 模式，
+  也可以通过 `run_full_pipeline(..., llc_search_mode="full")` 显式执行完整数据库审计
+  搜索。`full` 模式取消核心/材料/导线目录截取，并保留无损耗模型材料，使缺失数据
+  结果仍可追溯。
+- `fast` 模式根据功率、绕组最大设计电流和频率范围计算边界，再使用原有物理筛选、
+  Bsat/几何/电流排序及均匀分布截取；不依赖数据库原始排列顺序。变压器和外置 `Lr`
+  使用独立边界，所有上限均在结构化报告中可审计。
+- 基准脚本保留显式边界以维持第 1 至第 4 步证据可比性，并新增边界字段；第五步证据：
+  `migration/evidence/20260828/llc_magnetic_performance_step5/llc_magnetic_performance_baseline.json`。
+  四档均 `completed`，`0 timeout`，`0 error`；medium 变压器仍为 `352` 生成候选、
+  `16` 精评、`9` 可行，代表候选仍为 `T_134_77_155_FT-3M_Np16_Ns2`；外置 `Lr`
+  medium 仍为 `3020/186`。
+- 默认 4 kW LLC pipeline 烟测得到 `495` 个可行候选和 `7` 个 Pareto 候选，结构化
+  边界为变压器 `48/16/16/80`，外置 `Lr` `24/12/12/180`；与旧默认变压器 golden
+  代表 `PQ_107_87_SMP97_Np16_Ns2` 一致。
+- 新增默认范围、`full_search`、未知模式、空候选池、数据库输入顺序稳定性和 pipeline
+  审计字段测试。
+- 专项验证命令：
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_magnetic_performance_baseline.py`
+- 专项验证结果：`11 passed`。相关回归命令：
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_core_loss_kernel.py tests/test_core_loss_router.py tests/test_magnetic_loss_contract.py tests/test_phase7_dc_dc_topologies.py`
+- 相关回归结果：`67 passed`；默认后端/闭环回归 `7 passed, 1 skipped`；编译检查和
+  `git diff --check` 通过。
+- 实现 commit：`b4dce50`（`LLC Step 5: configure magnetic search bounds`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`。
+- 实现 push 结果：成功。
+- 计划记录 commit：待本次计划记录提交后填写。
+- 计划记录 push 结果：待本次计划记录提交后填写。
 
 ### 第 4 步执行结果（2026-08-28）
 
