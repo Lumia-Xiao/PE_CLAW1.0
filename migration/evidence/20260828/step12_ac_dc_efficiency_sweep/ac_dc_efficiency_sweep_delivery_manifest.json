@@ -13,7 +13,8 @@
   "step12_subject_commit": "4af87e6fa93711f00d83017a7f33825b1d1dc9a1",
   "step12_subject_push_verified": true,
   "step12_remote_head_after_subject_push": "4af87e6fa93711f00d83017a7f33825b1d1dc9a1",
-  "step12_receipt_commit": null,
+  "step12_receipt_commit": "09dbce48043390c8357c2697f1fbbc27e2fbd147",
+  "step12_remote_head_after_receipt_push": "09dbce48043390c8357c2697f1fbbc27e2fbd147",
   "plan_path": "Plan\\completed\\ac_dc_efficiency_sweep_fix_plan.md",
   "real_gui_chain": {
     "window": "PEClawMainWindow",
@@ -29,9 +30,12 @@
     "load_grid_override": [0.5, 1.0],
     "output_root_injected": true,
     "waveform_view_axes_verified": true,
+    "stress_verified": true,
+    "topology_result_verified": true,
     "efficiency_view_verified": true,
     "fixed_hardware_summary_verified": true,
-    "warnings": []
+    "successful_sweep_warnings": [],
+    "partial_load_failure_preserves_gui_result": true
   },
   "topologies": [
     {
@@ -77,13 +81,13 @@
       "command": "PE_CLAW_STEP12_GUI_OUTPUT_ROOT=<evidence>/gui_artifacts python -B -m pytest -q tests/test_ac_dc_efficiency_gui_end_to_end.py",
       "passed": 3,
       "failed": 0,
-      "duration_seconds": 404.71
+      "duration_seconds": 402.08
     },
     "ac_dc": {
       "command": "python -B -m pytest -q bridge models, AC-DC efficiency backend/GUI, phase6 migration, phase8 topology tests",
       "passed": 32,
       "failed": 0,
-      "duration_seconds": 742.86
+      "duration_seconds": 766.79
     },
     "dc_ac": {
       "command": "python -B -m pytest -q all test_dc_ac_*.py plus phase7 migration and phase9 topology tests",
@@ -114,8 +118,8 @@
     },
     "compileall": "passed",
     "git_diff_check": "passed",
-    "json_parse": "passed before receipt commit",
-    "remote_containment": "origin/codex/sync-gui-backend-from-2 contains step12_subject_commit"
+    "json_parse": "passed after receipt commit",
+    "remote_containment": "origin/codex/sync-gui-backend-from-2 contains step12 subject and receipt commits"
   },
   "release_boundary": {
     "user_acceptance_required": true,

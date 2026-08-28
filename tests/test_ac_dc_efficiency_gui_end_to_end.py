@@ -50,8 +50,14 @@ from pathlib import Path
 import os
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
+import importlib
 
 from pe_claw_gui.app.shell.main_window import PEClawMainWindow
+
+
+EFFICIENCY_PIPELINE = importlib.import_module(
+    "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline"
+)
 
 
 TOPOLOGY_IDS = (
@@ -129,9 +135,45 @@ try:
                 assert report.waveform is not None
                 assert report.waveform.time_s
                 assert report.waveform.output_voltage_v
+                assert report.stress is not None
+                assert report.topology_result is not None
                 assert app.workspace.waveform_view.figure.axes
                 assert any(axis.lines for axis in app.workspace.waveform_view.figure.axes)
                 assert str(form.run_efficiency_sweep_button["state"]) == "normal"
+
+                if topology_id == "single_phase_diode_bridge_rectifier_capacitor_filter":
+                    original_evaluator = EFFICIENCY_PIPELINE._evaluate_ac_dc_load_point
+
+                    def fail_quarter_load(base_report, active_plugin, load_pu):
+                        if load_pu == 0.25:
+                            raise RuntimeError("synthetic GUI load-point failure")
+                        return original_evaluator(base_report, active_plugin, load_pu)
+
+                    with patch(
+                        "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline.DEFAULT_LOAD_POINTS",
+                        (0.25, 1.0),
+                    ), patch(
+                        "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline._evaluate_ac_dc_load_point",
+                        new=fail_quarter_load,
+                    ):
+                        form.run_efficiency_sweep_button.invoke()
+                        app.update_idletasks()
+
+                    partial_report = app.state_store.design_report
+                    assert partial_report is not None
+                    partial_sweep = partial_report.efficiency_sweep
+                    assert partial_sweep is not None
+                    assert partial_sweep.load_grid == (0.25, 1.0)
+                    assert len(partial_sweep.points) == 2
+                    assert partial_sweep.points[0].efficiency is None
+                    assert partial_sweep.points[1].efficiency is not None
+                    assert any(
+                        "synthetic GUI load-point failure" in warning
+                        for warning in partial_sweep.warnings
+                    )
+                    assert len(app.workspace.efficiency_view._canvases) == 2
+                    partial_summary = app.workspace.efficiency_view.summary_text.get("1.0", "end")
+                    assert "synthetic GUI load-point failure" in partial_summary
 
                 form.run_efficiency_sweep_button.invoke()
                 app.update_idletasks()

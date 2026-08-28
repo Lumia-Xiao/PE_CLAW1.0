@@ -28,6 +28,20 @@ listed here.
     containment.
   - Merge, tag, release, and `master` push are outside this step.
 
+## 2026-08-28 AC-DC Step 12 Closeout Correction
+
+- What changed:
+  - Added explicit real-GUI assertions for stress and topology results.
+  - Added a real GUI partial-load-failure check proving that a failed point
+    does not discard the valid point, warning text, Efficiency page, or plots.
+  - Recorded the Step 12 receipt commit and final receipt remote HEAD in the
+    delivery manifest, report, and completed plan.
+  - Clarified that the plan's earlier "steps 10-12 pending" text is a historical
+    Step 9 state rather than the current final status.
+- Validation:
+  - Corrected real GUI module: `3 passed in 402.08s`.
+  - Corrected AC-DC focused group: `32 passed in 766.79s`.
+
 ## 2026-08-27 DC-AC Migration Step 10 Packaged GUI Runtime
 
 - What changed:

@@ -503,7 +503,9 @@ C:\Users\Lumia\Documents\ChatGPT\PE-Claw1.0
 
 ## 6. 原 9 步执行结果
 
-状态：`原 9 步已执行；追加整改步骤 10-12 待执行`
+历史阶段状态（步骤 9 完成时）：`原 9 步已执行；当时追加整改步骤 10-12 待执行`
+
+当前最终状态见第 10 节：步骤 10-12 已完成并推送。
 
 完成日期：`2026-08-28`
 
@@ -717,14 +719,14 @@ git push
 1. 已将原伪造 `SimpleNamespace` 报告、手工 PNG 和 mock sweep 的 GUI 测试替换为真实 `PEClawMainWindow` 隔离进程测试。
 2. 五个 AC-DC 拓扑均通过真实表单动作执行 `Run Design -> Run Capacitor -> 必要的 Run Magnetics -> Generate Waveforms -> Run Efficiency Sweep`。
 3. 正式测试未 mock `run_efficiency_sweep`；只把真实负载网格限制为 `(0.5, 1.0)`，并注入证据输出目录。
-4. 已验证真实 candidate、桥式/无桥语义、电容、磁性器件、波形数据、Waveform 结果页 axes、Efficiency 页签、固定硬件说明、warning 和真实 artifact。
+4. 已验证真实 candidate、桥式/无桥语义、电容、磁性器件、波形数据、stress、topology result、Waveform 结果页 axes、Efficiency 页签、固定硬件说明、warning 和真实 artifact。
 5. 五个拓扑各保留 `efficiency_curve.png` 与 `loss_breakdown_stacked.png`，共 10 个文件，SHA-256 已写入 `gui_artifact_manifest.json`。
-6. 缺少硬件时按钮禁用和设计输入变化失效由 GUI 模块覆盖；单负载点失败隔离由 AC-DC backend 回归覆盖。
+6. 缺少硬件时按钮禁用和设计输入变化失效由 GUI 模块覆盖；单负载点失败隔离同时由 AC-DC backend 回归和真实 GUI 结果保留测试覆盖。
 
 验证结果：
 
-- 最终真实 GUI 专项：`3 passed in 404.71s`。
-- AC-DC 分组：`32 passed in 742.86s`。
+- 最终真实 GUI 专项：`3 passed in 402.08s`（收口修正后重跑）。
+- AC-DC 分组：`32 passed in 766.79s`（收口修正后重跑）。
 - DC-AC 分组：`64 passed in 92.83s`。
 - DC-DC/PSFB 分组：`25 passed in 113.67s`。
 - GUI/打包分组：`14 passed in 459.18s`。
@@ -743,8 +745,8 @@ git push
 
 1. 第十二步主体提交：`4af87e6fa93711f00d83017a7f33825b1d1dc9a1`，提交信息为 `test: complete AC-DC GUI efficiency sweep delivery`。
 2. 主体提交已 push 到 `origin/codex/sync-gui-backend-from-2`。
-3. `git ls-remote` 返回远端 HEAD 为 `4af87e6fa93711f00d83017a7f33825b1d1dc9a1`。
-4. `git branch -r --contains 4af87e6` 已确认远端分支包含该提交。
-5. 本独立 push 回执提交负责写回最终 Manifest、报告和计划归档状态。
+3. 主体提交 push 后，`git ls-remote` 返回远端 HEAD 为 `4af87e6fa93711f00d83017a7f33825b1d1dc9a1`。
+4. 独立 push 回执提交：`09dbce48043390c8357c2697f1fbbc27e2fbd147`，提交信息为 `docs: record AC-DC Step 12 push receipt`。
+5. 回执提交 push 后，远端 HEAD 为 `09dbce48043390c8357c2697f1fbbc27e2fbd147`；远端分支包含主体和回执提交。
 
 最终结论：原 9 步和追加步骤 10-12 均已完成，计划满足全部最终交付条件。未执行 merge、tag、release 或 `master` push。

@@ -24,8 +24,8 @@ For each topology it drives the production callbacks from the form:
 The test does not mock `run_efficiency_sweep`. It only limits the production
 sweep to `(0.5, 1.0)` and injects an evidence output root. It verifies the
 real design report, fixed hardware, waveform data, waveform-view axes,
-efficiency points, selected Efficiency tab, fixed-hardware summary, warnings,
-and generated plot canvases.
+stress, topology result, efficiency points, selected Efficiency tab,
+fixed-hardware summary, warnings, and generated plot canvases.
 
 | Topology | Real staged actions | Result |
 | --- | --- | --- |
@@ -35,10 +35,12 @@ and generated plot canvases.
 | Single-phase Boost PFC | Design, capacitor, magnetics, waveform, sweep | 2 valid points; bridge, switch/diode, inductor, and capacitor losses; 2 PNG files |
 | Single-phase Totem-Pole PFC | Design, capacitor, magnetics, waveform, sweep | 2 valid points; HF/LF switch, inductor, and capacitor losses; no bridge; 2 PNG files |
 
-All five sweeps completed without warnings. Missing-hardware button behavior
-and design-input invalidation are covered by the same GUI test module. Isolated
-load-point failure handling remains covered by
-`tests/test_ac_dc_efficiency_sweep.py`.
+All five normal sweeps completed without warnings. The real GUI chain also
+injects one failed load point for the single-phase capacitor-filter topology
+and verifies that the second point, warning text, Efficiency page, and plot
+canvases remain available. Missing-hardware button behavior and design-input
+invalidation are covered by the same GUI test module; backend failure isolation
+remains covered by `tests/test_ac_dc_efficiency_sweep.py`.
 
 ## Artifact Evidence
 
@@ -51,8 +53,8 @@ topology. File sizes and SHA-256 values are recorded in
 
 | Validation | Result |
 | --- | --- |
-| Final real GUI chain and state regressions | `3 passed` in `404.71s` |
-| AC-DC focused regression | `32 passed` in `742.86s` |
+| Final real GUI chain and state regressions | `3 passed` in `402.08s` |
+| AC-DC focused regression | `32 passed` in `766.79s` |
 | DC-AC regression | `64 passed` in `92.83s` |
 | DC-DC and PSFB regression | `25 passed` in `113.67s` |
 | GUI and packaging regression | `14 passed` in `459.18s` |
@@ -74,7 +76,9 @@ reference-database check. Production normalized magnetic data tests passed.
 After the subject push, `git ls-remote` resolved
 `origin/codex/sync-gui-backend-from-2` to
 `4af87e6fa93711f00d83017a7f33825b1d1dc9a1`, and `git branch -r --contains`
-confirmed remote containment.
+confirmed remote containment. The independent push-receipt commit is
+`09dbce48043390c8357c2697f1fbbc27e2fbd147`; after that push, the remote HEAD
+resolved to the same receipt commit.
 
 ## Remaining Limits
 
