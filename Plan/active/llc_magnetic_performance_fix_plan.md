@@ -500,7 +500,7 @@ LLC 变压器搜索当前约使用：
 | 2 | `completed` | `ff8fc27` | `5cc6955` | FHA cache tests 10 passed; baseline 4/4 completed; real cache hits recorded |
 | 3 | `completed` | `e4c2141` | `4774027` | 68 项专项/LLC 回归通过；四档基准 4/4 完成；中规模变压器核心损耗阶段约 0.96 s 降至约 0.11--0.13 s，外置 `Lr` 约 8.17 s 降至约 0.85--0.99 s；候选数、可行数、拒绝分类和代表性结果保持一致 |
 | 4 | `completed` | `0a20914` | `9320bd3` | 预筛选专项 5 passed；磁损/LLC 回归 67 passed；四档基准 4/4 completed；中规模变压器 352 生成候选中 336 个预筛选淘汰、16 个精评、9 个可行，代表候选保持一致 |
-| 5 | `completed` | `b4dce50` | 待本次计划记录提交后填写 | LLC 边界专项 11 passed；四档基准 4/4 completed；默认 fast 保持原 golden 代表候选；支持显式 full 审计搜索 |
+| 5 | `completed` | `b4dce50` | `c792d14` | LLC 边界专项 11 passed；四档基准 4/4 completed；默认 fast 保持原 golden 代表候选；支持显式 full 审计搜索 |
 | 6 | `pending` | - | - | - |
 | 7 | `pending` | - | - | - |
 | 8 | `pending` | - | - | - |
@@ -646,8 +646,8 @@ LLC 变压器搜索当前约使用：
 - 实现 commit：`b4dce50`（`LLC Step 5: configure magnetic search bounds`）。
 - 实现 push 分支：`origin/codex/sync-gui-backend-from-2`。
 - 实现 push 结果：成功。
-- 计划记录 commit：待本次计划记录提交后填写。
-- 计划记录 push 结果：待本次计划记录提交后填写。
+- 计划记录 commit：`c792d14`（`docs: record LLC Step 5 search bounds`）。
+- 计划记录 push 结果：成功。
 
 ### 第 4 步执行结果（2026-08-28）
 
