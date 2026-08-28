@@ -5,6 +5,7 @@ from __future__ import annotations
 import tkinter as tk
 from dataclasses import dataclass
 from tkinter import ttk
+from typing import Callable
 
 from ...libraries.semiconductors.metadata import (
     ACTIVE_SWITCH_CATEGORY_OPTIONS,
@@ -123,6 +124,8 @@ class BaseTopologyForm(ttk.Frame):
         self.run_capacitor_button = None
         self.run_magnetics_button = None
         self.run_efficiency_sweep_button = None
+        self._design_input_trace_ids: list[tuple[tk.StringVar, str]] = []
+        self._on_design_input_changed: Callable[[], None] | None = None
 
     def get_raw_input(self) -> dict[str, str]:
         """Return the raw design input values from the form."""
@@ -174,6 +177,27 @@ class BaseTopologyForm(ttk.Frame):
                 widget = ttk.Entry(parent, textvariable=self.design_vars[field.key])
             widget.grid(row=row, column=1, sticky="ew", padx=6, pady=6)
         self._wire_semiconductor_category_links()
+
+    def set_design_input_change_handler(self, handler: Callable[[], None] | None) -> None:
+        """Notify the shell when a design input changes after form creation."""
+
+        for variable, trace_id in self._design_input_trace_ids:
+            try:
+                variable.trace_remove("write", trace_id)
+            except tk.TclError:
+                pass
+        self._design_input_trace_ids.clear()
+        self._on_design_input_changed = handler
+        if handler is None:
+            return
+
+        for variable in self.design_vars.values():
+            trace_id = variable.trace_add("write", self._notify_design_input_changed)
+            self._design_input_trace_ids.append((variable, trace_id))
+
+    def _notify_design_input_changed(self, *_args) -> None:
+        if self._on_design_input_changed is not None:
+            self._on_design_input_changed()
 
     def build_design_action_buttons(self, parent, row: int, state: str = "normal") -> None:
         """Create the Run Design / Run Capacitor / Run Magnetics row for design forms."""

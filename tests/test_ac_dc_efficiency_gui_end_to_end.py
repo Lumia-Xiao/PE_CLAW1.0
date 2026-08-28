@@ -283,3 +283,105 @@ def test_efficiency_sweep_controller_writes_result_and_timing_to_state() -> None
     sweep_report = run.call_args.args[0]
     assert sweep_report.operating_point == operating_point
     assert run.call_args.kwargs["plugin"] is plugin
+
+
+def test_ac_dc_design_changes_invalidate_old_gui_results_but_operating_changes_do_not() -> None:
+    result = _run_isolated(
+        r'''
+from types import SimpleNamespace
+
+from pe_claw_gui.app.shell.main_window import PEClawMainWindow
+
+
+TOPOLOGY_IDS = (
+    "single_phase_diode_bridge_rectifier_capacitor_filter",
+    "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+    "three_phase_diode_bridge_rectifier_capacitor_filter",
+    "single_phase_boost_pfc_diode_bridge",
+    "single_phase_totem_pole_bridgeless_pfc",
+)
+
+
+def complete_report(topology_id):
+    bridge = (
+        None
+        if topology_id == "single_phase_totem_pole_bridgeless_pfc"
+        else SimpleNamespace(selected_candidate=SimpleNamespace(candidate_id="BRIDGE-1"))
+    )
+    if topology_id == "single_phase_diode_bridge_rectifier_dc_inductor_filter":
+        magnetic = SimpleNamespace(
+            result_type="ac_dc_sendust_reactor",
+            selected_design_id=None,
+            chosen_designs=[],
+            ac_dc_reactor_result=SimpleNamespace(
+                selected_candidate=SimpleNamespace(candidate_id="REACTOR-1")
+            ),
+        )
+    elif topology_id in {
+        "single_phase_boost_pfc_diode_bridge",
+        "single_phase_totem_pole_bridgeless_pfc",
+    }:
+        magnetic = SimpleNamespace(
+            result_type="fixed_inductor",
+            selected_design_id="BOOST-L1",
+            chosen_designs=[],
+            ac_dc_reactor_result=None,
+        )
+    else:
+        magnetic = None
+
+    if topology_id == "single_phase_boost_pfc_diode_bridge":
+        selected_devices = {"main_switch": "Q1", "rectifier_diode": "D1"}
+    elif topology_id == "single_phase_totem_pole_bridgeless_pfc":
+        selected_devices = {
+            "totem_pole_hf_switch": "QHF",
+            "totem_pole_lf_switch": "QLF",
+        }
+    else:
+        selected_devices = {}
+
+    return SimpleNamespace(
+        candidate=SimpleNamespace(),
+        spec=SimpleNamespace(topology_id=topology_id),
+        bridge_rectifier=bridge,
+        magnetic=magnetic,
+        capacitor=SimpleNamespace(
+            output_selection=SimpleNamespace(recommended=SimpleNamespace())
+        ),
+        device=SimpleNamespace(selected_devices=selected_devices),
+        efficiency_sweep=SimpleNamespace(signature="old-sweep"),
+    )
+
+
+app = PEClawMainWindow()
+app.withdraw()
+try:
+    app._on_category_selected("ac_dc")
+    for topology_id in TOPOLOGY_IDS:
+        app._on_topology_selected(topology_id)
+        form = app.workspace.active_form
+        report = complete_report(topology_id)
+        form.update_from_report(report)
+        app.state_store.design_report = report
+        app.state_store.last_raw_input = form.get_raw_input()
+
+        operating_key = next(iter(form.operating_vars))
+        form.operating_vars[operating_key].set(form.operating_vars[operating_key].get())
+        assert app.state_store.design_report is report
+        assert str(form.run_efficiency_sweep_button["state"]) == "normal"
+
+        design_key = next(iter(form.design_vars))
+        form.design_vars[design_key].set(form.design_vars[design_key].get() + "1")
+        app.update_idletasks()
+        assert app.state_store.design_report is None
+        assert app.state_store.last_raw_input is None
+        assert str(form.run_efficiency_sweep_button["state"]) == "disabled"
+        if form.run_capacitor_button is not None:
+            assert str(form.run_capacitor_button["state"]) == "disabled"
+        if form.run_magnetics_button is not None:
+            assert str(form.run_magnetics_button["state"]) == "disabled"
+finally:
+    app.destroy()
+'''
+    )
+    assert result.returncode == 0, result.stderr or result.stdout
