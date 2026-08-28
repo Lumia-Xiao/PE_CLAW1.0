@@ -442,6 +442,7 @@ class LLCTransformerCandidateSearchResult:
     closest_fill_candidates: list[dict[str, object]] = field(default_factory=list)
     scale_search_diagnostics: dict[str, object] = field(default_factory=dict)
     leakage_rejection_audit: dict[str, object] = field(default_factory=dict)
+    prefilter_rejection_counts: dict[str, int] = field(default_factory=dict)
     performance_timing: dict[str, float] = field(default_factory=dict)
     performance_counts: dict[str, int] = field(default_factory=dict)
     artifact_paths: list[str] = field(default_factory=list)
@@ -1217,6 +1218,9 @@ def generate_separated_llc_transformer_candidates(
 
     candidate_evaluation_started = perf_counter()
     evaluation_timing: dict[str, float] = {"core_loss_seconds": 0.0, "thermal_seconds": 0.0}
+    prefilter_rejection_counts: Counter[str] = Counter()
+    prefilter_rejected_candidate_count = 0
+    prefilter_pass_count = 0
     for core in cores:
         generated = generated_turns.get(core.core_id)
         if generated is None:
@@ -1224,6 +1228,18 @@ def generate_separated_llc_transformer_candidates(
         turns_candidates, turns_diagnostics = generated
         for material in materials:
             for turns in turns_candidates:
+                prefilter_reasons = _prefilter_transformer_candidate(
+                    inputs=transformer_inputs,
+                    core=core,
+                    wires=wires,
+                    turns=turns,
+                    turns_diagnostics=turns_diagnostics,
+                )
+                if prefilter_reasons:
+                    prefilter_rejected_candidate_count += 1
+                    prefilter_rejection_counts.update(prefilter_reasons)
+                    continue
+                prefilter_pass_count += 1
                 screened.append(
                     _screen_transformer_candidate(
                         inputs=transformer_inputs,
@@ -1259,7 +1275,18 @@ def generate_separated_llc_transformer_candidates(
         artifact_paths.extend(leakage_audit_path)
     timing["debug_output_seconds"] = perf_counter() - debug_output_started
     candidate_missing_hard_count = _count_rejection(screened, "missing_data_hard")
-    missing_data_count = missing_core_count + missing_material_count + missing_wire_count + candidate_missing_hard_count
+    prefilter_missing_data_count = sum(
+        count
+        for reason, count in prefilter_rejection_counts.items()
+        if reason.startswith("missing_data_hard")
+    )
+    missing_data_count = (
+        missing_core_count
+        + missing_material_count
+        + missing_wire_count
+        + candidate_missing_hard_count
+        + prefilter_missing_data_count
+    )
     hard_missing_reasons = _hard_missing_data_reason_counts(screened)
     if missing_core_count:
         hard_missing_reasons["core_required_fields"] = hard_missing_reasons.get("core_required_fields", 0) + missing_core_count
@@ -1267,12 +1294,24 @@ def generate_separated_llc_transformer_candidates(
         hard_missing_reasons["material_identity_or_bsat"] = hard_missing_reasons.get("material_identity_or_bsat", 0) + missing_material_count
     if missing_wire_count:
         hard_missing_reasons["wire_required_fields"] = hard_missing_reasons.get("wire_required_fields", 0) + missing_wire_count
+    for reason, count in prefilter_rejection_counts.items():
+        if reason.startswith("missing_data_hard"):
+            hard_missing_reasons[reason] = hard_missing_reasons.get(reason, 0) + count
     closest_saturation = _closest_saturation_candidates(screened, transformer_inputs.b_limit_t)
     closest_fill = _closest_fill_candidates(screened)
     scale_diagnostics = _scale_search_diagnostics(screened, skipped_core_diagnostics)
     leakage_audit = _leakage_rejection_audit(screened)
     counts.update(
         {
+            "generated_candidate_count": theoretical_candidate_count,
+            "prefilter_rejected_candidate_count": prefilter_rejected_candidate_count,
+            "prefilter_pass_count": prefilter_pass_count,
+            "precise_evaluated_candidate_count": len(screened),
+            "prefilter_rejected_by_saturation_count": _count_prefilter_reason(prefilter_rejection_counts, "saturation"),
+            "prefilter_rejected_by_lm_count": _count_prefilter_reason(prefilter_rejection_counts, "lm"),
+            "prefilter_rejected_by_current_density_count": _count_prefilter_reason(prefilter_rejection_counts, "current_density"),
+            "prefilter_rejected_by_fill_count": _count_prefilter_reason(prefilter_rejection_counts, "fill"),
+            "prefilter_rejected_by_missing_data_count": prefilter_missing_data_count,
             "evaluated_candidate_count": len(screened),
             "feasible_candidate_count": len(feasible_candidates),
             "skipped_core_count": len(skipped_core_diagnostics),
@@ -1284,6 +1323,7 @@ def generate_separated_llc_transformer_candidates(
         "The separated transformer realizes Np:Ns and Lm; external Lr remains a separate resonant inductor.",
         "Flux model uses Bpeak = Vpri / (4 * Np * Ae * fs) and delta_B = Vpri / (2 * Np * Ae * fs) under symmetric bipolar excitation.",
         "Screening uses first-pass winding, leakage, core-loss, and thermal approximations.",
+        "Deterministic saturation, Lm/gap, winding-capacity, and minimum-fill failures are rejected before precise magnetic-loss and thermal evaluation.",
     ])
     if not feasible_candidates:
         notes.append(
@@ -1300,10 +1340,10 @@ def generate_separated_llc_transformer_candidates(
         registered_wire_count=registered_wire_count,
         evaluated_candidate_count=len(screened),
         feasible_candidate_count=len(feasible_candidates),
-        rejected_by_saturation_count=_count_rejection(screened, "saturation"),
-        rejected_by_lm_count=_count_rejection(screened, "lm"),
+        rejected_by_saturation_count=_count_rejection(screened, "saturation") + _count_prefilter_reason(prefilter_rejection_counts, "saturation"),
+        rejected_by_lm_count=_count_rejection(screened, "lm") + _count_prefilter_reason(prefilter_rejection_counts, "lm"),
         rejected_by_leakage_count=_count_rejection(screened, "leakage"),
-        rejected_by_fill_count=_count_rejection(screened, "fill"),
+        rejected_by_fill_count=_count_rejection(screened, "fill") + _count_prefilter_reason(prefilter_rejection_counts, "fill"),
         rejected_by_thermal_count=_count_rejection(screened, "thermal"),
         rejected_by_missing_data_count=missing_data_count,
         rejected_by_missing_hard_data_count=missing_data_count,
@@ -1314,6 +1354,7 @@ def generate_separated_llc_transformer_candidates(
         screened_candidates_sample=sample,
         recommended_preliminary_candidate=recommended,
         hard_missing_data_reasons=hard_missing_reasons,
+        prefilter_rejection_counts=dict(prefilter_rejection_counts),
         closest_saturation_candidates=closest_saturation,
         closest_fill_candidates=closest_fill,
         scale_search_diagnostics=scale_diagnostics,
@@ -3733,6 +3774,86 @@ def _screen_transformer_candidate(
     )
 
 
+def _prefilter_transformer_candidate(
+    *,
+    inputs: LLCTransformerDesignInputs,
+    core: _NormalizedCoreRecord,
+    wires: list[_NormalizedWireRecord],
+    turns: LLCTransformerTurnsCandidate,
+    turns_diagnostics: Mapping[str, object],
+) -> tuple[str, ...]:
+    """Apply only conservative, deterministic checks before full screening.
+
+    Every check mirrors a later full-screening constraint.  Missing records
+    are left to the established hard-missing-data path so their diagnostics
+    remain unchanged.
+    """
+
+    reasons: list[str] = []
+    required_np = int(turns_diagnostics.get("np_required_by_saturation", turns.np))
+    if turns.np < required_np:
+        reasons.append("saturation_b_limit")
+
+    gap_m = compute_gap_for_lm(turns.np, core.ae_m2, inputs.lm_target_h, core.le_m)
+    lm_actual_h = compute_lm_from_gap(turns.np, core.ae_m2, gap_m)
+    lm_error_percent = 100.0 * (lm_actual_h - inputs.lm_target_h) / inputs.lm_target_h
+    gap_to_le = gap_m / core.le_m if core.le_m > 0.0 else float("inf")
+    if (
+        gap_m <= 0.0
+        or gap_to_le > 0.15
+        or abs(lm_error_percent) > inputs.lm_tolerance_percent
+    ):
+        reasons.append("lm_or_gap_limit")
+
+    if not wires:
+        return tuple(reasons)
+
+    primary = _minimum_winding_capacity(
+        turns=turns.np,
+        current_rms_a=inputs.primary_current_rms_a,
+        wires=wires,
+    )
+    secondary = _minimum_winding_capacity(
+        turns=turns.ns,
+        current_rms_a=inputs.secondary_current_rms_a,
+        wires=wires,
+    )
+    if primary is None or secondary is None:
+        reasons.append("current_density_limit")
+        return tuple(reasons)
+
+    minimum_fill_area_m2 = (
+        primary[0]
+        + secondary[0]
+        + core.window_area_m2 * DEFAULT_INSULATION_WINDOW_RESERVE_FRACTION
+    )
+    if minimum_fill_area_m2 / core.window_area_m2 > DEFAULT_FILL_FACTOR_LIMIT:
+        reasons.append("fill_factor_limit")
+    return tuple(reasons)
+
+
+def _minimum_winding_capacity(
+    *,
+    turns: int,
+    current_rms_a: float,
+    wires: list[_NormalizedWireRecord],
+) -> tuple[float, int] | None:
+    """Return the smallest exact fill area that satisfies the 12-parallel limit."""
+
+    best: tuple[float, int] | None = None
+    for wire in wires:
+        for parallel in range(1, 13):
+            conductor_area_m2 = wire.bundle_copper_area_m2 * parallel
+            current_density = current_rms_a / max(conductor_area_m2 * 1e6, 1e-12)
+            if current_density <= DEFAULT_CURRENT_DENSITY_LIMIT_A_PER_MM2:
+                fill_area_m2 = turns * conductor_area_m2 * LITZ_PACKING_FACTOR
+                candidate = (fill_area_m2, parallel)
+                if best is None or candidate < best:
+                    best = candidate
+                break
+    return best
+
+
 def _estimate_winding(
     *,
     winding_name: str,
@@ -4120,6 +4241,16 @@ def _count_rejection(candidates: list[LLCTransformerScreeningCandidate], reason_
         1
         for candidate in candidates
         if any(reason_token in reason for reason in candidate.rejection_reasons)
+    )
+
+
+def _count_prefilter_reason(counts: Mapping[str, int], reason_token: str) -> int:
+    """Count prefilter rejections by their stable primary reason token."""
+
+    return sum(
+        count
+        for reason, count in counts.items()
+        if reason.split("(", 1)[0].split(":", 1)[0].startswith(reason_token)
     )
 
 
