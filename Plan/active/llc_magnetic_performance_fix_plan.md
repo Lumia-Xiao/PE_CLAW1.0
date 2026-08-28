@@ -496,7 +496,7 @@ LLC 变压器搜索当前约使用：
 
 | 步骤 | 状态 | 实现 commit | 计划记录 commit | 验证摘要 |
 | ---: | --- | --- | --- | --- |
-| 1 | `completed` | `8310634` | `PENDING_PLAN_COMMIT` | 4/4 baseline cases completed; 0 timeout; 0 error; LLC regression 7 passed |
+| 1 | `completed` | `8310634` | `0fed73e` | 4/4 baseline cases completed; 0 timeout; 0 error; LLC regression 7 passed |
 | 2 | `pending` | - | - | - |
 | 3 | `pending` | - | - | - |
 | 4 | `pending` | - | - | - |
@@ -550,4 +550,5 @@ LLC 变压器搜索当前约使用：
 - 实现 commit：`8310634`（`LLC Step 1: freeze magnetic performance baseline`）
 - 实现 push 分支：`origin/codex/sync-gui-backend-from-2`
 - 实现 push 结果：成功
-- 计划记录 commit：待本次计划记录提交后填写
+- 计划记录 commit：`0fed73e`（`docs: record LLC Step 1 baseline`）
+- 计划记录 push 结果：成功
