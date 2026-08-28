@@ -501,7 +501,7 @@ LLC 变压器搜索当前约使用：
 | 3 | `completed` | `e4c2141` | `4774027` | 68 项专项/LLC 回归通过；四档基准 4/4 完成；中规模变压器核心损耗阶段约 0.96 s 降至约 0.11--0.13 s，外置 `Lr` 约 8.17 s 降至约 0.85--0.99 s；候选数、可行数、拒绝分类和代表性结果保持一致 |
 | 4 | `completed` | `0a20914` | `9320bd3` | 预筛选专项 5 passed；磁损/LLC 回归 67 passed；四档基准 4/4 completed；中规模变压器 352 生成候选中 336 个预筛选淘汰、16 个精评、9 个可行，代表候选保持一致 |
 | 5 | `completed` | `b4dce50` | `c792d14` | LLC 边界专项 11 passed；四档基准 4/4 completed；默认 fast 保持原 golden 代表候选；支持显式 full 审计搜索 |
-| 6 | `pending` | - | - | - |
+| 6 | `completed` | `aa9956c` | 待本次计划记录提交后填写 | reusable metrics cache implemented; 14 LLC baseline/cache tests and 67 shared regressions passed; controlled transformer-small evidence completed |
 | 7 | `pending` | - | - | - |
 | 8 | `pending` | - | - | - |
 | 9 | `pending` | - | - | - |
@@ -519,11 +519,12 @@ LLC 变压器搜索当前约使用：
 
 ## 9. 当前状态
 
-第 1、2、3、4、5 步已完成，后续从第 6 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
+第 1、2、3、4、5、6 步已完成，后续从第 7 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
 第 2 步加入了 FHA 边界频率有界缓存并验证了实际缓存命中，第 3 步完成了标准标量
 三角波的精确分段损耗路径、候选筛选采样优化和有界缓存，第 4 步完成了变压器候选
 的确定性廉价预筛选和可审计统计，第 5 步完成了 LLC 磁性搜索边界的统一配置化和
-快速/完整模式切换。后续步骤仍必须严格按照
+快速/完整模式切换，第 6 步完成了变压器材料无关磁性指标的版本化不可变缓存，
+并将缓存命中率、重复构建减少量和模型单位语义接入结构化证据。后续步骤仍必须严格按照
 本文件的范围、完成条件和提交同步规则推进。
 
 ### 第 1 步执行结果（2026-08-28）
@@ -648,6 +649,35 @@ LLC 变压器搜索当前约使用：
 - 实现 push 结果：成功。
 - 计划记录 commit：`c792d14`（`docs: record LLC Step 5 search bounds`）。
 - 计划记录 push 结果：成功。
+
+### 第 6 步执行结果（2026-08-28）
+
+- 在 LLC 变压器候选评估中拆分材料无关的可复用指标：四个边界磁通 case、Lm/气隙、
+  匝数磁通、primary/secondary 绕组选择与铜损、漏感几何和漏感估算；材料相关的
+  Steinmetz/core-loss 与最终热计算仍按材料独立执行。
+- 新增版本化、单位显式的不可变缓存 DTO 与有界 LRU：模型版本为
+  `llc-transformer-reusable-metrics-v1`，单位语义为 `SI: m, m2, m3, H, T, Hz, A, W`，
+  容量为 4096；key 覆盖 core、turns、完整工作点、导线集合、绕组排列和频率求解器身份。
+- 缓存内部使用 tuple 和 frozen dataclass；候选输出对边界 case、winding notes/warnings
+  等可变字段建立独立副本，避免一个候选修改后污染后续候选。
+- 新增 `clear_llc_reusable_magnetic_metrics_cache()` 和
+  `llc_reusable_magnetic_metrics_cache_info()`；pipeline 与基准证据记录版本、单位、
+  容量、命中、未命中、缓存大小、命中率和避免的重复构建数。
+- 新增固定 fixture 测试覆盖相同工况命中、core/匝数/工作点变化失效、不可变缓存对象、
+  两个材料共享一次可复用构建，以及性能统计守恒。
+- 证据文件：`migration/evidence/20260828/llc_magnetic_performance_step6/llc_magnetic_performance_baseline.json`。
+  受控 transformer-small 档完成；缓存统计为 3 hits、3 misses、3 次避免重复构建、
+  命中率 0.5，候选数量和既有筛选语义保持一致。
+- 验证命令：
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_magnetic_performance_baseline.py`
+  （14 passed）；
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_core_loss_kernel.py tests/test_core_loss_router.py tests/test_magnetic_loss_contract.py tests/test_phase7_dc_dc_topologies.py`
+  （67 passed）；编译检查和 `git diff --check` 通过。
+- 实现 commit：`aa9956c`（`LLC Step 6: cache reusable magnetic metrics`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`。
+- 实现 push 结果：成功。
+- 计划记录 commit：待本次计划记录提交后填写。
+- 计划记录 push 结果：待本次计划记录提交后填写。
 
 ### 第 4 步执行结果（2026-08-28）
 
