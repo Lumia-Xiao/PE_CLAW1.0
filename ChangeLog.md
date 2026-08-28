@@ -22,7 +22,10 @@ listed here.
   - Compileall and `git diff --check`: passed.
 - Git:
   - Steps 10 and 11 are present on `origin/codex/sync-gui-backend-from-2`.
-  - Step 12 subject commit and independent push receipt remain to be recorded.
+  - Step 12 subject commit `4af87e6fa93711f00d83017a7f33825b1d1dc9a1`
+    is present on `origin/codex/sync-gui-backend-from-2`.
+  - This independent receipt archives the completed plan and records remote
+    containment.
   - Merge, tag, release, and `master` push are outside this step.
 
 ## 2026-08-27 DC-AC Migration Step 10 Packaged GUI Runtime

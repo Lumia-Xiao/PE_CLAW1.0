@@ -1,6 +1,6 @@
 {
   "contract": "ac_dc_efficiency_sweep_delivery_v2",
-  "status": "VALIDATED_AWAITING_STEP12_SUBJECT_PUSH",
+  "status": "COMPLETED_READY_FOR_USER_ACCEPTANCE",
   "date": "2026-08-28",
   "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
   "branch": "codex/sync-gui-backend-from-2",
@@ -10,10 +10,11 @@
   "step10_push_verified": true,
   "step11_commit": "3698f0b2fa1d677b809881c29e5026feac997dfa",
   "step11_push_verified": true,
-  "step12_subject_commit": null,
-  "step12_subject_push_verified": false,
+  "step12_subject_commit": "4af87e6fa93711f00d83017a7f33825b1d1dc9a1",
+  "step12_subject_push_verified": true,
+  "step12_remote_head_after_subject_push": "4af87e6fa93711f00d83017a7f33825b1d1dc9a1",
   "step12_receipt_commit": null,
-  "plan_path": "Plan\\active\\ac_dc_efficiency_sweep_fix_plan.md",
+  "plan_path": "Plan\\completed\\ac_dc_efficiency_sweep_fix_plan.md",
   "real_gui_chain": {
     "window": "PEClawMainWindow",
     "topology_count": 5,
@@ -113,8 +114,8 @@
     },
     "compileall": "passed",
     "git_diff_check": "passed",
-    "json_parse": "pending final receipt validation",
-    "remote_containment": "pending Step 12 subject push"
+    "json_parse": "passed before receipt commit",
+    "remote_containment": "origin/codex/sync-gui-backend-from-2 contains step12_subject_commit"
   },
   "release_boundary": {
     "user_acceptance_required": true,

@@ -710,7 +710,7 @@ git push
 
 ## 10. 第十二步执行记录
 
-状态：`技术验证完成，等待第十二步主体提交与 push 回执`
+状态：`COMPLETED - READY_FOR_USER_ACCEPTANCE`
 
 已完成内容：
 
@@ -739,9 +739,12 @@ git push
 - `migration/evidence/20260828/step12_ac_dc_efficiency_sweep/gui_artifact_manifest.json`
 - `migration/evidence/20260828/step12_ac_dc_efficiency_sweep/gui_artifacts/`
 
-待完成的提交收口：
+提交收口：
 
-1. 使用指定信息创建第十二步主体提交：`test: complete AC-DC GUI efficiency sweep delivery`。
-2. push 主体提交到 `origin/codex/sync-gui-backend-from-2` 并验证远端包含关系。
-3. 使用独立 push 回执提交，将主体 commit 哈希和 push 状态写回报告、Manifest 和本计划。
-4. 完成回执后将本计划移动到 `Plan/completed`，最终状态标记为 `COMPLETED - READY_FOR_USER_ACCEPTANCE`。
+1. 第十二步主体提交：`4af87e6fa93711f00d83017a7f33825b1d1dc9a1`，提交信息为 `test: complete AC-DC GUI efficiency sweep delivery`。
+2. 主体提交已 push 到 `origin/codex/sync-gui-backend-from-2`。
+3. `git ls-remote` 返回远端 HEAD 为 `4af87e6fa93711f00d83017a7f33825b1d1dc9a1`。
+4. `git branch -r --contains 4af87e6` 已确认远端分支包含该提交。
+5. 本独立 push 回执提交负责写回最终 Manifest、报告和计划归档状态。
+
+最终结论：原 9 步和追加步骤 10-12 均已完成，计划满足全部最终交付条件。未执行 merge、tag、release 或 `master` push。

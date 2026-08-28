@@ -2,12 +2,12 @@
 
 ## Delivery Status
 
-`VALIDATED - AWAITING STEP 12 SUBJECT PUSH`
+`COMPLETED - READY_FOR_USER_ACCEPTANCE`
 
-The additional remediation work for the AC-DC efficiency sweep is implemented
-and validated on `codex/sync-gui-backend-from-2`. Steps 10 and 11 are already
-present on the remote branch. This report will be finalized by an independent
-push-receipt commit after the Step 12 subject commit is pushed.
+The additional remediation work for the AC-DC efficiency sweep is implemented,
+validated, and pushed on `codex/sync-gui-backend-from-2`. Steps 10, 11, and 12
+are present on the remote branch. This independent receipt records the Step 12
+subject commit and archives the completed plan.
 
 ## Real GUI Chain
 
@@ -69,7 +69,12 @@ reference-database check. Production normalized magnetic data tests passed.
 | --- | --- | --- | --- |
 | 10 | `70600e262da9e61f5280c3886bcdcf0997caef1c` | `fix: order AC-DC bridge selection before dependent stages` | present on remote branch |
 | 11 | `3698f0b2fa1d677b809881c29e5026feac997dfa` | `fix: invalidate AC-DC sweep after design changes` | present on remote branch |
-| 12 | recorded by the independent push receipt | `test: complete AC-DC GUI efficiency sweep delivery` | pending subject push |
+| 12 | `4af87e6fa93711f00d83017a7f33825b1d1dc9a1` | `test: complete AC-DC GUI efficiency sweep delivery` | present on remote branch |
+
+After the subject push, `git ls-remote` resolved
+`origin/codex/sync-gui-backend-from-2` to
+`4af87e6fa93711f00d83017a7f33825b1d1dc9a1`, and `git branch -r --contains`
+confirmed remote containment.
 
 ## Remaining Limits
 
@@ -83,7 +88,7 @@ reference-database check. Production normalized magnetic data tests passed.
 
 ## Verdict
 
-The technical acceptance conditions for Step 12 are satisfied. Final status
-becomes `COMPLETED - READY_FOR_USER_ACCEPTANCE` only after the subject commit
-is pushed, remote containment is verified, this report and the manifest are
-updated with the real commit hash, and the plan is moved to `Plan/completed`.
+All 12 planned activities and the three additional remediation steps are
+complete. The real GUI chain, backend prerequisites, state invalidation,
+artifacts, grouped regressions, full-suite regression, commit chain, and remote
+push checks satisfy the focused delivery criteria.
