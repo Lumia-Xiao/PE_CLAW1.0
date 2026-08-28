@@ -501,9 +501,9 @@ C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0
 C:\Users\Lumia\Documents\ChatGPT\PE-Claw1.0
 ```
 
-## 6. 执行结果
+## 6. 原 9 步执行结果
 
-状态：`COMPLETED - READY_FOR_USER_ACCEPTANCE`
+状态：`原 9 步已执行；追加整改步骤 10-12 待执行`
 
 完成日期：`2026-08-28`
 
@@ -542,3 +542,168 @@ C:\Users\Lumia\Documents\ChatGPT\PE-Claw1.0
 - Step 9 主体提交 `e95183924f871745bfec624ad4857faa24744c91`
   已推送，且远端分支包含关系已验证。
 - 未执行 merge、tag、release 或 `master` push。
+
+## 7. 复审发现的未完成内容
+
+对原 9 步计划逐项复审后，发现以下内容虽然已有提交和部分测试，但尚未完全满足原计划验收标准：
+
+1. 第二步要求桥式整流器选择发生在 loss、thermal 和 efficiency 阶段之前；当前 `run_full_pipeline()` 将桥式整流器选择放在 magnetic、loss、thermal、geometry 之后。
+2. 第四步要求设计输入变化后旧 sweep 不再继续使用；当前 AC-DC 表单没有统一监听设计字段变化，已有完整报告时修改设计输入不会立即禁用 Efficiency 按钮。
+3. 第八步要求验证真实 GUI 用户操作链；当前端到端测试通过伪造 `SimpleNamespace` 报告、手工 PNG 和 mock controller 验证结果页，没有真实执行五个拓扑的 `Run Design -> Run Capacitor/Run Magnetics -> Generate Waveforms -> Run Efficiency Sweep` 按钮链。
+
+因此，原第九步交付报告中的 `READY_FOR_USER_ACCEPTANCE` 只能作为原阶段的暂定结论；在步骤 10-12 完成前，整个修复计划不得标记为最终完成。
+
+## 8. 追加整改计划
+
+追加整改分为 3 步。每一步必须独立完成、独立验证、独立 commit 和独立 push；不得把步骤 10-12 合并为一个提交。每一步开始前先核对当前工作树，结束后只提交本步骤涉及的文件，不删除已有未跟踪缓存、输出和虚拟环境。
+
+### 第十步：调整桥式整流器选择阶段顺序
+
+**目的**
+
+满足第二步原定的阶段依赖：桥式整流器候选必须在依赖桥式硬件的 loss、thermal、geometry 和 efficiency 之前生成并写入 `DesignReport`。
+
+**修改范围**
+
+- `src/pe_claw_gui/pipeline/run_full_pipeline.py`
+- `src/pe_claw_gui/pipeline/run_bridge_rectifier_pipeline.py`，仅在需要时调整接口或注释
+- `tests/test_ac_dc_efficiency_sweep.py`
+- 必要时新增阶段顺序测试文件
+
+**详细修改安排**
+
+1. 梳理 `run_full_pipeline()` 当前 topology、device、magnetic、bridge、loss、thermal、geometry 和 capacitor 的数据依赖。
+2. 将 `run_bridge_rectifier_pipeline(report)` 移到 loss、thermal、geometry 之前，并保证仅对 `SUPPORTED_BRIDGE_RECTIFIER_TOPOLOGIES` 执行。
+3. 保证三个普通桥式拓扑和 Boost PFC 在桥选择后仍保留 candidate、device、magnetic、capacitor 等报告字段。
+4. 验证 Totem-Pole 不进入桥式整流器选择路径，避免破坏无桥拓扑语义。
+5. 检查桥式整流器选择失败时的 notes、rejection breakdown 和 warning 是否仍然可诊断；禁止用默认器件静默替代失败结果。
+6. 新增或调整测试，使用可观测调用顺序或阶段探针证明 bridge selection 先于 loss/thermal/geometry；同时验证五个 AC-DC 拓扑的最终报告仍可运行 efficiency sweep。
+
+**验证安排**
+
+- 运行桥式整流器模型和 AC-DC 专项测试。
+- 运行五拓扑完整设计与小负载 efficiency sweep。
+- 运行 `python -B -m compileall -q src tests` 和 `git diff --check`。
+- 检查只包含步骤 10 文件的 diff，确认无计划外文件进入暂存区。
+
+**验收标准**
+
+- 桥式整流器选择在后续 loss、thermal、geometry 和 efficiency 依赖之前完成。
+- 三个普通桥式拓扑和 Boost PFC 的 selected bridge 仍非空且包含可审计选择数据。
+- Totem-Pole 仍无 bridge rectifier。
+- 五个 AC-DC sweep 不出现新增失败。
+
+**提交要求**
+
+```text
+git commit -m "fix: order AC-DC bridge selection before dependent stages"
+git push
+```
+
+### 第十一步：设计输入变化时失效旧硬件和旧效率扫描
+
+**目的**
+
+满足第四步的状态一致性要求：设计输入变化后，旧的 candidate、硬件选择和 efficiency sweep 不能继续被 GUI 当作当前结果使用。
+
+**修改范围**
+
+- `src/pe_claw_gui/app/topology_forms/base_form.py`
+- 五个 AC-DC topology form 文件，仅在拓扑特有字段需要额外处理时修改
+- `src/pe_claw_gui/app/shell/workspace.py`
+- `src/pe_claw_gui/app/controllers/run_design_controller.py`
+- `src/pe_claw_gui/app/shell/state_store.py`，仅在状态清理接口需要扩展时修改
+- `tests/test_ac_dc_efficiency_gui_end_to_end.py`
+- 必要时新增 GUI 状态回归测试
+
+**详细修改安排**
+
+1. 为 AC-DC 设计字段建立统一变更监听或等价的 dirty-state 机制，覆盖普通整流、DC 电感滤波、Boost PFC 和 Totem-Pole 的所有设计输入。
+2. 设计字段变化时立即将 Efficiency 按钮置为 disabled，并清除或标记旧的 efficiency sweep、运行时间字段和过期硬件状态。
+3. 保证 operating-point 字段变化不会错误地清除固定硬件；只有会改变设计 candidate 或器件选择的设计字段触发完整失效。
+4. 保证点击 `Run Design` 后重新生成的 report 会重新要求必要的 `Run Capacitor` 和 `Run Magnetics`，旧 capacitor/magnetic 结果不能被误复用。
+5. 保证 `ensure_active_topology_current()` 与 GUI dirty-state 使用同一判断规则，避免按钮显示可用但后端立即返回硬件缺失 warning。
+6. 设计输入变化后重新点击 Efficiency 时，应先阻断或引导用户完成必要设计阶段；测试旧 sweep 不会从 state store 或结果页继续显示为当前有效结果。
+
+**验证安排**
+
+- GUI 隔离测试：五个 AC-DC 表单完成报告后修改一个设计字段，断言按钮立即 disabled、旧 sweep 被清除或标记失效。
+- 修改 operating point 后，断言固定硬件仍可复用且 sweep 使用新 operating point。
+- 修改 design input 后，断言 Run Design、Run Capacitor、Run Magnetics、Efficiency 的状态和后端 warning 一致。
+- 运行 GUI、controller、AC-DC efficiency 和全量相关回归；执行 compileall 与 diff check。
+
+**验收标准**
+
+- 任一 AC-DC 设计字段变化后，旧 Efficiency sweep 不会继续作为当前有效结果。
+- Efficiency 按钮立即反映 dirty 状态并禁用，直到新的必要硬件阶段完成。
+- operating-point 变化不破坏固定硬件复用。
+- GUI 与后端不会出现按钮可用但后端立即返回同一硬件缺失 warning 的不一致。
+
+**提交要求**
+
+```text
+git commit -m "fix: invalidate AC-DC sweep after design changes"
+git push
+```
+
+### 第十二步：补齐真实 GUI 按钮链并重新完成最终交付
+
+**目的**
+
+满足第八步真实用户链路和第九步最终交付要求，证明五个 AC-DC 拓扑可以从 GUI 操作入口完成设计、必要硬件阶段、波形和效率扫描，并更新最终报告。
+
+**修改范围**
+
+- `tests/test_ac_dc_efficiency_gui_end_to_end.py`
+- `tests/test_ac_dc_efficiency_sweep.py`
+- `src/pe_claw_gui/app/shell/main_window.py`，仅在真实链路暴露出控制器/刷新缺陷时修改
+- `src/pe_claw_gui/app/shell/workspace.py`，仅在真实链路暴露出结果页刷新缺陷时修改
+- `migration/evidence/20260828/step12_ac_dc_efficiency_sweep/`
+- `migration/README.md`
+- `ChangeLog.md`
+
+**详细修改安排**
+
+1. 重写或新增隔离 GUI 测试，实例化真实 `PEClawMainWindow`，打开 AC-DC 分类页并按顺序选择五个拓扑。
+2. 对每个拓扑通过真实 form action callback 或按钮 `.invoke()` 执行 `Run Design`，等待 GUI 更新后检查 candidate、waveform、stress 和拓扑报告。
+3. 对 DC 电感滤波、Boost PFC 和 Totem-Pole 执行真实 `Run Magnetics`；对五个拓扑执行真实 `Run Capacitor`，检查必要的 selected hardware。
+4. 执行真实 `Generate Waveforms`，确认 waveform result view 有非空 axes/data；不使用手工构造 waveform 代替。
+5. 执行真实 `Run Efficiency Sweep`，不 mock `run_efficiency_sweep`；使用小负载网格或注入可控输出目录以控制耗时，但必须运行真实 pipeline/controller。
+6. 检查 Efficiency result notebook tab、summary、固定硬件说明、warning、efficiency curve 和 loss breakdown artifact；artifact 必须由真实 sweep 生成。
+7. 为异常路径增加验证：缺少硬件时按钮 disabled 或显示明确 warning；单个 load point 失败不使整个 GUI 结果对象丢失。
+8. 重新运行 AC-DC、DC-AC、DC-DC/PSFB、GUI/打包及全量 pytest，记录准确命令、结果、skip 原因和运行时间。
+9. 更新最终报告和机器可读 manifest，列出追加步骤 10-12 的提交哈希、push 回执、真实 GUI 证据和剩余 first-pass 限制；确认计划满足所有最终交付标准后才归档回 `Plan/completed`。
+
+**验证安排**
+
+- 真实 GUI 五拓扑端到端测试必须通过。
+- AC-DC 专项测试、非 AC-DC 回归和全量 pytest 必须无新增 failure/error。
+- 验证五拓扑各自产生真实 `efficiency_curve.png` 和 `loss_breakdown_stacked.png`。
+- 运行 JSON/Manifest schema 解析、提交链 ancestry、远端分支 containment、compileall 和 `git diff --check`。
+- 在最终报告中明确仍未执行的 merge、tag、release 和 `master` push 不属于本计划。
+
+**验收标准**
+
+- 五个 AC-DC 拓扑都能通过真实 GUI 按钮链完成 Efficiency Sweep。
+- Efficiency 结果来自真实 pipeline，不是 mock 或手工构造。
+- GUI 按钮、state store、后端 prerequisite 和结果页状态一致。
+- 追加步骤 10-12 均有独立 commit 和 push。
+- 计划中的所有最终交付标准均有证据，之后才允许把计划标记为 `COMPLETED - READY_FOR_USER_ACCEPTANCE` 并归档。
+
+**提交要求**
+
+```text
+git commit -m "test: complete AC-DC GUI efficiency sweep delivery"
+git push
+```
+
+## 9. 追加整改后的最终完成条件
+
+只有同时满足以下条件，计划才可以再次移动到 `Plan/completed`：
+
+- 步骤 10、11、12 均独立提交并推送到 `origin/codex/sync-gui-backend-from-2`。
+- 桥式整流器选择顺序已经通过阶段顺序测试证明。
+- 设计输入变化失效行为已经通过五拓扑 GUI 测试证明。
+- 真实 GUI 按钮链已经通过隔离进程端到端测试证明。
+- 全量测试、分组测试和 artifact 清单已在最终报告中更新。
+- 报告和 Manifest 不再把未验证的链路标记为已完成。
