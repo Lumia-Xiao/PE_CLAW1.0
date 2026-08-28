@@ -310,3 +310,28 @@ listed here.
   - DC-AC delivery smoke: `23 passed`.
   - Manifest evidence hashes: 0 mismatches; runtime source-path and AI/agentic
     import scans: 0 hits; compileall and `git diff --check`: passed.
+
+## 2026-08-28 AC-DC Efficiency Sweep Final Delivery
+
+- What changed:
+  - Added the final AC-DC efficiency-sweep repair report and machine-readable
+    delivery manifest.
+  - Recorded the before/after failure matrix, fixed-hardware prerequisites,
+    evaluator dispatch, included loss paths, artifacts, validation results,
+    commit chain, push state, and remaining modeling limits.
+  - Archived the completed nine-step plan under `Plan/completed/` and updated
+    the migration evidence index.
+- Validation:
+  - AC-DC focused regression: `27 passed`.
+  - DC-AC regression: `64 passed`.
+  - DC-DC and PSFB regression: `25 passed`.
+  - GUI and packaging chain: `13 passed`.
+  - Full suite: `338 passed, 1 skipped`; no failures or errors.
+  - JSON parsing, commit-chain ancestry, remote-head, artifact inventory,
+    syntax, and whitespace checks are required before the delivery commit.
+- Git:
+  - Branch: `codex/sync-gui-backend-from-2`.
+  - Planned subject commit: `docs: finalize AC-DC efficiency sweep delivery`.
+  - The exact Step 9 commit and push result are recorded by a post-push receipt
+    update.
+  - Merge, tag, release, and `master` push are outside this step.
