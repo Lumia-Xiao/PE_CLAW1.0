@@ -496,7 +496,7 @@ LLC 变压器搜索当前约使用：
 
 | 步骤 | 状态 | 实现 commit | 计划记录 commit | 验证摘要 |
 | ---: | --- | --- | --- | --- |
-| 1 | `pending` | - | - | - |
+| 1 | `completed` | `8310634` | `PENDING_PLAN_COMMIT` | 4/4 baseline cases completed; 0 timeout; 0 error; LLC regression 7 passed |
 | 2 | `pending` | - | - | - |
 | 3 | `pending` | - | - | - |
 | 4 | `pending` | - | - | - |
@@ -519,5 +519,35 @@ LLC 变压器搜索当前约使用：
 
 ## 9. 当前状态
 
-计划已建立，尚未执行任何 LLC 性能修复步骤。后续从第 1 步开始，严格按照本文件
-的范围、完成条件和提交同步规则推进。
+第 1 步已完成，后续从第 2 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
+并将阶段计时接入 LLC 变压器、外置 `Lr` 搜索和磁件 pipeline。后续步骤仍必须
+严格按照本文件的范围、完成条件和提交同步规则推进。
+
+### 第 1 步执行结果（2026-08-28）
+
+- 阶段计时已加入 `MagneticResult.performance_timing`，并通过结构化输出的
+  `magnetic.metadata.performance_timing` 对外暴露。
+- 变压器搜索结果记录：参数准备、候选生成、候选评估、磁芯损耗、热计算、
+  调试输出和总耗时，以及数据库候选规模、匝数候选数、理论候选数、评估数和
+  可行数。
+- 外置 `Lr` 搜索结果记录：参数准备、候选评估、磁芯损耗、热计算、Pareto、
+  调试输出和总耗时，以及核心/材料/导线、匝数、评估、可行和 Pareto 数量。
+- 基准脚本：`scripts/freeze_llc_magnetic_performance_baseline.py`
+- 基准证据：`migration/evidence/20260828/llc_magnetic_performance/llc_magnetic_performance_baseline.json`
+- 基准测试：`tests/test_llc_magnetic_performance_baseline.py`
+- 数据库后端：`packaged_normalized_v2` / `normalized_v2_production`
+- 数据库规模：637 cores、160 materials、1628 wires
+- `transformer-small`：90 candidates、0 feasible、0.294 s
+- `transformer-medium`：352 candidates、9 feasible、1.103 s
+- `external-lr-small`：transformer seed 352/9/1.024 s；external `Lr` 414/0/1.230 s
+- `external-lr-medium`：transformer seed 352/9/1.018 s；external `Lr` 3020/186/8.294 s
+- 四档基线结果：4/4 completed、0 timeout、0 error
+- 专项验证命令：
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_magnetic_performance_baseline.py tests/test_phase7_dc_dc_topologies.py tests/test_phase5_pipeline_closure.py`
+- 专项验证结果：`7 passed`
+- 编译检查：通过
+- `git diff --check`：通过
+- 实现 commit：`8310634`（`LLC Step 1: freeze magnetic performance baseline`）
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`
+- 实现 push 结果：成功
+- 计划记录 commit：待本次计划记录提交后填写
