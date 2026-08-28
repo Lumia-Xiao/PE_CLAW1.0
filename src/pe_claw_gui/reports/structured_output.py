@@ -171,6 +171,7 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
         "metadata": {
             "result_type": getattr(magnetic, "result_type", ""),
             "design_type": getattr(magnetic, "design_type", ""),
+            "performance_timing": getattr(magnetic, "performance_timing", {}),
         },
     }
 

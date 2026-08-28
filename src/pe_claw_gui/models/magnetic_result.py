@@ -160,6 +160,8 @@ class LlcExternalResonantInductorSearchResult:
     pareto_png_path: str = ""
     pareto_notes: list[str] = field(default_factory=list)
     plot_diagnostics: dict[str, object] = field(default_factory=dict)
+    performance_timing: dict[str, float] = field(default_factory=dict)
+    performance_counts: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -211,5 +213,6 @@ class MagneticResult:
     ac_dc_reactor_result: AcDcReactorSelectionResult | None = None
     core_loss_excitation_audit: dict[str, object] = field(default_factory=dict)
     frontier_search_audit: dict[str, object] = field(default_factory=dict)
+    performance_timing: dict[str, object] = field(default_factory=dict)
     artifact_paths: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)

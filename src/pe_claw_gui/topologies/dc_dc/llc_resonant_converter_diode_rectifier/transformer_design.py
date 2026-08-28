@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import re
+from time import perf_counter
 from collections import Counter
 from statistics import median
 from dataclasses import dataclass, field
@@ -441,6 +442,8 @@ class LLCTransformerCandidateSearchResult:
     closest_fill_candidates: list[dict[str, object]] = field(default_factory=list)
     scale_search_diagnostics: dict[str, object] = field(default_factory=dict)
     leakage_rejection_audit: dict[str, object] = field(default_factory=dict)
+    performance_timing: dict[str, float] = field(default_factory=dict)
+    performance_counts: dict[str, int] = field(default_factory=dict)
     artifact_paths: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
@@ -1148,6 +1151,10 @@ def generate_separated_llc_transformer_candidates(
 ) -> LLCTransformerCandidateSearchResult:
     """Generate and screen separated LLC transformer candidates from normalized magnetic records."""
 
+    total_started = perf_counter()
+    timing: dict[str, float] = {}
+    counts: dict[str, int] = {}
+    preparation_started = perf_counter()
     raw_cores, raw_materials, raw_wires, backend_notes = _resolve_candidate_source_records(
         core_records,
         material_records,
@@ -1165,9 +1172,18 @@ def generate_separated_llc_transformer_candidates(
         material_limit,
     )
     wires = _select_search_wires(wires, transformer_inputs, wire_limit)
+    timing["parameter_preparation_seconds"] = perf_counter() - preparation_started
 
     screened: list[LLCTransformerScreeningCandidate] = []
     skipped_core_diagnostics: list[dict[str, object]] = []
+    candidate_generation_started = perf_counter()
+    turns_candidate_count = 0
+    theoretical_candidate_count = 0
+    turns_by_core: dict[str, int] = {}
+    generated_turns: dict[
+        str,
+        tuple[list[LLCTransformerTurnsCandidate], dict[str, object]],
+    ] = {}
     for core in cores:
         turns_candidates, turns_diagnostics = generate_saturation_driven_turns_candidates(
             transformer_inputs,
@@ -1184,6 +1200,28 @@ def generate_separated_llc_transformer_candidates(
                 }
             )
             continue
+        turns_candidate_count += len(turns_candidates)
+        theoretical_candidate_count += len(turns_candidates) * len(materials)
+        turns_by_core[core.core_id] = len(turns_candidates)
+        generated_turns[core.core_id] = (turns_candidates, turns_diagnostics)
+    timing["candidate_generation_seconds"] = perf_counter() - candidate_generation_started
+    counts.update(
+        {
+            "selected_core_count": len(cores),
+            "selected_material_count": len(materials),
+            "selected_wire_count": len(wires),
+            "turns_candidate_count": turns_candidate_count,
+            "theoretical_candidate_count": theoretical_candidate_count,
+        }
+    )
+
+    candidate_evaluation_started = perf_counter()
+    evaluation_timing: dict[str, float] = {"core_loss_seconds": 0.0, "thermal_seconds": 0.0}
+    for core in cores:
+        generated = generated_turns.get(core.core_id)
+        if generated is None:
+            continue
+        turns_candidates, turns_diagnostics = generated
         for material in materials:
             for turns in turns_candidates:
                 screened.append(
@@ -1195,8 +1233,11 @@ def generate_separated_llc_transformer_candidates(
                         turns=turns,
                         turns_diagnostics=turns_diagnostics,
                         frequency_solver=frequency_solver,
+                        performance_timing=evaluation_timing,
                     )
                 )
+    timing["candidate_evaluation_seconds"] = perf_counter() - candidate_evaluation_started
+    timing.update(evaluation_timing)
 
     feasible_candidates = sorted(
         [candidate for candidate in screened if candidate.feasible],
@@ -1205,6 +1246,7 @@ def generate_separated_llc_transformer_candidates(
     recommended = feasible_candidates[0] if feasible_candidates else None
     sample = _screened_sample(screened)
     artifact_paths: list[str] = []
+    debug_output_started = perf_counter()
     if write_debug_csv:
         artifact_paths = export_llc_transformer_feasible_candidates(
             feasible_candidates,
@@ -1215,6 +1257,7 @@ def generate_separated_llc_transformer_candidates(
             output_dir=output_dir,
         )
         artifact_paths.extend(leakage_audit_path)
+    timing["debug_output_seconds"] = perf_counter() - debug_output_started
     candidate_missing_hard_count = _count_rejection(screened, "missing_data_hard")
     missing_data_count = missing_core_count + missing_material_count + missing_wire_count + candidate_missing_hard_count
     hard_missing_reasons = _hard_missing_data_reason_counts(screened)
@@ -1228,6 +1271,13 @@ def generate_separated_llc_transformer_candidates(
     closest_fill = _closest_fill_candidates(screened)
     scale_diagnostics = _scale_search_diagnostics(screened, skipped_core_diagnostics)
     leakage_audit = _leakage_rejection_audit(screened)
+    counts.update(
+        {
+            "evaluated_candidate_count": len(screened),
+            "feasible_candidate_count": len(feasible_candidates),
+            "skipped_core_count": len(skipped_core_diagnostics),
+        }
+    )
     notes = _dedupe_text([
         *backend_notes,
         "Separated LLC transformer candidate search uses packaged-normalized magnetic records when records are not supplied.",
@@ -1268,6 +1318,11 @@ def generate_separated_llc_transformer_candidates(
         closest_fill_candidates=closest_fill,
         scale_search_diagnostics=scale_diagnostics,
         leakage_rejection_audit=leakage_audit,
+        performance_timing={
+            **timing,
+            "total_seconds": perf_counter() - total_started,
+        },
+        performance_counts=counts,
         artifact_paths=artifact_paths,
         notes=notes,
         warnings=_dedupe_text([
@@ -2278,6 +2333,10 @@ def generate_llc_external_resonant_inductor_candidates(
 ) -> LlcExternalResonantInductorSearchResult:
     """Screen first-pass external Lr inductor candidates using an energy/current model."""
 
+    total_started = perf_counter()
+    timing: dict[str, float] = {}
+    counts: dict[str, int] = {}
+    preparation_started = perf_counter()
     rejection_counts = _external_lr_rejection_counter()
     warnings: list[str] = []
     notes: list[str] = []
@@ -2329,6 +2388,7 @@ def generate_llc_external_resonant_inductor_candidates(
         material_limit,
     )
     wires = _select_external_lr_wires(wires, request, wire_limit)
+    timing["parameter_preparation_seconds"] = perf_counter() - preparation_started
     notes.append(
         "External Lr material prefilter retained "
         f"{len(materials_with_frequency_coverage)} of {registered_normalized_material_count} normalized materials "
@@ -2341,6 +2401,9 @@ def generate_llc_external_resonant_inductor_candidates(
         )
 
     candidates: list[LlcExternalResonantInductorCandidate] = []
+    candidate_evaluation_started = perf_counter()
+    evaluation_timing: dict[str, float] = {"core_loss_seconds": 0.0, "thermal_seconds": 0.0}
+    turns_candidate_count = 0
     for core in cores:
         for material in materials:
             b_limit_t = _external_lr_b_limit_t(material)
@@ -2349,6 +2412,7 @@ def generate_llc_external_resonant_inductor_candidates(
                 continue
             n_min = max(1, ceil(request.external_lr_target_h * request.current_peak_a / (b_limit_t * core.ae_m2)))
             n_max = min(max(n_min + 40, n_min), EXTERNAL_LR_MAX_TURNS_ABSOLUTE)
+            turns_candidate_count += n_max - n_min + 1
             for turns in range(n_min, n_max + 1):
                 for wire in wires:
                     best_for_wire = _screen_external_lr_wire_options(
@@ -2358,10 +2422,13 @@ def generate_llc_external_resonant_inductor_candidates(
                         wire=wire,
                         turns=turns,
                         b_limit_t=b_limit_t,
+                        performance_timing=evaluation_timing,
                     )
                     candidates.append(best_for_wire)
                     if best_for_wire.rejection_reason:
                         _increment_external_lr_rejection(rejection_counts, best_for_wire.rejection_reason)
+    timing["candidate_evaluation_seconds"] = perf_counter() - candidate_evaluation_started
+    timing.update(evaluation_timing)
 
     feasible = sorted(
         [candidate for candidate in candidates if not candidate.rejection_reason],
@@ -2373,7 +2440,9 @@ def generate_llc_external_resonant_inductor_candidates(
             candidate.design_id,
         ),
     )
+    pareto_started = perf_counter()
     pareto = build_llc_external_resonant_inductor_pareto_front(feasible)
+    timing["pareto_seconds"] = perf_counter() - pareto_started
     representatives = select_llc_external_resonant_inductor_representatives(pareto)
     chosen = [
         representatives[role]
@@ -2391,6 +2460,7 @@ def generate_llc_external_resonant_inductor_candidates(
     pareto_csv_path = ""
     chosen_csv_path = ""
     pareto_png_path = ""
+    output_started = perf_counter()
     if write_csv:
         artifact_paths, plot_diagnostics = export_llc_external_resonant_inductor_pareto_artifacts(
             feasible_candidates=feasible,
@@ -2402,6 +2472,18 @@ def generate_llc_external_resonant_inductor_candidates(
         pareto_csv_path = _first_path_named(artifact_paths, "llc_external_resonant_inductor_pareto_front.csv")
         chosen_csv_path = _first_path_named(artifact_paths, "llc_external_resonant_inductor_chosen_candidates.csv")
         pareto_png_path = _first_path_named(artifact_paths, "llc_external_resonant_inductor_pareto_front.png")
+    timing["debug_output_seconds"] = perf_counter() - output_started
+    counts.update(
+        {
+            "selected_core_count": len(cores),
+            "selected_material_count": len(materials),
+            "selected_wire_count": len(wires),
+            "turns_candidate_count": turns_candidate_count,
+            "evaluated_candidate_count": len(candidates),
+            "feasible_candidate_count": len(feasible),
+            "pareto_candidate_count": len(pareto),
+        }
+    )
     notes.extend(
         [
             "External Lr candidate search uses Lr_ext_target = Lr_target - transformer Llk.",
@@ -2441,6 +2523,8 @@ def generate_llc_external_resonant_inductor_candidates(
         pareto_png_path=pareto_png_path,
         pareto_notes=pareto_notes,
         plot_diagnostics=plot_diagnostics,
+        performance_timing={**timing, "total_seconds": perf_counter() - total_started},
+        performance_counts=counts,
     )
 
 
@@ -2767,6 +2851,7 @@ def _screen_external_lr_wire_options(
     wire: _NormalizedWireRecord,
     turns: int,
     b_limit_t: float,
+    performance_timing: dict[str, float] | None = None,
 ) -> LlcExternalResonantInductorCandidate:
     min_parallel = max(
         1,
@@ -2784,6 +2869,7 @@ def _screen_external_lr_wire_options(
             turns=turns,
             parallel_count=12,
             b_limit_t=b_limit_t,
+            performance_timing=performance_timing,
         )
     return _build_external_lr_candidate(
         request=request,
@@ -2793,6 +2879,7 @@ def _screen_external_lr_wire_options(
         turns=turns,
         parallel_count=min_parallel,
         b_limit_t=b_limit_t,
+        performance_timing=performance_timing,
     )
 
 
@@ -2805,6 +2892,7 @@ def _build_external_lr_candidate(
     turns: int,
     parallel_count: int,
     b_limit_t: float,
+    performance_timing: dict[str, float] | None = None,
 ) -> LlcExternalResonantInductorCandidate:
     warnings: list[str] = [
         "High-mu gap approximation used because material relative permeability is unavailable.",
@@ -2844,6 +2932,7 @@ def _build_external_lr_candidate(
     core_loss_model_id = None
     core_loss_reconstruction = "unavailable"
     if material.steinmetz_ranges:
+        core_loss_started = perf_counter()
         routed, built = evaluate_candidate_core_loss(
             material_id=material.material_id, material_name=material.material_id,
             frequency_hz=request.fs_basis_hz, effective_volume_m3=core.ve_m3,
@@ -2859,12 +2948,17 @@ def _build_external_lr_candidate(
             rejection_reason = f"missing_data: shared core-loss route unavailable ({core_loss_status})"
         else:
             core_loss_w = routed.core_loss_w
+        if performance_timing is not None:
+            performance_timing["core_loss_seconds"] = performance_timing.get("core_loss_seconds", 0.0) + perf_counter() - core_loss_started
     else:
         rejection_reason = "missing_data: material core-loss model unavailable"
     winding_volume_m3 = fill_area_m2 * core.mean_length_per_turn_m
     estimated_volume_m3 = core.gross_volume_m3 + winding_volume_m3
     total_loss_w = core_loss_w + copper_loss_w
+    thermal_started = perf_counter()
     thermal = _estimate_transformer_thermal(total_loss_w, estimated_volume_m3)
+    if performance_timing is not None:
+        performance_timing["thermal_seconds"] = performance_timing.get("thermal_seconds", 0.0) + perf_counter() - thermal_started
     total_lr_actual_h = actual_l_h + request.transformer_lk_h
     total_lr_error_percent = 100.0 * (total_lr_actual_h - request.lr_total_target_h) / request.lr_total_target_h
     lr_closure_status = "ok"
@@ -3321,6 +3415,7 @@ def _screen_transformer_candidate(
     turns: LLCTransformerTurnsCandidate,
     turns_diagnostics: dict[str, object] | None = None,
     frequency_solver: FrequencySolver | None = None,
+    performance_timing: dict[str, float] | None = None,
 ) -> LLCTransformerScreeningCandidate:
     flux_cases = build_boundary_flux_cases(inputs, core.ae_m2, turns.np, frequency_solver)
     worst_flux = max(flux_cases, key=lambda case: case.b_peak_t)
@@ -3407,6 +3502,7 @@ def _screen_transformer_candidate(
     loss_model = "shared_router_unavailable_plus_first_pass_litz_ac_resistance"
     core_loss_status = "loss_data_not_available"
     if material.steinmetz_ranges:
+        core_loss_started = perf_counter()
         routed, _built = evaluate_candidate_core_loss(
             material_id=material.material_id, material_name=material.material_id,
             frequency_hz=worst_flux.fs_hz, effective_volume_m3=core.ve_m3,
@@ -3421,6 +3517,8 @@ def _screen_transformer_candidate(
             loss_model = "shared_router_plus_first_pass_litz_ac_resistance"
         else:
             loss_warnings.append(f"Shared core-loss route unavailable: {core_loss_status}.")
+        if performance_timing is not None:
+            performance_timing["core_loss_seconds"] = performance_timing.get("core_loss_seconds", 0.0) + perf_counter() - core_loss_started
     else:
         loss_warnings.append("Soft missing core-loss data: material has no usable model; candidate is not loss-comparable.")
 
@@ -3428,7 +3526,10 @@ def _screen_transformer_candidate(
     total_loss_w = core_loss_w + copper_loss_w
     winding_volume_m3 = _estimate_winding_volume_m3(primary_winding, secondary_winding, core.mean_length_per_turn_m)
     estimated_volume_m3 = core.gross_volume_m3 + winding_volume_m3
+    thermal_started = perf_counter()
     thermal = _estimate_transformer_thermal(total_loss_w, estimated_volume_m3)
+    if performance_timing is not None:
+        performance_timing["thermal_seconds"] = performance_timing.get("thermal_seconds", 0.0) + perf_counter() - thermal_started
     thermal_pass = thermal.hotspot_c <= DEFAULT_HOTSPOT_LIMIT_C
 
     rejection_reasons: list[str] = []

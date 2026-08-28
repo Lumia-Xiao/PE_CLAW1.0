@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import fields, replace
 from pathlib import Path
+from time import perf_counter
 
 from ..engines.magnetics.allow_profiles import get_default_allow_profile
 from ..engines.magnetics.ac_dc_reactor_selector import select_ac_dc_sendust_reactor
@@ -746,6 +747,8 @@ def _run_llc_transformer_magnetic_pipeline(
 ) -> DesignReport:
     """Run separated LLC transformer first-pass magnetic screening from Run Magnetics."""
 
+    pipeline_started = perf_counter()
+    pipeline_timing: dict[str, float] = {}
     llc_fha_metadata = (
         report.candidate.metadata.get("llc_fha", {})
         if report.candidate is not None and isinstance(report.candidate.metadata, dict)
@@ -768,11 +771,14 @@ def _run_llc_transformer_magnetic_pipeline(
         return replace(report, magnetic=magnetic_result, geometry=geometry_result)
 
     try:
+        preparation_started = perf_counter()
         backend_bundle = resolve_magnetic_data_backend(
             backend_config or get_production_magnetic_backend_config()
         )
         fha_design = _rebuild_llc_fha_design(llc_fha_metadata)
         transformer_inputs = build_transformer_design_inputs_from_fha(fha_design)
+        pipeline_timing["parameter_preparation_seconds"] = perf_counter() - preparation_started
+        transformer_search_started = perf_counter()
         search_result = generate_separated_llc_transformer_candidates(
             transformer_inputs,
             core_records=(backend_bundle.cores if backend_bundle is not None else None),
@@ -785,10 +791,13 @@ def _run_llc_transformer_magnetic_pipeline(
             wire_limit=16,
             write_debug_csv=True,
         )
+        pipeline_timing["transformer_search_seconds"] = perf_counter() - transformer_search_started
+        transformer_pareto_started = perf_counter()
         pareto_result = build_llc_transformer_pareto_result(
             search_result.feasible_candidates,
             write_artifacts=True,
         )
+        pipeline_timing["transformer_pareto_seconds"] = perf_counter() - transformer_pareto_started
         recommended = pareto_result.recommended_candidate or search_result.recommended_preliminary_candidate
         selected_design_id = recommended.candidate_id if recommended is not None else None
         external_lr_target = (
@@ -796,6 +805,7 @@ def _run_llc_transformer_magnetic_pipeline(
             if recommended is not None
             else None
         )
+        external_lr_search_started = perf_counter()
         external_lr_search_result = (
             generate_llc_external_resonant_inductor_candidates(
                 external_lr_target,
@@ -807,6 +817,7 @@ def _run_llc_transformer_magnetic_pipeline(
             if external_lr_target is not None
             else None
         )
+        pipeline_timing["external_lr_search_seconds"] = perf_counter() - external_lr_search_started
         design_requirements = _llc_transformer_design_requirements(transformer_target, search_result)
         design_requirements["transformer_pareto_count"] = pareto_result.pareto_count
         design_requirements["transformer_chosen_count"] = pareto_result.chosen_count
@@ -839,6 +850,7 @@ def _run_llc_transformer_magnetic_pipeline(
         transformer_comparison_candidates = {}
         visualization_warnings: list[str] = []
         visualization_artifact_paths: list[str] = []
+        geometry_started = perf_counter()
         for role in ("min-volume", "min-loss", "recommended"):
             selection = pareto_result.representative_by_role.get(role)
             candidate_for_role = selection.candidate if selection is not None else (recommended if role == "recommended" else None)
@@ -881,6 +893,8 @@ def _run_llc_transformer_magnetic_pipeline(
                 visualization_warnings.append(
                     f"Transformer comparison geometry generation failed: {type(exc).__name__}: {exc}"
                 )
+        pipeline_timing["geometry_seconds"] = perf_counter() - geometry_started
+        pipeline_timing["total_seconds"] = perf_counter() - pipeline_started
 
         notes = [
             "LLC transformer design type: separated LLC transformer.",
@@ -931,6 +945,21 @@ def _run_llc_transformer_magnetic_pipeline(
             transformer_comparison_visualization=transformer_comparison_visualization,
             llc_external_resonant_inductor_target=external_lr_target,
             llc_external_resonant_inductor_search_result=external_lr_search_result,
+            performance_timing={
+                "pipeline": pipeline_timing,
+                "transformer_search": search_result.performance_timing,
+                "transformer_counts": search_result.performance_counts,
+                "external_lr_search": (
+                    external_lr_search_result.performance_timing
+                    if external_lr_search_result is not None
+                    else {}
+                ),
+                "external_lr_counts": (
+                    external_lr_search_result.performance_counts
+                    if external_lr_search_result is not None
+                    else {}
+                ),
+            },
             artifact_paths=artifact_paths,
             notes=_dedupe_notes(notes),
         )
