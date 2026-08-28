@@ -5,9 +5,9 @@ from __future__ import annotations
 import csv
 import re
 from time import perf_counter
-from collections import Counter
+from collections import Counter, OrderedDict
 from statistics import median
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, fields, replace
 from pathlib import Path
 from math import ceil, pi, sqrt
 from typing import Any, Callable, Iterable, Mapping
@@ -41,6 +41,9 @@ EXTERNAL_LR_GAP_MAX_M = 8.0e-3
 EXTERNAL_LR_GAP_TO_LE_MAX = 0.15
 EXTERNAL_LR_INDUCTANCE_ERROR_LIMIT_PERCENT = 10.0
 EXTERNAL_LR_MAX_TURNS_ABSOLUTE = 180
+LLC_REUSABLE_MAGNETIC_METRICS_VERSION = "llc-transformer-reusable-metrics-v1"
+LLC_REUSABLE_MAGNETIC_METRICS_UNITS = "SI: m, m2, m3, H, T, Hz, A, W"
+LLC_REUSABLE_MAGNETIC_METRICS_MAXSIZE = 4096
 
 BOUNDARY_SATURATION_CASES: tuple[tuple[str, str, str], ...] = (
     ("Vin_min/Vout_min/Pmax", "vin_min_v", "vout_min_v"),
@@ -638,6 +641,275 @@ class _NormalizedWireRecord:
     conducting_area_basis: str = "engine_bundle_copper_area"
 
 
+@dataclass(frozen=True)
+class _CachedBoundaryFluxCase:
+    """Immutable cache form of one boundary flux case."""
+
+    case_name: str
+    vin_v: float
+    vout_v: float
+    pout_w: float
+    fs_hz: float
+    primary_voltage_v: float
+    ae_m2: float
+    np: int
+    delta_b_t: float
+    b_peak_t: float
+    pass_b_limit: bool
+    fs_source: str
+    notes: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class _CachedWindingEstimate:
+    """Immutable cache form of a winding estimate."""
+
+    winding_name: str
+    turns: int
+    current_rms_a: float
+    current_peak_a: float
+    current_density_a_per_mm2: float
+    conductor_area_mm2: float
+    selected_wire_id: str
+    strands_or_parallel: int
+    dc_resistance_ohm: float
+    ac_resistance_ohm: float
+    copper_loss_w: float
+    fill_area_mm2: float
+    bundle_equivalent_diameter_m: float
+    turns_per_layer: int
+    layer_count: int
+    radial_build_m: float
+    occupied_height_m: float
+    notes: tuple[str, ...]
+    warnings: tuple[str, ...]
+    winding_evidence: WindingElectricalEvidence | None
+
+
+@dataclass(frozen=True)
+class _LLCReusableMagneticMetricsKey:
+    """Complete dependency key for material-independent transformer metrics."""
+
+    model_version: str
+    units: str
+    winding_arrangement: str
+    core_signature: tuple[object, ...]
+    turns_signature: tuple[object, ...]
+    operating_point_signature: tuple[object, ...]
+    wire_signature: tuple[object, ...]
+    frequency_solver_token: tuple[object, ...]
+
+
+@dataclass(frozen=True)
+class _LLCReusableMagneticMetrics:
+    """Immutable material-independent metrics shared by material candidates."""
+
+    boundary_flux_cases: tuple[_CachedBoundaryFluxCase, ...]
+    gap_m: float
+    lm_actual_h: float
+    lm_error_percent: float
+    gap_to_le: float
+    lm_pass: bool
+    primary_winding: _CachedWindingEstimate | None
+    secondary_winding: _CachedWindingEstimate | None
+    leakage_effective_height_m: float
+    leakage_height_source: str
+    leakage_height_warning: str
+    leakage_usable_window_height_m: float
+    leakage_primary_occupied_height_m: float
+    leakage_secondary_occupied_height_m: float
+    leakage_window_area_m2: float
+    leakage_inferred_window_width_m: float
+    leakage_primary_radial_build_m: float
+    leakage_secondary_radial_build_m: float
+    leakage_insulation_gap_m: float
+    estimated_lk_h: float
+    leakage_method: str
+    leakage_warning: str
+    lk_over_lr: float
+    leakage_pass: bool
+    model_version: str = LLC_REUSABLE_MAGNETIC_METRICS_VERSION
+    units: str = LLC_REUSABLE_MAGNETIC_METRICS_UNITS
+
+
+_LLC_REUSABLE_MAGNETIC_METRICS_CACHE: OrderedDict[
+    _LLCReusableMagneticMetricsKey, _LLCReusableMagneticMetrics
+] = OrderedDict()
+_LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS = 0
+_LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES = 0
+
+
+def clear_llc_reusable_magnetic_metrics_cache() -> None:
+    """Clear reusable LLC transformer metrics and reset its counters."""
+
+    global _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS
+    global _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE.clear()
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS = 0
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES = 0
+
+
+def llc_reusable_magnetic_metrics_cache_info() -> dict[str, int | str]:
+    """Return cache statistics for LLC performance evidence and tests."""
+
+    return {
+        "model_version": LLC_REUSABLE_MAGNETIC_METRICS_VERSION,
+        "units": LLC_REUSABLE_MAGNETIC_METRICS_UNITS,
+        "maxsize": LLC_REUSABLE_MAGNETIC_METRICS_MAXSIZE,
+        "hits": _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS,
+        "misses": _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES,
+        "size": len(_LLC_REUSABLE_MAGNETIC_METRICS_CACHE),
+    }
+
+
+def _cache_signature(value: object) -> object:
+    """Convert normalized record data into a stable, hashable cache signature."""
+
+    if isinstance(value, Mapping):
+        return tuple(sorted((str(key), _cache_signature(item)) for key, item in value.items()))
+    if isinstance(value, (list, tuple)):
+        return tuple(_cache_signature(item) for item in value)
+    if isinstance(value, float):
+        return f"{value:.17g}"
+    if isinstance(value, (str, int, bool)) or value is None:
+        return value
+    return repr(value)
+
+
+def _llc_reusable_metrics_key(
+    *,
+    inputs: LLCTransformerDesignInputs,
+    core: _NormalizedCoreRecord,
+    turns: LLCTransformerTurnsCandidate,
+    wires: list[_NormalizedWireRecord],
+    frequency_solver: FrequencySolver | None,
+) -> _LLCReusableMagneticMetricsKey:
+    return _LLCReusableMagneticMetricsKey(
+        model_version=LLC_REUSABLE_MAGNETIC_METRICS_VERSION,
+        units=LLC_REUSABLE_MAGNETIC_METRICS_UNITS,
+        winding_arrangement=DEFAULT_WINDING_ARRANGEMENT,
+        core_signature=_cache_signature(tuple(getattr(core, field.name) for field in fields(core))),
+        turns_signature=_cache_signature(tuple(getattr(turns, field.name) for field in fields(turns))),
+        operating_point_signature=_cache_signature(
+            tuple(getattr(inputs, field.name) for field in fields(inputs))
+        ),
+        wire_signature=_cache_signature(
+            tuple(
+                tuple(getattr(wire, field.name) for field in fields(wire))
+                for wire in wires
+            ),
+        ),
+        frequency_solver_token=(
+            "default" if frequency_solver is None else "callable",
+            None if frequency_solver is None else id(frequency_solver),
+        ),
+    )
+
+
+def _freeze_boundary_flux_cases(
+    cases: Iterable[LLCTransformerBoundaryFluxCase],
+) -> tuple[_CachedBoundaryFluxCase, ...]:
+    return tuple(
+        _CachedBoundaryFluxCase(
+            case_name=case.case_name,
+            vin_v=case.vin_v,
+            vout_v=case.vout_v,
+            pout_w=case.pout_w,
+            fs_hz=case.fs_hz,
+            primary_voltage_v=case.primary_voltage_v,
+            ae_m2=case.ae_m2,
+            np=case.np,
+            delta_b_t=case.delta_b_t,
+            b_peak_t=case.b_peak_t,
+            pass_b_limit=case.pass_b_limit,
+            fs_source=case.fs_source,
+            notes=tuple(case.notes),
+        )
+        for case in cases
+    )
+
+
+def _thaw_boundary_flux_cases(
+    cases: tuple[_CachedBoundaryFluxCase, ...],
+) -> list[LLCTransformerBoundaryFluxCase]:
+    return [
+        LLCTransformerBoundaryFluxCase(
+            case_name=case.case_name,
+            vin_v=case.vin_v,
+            vout_v=case.vout_v,
+            pout_w=case.pout_w,
+            fs_hz=case.fs_hz,
+            primary_voltage_v=case.primary_voltage_v,
+            ae_m2=case.ae_m2,
+            np=case.np,
+            delta_b_t=case.delta_b_t,
+            b_peak_t=case.b_peak_t,
+            pass_b_limit=case.pass_b_limit,
+            fs_source=case.fs_source,
+            notes=list(case.notes),
+        )
+        for case in cases
+    ]
+
+
+def _freeze_winding_estimate(
+    winding: LLCTransformerWindingEstimate | None,
+) -> _CachedWindingEstimate | None:
+    if winding is None:
+        return None
+    return _CachedWindingEstimate(
+        winding_name=winding.winding_name,
+        turns=winding.turns,
+        current_rms_a=winding.current_rms_a,
+        current_peak_a=winding.current_peak_a,
+        current_density_a_per_mm2=winding.current_density_a_per_mm2,
+        conductor_area_mm2=winding.conductor_area_mm2,
+        selected_wire_id=winding.selected_wire_id,
+        strands_or_parallel=winding.strands_or_parallel,
+        dc_resistance_ohm=winding.dc_resistance_ohm,
+        ac_resistance_ohm=winding.ac_resistance_ohm,
+        copper_loss_w=winding.copper_loss_w,
+        fill_area_mm2=winding.fill_area_mm2,
+        bundle_equivalent_diameter_m=winding.bundle_equivalent_diameter_m,
+        turns_per_layer=winding.turns_per_layer,
+        layer_count=winding.layer_count,
+        radial_build_m=winding.radial_build_m,
+        occupied_height_m=winding.occupied_height_m,
+        notes=tuple(winding.notes),
+        warnings=tuple(winding.warnings),
+        winding_evidence=winding.winding_evidence,
+    )
+
+
+def _thaw_winding_estimate(
+    winding: _CachedWindingEstimate | None,
+) -> LLCTransformerWindingEstimate | None:
+    if winding is None:
+        return None
+    return LLCTransformerWindingEstimate(
+        winding_name=winding.winding_name,
+        turns=winding.turns,
+        current_rms_a=winding.current_rms_a,
+        current_peak_a=winding.current_peak_a,
+        current_density_a_per_mm2=winding.current_density_a_per_mm2,
+        conductor_area_mm2=winding.conductor_area_mm2,
+        selected_wire_id=winding.selected_wire_id,
+        strands_or_parallel=winding.strands_or_parallel,
+        dc_resistance_ohm=winding.dc_resistance_ohm,
+        ac_resistance_ohm=winding.ac_resistance_ohm,
+        copper_loss_w=winding.copper_loss_w,
+        fill_area_mm2=winding.fill_area_mm2,
+        bundle_equivalent_diameter_m=winding.bundle_equivalent_diameter_m,
+        turns_per_layer=winding.turns_per_layer,
+        layer_count=winding.layer_count,
+        radial_build_m=winding.radial_build_m,
+        occupied_height_m=winding.occupied_height_m,
+        notes=list(winding.notes),
+        warnings=list(winding.warnings),
+        winding_evidence=winding.winding_evidence,
+    )
+
+
 def primary_bridge_gain_factor(primary_bridge_type: str) -> float:
     """Return primary bridge square-wave voltage gain for first-pass transformer design."""
 
@@ -1075,6 +1347,131 @@ def build_boundary_flux_cases(
     return cases
 
 
+def _build_llc_reusable_magnetic_metrics(
+    *,
+    inputs: LLCTransformerDesignInputs,
+    core: _NormalizedCoreRecord,
+    turns: LLCTransformerTurnsCandidate,
+    wires: list[_NormalizedWireRecord],
+    frequency_solver: FrequencySolver | None,
+) -> _LLCReusableMagneticMetrics:
+    """Build the material-independent portion of a transformer evaluation."""
+
+    flux_cases = build_boundary_flux_cases(inputs, core.ae_m2, turns.np, frequency_solver)
+    worst_flux = max(flux_cases, key=lambda case: case.b_peak_t)
+    gap_m = compute_gap_for_lm(turns.np, core.ae_m2, inputs.lm_target_h, core.le_m)
+    lm_actual_h = compute_lm_from_gap(turns.np, core.ae_m2, gap_m)
+    lm_error_percent = 100.0 * (lm_actual_h - inputs.lm_target_h) / inputs.lm_target_h
+    gap_to_le = gap_m / core.le_m if core.le_m > 0.0 else float("inf")
+    lm_pass = abs(lm_error_percent) <= inputs.lm_tolerance_percent and gap_m > 0.0 and gap_to_le <= 0.15
+    primary_winding = _estimate_winding(
+        winding_name="primary",
+        turns=turns.np,
+        current_rms_a=inputs.primary_current_rms_a,
+        current_peak_a=inputs.primary_current_peak_a,
+        mlt_m=core.mean_length_per_turn_m,
+        fs_hz=worst_flux.fs_hz,
+        wires=wires,
+    )
+    secondary_winding = _estimate_winding(
+        winding_name="secondary",
+        turns=turns.ns,
+        current_rms_a=inputs.secondary_current_rms_a,
+        current_peak_a=inputs.secondary_current_peak_a,
+        mlt_m=core.mean_length_per_turn_m,
+        fs_hz=worst_flux.fs_hz,
+        wires=wires,
+    )
+    leakage_geometry, primary_radial_build_m, secondary_radial_build_m, insulation_gap_m = _estimate_leakage_geometry(
+        primary_winding,
+        secondary_winding,
+        core,
+    )
+    estimated_lk_h, leakage_method, leakage_warning = _estimate_candidate_leakage(
+        primary_turns=turns.np,
+        mean_length_per_turn_m=core.mean_length_per_turn_m,
+        effective_winding_height_m=leakage_geometry.leakage_effective_height_m,
+        primary_radial_build_m=primary_radial_build_m,
+        secondary_radial_build_m=secondary_radial_build_m,
+        insulation_gap_m=insulation_gap_m,
+        leakage_fraction_estimate=inputs.leakage_fraction_estimate,
+        fallback_lm_actual_h=lm_actual_h,
+    )
+    lk_over_lr = estimated_lk_h / inputs.lr_target_h if inputs.lr_target_h > 0.0 else float("inf")
+    return _LLCReusableMagneticMetrics(
+        boundary_flux_cases=_freeze_boundary_flux_cases(flux_cases),
+        gap_m=gap_m,
+        lm_actual_h=lm_actual_h,
+        lm_error_percent=lm_error_percent,
+        gap_to_le=gap_to_le,
+        lm_pass=lm_pass,
+        primary_winding=_freeze_winding_estimate(primary_winding),
+        secondary_winding=_freeze_winding_estimate(secondary_winding),
+        leakage_effective_height_m=leakage_geometry.leakage_effective_height_m,
+        leakage_height_source=leakage_geometry.leakage_height_source,
+        leakage_height_warning=leakage_geometry.leakage_height_warning,
+        leakage_usable_window_height_m=leakage_geometry.leakage_usable_window_height_m,
+        leakage_primary_occupied_height_m=leakage_geometry.leakage_primary_occupied_height_m,
+        leakage_secondary_occupied_height_m=leakage_geometry.leakage_secondary_occupied_height_m,
+        leakage_window_area_m2=leakage_geometry.leakage_window_area_m2,
+        leakage_inferred_window_width_m=leakage_geometry.leakage_inferred_window_width_m,
+        leakage_primary_radial_build_m=primary_radial_build_m,
+        leakage_secondary_radial_build_m=secondary_radial_build_m,
+        leakage_insulation_gap_m=insulation_gap_m,
+        estimated_lk_h=estimated_lk_h,
+        leakage_method=leakage_method,
+        leakage_warning=leakage_warning,
+        lk_over_lr=lk_over_lr,
+        leakage_pass=lk_over_lr <= 0.80,
+    )
+
+
+def _get_llc_reusable_magnetic_metrics(
+    *,
+    inputs: LLCTransformerDesignInputs,
+    core: _NormalizedCoreRecord,
+    turns: LLCTransformerTurnsCandidate,
+    wires: list[_NormalizedWireRecord],
+    frequency_solver: FrequencySolver | None,
+    performance_timing: dict[str, float] | None,
+) -> _LLCReusableMagneticMetrics:
+    """Read or build reusable metrics and update cache evidence counters."""
+
+    global _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS
+    global _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES
+    key = _llc_reusable_metrics_key(
+        inputs=inputs,
+        core=core,
+        turns=turns,
+        wires=wires,
+        frequency_solver=frequency_solver,
+    )
+    cached = _LLC_REUSABLE_MAGNETIC_METRICS_CACHE.get(key)
+    if cached is not None:
+        _LLC_REUSABLE_MAGNETIC_METRICS_CACHE.move_to_end(key)
+        _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS += 1
+        return cached
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES += 1
+    started = perf_counter()
+    metrics = _build_llc_reusable_magnetic_metrics(
+        inputs=inputs,
+        core=core,
+        turns=turns,
+        wires=wires,
+        frequency_solver=frequency_solver,
+    )
+    if performance_timing is not None:
+        performance_timing["reusable_metrics_build_seconds"] = (
+            performance_timing.get("reusable_metrics_build_seconds", 0.0)
+            + perf_counter() - started
+        )
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE[key] = metrics
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE.move_to_end(key)
+    while len(_LLC_REUSABLE_MAGNETIC_METRICS_CACHE) > LLC_REUSABLE_MAGNETIC_METRICS_MAXSIZE:
+        _LLC_REUSABLE_MAGNETIC_METRICS_CACHE.popitem(last=False)
+    return metrics
+
+
 def generate_saturation_driven_turns_candidates(
     inputs: LLCTransformerDesignInputs,
     ae_m2: float,
@@ -1349,6 +1746,7 @@ def generate_separated_llc_transformer_candidates(
 
     candidate_evaluation_started = perf_counter()
     evaluation_timing: dict[str, float] = {"core_loss_seconds": 0.0, "thermal_seconds": 0.0}
+    reusable_cache_before = llc_reusable_magnetic_metrics_cache_info()
     prefilter_rejection_counts: Counter[str] = Counter()
     prefilter_rejected_candidate_count = 0
     prefilter_pass_count = 0
@@ -1385,6 +1783,14 @@ def generate_separated_llc_transformer_candidates(
                 )
     timing["candidate_evaluation_seconds"] = perf_counter() - candidate_evaluation_started
     timing.update(evaluation_timing)
+    reusable_cache_after = llc_reusable_magnetic_metrics_cache_info()
+    reusable_cache_hits = reusable_cache_after["hits"] - reusable_cache_before["hits"]
+    reusable_cache_misses = reusable_cache_after["misses"] - reusable_cache_before["misses"]
+    reusable_cache_lookups = reusable_cache_hits + reusable_cache_misses
+    timing["reusable_metrics_cache_hit_rate"] = (
+        reusable_cache_hits / reusable_cache_lookups if reusable_cache_lookups else 0.0
+    )
+    timing["reusable_metrics_cache_size"] = float(reusable_cache_after["size"])
 
     feasible_candidates = sorted(
         [candidate for candidate in screened if candidate.feasible],
@@ -1446,6 +1852,11 @@ def generate_separated_llc_transformer_candidates(
             "evaluated_candidate_count": len(screened),
             "feasible_candidate_count": len(feasible_candidates),
             "skipped_core_count": len(skipped_core_diagnostics),
+            "reusable_metrics_cache_hits": reusable_cache_hits,
+            "reusable_metrics_cache_misses": reusable_cache_misses,
+            "reusable_metrics_build_count": reusable_cache_misses,
+            "reusable_metrics_avoided_repeated_builds": reusable_cache_hits,
+            "reusable_metrics_cache_size": reusable_cache_after["size"],
         }
     )
     notes = _dedupe_text([
@@ -3623,14 +4034,22 @@ def _screen_transformer_candidate(
     frequency_solver: FrequencySolver | None = None,
     performance_timing: dict[str, float] | None = None,
 ) -> LLCTransformerScreeningCandidate:
-    flux_cases = build_boundary_flux_cases(inputs, core.ae_m2, turns.np, frequency_solver)
+    reusable_metrics = _get_llc_reusable_magnetic_metrics(
+        inputs=inputs,
+        core=core,
+        turns=turns,
+        wires=wires,
+        frequency_solver=frequency_solver,
+        performance_timing=performance_timing,
+    )
+    flux_cases = _thaw_boundary_flux_cases(reusable_metrics.boundary_flux_cases)
     worst_flux = max(flux_cases, key=lambda case: case.b_peak_t)
     saturation_pass = all(case.pass_b_limit for case in flux_cases)
-    gap_m = compute_gap_for_lm(turns.np, core.ae_m2, inputs.lm_target_h, core.le_m)
-    lm_actual_h = compute_lm_from_gap(turns.np, core.ae_m2, gap_m)
-    lm_error_percent = 100.0 * (lm_actual_h - inputs.lm_target_h) / inputs.lm_target_h
-    gap_to_le = gap_m / core.le_m if core.le_m > 0.0 else float("inf")
-    lm_pass = abs(lm_error_percent) <= inputs.lm_tolerance_percent and gap_m > 0.0 and gap_to_le <= 0.15
+    gap_m = reusable_metrics.gap_m
+    lm_actual_h = reusable_metrics.lm_actual_h
+    lm_error_percent = reusable_metrics.lm_error_percent
+    gap_to_le = reusable_metrics.gap_to_le
+    lm_pass = reusable_metrics.lm_pass
     turns_diagnostics = turns_diagnostics or {}
     np_required_by_saturation = int(turns_diagnostics.get("np_required_by_saturation", turns.np))
     scale_min_by_saturation = int(turns_diagnostics.get("scale_min_by_saturation", turns.scale_factor))
@@ -3640,41 +4059,16 @@ def _screen_transformer_candidate(
     max_scale_factor_used = int(turns_diagnostics.get("max_scale_factor_used", scale_factor_range[1]))
     saturation_worst_case = str(turns_diagnostics.get("saturation_worst_case", worst_flux.case_name))
 
-    primary_winding = _estimate_winding(
-        winding_name="primary",
-        turns=turns.np,
-        current_rms_a=inputs.primary_current_rms_a,
-        current_peak_a=inputs.primary_current_peak_a,
-        mlt_m=core.mean_length_per_turn_m,
-        fs_hz=worst_flux.fs_hz,
-        wires=wires,
-    )
-    secondary_winding = _estimate_winding(
-        winding_name="secondary",
-        turns=turns.ns,
-        current_rms_a=inputs.secondary_current_rms_a,
-        current_peak_a=inputs.secondary_current_peak_a,
-        mlt_m=core.mean_length_per_turn_m,
-        fs_hz=worst_flux.fs_hz,
-        wires=wires,
-    )
-    leakage_geometry, leakage_primary_radial_build_m, leakage_secondary_radial_build_m, leakage_insulation_gap_m = _estimate_leakage_geometry(
-        primary_winding,
-        secondary_winding,
-        core,
-    )
-    estimated_lk_h, leakage_method, leakage_warning = _estimate_candidate_leakage(
-        primary_turns=turns.np,
-        mean_length_per_turn_m=core.mean_length_per_turn_m,
-        effective_winding_height_m=leakage_geometry.leakage_effective_height_m,
-        primary_radial_build_m=leakage_primary_radial_build_m,
-        secondary_radial_build_m=leakage_secondary_radial_build_m,
-        insulation_gap_m=leakage_insulation_gap_m,
-        leakage_fraction_estimate=inputs.leakage_fraction_estimate,
-        fallback_lm_actual_h=lm_actual_h,
-    )
-    lk_over_lr = estimated_lk_h / inputs.lr_target_h if inputs.lr_target_h > 0.0 else float("inf")
-    leakage_pass = lk_over_lr <= 0.80
+    primary_winding = _thaw_winding_estimate(reusable_metrics.primary_winding)
+    secondary_winding = _thaw_winding_estimate(reusable_metrics.secondary_winding)
+    leakage_primary_radial_build_m = reusable_metrics.leakage_primary_radial_build_m
+    leakage_secondary_radial_build_m = reusable_metrics.leakage_secondary_radial_build_m
+    leakage_insulation_gap_m = reusable_metrics.leakage_insulation_gap_m
+    estimated_lk_h = reusable_metrics.estimated_lk_h
+    leakage_method = reusable_metrics.leakage_method
+    leakage_warning = reusable_metrics.leakage_warning
+    lk_over_lr = reusable_metrics.lk_over_lr
+    leakage_pass = reusable_metrics.leakage_pass
 
     hard_missing_reasons: list[str] = []
     if not wires:
@@ -3879,14 +4273,14 @@ def _screen_transformer_candidate(
         leakage_method=leakage_method,
         leakage_winding_arrangement=DEFAULT_WINDING_ARRANGEMENT,
         leakage_warning=leakage_warning,
-        leakage_height_source=leakage_geometry.leakage_height_source,
-        leakage_height_warning=leakage_geometry.leakage_height_warning,
-        leakage_usable_window_height_mm=leakage_geometry.leakage_usable_window_height_m * 1e3,
-        leakage_primary_occupied_height_mm=leakage_geometry.leakage_primary_occupied_height_m * 1e3,
-        leakage_secondary_occupied_height_mm=leakage_geometry.leakage_secondary_occupied_height_m * 1e3,
-        leakage_window_area_mm2=leakage_geometry.leakage_window_area_m2 * 1e6,
-        leakage_inferred_window_width_mm=leakage_geometry.leakage_inferred_window_width_m * 1e3,
-        leakage_effective_height_m=leakage_geometry.leakage_effective_height_m,
+        leakage_height_source=reusable_metrics.leakage_height_source,
+        leakage_height_warning=reusable_metrics.leakage_height_warning,
+        leakage_usable_window_height_mm=reusable_metrics.leakage_usable_window_height_m * 1e3,
+        leakage_primary_occupied_height_mm=reusable_metrics.leakage_primary_occupied_height_m * 1e3,
+        leakage_secondary_occupied_height_mm=reusable_metrics.leakage_secondary_occupied_height_m * 1e3,
+        leakage_window_area_mm2=reusable_metrics.leakage_window_area_m2 * 1e6,
+        leakage_inferred_window_width_mm=reusable_metrics.leakage_inferred_window_width_m * 1e3,
+        leakage_effective_height_m=reusable_metrics.leakage_effective_height_m,
         leakage_primary_radial_build_m=leakage_primary_radial_build_m,
         leakage_secondary_radial_build_m=leakage_secondary_radial_build_m,
         leakage_insulation_gap_m=leakage_insulation_gap_m,

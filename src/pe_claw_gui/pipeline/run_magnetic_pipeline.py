@@ -33,6 +33,7 @@ try:
         build_transformer_design_inputs_from_fha,
         generate_llc_external_resonant_inductor_candidates,
         generate_separated_llc_transformer_candidates,
+        llc_reusable_magnetic_metrics_cache_info,
         make_fha_boundary_frequency_solver,
     )
 except ModuleNotFoundError:  # New LLC topology package is outside the 1.0 GUI scope.
@@ -44,6 +45,7 @@ except ModuleNotFoundError:  # New LLC topology package is outside the 1.0 GUI s
     build_transformer_design_inputs_from_fha = None
     generate_llc_external_resonant_inductor_candidates = None
     generate_separated_llc_transformer_candidates = None
+    llc_reusable_magnetic_metrics_cache_info = None
     make_fha_boundary_frequency_solver = None
     fha_boundary_frequency_cache_info = None
 
@@ -973,6 +975,11 @@ def _run_llc_transformer_magnetic_pipeline(
                 "fha_boundary_cache": (
                     fha_boundary_frequency_cache_info()
                     if fha_boundary_frequency_cache_info is not None
+                    else {}
+                ),
+                "reusable_magnetic_metrics_cache": (
+                    llc_reusable_magnetic_metrics_cache_info()
+                    if llc_reusable_magnetic_metrics_cache_info is not None
                     else {}
                 ),
             },

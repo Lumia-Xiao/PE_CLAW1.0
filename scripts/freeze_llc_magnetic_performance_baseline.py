@@ -43,6 +43,7 @@ from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier.transfo
     build_transformer_design_inputs_from_fha,
     generate_llc_external_resonant_inductor_candidates,
     generate_separated_llc_transformer_candidates,
+    llc_reusable_magnetic_metrics_cache_info,
     make_fha_boundary_frequency_solver,
 )
 
@@ -125,6 +126,7 @@ def _run_case(case_name: str) -> dict[str, object]:
         "search_limits": limits,
         "fha_boundary_cache": None,
         "scalar_triangular_loss_cache": None,
+        "reusable_magnetic_metrics_cache": None,
         "transformer": None,
         "external_lr": None,
     }
@@ -167,6 +169,7 @@ def _run_case(case_name: str) -> dict[str, object]:
             "size": scalar_cache.currsize,
             "model_version": "llc_scalar_triangular_igse_v1",
         }
+        result["reusable_magnetic_metrics_cache"] = llc_reusable_magnetic_metrics_cache_info()
         if case_name.startswith("external-lr") and transformer_result.recommended_preliminary_candidate is not None:
             external_target = build_llc_external_resonant_inductor_target(
                 fha_design,

@@ -4,6 +4,7 @@ import json
 import shutil
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 import pytest
 
@@ -11,6 +12,11 @@ from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier.transfo
     LLCTransformerTurnsCandidate,
     _NormalizedCoreRecord,
     _NormalizedWireRecord,
+    _NormalizedMaterialRecord,
+    _build_llc_reusable_magnetic_metrics,
+    _get_llc_reusable_magnetic_metrics,
+    clear_llc_reusable_magnetic_metrics_cache,
+    llc_reusable_magnetic_metrics_cache_info,
     _prefilter_transformer_candidate,
     _select_search_cores,
     _select_search_wires,
@@ -252,6 +258,112 @@ def test_llc_pipeline_exposes_selected_search_bounds() -> None:
     assert report.magnetic.performance_timing["search_bounds"] == bounds
 
 
+def test_llc_reusable_metrics_cache_hits_and_returns_isolated_values() -> None:
+    inputs, core, wires = _prefilter_fixture()
+    turns = _turns(np=16, ns=4)
+    clear_llc_reusable_magnetic_metrics_cache()
+    first = _get_llc_reusable_magnetic_metrics(
+        inputs=inputs,
+        core=core,
+        turns=turns,
+        wires=wires,
+        frequency_solver=None,
+        performance_timing={},
+    )
+    second = _get_llc_reusable_magnetic_metrics(
+        inputs=inputs,
+        core=core,
+        turns=turns,
+        wires=wires,
+        frequency_solver=None,
+        performance_timing={},
+    )
+
+    info = llc_reusable_magnetic_metrics_cache_info()
+    assert info["model_version"] == "llc-transformer-reusable-metrics-v1"
+    assert info["units"].startswith("SI:")
+    assert info["misses"] == 1
+    assert info["hits"] == 1
+    assert first is second
+    assert isinstance(first.boundary_flux_cases, tuple)
+    assert isinstance(first.primary_winding.notes, tuple)
+
+
+def test_llc_reusable_metrics_cache_key_changes_for_core_turns_and_operating_point() -> None:
+    inputs, core, wires = _prefilter_fixture()
+    clear_llc_reusable_magnetic_metrics_cache()
+    for changed_core, changed_turns, changed_inputs in (
+        (core, _turns(np=16, ns=4), inputs),
+        (core, _turns(np=24, ns=6), inputs),
+        (_NormalizedCoreRecord(
+            core_id="other-core",
+            ae_m2=core.ae_m2,
+            ae_source_field=core.ae_source_field,
+            le_m=core.le_m,
+            ve_m3=core.ve_m3,
+            window_area_m2=core.window_area_m2,
+            outer_width_m=core.outer_width_m,
+            outer_height_m=core.outer_height_m,
+            mean_length_per_turn_m=core.mean_length_per_turn_m,
+            gross_volume_m3=core.gross_volume_m3,
+        ), _turns(np=16, ns=4), inputs),
+        (core, _turns(np=16, ns=4), replace(inputs, lm_target_h=inputs.lm_target_h * 1.01)),
+    ):
+        _get_llc_reusable_magnetic_metrics(
+            inputs=changed_inputs,
+            core=changed_core,
+            turns=changed_turns,
+            wires=wires,
+            frequency_solver=None,
+            performance_timing={},
+        )
+    info = llc_reusable_magnetic_metrics_cache_info()
+    assert info["misses"] == 4
+    assert info["hits"] == 0
+
+
+def test_llc_reusable_metrics_search_reports_avoided_repeated_builds() -> None:
+    inputs, core, wires = _prefilter_fixture()
+    core = replace(
+        core,
+        ae_m2=1.0e-2,
+        window_area_m2=1.0e-2,
+    )
+    materials = [
+        _NormalizedMaterialRecord(
+            material_id="material-a",
+            b_sat_t=0.3,
+            steinmetz_ranges=[],
+        ),
+        _NormalizedMaterialRecord(
+            material_id="material-b",
+            b_sat_t=0.3,
+            steinmetz_ranges=[],
+        ),
+    ]
+    clear_llc_reusable_magnetic_metrics_cache()
+    from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier.transformer_design import (
+        generate_separated_llc_transformer_candidates,
+    )
+
+    result = generate_separated_llc_transformer_candidates(
+        inputs,
+        [core],
+        materials,
+        wires,
+        max_scale_factor=1,
+        core_limit=1,
+        material_limit=2,
+        wire_limit=1,
+    )
+    counts = result.performance_counts
+    assert counts["precise_evaluated_candidate_count"] == 2
+    assert counts["reusable_metrics_cache_misses"] == 1
+    assert counts["reusable_metrics_cache_hits"] == 1
+    assert counts["reusable_metrics_avoided_repeated_builds"] == 1
+    assert result.performance_timing["reusable_metrics_cache_hit_rate"] == 0.5
+
+
 def test_llc_baseline_script_has_bounded_repeatable_cases() -> None:
     output_dir = ROOT / ".test-llc-baseline-output"
     shutil.rmtree(output_dir, ignore_errors=True)
@@ -284,6 +396,10 @@ def test_llc_baseline_script_has_bounded_repeatable_cases() -> None:
         assert case["scalar_triangular_loss_cache"]["maxsize"] == 4096
         assert case["scalar_triangular_loss_cache"]["misses"] > 0
         assert case["scalar_triangular_loss_cache"]["size"] <= 4096
+        assert case["reusable_magnetic_metrics_cache"]["model_version"] == "llc-transformer-reusable-metrics-v1"
+        assert case["reusable_magnetic_metrics_cache"]["units"].startswith("SI:")
+        assert case["reusable_magnetic_metrics_cache"]["maxsize"] == 4096
+        assert case["reusable_magnetic_metrics_cache"]["hits"] == case["transformer"]["counts"]["reusable_metrics_cache_hits"]
         assert case["transformer"]["counts"]["evaluated_candidate_count"] > 0
         assert case["transformer"]["timing"]["total_seconds"] >= 0.0
         assert case["transformer"]["search_bounds"]["mode"] == "explicit"
