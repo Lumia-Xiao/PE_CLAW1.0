@@ -503,7 +503,7 @@ LLC 变压器搜索当前约使用：
 | 5 | `completed` | `b4dce50` | `c792d14` | LLC 边界专项 11 passed；四档基准 4/4 completed；默认 fast 保持原 golden 代表候选；支持显式 full 审计搜索 |
 | 6 | `completed` | `aa9956c` | `ce7b189` | reusable metrics cache implemented; 14 LLC baseline/cache tests and 67 shared regressions passed; controlled transformer-small evidence completed |
 | 7 | `completed` | `7547fc1` | `185df50` | external Lr cheap prefilters implemented; 16 LLC/external-Lr tests and 4 topology regressions passed; medium 3020 = 2764 prefiltered + 256 precise, 186 feasible |
-| 8 | `completed` | `26aac43` | 待本次计划记录提交后填写 | equivalent Pareto sweep implemented for transformer and external Lr; 20 LLC/Pareto tests and 67 shared regressions passed; 900-point oracle comparison equivalent |
+| 8 | `completed` | `26aac43` | `f8702b8` | equivalent Pareto sweep implemented for transformer and external Lr; 20 LLC/Pareto tests and 67 shared regressions passed; 900-point oracle comparison equivalent |
 | 9 | `pending` | - | - | - |
 | 10 | `pending` | - | - | - |
 
@@ -765,5 +765,5 @@ LLC 变压器搜索当前约使用：
 - 实现 commit：`26aac43`（`LLC Step 8: optimize Pareto filtering`）。
 - 实现 push 分支：`origin/codex/sync-gui-backend-from-2`。
 - 实现 push 结果：成功。
-- 计划记录 commit：待本次计划记录提交后填写。
-- 计划记录 push 结果：待本次计划记录提交后填写。
+- 计划记录 commit：`f8702b8`（`docs: record LLC Step 8 Pareto optimization`）。
+- 计划记录 push 结果：成功。
