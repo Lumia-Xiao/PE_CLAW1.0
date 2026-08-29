@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active` |
+| 计划状态 | `completed` |
 | 计划版本 | `v1.0` |
 | 建立日期 | `2026-08-29` |
 | 目标工程 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0` |
@@ -506,7 +506,7 @@ LLC pipeline 当前提供：
 | 3 | `completed` | `e108410` | `2560327` | 两个磁件结果视图接入共享 LLC 专用文本格式化器；显示 transformer/external Lr 阶段统计和三个推荐层级，隐藏固定电感 allow/compression/stack-count 区块，并对 not-required 状态隐藏无意义的零计数；`11 passed`，`compileall` 和 `git diff --check` 通过，已 push |
 | 4 | `completed` | `0f99073` | `568e00c` | 扩展 LLC requirements 字典并接入 FHA、transformer target、external Lr target 与搜索边界；视图显示完整输入/输出/功率/频率、匝比、Lm/Lr、Llk、电流、B 限值和搜索模式；缺失字段区分状态；专项集合 39 tests 无失败，`compileall` 和 `git diff --check` 通过，已 push |
 | 5 | `completed` | `ef5ad4c` | `1d523d2` | `44 passed`；`compileall` 和 `git diff --check` 通过；统一 LLC transformer、external Lr、combined 的损耗、体积、热、几何角色和结构化输出；实现已 push |
-| 6 | `pending` | - | - | - |
+| 6 | `completed` | `6dd8b4e` | pending | `400 passed, 1 skipped`；`compileall` 和 `git diff --check` 通过；完成 LLC 与非 LLC 全量回归、真实 fixture 复验、前后显示对比、structured output 和 geometry artifact 验收；实现已 push |
 
 ## 8. 预期交付物
 
@@ -520,8 +520,8 @@ LLC pipeline 当前提供：
 
 ## 9. 当前状态
 
-第 1 至第 5 步已完成，第 6 步“完整回归、真实示例验收和交付收口”待执行，并严格按照本文件的
-完成条件和 commit/push 规则逐步执行。当前计划仍保持 `active`，不能提前标记为完成。
+第 1 至第 6 步均已完成。第六步完成了完整回归、冻结 LLC fixture 复验、前后显示对比、最终证据
+生成和 Git 交付收口；计划在实现与计划记录全部 push 后标记为 `completed`。
 
 ### 第 1 步执行结果（2026-08-29）
 
@@ -548,6 +548,24 @@ LLC pipeline 当前提供：
 - 验证命令：`python -m compileall -q src tests scripts`；LLC 第五步及相关回归集合共 `44 passed`；
   `git diff --check` 通过。
 - 实现 commit：`ef5ad4c`（`LLC Display Step 5: align recommendation and artifact reporting`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`；实现 push 结果：成功。
+
+### 第 6 步执行结果（2026-08-29）
+
+- 使用第 1 步冻结的 LLC fixture 重新构建修复后结果，验证 transformer `19216/10269/16`、
+  external `Lr` `3020/186/18` 和 transformer/external Lr/combined 三个推荐 ID 均保持一致。
+- 验证损耗角色守恒：transformer `3.74375 W` + external `Lr` `1.27589 W` = combined `5.01964 W`；
+  体积分别为 `108.8919e-6 m3`、`41.8581e-6 m3` 和 `150.75e-6 m3`，按角色正确聚合。
+- 验证 transformer hotspot `76.2 C`、external `Lr` hotspot `48.5 C`，geometry component type 为
+  `external_resonant_inductor`，四个外置 Lr geometry artifact 均存在。
+- 验证两个 LLC 文本视图均不再出现 engineering allow、redundancy compression、stack-count 和
+  无语义整组 `-`；structured output 的 magnetic selection status 为 `pass`。
+- 完成完整 pytest 回归：`400 passed, 1 skipped`。首次系统临时目录权限错误通过指定仓库内
+  `--basetemp` 重跑排除环境因素；最终全量结果无业务失败。
+- 新增最终验收生成器：`scripts/build_llc_magnetic_result_display_step6_acceptance.py`。
+- 最终证据目录：`migration/evidence/20260829/llc_magnetic_result_display_step6/`，包含
+  `llc_magnetic_result_display_step6_acceptance.json`、Markdown 验收说明和 `full_pytest.txt`。
+- 实现 commit：`6dd8b4e`（`LLC Display Step 6: close magnetic result reporting fix`）。
 - 实现 push 分支：`origin/codex/sync-gui-backend-from-2`；实现 push 结果：成功。
 - 验证命令：`$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_performance_baseline.py tests/test_llc_fha_boundary_cache.py tests/test_llc_external_lr_prefilter.py tests/test_llc_pareto_filter.py`。
 - 验证结果：`35 passed`；`python -m compileall -q scripts tests` 和 `git diff --check` 通过。
