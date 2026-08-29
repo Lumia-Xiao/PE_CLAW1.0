@@ -503,7 +503,7 @@ LLC pipeline 当前提供：
 | ---: | --- | --- | --- | --- |
 | 1 | `completed` | `1cd24c6` | `e200dce` | 新增确定性 LLC 结果显示基线 fixture、两个视图基线测试和结构化输出基线；`35 passed`（含既有 LLC 专项）；生成器、证据和实现已 push |
 | 2 | `completed` | `10d3ad6` | `95dc179` | 增加 LLC 专用阶段摘要 DTO、变压器/外置 Lr 统计映射、三个推荐 ID 和组合 ID 边界 helper；结构化输出增加 JSON-safe LLC 区块，LLC hardware selection 不再依赖固定电感 chosen list；`12 passed`，`compileall` 和 `git diff --check` 通过，已 push |
-| 3 | `pending` | - | - | - |
+| 3 | `completed` | `e108410` | 待本次回填提交 | 两个磁件结果视图接入共享 LLC 专用文本格式化器；显示 transformer/external Lr 阶段统计和三个推荐层级，隐藏固定电感 allow/compression/stack-count 区块，并对 not-required 状态隐藏无意义的零计数；`11 passed`，`compileall` 和 `git diff --check` 通过，已 push |
 | 4 | `pending` | - | - | - |
 | 5 | `pending` | - | - | - |
 | 6 | `pending` | - | - | - |
@@ -536,6 +536,19 @@ LLC pipeline 当前提供：
 - 验证命令：`$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_performance_baseline.py tests/test_llc_fha_boundary_cache.py tests/test_llc_external_lr_prefilter.py tests/test_llc_pareto_filter.py`。
 - 验证结果：`35 passed`；`python -m compileall -q scripts tests` 和 `git diff --check` 通过。
 - 实现 commit：`1cd24c6`（`LLC Display Step 1: freeze magnetic result contract`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`；实现 push 结果：成功。
+
+### 第 3 步执行结果（2026-08-29）
+
+- 新增共享格式化器 `src/pe_claw_gui/app/result_views/llc_result_text.py`，统一主磁件页面与 consolidated inductor 页面对 separated LLC magnetic result 的文本输出。
+- `MagneticView.render()` 和 `build_inductor_summary_text()` 在完整 LLC 专用结果摘要存在时进入 topology-specific 分支；历史缺少摘要 DTO 的对象保留原有回退行为，不影响第 1 步冻结的旧行为证据。
+- LLC 候选区现在显示 transformer 与 external resonant inductor 的 generated、prefilter rejected、precise evaluated、feasible 和 Pareto 数量；不再显示 single-core allow/compression、final allow/compression 或 Best by stack count。
+- LLC 推荐区分别显示 transformer、external resonant inductor 和 combined magnetic design；缺少推荐时显示带状态的 `N/A`，不输出空 ID。
+- external `Lr` 为 `not_required`、`invalid_target` 或 `not_evaluated` 时只显示清晰状态并隐藏阶段零计数；真实执行且候选为零时保留实际计数。
+- 扩展 `tests/test_llc_magnetic_result_display_step2.py`，覆盖两视图文本一致性、专用计数、推荐层级、禁止的固定电感区块以及 not-required 状态。
+- 验证命令：`$env:PYTHONPATH='src'; python -m compileall -q src tests scripts; python -m pytest -q tests/test_llc_magnetic_result_display_step2.py tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_performance_baseline.py tests/test_llc_external_lr_prefilter.py tests/test_llc_pareto_filter.py; git diff --check`。
+- 验证结果：专项与基线回归 `14 passed`（提交前精简回归 `11 passed`）；`compileall` 通过；`git diff --check` 通过。全量 pytest 进程正常退出，但当前环境未返回测试摘要。
+- 实现 commit：`e108410`（`LLC Display Step 3: render topology-specific magnetic results`）。
 - 实现 push 分支：`origin/codex/sync-gui-backend-from-2`；实现 push 结果：成功。
 
 ### 第 2 步执行结果（2026-08-29）
