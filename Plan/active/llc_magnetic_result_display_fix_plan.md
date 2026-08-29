@@ -503,7 +503,7 @@ LLC pipeline 当前提供：
 | ---: | --- | --- | --- | --- |
 | 1 | `completed` | `1cd24c6` | `e200dce` | 新增确定性 LLC 结果显示基线 fixture、两个视图基线测试和结构化输出基线；`35 passed`（含既有 LLC 专项）；生成器、证据和实现已 push |
 | 2 | `completed` | `10d3ad6` | `95dc179` | 增加 LLC 专用阶段摘要 DTO、变压器/外置 Lr 统计映射、三个推荐 ID 和组合 ID 边界 helper；结构化输出增加 JSON-safe LLC 区块，LLC hardware selection 不再依赖固定电感 chosen list；`12 passed`，`compileall` 和 `git diff --check` 通过，已 push |
-| 3 | `completed` | `e108410` | 待本次回填提交 | 两个磁件结果视图接入共享 LLC 专用文本格式化器；显示 transformer/external Lr 阶段统计和三个推荐层级，隐藏固定电感 allow/compression/stack-count 区块，并对 not-required 状态隐藏无意义的零计数；`11 passed`，`compileall` 和 `git diff --check` 通过，已 push |
+| 3 | `completed` | `e108410` | `2560327` | 两个磁件结果视图接入共享 LLC 专用文本格式化器；显示 transformer/external Lr 阶段统计和三个推荐层级，隐藏固定电感 allow/compression/stack-count 区块，并对 not-required 状态隐藏无意义的零计数；`11 passed`，`compileall` 和 `git diff --check` 通过，已 push |
 | 4 | `pending` | - | - | - |
 | 5 | `pending` | - | - | - |
 | 6 | `pending` | - | - | - |
