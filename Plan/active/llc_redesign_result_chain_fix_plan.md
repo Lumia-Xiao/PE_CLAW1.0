@@ -432,7 +432,7 @@
 ## 8. 当前状态
 
 - [x] 第 1 步：运行上下文和结果边界
-- [ ] 第 2 步：LLC 变压器结果生成和持久化
+- [x] 第 2 步：LLC 变压器结果生成和持久化
 - [ ] 第 3 步：外置谐振电感结果链路
 - [ ] 第 4 步：磁件参数和结果 ID 统一
 - [ ] 第 5 步：谐振电容推荐约束
@@ -467,3 +467,35 @@
 
 - 功能提交：`bb9213d feat: add LLC run context isolation`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
 - 本计划记录更新提交：`87396ab docs: record LLC run context step 1 commit`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
+
+## 10. 第 2 步执行记录
+
+### 已完成的修改
+
+1. LLC 变压器搜索正式接入本次运行的 `llc_run_context.output_root/transformer_design`，不再依赖 debug 开关或固定历史诊断目录。
+2. 变压器搜索和 Pareto 结果始终持久化正式 CSV：
+   - `llc_transformer_feasible_candidates.csv`
+   - `llc_transformer_pareto_front.csv`
+   - `llc_transformer_chosen_candidates.csv`
+   - `llc_transformer_leakage_rejection_audit.csv`
+3. 在外置 Lr 搜索前校验四个文件存在、非空，且 chosen CSV 与内存结果至少包含 `recommended`、`min-volume`、`min-loss` 三个角色；chosen ID 必须存在于 feasible 集合。
+4. 只有上述 artifact 校验完成后，才通过 `LlcRunContext.with_result_ids()` 写入本次运行的 `transformer_design_id`。
+5. 增加 `failure_code`、`failure_reason` 和 `artifact_paths` 字段，并覆盖目标缺失、无可行候选、参数异常、文件写入异常和 artifact 不完整等失败状态；失败时不生成外置 Lr 成功结果。
+6. GUI `run_active_magnetics()` 检查 LLC 变压器阶段状态，失败或阻断时停止损耗、热和几何后续阶段，不再无条件标记 `magnetics=succeeded`。
+7. 结构化报告输出同步暴露失败原因和变压器 artifact 路径。
+8. 新增变压器持久化、run-scoped 输出路径和结构化失败状态专项测试，并同步更新正式 artifact 输出策略测试。
+
+### 验证记录
+
+- `PYTHONPATH=src python -m pytest --basetemp .pytest-tmp-step2 tests/test_llc_transformer_persistence_step2.py tests/test_llc_magnetic_result_display_step2.py -q`
+- 结果：`9 passed in 3.42s`。
+- `PYTHONPATH=src python -m pytest --basetemp .pytest-tmp-step2 tests/test_llc_magnetic_performance_baseline.py tests/test_llc_magnetic_result_display_step2.py tests/test_llc_transformer_persistence_step2.py -q`
+- 结果：`27 passed in 76.92s`。
+- `PYTHONPATH=src python -m compileall -q src` 通过。
+- `git diff --check` 通过。
+- 系统默认 pytest 临时目录因权限返回 `WinError 5`，验证已切换到工程内未跟踪的 `.pytest-tmp-step2`；该目录未加入 Git。
+
+### 提交记录
+
+- 功能提交：`73f4bfe fix: persist LLC transformer magnetic results`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
+- 本计划记录提交：待提交，目标分支 `codex/sync-gui-backend-from-2`。
