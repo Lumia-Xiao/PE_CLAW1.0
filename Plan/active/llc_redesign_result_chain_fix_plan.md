@@ -433,7 +433,7 @@
 
 - [x] 第 1 步：运行上下文和结果边界
 - [x] 第 2 步：LLC 变压器结果生成和持久化
-- [ ] 第 3 步：外置谐振电感结果链路
+- [x] 第 3 步：外置谐振电感结果链路
 - [ ] 第 4 步：磁件参数和结果 ID 统一
 - [ ] 第 5 步：谐振电容推荐约束
 - [ ] 第 6 步：几何、硬件总览和旧引用
@@ -498,4 +498,35 @@
 ### 提交记录
 
 - 功能提交：`73f4bfe fix: persist LLC transformer magnetic results`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
+- 本计划记录提交：待提交，目标分支 `codex/sync-gui-backend-from-2`。
+
+## 11. 第 3 步执行记录
+
+### 已完成的修改
+
+1. LLC 变压器搜索成功后，外置谐振电感搜索始终生成本次运行的正式结果 CSV，不再依赖 `llc_debug_outputs`：
+   - `llc_external_resonant_inductor_feasible_candidates.csv`
+   - `llc_external_resonant_inductor_pareto_front.csv`
+   - `llc_external_resonant_inductor_chosen_candidates.csv`
+2. 外置 Lr 的正式 CSV 写入当前 `LlcRunContext.output_root/resonant_inductor_design`，几何 pipeline 也从同一运行目录读取和写入结果，避免引用固定目录中的历史文件。
+3. 外置 Lr 目标继续根据当前变压器候选的漏感计算：
+   `external_Lr_target = total_Lr_target - transformer_leakage`。
+4. 在接受外置 Lr 结果前校验三类 CSV 均存在且非空，并校验 chosen candidates 包含 `recommended`、`min-volume`、`min-loss` 三个角色。
+5. 增加 chosen candidate ID 一致性校验：chosen ID 必须存在于当前 feasible candidates，chosen CSV 中的持久化 ID 必须与当前内存结果一致；校验通过后才写入 `external_lr_design_id`。
+6. 外置 Lr 无可行候选、正式 artifact 缺失或 chosen ID 不一致时，记录 `failure_code`、`failure_reason` 和 artifact 路径，将磁件阶段标记为 `blocked`，不生成成功的组合磁件结果。
+7. 几何目标生成失败时将 geometry 阶段标记为 `blocked` 并记录原因，全部成功时才将 geometry 阶段标记为 `succeeded`。
+8. `RunDesignController` 同时检查变压器和外置 Lr 阶段状态，只有两者均可接受时才将 LLC 磁件阶段标记为 `succeeded`。
+9. 新增外置 Lr 结果持久化专项测试，并更新正式输出策略测试，覆盖 CSV 集合、代表角色、stale ID 拒绝及 run-scoped 几何输出路径。
+
+### 验证记录
+
+- `PYTHONPATH=src python -m pytest --basetemp .pytest-tmp-step3 tests/test_llc_external_lr_persistence_step3.py tests/test_llc_external_lr_prefilter.py tests/test_llc_magnetic_result_display_step2.py tests/test_llc_magnetic_performance_baseline.py -q`
+- 结果：`30 passed in 80.29s`。
+- `PYTHONPATH=src python -m compileall -q src` 通过。
+- `git diff --check` 通过。
+- 测试临时目录和既有 `outputs/` 均未加入 Git。
+
+### 提交记录
+
+- 功能提交：待提交，目标分支 `codex/sync-gui-backend-from-2`。
 - 本计划记录提交：待提交，目标分支 `codex/sync-gui-backend-from-2`。
