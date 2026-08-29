@@ -887,7 +887,19 @@ def _run_llc_transformer_magnetic_pipeline(
             recommended_external_lr_design_id=recommended_external_lr_design_id,
             recommended_combined_magnetic_design_id=recommended_combined_magnetic_design_id,
         )
-        design_requirements = _llc_transformer_design_requirements(transformer_target, search_result)
+        design_requirements = _llc_transformer_design_requirements(
+            transformer_target,
+            search_result,
+            fha_design=fha_design,
+            display_name=report.candidate.display_name,
+            recommended_candidate=recommended,
+            external_lr_target=external_lr_target,
+            search_bounds=search_bounds,
+        )
+        design_requirements["external_lr_status"] = external_lr_stage_summary.status
+        field_status = design_requirements.get("field_status")
+        if isinstance(field_status, dict):
+            field_status["external_lr"] = external_lr_stage_summary.status
         design_requirements["magnetic_search_bounds"] = search_bounds.to_dict()
         design_requirements["magnetic_output_policy"] = output_policy
         design_requirements["transformer_pareto_count"] = pareto_result.pareto_count
@@ -1095,12 +1107,41 @@ def _rebuild_llc_fha_design(llc_fha_metadata: dict[str, object]) -> LLCFHADesign
 def _llc_transformer_design_requirements(
     transformer_target: dict[str, object],
     search_result,
+    *,
+    fha_design=None,
+    display_name: str | None = None,
+    recommended_candidate=None,
+    external_lr_target=None,
+    search_bounds=None,
 ) -> dict[str, object]:
-    return {
-        "topology_id": str(transformer_target.get("topology_id") or "llc_resonant_converter_diode_rectifier"),
+    fha = fha_design
+    topology_id = str(
+        getattr(fha, "topology_id", None)
+        or transformer_target.get("topology_id")
+        or "llc_resonant_converter_diode_rectifier"
+    )
+    requirements: dict[str, object] = {
+        "topology_id": topology_id,
+        "display_name": display_name or topology_id,
         "design_type": "separated_llc_transformer",
         "transformer_realizes": "Np:Ns and Lm",
         "external_resonant_inductor_realizes": "Lr",
+        "vin_min_v": getattr(fha, "vin_min_v", None),
+        "vin_nom_v": getattr(fha, "vin_nom_v", None),
+        "vin_max_v": getattr(fha, "vin_max_v", None),
+        "vout_min_v": getattr(fha, "vout_min_v", None),
+        "vout_nom_v": getattr(fha, "vout_nom_v", None),
+        "vout_max_v": getattr(fha, "vout_max_v", None),
+        "pout_min_w": getattr(fha, "pout_min_w", None),
+        "pout_max_w": getattr(fha, "pout_max_w", None),
+        "fs_min_hz": getattr(fha, "fs_min_hz", None),
+        "fs_nom_hz": getattr(fha, "fr_hz", None),
+        "fs_max_hz": getattr(fha, "fs_max_hz", None),
+        "fr_hz": getattr(fha, "fr_hz", None),
+        "base_np": transformer_target.get("base_np"),
+        "base_ns": transformer_target.get("base_ns"),
+        "recommended_np": getattr(recommended_candidate, "np", None),
+        "recommended_ns": getattr(recommended_candidate, "ns", None),
         "np": transformer_target.get("base_np"),
         "ns": transformer_target.get("base_ns"),
         "lm_target_h": transformer_target.get("lm_target_h"),
@@ -1108,10 +1149,67 @@ def _llc_transformer_design_requirements(
         "b_limit_t": transformer_target.get("b_limit_t"),
         "primary_bridge_type": transformer_target.get("primary_bridge_type"),
         "secondary_rectifier_type": transformer_target.get("secondary_rectifier_type"),
-        "boundary_saturation_cases": ", ".join(str(case) for case in transformer_target.get("boundary_saturation_case_names", [])),
+        "boundary_saturation_cases": list(transformer_target.get("boundary_saturation_case_names", [])),
+        "primary_current_basis": transformer_target.get("primary_current_basis"),
+        "primary_current_rms_a": transformer_target.get("primary_current_rms_a"),
+        "primary_current_peak_a": transformer_target.get("primary_current_peak_a"),
+        "secondary_current_basis": transformer_target.get("secondary_current_basis"),
+        "secondary_current_rms_a": transformer_target.get("secondary_current_rms_a"),
+        "secondary_current_peak_a": transformer_target.get("secondary_current_peak_a"),
+        "transformer_estimated_lk_h": getattr(recommended_candidate, "estimated_lk_h", None),
+        "transformer_leakage_method": getattr(recommended_candidate, "leakage_method", None),
+        "transformer_leakage_status": getattr(recommended_candidate, "leakage_status", None),
         "evaluated_candidate_count": search_result.evaluated_candidate_count,
         "feasible_candidate_count": search_result.feasible_candidate_count,
     }
+    if external_lr_target is None:
+        requirements.update(
+            {
+                "external_lr_status": "not_evaluated",
+                "external_lr_target_h": None,
+                "external_lr_target_uH": None,
+                "external_lr_is_design_required": False,
+                "external_lr_current_rms_a": None,
+                "external_lr_current_peak_a": None,
+                "external_lr_fs_basis_hz": None,
+                "external_lr_fs_min_hz": None,
+                "external_lr_fs_max_hz": None,
+            }
+        )
+    else:
+        requirements.update(
+            {
+                "external_lr_status": "available" if external_lr_target.is_design_required else "not_required",
+                "external_lr_target_h": external_lr_target.external_lr_target_h,
+                "external_lr_target_uH": external_lr_target.external_lr_target_uH,
+                "external_lr_total_target_h": external_lr_target.lr_total_target_h,
+                "external_lr_transformer_lk_h": external_lr_target.transformer_lk_h,
+                "external_lr_is_design_required": external_lr_target.is_design_required,
+                "external_lr_current_basis": external_lr_target.current_basis,
+                "external_lr_frequency_basis": external_lr_target.frequency_basis,
+                "external_lr_current_rms_a": external_lr_target.current_rms_a,
+                "external_lr_current_peak_a": external_lr_target.current_peak_a,
+                "external_lr_fs_basis_hz": external_lr_target.fs_basis_hz,
+                "external_lr_fs_min_hz": external_lr_target.fs_min_hz,
+                "external_lr_fs_max_hz": external_lr_target.fs_max_hz,
+                "external_lr_warning": external_lr_target.warning,
+            }
+        )
+    if search_bounds is not None:
+        requirements["magnetic_search_mode"] = search_bounds.mode
+        requirements["magnetic_search_selection_policy"] = search_bounds.selection_policy
+        requirements["magnetic_search_bounds"] = search_bounds.to_dict()
+    else:
+        requirements["magnetic_search_mode"] = "not_available"
+    requirements["field_status"] = {
+        "vin_range": "available" if fha is not None else "not_available",
+        "vout_range": "available" if fha is not None else "not_available",
+        "power_range": "available" if fha is not None else "not_available",
+        "frequency_range": "available" if fha is not None else "not_available",
+        "transformer_leakage": "available" if recommended_candidate is not None else "not_evaluated",
+        "external_lr": requirements["external_lr_status"],
+    }
+    return requirements
 
 
 def _dedupe_notes(notes: list[str]) -> list[str]:
