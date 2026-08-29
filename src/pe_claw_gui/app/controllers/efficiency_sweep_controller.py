@@ -26,9 +26,24 @@ class EfficiencySweepController:
             raise RuntimeError("Select a topology before running Efficiency Sweep.")
         plugin = self._state_store.active_plugin or self._state_store.registry.get_plugin(self._state_store.selected_topology_id)
         sweep_report = replace(report, operating_point=operating_point) if operating_point is not None else report
+        if sweep_report.llc_run_context is not None:
+            sweep_report = replace(
+                sweep_report,
+                llc_run_context=sweep_report.llc_run_context.transition("efficiency_sweep", "running"),
+            )
         started_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
         started_s = perf_counter()
-        result = run_efficiency_sweep(sweep_report, plugin=plugin)
+        try:
+            result = run_efficiency_sweep(sweep_report, plugin=plugin)
+        except Exception as exc:
+            if sweep_report.llc_run_context is not None:
+                self._state_store.design_report = replace(
+                    sweep_report,
+                    llc_run_context=sweep_report.llc_run_context.transition(
+                        "efficiency_sweep", "failed", reason=str(exc)
+                    ),
+                )
+            raise
         runtime_s = perf_counter() - started_s
         finished_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
         updated_report = replace(
@@ -39,6 +54,11 @@ class EfficiencySweepController:
             run_efficiency_sweep_finished_at=finished_at,
             run_efficiency_sweep_runtime_seconds=runtime_s,
         )
+        if updated_report.llc_run_context is not None:
+            updated_report = replace(
+                updated_report,
+                llc_run_context=updated_report.llc_run_context.transition("efficiency_sweep", "succeeded"),
+            )
         self._state_store.active_plugin = plugin
         self._state_store.design_report = updated_report
         return updated_report

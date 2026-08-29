@@ -431,7 +431,7 @@
 
 ## 8. 当前状态
 
-- [ ] 第 1 步：运行上下文和结果边界
+- [x] 第 1 步：运行上下文和结果边界
 - [ ] 第 2 步：LLC 变压器结果生成和持久化
 - [ ] 第 3 步：外置谐振电感结果链路
 - [ ] 第 4 步：磁件参数和结果 ID 统一
@@ -440,3 +440,29 @@
 - [ ] 第 7 步：效率扫描、报告和最终 manifest
 - [ ] 第 8 步：回归测试和全流程验收
 
+## 9. 第 1 步执行记录
+
+### 已完成的修改
+
+1. 新增 `src/pe_claw_gui/models/llc_run_context.py`，定义 LLC 专用的 `LlcRunContext`：
+   - 为每次运行生成唯一 `run_id`。
+   - 对规范化后的原始输入生成稳定的 `input_sha256`，并保存输入快照。
+   - 为本次运行预留独立的 `outputs/llc_runs/<run_id>` 输出根目录。
+   - 初始化 `design`、`magnetics`、`capacitors`、`loss`、`thermal`、`geometry`、`efficiency_sweep`、`hardware_overview`、`manifest` 阶段。
+   - 支持 `not_started`、`running`、`succeeded`、`failed`、`blocked` 状态，以及失败阶段和原因记录。
+   - 保存变压器、外置 Lr、Cr 和器件结果 ID，并提供 JSON 兼容的 `to_dict()`。
+2. `DesignReport` 增加 `llc_run_context` 字段，使上下文随报告在各 pipeline 之间传递。
+3. `run_topology_pipeline` 在 LLC 拓扑完成电气报告后创建全新的运行上下文；非 LLC 拓扑不改变原有行为。
+4. GUI `Run Design` 在 LLC 重新运行前清空旧的 `design_report`；设计、磁件、电容和效率阶段进入/离开时更新上下文，异常时记录失败原因并清除失败的设计报告引用。
+5. 新增第 1 步专项测试，覆盖运行 ID 隔离、输入摘要稳定性、阶段状态、失败原因、结果 ID 累计和 LLC 拓扑边界。
+
+### 验证记录
+
+- `PYTHONPATH=src python -m pytest tests/test_llc_run_context_step1.py tests/test_phase3_shared_contracts.py tests/test_llc_magnetic_requirements_step4.py -q`
+- 结果：`12 passed`。
+- `python -m compileall -q` 覆盖本步新增/修改的 Python 模块，通过。
+- `git diff --check` 通过。
+
+### 提交记录
+
+- 待提交：`feat: add LLC run context isolation`

@@ -22,6 +22,7 @@ from .inductor import (
     InductorOperatingPointRequest,
 )
 from .loss_result import LossResult
+from .llc_run_context import LlcRunContext
 from .magnetic_loss_contract import (
     CoreLossExcitation,
     CoreLossExcitationBuildRequest,
@@ -106,6 +107,7 @@ __all__ = [
     "InductorOperatingEvaluation",
     "InductorOperatingPointRequest",
     "LossResult",
+    "LlcRunContext",
     "CoreLossExcitation",
     "CoreLossExcitationBuildRequest",
     "CoreLossExcitationBuildResult",

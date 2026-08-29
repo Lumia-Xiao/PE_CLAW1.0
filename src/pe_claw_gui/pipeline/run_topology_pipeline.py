@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from ..libraries.semiconductors.metadata import (
@@ -12,6 +12,7 @@ from ..libraries.semiconductors.metadata import (
 from ..models.common_spec import CommonSpec
 from ..models.design_report import DesignReport
 from ..models.operating_point import OperatingPoint
+from ..models.llc_run_context import LlcRunContext, is_llc_topology
 from ..models.waveform import WaveformSet
 from ..topologies.base import TopologyCandidate, TopologyPlugin, TopologyResult
 
@@ -51,6 +52,12 @@ def run_topology_pipeline(
         stress_result=stress_result,
         topology_result=topology_result,
     )
+    if is_llc_topology(spec.topology_id):
+        report = replace(
+            report,
+            llc_run_context=LlcRunContext.create(spec.topology_id, raw_input),
+            notes=[*report.notes, "LLC run context created with isolated input and output identity."],
+        )
     return TopologyPipelineBundle(
         plugin=plugin,
         spec=spec,
