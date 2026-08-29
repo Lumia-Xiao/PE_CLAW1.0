@@ -498,7 +498,7 @@
 ### 提交记录
 
 - 功能提交：`73f4bfe fix: persist LLC transformer magnetic results`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
-- 本计划记录提交：待提交，目标分支 `codex/sync-gui-backend-from-2`。
+- 本计划记录提交：`0ad55aa docs: record LLC transformer persistence step 2`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
 
 ## 11. 第 3 步执行记录
 
@@ -528,5 +528,5 @@
 
 ### 提交记录
 
-- 功能提交：待提交，目标分支 `codex/sync-gui-backend-from-2`。
-- 本计划记录提交：待提交，目标分支 `codex/sync-gui-backend-from-2`。
+- 功能提交：`49d189b fix: persist LLC external resonant inductor results`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
+- 本计划记录提交：`3263628 docs: record LLC external resonant inductor step 3`，已 push 到 `origin/codex/sync-gui-backend-from-2`；本次文档准确性修正随后单独提交并 push。
