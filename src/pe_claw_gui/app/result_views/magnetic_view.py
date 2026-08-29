@@ -7,6 +7,7 @@ from tkinter import ttk
 
 from ...models.design_report import DesignReport
 from ...pipeline.options import MAGNETIC_STAGE_DISABLED_NOTE
+from .llc_result_text import build_llc_magnetic_summary_text, has_llc_display_summary
 
 
 class MagneticView(ttk.Frame):
@@ -32,6 +33,9 @@ class MagneticView(ttk.Frame):
             return
 
         magnetic = report.magnetic
+        if has_llc_display_summary(report):
+            self._set_text(build_llc_magnetic_summary_text(report))
+            return
         lines = [magnetic.summary or "Magnetic design has not run yet."]
         lines.extend(
             [
