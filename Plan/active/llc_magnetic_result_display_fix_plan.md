@@ -505,7 +505,7 @@ LLC pipeline 当前提供：
 | 2 | `completed` | `10d3ad6` | `95dc179` | 增加 LLC 专用阶段摘要 DTO、变压器/外置 Lr 统计映射、三个推荐 ID 和组合 ID 边界 helper；结构化输出增加 JSON-safe LLC 区块，LLC hardware selection 不再依赖固定电感 chosen list；`12 passed`，`compileall` 和 `git diff --check` 通过，已 push |
 | 3 | `completed` | `e108410` | `2560327` | 两个磁件结果视图接入共享 LLC 专用文本格式化器；显示 transformer/external Lr 阶段统计和三个推荐层级，隐藏固定电感 allow/compression/stack-count 区块，并对 not-required 状态隐藏无意义的零计数；`11 passed`，`compileall` 和 `git diff --check` 通过，已 push |
 | 4 | `completed` | `0f99073` | `568e00c` | 扩展 LLC requirements 字典并接入 FHA、transformer target、external Lr target 与搜索边界；视图显示完整输入/输出/功率/频率、匝比、Lm/Lr、Llk、电流、B 限值和搜索模式；缺失字段区分状态；专项集合 39 tests 无失败，`compileall` 和 `git diff --check` 通过，已 push |
-| 5 | `pending` | - | - | - |
+| 5 | `completed` | `ef5ad4c` | pending | `44 passed`；`compileall` 和 `git diff --check` 通过；统一 LLC transformer、external Lr、combined 的损耗、体积、热、几何角色和结构化输出；实现已 push |
 | 6 | `pending` | - | - | - |
 
 ## 8. 预期交付物
@@ -520,9 +520,8 @@ LLC pipeline 当前提供：
 
 ## 9. 当前状态
 
-第 1 步已完成，后续从第 2 步“补齐 LLC 专用结果字段和候选统计映射”开始，并严格按照本文件的
-完成条件和 commit/push 规则逐步执行。第 1 步只新增了基线生成器、测试和证据，没有修改 LLC
-候选搜索或结果显示业务逻辑。
+第 1 至第 5 步已完成，第 6 步“完整回归、真实示例验收和交付收口”待执行，并严格按照本文件的
+完成条件和 commit/push 规则逐步执行。当前计划仍保持 `active`，不能提前标记为完成。
 
 ### 第 1 步执行结果（2026-08-29）
 
@@ -533,6 +532,23 @@ LLC pipeline 当前提供：
 - 基线证据：`migration/evidence/20260829/llc_magnetic_result_display_step1/llc_magnetic_result_display_step1_baseline.json`。
 - 生成器：`scripts/build_llc_magnetic_result_display_step1_baseline.py`。
 - 测试：`tests/test_llc_magnetic_result_display_baseline.py`。
+
+### 第 5 步执行结果（2026-08-29）
+
+- LLC loss pipeline 按角色保留 transformer、external `Lr` 和 combined 的 core/copper/total loss，
+  并分别保存 transformer、external `Lr` 和 combined 体积；组合 ID 优先使用 MagneticResult 的明确推荐字段。
+- LLC thermal pipeline 分别报告 transformer 与 external `Lr` 的 hotspot、design ID、状态和来源，
+  使用 combined recommendation 作为聚合推荐，不再生成固定电感 thermal comparison 占位结果。
+- LLC geometry result 明确标记 `component_type=external_resonant_inductor`，避免把外置 `Lr` artifact
+  误称为 transformer geometry；hardware overview 将该组件显示为 `External Resonant Inductor`，并保留三个推荐 ID。
+- LLC 两个文本结果视图和 structured output 已按角色显示损耗、体积、热和几何信息；structured output
+  的 LLC 有效推荐状态为 `pass`，不依赖固定电感 `chosen_designs`。
+- 新增 `tests/test_llc_magnetic_result_reporting_step5.py`，覆盖损耗/体积守恒、双组件热结果、文本摘要、
+  structured output 和 hardware overview 角色命名。
+- 验证命令：`python -m compileall -q src tests scripts`；LLC 第五步及相关回归集合共 `44 passed`；
+  `git diff --check` 通过。
+- 实现 commit：`ef5ad4c`（`LLC Display Step 5: align recommendation and artifact reporting`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`；实现 push 结果：成功。
 - 验证命令：`$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_performance_baseline.py tests/test_llc_fha_boundary_cache.py tests/test_llc_external_lr_prefilter.py tests/test_llc_pareto_filter.py`。
 - 验证结果：`35 passed`；`python -m compileall -q scripts tests` 和 `git diff --check` 通过。
 - 实现 commit：`1cd24c6`（`LLC Display Step 1: freeze magnetic result contract`）。
