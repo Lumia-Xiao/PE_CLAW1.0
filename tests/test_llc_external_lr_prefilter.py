@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import replace
+import shutil
+from pathlib import Path
+
 from pe_claw_gui.models.magnetic_result import LlcExternalResonantInductorTarget
 from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier import transformer_design as td
 
@@ -111,3 +115,21 @@ def test_external_lr_prefilter_preserves_candidate_count_and_skips_expensive_mod
     assert counts["prefilter_rejected_by_fill_count"] > 0
     assert result.rejection_counts["prefilter_fill"] > 0
     assert all(candidate.rejection_reason.startswith("prefilter:") for candidate in result.candidates)
+
+
+def test_external_lr_output_is_opt_in_and_isolated() -> None:
+    output_dir = Path(__file__).resolve().parents[1] / ".test-llc-step9-output"
+    shutil.rmtree(output_dir, ignore_errors=True)
+    try:
+        result = td.generate_llc_external_resonant_inductor_candidates(
+            replace(_request(), is_design_required=False),
+            core_records=[_core()],
+            material_records=[],
+            wire_records=[_wire()],
+            output_dir=output_dir,
+        )
+
+        assert result.artifact_paths == []
+        assert not output_dir.exists()
+    finally:
+        shutil.rmtree(output_dir, ignore_errors=True)

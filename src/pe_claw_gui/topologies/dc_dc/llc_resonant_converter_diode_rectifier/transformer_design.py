@@ -3043,7 +3043,7 @@ def generate_llc_external_resonant_inductor_candidates(
     material_limit: int | None = 4,
     wire_limit: int | None = 10,
     search_bounds: LLCMagneticSearchBounds | None = None,
-    write_csv: bool = True,
+    write_csv: bool = False,
     output_dir: Path | None = None,
 ) -> LlcExternalResonantInductorSearchResult:
     """Screen first-pass external Lr inductor candidates using an energy/current model."""

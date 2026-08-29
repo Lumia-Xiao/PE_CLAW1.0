@@ -40,7 +40,11 @@ def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOption
         return replace(report, geometry=geometry_result)
 
     if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
-        return _run_llc_external_lr_geometry_pipeline(report)
+        return _run_llc_external_lr_geometry_pipeline(
+            report,
+            geometry_roles=options.llc_geometry_roles,
+            debug_outputs=options.enable_magnetic_debug_outputs,
+        )
 
     if report.magnetic is not None and report.magnetic.result_type == "ac_dc_sendust_reactor":
         return _run_ac_dc_reactor_geometry_pipeline(report)
@@ -406,7 +410,12 @@ def _ac_dc_reactor_to_inductor_design(candidate) -> FixedInductorDesignCandidate
     )
 
 
-def _run_llc_external_lr_geometry_pipeline(report: DesignReport) -> DesignReport:
+def _run_llc_external_lr_geometry_pipeline(
+    report: DesignReport,
+    *,
+    geometry_roles: tuple[str, ...] | None = None,
+    debug_outputs: bool = False,
+) -> DesignReport:
     magnetic = report.magnetic
     search_result = magnetic.llc_external_resonant_inductor_search_result if magnetic is not None else None
     if search_result is None or not search_result.chosen_candidates:
@@ -421,7 +430,22 @@ def _run_llc_external_lr_geometry_pipeline(report: DesignReport) -> DesignReport
 
     selection_by_role = {selection.role: selection for selection in search_result.chosen_candidates}
     target_specs: list[dict[str, object]] = []
-    for role in ("min-volume", "min-loss", "recommended"):
+    valid_roles = ("min-volume", "min-loss", "recommended")
+    requested_roles = (
+        valid_roles
+        if geometry_roles is None and debug_outputs
+        else geometry_roles or ("recommended",)
+    )
+    normalized_roles = tuple(dict.fromkeys(str(role).strip().lower() for role in requested_roles))
+    invalid_roles = tuple(role for role in normalized_roles if role not in valid_roles)
+    if invalid_roles:
+        raise ValueError(
+            "LLC geometry roles must be selected from min-volume, min-loss, and recommended; "
+            f"got {', '.join(invalid_roles)}."
+        )
+    for role in valid_roles:
+        if role not in normalized_roles:
+            continue
         selection = selection_by_role.get(role)
         if selection is None:
             continue

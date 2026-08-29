@@ -29,6 +29,7 @@ from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier.input_s
     build_spec,
 )
 from pe_claw_gui.pipeline.options import PipelineOptions
+from pe_claw_gui.pipeline.run_magnetic_pipeline import _llc_output_policy
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.topologies.base.registry import build_default_registry
 
@@ -256,6 +257,52 @@ def test_llc_pipeline_exposes_selected_search_bounds() -> None:
     bounds = report.magnetic.design_requirements["magnetic_search_bounds"]
     assert bounds["mode"] == "fast"
     assert report.magnetic.performance_timing["search_bounds"] == bounds
+    output_policy = report.magnetic.design_requirements["magnetic_output_policy"]
+    assert output_policy["debug_outputs_enabled"] is False
+    assert output_policy["geometry_roles"] == ["recommended"]
+    assert output_policy["transformer_debug_csv"] is False
+    assert output_policy["transformer_pareto_artifacts"] is False
+    assert output_policy["external_lr_artifacts"] is False
+    assert report.magnetic.performance_timing["pipeline"]["output_policy"] == output_policy
+
+
+def test_llc_output_policy_defaults_to_one_formal_geometry_target() -> None:
+    policy = _llc_output_policy(debug_outputs=False, geometry_roles=None)
+
+    assert policy["debug_outputs_enabled"] is False
+    assert policy["geometry_roles"] == ["recommended"]
+    assert policy["transformer_debug_csv"] is False
+    assert policy["transformer_pareto_artifacts"] is False
+    assert policy["external_lr_artifacts"] is False
+    assert policy["diagnostic_output_root"] == ""
+
+
+def test_llc_output_policy_debug_mode_restores_complete_diagnostics() -> None:
+    policy = _llc_output_policy(debug_outputs=True, geometry_roles=None)
+
+    assert policy["debug_outputs_enabled"] is True
+    assert policy["geometry_roles"] == ["min-volume", "min-loss", "recommended"]
+    assert policy["transformer_debug_csv"] is True
+    assert policy["transformer_pareto_artifacts"] is True
+    assert policy["external_lr_artifacts"] is True
+    assert str(policy["diagnostic_output_root"]).endswith("outputs\\llc_diagnostics") or str(
+        policy["diagnostic_output_root"]
+    ).endswith("outputs/llc_diagnostics")
+
+
+def test_llc_output_policy_accepts_explicit_geometry_roles() -> None:
+    policy = _llc_output_policy(
+        debug_outputs=False,
+        geometry_roles=("min-loss", "recommended", "min-loss"),
+    )
+
+    assert policy["geometry_roles"] == ["min-loss", "recommended"]
+    assert policy["transformer_debug_csv"] is False
+
+
+def test_llc_output_policy_rejects_unknown_geometry_roles() -> None:
+    with pytest.raises(ValueError, match="geometry roles"):
+        _llc_output_policy(debug_outputs=False, geometry_roles=("all",))
 
 
 def test_llc_reusable_metrics_cache_hits_and_returns_isolated_values() -> None:

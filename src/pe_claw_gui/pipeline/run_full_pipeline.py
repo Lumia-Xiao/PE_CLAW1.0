@@ -77,6 +77,8 @@ def run_full_pipeline(
             report,
             backend_config=magnetic_backend_config or get_production_magnetic_backend_config(),
             llc_search_mode=llc_search_mode,
+            llc_debug_outputs=options.enable_magnetic_debug_outputs,
+            llc_geometry_roles=options.llc_geometry_roles,
         )
     else:
         report = replace(

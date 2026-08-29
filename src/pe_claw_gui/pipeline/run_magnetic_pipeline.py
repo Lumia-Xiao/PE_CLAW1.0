@@ -102,6 +102,8 @@ def run_magnetic_pipeline(
     *,
     backend_config: MagneticDataBackendConfig | None = None,
     llc_search_mode: str = "fast",
+    llc_debug_outputs: bool = False,
+    llc_geometry_roles: tuple[str, ...] | None = None,
 ) -> DesignReport:
     """Attach magnetic design plus a shadow-only core-loss excitation audit."""
 
@@ -113,6 +115,8 @@ def run_magnetic_pipeline(
         report,
         backend_config=backend_config,
         llc_search_mode=llc_search_mode,
+        llc_debug_outputs=llc_debug_outputs,
+        llc_geometry_roles=llc_geometry_roles,
     )
     return attach_core_loss_excitation_audit(completed)
 
@@ -122,6 +126,8 @@ def _run_magnetic_pipeline_without_excitation_audit(
     *,
     backend_config: MagneticDataBackendConfig | None = None,
     llc_search_mode: str = "fast",
+    llc_debug_outputs: bool = False,
+    llc_geometry_roles: tuple[str, ...] | None = None,
 ) -> DesignReport:
     """Attach the inductor magnetic stage to a design report."""
     geometry_result = report.geometry or GeometryResult(notes=["Geometry estimation remains a placeholder stage."])
@@ -141,6 +147,8 @@ def _run_magnetic_pipeline_without_excitation_audit(
             geometry_result,
             backend_config=resolved_backend_config,
             llc_search_mode=llc_search_mode,
+            llc_debug_outputs=llc_debug_outputs,
+            llc_geometry_roles=llc_geometry_roles,
         )
 
     if report.spec.topology_id == "flyback_diode_rectified_isolated":
@@ -756,11 +764,17 @@ def _run_llc_transformer_magnetic_pipeline(
     *,
     backend_config: MagneticDataBackendConfig | None = None,
     llc_search_mode: str = "fast",
+    llc_debug_outputs: bool = False,
+    llc_geometry_roles: tuple[str, ...] | None = None,
 ) -> DesignReport:
     """Run separated LLC transformer first-pass magnetic screening from Run Magnetics."""
 
     pipeline_started = perf_counter()
-    pipeline_timing: dict[str, float] = {}
+    pipeline_timing: dict[str, object] = {}
+    output_policy = _llc_output_policy(
+        debug_outputs=llc_debug_outputs,
+        geometry_roles=llc_geometry_roles,
+    )
     llc_fha_metadata = (
         report.candidate.metadata.get("llc_fha", {})
         if report.candidate is not None and isinstance(report.candidate.metadata, dict)
@@ -800,13 +814,15 @@ def _run_llc_transformer_magnetic_pipeline(
             max_scale_factor=search_bounds.max_scale_factor,
             frequency_solver=make_fha_boundary_frequency_solver(fha_design),
             search_bounds=search_bounds,
-            write_debug_csv=True,
+            write_debug_csv=llc_debug_outputs,
+            output_dir=_llc_diagnostic_output_dir("transformer") if llc_debug_outputs else None,
         )
         pipeline_timing["transformer_search_seconds"] = perf_counter() - transformer_search_started
         transformer_pareto_started = perf_counter()
         pareto_result = build_llc_transformer_pareto_result(
             search_result.feasible_candidates,
-            write_artifacts=True,
+            write_artifacts=llc_debug_outputs,
+            output_dir=_llc_diagnostic_output_dir("transformer") if llc_debug_outputs else None,
         )
         pipeline_timing["transformer_pareto_seconds"] = perf_counter() - transformer_pareto_started
         recommended = pareto_result.recommended_candidate or search_result.recommended_preliminary_candidate
@@ -824,6 +840,8 @@ def _run_llc_transformer_magnetic_pipeline(
                 material_records=(backend_bundle.materials if backend_bundle is not None else None),
                 wire_records=(backend_bundle.wires if backend_bundle is not None else None),
                 search_bounds=search_bounds,
+                write_csv=llc_debug_outputs,
+                output_dir=_llc_diagnostic_output_dir("external_lr") if llc_debug_outputs else None,
             )
             if external_lr_target is not None
             else None
@@ -831,6 +849,7 @@ def _run_llc_transformer_magnetic_pipeline(
         pipeline_timing["external_lr_search_seconds"] = perf_counter() - external_lr_search_started
         design_requirements = _llc_transformer_design_requirements(transformer_target, search_result)
         design_requirements["magnetic_search_bounds"] = search_bounds.to_dict()
+        design_requirements["magnetic_output_policy"] = output_policy
         design_requirements["transformer_pareto_count"] = pareto_result.pareto_count
         design_requirements["transformer_chosen_count"] = pareto_result.chosen_count
         if external_lr_target is not None:
@@ -863,12 +882,17 @@ def _run_llc_transformer_magnetic_pipeline(
         visualization_warnings: list[str] = []
         visualization_artifact_paths: list[str] = []
         geometry_started = perf_counter()
-        for role in ("min-volume", "min-loss", "recommended"):
+        for role in output_policy["geometry_roles"]:
             selection = pareto_result.representative_by_role.get(role)
             candidate_for_role = selection.candidate if selection is not None else (recommended if role == "recommended" else None)
             if candidate_for_role is None:
                 continue
             transformer_comparison_candidates[role] = candidate_for_role
+            if transformer_geometry_renderer is None:
+                visualization_warnings.append(
+                    "LLC transformer geometry renderer is unavailable; structured magnetic results remain available."
+                )
+                continue
             try:
                 artifact = transformer_geometry_renderer.render_llc_transformer_geometry(
                     candidate_for_role,
@@ -890,7 +914,7 @@ def _run_llc_transformer_magnetic_pipeline(
                 visualization_warnings.append(
                     f"Transformer geometry generation failed for {role}: {type(exc).__name__}: {exc}"
                 )
-        if transformer_comparison_candidates:
+        if llc_debug_outputs and transformer_geometry_renderer is not None and transformer_comparison_candidates:
             try:
                 transformer_comparison_visualization = transformer_geometry_renderer.render_llc_transformer_comparison_geometry(
                     transformer_comparison_candidates,
@@ -906,6 +930,7 @@ def _run_llc_transformer_magnetic_pipeline(
                     f"Transformer comparison geometry generation failed: {type(exc).__name__}: {exc}"
                 )
         pipeline_timing["geometry_seconds"] = perf_counter() - geometry_started
+        pipeline_timing["output_policy"] = output_policy
         pipeline_timing["total_seconds"] = perf_counter() - pipeline_started
 
         notes = [
@@ -1026,7 +1051,7 @@ def _rebuild_llc_fha_design(llc_fha_metadata: dict[str, object]) -> LLCFHADesign
 def _llc_transformer_design_requirements(
     transformer_target: dict[str, object],
     search_result,
-) -> dict[str, float | str | bool | None]:
+) -> dict[str, object]:
     return {
         "topology_id": str(transformer_target.get("topology_id") or "llc_resonant_converter_diode_rectifier"),
         "design_type": "separated_llc_transformer",
@@ -1067,3 +1092,42 @@ def _describe_chosen_stack_options(chosen_designs) -> str:
 
 def _project_root() -> Path:
     return Path(__file__).resolve().parents[3]
+
+
+def _llc_diagnostic_output_dir(kind: str) -> Path:
+    """Keep optional LLC diagnostics separate from formal geometry outputs."""
+
+    return _project_root() / "outputs" / "llc_diagnostics" / kind
+
+
+def _llc_output_policy(
+    *,
+    debug_outputs: bool,
+    geometry_roles: tuple[str, ...] | None,
+) -> dict[str, object]:
+    valid_roles = ("min-volume", "min-loss", "recommended")
+    requested_roles = (
+        valid_roles
+        if geometry_roles is None and debug_outputs
+        else geometry_roles or ("recommended",)
+    )
+    normalized_roles = tuple(dict.fromkeys(str(role).strip().lower() for role in requested_roles))
+    invalid_roles = tuple(role for role in normalized_roles if role not in valid_roles)
+    if invalid_roles:
+        raise ValueError(
+            "LLC geometry roles must be selected from min-volume, min-loss, and recommended; "
+            f"got {', '.join(invalid_roles)}."
+        )
+    selected_roles = tuple(role for role in valid_roles if role in normalized_roles)
+    return {
+        "debug_outputs_enabled": bool(debug_outputs),
+        "geometry_roles": list(selected_roles),
+        "transformer_debug_csv": bool(debug_outputs),
+        "transformer_pareto_artifacts": bool(debug_outputs),
+        "external_lr_artifacts": bool(debug_outputs),
+        "diagnostic_output_root": str(_project_root() / "outputs" / "llc_diagnostics") if debug_outputs else "",
+        "formal_output_roots": [
+            "outputs/resonant_inductor_design",
+            "outputs/inductor_design",
+        ],
+    }
