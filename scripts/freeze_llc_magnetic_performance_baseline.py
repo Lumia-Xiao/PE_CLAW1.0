@@ -13,10 +13,12 @@ import json
 import multiprocessing as mp
 import platform
 import sys
+import time
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from queue import Empty
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -42,10 +44,74 @@ from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier.transfo
     build_llc_external_resonant_inductor_target,
     build_transformer_design_inputs_from_fha,
     generate_llc_external_resonant_inductor_candidates,
+    build_llc_external_resonant_inductor_pareto_front,
+    build_llc_external_resonant_inductor_pareto_front_reference,
+    LLC_PARETO_FILTER_ALGORITHM,
     generate_separated_llc_transformer_candidates,
     llc_reusable_magnetic_metrics_cache_info,
     make_fha_boundary_frequency_solver,
 )
+
+
+def _run_pareto_benchmark() -> dict[str, object]:
+    """Compare the optimized sweep with the quadratic oracle on stable finite data."""
+
+    candidates = [
+        SimpleNamespace(
+            design_id=f"benchmark-{index}",
+            core_id=f"benchmark-{index}",
+            core_family="BENCHMARK",
+            material_name="benchmark",
+            turns=1,
+            gap_m=1.0e-3,
+            gap_mm=1.0,
+            target_l_h=1.0e-3,
+            actual_l_h=1.0e-3,
+            actual_l_uH=1000.0,
+            inductance_error_percent=0.0,
+            transformer_lk_h=0.0,
+            transformer_lk_uH=0.0,
+            total_lr_actual_h=1.0e-3,
+            total_lr_actual_uH=1000.0,
+            total_lr_error_percent=0.0,
+            current_rms_a=1.0,
+            current_peak_a=1.0,
+            fs_basis_hz=100000.0,
+            b_peak_t=0.01,
+            b_limit_t=0.18,
+            b_margin_percent=90.0,
+            fill_factor=0.1,
+            current_density_a_per_mm2=1.0,
+            core_loss_w=0.1,
+            copper_loss_w=0.1,
+            total_loss_w=float(900 - index),
+            hotspot_c=50.0,
+            estimated_volume_m3=float(index),
+            estimated_volume_cm3=float(index),
+            wire_name="benchmark",
+            wire_parallel_count=1,
+            rejection_reason="",
+        )
+        for index in range(900)
+    ]
+    optimized_started = time.perf_counter()
+    optimized = build_llc_external_resonant_inductor_pareto_front(candidates)
+    optimized_seconds = time.perf_counter() - optimized_started
+    reference_started = time.perf_counter()
+    reference = build_llc_external_resonant_inductor_pareto_front_reference(candidates)
+    reference_seconds = time.perf_counter() - reference_started
+    optimized_ids = [candidate.design_id for candidate in optimized]
+    reference_ids = [candidate.design_id for candidate in reference]
+    return {
+        "algorithm_version": LLC_PARETO_FILTER_ALGORITHM,
+        "candidate_count": len(candidates),
+        "optimized_seconds": optimized_seconds,
+        "reference_seconds": reference_seconds,
+        "speedup": reference_seconds / optimized_seconds if optimized_seconds > 0.0 else 0.0,
+        "equivalent_order": optimized_ids == reference_ids,
+        "optimized_pareto_count": len(optimized),
+        "reference_pareto_count": len(reference),
+    }
 
 
 CASES: dict[str, dict[str, int]] = {
@@ -238,6 +304,7 @@ def main() -> int:
         "schema_version": "llc_magnetic_performance_baseline_v1",
         "created_at_utc": completed_at,
         "repository": str(ROOT),
+        "pareto_benchmark": _run_pareto_benchmark(),
         "cases": results,
         "summary": {
             "case_count": len(results),

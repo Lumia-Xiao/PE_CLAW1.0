@@ -961,6 +961,8 @@ def _run_llc_transformer_magnetic_pipeline(
                 "pipeline": pipeline_timing,
                 "transformer_search": search_result.performance_timing,
                 "transformer_counts": search_result.performance_counts,
+                "transformer_pareto_timing": pareto_result.performance_timing,
+                "transformer_pareto_counts": pareto_result.performance_counts,
                 "search_bounds": search_bounds.to_dict(),
                 "external_lr_search": (
                     external_lr_search_result.performance_timing

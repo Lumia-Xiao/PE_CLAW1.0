@@ -9,7 +9,7 @@ from collections import Counter, OrderedDict
 from statistics import median
 from dataclasses import dataclass, field, fields, replace
 from pathlib import Path
-from math import ceil, pi, sqrt
+from math import ceil, isfinite, pi, sqrt
 from typing import Any, Callable, Iterable, Mapping
 
 from ....engines.magnetics.leakage import (
@@ -41,6 +41,7 @@ EXTERNAL_LR_GAP_MAX_M = 8.0e-3
 EXTERNAL_LR_GAP_TO_LE_MAX = 0.15
 EXTERNAL_LR_INDUCTANCE_ERROR_LIMIT_PERCENT = 10.0
 EXTERNAL_LR_MAX_TURNS_ABSOLUTE = 180
+LLC_PARETO_FILTER_ALGORITHM = "finite-2d-sweep-v1"
 LLC_REUSABLE_MAGNETIC_METRICS_VERSION = "llc-transformer-reusable-metrics-v1"
 LLC_REUSABLE_MAGNETIC_METRICS_UNITS = "SI: m, m2, m3, H, T, Hz, A, W"
 LLC_REUSABLE_MAGNETIC_METRICS_MAXSIZE = 4096
@@ -587,6 +588,8 @@ class LLCTransformerParetoResult:
     recommended_policy: str
     artifact_paths: list[str] = field(default_factory=list)
     plot_diagnostics: dict[str, object] = field(default_factory=dict)
+    performance_timing: dict[str, float] = field(default_factory=dict)
+    performance_counts: dict[str, object] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
@@ -2182,7 +2185,9 @@ def build_llc_transformer_pareto_result(
         [candidate for candidate in feasible_candidates if candidate.feasible],
         key=lambda candidate: (candidate.estimated_volume_m3, candidate.total_loss_w, candidate.candidate_id),
     )
+    pareto_started = perf_counter()
     pareto = build_llc_transformer_pareto_front(feasible)
+    pareto_seconds = perf_counter() - pareto_started
     representatives = select_llc_transformer_representatives(pareto)
     recommended_selection = representatives.get("recommended")
     recommended = recommended_selection.candidate if recommended_selection is not None else None
@@ -2216,8 +2221,15 @@ def build_llc_transformer_pareto_result(
             "Leakage is first-pass estimated and checked only; it is not designed as Lr.",
             "The PNG may hide extreme feasible outliers for readability; CSV artifacts remain complete.",
             "Detailed winding-stack geometry, detailed leakage model, isolation/creepage/clearance checks, and final optimization are not implemented.",
+            f"Pareto filtering uses {LLC_PARETO_FILTER_ALGORITHM}; finite two-objective inputs use a sorted sweep and non-finite inputs use the reference oracle.",
         ],
         warnings=[],
+        performance_timing={"pareto_seconds": pareto_seconds},
+        performance_counts={
+            "pareto_algorithm_version": LLC_PARETO_FILTER_ALGORITHM,
+            "pareto_input_count": len(feasible),
+            "pareto_output_count": len(pareto),
+        },
     )
 
 
@@ -2227,26 +2239,138 @@ def build_llc_transformer_pareto_front(
     """Return nondominated transformer candidates by volume and total loss."""
 
     feasible = [candidate for candidate in candidates if candidate.feasible]
-    pareto: list[LLCTransformerScreeningCandidate] = []
-    for candidate in feasible:
+    return _build_llc_2d_pareto_front(
+        feasible,
+        volume_key=lambda candidate: candidate.estimated_volume_m3,
+        loss_key=lambda candidate: candidate.total_loss_w,
+        identifier_key=lambda candidate: candidate.candidate_id,
+    )
+
+
+def _build_llc_2d_pareto_front_reference(
+    candidates: Iterable[Any],
+    *,
+    volume_key: Callable[[Any], float],
+    loss_key: Callable[[Any], float],
+    identifier_key: Callable[[Any], str],
+) -> list[Any]:
+    """Quadratic Pareto oracle retained to verify the optimized sweep."""
+
+    items = list(candidates)
+    pareto: list[Any] = []
+    for candidate in items:
+        candidate_volume = volume_key(candidate)
+        candidate_loss = loss_key(candidate)
         dominated = False
-        for other in feasible:
-            if other.candidate_id == candidate.candidate_id:
+        for other in items:
+            if identifier_key(other) == identifier_key(candidate):
                 continue
-            no_worse = (
-                other.estimated_volume_m3 <= candidate.estimated_volume_m3
-                and other.total_loss_w <= candidate.total_loss_w
-            )
-            strictly_better = (
-                other.estimated_volume_m3 < candidate.estimated_volume_m3
-                or other.total_loss_w < candidate.total_loss_w
-            )
+            other_volume = volume_key(other)
+            other_loss = loss_key(other)
+            no_worse = other_volume <= candidate_volume and other_loss <= candidate_loss
+            strictly_better = other_volume < candidate_volume or other_loss < candidate_loss
             if no_worse and strictly_better:
                 dominated = True
                 break
         if not dominated:
             pareto.append(candidate)
-    return sorted(pareto, key=lambda item: (item.estimated_volume_m3, item.total_loss_w, item.candidate_id))
+    return sorted(pareto, key=lambda item: (volume_key(item), loss_key(item), identifier_key(item)))
+
+
+def _update_llc_two_minima(
+    best_by_id: dict[str, float],
+    minima: list[tuple[float, str]],
+    identifier: str,
+    loss: float,
+) -> None:
+    """Maintain the two lowest losses belonging to distinct candidate IDs."""
+
+    previous = best_by_id.get(identifier)
+    if previous is not None and loss >= previous:
+        return
+    best_by_id[identifier] = loss
+    minima[:] = [item for item in minima if item[1] != identifier]
+    minima.append((loss, identifier))
+    minima.sort(key=lambda item: (item[0], item[1]))
+    del minima[2:]
+
+
+def _llc_minimum_excluding_id(minima: list[tuple[float, str]], identifier: str) -> float | None:
+    """Return the lowest tracked loss whose ID differs from ``identifier``."""
+
+    for loss, item_id in minima:
+        if item_id != identifier:
+            return loss
+    return None
+
+
+def _build_llc_2d_pareto_front(
+    candidates: Iterable[Any],
+    *,
+    volume_key: Callable[[Any], float],
+    loss_key: Callable[[Any], float],
+    identifier_key: Callable[[Any], str],
+) -> list[Any]:
+    """Return a stable 2-D minimization front in O(n log n) for finite metrics."""
+
+    items = list(candidates)
+    if not items:
+        return []
+    if any(
+        not isfinite(float(metric))
+        for item in items
+        for metric in (volume_key(item), loss_key(item))
+    ):
+        return _build_llc_2d_pareto_front_reference(
+            items,
+            volume_key=volume_key,
+            loss_key=loss_key,
+            identifier_key=identifier_key,
+        )
+
+    ordered = sorted(items, key=lambda item: (volume_key(item), loss_key(item), identifier_key(item)))
+    pareto: list[Any] = []
+    prior_best_by_id: dict[str, float] = {}
+    prior_minima: list[tuple[float, str]] = []
+    index = 0
+    while index < len(ordered):
+        volume = volume_key(ordered[index])
+        end = index + 1
+        while end < len(ordered) and volume_key(ordered[end]) == volume:
+            end += 1
+        group_best_by_id: dict[str, float] = {}
+        group_minima: list[tuple[float, str]] = []
+        for candidate in ordered[index:end]:
+            identifier = identifier_key(candidate)
+            loss = loss_key(candidate)
+            prior_loss = _llc_minimum_excluding_id(prior_minima, identifier)
+            same_volume_loss = _llc_minimum_excluding_id(group_minima, identifier)
+            dominated = (
+                prior_loss is not None and prior_loss <= loss
+            ) or (
+                same_volume_loss is not None and same_volume_loss < loss
+            )
+            if not dominated:
+                pareto.append(candidate)
+            _update_llc_two_minima(group_best_by_id, group_minima, identifier, loss)
+        for identifier, loss in group_best_by_id.items():
+            _update_llc_two_minima(prior_best_by_id, prior_minima, identifier, loss)
+        index = end
+    return sorted(pareto, key=lambda item: (volume_key(item), loss_key(item), identifier_key(item)))
+
+
+def build_llc_transformer_pareto_front_reference(
+    candidates: Iterable[LLCTransformerScreeningCandidate],
+) -> list[LLCTransformerScreeningCandidate]:
+    """Return the original quadratic transformer Pareto oracle for regression tests."""
+
+    feasible = [candidate for candidate in candidates if candidate.feasible]
+    return _build_llc_2d_pareto_front_reference(
+        feasible,
+        volume_key=lambda candidate: candidate.estimated_volume_m3,
+        loss_key=lambda candidate: candidate.total_loss_w,
+        identifier_key=lambda candidate: candidate.candidate_id,
+    )
 
 
 def select_llc_transformer_representatives(
@@ -3154,6 +3278,9 @@ def generate_llc_external_resonant_inductor_candidates(
             "evaluated_candidate_count": len(candidates),
             "feasible_candidate_count": len(feasible),
             "pareto_candidate_count": len(pareto),
+            "pareto_algorithm_version": LLC_PARETO_FILTER_ALGORITHM,
+            "pareto_input_count": len(feasible),
+            "pareto_output_count": len(pareto),
         }
     )
     notes.extend(
@@ -3230,26 +3357,26 @@ def build_llc_external_resonant_inductor_pareto_front(
     """Return nondominated external Lr inductor candidates by volume and total loss."""
 
     feasible = [candidate for candidate in candidates if not candidate.rejection_reason]
-    pareto: list[LlcExternalResonantInductorCandidate] = []
-    for candidate in feasible:
-        dominated = False
-        for other in feasible:
-            if other.design_id == candidate.design_id:
-                continue
-            no_worse = (
-                other.estimated_volume_cm3 <= candidate.estimated_volume_cm3
-                and other.total_loss_w <= candidate.total_loss_w
-            )
-            strictly_better = (
-                other.estimated_volume_cm3 < candidate.estimated_volume_cm3
-                or other.total_loss_w < candidate.total_loss_w
-            )
-            if no_worse and strictly_better:
-                dominated = True
-                break
-        if not dominated:
-            pareto.append(candidate)
-    return sorted(pareto, key=lambda item: (item.estimated_volume_cm3, item.total_loss_w, item.design_id))
+    return _build_llc_2d_pareto_front(
+        feasible,
+        volume_key=lambda candidate: candidate.estimated_volume_cm3,
+        loss_key=lambda candidate: candidate.total_loss_w,
+        identifier_key=lambda candidate: candidate.design_id,
+    )
+
+
+def build_llc_external_resonant_inductor_pareto_front_reference(
+    candidates: Iterable[LlcExternalResonantInductorCandidate],
+) -> list[LlcExternalResonantInductorCandidate]:
+    """Return the original quadratic external-Lr Pareto oracle for regression tests."""
+
+    feasible = [candidate for candidate in candidates if not candidate.rejection_reason]
+    return _build_llc_2d_pareto_front_reference(
+        feasible,
+        volume_key=lambda candidate: candidate.estimated_volume_cm3,
+        loss_key=lambda candidate: candidate.total_loss_w,
+        identifier_key=lambda candidate: candidate.design_id,
+    )
 
 
 def select_llc_external_resonant_inductor_representatives(
