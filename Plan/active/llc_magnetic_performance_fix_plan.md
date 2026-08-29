@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active` |
+| 计划状态 | `completed` |
 | 计划版本 | `v1.0` |
 | 建立日期 | `2026-08-28` |
 | 目标工程 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0` |
@@ -537,8 +537,8 @@ LLC 变压器搜索当前约使用：
 | 6 | `completed` | `aa9956c` | `ce7b189` | reusable metrics cache implemented; 14 LLC baseline/cache tests and 67 shared regressions passed; controlled transformer-small evidence completed |
 | 7 | `completed` | `7547fc1` | `185df50` | external Lr cheap prefilters implemented; 16 LLC/external-Lr tests and 4 topology regressions passed; medium 3020 = 2764 prefiltered + 256 precise, 186 feasible |
 | 8 | `completed` | `26aac43` | `f8702b8` | equivalent Pareto sweep implemented for transformer and external Lr; 20 LLC/Pareto tests and 67 shared regressions passed; 900-point oracle comparison equivalent |
-| 9 | `pending` | - | - | - |
-| 10 | `pending` | - | - | - |
+| 9 | `completed` | `11eecc2` | `c7cf670` | 输出策略专项 25 passed；核心损耗/FHA/磁件契约 68 passed；默认正式模式仅推荐几何输出，调试模式恢复完整诊断；实现与计划记录均已 push |
+| 10 | `completed` | `83d353b` | 待本次计划记录提交后填写 | 四档基准 4/4 completed、0 timeout、0 error；候选/可行数、代表候选、Pareto 顺序保持一致；95 项 LLC/磁件专项通过；排除 AC-DC GUI 长时集成测试后的工程回归 377 passed、1 skipped；实现与证据已 push |
 
 ## 8. 预期交付物
 
@@ -552,13 +552,26 @@ LLC 变压器搜索当前约使用：
 
 ## 9. 当前状态
 
-第 1、2、3、4、5、6、7、8 步已完成，后续从第 9 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
+第 1 至第 10 步已完成。第 1 步冻结了四档可重复 LLC 磁件性能基线，
 第 2 步加入了 FHA 边界频率有界缓存并验证了实际缓存命中，第 3 步完成了标准标量
 三角波的精确分段损耗路径、候选筛选采样优化和有界缓存，第 4 步完成了变压器候选
 的确定性廉价预筛选和可审计统计，第 5 步完成了 LLC 磁性搜索边界的统一配置化和
 快速/完整模式切换，第 6 步完成了变压器材料无关磁性指标的版本化不可变缓存，
-并将缓存命中率、重复构建减少量和模型单位语义接入结构化证据。后续步骤仍必须严格按照
-本文件的范围、完成条件和提交同步规则推进。
+并将缓存命中率、重复构建减少量和模型单位语义接入结构化证据。第 9 步完成了几何和调试输出收敛，
+第 10 步完成了完整证据生成、性能复测和交付收口。
+
+### 第 10 步执行结果（2026-08-29）
+
+- 使用与第 1 步相同的输入 checksum、packaged normalized magnetic database 和显式搜索限制，四档基准均 `completed`，`0 timeout`、`0 error`；候选数、可行数、Pareto 数及代表候选保持一致。
+- 性能对比：变压器 small 约 `10.07x`、medium 约 `22.17x`；外置 `Lr` small 约 `27.97x`、medium 约 `46.46x`。900 点 Pareto 与参考实现顺序一致，约 `56.59x` 加速。
+- LLC/磁件专项回归结果：`95 passed`。
+- 工程回归命令：`$env:PYTHONPATH='src'; python -m pytest -q --ignore=tests/test_ac_dc_efficiency_gui_end_to_end.py --basetemp .pytest-tmp-step10`；结果：`377 passed, 1 skipped`。
+- `tests/test_ac_dc_efficiency_gui_end_to_end.py` 未纳入工程回归，原因是其多拓扑真实磁件 GUI 流程在受控尝试中进入长时间无响应子进程；该限制已记录在 `llc_step10_regression.json`，不作为 LLC 第十步通过依据。
+- 验收生成器已生成 JSON、CSV、Markdown 证据；验收场景覆盖 nominal、低输入、高输入、轻载、外置 `Lr` 禁用和无可行候选。
+- `python -m compileall -q src scripts tests` 和 `git diff --check` 均通过。
+- 第十步证据目录：`migration/evidence/20260829/llc_magnetic_performance_step10/`。
+- 实现 commit：`83d353b`（`LLC Step 10: close magnetic performance optimization`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`；实现 push 结果：成功。
 
 ### 第 1 步执行结果（2026-08-28）
 
