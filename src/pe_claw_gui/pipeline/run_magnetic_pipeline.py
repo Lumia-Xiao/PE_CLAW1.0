@@ -19,7 +19,11 @@ from ..engines.magnetics.stacked_expansion import (
 from ..models.design_report import DesignReport
 from ..models.ac_dc_reactor import AcDcReactorDesignRequest
 from ..models.geometry_result import GeometryResult
-from ..models.magnetic_result import MagneticResult
+from ..models.magnetic_result import (
+    LlcMagneticResultSummary,
+    LlcMagneticStageSummary,
+    MagneticResult,
+)
 try:
     from ..topologies.dc_dc.llc_resonant_converter_diode_rectifier.fha_design import (
         LLCFHADesign,
@@ -847,6 +851,42 @@ def _run_llc_transformer_magnetic_pipeline(
             else None
         )
         pipeline_timing["external_lr_search_seconds"] = perf_counter() - external_lr_search_started
+        recommended_external_lr = (
+            external_lr_search_result.recommended_candidate
+            if external_lr_search_result is not None
+            else None
+        )
+        transformer_stage_summary = _llc_stage_summary(
+            search_result,
+            pareto_count=pareto_result.pareto_count,
+            recommended_design_id=selected_design_id,
+            status=_llc_transformer_status(search_result, selected_design_id),
+        )
+        external_lr_stage_summary = _llc_external_lr_stage_summary(
+            external_lr_target,
+            external_lr_search_result,
+        )
+        recommended_external_lr_design_id = (
+            recommended_external_lr.design_id
+            if recommended_external_lr is not None
+            and external_lr_stage_summary.status == "available"
+            else None
+        )
+        recommended_combined_magnetic_design_id = build_llc_combined_magnetic_design_id(
+            selected_design_id,
+            recommended_external_lr_design_id,
+            external_lr_stage_summary.status,
+        )
+        llc_result_summary = LlcMagneticResultSummary(
+            transformer=transformer_stage_summary,
+            external_lr=replace(
+                external_lr_stage_summary,
+                recommended_design_id=recommended_external_lr_design_id,
+            ),
+            recommended_transformer_design_id=selected_design_id,
+            recommended_external_lr_design_id=recommended_external_lr_design_id,
+            recommended_combined_magnetic_design_id=recommended_combined_magnetic_design_id,
+        )
         design_requirements = _llc_transformer_design_requirements(transformer_target, search_result)
         design_requirements["magnetic_search_bounds"] = search_bounds.to_dict()
         design_requirements["magnetic_output_policy"] = output_policy
@@ -969,6 +1009,10 @@ def _run_llc_transformer_magnetic_pipeline(
             feasible_count=search_result.feasible_candidate_count,
             pareto_count=pareto_result.pareto_count,
             selected_design_id=selected_design_id,
+            llc_result_summary=llc_result_summary,
+            recommended_transformer_design_id=selected_design_id,
+            recommended_external_lr_design_id=recommended_external_lr_design_id,
+            recommended_combined_magnetic_design_id=recommended_combined_magnetic_design_id,
             llc_transformer_result=search_result,
             transformer_pareto_result=pareto_result,
             transformer_pareto_candidates=pareto_result.pareto_candidates,
@@ -1131,3 +1175,99 @@ def _llc_output_policy(
             "outputs/inductor_design",
         ],
     }
+
+
+def _llc_count(performance_counts: object, key: str, fallback: int = 0) -> int:
+    """Read a non-negative integer count from a search result contract."""
+
+    value = performance_counts.get(key) if isinstance(performance_counts, dict) else None
+    if value is None:
+        value = fallback
+    try:
+        return max(0, int(value))
+    except (TypeError, ValueError):
+        return max(0, int(fallback))
+
+
+def _llc_stage_summary(
+    search_result,
+    *,
+    pareto_count: int,
+    recommended_design_id: str | None,
+    status: str,
+) -> LlcMagneticStageSummary:
+    counts = getattr(search_result, "performance_counts", {}) or {}
+    evaluated = _llc_count(counts, "evaluated_candidate_count", getattr(search_result, "evaluated_candidate_count", 0))
+    generated = _llc_count(counts, "generated_candidate_count", evaluated)
+    precise = _llc_count(counts, "precise_evaluated_candidate_count", evaluated)
+    prefilter_pass = _llc_count(counts, "prefilter_pass_count", precise)
+    prefilter_rejected = _llc_count(
+        counts,
+        "prefilter_rejected_candidate_count",
+        max(0, generated - prefilter_pass),
+    )
+    return LlcMagneticStageSummary(
+        status=status,
+        generated_candidate_count=generated,
+        prefilter_rejected_candidate_count=prefilter_rejected,
+        prefilter_pass_count=prefilter_pass,
+        precise_evaluated_candidate_count=precise,
+        feasible_candidate_count=_llc_count(
+            counts,
+            "feasible_candidate_count",
+            getattr(search_result, "feasible_candidate_count", 0),
+        ),
+        pareto_candidate_count=max(0, int(pareto_count)),
+        recommended_design_id=recommended_design_id,
+        prefilter_rejection_counts=dict(getattr(search_result, "prefilter_rejection_counts", {}) or {}),
+    )
+
+
+def _llc_transformer_status(search_result, recommended_design_id: str | None) -> str:
+    if search_result is None:
+        return "not_evaluated"
+    feasible = _llc_count(
+        getattr(search_result, "performance_counts", {}),
+        "feasible_candidate_count",
+        getattr(search_result, "feasible_candidate_count", 0),
+    )
+    if feasible <= 0:
+        return "no_feasible_candidate"
+    return "available" if recommended_design_id else "no_recommendation"
+
+
+def _llc_external_lr_stage_summary(target, search_result) -> LlcMagneticStageSummary:
+    if search_result is None:
+        return LlcMagneticStageSummary(status="not_evaluated")
+    if target is not None and not target.is_design_required:
+        return LlcMagneticStageSummary(status="not_required")
+    counts = getattr(search_result, "performance_counts", {}) or {}
+    request = getattr(search_result, "request", target)
+    if request is not None and min(
+        float(getattr(request, "current_rms_a", 0.0) or 0.0),
+        float(getattr(request, "current_peak_a", 0.0) or 0.0),
+        float(getattr(request, "fs_basis_hz", 0.0) or 0.0),
+    ) <= 0.0:
+        status = "invalid_target"
+    elif _llc_count(counts, "feasible_candidate_count") > 0:
+        status = "available"
+    else:
+        status = "no_feasible_candidate"
+    return _llc_stage_summary(
+        search_result,
+        pareto_count=_llc_count(counts, "pareto_candidate_count"),
+        recommended_design_id=None,
+        status=status,
+    )
+
+
+def build_llc_combined_magnetic_design_id(
+    transformer_design_id: str | None,
+    external_lr_design_id: str | None,
+    external_lr_status: str,
+) -> str | None:
+    """Build a combined ID only when both separated-LLC magnetic roles exist."""
+
+    if external_lr_status != "available" or not transformer_design_id or not external_lr_design_id:
+        return None
+    return f"{transformer_design_id}+{external_lr_design_id}"

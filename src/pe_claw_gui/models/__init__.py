@@ -37,7 +37,11 @@ from .magnetic_loss_contract import (
     SourceProvenance,
     TabulatedModelPoint,
 )
-from .magnetic_result import MagneticResult
+from .magnetic_result import (
+    LlcMagneticResultSummary,
+    LlcMagneticStageSummary,
+    MagneticResult,
+)
 from .magnetic_winding_contract import WindingElectricalEvidence
 from .openmagnetics_component_contract import (
     CatalogDistributorEntry,
@@ -115,6 +119,8 @@ __all__ = [
     "ComponentNormalizationBatch",
     "ComponentNormalizationIssue",
     "MagneticResult",
+    "LlcMagneticResultSummary",
+    "LlcMagneticStageSummary",
     "WindingElectricalEvidence",
     "MaterialLossModel",
     "MeasuredLossDataset",

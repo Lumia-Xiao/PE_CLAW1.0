@@ -136,15 +136,25 @@ def _hardware_payload(report: DesignReport) -> dict[str, Any]:
         candidate = getattr(recommended, "candidate", None)
         return getattr(candidate, "part_number", None)
 
+    is_llc = bool(magnetic and getattr(magnetic, "result_type", "") == "separated_llc_transformer")
+    llc_summary = getattr(magnetic, "llc_result_summary", None) if is_llc else None
+    llc_transformer_id = getattr(magnetic, "recommended_transformer_design_id", None) if is_llc else None
+    llc_external_id = getattr(magnetic, "recommended_external_lr_design_id", None) if is_llc else None
+    llc_combined_id = getattr(magnetic, "recommended_combined_magnetic_design_id", None) if is_llc else None
+    llc_external_status = getattr(getattr(llc_summary, "external_lr", None), "status", "not_evaluated")
+    llc_selection_id = llc_combined_id or (llc_transformer_id if llc_external_status == "not_required" else None)
+    llc_selection_ids = [item for item in (llc_transformer_id, llc_external_id) if item]
     return {
         "semiconductor": {
             "selected_devices": dict(getattr(device, "selected_devices", {}) or {}) if device else {},
             "selection_status": "pass" if device and device.selected_devices else "not_evaluated",
         },
         "magnetic": {
-            "selected_design_id": getattr(magnetic, "selected_design_id", None) if magnetic else None,
-            "chosen_design_ids": [getattr(item, "design_id", None) for item in (getattr(magnetic, "chosen_designs", []) or [])] if magnetic else [],
-            "selection_status": "pass" if magnetic and magnetic.chosen_designs else "not_evaluated",
+            "selected_design_id": llc_selection_id if is_llc else (getattr(magnetic, "selected_design_id", None) if magnetic else None),
+            "chosen_design_ids": llc_selection_ids if is_llc else [getattr(item, "design_id", None) for item in (getattr(magnetic, "chosen_designs", []) or [])] if magnetic else [],
+            "selection_status": (
+                "pass" if llc_selection_id else (llc_external_status if is_llc else "not_evaluated")
+            ),
         },
         "capacitor": {
             "input_part_number": part("input_selection"),
@@ -160,7 +170,7 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
         return {"available": False, "selected_design_id": None, "chosen_design_ids": [], "metrics": {}, "metadata": {}}
     chosen = getattr(magnetic, "chosen_designs", []) or []
     selected = getattr(magnetic, "selected_design_id", None)
-    return {
+    payload = {
         "available": True,
         "selected_design_id": selected,
         "chosen_design_ids": [getattr(item, "design_id", None) for item in chosen],
@@ -174,6 +184,33 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
             "performance_timing": getattr(magnetic, "performance_timing", {}),
         },
     }
+    llc_summary = getattr(magnetic, "llc_result_summary", None)
+    if getattr(magnetic, "result_type", "") == "separated_llc_transformer" and llc_summary is not None:
+        def stage_payload(stage: Any, source: str) -> dict[str, Any]:
+            return {
+                "status": getattr(stage, "status", "not_evaluated"),
+                "metrics": {
+                    "generated_candidates": _metric(getattr(stage, "generated_candidate_count", None), "count", f"{source}.generated"),
+                    "prefilter_rejected_candidates": _metric(getattr(stage, "prefilter_rejected_candidate_count", None), "count", f"{source}.prefilter_rejected"),
+                    "prefilter_pass_candidates": _metric(getattr(stage, "prefilter_pass_count", None), "count", f"{source}.prefilter_pass"),
+                    "precise_evaluated_candidates": _metric(getattr(stage, "precise_evaluated_candidate_count", None), "count", f"{source}.precise"),
+                    "feasible_candidates": _metric(getattr(stage, "feasible_candidate_count", None), "count", f"{source}.feasible"),
+                    "pareto_candidates": _metric(getattr(stage, "pareto_candidate_count", None), "count", f"{source}.pareto"),
+                },
+                "recommended_design_id": getattr(stage, "recommended_design_id", None),
+                "prefilter_rejection_counts": dict(getattr(stage, "prefilter_rejection_counts", {}) or {}),
+            }
+
+        payload["llc"] = {
+            "transformer": stage_payload(llc_summary.transformer, "magnetic.llc.transformer"),
+            "external_lr": stage_payload(llc_summary.external_lr, "magnetic.llc.external_lr"),
+            "recommendations": {
+                "transformer_design_id": getattr(llc_summary, "recommended_transformer_design_id", None),
+                "external_lr_design_id": getattr(llc_summary, "recommended_external_lr_design_id", None),
+                "combined_magnetic_design_id": getattr(llc_summary, "recommended_combined_magnetic_design_id", None),
+            },
+        }
+    return payload
 
 
 def _capacitor_payload(report: DesignReport) -> dict[str, Any]:

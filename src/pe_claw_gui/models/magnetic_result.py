@@ -167,6 +167,32 @@ class LlcExternalResonantInductorSearchResult:
 
 
 @dataclass(frozen=True)
+class LlcMagneticStageSummary:
+    """Presentation-safe count summary for one separated-LLC magnetic stage."""
+
+    status: str = "not_evaluated"
+    generated_candidate_count: int = 0
+    prefilter_rejected_candidate_count: int = 0
+    prefilter_pass_count: int = 0
+    precise_evaluated_candidate_count: int = 0
+    feasible_candidate_count: int = 0
+    pareto_candidate_count: int = 0
+    recommended_design_id: str | None = None
+    prefilter_rejection_counts: dict[str, int] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class LlcMagneticResultSummary:
+    """Dedicated result contract for separated LLC transformer plus external Lr."""
+
+    transformer: LlcMagneticStageSummary = field(default_factory=LlcMagneticStageSummary)
+    external_lr: LlcMagneticStageSummary = field(default_factory=LlcMagneticStageSummary)
+    recommended_transformer_design_id: str | None = None
+    recommended_external_lr_design_id: str | None = None
+    recommended_combined_magnetic_design_id: str | None = None
+
+
+@dataclass(frozen=True)
 class MagneticResult:
     """Aggregate for magnetic design outputs."""
 
@@ -207,6 +233,10 @@ class MagneticResult:
     transformer_pareto_artifacts: list[str] = field(default_factory=list)
     transformer_pareto_notes: list[str] = field(default_factory=list)
     transformer_recommended_policy: str = ""
+    llc_result_summary: LlcMagneticResultSummary | None = None
+    recommended_transformer_design_id: str | None = None
+    recommended_external_lr_design_id: str | None = None
+    recommended_combined_magnetic_design_id: str | None = None
     transformer_visualization: TransformerVisualizationArtifact | None = None
     transformer_visualizations: dict[str, TransformerVisualizationArtifact] = field(default_factory=dict)
     transformer_comparison_visualization: TransformerVisualizationArtifact | None = None
