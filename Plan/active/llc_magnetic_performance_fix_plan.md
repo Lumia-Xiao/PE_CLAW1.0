@@ -466,8 +466,8 @@ LLC 变压器搜索当前约使用：
 - 实现 commit：`11eecc2`（`LLC Step 9: reduce duplicate magnetic outputs`）。
 - 实现 push 分支：`origin/codex/sync-gui-backend-from-2`。
 - 实现 push 结果：成功。
-- 计划记录 commit：待本次计划记录提交生成。
-- 计划记录 push 结果：待本次计划记录提交完成后回填。
+- 计划记录 commit：`bb36256`（`docs: record LLC Step 9 output policy`）。
+- 计划记录 push 结果：成功。
 
 ---
 
