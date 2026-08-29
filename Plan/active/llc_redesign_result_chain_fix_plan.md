@@ -568,5 +568,5 @@
 
 ### 提交记录
 
-- 功能提交：待提交，目标分支 `codex/sync-gui-backend-from-2`。
-- 本计划记录提交：待提交，目标分支 `codex/sync-gui-backend-from-2`。
+- 功能提交：`a16a3cf fix: unify LLC magnetic result contract`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
+- 本计划记录提交：`f675ea8 docs: record LLC magnetic contract step 4`，已 push 到 `origin/codex/sync-gui-backend-from-2`；本次文档准确性修正随后单独提交并 push。
