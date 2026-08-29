@@ -501,7 +501,7 @@ LLC pipeline 当前提供：
 
 | 步骤 | 状态 | 实现 commit | 计划记录 commit | 验证摘要 |
 | ---: | --- | --- | --- | --- |
-| 1 | `completed` | `1cd24c6` | 待本次计划记录提交后填写 | 新增确定性 LLC 结果显示基线 fixture、两个视图基线测试和结构化输出基线；`35 passed`（含既有 LLC 专项）；生成器、证据和实现已 push |
+| 1 | `completed` | `1cd24c6` | `e200dce` | 新增确定性 LLC 结果显示基线 fixture、两个视图基线测试和结构化输出基线；`35 passed`（含既有 LLC 专项）；生成器、证据和实现已 push |
 | 2 | `pending` | - | - | - |
 | 3 | `pending` | - | - | - |
 | 4 | `pending` | - | - | - |
