@@ -179,6 +179,9 @@ class LlcMagneticStageSummary:
     pareto_candidate_count: int = 0
     recommended_design_id: str | None = None
     prefilter_rejection_counts: dict[str, int] = field(default_factory=dict)
+    failure_code: str | None = None
+    failure_reason: str | None = None
+    artifact_paths: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)

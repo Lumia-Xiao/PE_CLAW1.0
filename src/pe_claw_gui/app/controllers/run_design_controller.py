@@ -121,6 +121,29 @@ class RunDesignController:
             report = replace(report, llc_run_context=report.llc_run_context.transition("magnetics", "running"))
         try:
             report = run_magnetic_pipeline(report)
+            if (
+                is_llc_topology(report.spec.topology_id)
+                and report.magnetic is not None
+                and report.magnetic.llc_result_summary is not None
+                and report.magnetic.llc_result_summary.transformer.status != "available"
+            ):
+                transformer = report.magnetic.llc_result_summary.transformer
+                reason = transformer.failure_reason or (
+                    f"LLC transformer stage status is {transformer.status}."
+                )
+                report = replace(
+                    report,
+                    llc_run_context=report.llc_run_context.transition(
+                        "magnetics", "blocked", reason=reason
+                    ) if report.llc_run_context is not None else None,
+                )
+                self._state_store.design_report = replace(
+                    report,
+                    run_magnetics_started_at=started_at,
+                    run_magnetics_finished_at=_utc_timestamp(),
+                    run_magnetics_runtime_seconds=time.perf_counter() - start_s,
+                )
+                return self._state_store.design_report
             report = run_loss_pipeline(report, pipeline_options=options)
             report = run_thermal_pipeline(report, pipeline_options=options)
             report = run_geometry_pipeline(report, pipeline_options=options)
@@ -141,7 +164,12 @@ class RunDesignController:
             run_magnetics_finished_at=finished_at,
             run_magnetics_runtime_seconds=elapsed_s,
         )
-        if report.llc_run_context is not None:
+        if report.llc_run_context is not None and (
+            not is_llc_topology(report.spec.topology_id)
+            or report.magnetic is None
+            or report.magnetic.llc_result_summary is None
+            or report.magnetic.llc_result_summary.transformer.status == "available"
+        ):
             report = replace(report, llc_run_context=report.llc_run_context.transition("magnetics", "succeeded"))
         self._state_store.design_report = report
         return report

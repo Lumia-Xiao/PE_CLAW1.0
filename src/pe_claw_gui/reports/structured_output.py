@@ -199,6 +199,9 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
                 },
                 "recommended_design_id": getattr(stage, "recommended_design_id", None),
                 "prefilter_rejection_counts": dict(getattr(stage, "prefilter_rejection_counts", {}) or {}),
+                "failure_code": getattr(stage, "failure_code", None),
+                "failure_reason": getattr(stage, "failure_reason", None),
+                "artifact_paths": list(getattr(stage, "artifact_paths", []) or []),
             }
 
         payload["llc"] = {
