@@ -502,7 +502,7 @@ LLC pipeline 当前提供：
 | 步骤 | 状态 | 实现 commit | 计划记录 commit | 验证摘要 |
 | ---: | --- | --- | --- | --- |
 | 1 | `completed` | `1cd24c6` | `e200dce` | 新增确定性 LLC 结果显示基线 fixture、两个视图基线测试和结构化输出基线；`35 passed`（含既有 LLC 专项）；生成器、证据和实现已 push |
-| 2 | `pending` | - | - | - |
+| 2 | `completed` | `10d3ad6` | 待本次回填提交 | 增加 LLC 专用阶段摘要 DTO、变压器/外置 Lr 统计映射、三个推荐 ID 和组合 ID 边界 helper；结构化输出增加 JSON-safe LLC 区块，LLC hardware selection 不再依赖固定电感 chosen list；`12 passed`，`compileall` 和 `git diff --check` 通过，已 push |
 | 3 | `pending` | - | - | - |
 | 4 | `pending` | - | - | - |
 | 5 | `pending` | - | - | - |
@@ -536,4 +536,17 @@ LLC pipeline 当前提供：
 - 验证命令：`$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_performance_baseline.py tests/test_llc_fha_boundary_cache.py tests/test_llc_external_lr_prefilter.py tests/test_llc_pareto_filter.py`。
 - 验证结果：`35 passed`；`python -m compileall -q scripts tests` 和 `git diff --check` 通过。
 - 实现 commit：`1cd24c6`（`LLC Display Step 1: freeze magnetic result contract`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`；实现 push 结果：成功。
+
+### 第 2 步执行结果（2026-08-29）
+
+- `MagneticResult` 新增 `LlcMagneticStageSummary` 和 `LlcMagneticResultSummary`，专门承载 transformer 与 external `Lr` 的 generated、prefilter rejected/pass、precise evaluated、feasible、Pareto 数量及阶段状态。
+- LLC pipeline 从 `LLCTransformerCandidateSearchResult.performance_counts` 和 `LlcExternalResonantInductorSearchResult.performance_counts` 映射专用统计；保留原有 `basic_feasible_count`、`feasible_count`、`pareto_count` 兼容字段，不再使用固定电感 allow/compression 字段表达 LLC 阶段。
+- `MagneticResult` 明确保存 `recommended_transformer_design_id`、`recommended_external_lr_design_id` 和 `recommended_combined_magnetic_design_id`；`selected_design_id` 继续保持“变压器推荐 ID”语义。
+- `build_llc_combined_magnetic_design_id()` 仅在变压器推荐、外置 `Lr` 推荐和 external `Lr` 状态均有效时生成组合 ID；`not_required`、无效目标、无可行候选或缺少任一推荐时返回 `None`。
+- 结构化输出增加 `magnetic.llc.transformer`、`magnetic.llc.external_lr` 和 `magnetic.llc.recommendations`，阶段计数使用单位为 `count` 的 JSON-safe metric；LLC hardware selection status 基于 LLC 推荐层级，非 LLC 分支保持原逻辑。
+- 新增 `tests/test_llc_magnetic_result_display_step2.py`，覆盖统计映射、组合 ID 边界、结构化输出推荐层级和 LLC 专用字段。
+- 验证命令：`$env:PYTHONPATH='src'; python -m compileall -q src tests scripts; python -m pytest -q tests/test_llc_magnetic_result_display_step2.py tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_performance_baseline.py tests/test_llc_external_lr_prefilter.py tests/test_llc_pareto_filter.py; git diff --check`。
+- 验证结果：`12 passed`；`compileall` 通过；`git diff --check` 通过。
+- 实现 commit：`10d3ad6`（`LLC Display Step 2: map dedicated magnetic result fields`）。
 - 实现 push 分支：`origin/codex/sync-gui-backend-from-2`；实现 push 结果：成功。
