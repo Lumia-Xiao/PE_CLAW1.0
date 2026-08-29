@@ -468,7 +468,7 @@ def _run_llc_external_lr_geometry_pipeline(
     targets: list[GeometryTarget] = []
     unique_targets_by_design_id: dict[str, GeometryTarget] = {}
     unique_artifact_paths: list[str] = []
-    output_dir = _project_root() / "outputs" / "resonant_inductor_design"
+    output_dir = _llc_external_lr_geometry_output_dir(report)
 
     for target_spec in target_specs:
         role = str(target_spec["role"])
@@ -557,7 +557,28 @@ def _run_llc_external_lr_geometry_pipeline(
             magnetic,
             artifact_paths=_merge_artifact_paths(list(magnetic.artifact_paths), unique_artifact_paths),
         )
-    return replace(report, magnetic=updated_magnetic, geometry=geometry_result)
+    updated_report = replace(report, magnetic=updated_magnetic, geometry=geometry_result)
+    failed_targets = [target for target in targets if target.error_message]
+    if failed_targets and updated_report.llc_run_context is not None:
+        reasons = "; ".join(f"{target.role}: {target.error_message}" for target in failed_targets)
+        updated_report = replace(
+            updated_report,
+            llc_run_context=updated_report.llc_run_context.transition(
+                "geometry", "blocked", reason=f"External Lr geometry generation failed: {reasons}"
+            ),
+        )
+    elif updated_report.llc_run_context is not None:
+        updated_report = replace(
+            updated_report,
+            llc_run_context=updated_report.llc_run_context.transition("geometry", "succeeded"),
+        )
+    return updated_report
+
+
+def _llc_external_lr_geometry_output_dir(report: DesignReport) -> Path:
+    if report.llc_run_context is not None and report.llc_run_context.output_root:
+        return Path(report.llc_run_context.output_root) / "resonant_inductor_design"
+    return _project_root() / "outputs" / "resonant_inductor_design"
 
 
 def _external_lr_candidate_to_inductor_design(candidate, reason: str) -> FixedInductorDesignCandidate:

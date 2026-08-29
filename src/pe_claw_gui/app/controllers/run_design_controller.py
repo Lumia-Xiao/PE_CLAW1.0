@@ -125,11 +125,21 @@ class RunDesignController:
                 is_llc_topology(report.spec.topology_id)
                 and report.magnetic is not None
                 and report.magnetic.llc_result_summary is not None
-                and report.magnetic.llc_result_summary.transformer.status != "available"
+                and (
+                    report.magnetic.llc_result_summary.transformer.status != "available"
+                    or (
+                        report.magnetic.llc_result_summary.external_lr.status
+                        not in {"available", "not_required", "not_evaluated"}
+                    )
+                )
             ):
                 transformer = report.magnetic.llc_result_summary.transformer
-                reason = transformer.failure_reason or (
-                    f"LLC transformer stage status is {transformer.status}."
+                external_lr = report.magnetic.llc_result_summary.external_lr
+                reason = (
+                    transformer.failure_reason
+                    or external_lr.failure_reason
+                    or f"LLC transformer stage status is {transformer.status}; "
+                    f"external Lr stage status is {external_lr.status}."
                 )
                 report = replace(
                     report,
@@ -168,7 +178,11 @@ class RunDesignController:
             not is_llc_topology(report.spec.topology_id)
             or report.magnetic is None
             or report.magnetic.llc_result_summary is None
-            or report.magnetic.llc_result_summary.transformer.status == "available"
+            or (
+                report.magnetic.llc_result_summary.transformer.status == "available"
+                and report.magnetic.llc_result_summary.external_lr.status
+                in {"available", "not_required", "not_evaluated"}
+            )
         ):
             report = replace(report, llc_run_context=report.llc_run_context.transition("magnetics", "succeeded"))
         self._state_store.design_report = report

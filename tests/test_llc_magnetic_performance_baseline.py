@@ -265,6 +265,7 @@ def test_llc_pipeline_exposes_selected_search_bounds() -> None:
     assert output_policy["transformer_formal_csv"] is True
     assert output_policy["transformer_formal_pareto_artifacts"] is True
     assert output_policy["external_lr_artifacts"] is False
+    assert output_policy["external_lr_formal_artifacts"] is True
     assert report.magnetic.performance_timing["pipeline"]["output_policy"] == output_policy
 
 
@@ -278,6 +279,7 @@ def test_llc_output_policy_defaults_to_one_formal_geometry_target() -> None:
     assert policy["transformer_formal_csv"] is True
     assert policy["transformer_formal_pareto_artifacts"] is True
     assert policy["external_lr_artifacts"] is False
+    assert policy["external_lr_formal_artifacts"] is True
     assert policy["diagnostic_output_root"] == ""
 
 
