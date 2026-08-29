@@ -438,6 +438,39 @@ LLC 变压器搜索当前约使用：
 
 ---
 
+### 第 9 步执行结果（2026-08-29）
+
+- `PipelineOptions` 新增 `enable_magnetic_debug_outputs` 和 `llc_geometry_roles`；默认
+  关闭 LLC 调试产物，默认只处理 `recommended` 几何角色，也支持显式指定角色集合。
+  `run_full_pipeline`、磁件 pipeline 和 geometry pipeline 已完成参数传递。
+- 默认 LLC 磁件运行不再写变压器 debug CSV、变压器 Pareto CSV/PNG 或外置 `Lr` CSV/PNG；
+  外置 `Lr` 搜索函数的直接调用默认也不写 CSV。调试模式会恢复完整诊断写盘，并统一
+  放入 `outputs/llc_diagnostics/transformer` 和 `outputs/llc_diagnostics/external_lr`，
+  不与正式几何目录混用。
+- 默认变压器几何只渲染 `recommended`；调试模式恢复 `min-volume`、`min-loss`、
+  `recommended` 三个角色和 comparison geometry。几何渲染器不可用时不再让 LLC
+  磁件阶段整体失败，候选、Pareto、失败原因和计时仍返回结构化结果。
+- `MagneticResult.design_requirements` 和 `performance_timing.pipeline` 新增可 JSON
+  序列化的 `magnetic_output_policy`，保留搜索边界、候选统计、Pareto 统计、阶段计时、
+  缓存统计和失败分类；稳定的角色文件名与诊断目录策略写入证据。
+- 新增输出策略、非法角色、外置 `Lr` 默认不写盘和策略字段回读测试；第九步专项测试
+  最终为 `25 passed`。相关核心损耗/FHA/磁件契约回归为 `68 passed`，默认磁件与
+  DC-DC 回归为 `9 passed, 1 skipped`；编译检查和 `git diff --check` 通过。
+- 第九步证据：
+  `migration/evidence/20260829/llc_magnetic_performance_step9/llc_magnetic_performance_baseline.json`
+  和
+  `migration/evidence/20260829/llc_magnetic_performance_step9/llc_magnetic_output_policy.json`。
+  受控 transformer-small 与 external-lr-small 均 `completed`，无 timeout/error；
+  输出策略证据确认正式模式调试写盘为关闭、几何角色为 `recommended`，诊断模式恢复
+  三角色和完整诊断输出。
+- 实现 commit：`11eecc2`（`LLC Step 9: reduce duplicate magnetic outputs`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`。
+- 实现 push 结果：成功。
+- 计划记录 commit：待本次计划记录提交生成。
+- 计划记录 push 结果：待本次计划记录提交完成后回填。
+
+---
+
 ### 第 10 步：完整回归、性能复测和交付收口
 
 #### 工作内容
