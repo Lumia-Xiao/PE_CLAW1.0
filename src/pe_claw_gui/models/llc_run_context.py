@@ -46,6 +46,7 @@ class LlcRunContext:
     failure_reason: str | None = None
     transformer_design_id: str | None = None
     external_lr_design_id: str | None = None
+    combined_magnetic_design_id: str | None = None
     cr_design_id: str | None = None
     device_design_id: str | None = None
 
@@ -97,6 +98,7 @@ class LlcRunContext:
         *,
         transformer_design_id: str | None = None,
         external_lr_design_id: str | None = None,
+        combined_magnetic_design_id: str | None = None,
         cr_design_id: str | None = None,
         device_design_id: str | None = None,
     ) -> "LlcRunContext":
@@ -109,6 +111,11 @@ class LlcRunContext:
             ),
             external_lr_design_id=(
                 self.external_lr_design_id if external_lr_design_id is None else external_lr_design_id
+            ),
+            combined_magnetic_design_id=(
+                self.combined_magnetic_design_id
+                if combined_magnetic_design_id is None
+                else combined_magnetic_design_id
             ),
             cr_design_id=self.cr_design_id if cr_design_id is None else cr_design_id,
             device_design_id=self.device_design_id if device_design_id is None else device_design_id,
@@ -129,6 +136,7 @@ class LlcRunContext:
             "failure_reason": self.failure_reason,
             "transformer_design_id": self.transformer_design_id,
             "external_lr_design_id": self.external_lr_design_id,
+            "combined_magnetic_design_id": self.combined_magnetic_design_id,
             "cr_design_id": self.cr_design_id,
             "device_design_id": self.device_design_id,
         }

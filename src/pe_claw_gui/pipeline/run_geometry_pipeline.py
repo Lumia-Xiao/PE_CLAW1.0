@@ -557,6 +557,15 @@ def _run_llc_external_lr_geometry_pipeline(
             magnetic,
             artifact_paths=_merge_artifact_paths(list(magnetic.artifact_paths), unique_artifact_paths),
         )
+        if magnetic.llc_magnetic_contract is not None:
+            contract = magnetic.llc_magnetic_contract
+            updated_magnetic = replace(
+                updated_magnetic,
+                notes=[
+                    *updated_magnetic.notes,
+                    f"Geometry uses LLC magnetic contract {contract.combined_magnetic_design_id or contract.transformer_design_id}.",
+                ],
+            )
     updated_report = replace(report, magnetic=updated_magnetic, geometry=geometry_result)
     failed_targets = [target for target in targets if target.error_message]
     if failed_targets and updated_report.llc_run_context is not None:

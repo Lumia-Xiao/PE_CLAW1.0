@@ -926,6 +926,7 @@ def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGrou
     if volume_cm3 is None:
         warnings.append("Incomplete volume definition: inductor total assembly volume is unavailable.")
     is_llc = report.magnetic.result_type == "separated_llc_transformer"
+    llc_contract = getattr(report.magnetic, "llc_magnetic_contract", None) if is_llc else None
     return HardwareOverviewComponentGroup(
         group_id="inductor",
         display_name=_inductor_group_display_name(report.spec.topology_id),
@@ -964,14 +965,18 @@ def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGrou
             "magnetic_quantity": quantity,
             "component_role": "external_resonant_inductor" if is_llc else "fixed_inductor",
             "recommended_transformer_design_id": (
-                report.magnetic.recommended_transformer_design_id if is_llc else None
+                getattr(llc_contract, "transformer_design_id", report.magnetic.recommended_transformer_design_id)
+                if is_llc else None
             ),
             "recommended_external_lr_design_id": (
-                report.magnetic.recommended_external_lr_design_id if is_llc else None
+                getattr(llc_contract, "external_lr_design_id", report.magnetic.recommended_external_lr_design_id)
+                if is_llc else None
             ),
             "recommended_combined_magnetic_design_id": (
-                report.magnetic.recommended_combined_magnetic_design_id if is_llc else None
+                getattr(llc_contract, "combined_magnetic_design_id", report.magnetic.recommended_combined_magnetic_design_id)
+                if is_llc else None
             ),
+            "llc_magnetic_contract": llc_contract.to_dict() if llc_contract is not None else None,
         },
         notes=_inductor_overview_notes(report, loss_basis_label),
         warnings=warnings,

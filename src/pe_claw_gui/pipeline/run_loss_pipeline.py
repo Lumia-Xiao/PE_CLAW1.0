@@ -58,6 +58,12 @@ def _run_loss_pipeline_without_excitation_audit(
         return replace(report, loss=loss_result)
 
     if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
+        contract = report.magnetic.llc_magnetic_contract
+        if report.llc_run_context is not None and (contract is None or not contract.combined_magnetic_design_id):
+            loss_result = LossResult(
+                notes=["LLC magnetic loss is blocked because the magnetic combination contract is incomplete."]
+            )
+            return replace(report, loss=loss_result)
         transformer_result = report.magnetic.transformer_pareto_result
         transformer = getattr(transformer_result, "recommended_candidate", None)
         external_result = report.magnetic.llc_external_resonant_inductor_search_result
@@ -80,11 +86,24 @@ def _run_loss_pipeline_without_excitation_audit(
                 _optional_float(getattr(transformer, "estimated_volume_m3", None)),
                 _optional_float(getattr(external, "estimated_volume_m3", None)),
             )
-            transformer_id = getattr(transformer, "candidate_id", None)
-            external_id = getattr(external, "design_id", None)
-            ids = report.magnetic.recommended_combined_magnetic_design_id or "+".join(
-                value for value in (transformer_id, external_id) if value
-            ) or transformer_id or external_id
+            transformer_id = (
+                contract.transformer_design_id
+                if contract is not None
+                else getattr(transformer, "candidate_id", None)
+            )
+            external_id = (
+                contract.external_lr_design_id
+                if contract is not None
+                else getattr(external, "design_id", None)
+            )
+            ids = (
+                contract.combined_magnetic_design_id
+                if contract is not None
+                else report.magnetic.recommended_combined_magnetic_design_id
+                or "+".join(value for value in (transformer_id, external_id) if value)
+                or transformer_id
+                or external_id
+            )
             component_volumes = {
                 key: value
                 for key, value in {

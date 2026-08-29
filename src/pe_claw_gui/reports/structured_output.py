@@ -138,13 +138,27 @@ def _hardware_payload(report: DesignReport) -> dict[str, Any]:
 
     is_llc = bool(magnetic and getattr(magnetic, "result_type", "") == "separated_llc_transformer")
     llc_summary = getattr(magnetic, "llc_result_summary", None) if is_llc else None
-    llc_transformer_id = getattr(magnetic, "recommended_transformer_design_id", None) if is_llc else None
-    llc_external_id = getattr(magnetic, "recommended_external_lr_design_id", None) if is_llc else None
-    llc_combined_id = getattr(magnetic, "recommended_combined_magnetic_design_id", None) if is_llc else None
+    llc_contract = getattr(magnetic, "llc_magnetic_contract", None) if is_llc else None
+    llc_transformer_id = (
+        getattr(llc_contract, "transformer_design_id", None)
+        or getattr(magnetic, "recommended_transformer_design_id", None)
+        if is_llc
+        else None
+    )
+    llc_external_id = (
+        getattr(llc_contract, "external_lr_design_id", None)
+        if is_llc and llc_contract is not None
+        else getattr(magnetic, "recommended_external_lr_design_id", None) if is_llc else None
+    )
+    llc_combined_id = (
+        getattr(llc_contract, "combined_magnetic_design_id", None)
+        if is_llc and llc_contract is not None
+        else getattr(magnetic, "recommended_combined_magnetic_design_id", None) if is_llc else None
+    )
     llc_external_status = getattr(getattr(llc_summary, "external_lr", None), "status", "not_evaluated")
     llc_selection_id = llc_combined_id or (llc_transformer_id if llc_external_status == "not_required" else None)
     llc_selection_ids = [item for item in (llc_transformer_id, llc_external_id) if item]
-    return {
+    payload = {
         "semiconductor": {
             "selected_devices": dict(getattr(device, "selected_devices", {}) or {}) if device else {},
             "selection_status": "pass" if device and device.selected_devices else "not_evaluated",
@@ -162,6 +176,9 @@ def _hardware_payload(report: DesignReport) -> dict[str, Any]:
             "selection_status": "pass" if capacitor else "not_evaluated",
         },
     }
+    if llc_contract is not None:
+        payload["magnetic"]["llc_magnetic_contract"] = llc_contract.to_dict()
+    return payload
 
 
 def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
@@ -186,6 +203,7 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
     }
     llc_summary = getattr(magnetic, "llc_result_summary", None)
     if getattr(magnetic, "result_type", "") == "separated_llc_transformer" and llc_summary is not None:
+        contract = getattr(magnetic, "llc_magnetic_contract", None)
         def stage_payload(stage: Any, source: str) -> dict[str, Any]:
             return {
                 "status": getattr(stage, "status", "not_evaluated"),
@@ -208,11 +226,13 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
             "transformer": stage_payload(llc_summary.transformer, "magnetic.llc.transformer"),
             "external_lr": stage_payload(llc_summary.external_lr, "magnetic.llc.external_lr"),
             "recommendations": {
-                "transformer_design_id": getattr(llc_summary, "recommended_transformer_design_id", None),
-                "external_lr_design_id": getattr(llc_summary, "recommended_external_lr_design_id", None),
-                "combined_magnetic_design_id": getattr(llc_summary, "recommended_combined_magnetic_design_id", None),
+                "transformer_design_id": getattr(contract, "transformer_design_id", getattr(llc_summary, "recommended_transformer_design_id", None)),
+                "external_lr_design_id": getattr(contract, "external_lr_design_id", getattr(llc_summary, "recommended_external_lr_design_id", None)),
+                "combined_magnetic_design_id": getattr(contract, "combined_magnetic_design_id", getattr(llc_summary, "recommended_combined_magnetic_design_id", None)),
             },
         }
+        if contract is not None:
+            payload["llc"]["magnetic_contract"] = contract.to_dict()
     return payload
 
 
@@ -294,29 +314,32 @@ def _loss_payload(report: DesignReport) -> dict[str, Any]:
     if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
         breakdown = loss.breakdown_w
         volumes = getattr(loss, "component_volumes_m3", {}) or {}
+        contract = getattr(report.magnetic, "llc_magnetic_contract", None)
         payload["llc"] = {
             "transformer": {
-                "design_id": report.magnetic.recommended_transformer_design_id,
+                "design_id": getattr(contract, "transformer_design_id", report.magnetic.recommended_transformer_design_id),
                 "core_loss": _metric(breakdown.get("llc_transformer_core_loss_w"), "W", "loss.llc.transformer.core"),
                 "copper_loss": _metric(breakdown.get("llc_transformer_copper_loss_w"), "W", "loss.llc.transformer.copper"),
                 "total_loss": _metric(breakdown.get("llc_transformer_total_loss_w"), "W", "loss.llc.transformer.total"),
                 "volume": _metric(volumes.get("transformer_volume_m3"), "m3", "loss.llc.transformer.volume"),
             },
             "external_lr": {
-                "design_id": report.magnetic.recommended_external_lr_design_id,
+                "design_id": getattr(contract, "external_lr_design_id", report.magnetic.recommended_external_lr_design_id),
                 "core_loss": _metric(breakdown.get("llc_external_resonant_inductor_core_loss_w"), "W", "loss.llc.external_lr.core"),
                 "copper_loss": _metric(breakdown.get("llc_external_resonant_inductor_copper_loss_w"), "W", "loss.llc.external_lr.copper"),
                 "total_loss": _metric(breakdown.get("llc_external_resonant_inductor_total_loss_w"), "W", "loss.llc.external_lr.total"),
                 "volume": _metric(volumes.get("external_lr_volume_m3"), "m3", "loss.llc.external_lr.volume"),
             },
             "combined": {
-                "design_id": report.magnetic.recommended_combined_magnetic_design_id,
+                "design_id": getattr(contract, "combined_magnetic_design_id", report.magnetic.recommended_combined_magnetic_design_id),
                 "core_loss": _metric(breakdown.get("llc_magnetic_core_loss_w"), "W", "loss.llc.combined.core"),
                 "copper_loss": _metric(breakdown.get("llc_magnetic_copper_loss_w"), "W", "loss.llc.combined.copper"),
                 "total_loss": _metric(breakdown.get("llc_magnetic_total_loss_w"), "W", "loss.llc.combined.total"),
                 "volume": _metric(volumes.get("combined_magnetic_volume_m3"), "m3", "loss.llc.combined.volume"),
             },
         }
+        if contract is not None:
+            payload["llc"]["magnetic_contract"] = contract.to_dict()
     return payload
 
 

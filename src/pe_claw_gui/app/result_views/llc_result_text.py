@@ -27,19 +27,31 @@ def build_llc_magnetic_summary_text(report: DesignReport) -> str:
         return "Magnetic design has not run yet."
 
     summary = magnetic.llc_result_summary
+    contract = getattr(magnetic, "llc_magnetic_contract", None)
+    transformer_id = getattr(contract, "transformer_design_id", None) or summary.recommended_transformer_design_id
+    external_id = (
+        getattr(contract, "external_lr_design_id", None)
+        if contract is not None
+        else summary.recommended_external_lr_design_id
+    )
+    combined_id = (
+        getattr(contract, "combined_magnetic_design_id", None)
+        if contract is not None
+        else summary.recommended_combined_magnetic_design_id
+    )
     lines = [magnetic.summary or "Separated LLC magnetic screening has not run yet.", "", "Candidate counts"]
     lines.extend(_stage_lines("Transformer", summary.transformer))
     lines.extend(_stage_lines("External resonant inductor", summary.external_lr))
 
     lines.extend(["", "Recommended magnetic designs"])
     lines.append(
-        f"  Transformer: {_recommended_label(summary.recommended_transformer_design_id, summary.transformer.status)}"
+        f"  Transformer: {_recommended_label(transformer_id, summary.transformer.status)}"
     )
     lines.append(
-        f"  External resonant inductor: {_recommended_label(summary.recommended_external_lr_design_id, summary.external_lr.status)}"
+        f"  External resonant inductor: {_recommended_label(external_id, summary.external_lr.status)}"
     )
     lines.append(
-        f"  Combined magnetic design: {_recommended_label(summary.recommended_combined_magnetic_design_id, _combined_status(summary))}"
+        f"  Combined magnetic design: {_recommended_label(combined_id, _combined_status(summary))}"
     )
 
     if magnetic.design_requirements:
@@ -204,16 +216,28 @@ def _llc_loss_lines(report: DesignReport) -> list[str]:
         return ["", "Magnetic loss", "  status: not evaluated"]
     breakdown = loss.breakdown_w
     volumes = getattr(loss, "component_volumes_m3", {}) or {}
+    contract = getattr(report.magnetic, "llc_magnetic_contract", None)
+    transformer_id = getattr(contract, "transformer_design_id", None) or getattr(report.magnetic, "recommended_transformer_design_id", None)
+    external_id = (
+        getattr(contract, "external_lr_design_id", None)
+        if contract is not None
+        else getattr(report.magnetic, "recommended_external_lr_design_id", None)
+    )
+    combined_id = (
+        getattr(contract, "combined_magnetic_design_id", None)
+        if contract is not None
+        else getattr(report.magnetic, "recommended_combined_magnetic_design_id", None)
+    )
     return [
         "",
         "Magnetic loss",
-        f"  recommended combined design: {_value(loss.recommended_design_id)}",
-        f"  transformer design: {_value(getattr(report.magnetic, 'recommended_transformer_design_id', None))}",
+        f"  recommended combined design: {_value(combined_id or loss.recommended_design_id)}",
+        f"  transformer design: {_value(transformer_id)}",
         f"    core loss: {_value_with_unit(breakdown.get('llc_transformer_core_loss_w'), 'W')}",
         f"    copper loss: {_value_with_unit(breakdown.get('llc_transformer_copper_loss_w'), 'W')}",
         f"    total loss: {_value_with_unit(breakdown.get('llc_transformer_total_loss_w'), 'W')}",
         f"    volume: {_si_value(volumes.get('transformer_volume_m3'), 1e6, 'cm^3')}",
-        f"  external Lr design: {_value(getattr(report.magnetic, 'recommended_external_lr_design_id', None))}",
+        f"  external Lr design: {_value(external_id)}",
         f"    core loss: {_value_with_unit(breakdown.get('llc_external_resonant_inductor_core_loss_w'), 'W')}",
         f"    copper loss: {_value_with_unit(breakdown.get('llc_external_resonant_inductor_copper_loss_w'), 'W')}",
         f"    total loss: {_value_with_unit(breakdown.get('llc_external_resonant_inductor_total_loss_w'), 'W')}",

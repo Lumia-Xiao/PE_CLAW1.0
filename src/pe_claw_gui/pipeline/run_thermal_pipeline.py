@@ -37,13 +37,36 @@ def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions
         return replace(report, thermal=thermal_result)
 
     if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
+        contract = report.magnetic.llc_magnetic_contract
+        if report.llc_run_context is not None and contract is None:
+            thermal_result = ThermalResult(
+                ambient_temp_c=resolve_ambient_temperature_c(report),
+                summary="LLC thermal screening is blocked because the magnetic combination contract is incomplete.",
+                notes=["No unified LLC magnetic combination contract is available."],
+                status="unavailable",
+            )
+            return replace(report, thermal=thermal_result)
         transformer_result = report.magnetic.transformer_pareto_result
         transformer = getattr(transformer_result, "recommended_candidate", None)
         external_result = report.magnetic.llc_external_resonant_inductor_search_result
         external = getattr(external_result, "recommended_candidate", None)
-        transformer_id = report.magnetic.recommended_transformer_design_id or getattr(transformer, "candidate_id", None)
-        external_id = report.magnetic.recommended_external_lr_design_id or getattr(external, "design_id", None)
-        combined_id = report.magnetic.recommended_combined_magnetic_design_id
+        transformer_id = (
+            contract.transformer_design_id
+            if contract is not None
+            else report.magnetic.recommended_transformer_design_id
+            or getattr(transformer, "candidate_id", None)
+        )
+        external_id = (
+            contract.external_lr_design_id
+            if contract is not None
+            else report.magnetic.recommended_external_lr_design_id
+            or getattr(external, "design_id", None)
+        )
+        combined_id = (
+            contract.combined_magnetic_design_id
+            if contract is not None
+            else report.magnetic.recommended_combined_magnetic_design_id
+        )
         components: dict[str, dict[str, object]] = {}
         if transformer is not None:
             components["transformer"] = {

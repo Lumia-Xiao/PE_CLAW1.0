@@ -39,6 +39,7 @@ from .magnetic_loss_contract import (
     TabulatedModelPoint,
 )
 from .magnetic_result import (
+    LlcMagneticCombinationContract,
     LlcMagneticResultSummary,
     LlcMagneticStageSummary,
     MagneticResult,
@@ -121,6 +122,7 @@ __all__ = [
     "ComponentNormalizationBatch",
     "ComponentNormalizationIssue",
     "MagneticResult",
+    "LlcMagneticCombinationContract",
     "LlcMagneticResultSummary",
     "LlcMagneticStageSummary",
     "WindingElectricalEvidence",

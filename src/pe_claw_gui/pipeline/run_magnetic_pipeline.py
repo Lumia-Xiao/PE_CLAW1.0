@@ -21,6 +21,7 @@ from ..models.design_report import DesignReport
 from ..models.ac_dc_reactor import AcDcReactorDesignRequest
 from ..models.geometry_result import GeometryResult
 from ..models.magnetic_result import (
+    LlcMagneticCombinationContract,
     LlcMagneticResultSummary,
     LlcMagneticStageSummary,
     MagneticResult,
@@ -959,6 +960,39 @@ def _run_llc_transformer_magnetic_pipeline(
             recommended_external_lr_design_id,
             external_lr_stage_summary.status,
         )
+        magnetic_contract = build_llc_magnetic_combination_contract(
+            report=report,
+            fha_design=fha_design,
+            transformer_target=transformer_target,
+            transformer=recommended,
+            external_lr=recommended_external_lr,
+            external_lr_target=external_lr_target,
+            transformer_artifact_paths=[*transformer_artifact_paths, *pareto_result.artifact_paths],
+            external_lr_artifact_paths=external_artifact_paths,
+            external_lr_status=external_lr_stage_summary.status,
+        )
+        contract_validation = validate_llc_magnetic_combination_contract(
+            report=report,
+            contract=magnetic_contract,
+            transformer_candidates=search_result.feasible_candidates,
+            external_lr_candidates=(
+                external_lr_search_result.feasible_candidates
+                if external_lr_search_result is not None
+                else []
+            ),
+        )
+        if not contract_validation["valid"]:
+            return _finish_llc_magnetic_contract_failure(
+                report,
+                geometry_result,
+                search_result=search_result,
+                pareto_result=pareto_result,
+                external_lr_search_result=external_lr_search_result,
+                transformer_artifact_paths=[*transformer_artifact_paths, *pareto_result.artifact_paths],
+                output_policy=output_policy,
+                pipeline_timing=pipeline_timing,
+                failure_reason=str(contract_validation["reason"]),
+            )
         llc_result_summary = LlcMagneticResultSummary(
             transformer=transformer_stage_summary,
             external_lr=replace(
@@ -974,6 +1008,7 @@ def _run_llc_transformer_magnetic_pipeline(
                 report,
                 llc_run_context=report.llc_run_context.with_result_ids(
                     external_lr_design_id=recommended_external_lr_design_id,
+                    combined_magnetic_design_id=magnetic_contract.combined_magnetic_design_id,
                 ),
             )
         design_requirements = _llc_transformer_design_requirements(
@@ -993,6 +1028,7 @@ def _run_llc_transformer_magnetic_pipeline(
         design_requirements["magnetic_output_policy"] = output_policy
         design_requirements["transformer_pareto_count"] = pareto_result.pareto_count
         design_requirements["transformer_chosen_count"] = pareto_result.chosen_count
+        design_requirements["llc_magnetic_contract"] = magnetic_contract.to_dict()
         if external_lr_target is not None:
             design_requirements["external_lr_target_h"] = external_lr_target.external_lr_target_h
             design_requirements["external_lr_fraction"] = external_lr_target.lr_external_fraction
@@ -1111,6 +1147,7 @@ def _run_llc_transformer_magnetic_pipeline(
             pareto_count=pareto_result.pareto_count,
             selected_design_id=selected_design_id,
             llc_result_summary=llc_result_summary,
+            llc_magnetic_contract=magnetic_contract,
             recommended_transformer_design_id=selected_design_id,
             recommended_external_lr_design_id=recommended_external_lr_design_id,
             recommended_combined_magnetic_design_id=recommended_combined_magnetic_design_id,
@@ -1554,6 +1591,83 @@ def _finish_llc_external_lr_failure(
     )
 
 
+def _finish_llc_magnetic_contract_failure(
+    report: DesignReport,
+    geometry_result: GeometryResult,
+    *,
+    search_result,
+    pareto_result,
+    external_lr_search_result,
+    transformer_artifact_paths: list[str],
+    output_policy: dict[str, object],
+    pipeline_timing: dict[str, object],
+    failure_reason: str,
+) -> DesignReport:
+    """Return a blocked result when the cross-component LLC contract is invalid."""
+
+    transformer_stage = replace(
+        _llc_stage_summary(
+            search_result,
+            pareto_count=pareto_result.pareto_count,
+            recommended_design_id=(
+                pareto_result.recommended_candidate.candidate_id
+                if pareto_result.recommended_candidate
+                else None
+            ),
+            status="available",
+        ),
+        artifact_paths=transformer_artifact_paths,
+    )
+    external_stage = _llc_external_lr_stage_summary(
+        getattr(external_lr_search_result, "request", None),
+        external_lr_search_result,
+    )
+    external_stage = replace(
+        external_stage,
+        failure_code="contract_inconsistent",
+        failure_reason=failure_reason,
+        artifact_paths=list(getattr(external_lr_search_result, "artifact_paths", []) or []),
+    )
+    summary = LlcMagneticResultSummary(transformer=transformer_stage, external_lr=external_stage)
+    result = MagneticResult(
+        summary=f"Separated LLC magnetic combination contract failed: {failure_reason}",
+        result_type="separated_llc_transformer",
+        design_type="separated_llc_transformer",
+        basic_feasible_count=search_result.evaluated_candidate_count,
+        feasible_count=search_result.feasible_candidate_count,
+        selected_design_id=transformer_stage.recommended_design_id,
+        recommended_transformer_design_id=transformer_stage.recommended_design_id,
+        llc_result_summary=summary,
+        llc_transformer_result=search_result,
+        transformer_pareto_result=pareto_result,
+        transformer_pareto_candidates=pareto_result.pareto_candidates,
+        transformer_chosen_candidates=pareto_result.chosen_candidates,
+        transformer_representatives=pareto_result.representative_by_role,
+        transformer_pareto_artifacts=pareto_result.artifact_paths,
+        llc_external_resonant_inductor_target=(
+            getattr(external_lr_search_result, "request", None)
+        ),
+        llc_external_resonant_inductor_search_result=external_lr_search_result,
+        design_requirements={
+            "magnetic_contract_failure_code": "contract_inconsistent",
+            "magnetic_contract_failure_reason": failure_reason,
+            "magnetic_output_policy": output_policy,
+        },
+        performance_timing={"pipeline": {**pipeline_timing, "output_policy": output_policy}},
+        artifact_paths=_dedupe_notes(
+            [*transformer_artifact_paths, *getattr(external_lr_search_result, "artifact_paths", [])]
+        ),
+        notes=[
+            "LLC magnetic results were blocked because the transformer/external Lr contract was inconsistent.",
+            failure_reason,
+        ],
+    )
+    return _mark_llc_magnetics_blocked(
+        replace(report, magnetic=result, geometry=geometry_result),
+        failure_reason,
+    )
+
+
 def _mark_llc_magnetics_blocked(report: DesignReport, reason: str | None) -> DesignReport:
     if report.llc_run_context is None:
         return report
@@ -1695,3 +1809,110 @@ def build_llc_combined_magnetic_design_id(
     if external_lr_status != "available" or not transformer_design_id or not external_lr_design_id:
         return None
     return f"{transformer_design_id}+{external_lr_design_id}"
+
+
+def build_llc_magnetic_combination_contract(
+    *,
+    report: DesignReport,
+    fha_design,
+    transformer_target: dict[str, object],
+    transformer,
+    external_lr,
+    external_lr_target,
+    transformer_artifact_paths: list[str],
+    external_lr_artifact_paths: list[str],
+    external_lr_status: str,
+) -> LlcMagneticCombinationContract:
+    """Build the single handoff contract shared by LLC downstream stages."""
+
+    context = report.llc_run_context
+    if context is None:
+        raise ValueError("LLC magnetic combination contract requires a run context.")
+    transformer_id = str(getattr(transformer, "candidate_id", ""))
+    if not transformer_id:
+        raise ValueError("LLC magnetic combination contract requires a transformer design ID.")
+    external_id = (
+        str(getattr(external_lr, "design_id", ""))
+        if external_lr is not None and external_lr_status == "available"
+        else None
+    )
+    external_target = external_lr_target
+    external_target_h = (
+        float(getattr(external_target, "external_lr_target_h"))
+        if external_target is not None and external_id is not None
+        else None
+    )
+    external_actual_h = float(getattr(external_lr, "actual_l_h")) if external_id is not None else None
+    total_target_h = float(
+        getattr(external_target, "lr_total_target_h", None)
+        or getattr(fha_design, "lr_h")
+        or transformer_target.get("lr_target_h", 0.0)
+    )
+    total_actual_h = float(getattr(external_lr, "total_lr_actual_h")) if external_id is not None else None
+    transformer_leakage_h = float(getattr(transformer, "estimated_lk_h"))
+    return LlcMagneticCombinationContract(
+        run_id=context.run_id,
+        topology_id=str(report.spec.topology_id),
+        transformer_design_id=transformer_id,
+        external_lr_design_id=external_id,
+        combined_magnetic_design_id=(
+            build_llc_combined_magnetic_design_id(transformer_id, external_id, external_lr_status)
+        ),
+        np=int(getattr(transformer, "np")),
+        ns=int(getattr(transformer, "ns")),
+        lm_target_h=float(getattr(transformer, "lm_target_h")),
+        lm_actual_h=float(getattr(transformer, "lm_actual_h")),
+        transformer_leakage_h=transformer_leakage_h,
+        external_lr_target_h=external_target_h,
+        external_lr_actual_h=external_actual_h,
+        total_lr_target_h=total_target_h,
+        total_lr_actual_h=total_actual_h,
+        fs_hz=(
+            float(getattr(external_target, "fs_basis_hz"))
+            if external_target is not None and getattr(external_target, "fs_basis_hz", None) is not None
+            else float(getattr(fha_design, "fr_hz", 0.0))
+        ),
+        vin_min_v=float(getattr(fha_design, "vin_min_v", None)),
+        vin_nom_v=float(getattr(fha_design, "vin_nom_v", None)),
+        vin_max_v=float(getattr(fha_design, "vin_max_v", None)),
+        vout_min_v=float(getattr(fha_design, "vout_min_v", None)),
+        vout_nom_v=float(getattr(fha_design, "vout_nom_v", None)),
+        vout_max_v=float(getattr(fha_design, "vout_max_v", None)),
+        transformer_current_basis=str(getattr(transformer, "current_basis_label", "")),
+        transformer_current_rms_a=getattr(transformer, "primary_rms_current_design_a", None),
+        transformer_current_peak_a=(
+            float(getattr(fha_design, "worst_case_current_stress", {}).get("resonant_tank_peak_a"))
+            if isinstance(getattr(fha_design, "worst_case_current_stress", {}), dict)
+            and getattr(fha_design, "worst_case_current_stress", {}).get("resonant_tank_peak_a") is not None
+            else None
+        ),
+        external_lr_current_basis=(str(getattr(external_target, "current_basis", "")) if external_target is not None else None),
+        external_lr_current_rms_a=(float(getattr(external_target, "current_rms_a")) if external_target is not None else None),
+        external_lr_current_peak_a=(float(getattr(external_target, "current_peak_a")) if external_target is not None else None),
+        transformer_artifact_paths=tuple(transformer_artifact_paths),
+        external_lr_artifact_paths=tuple(external_lr_artifact_paths),
+    )
+
+
+def validate_llc_magnetic_combination_contract(
+    *,
+    report: DesignReport,
+    contract: LlcMagneticCombinationContract,
+    transformer_candidates: list,
+    external_lr_candidates: list,
+) -> dict[str, object]:
+    """Validate the contract at the magnetic-to-downstream pipeline boundary."""
+
+    context = report.llc_run_context
+    if context is None:
+        return {"valid": False, "reason": "LLC magnetic combination contract has no run context."}
+    try:
+        contract.validate(
+            topology_id=report.spec.topology_id,
+            run_id=context.run_id,
+            transformer_candidates=transformer_candidates,
+            external_lr_candidates=external_lr_candidates,
+        )
+    except (TypeError, ValueError) as exc:
+        return {"valid": False, "reason": str(exc)}
+    return {"valid": True, "reason": ""}
