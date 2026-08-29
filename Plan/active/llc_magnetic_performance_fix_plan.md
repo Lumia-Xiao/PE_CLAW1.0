@@ -502,7 +502,7 @@ LLC 变压器搜索当前约使用：
 | 4 | `completed` | `0a20914` | `9320bd3` | 预筛选专项 5 passed；磁损/LLC 回归 67 passed；四档基准 4/4 completed；中规模变压器 352 生成候选中 336 个预筛选淘汰、16 个精评、9 个可行，代表候选保持一致 |
 | 5 | `completed` | `b4dce50` | `c792d14` | LLC 边界专项 11 passed；四档基准 4/4 completed；默认 fast 保持原 golden 代表候选；支持显式 full 审计搜索 |
 | 6 | `completed` | `aa9956c` | `ce7b189` | reusable metrics cache implemented; 14 LLC baseline/cache tests and 67 shared regressions passed; controlled transformer-small evidence completed |
-| 7 | `pending` | - | - | - |
+| 7 | `completed` | `7547fc1` | 待本次计划记录提交后填写 | external Lr cheap prefilters implemented; 16 LLC/external-Lr tests and 4 topology regressions passed; medium 3020 = 2764 prefiltered + 256 precise, 186 feasible |
 | 8 | `pending` | - | - | - |
 | 9 | `pending` | - | - | - |
 | 10 | `pending` | - | - | - |
@@ -519,7 +519,7 @@ LLC 变压器搜索当前约使用：
 
 ## 9. 当前状态
 
-第 1、2、3、4、5、6 步已完成，后续从第 7 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
+第 1、2、3、4、5、6、7 步已完成，后续从第 8 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
 第 2 步加入了 FHA 边界频率有界缓存并验证了实际缓存命中，第 3 步完成了标准标量
 三角波的精确分段损耗路径、候选筛选采样优化和有界缓存，第 4 步完成了变压器候选
 的确定性廉价预筛选和可审计统计，第 5 步完成了 LLC 磁性搜索边界的统一配置化和
@@ -710,3 +710,32 @@ LLC 变压器搜索当前约使用：
 - 实现 push 结果：成功。
 - 计划记录 commit：`9320bd3`（`docs: record LLC Step 4 transformer prefilters`）。
 - 计划记录 push 结果：成功。
+
+### 第 7 步执行结果（2026-08-29）
+
+- 在外置 `Lr` 的 `(core, material, turns, wire)` 组合进入完整模型前增加确定性 cheap
+  prefilter，先计算气隙、实际电感、总电感误差、Bpeak、Bmargin、最小并联数、填充率
+  和电流密度；明确失败的几何、气隙、电感误差、饱和、填充和电流密度候选不再进入
+  core-loss 与 thermal 计算。
+- 预筛选候选仍保留在完整候选审计列表中，并生成轻量候选对象及 `prefilter:<reason>`
+  失败原因，避免候选计数、失败分类和 CSV 审计丢失；材料 core-loss 和最终 thermal
+  对通过预筛选的候选继续执行原有路径。
+- 外置 `Lr` 搜索结果新增 `prefilter_rejection_counts`；性能统计新增 generated、
+  prefilter rejected/pass、precise evaluated 和各主要预筛选原因计数。pipeline 和基准
+  脚本同步暴露该字段。
+- 新增测试覆盖气隙/饱和/填充/电流边界、候选总数守恒，以及预筛选候选不会触发
+  core-loss 模型。
+- 证据文件：`migration/evidence/20260829/llc_magnetic_performance_step7/llc_magnetic_performance_baseline.json`。
+  `external-lr-small`：`414 = 390` 预筛选淘汰 `+ 24` 精确评估，0 可行；耗时约
+  `0.045 s`。`external-lr-medium`：`3020 = 2764 + 256`，186 可行、18 Pareto，
+  气隙类淘汰 2400、填充类淘汰 2016，耗时约 `0.166 s`。
+- 验证命令：
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_external_lr_prefilter.py tests/test_llc_magnetic_performance_baseline.py`
+  （16 passed）；
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_phase7_dc_dc_topologies.py`
+  （4 passed）；共享磁损/拓扑回归 67 passed；编译检查和 `git diff --check` 通过。
+- 实现 commit：`7547fc1`（`LLC Step 7: optimize external resonant-inductor search`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`。
+- 实现 push 结果：成功。
+- 计划记录 commit：待本次计划记录提交后填写。
+- 计划记录 push 结果：待本次计划记录提交后填写。
