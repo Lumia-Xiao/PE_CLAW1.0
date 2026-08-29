@@ -190,6 +190,7 @@ def _run_case(case_name: str) -> dict[str, object]:
                 "counts": {
                     **external_result.performance_counts,
                     "rejection_counts": external_result.rejection_counts,
+                    "prefilter_rejection_counts": external_result.prefilter_rejection_counts,
                 },
                 "search_bounds": external_result.search_bounds,
                 "representative": _representative(external_result.recommended_candidate, external=True),

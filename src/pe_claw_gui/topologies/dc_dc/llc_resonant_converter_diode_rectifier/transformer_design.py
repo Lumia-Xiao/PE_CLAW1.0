@@ -3018,6 +3018,10 @@ def generate_llc_external_resonant_inductor_candidates(
     candidates: list[LlcExternalResonantInductorCandidate] = []
     candidate_evaluation_started = perf_counter()
     evaluation_timing: dict[str, float] = {"core_loss_seconds": 0.0, "thermal_seconds": 0.0}
+    prefilter_rejection_counts: Counter[str] = Counter()
+    prefilter_rejected_candidate_count = 0
+    prefilter_pass_count = 0
+    precise_evaluated_candidate_count = 0
     turns_candidate_count = 0
     for core in cores:
         for material in materials:
@@ -3030,6 +3034,47 @@ def generate_llc_external_resonant_inductor_candidates(
             turns_candidate_count += n_max - n_min + 1
             for turns in range(n_min, n_max + 1):
                 for wire in wires:
+                    cheap_metrics = (
+                        _external_lr_cheap_metrics(
+                            request=request,
+                            core=core,
+                            wire=wire,
+                            turns=turns,
+                            b_limit_t=b_limit_t,
+                        )
+                        if b_limit_t > 0.0 and core.ae_m2 > 0.0 and core.window_area_m2 > 0.0
+                        else None
+                    )
+                    prefilter_reasons = _external_lr_prefilter_reasons(
+                        request=request,
+                        core=core,
+                        wire=wire,
+                        turns=turns,
+                        b_limit_t=b_limit_t,
+                        metrics=cheap_metrics,
+                    )
+                    if prefilter_reasons:
+                        prefilter_rejected_candidate_count += 1
+                        prefilter_rejection_counts.update(prefilter_reasons)
+                        if cheap_metrics is not None:
+                            rejection_reason = f"prefilter:{prefilter_reasons[0]}"
+                            candidates.append(
+                                _build_external_lr_prefiltered_candidate(
+                                    request=request,
+                                    core=core,
+                                    material=material,
+                                    wire=wire,
+                                    turns=turns,
+                                    b_limit_t=b_limit_t,
+                                    metrics=cheap_metrics,
+                                    rejection_reason=rejection_reason,
+                                )
+                            )
+                            for reason in prefilter_reasons:
+                                prefilter_key = f"prefilter_{reason.split(':', 1)[0]}"
+                                rejection_counts[prefilter_key] = rejection_counts.get(prefilter_key, 0) + 1
+                            continue
+                    prefilter_pass_count += 1
                     best_for_wire = _screen_external_lr_wire_options(
                         request=request,
                         core=core,
@@ -3040,6 +3085,7 @@ def generate_llc_external_resonant_inductor_candidates(
                         performance_timing=evaluation_timing,
                     )
                     candidates.append(best_for_wire)
+                    precise_evaluated_candidate_count += 1
                     if best_for_wire.rejection_reason:
                         _increment_external_lr_rejection(rejection_counts, best_for_wire.rejection_reason)
     timing["candidate_evaluation_seconds"] = perf_counter() - candidate_evaluation_started
@@ -3094,6 +3140,17 @@ def generate_llc_external_resonant_inductor_candidates(
             "selected_material_count": len(materials),
             "selected_wire_count": len(wires),
             "turns_candidate_count": turns_candidate_count,
+            "generated_candidate_count": turns_candidate_count * len(wires),
+            "prefilter_rejected_candidate_count": prefilter_rejected_candidate_count,
+            "prefilter_pass_count": prefilter_pass_count,
+            "precise_evaluated_candidate_count": precise_evaluated_candidate_count,
+            "prefilter_rejected_by_gap_count": sum(
+                count for reason, count in prefilter_rejection_counts.items()
+                if reason.startswith("invalid_gap")
+            ),
+            "prefilter_rejected_by_saturation_count": prefilter_rejection_counts.get("saturation", 0),
+            "prefilter_rejected_by_fill_count": prefilter_rejection_counts.get("fill", 0),
+            "prefilter_rejected_by_current_density_count": prefilter_rejection_counts.get("current_density", 0),
             "evaluated_candidate_count": len(candidates),
             "feasible_candidate_count": len(feasible),
             "pareto_candidate_count": len(pareto),
@@ -3108,6 +3165,8 @@ def generate_llc_external_resonant_inductor_candidates(
             "Core loss requires Steinmetz coefficients; missing-coefficient materials are rejected.",
             "Thermal screening reuses the first-pass volume-proxy lumped estimate.",
             "Actual Lr is a first-pass gap-derived estimate; manufacturing gap tolerance is not modeled.",
+            "External Lr cheap prefilters reject deterministic geometry, saturation, fill, and current-density failures before core-loss and thermal evaluation.",
+            "Prefiltered candidates remain in the candidate audit list with a prefilter: rejection reason and lightweight metrics.",
         ]
     )
     pareto_notes = [
@@ -3129,6 +3188,7 @@ def generate_llc_external_resonant_inductor_candidates(
         min_loss_candidate=min_loss_selection.candidate if min_loss_selection is not None else None,
         compromise_candidate=compromise_selection.candidate if compromise_selection is not None else None,
         rejection_counts=rejection_counts,
+        prefilter_rejection_counts=dict(prefilter_rejection_counts),
         notes=_dedupe_text(notes),
         warnings=_dedupe_text(warnings),
         artifact_paths=artifact_paths,
@@ -3646,6 +3706,89 @@ def _build_external_lr_candidate(
     )
 
 
+def _build_external_lr_prefiltered_candidate(
+    *,
+    request: LlcExternalResonantInductorTarget,
+    core: _NormalizedCoreRecord,
+    material: _NormalizedMaterialRecord,
+    wire: _NormalizedWireRecord,
+    turns: int,
+    b_limit_t: float,
+    metrics: _ExternalLRCheapMetrics,
+    rejection_reason: str,
+) -> LlcExternalResonantInductorCandidate:
+    """Build an auditable lightweight result without invoking loss or thermal models."""
+
+    conductor_area_m2 = wire.bundle_copper_area_m2 * metrics.parallel_count
+    dc_resistance_ohm = (
+        COPPER_RESISTIVITY_25C_OHM_M
+        * core.mean_length_per_turn_m
+        * turns
+        / max(conductor_area_m2, 1e-18)
+    )
+    ac_multiplier = _ac_resistance_multiplier(
+        wire.strand_diameter_m,
+        wire.strands_per_bundle * metrics.parallel_count,
+        request.fs_basis_hz,
+    )
+    copper_loss_w = request.current_rms_a**2 * dc_resistance_ohm * ac_multiplier
+    winding_volume_m3 = metrics.fill_factor * core.window_area_m2 * core.mean_length_per_turn_m
+    estimated_volume_m3 = core.gross_volume_m3 + winding_volume_m3
+    total_lr_actual_h = metrics.actual_l_h + request.transformer_lk_h
+    total_lr_error_percent = 100.0 * (total_lr_actual_h - request.lr_total_target_h) / request.lr_total_target_h
+    design_id = f"Lr_ext_{_sanitize_identifier(core.core_id)}_{_sanitize_identifier(material.material_id)}_N{turns}_P{metrics.parallel_count}"
+    return LlcExternalResonantInductorCandidate(
+        design_id=design_id,
+        core_id=core.core_id,
+        core_family=_core_family(core.core_id),
+        material_name=material.material_id,
+        turns=turns,
+        gap_m=metrics.gap_m,
+        gap_mm=metrics.gap_m * 1e3,
+        target_l_h=request.external_lr_target_h,
+        actual_l_h=metrics.actual_l_h,
+        actual_l_uH=metrics.actual_l_h * 1e6,
+        inductance_error_percent=metrics.inductance_error_percent,
+        transformer_lk_h=request.transformer_lk_h,
+        transformer_lk_uH=request.transformer_lk_h * 1e6,
+        total_lr_actual_h=total_lr_actual_h,
+        total_lr_actual_uH=total_lr_actual_h * 1e6,
+        total_lr_error_percent=total_lr_error_percent,
+        current_rms_a=request.current_rms_a,
+        current_peak_a=request.current_peak_a,
+        fs_basis_hz=request.fs_basis_hz,
+        b_peak_t=metrics.b_peak_t,
+        b_limit_t=b_limit_t,
+        b_margin_percent=metrics.b_margin_percent,
+        fill_factor=metrics.fill_factor,
+        current_density_a_per_mm2=metrics.current_density_a_per_mm2,
+        core_loss_w=0.0,
+        copper_loss_w=copper_loss_w,
+        total_loss_w=copper_loss_w,
+        hotspot_c=DEFAULT_AMBIENT_C,
+        estimated_volume_m3=estimated_volume_m3,
+        estimated_volume_cm3=estimated_volume_m3 * 1e6,
+        wire_name=wire.wire_id,
+        wire_parallel_count=metrics.parallel_count,
+        warning="Prefiltered before core-loss and thermal evaluation; detailed fields are not evaluated.",
+        rejection_reason=rejection_reason,
+        core_effective_area_m2=core.ae_m2,
+        core_effective_area_source_field=core.ae_source_field,
+        bpeak_formula="L_actual_H * Ipeak_A / (turns * Ae_m2)",
+        current_convention="sinusoidal_peak",
+        core_window_area_m2=core.window_area_m2,
+        core_width_m=core.outer_width_m,
+        core_height_m=core.outer_height_m,
+        core_depth_m=_external_lr_core_depth_m(core),
+        core_volume_m3=core.gross_volume_m3,
+        winding_volume_m3=winding_volume_m3,
+        gross_volume_m3=core.gross_volume_m3,
+        transformer_design_id_used_for_lk=request.transformer_design_id,
+        external_lr_design_id=design_id,
+        lr_closure_status="warning" if abs(total_lr_error_percent) > 5.0 else "ok",
+    )
+
+
 def _external_lr_rejection_reason(
     *,
     core: _NormalizedCoreRecord,
@@ -3691,6 +3834,97 @@ def compute_llc_external_lr_bpeak_t(
 
 def _external_lr_b_limit_t(material: _NormalizedMaterialRecord) -> float:
     return min(0.18, 0.8 * material.b_sat_t) if material.b_sat_t > 0.0 else 0.0
+
+
+@dataclass(frozen=True)
+class _ExternalLRCheapMetrics:
+    """Deterministic external-Lr metrics needed before loss and thermal models."""
+
+    gap_m: float
+    actual_l_h: float
+    inductance_error_percent: float
+    b_peak_t: float
+    b_margin_percent: float
+    parallel_count: int
+    fill_factor: float
+    current_density_a_per_mm2: float
+
+
+def _external_lr_cheap_metrics(
+    *,
+    request: LlcExternalResonantInductorTarget,
+    core: _NormalizedCoreRecord,
+    wire: _NormalizedWireRecord,
+    turns: int,
+    b_limit_t: float,
+) -> _ExternalLRCheapMetrics:
+    """Resolve cheap, material-aware geometry/current metrics once per combination."""
+
+    gap_m = compute_gap_for_lm(turns, core.ae_m2, request.external_lr_target_h)
+    actual_l_h = compute_lm_from_gap(turns, core.ae_m2, gap_m)
+    inductance_error_percent = 100.0 * (actual_l_h - request.external_lr_target_h) / request.external_lr_target_h
+    b_peak_t = compute_llc_external_lr_bpeak_t(actual_l_h, request.current_peak_a, turns, core.ae_m2)
+    b_margin_percent = 100.0 * (b_limit_t - b_peak_t) / b_limit_t if b_limit_t > 0.0 else float("-inf")
+    min_parallel = max(
+        1,
+        ceil(
+            request.current_rms_a
+            / max(DEFAULT_CURRENT_DENSITY_LIMIT_A_PER_MM2 * wire.bundle_copper_area_m2 * 1e6, 1e-12)
+        ),
+    )
+    parallel_count = min(min_parallel, 12)
+    conductor_area_m2 = wire.bundle_copper_area_m2 * parallel_count
+    current_density_a_per_mm2 = request.current_rms_a / max(conductor_area_m2 * 1e6, 1e-12)
+    fill_area_m2 = turns * parallel_count * (pi * (wire.outer_diameter_m / 2.0) ** 2) * LITZ_PACKING_FACTOR
+    fill_factor = fill_area_m2 / core.window_area_m2
+    return _ExternalLRCheapMetrics(
+        gap_m=gap_m,
+        actual_l_h=actual_l_h,
+        inductance_error_percent=inductance_error_percent,
+        b_peak_t=b_peak_t,
+        b_margin_percent=b_margin_percent,
+        parallel_count=parallel_count,
+        fill_factor=fill_factor,
+        current_density_a_per_mm2=current_density_a_per_mm2,
+    )
+
+
+def _external_lr_prefilter_reasons(
+    *,
+    request: LlcExternalResonantInductorTarget,
+    core: _NormalizedCoreRecord,
+    wire: _NormalizedWireRecord,
+    turns: int,
+    b_limit_t: float,
+    metrics: _ExternalLRCheapMetrics | None = None,
+) -> tuple[str, ...]:
+    """Return only failures that are provable without core-loss or thermal evaluation."""
+
+    if core.ae_m2 <= 0.0 or core.le_m <= 0.0 or core.window_area_m2 <= 0.0:
+        return ("invalid_geometry",)
+    if b_limit_t <= 0.0:
+        return ("missing_data",)
+    metrics = metrics or _external_lr_cheap_metrics(
+        request=request,
+        core=core,
+        wire=wire,
+        turns=turns,
+        b_limit_t=b_limit_t,
+    )
+    reasons: list[str] = []
+    if metrics.gap_m <= 0.0 or metrics.gap_m < EXTERNAL_LR_GAP_MIN_M or metrics.gap_m > EXTERNAL_LR_GAP_MAX_M:
+        reasons.append("invalid_gap")
+    elif metrics.gap_m / core.le_m > EXTERNAL_LR_GAP_TO_LE_MAX:
+        reasons.append("invalid_gap")
+    if abs(metrics.inductance_error_percent) > EXTERNAL_LR_INDUCTANCE_ERROR_LIMIT_PERCENT:
+        reasons.append("invalid_gap")
+    if metrics.b_peak_t > b_limit_t:
+        reasons.append("saturation")
+    if metrics.fill_factor <= 0.0 or metrics.fill_factor > DEFAULT_FILL_FACTOR_LIMIT:
+        reasons.append("fill")
+    if metrics.current_density_a_per_mm2 > DEFAULT_CURRENT_DENSITY_LIMIT_A_PER_MM2:
+        reasons.append("current_density")
+    return tuple(reasons)
 
 
 def _select_external_lr_cores(

@@ -151,6 +151,7 @@ class LlcExternalResonantInductorSearchResult:
     min_loss_candidate: LlcExternalResonantInductorCandidate | None = None
     compromise_candidate: LlcExternalResonantInductorCandidate | None = None
     rejection_counts: dict[str, int] = field(default_factory=dict)
+    prefilter_rejection_counts: dict[str, int] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     artifact_paths: list[str] = field(default_factory=list)

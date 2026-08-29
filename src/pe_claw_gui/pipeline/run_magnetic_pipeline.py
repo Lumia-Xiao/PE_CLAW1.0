@@ -968,7 +968,10 @@ def _run_llc_transformer_magnetic_pipeline(
                     else {}
                 ),
                 "external_lr_counts": (
-                    external_lr_search_result.performance_counts
+                    {
+                        **external_lr_search_result.performance_counts,
+                        "prefilter_rejection_counts": external_lr_search_result.prefilter_rejection_counts,
+                    }
                     if external_lr_search_result is not None
                     else {}
                 ),
