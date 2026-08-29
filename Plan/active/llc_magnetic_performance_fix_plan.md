@@ -538,7 +538,7 @@ LLC 变压器搜索当前约使用：
 | 7 | `completed` | `7547fc1` | `185df50` | external Lr cheap prefilters implemented; 16 LLC/external-Lr tests and 4 topology regressions passed; medium 3020 = 2764 prefiltered + 256 precise, 186 feasible |
 | 8 | `completed` | `26aac43` | `f8702b8` | equivalent Pareto sweep implemented for transformer and external Lr; 20 LLC/Pareto tests and 67 shared regressions passed; 900-point oracle comparison equivalent |
 | 9 | `completed` | `11eecc2` | `c7cf670` | 输出策略专项 25 passed；核心损耗/FHA/磁件契约 68 passed；默认正式模式仅推荐几何输出，调试模式恢复完整诊断；实现与计划记录均已 push |
-| 10 | `completed` | `83d353b` | 待本次计划记录提交后填写 | 四档基准 4/4 completed、0 timeout、0 error；候选/可行数、代表候选、Pareto 顺序保持一致；95 项 LLC/磁件专项通过；排除 AC-DC GUI 长时集成测试后的工程回归 377 passed、1 skipped；实现与证据已 push |
+| 10 | `completed` | `83d353b` | `1311bc6` | 四档基准 4/4 completed、0 timeout、0 error；候选/可行数、代表候选、Pareto 顺序保持一致；95 项 LLC/磁件专项通过；排除 AC-DC GUI 长时集成测试后的工程回归 377 passed、1 skipped；实现与证据已 push |
 
 ## 8. 预期交付物
 
