@@ -13,6 +13,7 @@ class LossResult:
     breakdown_w: dict[str, float] = field(default_factory=dict)
     recommended_design_id: str | None = None
     recommended_design_total_volume_m3: float | None = None
+    component_volumes_m3: dict[str, float] = field(default_factory=dict)
     top_design_losses: dict[str, dict[str, float]] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
     core_loss_audit: dict[str, object] = field(default_factory=dict)

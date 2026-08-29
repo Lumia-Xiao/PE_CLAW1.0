@@ -46,6 +46,10 @@ def build_llc_magnetic_summary_text(report: DesignReport) -> str:
         lines.extend(["", "Design requirements"])
         lines.extend(_llc_requirement_lines(magnetic.design_requirements))
 
+    lines.extend(_llc_loss_lines(report))
+    lines.extend(_llc_thermal_lines(report))
+    lines.extend(_llc_geometry_lines(report))
+
     if magnetic.artifact_paths:
         lines.extend(["", "Artifacts"])
         lines.extend(f"  {path}" for path in magnetic.artifact_paths)
@@ -192,3 +196,72 @@ def _search_bounds_value(value: Any) -> str:
         f"{external_lr.get('material_limit', 'N/A')}/{external_lr.get('wire_limit', 'N/A')}; "
         f"external Lr max turns={external_lr.get('max_turns', 'N/A')}"
     )
+
+
+def _llc_loss_lines(report: DesignReport) -> list[str]:
+    loss = report.loss
+    if loss is None:
+        return ["", "Magnetic loss", "  status: not evaluated"]
+    breakdown = loss.breakdown_w
+    volumes = getattr(loss, "component_volumes_m3", {}) or {}
+    return [
+        "",
+        "Magnetic loss",
+        f"  recommended combined design: {_value(loss.recommended_design_id)}",
+        f"  transformer design: {_value(getattr(report.magnetic, 'recommended_transformer_design_id', None))}",
+        f"    core loss: {_value_with_unit(breakdown.get('llc_transformer_core_loss_w'), 'W')}",
+        f"    copper loss: {_value_with_unit(breakdown.get('llc_transformer_copper_loss_w'), 'W')}",
+        f"    total loss: {_value_with_unit(breakdown.get('llc_transformer_total_loss_w'), 'W')}",
+        f"    volume: {_si_value(volumes.get('transformer_volume_m3'), 1e6, 'cm^3')}",
+        f"  external Lr design: {_value(getattr(report.magnetic, 'recommended_external_lr_design_id', None))}",
+        f"    core loss: {_value_with_unit(breakdown.get('llc_external_resonant_inductor_core_loss_w'), 'W')}",
+        f"    copper loss: {_value_with_unit(breakdown.get('llc_external_resonant_inductor_copper_loss_w'), 'W')}",
+        f"    total loss: {_value_with_unit(breakdown.get('llc_external_resonant_inductor_total_loss_w'), 'W')}",
+        f"    volume: {_si_value(volumes.get('external_lr_volume_m3'), 1e6, 'cm^3')}",
+        f"  combined core loss: {_value_with_unit(breakdown.get('llc_magnetic_core_loss_w'), 'W')}",
+        f"  combined copper loss: {_value_with_unit(breakdown.get('llc_magnetic_copper_loss_w'), 'W')}",
+        f"  combined total loss: {_value_with_unit(breakdown.get('llc_magnetic_total_loss_w'), 'W')}",
+        f"  combined volume: {_si_value(volumes.get('combined_magnetic_volume_m3'), 1e6, 'cm^3')}",
+    ]
+
+
+def _llc_thermal_lines(report: DesignReport) -> list[str]:
+    thermal = report.thermal
+    if thermal is None:
+        return ["", "Magnetic thermal", "  status: not evaluated"]
+    components = getattr(thermal, "llc_component_thermal", {}) or {}
+    if not components:
+        return ["", "Magnetic thermal", "  status: not evaluated"]
+    lines = [
+        "",
+        "Magnetic thermal",
+        f"  ambient: {_value_with_unit(thermal.ambient_temp_c, 'C')}",
+        f"  recommended design: {_value(thermal.recommended_design_id)}",
+    ]
+    for key, label in (("transformer", "Transformer"), ("external_lr", "External Lr")):
+        component = components.get(key, {})
+        status = str(component.get("status", "not_evaluated"))
+        lines.append(f"  {label}: {_status_label(status)}")
+        if status == "available":
+            lines.append(f"    design: {_value(component.get('design_id'))}")
+            lines.append(f"    hotspot: {_value_with_unit(component.get('hotspot_c'), 'C')}")
+        else:
+            lines.append(f"    hotspot: N/A ({_status_label(status)})")
+        lines.append(f"    source: {_value(component.get('source'))}")
+    return lines
+
+
+def _llc_geometry_lines(report: DesignReport) -> list[str]:
+    geometry = report.geometry
+    if geometry is None:
+        return ["", "Geometry", "  status: not evaluated"]
+    lines = ["", "Geometry", f"  component: {_value(getattr(geometry, 'component_type', 'external_resonant_inductor'))}"]
+    lines.append(f"  {geometry.summary or 'Geometry comparison is available.'}")
+    for target in geometry.targets:
+        duplicate_text = f", same as {target.duplicate_of}" if target.duplicate_of else ""
+        lines.append(
+            f"  {target.label}: {_value(target.design_id)}, "
+            f"volume={_si_value(target.volume_m3, 1e6, 'cm^3')}, "
+            f"loss={_value_with_unit(target.loss_w, 'W')}{duplicate_text}"
+        )
+    return lines

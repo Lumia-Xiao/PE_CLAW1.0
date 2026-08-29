@@ -15,6 +15,16 @@ from .options import MAGNETIC_STAGE_DISABLED_NOTE, MAGNETIC_THERMAL_DISABLED_NOT
 from ..engines.magnetics.core_loss_audit import core_loss_is_comparable
 
 
+def _optional_float(value) -> float | None:
+    if value is None:
+        return None
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return None
+    return result if result == result and abs(result) != float("inf") else None
+
+
 def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions | None = None) -> DesignReport:
     """Attach a first-pass magnetic thermal estimate to a design report."""
     options = resolve_pipeline_options(pipeline_options)
@@ -27,13 +37,64 @@ def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions
         return replace(report, thermal=thermal_result)
 
     if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
+        transformer_result = report.magnetic.transformer_pareto_result
+        transformer = getattr(transformer_result, "recommended_candidate", None)
+        external_result = report.magnetic.llc_external_resonant_inductor_search_result
+        external = getattr(external_result, "recommended_candidate", None)
+        transformer_id = report.magnetic.recommended_transformer_design_id or getattr(transformer, "candidate_id", None)
+        external_id = report.magnetic.recommended_external_lr_design_id or getattr(external, "design_id", None)
+        combined_id = report.magnetic.recommended_combined_magnetic_design_id
+        components: dict[str, dict[str, object]] = {}
+        if transformer is not None:
+            components["transformer"] = {
+                "status": "available",
+                "design_id": transformer_id,
+                "hotspot_c": _optional_float(getattr(transformer, "hotspot_c", None)),
+                "source": "LLC transformer magnetic screening first-pass hotspot estimate",
+            }
+        else:
+            components["transformer"] = {
+                "status": "not_evaluated",
+                "design_id": transformer_id,
+                "hotspot_c": None,
+                "source": "LLC transformer magnetic screening",
+            }
+        if external is not None:
+            components["external_lr"] = {
+                "status": "available",
+                "design_id": external_id,
+                "hotspot_c": _optional_float(getattr(external, "hotspot_c", None)),
+                "source": "External Lr magnetic screening first-pass hotspot estimate",
+            }
+        else:
+            external_status = "not_required"
+            target = report.magnetic.llc_external_resonant_inductor_target
+            if target is None:
+                external_status = "not_evaluated"
+            elif target.is_design_required:
+                external_status = "no_feasible_candidate"
+            components["external_lr"] = {
+                "status": external_status,
+                "design_id": external_id,
+                "hotspot_c": None,
+                "source": "External Lr magnetic screening",
+            }
+        valid_component_count = sum(
+            item.get("hotspot_c") is not None for item in components.values()
+        )
         thermal_result = ThermalResult(
             ambient_temp_c=resolve_ambient_temperature_c(report),
-            summary="LLC transformer thermal screening is reported on the Magnetics page.",
+            recommended_design_id=combined_id or transformer_id,
+            summary="LLC transformer and external resonant-inductor thermal screening uses magnetic first-pass hotspot estimates.",
             notes=[
                 "The separated LLC transformer screening includes a first-pass hotspot estimate.",
                 "The fixed-inductor thermal comparison stage is not applied to LLC transformer candidates.",
+                "Transformer and external Lr hotspots are reported separately; no combined thermal network is inferred.",
             ],
+            llc_component_thermal=components,
+            status="valid" if valid_component_count else "unavailable",
+            valid_loss_entry_count=valid_component_count,
+            unavailable_loss_entry_count=len(components) - valid_component_count,
         )
         return replace(report, thermal=thermal_result)
 

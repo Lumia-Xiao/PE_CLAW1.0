@@ -82,7 +82,18 @@ def _run_loss_pipeline_without_excitation_audit(
             )
             transformer_id = getattr(transformer, "candidate_id", None)
             external_id = getattr(external, "design_id", None)
-            ids = "+".join(value for value in (transformer_id, external_id) if value) or None
+            ids = report.magnetic.recommended_combined_magnetic_design_id or "+".join(
+                value for value in (transformer_id, external_id) if value
+            ) or transformer_id or external_id
+            component_volumes = {
+                key: value
+                for key, value in {
+                    "transformer_volume_m3": _optional_float(getattr(transformer, "estimated_volume_m3", None)),
+                    "external_lr_volume_m3": _optional_float(getattr(external, "estimated_volume_m3", None)),
+                    "combined_magnetic_volume_m3": volume,
+                }.items()
+                if value is not None
+            }
             breakdown = {
                 key: value
                 for key, value in {
@@ -103,6 +114,7 @@ def _run_loss_pipeline_without_excitation_audit(
                 breakdown_w=breakdown,
                 recommended_design_id=ids,
                 recommended_design_total_volume_m3=volume,
+                component_volumes_m3=component_volumes,
                 notes=[
                     "LLC magnetic loss is aggregated from the recommended transformer and external resonant-inductor candidates.",
                     "Transformer leakage is not added to the external resonant-inductor loss; the two roles remain separate.",

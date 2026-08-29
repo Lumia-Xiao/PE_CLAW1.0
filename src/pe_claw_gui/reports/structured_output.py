@@ -246,7 +246,7 @@ def _thermal_payload(report: DesignReport) -> dict[str, Any]:
     if thermal is None:
         return {"available": False, "status": "not_evaluated", "metrics": {}, "metadata": {}}
     source = "thermal.evaluation"
-    return {
+    payload = {
         "available": True,
         "status": getattr(thermal, "status", "not_evaluated"),
         "metrics": {
@@ -255,6 +255,93 @@ def _thermal_payload(report: DesignReport) -> dict[str, Any]:
             "total_loss": _metric(getattr(estimate, "total_loss_w", None), "W", source),
         },
         "metadata": {"summary": getattr(thermal, "summary", "")},
+    }
+    components = getattr(thermal, "llc_component_thermal", {}) or {}
+    if components:
+        payload["llc_components"] = {
+            str(role): {
+                "status": str(values.get("status", "not_evaluated")),
+                "design_id": values.get("design_id"),
+                "hotspot_temperature": _metric(values.get("hotspot_c"), "degC", f"thermal.llc.{role}"),
+                "source": values.get("source", ""),
+            }
+            for role, values in components.items()
+            if isinstance(values, Mapping)
+        }
+    return payload
+
+
+def _loss_payload(report: DesignReport) -> dict[str, Any]:
+    loss = report.loss
+    if loss is None:
+        return {"available": False, "recommended_design_id": None, "metrics": {}, "metadata": {}}
+    payload: dict[str, Any] = {
+        "available": True,
+        "recommended_design_id": loss.recommended_design_id,
+        "metrics": {
+            "total_loss": _metric(loss.total_loss_w, "W", "loss.total"),
+            "recommended_volume": _metric(
+                loss.recommended_design_total_volume_m3,
+                "m3",
+                "loss.recommended_volume",
+            ),
+        },
+        "metadata": {"core_loss_status": getattr(loss, "core_loss_status", "not_evaluated")},
+    }
+    if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
+        breakdown = loss.breakdown_w
+        volumes = getattr(loss, "component_volumes_m3", {}) or {}
+        payload["llc"] = {
+            "transformer": {
+                "design_id": report.magnetic.recommended_transformer_design_id,
+                "core_loss": _metric(breakdown.get("llc_transformer_core_loss_w"), "W", "loss.llc.transformer.core"),
+                "copper_loss": _metric(breakdown.get("llc_transformer_copper_loss_w"), "W", "loss.llc.transformer.copper"),
+                "total_loss": _metric(breakdown.get("llc_transformer_total_loss_w"), "W", "loss.llc.transformer.total"),
+                "volume": _metric(volumes.get("transformer_volume_m3"), "m3", "loss.llc.transformer.volume"),
+            },
+            "external_lr": {
+                "design_id": report.magnetic.recommended_external_lr_design_id,
+                "core_loss": _metric(breakdown.get("llc_external_resonant_inductor_core_loss_w"), "W", "loss.llc.external_lr.core"),
+                "copper_loss": _metric(breakdown.get("llc_external_resonant_inductor_copper_loss_w"), "W", "loss.llc.external_lr.copper"),
+                "total_loss": _metric(breakdown.get("llc_external_resonant_inductor_total_loss_w"), "W", "loss.llc.external_lr.total"),
+                "volume": _metric(volumes.get("external_lr_volume_m3"), "m3", "loss.llc.external_lr.volume"),
+            },
+            "combined": {
+                "design_id": report.magnetic.recommended_combined_magnetic_design_id,
+                "core_loss": _metric(breakdown.get("llc_magnetic_core_loss_w"), "W", "loss.llc.combined.core"),
+                "copper_loss": _metric(breakdown.get("llc_magnetic_copper_loss_w"), "W", "loss.llc.combined.copper"),
+                "total_loss": _metric(breakdown.get("llc_magnetic_total_loss_w"), "W", "loss.llc.combined.total"),
+                "volume": _metric(volumes.get("combined_magnetic_volume_m3"), "m3", "loss.llc.combined.volume"),
+            },
+        }
+    return payload
+
+
+def _geometry_payload(report: DesignReport) -> dict[str, Any]:
+    geometry = report.geometry
+    if geometry is None:
+        return {"available": False, "selected_design_id": None, "targets": [], "metadata": {}}
+    return {
+        "available": True,
+        "selected_design_id": geometry.selected_design_id,
+        "targets": [
+            {
+                "role": target.role,
+                "label": target.label,
+                "design_id": target.design_id,
+                "volume": _metric(target.volume_m3, "m3", f"geometry.{target.role}.volume"),
+                "loss": _metric(target.loss_w, "W", f"geometry.{target.role}.loss"),
+                "artifact_paths": [str(path) for path in target.artifact_paths],
+                "duplicate_of": target.duplicate_of,
+                "error": target.error_message,
+            }
+            for target in geometry.targets
+        ],
+        "metadata": {
+            "component_type": getattr(geometry, "component_type", "fixed_inductor"),
+            "artifact_paths": [str(path) for path in geometry.artifact_paths],
+            "summary": geometry.summary,
+        },
     }
 
 
@@ -316,6 +403,8 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
             "rectifier": _stress_metric(getattr(report.stress, "rectifier", None)),
         },
         "magnetic": _magnetic_payload(report),
+        "loss": _loss_payload(report),
+        "geometry": _geometry_payload(report),
         "capacitor": _capacitor_payload(report),
         "thermal": _thermal_payload(report),
         "hardware": _hardware_payload(report),

@@ -925,6 +925,7 @@ def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGrou
     warnings.extend(_image_warnings(image_2d_path, image_3d_path))
     if volume_cm3 is None:
         warnings.append("Incomplete volume definition: inductor total assembly volume is unavailable.")
+    is_llc = report.magnetic.result_type == "separated_llc_transformer"
     return HardwareOverviewComponentGroup(
         group_id="inductor",
         display_name=_inductor_group_display_name(report.spec.topology_id),
@@ -961,6 +962,16 @@ def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGrou
             "hotspot_proxy_temp_c": _thermal_hotspot_c(report),
             "loss_basis_label": _inductor_loss_basis_label(report, loss_basis_label),
             "magnetic_quantity": quantity,
+            "component_role": "external_resonant_inductor" if is_llc else "fixed_inductor",
+            "recommended_transformer_design_id": (
+                report.magnetic.recommended_transformer_design_id if is_llc else None
+            ),
+            "recommended_external_lr_design_id": (
+                report.magnetic.recommended_external_lr_design_id if is_llc else None
+            ),
+            "recommended_combined_magnetic_design_id": (
+                report.magnetic.recommended_combined_magnetic_design_id if is_llc else None
+            ),
         },
         notes=_inductor_overview_notes(report, loss_basis_label),
         warnings=warnings,
@@ -968,6 +979,8 @@ def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGrou
 
 
 def _inductor_group_display_name(topology_id: str) -> str:
+    if topology_id == "llc_resonant_converter_diode_rectifier":
+        return "External Resonant Inductor"
     if (
         is_single_phase_full_bridge_inverter_topology(topology_id)
         or topology_id == "three_phase_two_level_voltage_source_inverter"
@@ -1582,6 +1595,12 @@ def _inductor_reference_loss_w(design: FixedInductorDesignCandidate | None) -> f
 
 
 def _inductor_overview_notes(report: DesignReport, loss_basis_label: str) -> list[str]:
+    if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
+        return [
+            "This hardware group represents the external resonant inductor geometry; the LLC transformer is a separate magnetic role.",
+            "Transformer, external Lr, and combined recommendation IDs remain available in the magnetic result contract.",
+            f"Loss basis: {loss_basis_label}.",
+        ]
     if _is_three_phase_npc_inverter(report):
         if loss_basis_label == "operating-point magnetic loss":
             return ["3 identical per-phase output inductors; displayed loss and volume are system totals."]

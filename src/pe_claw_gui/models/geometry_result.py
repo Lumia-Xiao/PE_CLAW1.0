@@ -117,4 +117,5 @@ class GeometryResult:
     targets: list[GeometryTarget] = field(default_factory=list)
     artifact_paths: list[str] = field(default_factory=list)
     footprint_mm2: float | None = None
+    component_type: str = "fixed_inductor"
     notes: list[str] = field(default_factory=list)

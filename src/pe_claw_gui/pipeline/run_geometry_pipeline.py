@@ -543,6 +543,7 @@ def _run_llc_external_lr_geometry_pipeline(
         selected_layout=recommended_target.layout if recommended_target else None,
         targets=targets,
         artifact_paths=unique_artifact_paths,
+        component_type="external_resonant_inductor",
         footprint_mm2=(
             recommended_target.layout.overall_width_mm * recommended_target.layout.overall_depth_mm
             if recommended_target and recommended_target.layout is not None

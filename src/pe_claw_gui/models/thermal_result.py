@@ -51,6 +51,7 @@ class ThermalResult:
     best_by_stack_count: dict[int, ThermalComparisonEntry] = field(default_factory=dict)
     artifact_paths: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    llc_component_thermal: dict[str, dict[str, object]] = field(default_factory=dict)
     status: str = "not_evaluated"
     valid_loss_entry_count: int = 0
     unavailable_loss_entry_count: int = 0
