@@ -503,7 +503,7 @@ LLC 变压器搜索当前约使用：
 | 5 | `completed` | `b4dce50` | `c792d14` | LLC 边界专项 11 passed；四档基准 4/4 completed；默认 fast 保持原 golden 代表候选；支持显式 full 审计搜索 |
 | 6 | `completed` | `aa9956c` | `ce7b189` | reusable metrics cache implemented; 14 LLC baseline/cache tests and 67 shared regressions passed; controlled transformer-small evidence completed |
 | 7 | `completed` | `7547fc1` | `185df50` | external Lr cheap prefilters implemented; 16 LLC/external-Lr tests and 4 topology regressions passed; medium 3020 = 2764 prefiltered + 256 precise, 186 feasible |
-| 8 | `pending` | - | - | - |
+| 8 | `completed` | `26aac43` | 待本次计划记录提交后填写 | equivalent Pareto sweep implemented for transformer and external Lr; 20 LLC/Pareto tests and 67 shared regressions passed; 900-point oracle comparison equivalent |
 | 9 | `pending` | - | - | - |
 | 10 | `pending` | - | - | - |
 
@@ -519,7 +519,7 @@ LLC 变压器搜索当前约使用：
 
 ## 9. 当前状态
 
-第 1、2、3、4、5、6、7 步已完成，后续从第 8 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
+第 1、2、3、4、5、6、7、8 步已完成，后续从第 9 步开始。第 1 步冻结了四档可重复 LLC 磁件性能基线，
 第 2 步加入了 FHA 边界频率有界缓存并验证了实际缓存命中，第 3 步完成了标准标量
 三角波的精确分段损耗路径、候选筛选采样优化和有界缓存，第 4 步完成了变压器候选
 的确定性廉价预筛选和可审计统计，第 5 步完成了 LLC 磁性搜索边界的统一配置化和
@@ -739,3 +739,31 @@ LLC 变压器搜索当前约使用：
 - 实现 push 结果：成功。
 - 计划记录 commit：`185df50`（`docs: record LLC Step 7 external Lr prefilters`）。
 - 计划记录 push 结果：成功。
+
+### 第 8 步执行结果（2026-08-29）
+
+- 固定变压器和外置 `Lr` 的二维 Pareto 语义：volume 与 total loss 均为最小化目标，
+  只有两个目标均不差且至少一个严格更优才构成支配；最终排序保持
+  `(volume, loss, candidate_id/design_id)`。
+- 新增统一 `finite-2d-sweep-v1` 扫描器，有限指标走按 volume 分组的排序扫描，
+  通过跨组最低 loss 和组内最低 loss 判定支配，避免生产数据上的 O(n²) 双重比较。
+- 保留变压器和外置 `Lr` 的原始二次 reference oracle；任何 NaN/Inf 输入自动使用
+  oracle，确保特殊值、重复 ID、相同指标和 tie-break 语义不被改变。
+- 变压器 Pareto 结果新增算法版本、输入/输出数量和过滤耗时；外置 `Lr` 性能统计同步
+  记录算法版本、Pareto 输入/输出数量，pipeline 结构化输出同步暴露变压器 Pareto 统计。
+- 新增空列表、单候选、相同指标、支配/折衷候选、重复 ID、NaN/Inf、随机有限输入和
+  性能对照测试；随机测试确认新旧 oracle 集合及顺序完全一致。
+- 证据文件：`migration/evidence/20260829/llc_magnetic_performance_step8/llc_magnetic_performance_baseline.json`。
+  900 点反相关 trade-off 数据新旧结果均为 900 个，顺序等价；扫描器约 `0.0031 s`，
+  reference oracle 约 `0.2257 s`，加速约 `73.8x`。外置 `Lr` medium 保持 3020 个生成、
+  2764 个预筛选、256 个精评、186 个可行和 18 个 Pareto 候选。
+- 验证命令：
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_pareto_filter.py tests/test_llc_external_lr_prefilter.py tests/test_llc_magnetic_performance_baseline.py`
+  （20 passed）；
+  `$env:PYTHONPATH='src'; python -m pytest -q tests/test_core_loss_kernel.py tests/test_core_loss_router.py tests/test_magnetic_loss_contract.py tests/test_phase7_dc_dc_topologies.py`
+  （67 passed）；编译检查和 `git diff --check` 通过。
+- 实现 commit：`26aac43`（`LLC Step 8: optimize Pareto filtering`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`。
+- 实现 push 结果：成功。
+- 计划记录 commit：待本次计划记录提交后填写。
+- 计划记录 push 结果：待本次计划记录提交后填写。
