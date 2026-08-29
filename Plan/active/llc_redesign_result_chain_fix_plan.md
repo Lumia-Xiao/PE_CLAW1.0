@@ -434,7 +434,7 @@
 - [x] 第 1 步：运行上下文和结果边界
 - [x] 第 2 步：LLC 变压器结果生成和持久化
 - [x] 第 3 步：外置谐振电感结果链路
-- [ ] 第 4 步：磁件参数和结果 ID 统一
+- [x] 第 4 步：磁件参数和结果 ID 统一
 - [ ] 第 5 步：谐振电容推荐约束
 - [ ] 第 6 步：几何、硬件总览和旧引用
 - [ ] 第 7 步：效率扫描、报告和最终 manifest
@@ -530,3 +530,43 @@
 
 - 功能提交：`49d189b fix: persist LLC external resonant inductor results`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
 - 本计划记录提交：`3263628 docs: record LLC external resonant inductor step 3`，已 push 到 `origin/codex/sync-gui-backend-from-2`；本次文档准确性修正随后单独提交并 push。
+
+## 12. 第 4 步执行记录
+
+### 已完成的修改
+
+1. 新增 `LlcMagneticCombinationContract`，作为分离式 LLC 变压器、外置 Lr 和组合磁件的统一结果合同，包含：
+   - `run_id`、`topology_id`；
+   - 变压器、外置 Lr 和组合磁件 design ID；
+   - `Np`、`Ns`、`Lm target/actual`；
+   - 变压器漏感、外置 Lr target/actual、总 Lr target/actual；
+   - 频率、电压范围、电流基准和电流值；
+   - 变压器及外置 Lr artifact 路径。
+2. 为合同增加 `to_dict()` / `from_dict()`，用于结构化报告、硬件总览和后续 manifest 的统一序列化与恢复。
+3. 为 `LlcRunContext` 增加 `combined_magnetic_design_id`，使组合 ID 与变压器、外置 Lr ID 一起处于当前运行上下文中。
+4. LLC 磁件 pipeline 改为从当前推荐候选一次性构造组合合同，并在下游阶段前执行硬性校验：
+   - 拓扑 ID 与 run ID 必须匹配；
+   - 变压器及外置 Lr design ID 必须存在于当前运行的 feasible candidate 集合；
+   - 组合 ID 必须严格等于 `transformer_id+external_lr_id`；
+   - `total_Lr_target = transformer_leakage + external_Lr_target`；
+   - `total_Lr_actual = transformer_leakage + external_Lr_actual`。
+5. 合同校验失败时，磁件结果记录 `contract_inconsistent` 和明确原因，磁件阶段标记为 `blocked`，不再继续生成可信的组合结果。
+6. 损耗、热、几何元数据、结构化报告、硬件总览和 LLC 结果文本优先读取统一合同；无运行上下文的历史展示夹具保留兼容读取路径。
+7. 新增第 4 步专项测试，覆盖合同序列化/反序列化、ID 追溯、旧 design ID、旧 run、错误拓扑、目标/实际 Lr 闭合边界，以及外置 Lr 不需要时的合法状态。
+
+### 验证记录
+
+- `PYTHONPATH=src python -m pytest --basetemp .pytest-tmp-step4 tests/test_llc_magnetic_combination_contract_step4.py -q`
+- 结果：`4 passed in 3.61s`。
+- `PYTHONPATH=src python -m pytest --basetemp .pytest-tmp-step4 tests/test_llc_magnetic_combination_contract_step4.py tests/test_llc_magnetic_result_reporting_step5.py tests/test_llc_magnetic_result_display_step2.py -q`
+- 结果：`15 passed in 3.45s`。
+- `PYTHONPATH=src python -m pytest --basetemp .pytest-tmp-step4 tests/test_llc*.py -q`（PowerShell 中使用显式文件列表执行）
+- 结果：`67 passed in 100.07s`。
+- `PYTHONPATH=src python -m compileall -q src tests` 通过。
+- `git diff --check` 通过。
+- 第 4 步测试临时目录及既有 `outputs/`、`__pycache__` 均未加入 Git。
+
+### 提交记录
+
+- 功能提交：待提交，目标分支 `codex/sync-gui-backend-from-2`。
+- 本计划记录提交：待提交，目标分支 `codex/sync-gui-backend-from-2`。
