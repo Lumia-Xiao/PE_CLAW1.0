@@ -504,7 +504,7 @@ LLC pipeline 当前提供：
 | 1 | `completed` | `1cd24c6` | `e200dce` | 新增确定性 LLC 结果显示基线 fixture、两个视图基线测试和结构化输出基线；`35 passed`（含既有 LLC 专项）；生成器、证据和实现已 push |
 | 2 | `completed` | `10d3ad6` | `95dc179` | 增加 LLC 专用阶段摘要 DTO、变压器/外置 Lr 统计映射、三个推荐 ID 和组合 ID 边界 helper；结构化输出增加 JSON-safe LLC 区块，LLC hardware selection 不再依赖固定电感 chosen list；`12 passed`，`compileall` 和 `git diff --check` 通过，已 push |
 | 3 | `completed` | `e108410` | `2560327` | 两个磁件结果视图接入共享 LLC 专用文本格式化器；显示 transformer/external Lr 阶段统计和三个推荐层级，隐藏固定电感 allow/compression/stack-count 区块，并对 not-required 状态隐藏无意义的零计数；`11 passed`，`compileall` 和 `git diff --check` 通过，已 push |
-| 4 | `pending` | - | - | - |
+| 4 | `completed` | `0f99073` | 待本次回填提交 | 扩展 LLC requirements 字典并接入 FHA、transformer target、external Lr target 与搜索边界；视图显示完整输入/输出/功率/频率、匝比、Lm/Lr、Llk、电流、B 限值和搜索模式；缺失字段区分状态；专项集合 39 tests 无失败，`compileall` 和 `git diff --check` 通过，已 push |
 | 5 | `pending` | - | - | - |
 | 6 | `pending` | - | - | - |
 
@@ -549,6 +549,19 @@ LLC pipeline 当前提供：
 - 验证命令：`$env:PYTHONPATH='src'; python -m compileall -q src tests scripts; python -m pytest -q tests/test_llc_magnetic_result_display_step2.py tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_performance_baseline.py tests/test_llc_external_lr_prefilter.py tests/test_llc_pareto_filter.py; git diff --check`。
 - 验证结果：专项与基线回归 `14 passed`（提交前精简回归 `11 passed`）；`compileall` 通过；`git diff --check` 通过。全量 pytest 进程正常退出，但当前环境未返回测试摘要。
 - 实现 commit：`e108410`（`LLC Display Step 3: render topology-specific magnetic results`）。
+- 实现 push 分支：`origin/codex/sync-gui-backend-from-2`；实现 push 结果：成功。
+
+### 第 4 步执行结果（2026-08-29）
+
+- 扩展 `_llc_transformer_design_requirements()`，从重建的 `LLCFHADesign`、transformer target、推荐 transformer candidate、external `Lr` target 和 `LLCMagneticSearchBounds` 生成完整 JSON-safe requirements 字典。
+- 新增 LLC requirements 字段：Vin/Vout min-nom-max、Pout min/max、fs min/nom/max、基础与推荐 Np:Ns、Lm target、总 Lr target、推荐 transformer 估算 Llk、external Lr target、电流 RMS/peak、B limit、桥式/整流器类型、饱和边界、搜索模式、搜索策略和边界摘要。
+- external `Lr` 的 requirement status 在实际搜索完成后同步为 `available`、`no_feasible_candidate`、`not_required` 或 `not_evaluated`，避免把目标存在误报为候选搜索成功。
+- LLC 共享结果 formatter 新增专用 Design requirements 区块，使用 V、W、Hz、A、uH 和 T 单位；不再输出固定电感的 `L target`、`Iavg`、`Delta iL`、`Mode` 模板。
+- 缺失数值以 `N/A (not available)` 表示，未执行/不需要设计保留明确状态；搜索边界只输出摘要文本，requirements 中仍保存 JSON-safe 完整边界字典。
+- 新增 `tests/test_llc_magnetic_requirements_step4.py`，覆盖字段来源和值、单位显示、LLC 专用标签和 external Lr 未评估状态。
+- 验证命令：`$env:PYTHONPATH='src'; python -m compileall -q src tests scripts; python -m pytest -q tests/test_llc_magnetic_requirements_step4.py tests/test_llc_magnetic_result_display_step2.py tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_performance_baseline.py tests/test_llc_external_lr_prefilter.py tests/test_llc_pareto_filter.py; git diff --check`。
+- 验证结果：专项集合 `39 tests collected`，执行无失败；`compileall` 通过；`git diff --check` 通过。
+- 实现 commit：`0f99073`（`LLC Display Step 4: expose magnetic design requirements`）。
 - 实现 push 分支：`origin/codex/sync-gui-backend-from-2`；实现 push 结果：成功。
 
 ### 第 2 步执行结果（2026-08-29）
