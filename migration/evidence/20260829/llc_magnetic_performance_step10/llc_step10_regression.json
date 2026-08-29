@@ -1,0 +1,7 @@
+{
+  "command": "PYTHONPATH=src python -m pytest -q --ignore=tests/test_ac_dc_efficiency_gui_end_to_end.py --basetemp .pytest-tmp-step10",
+  "duration_seconds": 1135.54,
+  "excluded_test": "tests/test_ac_dc_efficiency_gui_end_to_end.py",
+  "exclusion_reason": "The unrelated AC-DC GUI end-to-end test started a multi-topology real magnetic-design run and remained in a long-running unresponsive child process during the bounded acceptance attempt; it was excluded from the LLC closeout regression and remains a separate follow-up.",
+  "result": "377 passed, 1 skipped"
+}
