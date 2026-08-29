@@ -458,11 +458,12 @@
 
 ### 验证记录
 
-- `PYTHONPATH=src python -m pytest tests/test_llc_run_context_step1.py tests/test_phase3_shared_contracts.py tests/test_llc_magnetic_requirements_step4.py -q`
-- 结果：`12 passed`。
+- `PYTHONPATH=src python -m pytest tests/test_llc_run_context_step1.py tests/test_dc_ac_operating_refresh_gui_chain.py tests/test_llc_magnetic_requirements_step4.py -q`
+- 结果：`13 passed in 15.76s`。
 - `python -m compileall -q` 覆盖本步新增/修改的 Python 模块，通过。
 - `git diff --check` 通过。
 
 ### 提交记录
 
-- 待提交：`feat: add LLC run context isolation`
+- 功能提交：`bb9213d feat: add LLC run context isolation`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
+- 本计划记录更新提交：待提交。
