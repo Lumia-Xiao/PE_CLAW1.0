@@ -466,4 +466,4 @@
 ### 提交记录
 
 - 功能提交：`bb9213d feat: add LLC run context isolation`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
-- 本计划记录更新提交：待提交。
+- 本计划记录更新提交：`87396ab docs: record LLC run context step 1 commit`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
