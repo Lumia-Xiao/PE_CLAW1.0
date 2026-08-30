@@ -18,7 +18,7 @@ from ...models.capacitor import (
 
 MAX_LLC_RESONANT_CAPACITOR_PARALLEL_COUNT = 20
 CAPACITANCE_ERROR_LIMIT_PERCENT = 10.0
-CAPACITANCE_WARNING_PERCENT = 5.0
+CAPACITANCE_WARNING_PERCENT = 10.0
 SUITABLE_APPLICATION_CATEGORIES = {
     "dc_link",
     "dc_link_candidate",
@@ -186,7 +186,6 @@ def search_llc_resonant_capacitor_banks(
         output_dir.mkdir(parents=True, exist_ok=True)
         near_miss_csv_path = str(output_dir / "llc_resonant_capacitor_near_miss_candidates.csv")
         _write_feasible_csv(Path(near_miss_csv_path), near_misses)
-    within_5_percent = sum(1 for bank in evaluated if abs(bank.capacitance_error_percent) <= CAPACITANCE_WARNING_PERCENT)
     within_10_percent = len(capacitance_screened)
     within_10_and_usable = len(feasible)
     evaluated_capacitance_nF = [bank.bank_capacitance_nF for bank in evaluated]
@@ -197,7 +196,7 @@ def search_llc_resonant_capacitor_banks(
         (
             "Library coverage: "
             f"Cr target {request.cr_target_nF:.6g} nF, supported N=1..{MAX_LLC_RESONANT_CAPACITOR_PARALLEL_COUNT}, "
-            f"within +/-5% = {within_5_percent}, within +/-10% = {within_10_percent}, "
+            f"within +/-10% feasible limit = {within_10_percent}, "
             f"within +/-10% and passing voltage/current/ESR/thermal = {within_10_and_usable}."
         ),
         (
@@ -232,7 +231,8 @@ def search_llc_resonant_capacitor_banks(
             "cr_target_nF": request.cr_target_nF,
             "parallel_count_min": 1,
             "parallel_count_max": MAX_LLC_RESONANT_CAPACITOR_PARALLEL_COUNT,
-            "within_5_percent_count": within_5_percent,
+            "capacitance_error_limit_percent": CAPACITANCE_ERROR_LIMIT_PERCENT,
+            "capacitance_warning_percent": CAPACITANCE_WARNING_PERCENT,
             "within_10_percent_count": within_10_percent,
             "within_10_percent_and_feasible_count": within_10_and_usable,
             "nearest_lower_bank": nearest_lower_bank,
@@ -304,8 +304,8 @@ def _evaluate_bank(
             rejection_reason = "thermal"
     else:
         warnings.append("Capacitor thermal hotspot is first-pass or unavailable.")
-    if not rejection_reason and abs(capacitance_error_percent) > CAPACITANCE_WARNING_PERCENT:
-        warnings.append("Cr capacitance error exceeds 5%; verify LLC gain and resonant frequency shift.")
+    if abs(capacitance_error_percent) > CAPACITANCE_WARNING_PERCENT:
+        warnings.append("Cr capacitance error exceeds 10%; verify LLC gain and resonant frequency shift.")
     if hotspot_c is None:
         warnings.append("Capacitor thermal hotspot is first-pass or unavailable.")
     return LlcResonantCapacitorBankCandidate(
@@ -506,7 +506,7 @@ def _select_recommended(
     compromise: LlcResonantCapacitorBankCandidate,
     pareto: list[LlcResonantCapacitorBankCandidate],
 ) -> LlcResonantCapacitorBankCandidate:
-    if abs(compromise.capacitance_error_percent) <= CAPACITANCE_WARNING_PERCENT:
+    if abs(compromise.capacitance_error_percent) <= CAPACITANCE_ERROR_LIMIT_PERCENT:
         return compromise
     key = _compromise_key_factory(pareto)
     compromise_distance = key(compromise)[0]
@@ -514,7 +514,7 @@ def _select_recommended(
     low_error = [
         candidate
         for candidate in pareto
-        if abs(candidate.capacitance_error_percent) <= CAPACITANCE_WARNING_PERCENT
+        if abs(candidate.capacitance_error_percent) <= CAPACITANCE_ERROR_LIMIT_PERCENT
         and key(candidate)[0] <= comparable_limit
     ]
     return min(low_error, key=key) if low_error else compromise
