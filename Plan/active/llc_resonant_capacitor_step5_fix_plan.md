@@ -134,7 +134,7 @@
 - [x] 已建立修复范围和五步执行安排
 - [x] 第 1 步：统一 10% 约束合同
 - [x] 第 2 步：LLC Cr 专项测试和候选状态
-- [ ] 第 3 步：旧 Cr artifact 生命周期
+- [x] 第 3 步：旧 Cr artifact 生命周期
 - [ ] 第 4 步：结构化报告和 GUI 接入
 - [ ] 第 5 步：清理旧输出和端到端验收
 
@@ -144,8 +144,8 @@
 |---|---|---|---|---|
 | 计划文件 | 已建立 | `0fe72bd` | 已 push | 已完成 |
 | 第 1 步 | 已完成 | `fed2fef` | 已 push | `33 passed`；compileall、diff-check 通过 |
-| 第 2 步 | 已完成 | 待提交 | 待 push | `37 passed`；compileall、diff-check 通过 |
-| 第 3 步 | 未开始 | - | - | - |
+| 第 2 步 | 已完成 | `2a8dbef` | 已 push | `37 passed`；compileall、diff-check 通过 |
+| 第 3 步 | 已完成 | 待提交 | 待 push | `38 passed`；compileall、diff-check 通过 |
 | 第 4 步 | 未开始 | - | - | - |
 | 第 5 步 | 未开始 | - | - | - |
 
@@ -163,4 +163,13 @@
 - LLC Cr CSV 增加 `is_pareto`、`recommended_flag` 和 `rejection_reason` 字段。
 - 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step2c`，结果 `37 passed`。
 - 验证：`python -m compileall -q src tests` 通过；`git diff --check` 通过。
+- Commit：待提交；Push：待 push。
+
+### 第 3 步执行记录
+
+- LLC Cr 搜索入口现在只清理 LLC Cr 专用的 feasible、Pareto、chosen、near-miss CSV、Pareto 图和 Cr 几何图，不影响其他磁件及拓扑输出。
+- 有候选时成套写出本次 feasible、Pareto、chosen CSV；无候选时写出只有表头的空结果 CSV，并返回空推荐和空 chosen。
+- 新增重复运行回归测试：第一次有推荐、第二次仅有超限候选时，旧 Pareto 图和推荐几何被清理，第二次不继承旧推荐。
+- 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step3`，结果 `38 passed`。
+- `PYTHONPATH=src python -m compileall -q src tests` 和 `git diff --check` 通过。
 - Commit：待提交；Push：待 push。

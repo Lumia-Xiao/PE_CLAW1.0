@@ -110,6 +110,28 @@ def test_llc_cr_only_over_limit_candidates_have_no_recommendation(tmp_path: Path
     assert result.near_miss_csv_path
 
 
+def test_llc_cr_second_run_clears_stale_recommendation_artifacts(tmp_path: Path) -> None:
+    _search(tmp_path, _candidate(75.0, name="TEST_75_NF"))
+    stale_names = (
+        "llc_resonant_capacitor_pareto_front.png",
+        "llc_resonant_capacitor_recommended_geometry_2d.png",
+        "llc_resonant_capacitor_recommended_geometry_3d.png",
+    )
+    for name in stale_names:
+        (tmp_path / name).write_text("stale", encoding="utf-8")
+
+    result = _search(tmp_path, _candidate(90.0, name="TEST_OVER_LIMIT"))
+
+    assert result.recommended_candidate is None
+    assert result.chosen_candidates == []
+    assert Path(result.feasible_csv_path).read_text(encoding="utf-8").count("\n") == 1
+    assert Path(result.pareto_csv_path).read_text(encoding="utf-8").count("\n") == 1
+    assert Path(result.chosen_csv_path).read_text(encoding="utf-8").count("\n") == 1
+    assert not (tmp_path / "llc_resonant_capacitor_pareto_front.png").exists()
+    assert not (tmp_path / "llc_resonant_capacitor_recommended_geometry_2d.png").exists()
+    assert not (tmp_path / "llc_resonant_capacitor_recommended_geometry_3d.png").exists()
+
+
 def test_llc_cr_csvs_expose_constraint_and_recommendation_state(tmp_path: Path) -> None:
     result = _search(
         tmp_path,

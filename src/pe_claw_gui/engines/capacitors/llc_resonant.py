@@ -82,6 +82,22 @@ _CSV_FIELDS = [
     "representative_reason",
 ]
 
+_LLC_RESONANT_ARTIFACT_NAMES = (
+    "llc_resonant_capacitor_feasible_candidates.csv",
+    "llc_resonant_capacitor_pareto_front.csv",
+    "llc_resonant_capacitor_pareto_front.png",
+    "llc_resonant_capacitor_chosen_candidates.csv",
+    "llc_resonant_capacitor_near_miss_candidates.csv",
+    "llc_resonant_capacitor_min_volume_geometry_2d.png",
+    "llc_resonant_capacitor_min_volume_geometry_3d.png",
+    "llc_resonant_capacitor_min_loss_geometry_2d.png",
+    "llc_resonant_capacitor_min_loss_geometry_3d.png",
+    "llc_resonant_capacitor_recommended_geometry_2d.png",
+    "llc_resonant_capacitor_recommended_geometry_3d.png",
+    "llc_resonant_capacitor_comparison_geometry_2d.png",
+    "llc_resonant_capacitor_comparison_geometry_3d.png",
+)
+
 
 def search_llc_resonant_capacitor_banks(
     request: LlcResonantCapacitorDesignRequest | None,
@@ -92,6 +108,7 @@ def search_llc_resonant_capacitor_banks(
 ) -> LlcResonantCapacitorSearchResult:
     """Evaluate LLC Cr bank candidates without using input/output ripple sizing."""
 
+    _clear_llc_resonant_artifacts(output_dir)
     rejection_counts = _empty_rejection_counts()
     part_rejection_counts = _empty_part_rejection_counts()
     bank_rejection_counts = _empty_bank_rejection_counts()
@@ -175,19 +192,22 @@ def search_llc_resonant_capacitor_banks(
     chosen_csv_path = ""
     pareto_png_path = ""
     plot_diagnostics: dict[str, object] = {}
+    output_dir.mkdir(parents=True, exist_ok=True)
+    feasible_csv_path = str(output_dir / "llc_resonant_capacitor_feasible_candidates.csv")
+    pareto_csv_path = str(output_dir / "llc_resonant_capacitor_pareto_front.csv")
+    chosen_csv_path = str(output_dir / "llc_resonant_capacitor_chosen_candidates.csv")
     if feasible:
-        output_dir.mkdir(parents=True, exist_ok=True)
-        feasible_csv_path = str(output_dir / "llc_resonant_capacitor_feasible_candidates.csv")
         _write_feasible_csv(Path(feasible_csv_path), feasible)
         if pareto:
-            pareto_csv_path = str(output_dir / "llc_resonant_capacitor_pareto_front.csv")
-            chosen_csv_path = str(output_dir / "llc_resonant_capacitor_chosen_candidates.csv")
             pareto_png_path = str(output_dir / "llc_resonant_capacitor_pareto_front.png")
             _write_feasible_csv(Path(pareto_csv_path), pareto)
             _write_feasible_csv(Path(chosen_csv_path), chosen)
             plot_diagnostics = _write_pareto_plot(Path(pareto_png_path), feasible, pareto, chosen)
+    else:
+        _write_feasible_csv(Path(feasible_csv_path), [])
+        _write_feasible_csv(Path(pareto_csv_path), [])
+        _write_feasible_csv(Path(chosen_csv_path), [])
     if near_misses:
-        output_dir.mkdir(parents=True, exist_ok=True)
         near_miss_csv_path = str(output_dir / "llc_resonant_capacitor_near_miss_candidates.csv")
         _write_feasible_csv(Path(near_miss_csv_path), near_misses)
     within_error_limit = len(capacitance_screened)
@@ -620,6 +640,15 @@ def _write_feasible_csv(path: Path, candidates: list[LlcResonantCapacitorBankCan
         writer.writeheader()
         for candidate in candidates:
             writer.writerow({field: getattr(candidate, field) for field in _CSV_FIELDS})
+
+
+def _clear_llc_resonant_artifacts(output_dir: Path) -> None:
+    if not output_dir.exists():
+        return
+    for name in _LLC_RESONANT_ARTIFACT_NAMES:
+        path = output_dir / name
+        if path.is_file():
+            path.unlink()
 
 
 def _write_pareto_plot(

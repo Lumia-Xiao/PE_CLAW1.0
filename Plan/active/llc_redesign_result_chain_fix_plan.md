@@ -587,3 +587,11 @@
 - Cr CSV 增加 `is_pareto`、`recommended_flag` 和 `rejection_reason` 审计字段。
 - 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step2c`，结果 `37 passed`。
 - `PYTHONPATH=src python -m compileall -q src tests` 和 `git diff --check` 通过。
+
+### 第 3 步：清理旧 Cr artifact 残留
+
+- LLC Cr 搜索入口增加专用 artifact 清理，只处理 LLC Cr 的 CSV、Pareto 图和几何图，不触碰其他拓扑结果。
+- 无可行候选时生成只有表头的 feasible、Pareto、chosen CSV，明确区分本次无候选与未执行，并返回空推荐。
+- 新增重复运行测试，确认第二次无候选时不会继承第一次的 Pareto 图、推荐几何或推荐对象。
+- 验证：相关 LLC Cr 和通用电容测试共 `38 passed`；compileall、`git diff --check` 通过。
+- Commit：待提交；Push：待 push。
