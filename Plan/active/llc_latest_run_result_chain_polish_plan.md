@@ -340,7 +340,7 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 | 第 1 步 | `completed` | `b349847` | `2311c67` | `pushed` | `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_latest_run_result_chain_polish_step1.py tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_result_display_step2.py tests/test_llc_magnetic_result_reporting_step5.py` -> `20 passed`; evidence fixture generated |
 | 第 2 步 | `completed` | `27ab107` | `3d21f5a` | `pushed` | 专项 `23 passed`；相关回归 `14 passed`；完整 LLC 回归 `96 passed` |
 | 第 3 步 | `completed` | `f6ee297` | `pending` | `pushed` | LLC 全量 `99 passed in 104.41s`；受影响专项 `21 passed`；全仓库 `433 passed, 1 skipped`，另有既有 AC-DC Tk/Tcl 环境错误和 1 个既有 GUI 断言失败，详见本步记录 |
-| 第 4 步 | `pending` | - | - | - | - |
+| 第 4 步 | `completed` | `74291cb` | `pending` | `pushed` | LLC 全量 `101 passed in 102.98s`；第 4 步及相关结构化输出专项 `25 passed` |
 | 第 5 步 | `pending` | - | - | - | - |
 | 第 6 步 | `pending` | - | - | - | - |
 | 第 7 步 | `pending` | - | - | - | - |
@@ -385,6 +385,23 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
   - 全仓库：`433 passed, 1 skipped`；其余为既有 AC-DC GUI/绘图环境问题：Python Tk
     安装缺少 `ttk/menubutton.tcl` 导致 13 个 setup error，另有 1 个 AC-DC GUI 断言失败，
     均不涉及本步 LLC 改动。
+- 计划记录 commit：待提交。
+- Push：实现提交已成功推送；计划记录提交待推送。
+
+### 第 4 步执行记录
+
+- 实现 commit：`74291cb fix: expose LLC design requirement readback`。
+- 本步内容：统一 LLC Design requirements 的 FHA 目标、桥式/整流结构、工作模式、频率
+  基准、匝比、电流、`Lm/Lr/Cr` 目标与实际值的显示契约；磁件阶段回写推荐变压器实际
+  `Lm`、外置 Lr 实际值和总 `Lr` 实际值；Cr 选择收口回写 `Cr actual`、误差、`10%`
+  限制和状态；结构化输出新增仅 LLC 使用的 `llc_design_requirements`，所有工程量带
+  单位和来源；缺失值保持明确 unavailable，不从单个候选行伪造电气需求；非 LLC 结构化
+  输出保持原有字段形态。
+- 测试：
+  - 第 4 步需求、结构化输出及相关回归：`25 passed`。
+  - 全部 `test_llc_*.py`：`101 passed in 102.98s`。
+  - 验收覆盖 `Cr` 实际值、`7.563%` 误差、`10%` 限制、`Lm/Lr` 实际值、频率基准、
+    LLC 电流与约束字段，以及缺失 Cr 场景。
 - 计划记录 commit：待提交。
 - Push：实现提交已成功推送；计划记录提交待推送。
 
