@@ -404,8 +404,8 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
   - 全源码编译、`git diff --check`：通过。
   - 首次定向测试遇到系统 pytest 临时目录权限错误，改用工程内隔离 `--basetemp`
     后完成通过；该环境问题未产生代码失败。
-- 计划记录 commit：待提交。
-- Push：实现提交已成功推送到 `origin/codex/sync-gui-backend-from-2`；计划记录提交待推送。
+- 计划记录 commit：`cfe75ec docs: record LLC geometry roles step`。
+- Push：实现提交和计划记录提交均已成功推送到 `origin/codex/sync-gui-backend-from-2`。
 
 ### 第 4 步执行记录
 
