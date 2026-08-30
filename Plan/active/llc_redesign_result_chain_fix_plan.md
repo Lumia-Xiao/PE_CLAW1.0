@@ -437,8 +437,37 @@
 - [x] 第 4 步：磁件参数和结果 ID 统一
 - [x] 第 5 步：谐振电容推荐约束
 - [x] 第 6 步：几何、硬件总览和旧引用
-- [ ] 第 7 步：效率扫描、报告和最终 manifest
+- [x] 第 7 步：效率扫描、报告和最终 manifest
 - [ ] 第 8 步：回归测试和全流程验收
+
+## 10. LLC 总体计划第 7 步执行记录
+
+### 已完成的修改
+
+1. LLC 效率扫描接入当前运行依赖校验，要求当前 `run_id`、拓扑、设计阶段、磁件组合合同、变压器、外置 Lr、LLC Cr 和器件推荐全部存在且 ID 一致。
+2. 依赖缺失、候选为空、推荐 ID 不一致或扫描点不完整时，效率扫描写入 `blocked` 状态和结构化诊断 JSON，并清理本次运行范围内的旧效率图片，不生成成功效率图。
+3. LLC 效率结果记录 `run_id`、`topology_id`、输入摘要、组件 design ID 以及 `Lm`、总 `Lr`、`Cr` 等固定参数；正常结果写入当前运行的 `efficiency_sweep` 目录。
+4. 新增 `run_manifest_pipeline.py`，生成当前运行专属的 `manifest/llc_manifest.json`，记录阶段状态、输入摘要、组件 ID、固定参数、artifact 文件存在性、文件大小、SHA-256、告警和完整性校验结果。
+5. 硬件总览和最终 manifest 接入效率扫描控制器；硬件总览失败或依赖不完整时，manifest 保持 `blocked`，不宣称全流程成功。
+6. 修复 LLC loss 和 thermal pipeline 的阶段生命周期闭合：根据实际结果分别写入 `succeeded` 或 `blocked` 及失败原因，避免完整运行时 manifest 因阶段仍为 `not_started` 而误阻断。
+7. manifest 成功校验纳入 `hardware_overview` 阶段，并将最终 `manifest` 状态回写到 manifest 文件本身，保证文件中的阶段状态与内存中的运行上下文一致。
+8. LLC Summary 对缺失 FHA/运行参数显示 `not computed` 及原因，不再用 `-` 隐藏“未计算”和“不可用”状态。
+9. 新增第七步专项测试，覆盖效率依赖阻断、当前运行参数传递、artifact hash、manifest 缺失结果阻断、manifest 成功状态回写及缺失字段报告。
+
+### 验证记录
+
+- `PYTHONPATH=src python -m pytest tests/test_llc_efficiency_manifest_step7.py tests/test_llc_magnetic_result_reporting_step5.py tests/test_llc_hardware_overview_step6.py -q --basetemp .pytest-tmp-step7-final2`
+- 结果：`21 passed in 4.07s`。
+- `PYTHONPATH=src python -m pytest <17 个 test_llc*.py 文件> -q --basetemp .pytest-tmp-step7-all`
+- 结果：`84 passed in 101.48s`。
+- `PYTHONPATH=src python -m compileall -q src tests` 通过。
+- `git diff --check` 通过。
+- PowerShell 初次使用未展开的 `tests/test_llc*.py` 通配符导致一次“未找到测试文件”的命令错误；随后使用显式文件列表重跑并通过，不属于代码失败。
+
+### 提交记录
+
+- 功能提交：`8ebae6d feat: audit LLC efficiency and manifest dependencies`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
+- 本计划记录提交：待提交。
 
 ## 9. 第 1 步执行记录
 
