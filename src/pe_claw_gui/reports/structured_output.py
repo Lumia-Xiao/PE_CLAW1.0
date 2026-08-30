@@ -214,6 +214,7 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
                     "precise_evaluated_candidates": _metric(getattr(stage, "precise_evaluated_candidate_count", None), "count", f"{source}.precise"),
                     "feasible_candidates": _metric(getattr(stage, "feasible_candidate_count", None), "count", f"{source}.feasible"),
                     "pareto_candidates": _metric(getattr(stage, "pareto_candidate_count", None), "count", f"{source}.pareto"),
+                    "chosen_candidates": _metric(getattr(stage, "chosen_candidate_count", None), "count", f"{source}.chosen"),
                 },
                 "recommended_design_id": getattr(stage, "recommended_design_id", None),
                 "prefilter_rejection_counts": dict(getattr(stage, "prefilter_rejection_counts", {}) or {}),

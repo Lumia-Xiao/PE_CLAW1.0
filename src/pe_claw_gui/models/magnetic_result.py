@@ -317,6 +317,7 @@ class LlcMagneticStageSummary:
     precise_evaluated_candidate_count: int = 0
     feasible_candidate_count: int = 0
     pareto_candidate_count: int = 0
+    chosen_candidate_count: int = 0
     recommended_design_id: str | None = None
     prefilter_rejection_counts: dict[str, int] = field(default_factory=dict)
     failure_code: str | None = None

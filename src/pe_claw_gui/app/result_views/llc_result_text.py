@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from ...models.design_report import DesignReport
@@ -71,6 +72,64 @@ def build_llc_magnetic_summary_text(report: DesignReport) -> str:
         lines.extend(f"  {note}" for note in magnetic.notes)
 
     return "\n".join(lines)
+
+
+def build_llc_pareto_summary_text(report: DesignReport, plot_path: Path | None = None) -> str:
+    """Build the LLC-specific Pareto summary without fixed-inductor fields."""
+
+    magnetic = report.magnetic
+    if magnetic is None or not has_llc_display_summary(report):
+        return "Magnetic Pareto front has not run yet."
+    summary = magnetic.llc_result_summary
+    contract = getattr(magnetic, "llc_magnetic_contract", None)
+    transformer_id = getattr(contract, "transformer_design_id", None) or summary.recommended_transformer_design_id
+    external_id = (
+        getattr(contract, "external_lr_design_id", None)
+        if contract is not None
+        else summary.recommended_external_lr_design_id
+    )
+    combined_id = (
+        getattr(contract, "combined_magnetic_design_id", None)
+        if contract is not None
+        else summary.recommended_combined_magnetic_design_id
+    )
+    lines = [
+        "Pareto front",
+        f"  image: {str(plot_path) if plot_path is not None else '-'}",
+        f"  plot source: {magnetic.plot_source_name or '-'}",
+        f"  plot color encoding: {magnetic.plot_color_dimension or '-'}",
+        "  result type: separated LLC transformer + external resonant inductor",
+        "",
+        "Candidate selections",
+        f"  Transformer Pareto count: {summary.transformer.pareto_candidate_count}",
+        f"  Transformer chosen count: {summary.transformer.chosen_candidate_count}",
+        f"  External resonant inductor Pareto count: {summary.external_lr.pareto_candidate_count}",
+        f"  External resonant inductor chosen count: {summary.external_lr.chosen_candidate_count}",
+        "",
+        "Recommended magnetic designs",
+        f"  Transformer: {_recommended_label(transformer_id, summary.transformer.status)}",
+        f"  External resonant inductor: {_recommended_label(external_id, summary.external_lr.status)}",
+        f"  Combined magnetic design: {_recommended_label(combined_id, _combined_status(summary))}",
+    ]
+    if magnetic.artifact_paths:
+        lines.extend(["", "Artifacts"])
+        lines.extend(f"  {path}" for path in magnetic.artifact_paths)
+    pf_notes = _select_pareto_notes(
+        [*getattr(magnetic, "transformer_pareto_notes", []), *magnetic.notes]
+    )
+    if pf_notes:
+        lines.extend(["", "PF notes"])
+        lines.extend(f"  {note}" for note in pf_notes)
+    return "\n".join(lines)
+
+
+def _select_pareto_notes(notes: list[str]) -> list[str]:
+    selected = [
+        note
+        for note in notes
+        if "pareto" in note.casefold() or "plot" in note.casefold() or "artifact" in note.casefold()
+    ]
+    return selected if selected else notes[:8]
 
 
 def _stage_lines(label: str, stage: Any) -> list[str]:

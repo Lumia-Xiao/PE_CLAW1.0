@@ -12,6 +12,7 @@ from matplotlib.image import imread
 
 from ...models.design_report import DesignReport
 from ...pipeline.options import MAGNETIC_STAGE_DISABLED_NOTE
+from .llc_result_text import build_llc_pareto_summary_text, has_llc_display_summary
 
 
 class InductorPFView(ttk.Frame):
@@ -127,6 +128,8 @@ def build_inductor_pf_summary_text(report: DesignReport | None, plot_path: Path 
         return "Magnetic Pareto front has not run yet."
 
     magnetic = report.magnetic
+    if has_llc_display_summary(report):
+        return build_llc_pareto_summary_text(report, plot_path)
     lines = [
         "Pareto front",
         f"  image: {str(plot_path) if plot_path is not None else '-'}",

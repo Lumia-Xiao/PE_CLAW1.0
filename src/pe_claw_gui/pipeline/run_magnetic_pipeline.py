@@ -901,6 +901,7 @@ def _run_llc_transformer_magnetic_pipeline(
         transformer_stage_summary = _llc_stage_summary(
             search_result,
             pareto_count=pareto_result.pareto_count,
+            chosen_count=pareto_result.chosen_count,
             recommended_design_id=selected_design_id,
             status=_llc_transformer_status(search_result, selected_design_id),
         )
@@ -1539,6 +1540,7 @@ def _finish_llc_external_lr_failure(
     transformer_stage = _llc_stage_summary(
         search_result,
         pareto_count=pareto_result.pareto_count,
+        chosen_count=pareto_result.chosen_count,
         recommended_design_id=pareto_result.recommended_candidate.candidate_id if pareto_result.recommended_candidate else None,
         status="available",
     )
@@ -1609,6 +1611,7 @@ def _finish_llc_magnetic_contract_failure(
         _llc_stage_summary(
             search_result,
             pareto_count=pareto_result.pareto_count,
+            chosen_count=pareto_result.chosen_count,
             recommended_design_id=(
                 pareto_result.recommended_candidate.candidate_id
                 if pareto_result.recommended_candidate
@@ -1731,6 +1734,7 @@ def _llc_stage_summary(
     search_result,
     *,
     pareto_count: int,
+    chosen_count: int = 0,
     recommended_design_id: str | None,
     status: str,
 ) -> LlcMagneticStageSummary:
@@ -1756,6 +1760,7 @@ def _llc_stage_summary(
             getattr(search_result, "feasible_candidate_count", 0),
         ),
         pareto_candidate_count=max(0, int(pareto_count)),
+        chosen_candidate_count=max(0, int(chosen_count)),
         recommended_design_id=recommended_design_id,
         prefilter_rejection_counts=dict(getattr(search_result, "prefilter_rejection_counts", {}) or {}),
     )
@@ -1794,6 +1799,7 @@ def _llc_external_lr_stage_summary(target, search_result) -> LlcMagneticStageSum
     return _llc_stage_summary(
         search_result,
         pareto_count=_llc_count(counts, "pareto_candidate_count"),
+        chosen_count=len(getattr(search_result, "chosen_candidates", []) or []),
         recommended_design_id=None,
         status=status,
     )
