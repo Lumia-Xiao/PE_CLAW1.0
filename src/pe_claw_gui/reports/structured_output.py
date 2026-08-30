@@ -423,6 +423,8 @@ def _geometry_payload(report: DesignReport) -> dict[str, Any]:
             {
                 "role": target.role,
                 "label": target.label,
+                "component_role": getattr(target, "component_role", getattr(geometry, "component_type", "fixed_inductor")),
+                "representative_role": getattr(target, "representative_role", None),
                 "design_id": target.design_id,
                 "volume": _metric(target.volume_m3, "m3", f"geometry.{target.role}.volume"),
                 "loss": _metric(target.loss_w, "W", f"geometry.{target.role}.loss"),
@@ -434,6 +436,10 @@ def _geometry_payload(report: DesignReport) -> dict[str, Any]:
         ],
         "metadata": {
             "component_type": getattr(geometry, "component_type", "fixed_inductor"),
+            "component_roles": sorted({
+                getattr(target, "component_role", getattr(geometry, "component_type", "fixed_inductor"))
+                for target in geometry.targets
+            }),
             "artifact_paths": [str(path) for path in geometry.artifact_paths],
             "summary": geometry.summary,
         },

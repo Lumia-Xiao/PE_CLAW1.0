@@ -352,9 +352,16 @@ def _llc_geometry_lines(report: DesignReport) -> list[str]:
     lines.append(f"  {geometry.summary or 'Geometry comparison is available.'}")
     for target in geometry.targets:
         duplicate_text = f", same as {target.duplicate_of}" if target.duplicate_of else ""
+        representative_text = (
+            f", source={target.representative_role}"
+            if getattr(target, "representative_role", None)
+            else ""
+        )
         lines.append(
             f"  {target.label}: {_value(target.design_id)}, "
             f"volume={_si_value(target.volume_m3, 1e6, 'cm^3')}, "
-            f"loss={_value_with_unit(target.loss_w, 'W')}{duplicate_text}"
+            f"loss={_value_with_unit(target.loss_w, 'W')}, "
+            f"component_role={getattr(target, 'component_role', getattr(geometry, 'component_type', 'external_resonant_inductor'))}"
+            f"{representative_text}{duplicate_text}"
         )
     return lines

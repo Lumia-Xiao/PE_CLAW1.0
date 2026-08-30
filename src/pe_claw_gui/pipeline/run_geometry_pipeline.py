@@ -27,6 +27,7 @@ _LLC_EXTERNAL_LR_ROLE_BASENAMES = {
     "min_volume": "llc_external_resonant_inductor_min_volume_geometry_2d",
     "min_loss": "llc_external_resonant_inductor_min_loss_geometry_2d",
 }
+_LLC_EXTERNAL_LR_GEOMETRY_ROLES = ("min-volume", "min-loss", "recommended")
 
 
 def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOptions | None = None) -> DesignReport:
@@ -418,9 +419,14 @@ def _run_llc_external_lr_geometry_pipeline(
 ) -> DesignReport:
     magnetic = report.magnetic
     search_result = magnetic.llc_external_resonant_inductor_search_result if magnetic is not None else None
-    if search_result is None or not search_result.chosen_candidates:
+    component_role = "external_resonant_inductor"
+    if search_result is None:
         geometry_result = GeometryResult(
-            summary="Run LLC Run Magnetics to view external resonant inductor geometry.",
+            summary="External resonant inductor geometry is unavailable.",
+            targets=_llc_unavailable_geometry_targets(
+                "External Lr search did not produce a result; run LLC Magnetics first."
+            ),
+            component_type=component_role,
             notes=[
                 "Separated LLC transformer visualization remains on the Transformer page.",
                 "External resonant inductor geometry requires the Round-3 external Lr representative set.",
@@ -428,9 +434,9 @@ def _run_llc_external_lr_geometry_pipeline(
         )
         return replace(report, geometry=geometry_result)
 
-    selection_by_role = {selection.role: selection for selection in search_result.chosen_candidates}
+    selection_by_role = _llc_external_lr_selection_by_role(search_result)
     target_specs: list[dict[str, object]] = []
-    valid_roles = ("min-volume", "min-loss", "recommended")
+    valid_roles = _LLC_EXTERNAL_LR_GEOMETRY_ROLES
     requested_roles = (
         valid_roles
         if geometry_roles is None and debug_outputs
@@ -447,11 +453,26 @@ def _run_llc_external_lr_geometry_pipeline(
         if role not in normalized_roles:
             continue
         selection = selection_by_role.get(role)
+        representative_role = role
+        if selection is None and role == "recommended":
+            selection = selection_by_role.get("compromise")
+            representative_role = "compromise"
         if selection is None:
+            target_specs.append(
+                {
+                    "role": role.replace("-", "_"),
+                    "representative_role": None,
+                    "design": None,
+                    "volume_m3": None,
+                    "loss_w": None,
+                    "unavailable_reason": f"No {role} external Lr representative was produced.",
+                }
+            )
             continue
         target_specs.append(
             {
                 "role": role.replace("-", "_"),
+                "representative_role": representative_role,
                 "design": _external_lr_candidate_to_inductor_design(selection.candidate, selection.reason),
                 "volume_m3": selection.candidate.estimated_volume_m3,
                 "loss_w": selection.candidate.total_loss_w,
@@ -461,6 +482,10 @@ def _run_llc_external_lr_geometry_pipeline(
     if not target_specs:
         geometry_result = GeometryResult(
             summary="External resonant inductor representatives are unavailable for geometry.",
+            targets=_llc_unavailable_geometry_targets(
+                "No recommended, min-volume, or min-loss external Lr representatives were found."
+            ),
+            component_type=component_role,
             notes=["No recommended, min-volume, or min-loss external Lr representatives were found."],
         )
         return replace(report, geometry=geometry_result)
@@ -474,6 +499,19 @@ def _run_llc_external_lr_geometry_pipeline(
         role = str(target_spec["role"])
         label = _ROLE_LABELS[role]
         design = target_spec["design"]
+        representative_role = target_spec.get("representative_role")
+        if design is None:
+            reason = str(target_spec.get("unavailable_reason") or "External Lr representative is unavailable.")
+            targets.append(
+                GeometryTarget(
+                    role=role,
+                    label=label,
+                    notes=[reason],
+                    error_message=reason,
+                    component_role=component_role,
+                )
+            )
+            continue
         if not isinstance(design, FixedInductorDesignCandidate):
             continue
         existing = unique_targets_by_design_id.get(design.candidate_id)
@@ -492,6 +530,8 @@ def _run_llc_external_lr_geometry_pipeline(
                     artifact_paths=artifact_paths or list(existing.artifact_paths),
                     notes=[duplicate_note],
                     error_message=existing.error_message,
+                    component_role=component_role,
+                    representative_role=str(representative_role) if representative_role else None,
                 )
             )
             unique_artifact_paths = _merge_artifact_paths(unique_artifact_paths, artifact_paths)
@@ -509,6 +549,8 @@ def _run_llc_external_lr_geometry_pipeline(
                 "External Lr geometry uses the existing fixed-inductor renderer with first-pass normalized core dimensions.",
                 "Geometry is schematic only; bobbin, creepage, clearance, insulation, and manufacturability are not validated.",
             ]
+            if representative_role == "compromise":
+                target_notes.append("Recommended geometry is represented by the Pareto compromise candidate because no dedicated recommended selection was available.")
             target = GeometryTarget(
                 role=role,
                 label=label,
@@ -518,6 +560,8 @@ def _run_llc_external_lr_geometry_pipeline(
                 loss_w=target_spec["loss_w"],
                 artifact_paths=artifact_paths,
                 notes=target_notes,
+                component_role=component_role,
+                representative_role=str(representative_role) if representative_role else None,
             )
             unique_targets_by_design_id[design.candidate_id] = target
             targets.append(target)
@@ -532,6 +576,8 @@ def _run_llc_external_lr_geometry_pipeline(
                 loss_w=target_spec["loss_w"],
                 notes=[error_message],
                 error_message=error_message,
+                component_role=component_role,
+                representative_role=str(representative_role) if representative_role else None,
             )
             unique_targets_by_design_id[design.candidate_id] = target
             targets.append(target)
@@ -655,14 +701,55 @@ def _external_lr_candidate_to_inductor_design(candidate, reason: str) -> FixedIn
 def _build_llc_external_lr_summary(targets: list[GeometryTarget]) -> str:
     if not targets:
         return "External resonant inductor geometry could not be prepared."
-    labels = [f"{target.label}={target.design_id or '-'}" for target in targets]
+    labels = [f"{target.label}={target.design_id or 'unavailable'}" for target in targets]
     return "External resonant inductor geometry prepared with fixed targets: " + ", ".join(labels) + "."
+
+
+def _llc_external_lr_selection_by_role(search_result) -> dict[str, object]:
+    """Resolve named LLC representatives without falling back to generic fixed-inductor fields."""
+
+    selections = {
+        str(selection.role).strip().lower(): selection
+        for selection in (getattr(search_result, "chosen_candidates", None) or [])
+        if getattr(selection, "role", None)
+    }
+    for role, attribute in (
+        ("recommended", "recommended_candidate"),
+        ("min-volume", "min_volume_candidate"),
+        ("min-loss", "min_loss_candidate"),
+        ("compromise", "compromise_candidate"),
+    ):
+        if role in selections:
+            continue
+        candidate = getattr(search_result, attribute, None)
+        if candidate is None:
+            continue
+        selections[role] = type(
+            "_LlcGeometryRepresentative",
+            (),
+            {"role": role, "candidate": candidate, "reason": f"Resolved from {attribute}."},
+        )()
+    return selections
+
+
+def _llc_unavailable_geometry_targets(reason: str) -> list[GeometryTarget]:
+    return [
+        GeometryTarget(
+            role=role.replace("-", "_"),
+            label=_ROLE_LABELS[role.replace("-", "_")],
+            notes=[reason],
+            error_message=reason,
+            component_role="external_resonant_inductor",
+        )
+        for role in _LLC_EXTERNAL_LR_GEOMETRY_ROLES
+    ]
 
 
 def _build_llc_external_lr_notes(targets: list[GeometryTarget], artifact_paths: list[str]) -> list[str]:
     notes = [
         "Geometry page uses external resonant inductor representatives in Min-volume, Min-loss, and Recommended order.",
         "Separated LLC transformer visualization remains on the Transformer page; these artifacts are for the external Lr inductor only.",
+        "Component role: external_resonant_inductor; these targets are not LLC transformer geometry.",
         "External Lr geometry uses the existing fixed-inductor rendering style.",
         "Comparison uses best available normalized/proxy dimensions; exact mechanical CAD dimensions are not guaranteed.",
     ]

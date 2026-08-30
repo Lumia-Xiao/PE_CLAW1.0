@@ -108,14 +108,26 @@ class GeometryView(ttk.Frame):
 
         geometry = report.geometry
         target_by_role = {target.role: target for target in geometry.targets}
-        self.message.configure(text="Geometry comparison page uses fixed targets: Min-volume, Min-loss, Recommended.")
+        is_llc_external_lr = geometry.component_type == "external_resonant_inductor"
+        self.message.configure(
+            text=(
+                "Geometry comparison page uses LLC external resonant-inductor targets: Min-volume, Min-loss, Recommended."
+                if is_llc_external_lr
+                else "Geometry comparison page uses fixed targets: Min-volume, Min-loss, Recommended."
+            )
+        )
         self.mode_tabs.grid()
         self._clear_canvases()
         comparison_layouts = [target.layout for target in geometry.targets if target.layout is not None]
         comparison_settings_2d = resolve_core_comparison_settings(comparison_layouts)
         comparison_settings_3d = resolve_3d_comparison_settings(comparison_layouts)
         for role in _TARGET_ORDER:
-            target = target_by_role.get(role) or GeometryTarget(role=role, label=_TARGET_LABELS[role], error_message="No design is available for this target.")
+            target = target_by_role.get(role) or GeometryTarget(
+                role=role,
+                label=_TARGET_LABELS[role],
+                error_message="No design is available for this target.",
+                component_role="external_resonant_inductor" if is_llc_external_lr else "fixed_inductor",
+            )
             metadata_text = _build_target_metadata(target)
             duplicate_note = _build_duplicate_note(target)
             for mode in ("2D", "3D"):
@@ -131,7 +143,7 @@ class GeometryView(ttk.Frame):
         lines = [
             geometry.summary or "Geometry comparison view is ready.",
             "",
-            "Fixed targets",
+            "LLC external resonant-inductor targets" if is_llc_external_lr else "Fixed targets",
         ]
         for role in _TARGET_ORDER:
             target = target_by_role.get(role)
@@ -145,6 +157,8 @@ class GeometryView(ttk.Frame):
                 f"  loss={_fmt_float(target.loss_w)} W"
                 f"{duplicate_text}"
             )
+            if target.representative_role and target.representative_role != role.replace("_", "-"):
+                lines.append(f"    representative source: {target.representative_role}")
         if geometry.artifact_paths:
             lines.extend(["", "Unique artifacts"])
             lines.extend(f"  {path}" for path in geometry.artifact_paths)
@@ -217,6 +231,7 @@ class GeometryView(ttk.Frame):
 
 def _build_target_metadata(target: GeometryTarget) -> str:
     lines = [
+        f"Component role: {target.component_role}",
         f"Design: {target.design_id or '-'}",
         f"Volume: {_fmt_si(target.volume_m3, 1e6, 'cm^3')}",
         f"Loss: {_fmt_float(target.loss_w)} W",
@@ -228,6 +243,8 @@ def _build_target_metadata(target: GeometryTarget) -> str:
                 "stack_count: -",
             ]
         )
+        if target.error_message:
+            lines.append(f"Status: unavailable ({target.error_message})")
     else:
         lines.extend(
             [
