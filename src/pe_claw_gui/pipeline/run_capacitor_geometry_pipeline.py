@@ -39,16 +39,23 @@ _TARGET_BASENAMES = {
 }
 
 
-def run_capacitor_geometry_pipeline(report: DesignReport) -> DesignReport:
+def run_capacitor_geometry_pipeline(
+    report: DesignReport,
+    output_root: str | Path | None = None,
+) -> DesignReport:
     """Attach capacitor bank geometry comparison results to the capacitor report."""
 
     if report.capacitor is None:
         return report
 
     geometry_start_s = time.perf_counter()
-    input_geometry = _build_side_geometry("input", report.capacitor.input_selection)
-    output_geometry = _build_side_geometry("output", report.capacitor.output_selection)
-    llc_search = _build_llc_resonant_geometry(report.capacitor.llc_resonant_capacitor_search_result)
+    capacitor_geometry_root, resonant_geometry_root = _resolve_geometry_roots(report, output_root)
+    input_geometry = _build_side_geometry("input", report.capacitor.input_selection, capacitor_geometry_root)
+    output_geometry = _build_side_geometry("output", report.capacitor.output_selection, capacitor_geometry_root)
+    llc_search = _build_llc_resonant_geometry(
+        report.capacitor.llc_resonant_capacitor_search_result,
+        resonant_geometry_root,
+    )
     geometry_elapsed_s = time.perf_counter() - geometry_start_s
     artifact_paths = _dedupe(
         [
@@ -73,7 +80,11 @@ def run_capacitor_geometry_pipeline(report: DesignReport) -> DesignReport:
     return replace(report, capacitor=capacitor)
 
 
-def _build_side_geometry(side: str, side_result: CapacitorSideResult | None) -> CapacitorSideGeometryResult:
+def _build_side_geometry(
+    side: str,
+    side_result: CapacitorSideResult | None,
+    output_dir: Path | None = None,
+) -> CapacitorSideGeometryResult:
     if side_result is None:
         return CapacitorSideGeometryResult(
             side=side,
@@ -98,7 +109,7 @@ def _build_side_geometry(side: str, side_result: CapacitorSideResult | None) -> 
             notes=[f"{side_label} geometry did not run because no representative capacitor solution is available."],
         )
 
-    output_dir = _project_output_dir()
+    output_dir = output_dir or _project_output_dir()
     unique_layouts = {}
     draft_targets = []
     for role in _TARGET_ORDER:
@@ -166,6 +177,7 @@ def _build_side_geometry(side: str, side_result: CapacitorSideResult | None) -> 
 
 def _build_llc_resonant_geometry(
     search: LlcResonantCapacitorSearchResult | None,
+    output_dir: Path | None = None,
 ) -> LlcResonantCapacitorSearchResult | None:
     if search is None:
         return None
@@ -176,7 +188,7 @@ def _build_llc_resonant_geometry(
     }
     if not any(candidate is not None for candidate in target_candidates.values()):
         return search
-    output_dir = _project_resonant_output_dir()
+    output_dir = output_dir or _project_resonant_output_dir()
     draft_targets: list[CapacitorGeometryTarget] = []
     for role in _TARGET_ORDER:
         candidate = target_candidates[role]
@@ -403,6 +415,16 @@ def _project_output_dir() -> Path:
 
 def _project_resonant_output_dir() -> Path:
     return Path(__file__).resolve().parents[3] / "outputs" / "resonant_capacitor_design"
+
+
+def _resolve_geometry_roots(
+    report: DesignReport,
+    output_root: str | Path | None,
+) -> tuple[Path | None, Path | None]:
+    if output_root is not None and report.llc_run_context is not None:
+        root = Path(output_root)
+        return root / "capacitor_design", root / "resonant_capacitor_design"
+    return None, None
 
 
 def _dedupe(values: list[str]) -> list[str]:

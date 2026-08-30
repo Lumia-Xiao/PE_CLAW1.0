@@ -93,7 +93,11 @@ class RunDesignController:
         if report.llc_run_context is not None:
             report = replace(report, llc_run_context=report.llc_run_context.transition("capacitors", "running"))
         try:
-            report = run_capacitor_pipeline(report, plugin=plugin)
+            report = run_capacitor_pipeline(
+                report,
+                plugin=plugin,
+                output_root=(report.llc_run_context.output_root if report.llc_run_context is not None else None),
+            )
         except Exception as exc:
             if report.llc_run_context is not None:
                 report = replace(

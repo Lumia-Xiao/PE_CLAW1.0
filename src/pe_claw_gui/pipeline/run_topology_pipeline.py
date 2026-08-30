@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import Any
 
 from ..libraries.semiconductors.metadata import (
@@ -35,6 +36,7 @@ def run_topology_pipeline(
     raw_input: dict[str, str],
     operating_point: OperatingPoint | None = None,
     include_waveforms: bool = False,
+    output_root: str | Path | None = None,
 ) -> TopologyPipelineBundle:
     """Run the selected topology plugin through synthesis and evaluation."""
     spec = plugin.build_spec(raw_input)
@@ -53,7 +55,7 @@ def run_topology_pipeline(
         topology_result=topology_result,
     )
     if is_llc_topology(spec.topology_id):
-        context = LlcRunContext.create(spec.topology_id, raw_input)
+        context = LlcRunContext.create(spec.topology_id, raw_input, output_root=output_root)
         if report.device is not None and report.device.recommended_scheme_id:
             context = context.with_result_ids(device_design_id=report.device.recommended_scheme_id)
         report = replace(

@@ -109,6 +109,17 @@ def test_llc_efficiency_sweep_records_current_run_and_fixed_parameters(tmp_path:
     assert result.fixed_parameters["total_lr_target_h"] == 1.2e-3
 
 
+def test_llc_efficiency_sweep_persists_csv_audit_artifact(tmp_path: Path, monkeypatch) -> None:
+    report = _base_report(tmp_path)
+    point = EfficiencySweepPoint(1.0, 1000.0, 10.0, 1000.0 / 1010.0, 2.0, 5.0, 3.0, 0.0)
+    sweep_module = importlib.import_module("pe_claw_gui.pipeline.run_efficiency_sweep_pipeline")
+    monkeypatch.setattr(sweep_module, "_evaluate_sweep_load_point", lambda *args: (point, []))
+    result = run_efficiency_sweep(report, plugin=SimpleNamespace(), load_points=(1.0,))
+    csv_path = Path(result.artifact_paths["csv"])
+    assert csv_path.name == "efficiency_sweep.csv"
+    assert csv_path.read_text(encoding="utf-8").splitlines()[0].startswith("load_pu,")
+
+
 def test_llc_manifest_records_artifact_hashes_and_blocks_missing_results(tmp_path: Path) -> None:
     report = _base_report(tmp_path)
     artifact = Path(report.llc_run_context.output_root) / "magnetic.csv"

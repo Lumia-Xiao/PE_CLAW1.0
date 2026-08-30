@@ -45,7 +45,11 @@ LLC_RESONANT_CAPACITOR_TOPOLOGY_IDS = {
 }
 
 
-def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None = None) -> DesignReport:
+def run_capacitor_pipeline(
+    report: DesignReport,
+    plugin: TopologyPlugin | None = None,
+    output_root: str | Path | None = None,
+) -> DesignReport:
     """Attach first-pass registered capacitor selection results to a design report."""
 
     pipeline_start_s = time.perf_counter()
@@ -143,6 +147,7 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
         llc_resonant_request,
         candidates,
         ambient_temp_c,
+        output_root=output_root or _llc_output_root(report),
     )
     if llc_resonant_search is not None:
         warnings.extend(llc_resonant_search.warnings)
@@ -172,7 +177,7 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
     ambient_temp_c = resolve_ambient_temperature_c(design_report)
     output_selection = _select_output_capacitor(design_report, candidates, ripple_ratio_percent, ambient_temp_c)
     input_selection = _select_input_capacitor(design_report, candidates, ripple_ratio_percent, ambient_temp_c)
-    output_dir = _project_root() / "outputs" / "capacitor_design"
+    output_dir = _capacitor_output_dir(report, output_root)
     output_selection = write_capacitor_pareto_artifacts(output_selection, output_dir)
     if input_selection is not None and input_selection.request is not None:
         input_selection = write_capacitor_pareto_artifacts(input_selection, output_dir)
@@ -218,7 +223,7 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
         ]),
         diagnostics=diagnostics,
     )
-    completed = run_capacitor_geometry_pipeline(replace(report, capacitor=result))
+    completed = run_capacitor_geometry_pipeline(replace(report, capacitor=result), output_root=output_root or _llc_output_root(report))
     if completed.capacitor is None:
         return _attach_llc_cr_design_id(completed)
     total_elapsed_s = time.perf_counter() - pipeline_start_s
@@ -1012,13 +1017,21 @@ def _resolve_ripple_ratio_percent(report: DesignReport) -> float:
     return 1.0
 
 
-def _run_llc_resonant_capacitor_search(request, candidates, ambient_temp_c: float):
+def _run_llc_resonant_capacitor_search(
+    request,
+    candidates,
+    ambient_temp_c: float,
+    *,
+    output_root: str | Path | None = None,
+):
     if request is None:
         return None
     return search_llc_resonant_capacitor_banks(
         request,
         candidates,
-        output_dir=_project_root() / "outputs" / "resonant_capacitor_design",
+        output_dir=Path(output_root) / "resonant_capacitor_design"
+        if output_root is not None
+        else _project_root() / "outputs" / "resonant_capacitor_design",
         ambient_temp_c=ambient_temp_c,
     )
 
@@ -1235,3 +1248,15 @@ def _dedupe(values: list[str]) -> list[str]:
 
 def _project_root() -> Path:
     return Path(__file__).resolve().parents[3]
+
+
+def _llc_output_root(report: DesignReport) -> Path | None:
+    if report.llc_run_context is None or not report.llc_run_context.output_root:
+        return None
+    return Path(report.llc_run_context.output_root)
+
+
+def _capacitor_output_dir(report: DesignReport, output_root: str | Path | None) -> Path:
+    if output_root is not None and report.llc_run_context is not None:
+        return Path(output_root) / "capacitor_design"
+    return _project_root() / "outputs" / "capacitor_design"

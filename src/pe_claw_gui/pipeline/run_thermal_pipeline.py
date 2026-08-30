@@ -10,7 +10,7 @@ from ..engines.thermal.thermal_estimator import (
     resolve_ambient_temperature_c,
 )
 from ..models.design_report import DesignReport
-from ..models.thermal_result import ThermalComparisonEntry, ThermalResult
+from ..models.thermal_result import ThermalComparisonEntry, ThermalEstimate, ThermalResult
 from .options import MAGNETIC_STAGE_DISABLED_NOTE, MAGNETIC_THERMAL_DISABLED_NOTE, PipelineOptions, resolve_pipeline_options
 from ..engines.magnetics.core_loss_audit import core_loss_is_comparable
 from ..models.llc_run_context import is_llc_topology
@@ -113,6 +113,11 @@ def _run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOption
         valid_component_count = sum(
             item.get("hotspot_c") is not None for item in components.values()
         )
+        thermal_entries = _llc_thermal_entries(report, transformer, external, components)
+        artifact_paths = export_thermal_summary(
+            thermal_entries,
+            output_dir=_llc_thermal_output_dir(report),
+        )
         thermal_result = ThermalResult(
             ambient_temp_c=resolve_ambient_temperature_c(report),
             recommended_design_id=combined_id or transformer_id,
@@ -121,8 +126,10 @@ def _run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOption
                 "The separated LLC transformer screening includes a first-pass hotspot estimate.",
                 "The fixed-inductor thermal comparison stage is not applied to LLC transformer candidates.",
                 "Transformer and external Lr hotspots are reported separately; no combined thermal network is inferred.",
+                *(f"Thermal summary artifact saved to {artifact_paths[0]}." if artifact_paths else ()),
             ],
             llc_component_thermal=components,
+            artifact_paths=artifact_paths,
             status="valid" if valid_component_count else "unavailable",
             valid_loss_entry_count=valid_component_count,
             unavailable_loss_entry_count=len(components) - valid_component_count,
@@ -188,7 +195,7 @@ def _run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOption
         recommended_design_id = recommended_entry.design_id
 
     unique_entries = _dedupe_entries([*chosen_design_estimates, *best_by_stack_count.values()])
-    artifact_paths = export_thermal_summary(unique_entries)
+    artifact_paths = export_thermal_summary(unique_entries, output_dir=_llc_thermal_output_dir(report))
 
     notes = [
         f"Ambient temperature resolved to {ambient_temp_c:.1f} C from GUI/spec input, with 25.0 C as the blank-field fallback.",
@@ -243,6 +250,48 @@ def _finalize_llc_thermal_stage(report: DesignReport) -> DesignReport:
             reason="LLC thermal result is incomplete; no current-run thermal recommendation is available.",
         )
     return replace(report, llc_run_context=updated_context)
+
+
+def _llc_thermal_entries(report, transformer, external, components):
+    """Adapt LLC component hotspot estimates to the shared thermal CSV contract."""
+
+    entries = []
+    for role, candidate in (("transformer", transformer), ("external_lr", external)):
+        if candidate is None:
+            continue
+        component = components.get(role, {})
+        ambient_c = resolve_ambient_temperature_c(report)
+        hotspot_c = _optional_float(component.get("hotspot_c"))
+        core_loss_w = _optional_float(getattr(candidate, "core_loss_w", None))
+        copper_loss_w = _optional_float(getattr(candidate, "copper_loss_w", None))
+        total_loss_w = _optional_float(getattr(candidate, "total_loss_w", None))
+        entries.append(
+            ThermalComparisonEntry(
+                design_id=str(component.get("design_id") or getattr(candidate, "candidate_id", getattr(candidate, "design_id", role))),
+                assembly_type=role,
+                loss_basis="LLC current operating-point first-pass magnetic screening",
+                estimate=ThermalEstimate(
+                    ambient_temp_c=ambient_c,
+                    core_loss_w=core_loss_w,
+                    copper_loss_w=copper_loss_w,
+                    total_loss_w=total_loss_w,
+                    hotspot_proxy_temp_c=hotspot_c,
+                ),
+                notes=[str(component.get("source") or "LLC magnetic component thermal estimate")],
+            )
+        )
+    return entries
+
+
+def _llc_thermal_output_dir(report: DesignReport):
+    """Keep LLC thermal artifacts inside the current run when one exists."""
+
+    context = report.llc_run_context
+    if context is not None and context.output_root:
+        from pathlib import Path
+
+        return Path(context.output_root) / "thermal"
+    return None
 
 
 def _resolve_recommended_design_id(report: DesignReport) -> str | None:

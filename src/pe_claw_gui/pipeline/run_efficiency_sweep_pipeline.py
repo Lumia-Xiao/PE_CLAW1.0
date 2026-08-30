@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import csv
 from dataclasses import asdict, replace
 from pathlib import Path
 from collections.abc import Sequence
@@ -161,7 +162,11 @@ def _validate_llc_efficiency_dependencies(report: DesignReport) -> str | None:
     if context.external_lr_design_id != contract.external_lr_design_id:
         return "LLC efficiency sweep blocked: external Lr ID does not match the current run contract."
     transformer_search = getattr(magnetic, "llc_transformer_result", None)
-    transformer_candidates = getattr(transformer_search, "candidates", []) if transformer_search is not None else []
+    transformer_candidates = []
+    if transformer_search is not None:
+        transformer_candidates = list(getattr(transformer_search, "feasible_candidates", []) or [])
+        if not transformer_candidates:
+            transformer_candidates = list(getattr(transformer_search, "candidates", []) or [])
     if not any(getattr(candidate, "candidate_id", None) == contract.transformer_design_id for candidate in transformer_candidates):
         return "LLC efficiency sweep blocked: current transformer candidate is not in the run result set."
     external_search = getattr(magnetic, "llc_external_resonant_inductor_search_result", None)
@@ -982,11 +987,54 @@ def _efficiency_at(points: list[EfficiencySweepPoint], load_pu: float) -> float 
 def _write_artifacts(result: EfficiencySweepResult, output_dir: str | Path | None) -> dict[str, str]:
     directory = Path(output_dir) if output_dir is not None else _project_root() / "outputs" / "efficiency_sweep"
     directory.mkdir(parents=True, exist_ok=True)
+    csv_path = directory / "efficiency_sweep.csv"
     efficiency_path = directory / "efficiency_curve.png"
     loss_path = directory / "loss_breakdown_stacked.png"
+    _write_sweep_csv(result, csv_path)
     _write_efficiency_curve(result, efficiency_path)
     _write_loss_breakdown(result, loss_path)
-    return {"efficiency_curve": str(efficiency_path), "loss_breakdown_stacked": str(loss_path)}
+    return {
+        "csv": str(csv_path),
+        "efficiency_curve": str(efficiency_path),
+        "loss_breakdown_stacked": str(loss_path),
+    }
+
+
+def _write_sweep_csv(result: EfficiencySweepResult, path: Path) -> None:
+    """Persist the load-point efficiency data as a stable audit artifact."""
+
+    fieldnames = (
+        "load_pu",
+        "output_power_w",
+        "total_loss_w",
+        "efficiency",
+        "semiconductor_loss_w",
+        "magnetic_loss_w",
+        "capacitor_loss_w",
+        "other_loss_w",
+        "bridge_rectifier_loss_w",
+        "loss_breakdown_w",
+        "warnings",
+    )
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        for point in result.points:
+            writer.writerow(
+                {
+                    "load_pu": point.load_pu,
+                    "output_power_w": point.output_power_w,
+                    "total_loss_w": point.total_loss_w,
+                    "efficiency": point.efficiency,
+                    "semiconductor_loss_w": point.semiconductor_loss_w,
+                    "magnetic_loss_w": point.magnetic_loss_w,
+                    "capacitor_loss_w": point.capacitor_loss_w,
+                    "other_loss_w": point.other_loss_w,
+                    "bridge_rectifier_loss_w": point.bridge_rectifier_loss_w,
+                    "loss_breakdown_w": json.dumps(point.loss_breakdown_w, sort_keys=True),
+                    "warnings": " | ".join(point.warnings),
+                }
+            )
 
 
 def _build_inverter_pf_sweep(
