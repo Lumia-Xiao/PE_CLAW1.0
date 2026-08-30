@@ -467,7 +467,7 @@
 ### 提交记录
 
 - 功能提交：`8ebae6d feat: audit LLC efficiency and manifest dependencies`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
-- 本计划记录提交：待提交。
+- 本计划记录提交：`86a8a87 docs: record LLC efficiency and manifest step 7`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
 
 ## 9. 第 1 步执行记录
 
