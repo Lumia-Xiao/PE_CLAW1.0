@@ -440,6 +440,82 @@ def _geometry_payload(report: DesignReport) -> dict[str, Any]:
     }
 
 
+def _llc_requirements_payload(report: DesignReport) -> dict[str, Any] | None:
+    """Expose LLC FHA targets and downstream actual values with explicit sources."""
+    magnetic = report.magnetic
+    if magnetic is None or getattr(magnetic, "result_type", "") != "separated_llc_transformer":
+        return None
+    requirements = getattr(magnetic, "design_requirements", {}) or {}
+    if not isinstance(requirements, Mapping):
+        return None
+
+    def metric(key: str, unit: str, source: str) -> dict[str, Any]:
+        return _metric(requirements.get(key), unit, source)
+
+    return {
+        "topology_id": requirements.get("topology_id"),
+        "display_name": requirements.get("display_name"),
+        "design_type": requirements.get("design_type"),
+        "control_mode": requirements.get("control_mode"),
+        "mode": requirements.get("mode"),
+        "bridge_type": requirements.get("primary_bridge_type"),
+        "rectifier_type": requirements.get("secondary_rectifier_type"),
+        "field_status": dict(requirements.get("field_status") or {}),
+        "ranges": {
+            "vin": {
+                "min": metric("vin_min_v", "V", "candidate.metadata.llc_fha"),
+                "nom": metric("vin_nom_v", "V", "candidate.metadata.llc_fha"),
+                "max": metric("vin_max_v", "V", "candidate.metadata.llc_fha"),
+            },
+            "vout": {
+                "min": metric("vout_min_v", "V", "candidate.metadata.llc_fha"),
+                "nom": metric("vout_nom_v", "V", "candidate.metadata.llc_fha"),
+                "max": metric("vout_max_v", "V", "candidate.metadata.llc_fha"),
+            },
+            "pout": {
+                "min": metric("pout_min_w", "W", "candidate.metadata.llc_fha"),
+                "max": metric("pout_max_w", "W", "candidate.metadata.llc_fha"),
+            },
+            "fs": {
+                "min": metric("fs_min_hz", "Hz", "candidate.metadata.llc_fha"),
+                "nom": metric("fs_nom_hz", "Hz", "candidate.metadata.llc_fha"),
+                "max": metric("fs_max_hz", "Hz", "candidate.metadata.llc_fha"),
+                "basis": metric("fs_basis_hz", "Hz", "requirements.fs_basis_source"),
+            },
+        },
+        "tank": {
+            "lm_target": metric("lm_target_h", "H", "candidate.metadata.llc_fha"),
+            "lm_actual": metric("lm_actual_h", "H", "magnetic.llc_magnetic_contract"),
+            "lr_target": metric("lr_target_h", "H", "candidate.metadata.llc_fha"),
+            "lr_actual": metric("total_lr_actual_h", "H", "magnetic.llc_magnetic_contract"),
+            "external_lr_target": metric("external_lr_target_h", "H", "magnetic.llc_magnetic_contract"),
+            "external_lr_actual": metric("external_lr_actual_h", "H", "magnetic.llc_magnetic_contract"),
+            "cr_target": metric("cr_target_f", "F", "candidate.metadata.llc_fha"),
+            "cr_actual": metric("cr_actual_f", "F", "capacitor.llc_resonant.recommended"),
+            "cr_error": metric("cr_error_percent", "%", "capacitor.llc_resonant.recommended"),
+            "cr_error_limit": metric("cr_error_limit_percent", "%", "capacitor.llc_resonant.constraint"),
+        },
+        "turns_ratio": {
+            "base_np": requirements.get("base_np"),
+            "base_ns": requirements.get("base_ns"),
+            "recommended_np": requirements.get("recommended_np"),
+            "recommended_ns": requirements.get("recommended_ns"),
+        },
+        "current": {
+            "transformer_primary_rms": metric("primary_current_rms_a", "A", "magnetic.transformer.target"),
+            "transformer_primary_peak": metric("primary_current_peak_a", "A", "magnetic.transformer.target"),
+            "transformer_secondary_rms": metric("secondary_current_rms_a", "A", "magnetic.transformer.target"),
+            "transformer_secondary_peak": metric("secondary_current_peak_a", "A", "magnetic.transformer.target"),
+            "external_lr_rms": metric("external_lr_current_rms_a", "A", "magnetic.external_lr.target"),
+            "external_lr_peak": metric("external_lr_current_peak_a", "A", "magnetic.external_lr.target"),
+        },
+        "constraints": {
+            "b_limit": metric("b_limit_t", "T", "magnetic.transformer.target"),
+            "turns_ratio_tolerance": metric("turns_ratio_tolerance_percent", "%", "candidate.metadata.llc_fha"),
+        },
+    }
+
+
 def build_structured_report(report: DesignReport) -> dict[str, Any]:
     """Convert a runtime report to the stable, unit-explicit contract."""
 
@@ -456,7 +532,7 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
     simulated_ripple = None
     if report.waveform is not None and report.waveform.output_voltage_v:
         simulated_ripple = max(report.waveform.output_voltage_v) - min(report.waveform.output_voltage_v)
-    return {
+    payload = {
         "schema_version": REPORT_SCHEMA_VERSION,
         "report_kind": "design_report",
         "topology": {"id": spec.topology_id, "display_name": spec.display_name},
@@ -523,6 +599,10 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
             "source_stages": ["request", "candidate", "waveform", "stress", "magnetic", "capacitor", "thermal", "status"],
         },
     }
+    llc_requirements = _llc_requirements_payload(report)
+    if llc_requirements is not None:
+        payload["llc_design_requirements"] = llc_requirements
+    return payload
 
 
 def _stress_metric(metric: Any) -> dict[str, Any]:

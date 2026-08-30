@@ -1030,6 +1030,21 @@ def _run_llc_transformer_magnetic_pipeline(
         design_requirements["transformer_pareto_count"] = pareto_result.pareto_count
         design_requirements["transformer_chosen_count"] = pareto_result.chosen_count
         design_requirements["llc_magnetic_contract"] = magnetic_contract.to_dict()
+        design_requirements.update(
+            {
+                "lm_actual_h": magnetic_contract.lm_actual_h,
+                "transformer_lm_actual_h": magnetic_contract.lm_actual_h,
+                "external_lr_actual_h": magnetic_contract.external_lr_actual_h,
+                "total_lr_actual_h": magnetic_contract.total_lr_actual_h,
+                "total_lr_target_h": magnetic_contract.total_lr_target_h,
+                "fs_basis_hz": magnetic_contract.fs_hz,
+                "fs_basis_source": (
+                    "external Lr target frequency basis"
+                    if external_lr_target is not None
+                    else "LLC FHA resonant frequency"
+                ),
+            }
+        )
         if external_lr_target is not None:
             design_requirements["external_lr_target_h"] = external_lr_target.external_lr_target_h
             design_requirements["external_lr_fraction"] = external_lr_target.lr_external_fraction
@@ -1257,6 +1272,8 @@ def _llc_transformer_design_requirements(
         "topology_id": topology_id,
         "display_name": display_name or topology_id,
         "design_type": "separated_llc_transformer",
+        "control_mode": "variable_frequency",
+        "mode": "variable_frequency_fixed_50_percent_bridge_drive",
         "transformer_realizes": "Np:Ns and Lm",
         "external_resonant_inductor_realizes": "Lr",
         "vin_min_v": getattr(fha, "vin_min_v", None),
@@ -1279,6 +1296,17 @@ def _llc_transformer_design_requirements(
         "ns": transformer_target.get("base_ns"),
         "lm_target_h": transformer_target.get("lm_target_h"),
         "lr_target_h": transformer_target.get("lr_target_h"),
+        "cr_target_f": getattr(fha, "cr_f", None),
+        "cr_actual_f": None,
+        "cr_error_percent": None,
+        "cr_error_limit_percent": None,
+        "cr_status": "not_evaluated",
+        "lm_actual_h": getattr(recommended_candidate, "lm_actual_h", None),
+        "transformer_lm_actual_h": getattr(recommended_candidate, "lm_actual_h", None),
+        "external_lr_actual_h": None,
+        "total_lr_actual_h": None,
+        "fs_basis_hz": getattr(fha, "fr_hz", None),
+        "fs_basis_source": "LLC FHA resonant frequency; replaced by external Lr basis when available",
         "b_limit_t": transformer_target.get("b_limit_t"),
         "primary_bridge_type": transformer_target.get("primary_bridge_type"),
         "secondary_rectifier_type": transformer_target.get("secondary_rectifier_type"),
@@ -1307,6 +1335,8 @@ def _llc_transformer_design_requirements(
                 "external_lr_fs_basis_hz": None,
                 "external_lr_fs_min_hz": None,
                 "external_lr_fs_max_hz": None,
+                "external_lr_actual_h": None,
+                "total_lr_actual_h": None,
             }
         )
     else:
@@ -1325,6 +1355,8 @@ def _llc_transformer_design_requirements(
                 "external_lr_fs_basis_hz": external_lr_target.fs_basis_hz,
                 "external_lr_fs_min_hz": external_lr_target.fs_min_hz,
                 "external_lr_fs_max_hz": external_lr_target.fs_max_hz,
+                "external_lr_actual_h": None,
+                "total_lr_actual_h": None,
                 "external_lr_warning": external_lr_target.warning,
             }
         )

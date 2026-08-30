@@ -251,12 +251,38 @@ def _attach_llc_cr_design_id(report: DesignReport) -> DesignReport:
         else None
     )
     recommended = search.recommended_candidate if search is not None else None
-    if context is None or recommended is None:
-        return report
-    return replace(
-        report,
-        llc_run_context=context.with_result_ids(cr_design_id=recommended.design_id),
+    updated_report = report
+    if context is not None and recommended is not None:
+        updated_report = replace(
+            updated_report,
+            llc_run_context=context.with_result_ids(cr_design_id=recommended.design_id),
+        )
+    magnetic = updated_report.magnetic
+    if magnetic is None or magnetic.result_type != "separated_llc_transformer":
+        return updated_report
+    requirements = dict(magnetic.design_requirements or {})
+    request = getattr(search, "request", None) if search is not None else None
+    coverage = (getattr(search, "coverage_summary", {}) or {}) if search is not None else {}
+    requirements.update(
+        {
+            "cr_target_f": getattr(request, "cr_target_f", requirements.get("cr_target_f")),
+            "cr_actual_f": getattr(recommended, "bank_capacitance_f", None),
+            "cr_error_percent": getattr(recommended, "capacitance_error_percent", None),
+            "cr_error_limit_percent": coverage.get("capacitance_error_limit_percent"),
+            "cr_status": (
+                "available"
+                if recommended is not None
+                else "no_feasible_candidate"
+                if search is not None and request is not None
+                else "not_evaluated"
+            ),
+            "cr_actual_source": "LLC resonant capacitor recommended candidate",
+        }
     )
+    field_status = dict(requirements.get("field_status") or {})
+    field_status["cr"] = requirements["cr_status"]
+    requirements["field_status"] = field_status
+    return replace(updated_report, magnetic=replace(magnetic, design_requirements=requirements))
 
 
 def _refresh_selected_llc(report: DesignReport, plugin: TopologyPlugin | None) -> DesignReport:
