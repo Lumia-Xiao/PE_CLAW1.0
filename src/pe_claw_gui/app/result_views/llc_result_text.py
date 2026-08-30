@@ -328,6 +328,9 @@ def _llc_thermal_lines(report: DesignReport) -> list[str]:
         if status == "available":
             lines.append(f"    design: {_value(component.get('design_id'))}")
             lines.append(f"    hotspot: {_value_with_unit(component.get('hotspot_c'), 'C')}")
+            lines.append(f"    core loss: {_value_with_unit(component.get('core_loss_w'), 'W')}")
+            lines.append(f"    copper loss: {_value_with_unit(component.get('copper_loss_w'), 'W')}")
+            lines.append(f"    total loss: {_value_with_unit(component.get('total_loss_w'), 'W')}")
         else:
             lines.append(f"    hotspot: N/A ({_status_label(status)})")
         lines.append(f"    source: {_value(component.get('source'))}")

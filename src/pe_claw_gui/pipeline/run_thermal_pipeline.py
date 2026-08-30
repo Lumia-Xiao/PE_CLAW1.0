@@ -80,6 +80,12 @@ def _run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOption
             components["transformer"] = {
                 "status": "available",
                 "design_id": transformer_id,
+                "assembly_type": "transformer",
+                "loss_basis": "LLC current operating-point first-pass magnetic screening",
+                "ambient_c": resolve_ambient_temperature_c(report),
+                "core_loss_w": _optional_float(getattr(transformer, "core_loss_w", None)),
+                "copper_loss_w": _optional_float(getattr(transformer, "copper_loss_w", None)),
+                "total_loss_w": _optional_float(getattr(transformer, "total_loss_w", None)),
                 "hotspot_c": _optional_float(getattr(transformer, "hotspot_c", None)),
                 "source": "LLC transformer magnetic screening first-pass hotspot estimate",
             }
@@ -87,6 +93,12 @@ def _run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOption
             components["transformer"] = {
                 "status": "not_evaluated",
                 "design_id": transformer_id,
+                "assembly_type": "transformer",
+                "loss_basis": "LLC current operating-point first-pass magnetic screening",
+                "ambient_c": resolve_ambient_temperature_c(report),
+                "core_loss_w": None,
+                "copper_loss_w": None,
+                "total_loss_w": None,
                 "hotspot_c": None,
                 "source": "LLC transformer magnetic screening",
             }
@@ -94,6 +106,12 @@ def _run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOption
             components["external_lr"] = {
                 "status": "available",
                 "design_id": external_id,
+                "assembly_type": "external_lr",
+                "loss_basis": "LLC current operating-point first-pass magnetic screening",
+                "ambient_c": resolve_ambient_temperature_c(report),
+                "core_loss_w": _optional_float(getattr(external, "core_loss_w", None)),
+                "copper_loss_w": _optional_float(getattr(external, "copper_loss_w", None)),
+                "total_loss_w": _optional_float(getattr(external, "total_loss_w", None)),
                 "hotspot_c": _optional_float(getattr(external, "hotspot_c", None)),
                 "source": "External Lr magnetic screening first-pass hotspot estimate",
             }
@@ -107,6 +125,12 @@ def _run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOption
             components["external_lr"] = {
                 "status": external_status,
                 "design_id": external_id,
+                "assembly_type": "external_lr",
+                "loss_basis": "LLC current operating-point first-pass magnetic screening",
+                "ambient_c": resolve_ambient_temperature_c(report),
+                "core_loss_w": None,
+                "copper_loss_w": None,
+                "total_loss_w": None,
                 "hotspot_c": None,
                 "source": "External Lr magnetic screening",
             }
@@ -124,11 +148,13 @@ def _run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOption
             summary="LLC transformer and external resonant-inductor thermal screening uses magnetic first-pass hotspot estimates.",
             notes=[
                 "The separated LLC transformer screening includes a first-pass hotspot estimate.",
-                "The fixed-inductor thermal comparison stage is not applied to LLC transformer candidates.",
+                "The fixed-inductor stack-count thermal comparison is not applied to separated LLC components.",
                 "Transformer and external Lr hotspots are reported separately; no combined thermal network is inferred.",
                 *(f"Thermal summary artifact saved to {artifact_paths[0]}." if artifact_paths else ()),
             ],
             llc_component_thermal=components,
+            llc_component_estimates={entry.assembly_type: entry for entry in thermal_entries if entry.assembly_type},
+            chosen_design_estimates=thermal_entries,
             artifact_paths=artifact_paths,
             status="valid" if valid_component_count else "unavailable",
             valid_loss_entry_count=valid_component_count,
@@ -260,11 +286,11 @@ def _llc_thermal_entries(report, transformer, external, components):
         if candidate is None:
             continue
         component = components.get(role, {})
-        ambient_c = resolve_ambient_temperature_c(report)
+        ambient_c = _optional_float(component.get("ambient_c")) or resolve_ambient_temperature_c(report)
         hotspot_c = _optional_float(component.get("hotspot_c"))
-        core_loss_w = _optional_float(getattr(candidate, "core_loss_w", None))
-        copper_loss_w = _optional_float(getattr(candidate, "copper_loss_w", None))
-        total_loss_w = _optional_float(getattr(candidate, "total_loss_w", None))
+        core_loss_w = _optional_float(component.get("core_loss_w"))
+        copper_loss_w = _optional_float(component.get("copper_loss_w"))
+        total_loss_w = _optional_float(component.get("total_loss_w"))
         entries.append(
             ThermalComparisonEntry(
                 design_id=str(component.get("design_id") or getattr(candidate, "candidate_id", getattr(candidate, "design_id", role))),

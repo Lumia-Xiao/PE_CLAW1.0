@@ -342,12 +342,20 @@ def _thermal_payload(report: DesignReport) -> dict[str, Any]:
     }
     components = getattr(thermal, "llc_component_thermal", {}) or {}
     if components:
+        component_entries = getattr(thermal, "llc_component_estimates", {}) or {}
         payload["llc_components"] = {
             str(role): {
                 "status": str(values.get("status", "not_evaluated")),
                 "design_id": values.get("design_id"),
+                "assembly_type": values.get("assembly_type", role),
+                "ambient_temperature": _metric(values.get("ambient_c"), "degC", f"thermal.llc.{role}"),
+                "core_loss": _metric(values.get("core_loss_w"), "W", f"thermal.llc.{role}"),
+                "copper_loss": _metric(values.get("copper_loss_w"), "W", f"thermal.llc.{role}"),
+                "total_loss": _metric(values.get("total_loss_w"), "W", f"thermal.llc.{role}"),
                 "hotspot_temperature": _metric(values.get("hotspot_c"), "degC", f"thermal.llc.{role}"),
+                "loss_basis": values.get("loss_basis", ""),
                 "source": values.get("source", ""),
+                "estimate_available": component_entries.get(role) is not None,
             }
             for role, values in components.items()
             if isinstance(values, Mapping)

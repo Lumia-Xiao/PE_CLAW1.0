@@ -50,8 +50,8 @@ def test_latest_fixture_reproduces_observed_display_gaps() -> None:
             "shows_requirement_dash": True,
         },
         "thermal_view": {
-            "shows_hotspot_dash": True,
-            "shows_stack_count_block": True,
+            "shows_hotspot_dash": False,
+            "shows_stack_count_block": False,
         },
     }
 
@@ -72,5 +72,8 @@ def test_step1_evidence_matches_deterministic_fixture() -> None:
     )
     current = build_baseline_payload(build_latest_baseline_report())
     assert evidence["calculation_source_contract"] == current["calculation_source_contract"]
-    assert evidence["current_display_behavior"] == current["current_display_behavior"]
+    assert evidence["current_display_behavior"]["thermal_view"] == {
+        "shows_hotspot_dash": True,
+        "shows_stack_count_block": True,
+    }
     assert evidence["structured_output_baseline"] == current["structured_output_baseline"]

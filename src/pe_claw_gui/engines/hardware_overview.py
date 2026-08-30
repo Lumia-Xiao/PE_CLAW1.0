@@ -2153,8 +2153,16 @@ def _inductor_loss_basis_label(report: DesignReport, base_label: str) -> str:
 
 
 def _thermal_hotspot_c(report: DesignReport) -> float | None:
-    if report.thermal is None or report.thermal.recommended_estimate is None:
+    if report.thermal is None:
         return None
+    if report.thermal.recommended_estimate is None and is_llc_topology(report.spec.topology_id):
+        components = getattr(report.thermal, "llc_component_thermal", {}) or {}
+        hotspots = [
+            values.get("hotspot_c")
+            for values in components.values()
+            if isinstance(values, dict) and values.get("hotspot_c") is not None
+        ]
+        return max(hotspots) if hotspots else None
     return report.thermal.recommended_estimate.hotspot_proxy_temp_c
 
 

@@ -85,6 +85,14 @@ def test_llc_thermal_pipeline_reports_transformer_and_external_lr_hotspots() -> 
     assert thermal.llc_component_thermal["transformer"]["hotspot_c"] == pytest.approx(76.2)
     assert thermal.llc_component_thermal["external_lr"]["design_id"] == EXTERNAL_LR_ID
     assert thermal.llc_component_thermal["external_lr"]["hotspot_c"] == pytest.approx(48.5)
+    assert thermal.chosen_design_estimates[0].assembly_type == "transformer"
+    assert thermal.chosen_design_estimates[0].estimate is not None
+    assert thermal.chosen_design_estimates[0].estimate.total_loss_w == pytest.approx(3.74375)
+    assert thermal.chosen_design_estimates[1].assembly_type == "external_lr"
+    assert thermal.chosen_design_estimates[1].estimate is not None
+    assert thermal.chosen_design_estimates[1].estimate.total_loss_w == pytest.approx(1.27589)
+    assert thermal.llc_component_estimates["transformer"].design_id == TRANSFORMER_ID
+    assert thermal.llc_component_estimates["external_lr"].design_id == EXTERNAL_LR_ID
 
 
 def test_llc_inductor_summary_reports_loss_thermal_and_external_lr_geometry_roles() -> None:
@@ -144,6 +152,10 @@ def test_llc_structured_output_contains_role_specific_reporting() -> None:
     assert payload["loss"]["llc"]["combined"]["design_id"] == COMBINED_ID
     assert payload["loss"]["llc"]["transformer"]["volume"]["value"] == pytest.approx(108.8919e-6)
     assert payload["thermal"]["llc_components"]["external_lr"]["design_id"] == EXTERNAL_LR_ID
+    assert payload["thermal"]["llc_components"]["transformer"]["hotspot_temperature"]["value"] == pytest.approx(76.2)
+    assert payload["thermal"]["llc_components"]["transformer"]["core_loss"]["value"] == pytest.approx(2.1)
+    assert payload["thermal"]["llc_components"]["external_lr"]["total_loss"]["value"] == pytest.approx(1.27589)
+    assert payload["thermal"]["llc_components"]["external_lr"]["estimate_available"] is True
     assert payload["geometry"]["metadata"]["component_type"] == "external_resonant_inductor"
     assert payload["hardware"]["magnetic"]["selection_status"] == "pass"
 
