@@ -132,7 +132,7 @@
 ## 8. 计划状态
 
 - [x] 已建立修复范围和五步执行安排
-- [ ] 第 1 步：统一 10% 约束合同
+- [x] 第 1 步：统一 10% 约束合同
 - [ ] 第 2 步：LLC Cr 专项测试和候选状态
 - [ ] 第 3 步：旧 Cr artifact 生命周期
 - [ ] 第 4 步：结构化报告和 GUI 接入
@@ -142,10 +142,17 @@
 
 | 步骤 | 状态 | Commit | Push | 验证 |
 |---|---|---|---|---|
-| 计划文件 | 已建立 | 待提交 | 待 push | 待执行 |
-| 第 1 步 | 未开始 | - | - | - |
+| 计划文件 | 已建立 | `0fe72bd` | 已 push | 已完成 |
+| 第 1 步 | 已完成 | 待提交 | 待 push | `33 passed`；compileall、diff-check 通过 |
 | 第 2 步 | 未开始 | - | - | - |
 | 第 3 步 | 未开始 | - | - | - |
 | 第 4 步 | 未开始 | - | - | - |
 | 第 5 步 | 未开始 | - | - | - |
 
+### 第 1 步执行记录
+
+- 已将原 LLC 结果链路计划中第 5 步、第 8 步、验收标准和最终交付物的活动约束统一为 10%。
+- LLC Cr 搜索的 warning threshold 与 hard limit 改为同一配置来源；coverage summary 增加约束来源，并使用与实际阈值无关的通用统计字段名。
+- 验证：`PYTHONPATH=src python -m pytest tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step1`，结果 `33 passed`。
+- 验证：`python -m compileall -q src` 通过；`git diff --check` 通过。
+- Commit：待提交；Push：待 push。

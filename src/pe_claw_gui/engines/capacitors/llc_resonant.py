@@ -18,7 +18,8 @@ from ...models.capacitor import (
 
 MAX_LLC_RESONANT_CAPACITOR_PARALLEL_COUNT = 20
 CAPACITANCE_ERROR_LIMIT_PERCENT = 10.0
-CAPACITANCE_WARNING_PERCENT = 10.0
+CAPACITANCE_WARNING_PERCENT = CAPACITANCE_ERROR_LIMIT_PERCENT
+CAPACITANCE_CONSTRAINT_SOURCE = "LLC resonant capacitor search configuration"
 SUITABLE_APPLICATION_CATEGORIES = {
     "dc_link",
     "dc_link_candidate",
@@ -186,18 +187,17 @@ def search_llc_resonant_capacitor_banks(
         output_dir.mkdir(parents=True, exist_ok=True)
         near_miss_csv_path = str(output_dir / "llc_resonant_capacitor_near_miss_candidates.csv")
         _write_feasible_csv(Path(near_miss_csv_path), near_misses)
-    within_10_percent = len(capacitance_screened)
-    within_10_and_usable = len(feasible)
-    evaluated_capacitance_nF = [bank.bank_capacitance_nF for bank in evaluated]
-    screened_capacitance_nF = [bank.bank_capacitance_nF for bank in capacitance_screened]
+    within_error_limit = len(capacitance_screened)
+    within_error_limit_and_feasible = len(feasible)
     notes = [
         "LLC resonant capacitor search uses Cr target, resonant tank RMS current, voltage rating, ESR/DF loss, and a first-pass thermal estimate.",
         f"Parallel count search range is 1..{MAX_LLC_RESONANT_CAPACITOR_PARALLEL_COUNT} for LLC Cr only.",
         (
             "Library coverage: "
             f"Cr target {request.cr_target_nF:.6g} nF, supported N=1..{MAX_LLC_RESONANT_CAPACITOR_PARALLEL_COUNT}, "
-            f"within +/-10% feasible limit = {within_10_percent}, "
-            f"within +/-10% and passing voltage/current/ESR/thermal = {within_10_and_usable}."
+            f"within +/-{CAPACITANCE_ERROR_LIMIT_PERCENT:g}% feasible limit = {within_error_limit}, "
+            f"within +/-{CAPACITANCE_ERROR_LIMIT_PERCENT:g}% and passing voltage/current/ESR/thermal = "
+            f"{within_error_limit_and_feasible}."
         ),
         (
             "Nearest banks: "
@@ -213,7 +213,9 @@ def search_llc_resonant_capacitor_banks(
         notes.append("ESR may be estimated from shared/default DF data; verify datasheet ESR for final design.")
     warnings = []
     if not feasible:
-        warnings.append("No feasible LLC resonant capacitor bank within +/-10% Cr target.")
+        warnings.append(
+            f"No feasible LLC resonant capacitor bank within +/-{CAPACITANCE_ERROR_LIMIT_PERCENT:g}% Cr target."
+        )
     return LlcResonantCapacitorSearchResult(
         request=request,
         candidates=evaluated,
@@ -233,8 +235,9 @@ def search_llc_resonant_capacitor_banks(
             "parallel_count_max": MAX_LLC_RESONANT_CAPACITOR_PARALLEL_COUNT,
             "capacitance_error_limit_percent": CAPACITANCE_ERROR_LIMIT_PERCENT,
             "capacitance_warning_percent": CAPACITANCE_WARNING_PERCENT,
-            "within_10_percent_count": within_10_percent,
-            "within_10_percent_and_feasible_count": within_10_and_usable,
+            "capacitance_constraint_source": CAPACITANCE_CONSTRAINT_SOURCE,
+            "within_error_limit_count": within_error_limit,
+            "within_error_limit_and_feasible_count": within_error_limit_and_feasible,
             "nearest_lower_bank": nearest_lower_bank,
             "nearest_upper_bank": nearest_upper_bank,
             "closest_absolute_error_bank": closest_absolute_error_bank,
@@ -305,7 +308,10 @@ def _evaluate_bank(
     else:
         warnings.append("Capacitor thermal hotspot is first-pass or unavailable.")
     if abs(capacitance_error_percent) > CAPACITANCE_WARNING_PERCENT:
-        warnings.append("Cr capacitance error exceeds 10%; verify LLC gain and resonant frequency shift.")
+        warnings.append(
+            f"Cr capacitance error exceeds {CAPACITANCE_WARNING_PERCENT:g}%; "
+            "verify LLC gain and resonant frequency shift."
+        )
     if hotspot_c is None:
         warnings.append("Capacitor thermal hotspot is first-pass or unavailable.")
     return LlcResonantCapacitorBankCandidate(
