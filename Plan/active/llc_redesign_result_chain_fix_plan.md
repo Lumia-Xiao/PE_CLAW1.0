@@ -436,7 +436,7 @@
 - [x] 第 3 步：外置谐振电感结果链路
 - [x] 第 4 步：磁件参数和结果 ID 统一
 - [x] 第 5 步：谐振电容推荐约束
-- [ ] 第 6 步：几何、硬件总览和旧引用
+- [x] 第 6 步：几何、硬件总览和旧引用
 - [ ] 第 7 步：效率扫描、报告和最终 manifest
 - [ ] 第 8 步：回归测试和全流程验收
 
@@ -614,3 +614,28 @@
 - 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_reporting_step5.py tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py tests/test_llc_magnetic_result_reporting_step5.py -q --basetemp .pytest-tmp-step5-final`，结果 `45 passed`。
 - `PYTHONPATH=src python -m compileall -q src tests` 和 `git diff --check` 通过。
 - Commit：`7e08d9f`；Push：已 push。
+
+## 14. LLC 总体计划第 6 步执行记录
+
+### 已完成的修改
+
+1. 硬件总览生成前增加当前 LLC 运行依赖校验，检查 `LlcRunContext` 阶段状态、`LlcMagneticCombinationContract`、变压器、外置 Lr、LLC Cr、器件推荐以及外置 Lr 几何结果。
+2. 变压器、外置 Lr 和 Cr 只从当前运行上下文及当前磁件组合合同读取；移除固定默认 ID、历史磁件推荐、旧 loss ID 和旧页面状态作为当前输入的回退路径。
+3. 外置 Lr 推荐几何必须同时满足当前 `external_lr_design_id`、推荐 target ID、当前运行 artifact 根目录和实际 artifact 存在性要求。
+4. 变压器组、外置 Lr 组、LLC Cr 组接入硬件总览，并在 metadata 中记录 `run_id`、component design ID、合同来源及关键参数。
+5. 当前 LLC 依赖不完整或 ID 不一致时，总览标记为 `blocked`，仅写出 `hardware_overview_payload.json` 诊断文件，不生成误导性的饼图、集成 2D 图或集成 3D 图。
+6. GUI 硬件总览增加 transformer 展示顺序、blocked 状态、run ID 和阻塞原因；renderer 增加变压器、LLC Cr 图层标签与颜色配置。
+7. 新增 `tests/test_llc_hardware_overview_step6.py`，覆盖当前合同 ID、stale geometry 拒绝、缺依赖诊断、blocked renderer 仅输出 JSON，以及 transformer/LLC Cr 集成布局。
+
+### 验证记录
+
+- `PYTHONPATH=src python -m pytest tests/test_llc_hardware_overview_step6.py -q --basetemp .pytest-tmp-step6-special3`：`5 passed`。
+- LLC 相关全量回归：`79 passed in 101.29s`。
+- `PYTHONPATH=src python -m compileall -q src tests` 通过。
+- `git diff --check` 通过。
+- 测试临时目录、`outputs/` 和 `__pycache__` 均未加入提交。
+
+### 提交记录
+
+- 功能提交：`e26120b feat: bind LLC hardware overview to current run`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
+- 本计划记录单独提交：`docs: record LLC hardware overview step 6`，独立提交并 push。
