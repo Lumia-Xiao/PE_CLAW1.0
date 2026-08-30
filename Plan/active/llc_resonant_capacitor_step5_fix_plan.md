@@ -135,7 +135,7 @@
 - [x] 第 1 步：统一 10% 约束合同
 - [x] 第 2 步：LLC Cr 专项测试和候选状态
 - [x] 第 3 步：旧 Cr artifact 生命周期
-- [ ] 第 4 步：结构化报告和 GUI 接入
+- [x] 第 4 步：结构化报告和 GUI 接入
 - [ ] 第 5 步：清理旧输出和端到端验收
 
 ## 9. 执行记录
@@ -146,7 +146,7 @@
 | 第 1 步 | 已完成 | `fed2fef` | 已 push | `33 passed`；compileall、diff-check 通过 |
 | 第 2 步 | 已完成 | `2a8dbef` | 已 push | `37 passed`；compileall、diff-check 通过 |
 | 第 3 步 | 已完成 | `853aecc` | 已 push | `38 passed`；compileall、diff-check 通过 |
-| 第 4 步 | 未开始 | - | - | - |
+| 第 4 步 | 已完成 | 待提交 | 待 push | `40 passed`；compileall、diff-check 通过 |
 | 第 5 步 | 未开始 | - | - | - |
 
 ### 第 1 步执行记录
@@ -173,3 +173,13 @@
 - 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step3`，结果 `38 passed`。
 - `PYTHONPATH=src python -m compileall -q src tests` 和 `git diff --check` 通过。
 - Commit：`853aecc`；Push：已 push。
+
+### 第 4 步执行记录
+
+- 结构化报告新增 `capacitor.llc_resonant` payload，输出搜索状态、Cr target、推荐 design ID/part、bank capacitance、容量误差、10% hard limit/warning threshold、evaluated/feasible/Pareto/chosen counts、拒绝统计、near-miss 和本次 artifact 路径。
+- Capacitor 页面摘要新增 LLC Cr 区域，明确显示推荐、容量误差、约束状态、无推荐原因、拒绝统计和 artifact 路径；普通 input/output capacitor 展示逻辑保持不变。
+- Capacitor Pareto 页面新增 LLC Cr 动态标签页，从搜索结果的 Pareto PNG、CSV 和候选对象读取数据，不回退到固定历史输出路径。
+- 新增有推荐和无推荐两类报告/UI 一致性测试，核对推荐 ID、容量误差、10% 状态和超限 near-miss。
+- 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_reporting_step5.py tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step4`，结果 `40 passed`。
+- `PYTHONPATH=src python -m compileall -q src tests` 和 `git diff --check` 通过。
+- Commit：待提交；Push：待 push。

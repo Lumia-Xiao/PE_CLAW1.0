@@ -269,6 +269,11 @@ def build_capacitor_summary_text(report: DesignReport) -> str:
         lines.extend(["", "Warnings"])
         lines.extend(f"  {warning}" for warning in result.warnings)
 
+    llc_search = result.llc_resonant_capacitor_search_result
+    if llc_search is not None:
+        lines.extend(["", "LLC resonant capacitor (Cr)"])
+        lines.extend(_llc_resonant_lines(llc_search))
+
     if _uses_single_dc_link_capacitor_view(report):
         lines.extend(["", "DC-link capacitor"])
         lines.extend(_side_lines(result.output_selection, display_label=_side_section_label(report, "output")))
@@ -282,6 +287,57 @@ def build_capacitor_summary_text(report: DesignReport) -> str:
     lines.extend(_side_lines(result.output_selection, display_label=_side_section_label(report, "output")))
     lines.extend(_current_operating_lines(result.current_operating_output))
     return "\n".join(lines)
+
+
+def _llc_resonant_lines(search) -> list[str]:
+    request = search.request
+    limit = search.coverage_summary.get("capacitance_error_limit_percent")
+    recommended = search.recommended_candidate
+    status = "pass" if recommended is not None else "fail" if request is not None else "not evaluated"
+    lines = [
+        f"  status: {status}",
+        f"  Cr target: {_fmt_si(getattr(request, 'cr_target_f', None), 1e9, 'nF')}",
+        f"  capacitance error limit: +/-{_fmt_float(limit)} %",
+        f"  evaluated candidates: {len(search.candidates)}",
+        f"  feasible candidates: {len(search.feasible_candidates)}",
+        f"  Pareto candidates: {len(search.pareto_candidates)}",
+        f"  chosen candidates: {len(search.chosen_candidates)}",
+    ]
+    if recommended is None:
+        lines.append("  recommended: none")
+        lines.append(f"  reason: {_llc_no_recommendation_reason(search)}")
+    else:
+        lines.extend(
+            [
+                f"  recommended: {recommended.design_id}",
+                f"  part: {recommended.part_number} / {recommended.series or '-'}",
+                f"  bank capacitance: {_fmt_si(recommended.bank_capacitance_f, 1e9, 'nF')}",
+                f"  capacitance error: {_fmt_float(recommended.capacitance_error_percent)} %",
+                f"  constraint status: {'pass' if limit is not None and abs(recommended.capacitance_error_percent) <= float(limit) else 'fail'}",
+            ]
+        )
+    if search.rejection_counts:
+        lines.append(f"  rejection counts: {_format_rejection_counts(search.rejection_counts)}")
+    artifacts = [
+        search.feasible_csv_path,
+        search.pareto_csv_path,
+        search.chosen_csv_path,
+        search.near_miss_csv_path,
+        search.pareto_png_path,
+        *search.geometry_artifact_paths,
+    ]
+    artifacts = [path for path in artifacts if path]
+    if artifacts:
+        lines.extend(["", "  Artifacts", *(f"    {path}" for path in artifacts)])
+    return lines
+
+
+def _llc_no_recommendation_reason(search) -> str:
+    if search.request is None:
+        return "LLC resonant capacitor request is missing."
+    if search.warnings:
+        return search.warnings[0]
+    return "No feasible LLC resonant capacitor candidate."
 
 
 def _uses_single_dc_link_capacitor_view(report: DesignReport | None) -> bool:

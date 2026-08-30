@@ -239,7 +239,7 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
 def _capacitor_payload(report: DesignReport) -> dict[str, Any]:
     capacitor = report.capacitor
     if capacitor is None:
-        return {"available": False, "input": {}, "output": {}, "metadata": {}}
+        return {"available": False, "input": {}, "output": {}, "llc_resonant": {}, "metadata": {}}
 
     def side_payload(side: Any, source: str) -> dict[str, Any]:
         entry = getattr(side, "recommended", None) if side is not None else None
@@ -255,10 +255,70 @@ def _capacitor_payload(report: DesignReport) -> dict[str, Any]:
             "selection_status": "pass" if entry is not None else "not_evaluated",
         }
 
+    llc_search = getattr(capacitor, "llc_resonant_capacitor_search_result", None)
+    llc_request = getattr(llc_search, "request", None) if llc_search is not None else None
+    llc_recommended = getattr(llc_search, "recommended_candidate", None) if llc_search is not None else None
+    coverage = getattr(llc_search, "coverage_summary", {}) or {}
+
+    def near_miss_payload(candidate: Any) -> dict[str, Any] | None:
+        if candidate is None:
+            return None
+        return {
+            "design_id": getattr(candidate, "design_id", None),
+            "bank_capacitance": _metric(getattr(candidate, "bank_capacitance_f", None), "F", "capacitor.llc_resonant.near_miss"),
+            "capacitance_error": _metric(getattr(candidate, "capacitance_error_percent", None), "%", "capacitor.llc_resonant.near_miss"),
+            "rejection_reason": getattr(candidate, "rejection_reason", ""),
+        }
+
+    llc_status = "not_evaluated"
+    if llc_search is not None and llc_request is not None:
+        llc_status = "pass" if llc_recommended is not None else "fail"
+    llc_payload = {
+        "available": llc_search is not None,
+        "status": llc_status,
+        "target": _metric(getattr(llc_request, "cr_target_f", None), "F", "capacitor.llc_resonant.request"),
+        "constraint": {
+            "capacitance_error_limit": _metric(coverage.get("capacitance_error_limit_percent"), "%", "capacitor.llc_resonant.constraint"),
+            "capacitance_warning_threshold": _metric(coverage.get("capacitance_warning_percent"), "%", "capacitor.llc_resonant.constraint"),
+            "source": coverage.get("capacitance_constraint_source"),
+        },
+        "counts": {
+            "evaluated": _metric(len(getattr(llc_search, "candidates", []) or []) if llc_search is not None else None, "count", "capacitor.llc_resonant.search"),
+            "feasible": _metric(len(getattr(llc_search, "feasible_candidates", []) or []) if llc_search is not None else None, "count", "capacitor.llc_resonant.search"),
+            "pareto": _metric(len(getattr(llc_search, "pareto_candidates", []) or []) if llc_search is not None else None, "count", "capacitor.llc_resonant.search"),
+            "chosen": _metric(len(getattr(llc_search, "chosen_candidates", []) or []) if llc_search is not None else None, "count", "capacitor.llc_resonant.search"),
+        },
+        "recommended": {
+            "design_id": getattr(llc_recommended, "design_id", None),
+            "part_number": getattr(llc_recommended, "part_number", None),
+            "bank_capacitance": _metric(getattr(llc_recommended, "bank_capacitance_f", None), "F", "capacitor.llc_resonant.recommended"),
+            "capacitance_error": _metric(getattr(llc_recommended, "capacitance_error_percent", None), "%", "capacitor.llc_resonant.recommended"),
+        },
+        "rejection_counts": dict(getattr(llc_search, "rejection_counts", {}) or {}),
+        "near_miss": {
+            "closest_absolute_error": near_miss_payload(getattr(llc_search, "closest_absolute_error_bank", None)),
+            "lowest_loss": near_miss_payload(getattr(llc_search, "lowest_loss_near_miss", None)),
+            "lowest_volume": near_miss_payload(getattr(llc_search, "lowest_volume_near_miss", None)),
+        },
+        "artifact_paths": {
+            key: value
+            for key, value in {
+                "feasible_csv": getattr(llc_search, "feasible_csv_path", ""),
+                "near_miss_csv": getattr(llc_search, "near_miss_csv_path", ""),
+                "pareto_csv": getattr(llc_search, "pareto_csv_path", ""),
+                "chosen_csv": getattr(llc_search, "chosen_csv_path", ""),
+                "pareto_png": getattr(llc_search, "pareto_png_path", ""),
+            }.items()
+            if value
+        },
+        "warnings": list(getattr(llc_search, "warnings", []) or []),
+    }
+
     return {
         "available": True,
         "input": side_payload(getattr(capacitor, "input_selection", None), "capacitor.input_selection"),
         "output": side_payload(getattr(capacitor, "output_selection", None), "capacitor.output_selection"),
+        "llc_resonant": llc_payload,
         "metadata": {},
     }
 

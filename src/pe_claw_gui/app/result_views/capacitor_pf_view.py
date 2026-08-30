@@ -18,10 +18,11 @@ from ...models.capacitor import (
 )
 from ...models.design_report import DesignReport
 
-_SIDES = ("input", "output")
+_SIDES = ("input", "output", "llc_resonant")
 _SIDE_LABELS = {
     "input": "Input capacitor",
     "output": "Output capacitor",
+    "llc_resonant": "LLC resonant capacitor (Cr)",
 }
 
 
@@ -68,6 +69,7 @@ class CapacitorPFView(ttk.Frame):
             splitter.add(summary_host, weight=1)
 
             self._side_widgets[side] = {
+                "side_host": side_host,
                 "splitter": splitter,
                 "plot_host": plot_host,
                 "placeholder": placeholder,
@@ -81,12 +83,26 @@ class CapacitorPFView(ttk.Frame):
 
     def render(self, report: DesignReport | None) -> None:
         self._clear_canvases()
+        self._configure_tabs(report)
         self._plot_paths = resolve_capacitor_pf_plot_paths(report)
         self.message.configure(text="Capacitor Pareto front plots and compact selection metadata.")
         for side in _SIDES:
             path = self._plot_paths.get(side)
             self._set_summary_text(side, build_capacitor_pf_side_summary(report, side, path))
             self._render_plot(side, path)
+
+    def _configure_tabs(self, report: DesignReport | None) -> None:
+        llc_search = (
+            report.capacitor.llc_resonant_capacitor_search_result
+            if report is not None and report.capacitor is not None
+            else None
+        )
+        llc_tab = self._side_widgets["llc_resonant"]["side_host"]
+        visible = str(llc_tab) in self.side_tabs.tabs()
+        if llc_search is not None and not visible:
+            self.side_tabs.add(llc_tab, text=_SIDE_LABELS["llc_resonant"])
+        elif llc_search is None and visible:
+            self.side_tabs.forget(llc_tab)
 
     def _render_plot(self, side: str, path: Path | None) -> None:
         placeholder = self._side_widgets[side]["placeholder"]
@@ -132,6 +148,13 @@ def resolve_capacitor_pf_plot_paths(report: DesignReport | None) -> dict[str, Pa
     if report is None or report.capacitor is None:
         return paths
     for side in _SIDES:
+        if side == "llc_resonant":
+            search = report.capacitor.llc_resonant_capacitor_search_result
+            if search is not None and search.pareto_png_path:
+                artifact = Path(search.pareto_png_path)
+                if artifact.exists():
+                    paths[side] = artifact
+            continue
         artifact = _find_side_artifact(report, side, suffix=f"{side}_capacitor_pareto_front.png")
         if artifact is None:
             fallback = _project_root() / "outputs" / "capacitor_design" / f"{side}_capacitor_pareto_front.png"
@@ -146,6 +169,9 @@ def build_capacitor_pf_side_summary(report: DesignReport | None, side: str, plot
 
     if report is None or report.capacitor is None:
         return f"{_SIDE_LABELS[side]} Pareto-front data is not available. Please run design first."
+
+    if side == "llc_resonant":
+        return _build_llc_resonant_pf_summary(report, plot_path)
 
     side_result = report.capacitor.input_selection if side == "input" else report.capacitor.output_selection
     if side_result is None or side_result.request is None:
@@ -188,6 +214,59 @@ def build_capacitor_pf_side_summary(report: DesignReport | None, side: str, plot
         lines.extend(["", "Warnings"])
         lines.extend(f"  {warning}" for warning in side_result.warnings)
     return "\n".join(lines)
+
+
+def _build_llc_resonant_pf_summary(report: DesignReport, plot_path: Path | None) -> str:
+    search = report.capacitor.llc_resonant_capacitor_search_result
+    if search is None:
+        return "LLC resonant capacitor (Cr) Pareto-front data is not available."
+    request = search.request
+    recommended = search.recommended_candidate
+    limit = search.coverage_summary.get("capacitance_error_limit_percent")
+    status = "pass" if recommended is not None else "fail" if request is not None else "not evaluated"
+    lines = [
+        "LLC resonant capacitor (Cr) Pareto front",
+        f"  status: {status}",
+        f"  Cr target: {_fmt_si(getattr(request, 'cr_target_f', None), 1e9, 'nF')}",
+        f"  capacitance error limit: +/-{_fmt_float(limit)} %",
+        f"  evaluated candidates: {len(search.candidates)}",
+        f"  feasible candidates: {len(search.feasible_candidates)}",
+        f"  Pareto candidates: {len(search.pareto_candidates)}",
+        f"  chosen candidates: {len(search.chosen_candidates)}",
+        "",
+        "Representatives",
+        _llc_representative_line("recommended", recommended),
+        _llc_representative_line("min-volume", search.min_volume_candidate),
+        _llc_representative_line("min-loss", search.min_loss_candidate),
+        _llc_representative_line("compromise", search.compromise_candidate),
+    ]
+    if recommended is None:
+        reason = search.warnings[0] if search.warnings else "No feasible LLC resonant capacitor candidate."
+        lines.extend(["", f"No recommendation: {reason}"])
+    artifacts = [
+        ("feasible CSV", search.feasible_csv_path),
+        ("Pareto CSV", search.pareto_csv_path),
+        ("chosen CSV", search.chosen_csv_path),
+        ("near-miss CSV", search.near_miss_csv_path),
+        ("Pareto PNG", str(plot_path) if plot_path is not None else ""),
+    ]
+    artifacts = [(label, path) for label, path in artifacts if path]
+    if artifacts:
+        lines.extend(["", "Artifacts", *(f"  {label}: {path}" for label, path in artifacts)])
+    active = [f"{key}={value}" for key, value in search.rejection_counts.items() if value]
+    if active:
+        lines.extend(["", f"Rejection counts: {', '.join(active)}"])
+    return "\n".join(lines)
+
+
+def _llc_representative_line(label: str, candidate) -> str:
+    if candidate is None:
+        return f"  {label}: -"
+    return (
+        f"  {label}: {candidate.design_id}, C={_fmt_si(candidate.bank_capacitance_f, 1e9, 'nF')}, "
+        f"error={_fmt_float(candidate.capacitance_error_percent)} %, "
+        f"volume={_fmt_float(candidate.estimated_volume_cm3)} cm^3, loss={_fmt_float(candidate.loss_w)} W"
+    )
 
 
 def _representative_line(label: str, entry: CapacitorSelectionEntry | None) -> str:

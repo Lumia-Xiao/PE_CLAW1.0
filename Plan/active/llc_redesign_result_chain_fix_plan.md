@@ -595,3 +595,11 @@
 - 新增重复运行测试，确认第二次无候选时不会继承第一次的 Pareto 图、推荐几何或推荐对象。
 - 验证：相关 LLC Cr 和通用电容测试共 `38 passed`；compileall、`git diff --check` 通过。
 - Commit：`853aecc`；Push：已 push。
+
+### 第 4 步：接入 LLC Cr 结构化报告和 GUI
+
+- 结构化报告新增 `capacitor.llc_resonant`，统一输出 Cr target、推荐 ID、容量误差、10% 约束、候选计数、拒绝统计、near-miss 和 artifact 路径。
+- Capacitor 摘要和 Capacitor Pareto 页面均接入 LLC Cr 结果；有推荐和无推荐状态都显示明确结果，不读取固定历史路径作为当前结果。
+- 新增报告/UI 一致性回归测试，验证推荐 ID、容量误差、约束状态和 near-miss 与搜索结果一致。
+- 验证：相关 LLC Cr、结构化报告和普通电容测试共 `40 passed`；compileall、`git diff --check` 通过。
+- Commit：待提交；Push：待 push。
