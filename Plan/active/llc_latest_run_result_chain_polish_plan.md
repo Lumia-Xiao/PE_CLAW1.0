@@ -337,7 +337,7 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 
 | 步骤 | 状态 | 实现 commit | 计划记录 commit | push | 测试/验收 |
 | --- | --- | --- | --- | --- | --- |
-| 第 1 步 | `completed` | `b349847` | pending | pending | `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_latest_run_result_chain_polish_step1.py tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_result_display_step2.py tests/test_llc_magnetic_result_reporting_step5.py` -> `20 passed`; evidence fixture generated |
+| 第 1 步 | `completed` | `b349847` | `2311c67` | `pushed` | `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_latest_run_result_chain_polish_step1.py tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_result_display_step2.py tests/test_llc_magnetic_result_reporting_step5.py` -> `20 passed`; evidence fixture generated |
 | 第 2 步 | `pending` | - | - | - | - |
 | 第 3 步 | `pending` | - | - | - | - |
 | 第 4 步 | `pending` | - | - | - | - |
@@ -354,8 +354,8 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 - Evidence：
   `migration/evidence/20260830/llc_latest_run_result_chain_polish_step1/llc_latest_run_result_chain_polish_step1_baseline.json`
 - 验证：专项及历史相关测试共 `20 passed`。
-- 计划记录 commit：待提交。
-- Push：待执行。
+- 计划记录 commit：`2311c67 docs: record LLC result-chain baseline step`。
+- Push：已成功推送到 `origin/codex/sync-gui-backend-from-2`。
 
 ## 8. 预期结果
 
