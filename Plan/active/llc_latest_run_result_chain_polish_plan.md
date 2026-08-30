@@ -342,7 +342,7 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 | 第 3 步 | `completed` | `f6ee297` | `pending` | `pushed` | LLC 全量 `99 passed in 104.41s`；受影响专项 `21 passed`；全仓库 `433 passed, 1 skipped`，另有既有 AC-DC Tk/Tcl 环境错误和 1 个既有 GUI 断言失败，详见本步记录 |
 | 第 4 步 | `completed` | `74291cb` | `pending` | `pushed` | LLC 全量 `101 passed in 102.98s`；第 4 步及相关结构化输出专项 `25 passed` |
 | 第 5 步 | `completed` | `981308d` | `pending` | `pushed` | 专项 `17 passed`；LLC 全量 `111 passed, 343 deselected`；编译与 `git diff --check` 通过 |
-| 第 6 步 | `pending` | - | - | - | - |
+| 第 6 步 | `completed` | `b651c58` | `pending` | `pushed` | warning/manifest 专项 `10 passed`；manifest/hardware 回归 `9 passed`；LLC 全量 `115 passed, 343 deselected`；AC-DC 先决条件 `1 passed, 16 deselected` |
 | 第 7 步 | `pending` | - | - | - | - |
 | 第 8 步 | `pending` | - | - | - | - |
 
@@ -406,6 +406,25 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
     后完成通过；该环境问题未产生代码失败。
 - 计划记录 commit：`cfe75ec docs: record LLC geometry roles step`。
 - Push：实现提交和计划记录提交均已成功推送到 `origin/codex/sync-gui-backend-from-2`。
+
+### 第 6 步执行记录
+
+- 实现 commit：`b651c58 fix: reconcile LLC magnetic warning states`。
+- 本步内容：修复效率 sweep 对 LLC 错用通用固定电感 `chosen_designs` 判断的问题；当前
+  LLC 专用依赖校验通过时不再追加
+  `Magnetic design has not been run; magnetic loss is omitted.`。manifest warning 汇总
+  增加状态感知过滤，仅在当前 LLC 磁件阶段为 `succeeded`、结果类型为分离式 LLC、组合
+  contract 完整且 loss 推荐 ID/总损耗与 contract 一致时清除这条历史陈旧 warning。
+  磁件 blocked、未运行、结果类型不匹配、loss 推荐不匹配及非 LLC 拓扑仍保留原 warning；
+  first-pass 磁件、几何 proxy 和热模型限制说明不受影响。
+- 测试：
+  - warning/manifest 专项：`10 passed`。
+  - manifest、hardware overview、几何和结果链回归：`9 passed`。
+  - 全部 LLC 相关测试：`115 passed, 343 deselected in 130.84s`。
+  - AC-DC 非 LLC 先决条件回归：`1 passed, 16 deselected in 291.87s`。
+  - 全源码编译、`git diff --check`：通过。
+- 计划记录 commit：待提交。
+- Push：实现提交已成功推送到 `origin/codex/sync-gui-backend-from-2`；计划记录提交待推送。
 
 ### 第 4 步执行记录
 
