@@ -341,7 +341,7 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 | 第 2 步 | `completed` | `27ab107` | `3d21f5a` | `pushed` | 专项 `23 passed`；相关回归 `14 passed`；完整 LLC 回归 `96 passed` |
 | 第 3 步 | `completed` | `f6ee297` | `pending` | `pushed` | LLC 全量 `99 passed in 104.41s`；受影响专项 `21 passed`；全仓库 `433 passed, 1 skipped`，另有既有 AC-DC Tk/Tcl 环境错误和 1 个既有 GUI 断言失败，详见本步记录 |
 | 第 4 步 | `completed` | `74291cb` | `pending` | `pushed` | LLC 全量 `101 passed in 102.98s`；第 4 步及相关结构化输出专项 `25 passed` |
-| 第 5 步 | `pending` | - | - | - | - |
+| 第 5 步 | `completed` | `981308d` | `pending` | `pushed` | 专项 `17 passed`；LLC 全量 `111 passed, 343 deselected`；编译与 `git diff --check` 通过 |
 | 第 6 步 | `pending` | - | - | - | - |
 | 第 7 步 | `pending` | - | - | - | - |
 | 第 8 步 | `pending` | - | - | - | - |
@@ -387,6 +387,25 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
     均不涉及本步 LLC 改动。
 - 计划记录 commit：待提交。
 - Push：实现提交已成功推送；计划记录提交待推送。
+
+### 第 5 步执行记录
+
+- 实现 commit：`981308d fix: align LLC geometry representatives and roles`。
+- 本步内容：为 `GeometryTarget` 增加 `component_role` 和 `representative_role`；LLC 外置
+  `Lr` 几何代表项优先从 `chosen_candidates` 读取，并由专用
+  `recommended_candidate`、`min_volume_candidate`、`min_loss_candidate` 和
+  `compromise_candidate` 字段补齐；缺失代表项保留对应几何比较列并明确显示 unavailable，
+  不再静默复制或伪造推荐项；当专用推荐不存在时，推荐几何仅明确标注由真实 Pareto
+  compromise 代表项承接。几何页面、LLC 文本摘要和 structured output 均输出组件角色与
+  代表项来源，外置 `Lr` 继续使用独立的 artifact 命名和目录，不能被当作 LLC 变压器几何。
+- 测试：
+  - 第 5 步专项、报告、外置 Lr 持久化和硬件总览：`17 passed`。
+  - 全部 LLC 相关测试：`111 passed, 343 deselected in 114.24s`。
+  - 全源码编译、`git diff --check`：通过。
+  - 首次定向测试遇到系统 pytest 临时目录权限错误，改用工程内隔离 `--basetemp`
+    后完成通过；该环境问题未产生代码失败。
+- 计划记录 commit：待提交。
+- Push：实现提交已成功推送到 `origin/codex/sync-gui-backend-from-2`；计划记录提交待推送。
 
 ### 第 4 步执行记录
 
