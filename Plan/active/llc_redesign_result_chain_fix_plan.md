@@ -715,5 +715,6 @@
 
 ### 提交记录
 
-- 第八步功能与验收提交：待提交。
-- 第八步计划记录提交：待提交。
+- 第八步功能与验收提交：`a51f695 fix: close LLC end-to-end acceptance chain`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
+- 第八步计划与真实验收证据提交：`7fd6150 docs: record LLC end-to-end acceptance step 8`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
+- 本计划最终追溯提交：待提交。
