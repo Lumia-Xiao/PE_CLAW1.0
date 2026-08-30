@@ -435,7 +435,7 @@
 - [x] 第 2 步：LLC 变压器结果生成和持久化
 - [x] 第 3 步：外置谐振电感结果链路
 - [x] 第 4 步：磁件参数和结果 ID 统一
-- [ ] 第 5 步：谐振电容推荐约束
+- [x] 第 5 步：谐振电容推荐约束
 - [ ] 第 6 步：几何、硬件总览和旧引用
 - [ ] 第 7 步：效率扫描、报告和最终 manifest
 - [ ] 第 8 步：回归测试和全流程验收
@@ -602,4 +602,15 @@
 - Capacitor 摘要和 Capacitor Pareto 页面均接入 LLC Cr 结果；有推荐和无推荐状态都显示明确结果，不读取固定历史路径作为当前结果。
 - 新增报告/UI 一致性回归测试，验证推荐 ID、容量误差、约束状态和 near-miss 与搜索结果一致。
 - 验证：相关 LLC Cr、结构化报告和普通电容测试共 `40 passed`；compileall、`git diff --check` 通过。
+- Commit：`090c8fe`；Push：已 push。
+
+### 第 5 步：修复 LLC 谐振电容推荐约束执行记录
+
+- LLC Cr hard limit 和 warning threshold 均为 10%，并已通过 9.99%、10.00%、10.01% 边界测试。
+- 搜索入口会清理 LLC Cr 专用旧 CSV、Pareto 图和推荐几何；无候选时不继承旧推荐，并写出稳定的空结果 CSV。
+- chosen CSV 已记录 `is_pareto`、`recommended_flag` 和 `rejection_reason`，结构化报告及 GUI 摘要均绑定当前搜索结果。
+- 清理旧输出后完成真实默认 LLC 全流程运行：run ID `93dbd36d8e094051b9837acf2a02024d`，Cr 推荐 `Cr_R76PF2220_1_30_2_N4`，目标 `80.701851 nF`，bank `88 nF`，误差 `9.043347%`，限制 `10%`。
+- 本次搜索 evaluated=`158980`、feasible=`443`、Pareto=`5`、chosen=`3`；near-miss=`157715`，全部以 `capacitance_error` 拒绝；最新产物不含 `exceeds 5%` 旧文案。
+- 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_reporting_step5.py tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py tests/test_llc_magnetic_result_reporting_step5.py -q --basetemp .pytest-tmp-step5-final`，结果 `45 passed`。
+- `PYTHONPATH=src python -m compileall -q src tests` 和 `git diff --check` 通过。
 - Commit：待提交；Push：待 push。

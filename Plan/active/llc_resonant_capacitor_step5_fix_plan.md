@@ -136,7 +136,7 @@
 - [x] 第 2 步：LLC Cr 专项测试和候选状态
 - [x] 第 3 步：旧 Cr artifact 生命周期
 - [x] 第 4 步：结构化报告和 GUI 接入
-- [ ] 第 5 步：清理旧输出和端到端验收
+- [x] 第 5 步：清理旧输出和端到端验收
 
 ## 9. 执行记录
 
@@ -146,8 +146,8 @@
 | 第 1 步 | 已完成 | `fed2fef` | 已 push | `33 passed`；compileall、diff-check 通过 |
 | 第 2 步 | 已完成 | `2a8dbef` | 已 push | `37 passed`；compileall、diff-check 通过 |
 | 第 3 步 | 已完成 | `853aecc` | 已 push | `38 passed`；compileall、diff-check 通过 |
-| 第 4 步 | 已完成 | 待提交 | 待 push | `40 passed`；compileall、diff-check 通过 |
-| 第 5 步 | 未开始 | - | - | - |
+| 第 4 步 | 已完成 | `090c8fe` | 已 push | `40 passed`；compileall、diff-check 通过 |
+| 第 5 步 | 已完成 | 待提交 | 待 push | 端到端 `pass`；`45 passed`；compileall、diff-check 通过 |
 
 ### 第 1 步执行记录
 
@@ -182,4 +182,18 @@
 - 新增有推荐和无推荐两类报告/UI 一致性测试，核对推荐 ID、容量误差、10% 状态和超限 near-miss。
 - 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_reporting_step5.py tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step4`，结果 `40 passed`。
 - `PYTHONPATH=src python -m compileall -q src tests` 和 `git diff --check` 通过。
+- Commit：`090c8fe`；Push：已 push。
+
+### 第 5 步执行记录
+
+- 使用 LLC Cr 专用清理函数清空旧的 `outputs/resonant_capacitor_design`，没有修改源代码或其他拓扑输出。
+- 使用最新代码完成一次真实默认 LLC 全流程运行，run ID 为 `93dbd36d8e094051b9837acf2a02024d`。
+- 端到端结果：`status=pass`，evaluated=`158980`，feasible=`443`，Pareto=`5`，chosen=`3`。
+- 推荐结果：`Cr_R76PF2220_1_30_2_N4`，bank=`88 nF`，Cr target=`80.701851 nF`，容量误差=`9.043347%`，hard limit=`10%`。
+- chosen CSV 已包含 `is_pareto`、`recommended_flag`、`rejection_reason` 字段；推荐候选误差不超过 10%。
+- near-miss CSV 共 `157715` 条，拒绝原因全部为 `capacitance_error`；旧文案 `exceeds 5%` 出现次数为 `0`。
+- 结构化报告、Capacitor 摘要、Pareto 摘要和 chosen CSV 均从本次 LLC Cr 搜索结果读取，推荐 ID 一致；无推荐测试也验证了明确失败状态。
+- 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_reporting_step5.py tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py tests/test_llc_magnetic_result_reporting_step5.py -q --basetemp .pytest-tmp-step5-final`，结果 `45 passed`。
+- 验证：`PYTHONPATH=src python -m compileall -q src tests` 通过；`git diff --check` 通过。
+- 输出目录：`outputs/resonant_capacitor_design`；生成 13 个 LLC Cr artifact，均为本次运行结果。
 - Commit：待提交；Push：待 push。
