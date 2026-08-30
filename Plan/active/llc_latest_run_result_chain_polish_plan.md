@@ -339,12 +339,12 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 | --- | --- | --- | --- | --- | --- |
 | 第 1 步 | `completed` | `b349847` | `2311c67` | `pushed` | `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_latest_run_result_chain_polish_step1.py tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_result_display_step2.py tests/test_llc_magnetic_result_reporting_step5.py` -> `20 passed`; evidence fixture generated |
 | 第 2 步 | `completed` | `27ab107` | `3d21f5a` | `pushed` | 专项 `23 passed`；相关回归 `14 passed`；完整 LLC 回归 `96 passed` |
-| 第 3 步 | `completed` | `f6ee297` | `pending` | `pushed` | LLC 全量 `99 passed in 104.41s`；受影响专项 `21 passed`；全仓库 `433 passed, 1 skipped`，另有既有 AC-DC Tk/Tcl 环境错误和 1 个既有 GUI 断言失败，详见本步记录 |
-| 第 4 步 | `completed` | `74291cb` | `pending` | `pushed` | LLC 全量 `101 passed in 102.98s`；第 4 步及相关结构化输出专项 `25 passed` |
-| 第 5 步 | `completed` | `981308d` | `pending` | `pushed` | 专项 `17 passed`；LLC 全量 `111 passed, 343 deselected`；编译与 `git diff --check` 通过 |
-| 第 6 步 | `completed` | `b651c58` | `pending` | `pushed` | warning/manifest 专项 `10 passed`；manifest/hardware 回归 `9 passed`；LLC 全量 `115 passed, 343 deselected`；AC-DC 先决条件 `1 passed, 16 deselected` |
-| 第 7 步 | `completed` | `85092bf` | `pending` | `pushed` | 文本序列化专项 `11 passed`；结构化输出相关回归 `8 passed`；LLC 全量 `118 passed, 343 deselected`；`git diff --check` 通过 |
-| 第 8 步 | `completed` | `无代码变更（验收）` | `pending` | `pushed` | 隔离 E2E manifest `valid=true`；独立 validator 通过；64 个 artifact 全部存在且非空；LLC 全量 `118 passed, 343 deselected`；受影响回归 `23 passed` |
+| 第 3 步 | `completed` | `f6ee297` | `2b5c1e0` | `pushed` | LLC 全量 `99 passed in 104.41s`；受影响专项 `21 passed`；全仓库 `433 passed, 1 skipped`，另有既有 AC-DC Tk/Tcl 环境错误和 1 个既有 GUI 断言失败，详见本步记录 |
+| 第 4 步 | `completed` | `74291cb` | `a985290` | `pushed` | LLC 全量 `101 passed in 102.98s`；第 4 步及相关结构化输出专项 `25 passed` |
+| 第 5 步 | `completed` | `981308d` | `cfe75ec` | `pushed` | 专项 `17 passed`；LLC 全量 `111 passed, 343 deselected`；编译与 `git diff --check` 通过 |
+| 第 6 步 | `completed` | `b651c58` | `9292bd6` | `pushed` | warning/manifest 专项 `10 passed`；manifest/hardware 回归 `9 passed`；LLC 全量 `115 passed, 343 deselected`；AC-DC 先决条件 `1 passed, 16 deselected` |
+| 第 7 步 | `completed` | `85092bf` | `d414dc3` | `pushed` | 文本序列化专项 `11 passed`；结构化输出相关回归 `8 passed`；LLC 全量 `118 passed, 343 deselected`；`git diff --check` 通过 |
+| 第 8 步 | `completed` | `无代码变更（验收）` | `1221193` | `pushed` | 隔离 E2E manifest `valid=true`；独立 validator 通过；64 个 artifact 全部存在且非空；LLC 全量 `118 passed, 343 deselected`；受影响回归 `23 passed` |
 
 ### 第 1 步执行记录
 
@@ -385,8 +385,8 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
   - 全仓库：`433 passed, 1 skipped`；其余为既有 AC-DC GUI/绘图环境问题：Python Tk
     安装缺少 `ttk/menubutton.tcl` 导致 13 个 setup error，另有 1 个 AC-DC GUI 断言失败，
     均不涉及本步 LLC 改动。
-- 计划记录 commit：待提交。
-- Push：实现提交已成功推送；计划记录提交待推送。
+- 计划记录 commit：`2b5c1e0 docs: record LLC thermal result step`。
+- Push：实现提交和计划记录提交均已成功推送到 `origin/codex/sync-gui-backend-from-2`。
 
 ### 第 5 步执行记录
 
@@ -423,8 +423,8 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
   - 全部 LLC 相关测试：`115 passed, 343 deselected in 130.84s`。
   - AC-DC 非 LLC 先决条件回归：`1 passed, 16 deselected in 291.87s`。
   - 全源码编译、`git diff --check`：通过。
-- 计划记录 commit：待提交。
-- Push：实现提交已成功推送到 `origin/codex/sync-gui-backend-from-2`；计划记录提交待推送。
+- 计划记录 commit：`9292bd6 docs: record LLC warning consistency step`。
+- Push：实现提交和计划记录提交均已成功推送到 `origin/codex/sync-gui-backend-from-2`。
 
 ### 第 4 步执行记录
 
@@ -440,8 +440,8 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
   - 全部 `test_llc_*.py`：`101 passed in 102.98s`。
   - 验收覆盖 `Cr` 实际值、`7.563%` 误差、`10%` 限制、`Lm/Lr` 实际值、频率基准、
     LLC 电流与约束字段，以及缺失 Cr 场景。
-- 计划记录 commit：待提交。
-- Push：实现提交已成功推送；计划记录提交待推送。
+- 计划记录 commit：`a985290 docs: record LLC requirements step`。
+- Push：实现提交和计划记录提交均已成功推送到 `origin/codex/sync-gui-backend-from-2`。
 
 ### 第 7 步执行记录
 
@@ -457,8 +457,8 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
   - 结构化输出相关回归：`8 passed`。
   - 全部 LLC 相关测试：`118 passed, 343 deselected in 114.84s`。
   - `git diff --check`：通过。
-- 计划记录 commit：待提交。
-- Push：实现提交已成功推送到 `origin/codex/sync-gui-backend-from-2`；计划记录提交待推送。
+- 计划记录 commit：`d414dc3 docs: record LLC text serialization step`。
+- Push：实现提交和计划记录提交均已成功推送到 `origin/codex/sync-gui-backend-from-2`。
 
 ### 第 8 步执行记录
 
@@ -486,8 +486,8 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 - 遗留风险：E2E 运行生成的隔离输出位于未跟踪的 pytest 临时目录，按计划不提交；仓库
   中既有的 `outputs/`、pytest 临时目录、Python 缓存和 `tmpmded47oq/` 仍保持未跟踪，
   未纳入本步提交。
-- 计划记录 commit：待提交。
-- Push：计划记录提交待推送。
+- 计划记录 commit：`1221193 docs: close LLC result chain acceptance`。
+- Push：计划记录提交已成功推送到 `origin/codex/sync-gui-backend-from-2`。
 
 ## 8. 预期结果
 
