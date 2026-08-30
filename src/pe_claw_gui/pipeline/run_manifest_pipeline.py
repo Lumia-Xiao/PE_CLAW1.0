@@ -235,4 +235,31 @@ def _warnings(report: DesignReport, hardware_overview: Any | None) -> list[str]:
     warnings = list(report.notes)
     warnings.extend(getattr(report.efficiency_sweep, "warnings", ()) if report.efficiency_sweep is not None else ())
     warnings.extend(getattr(hardware_overview, "warnings", []) if hardware_overview is not None else [])
+    if _llc_magnetic_result_is_available(report):
+        warnings = [warning for warning in warnings if warning != _STALE_GENERIC_MAGNETIC_WARNING]
     return list(dict.fromkeys(str(item) for item in warnings if item))
+
+
+_STALE_GENERIC_MAGNETIC_WARNING = "Magnetic design has not been run; magnetic loss is omitted."
+
+
+def _llc_magnetic_result_is_available(report: DesignReport) -> bool:
+    """Return true only when the current LLC magnetic result is complete enough for loss reporting."""
+
+    if not is_llc_topology(report.spec.topology_id):
+        return False
+    magnetic = report.magnetic
+    context = report.llc_run_context
+    contract = getattr(magnetic, "llc_magnetic_contract", None) if magnetic is not None else None
+    loss = report.loss
+    return bool(
+        context is not None
+        and context.stage_status.get("magnetics") == "succeeded"
+        and magnetic is not None
+        and getattr(magnetic, "result_type", "") == "separated_llc_transformer"
+        and contract is not None
+        and getattr(contract, "combined_magnetic_design_id", None)
+        and loss is not None
+        and loss.recommended_design_id == contract.combined_magnetic_design_id
+        and loss.total_loss_w is not None
+    )

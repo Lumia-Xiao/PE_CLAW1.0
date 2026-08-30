@@ -13,7 +13,7 @@ from pe_claw_gui.models.llc_run_context import LlcRunContext
 from pe_claw_gui.models.capacitor import CapacitorResult
 from pe_claw_gui.models.magnetic_result import MagneticResult
 from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import run_efficiency_sweep
-from pe_claw_gui.pipeline.run_manifest_pipeline import build_llc_manifest, write_llc_manifest
+from pe_claw_gui.pipeline.run_manifest_pipeline import build_llc_manifest, write_llc_manifest, _warnings
 from pe_claw_gui.topologies.base.candidate import TopologyCandidate
 from pe_claw_gui.models.common_spec import CommonSpec
 
@@ -107,6 +107,60 @@ def test_llc_efficiency_sweep_records_current_run_and_fixed_parameters(tmp_path:
     assert result.run_id == report.llc_run_context.run_id
     assert result.source_ids["transformer_design_id"] == "transformer-current"
     assert result.fixed_parameters["total_lr_target_h"] == 1.2e-3
+
+
+def test_llc_efficiency_sweep_does_not_emit_generic_magnetic_warning_for_current_contract(tmp_path: Path, monkeypatch) -> None:
+    report = _base_report(tmp_path)
+    point = EfficiencySweepPoint(1.0, 1000.0, 10.0, 1000.0 / 1010.0, 2.0, 5.0, 3.0, 0.0)
+    sweep_module = importlib.import_module("pe_claw_gui.pipeline.run_efficiency_sweep_pipeline")
+    monkeypatch.setattr(sweep_module, "_evaluate_sweep_load_point", lambda *args: (point, []))
+
+    result = run_efficiency_sweep(report, plugin=SimpleNamespace(), load_points=(1.0,))
+
+    assert "Magnetic design has not been run; magnetic loss is omitted." not in result.warnings
+
+
+def test_llc_manifest_filters_only_stale_generic_warning_after_successful_magnetic_loss() -> None:
+    report = _base_report(Path("."))
+    report = replace(
+        report,
+        magnetic=replace(report.magnetic, result_type="separated_llc_transformer"),
+        loss=SimpleNamespace(
+            recommended_design_id="transformer-current+external-current",
+            total_loss_w=5.0,
+        ),
+        efficiency_sweep=SimpleNamespace(
+            warnings=("Magnetic design has not been run; magnetic loss is omitted.",)
+        ),
+    )
+
+    assert _warnings(report, None) == []
+
+
+def test_llc_manifest_preserves_generic_warning_when_loss_does_not_match_contract() -> None:
+    report = _base_report(Path("."))
+    report = replace(
+        report,
+        magnetic=replace(report.magnetic, result_type="separated_llc_transformer"),
+        loss=SimpleNamespace(recommended_design_id="stale-design", total_loss_w=5.0),
+        efficiency_sweep=SimpleNamespace(
+            warnings=("Magnetic design has not been run; magnetic loss is omitted.",)
+        ),
+    )
+
+    assert _warnings(report, None) == ["Magnetic design has not been run; magnetic loss is omitted."]
+
+
+def test_llc_manifest_preserves_generic_warning_when_magnetic_stage_is_blocked(tmp_path: Path) -> None:
+    report = _base_report(tmp_path, complete=False)
+    report = replace(
+        report,
+        efficiency_sweep=SimpleNamespace(
+            warnings=("Magnetic design has not been run; magnetic loss is omitted.",)
+        ),
+    )
+
+    assert _warnings(report, None) == ["Magnetic design has not been run; magnetic loss is omitted."]
 
 
 def test_llc_efficiency_sweep_persists_csv_audit_artifact(tmp_path: Path, monkeypatch) -> None:

@@ -80,7 +80,9 @@ def run_efficiency_sweep(
     elif _is_ac_dc_bridge_topology(report):
         if _is_ac_dc_reactor_topology(report) and _selected_ac_dc_reactor_candidate(report) is None:
             warnings.append("AC-DC reactor magnetic design has not been run; magnetic loss is omitted.")
-    elif report.magnetic is None or not report.magnetic.chosen_designs:
+    elif not is_llc_topology(report.spec.topology_id) and (
+        report.magnetic is None or not report.magnetic.chosen_designs
+    ):
         warnings.append("Magnetic design has not been run; magnetic loss is omitted.")
 
     points: list[EfficiencySweepPoint] = []
