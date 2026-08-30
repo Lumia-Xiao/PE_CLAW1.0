@@ -338,7 +338,7 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 | 步骤 | 状态 | 实现 commit | 计划记录 commit | push | 测试/验收 |
 | --- | --- | --- | --- | --- | --- |
 | 第 1 步 | `completed` | `b349847` | `2311c67` | `pushed` | `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_latest_run_result_chain_polish_step1.py tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_result_display_step2.py tests/test_llc_magnetic_result_reporting_step5.py` -> `20 passed`; evidence fixture generated |
-| 第 2 步 | `pending` | - | - | - | - |
+| 第 2 步 | `completed` | `27ab107` | pending | pending | 专项 `23 passed`；相关回归 `14 passed`；完整 LLC 回归 `96 passed` |
 | 第 3 步 | `pending` | - | - | - | - |
 | 第 4 步 | `pending` | - | - | - | - |
 | 第 5 步 | `pending` | - | - | - | - |
@@ -356,6 +356,19 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 - 验证：专项及历史相关测试共 `20 passed`。
 - 计划记录 commit：`2311c67 docs: record LLC result-chain baseline step`。
 - Push：已成功推送到 `origin/codex/sync-gui-backend-from-2`。
+
+### 第 2 步执行记录
+
+- 实现 commit：`27ab107 fix: align LLC Pareto selection reporting`。
+- 本步内容：为 LLC 磁件 stage 增加 chosen 数量契约；成功和失败收口分支统一填充；
+  结构化输出暴露 transformer/external Lr chosen 数量；Pareto 页面改用 LLC 专用
+  组件计数和 transformer/external Lr/combined 三层推荐信息；非 LLC 页面保持原逻辑。
+- 验证：
+  - LLC 结果显示、最新基线和报告测试：`23 passed`。
+  - 持久化、外置 Lr、需求、硬件相关回归：`14 passed`。
+  - 全部 `test_llc_*.py`：`96 passed in 108.36s`。
+- 计划记录 commit：待提交。
+- Push：待执行。
 
 ## 8. 预期结果
 
