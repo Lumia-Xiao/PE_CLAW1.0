@@ -343,7 +343,7 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 | 第 4 步 | `completed` | `74291cb` | `pending` | `pushed` | LLC 全量 `101 passed in 102.98s`；第 4 步及相关结构化输出专项 `25 passed` |
 | 第 5 步 | `completed` | `981308d` | `pending` | `pushed` | 专项 `17 passed`；LLC 全量 `111 passed, 343 deselected`；编译与 `git diff --check` 通过 |
 | 第 6 步 | `completed` | `b651c58` | `pending` | `pushed` | warning/manifest 专项 `10 passed`；manifest/hardware 回归 `9 passed`；LLC 全量 `115 passed, 343 deselected`；AC-DC 先决条件 `1 passed, 16 deselected` |
-| 第 7 步 | `pending` | - | - | - | - |
+| 第 7 步 | `completed` | `85092bf` | `pending` | `pushed` | 文本序列化专项 `11 passed`；结构化输出相关回归 `8 passed`；LLC 全量 `118 passed, 343 deselected`；`git diff --check` 通过 |
 | 第 8 步 | `pending` | - | - | - | - |
 
 ### 第 1 步执行记录
@@ -442,6 +442,23 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
     LLC 电流与约束字段，以及缺失 Cr 场景。
 - 计划记录 commit：待提交。
 - Push：实现提交已成功推送；计划记录提交待推送。
+
+### 第 7 步执行记录
+
+- 实现 commit：`85092bf fix: preserve LLC thermal artifact notes`。
+- 本步内容：修复分离式 LLC 热结果分支中 artifact note 的字符串展开错误；原实现使用
+  `*` 展开完整路径字符串，导致 UI notes 按字符逐行显示。修复后路径提示作为单个
+  note 保持完整写入 `ThermalResult.notes`，不改写 Windows 路径生成，也不改变
+  结构化 JSON 的 `ensure_ascii=True` 确定性序列化策略。
+- 新增专项测试：`tests/test_llc_text_serialization_step7.py`，覆盖完整 note、Windows
+  反斜杠、下划线、空格、热页面单行显示，以及 JSON 编码/解码后的路径保真。
+- 测试：
+  - 文本序列化、热页面和磁件结果相关专项：`11 passed`。
+  - 结构化输出相关回归：`8 passed`。
+  - 全部 LLC 相关测试：`118 passed, 343 deselected in 114.84s`。
+  - `git diff --check`：通过。
+- 计划记录 commit：待提交。
+- Push：实现提交已成功推送到 `origin/codex/sync-gui-backend-from-2`；计划记录提交待推送。
 
 ## 8. 预期结果
 
