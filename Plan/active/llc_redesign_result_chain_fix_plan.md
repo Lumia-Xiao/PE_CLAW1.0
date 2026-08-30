@@ -438,7 +438,7 @@
 - [x] 第 5 步：谐振电容推荐约束
 - [x] 第 6 步：几何、硬件总览和旧引用
 - [x] 第 7 步：效率扫描、报告和最终 manifest
-- [ ] 第 8 步：回归测试和全流程验收
+- [x] 第 8 步：回归测试和全流程验收
 
 ## 10. LLC 总体计划第 7 步执行记录
 
@@ -668,3 +668,52 @@
 
 - 功能提交：`e26120b feat: bind LLC hardware overview to current run`，已 push 到 `origin/codex/sync-gui-backend-from-2`。
 - 本计划记录单独提交：`docs: record LLC hardware overview step 6`，独立提交并 push。
+
+## 15. LLC 总体计划第 8 步执行记录
+
+### 已完成的修改
+
+1. LLC 全流程入口支持显式注入当前运行的 `output_root`，并将该路径传递给 LLC 运行上下文，保证变压器、外置 Lr、电容和热结果都写入同一个隔离 run 目录。
+2. `run_full_pipeline()` 补齐 LLC 直接调用场景的阶段生命周期：设计完成后标记 `design=succeeded`，磁件和谐振电容阶段按实际结果收口，并在依赖失败时阻断后续阶段。
+3. LLC 阶段顺序调整为：
+   `design -> magnetics -> capacitors -> loss -> thermal -> geometry`。
+   非 LLC 拓扑保留原有阶段顺序，避免改变其他拓扑行为。
+4. 增加 LLC 磁件阶段收口校验：变压器和外置 Lr 均为可用状态时才标记 `magnetics=succeeded`，否则记录明确原因并标记为 `blocked`。
+5. 增加 LLC Cr 阶段收口校验：当前运行存在推荐谐振电容 bank 时才标记 `capacitors=succeeded`，无推荐时阻断后续依赖。
+6. 修复 LLC 效率依赖校验读取错误字段的问题：真实变压器搜索结果使用 `feasible_candidates` 进行当前 run candidate ID 校验，同时兼容旧测试夹具的 `candidates` 字段。
+7. 修复 LLC thermal 分支没有生成 `thermal_summary.csv` 的问题，将变压器和外置 Lr 的 first-pass hotspot/loss 数据转换为共享热摘要格式并写入当前 run 的 `thermal` 目录。
+8. 修复 LLC 效率结果缺失正式 CSV 的问题，新增当前 run 的 `efficiency_sweep/efficiency_sweep.csv`，同时保留效率曲线和损耗堆叠图。
+9. 补齐 LLC Cr 几何 artifact 回写链路，确保几何文件记录在 `CapacitorResult.artifact_paths` 中并能被 manifest 追溯。
+10. 新增 `scripts/validate_llc_step8_e2e.py`，从默认 LLC 输入开始执行隔离 run 的磁件、电容、损耗、热、几何、效率、硬件总览和 manifest 验收，并调用外部 manifest validator 返回机器可读结果。
+11. 扩展第八步验收测试，覆盖成功 manifest、阶段阻断、旧 run artifact 污染、阶段收口和效率 CSV 审计 artifact；保留变压器搜索失败、外置 Lr 失败、Cr 无推荐、几何失败、效率依赖缺失等失败场景。
+
+### 验证记录
+
+- 第八步专项及相关 LLC 回归：
+  `PYTHONPATH=src python -m pytest -q --basetemp=.pytest-tmp-step8-final tests/test_llc_step8_acceptance.py tests/test_llc_efficiency_manifest_step7.py tests/test_llc_run_context_step1.py tests/test_llc_magnetic_performance_baseline.py`
+  结果：`33 passed`。
+- LLC 全量回归：
+  `PYTHONPATH=src python -m pytest -q --basetemp=.pytest-tmp-step8-all tests/test_llc*.py`（PowerShell 使用显式文件列表展开）
+  结果：`89 passed in 101.62s`。
+- `PYTHONPATH=src python -m compileall -q src tests scripts` 通过。
+- `git diff --check` 通过。
+- 系统默认 pytest 临时目录因 Windows 权限返回 `WinError 5`，已使用工程内隔离的 `.pytest-tmp-step8-final` 和 `.pytest-tmp-step8-all` 完成验证；临时目录未加入 Git。
+
+### 真实 LLC 全流程验收
+
+- 验收脚本：`PYTHONPATH=src python scripts/validate_llc_step8_e2e.py --output-root outputs/llc_runs/step8-real-final2 --evidence Plan/active/llc_step8_real_acceptance.json`
+- run ID：`e928f010e44e443f8d716d8ff2c5fe19`
+- manifest：`outputs/llc_runs/step8-real-final2/manifest/llc_manifest.json`
+- 验收结果：`valid=true`，`failures=[]`。
+- 九个阶段均为 `succeeded`：`design`、`magnetics`、`capacitors`、`loss`、`thermal`、`geometry`、`efficiency_sweep`、`hardware_overview`、`manifest`。
+- 效率扫描：`available`；硬件总览：`available`。
+- 变压器 design ID：`E_80_38_32_SMP97_Np16_Ns2`。
+- 外置 Lr design ID：`Lr_ext_E_80_45_20_SMP97_N13_P2`。
+- LLC Cr design ID：`Cr_R76PF2220_1_30_2_N4`。
+- Cr 误差：`9.043347%`，满足当前 `10%` 限制。
+- manifest 外部校验确认必需 CSV、热摘要、效率 CSV、几何文件、硬件总览文件均存在、非空且位于当前 run root。
+
+### 提交记录
+
+- 第八步功能与验收提交：待提交。
+- 第八步计划记录提交：待提交。
