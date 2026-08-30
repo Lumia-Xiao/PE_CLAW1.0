@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active` |
+| 计划状态 | `completed` |
 | 计划版本 | `v1.0` |
 | 建立日期 | `2026-08-30` |
 | 目标工程 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0` |
@@ -344,7 +344,7 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 | 第 5 步 | `completed` | `981308d` | `pending` | `pushed` | 专项 `17 passed`；LLC 全量 `111 passed, 343 deselected`；编译与 `git diff --check` 通过 |
 | 第 6 步 | `completed` | `b651c58` | `pending` | `pushed` | warning/manifest 专项 `10 passed`；manifest/hardware 回归 `9 passed`；LLC 全量 `115 passed, 343 deselected`；AC-DC 先决条件 `1 passed, 16 deselected` |
 | 第 7 步 | `completed` | `85092bf` | `pending` | `pushed` | 文本序列化专项 `11 passed`；结构化输出相关回归 `8 passed`；LLC 全量 `118 passed, 343 deselected`；`git diff --check` 通过 |
-| 第 8 步 | `pending` | - | - | - | - |
+| 第 8 步 | `completed` | `无代码变更（验收）` | `pending` | `pushed` | 隔离 E2E manifest `valid=true`；独立 validator 通过；64 个 artifact 全部存在且非空；LLC 全量 `118 passed, 343 deselected`；受影响回归 `23 passed` |
 
 ### 第 1 步执行记录
 
@@ -459,6 +459,35 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
   - `git diff --check`：通过。
 - 计划记录 commit：待提交。
 - Push：实现提交已成功推送到 `origin/codex/sync-gui-backend-from-2`；计划记录提交待推送。
+
+### 第 8 步执行记录
+
+- 验收 run：`26ec345f63f7471781ba7dc17dd82185`，使用隔离目录
+  `.pytest-tmp-step8-e2e\llc_run`，未依赖或修改用户现有 `outputs/`。
+- 本步内容：执行 Design、Magnetics、capacitor、loss、thermal、geometry、efficiency
+  sweep、hardware overview 和 manifest 全链路；使用外部 manifest validator 检查 run
+  身份、阶段状态、来源 ID、固定参数、artifact 存在性、非空性和 run-root 边界；将
+  manifest、候选 CSV、thermal CSV、效率 CSV、结构化输出相关结果和页面文本契约逐项
+  对照。新增验收证据：
+  `migration/evidence/20260830/llc_latest_run_result_chain_polish_step8/step8_e2e.json`。
+- 关键结果：manifest `valid=true`；9 个阶段全部 `succeeded`；效率 sweep 和硬件总览
+  均为 `available`；变压器为
+  `E_80_38_32_SMP97_Np16_Ns2`；外置 Lr 为
+  `Lr_ext_E_80_45_20_SMP97_N13_P2`；Cr 为
+  `Cr_R76PF2220_1_30_2_N4`；Cr 误差 `9.043347%`，满足 `10%` 限制；变压器和外置
+  Lr 热点分别约 `54.00 C` 和 `44.06 C`；64 个 manifest artifact 全部存在、非空且位于
+  当前 run 根目录；陈旧磁件 warning 不存在。
+- 测试：
+  - 第 8 步验收专项：`4 passed`。
+  - 文本、结构化输出、热页面和磁件结果回归：`23 passed`。
+  - 全部 LLC 相关测试：`118 passed, 343 deselected in 116.35s`。
+  - 独立 validator：`valid=true`，`failures=[]`。
+  - `git diff --check`：通过。
+- 遗留风险：E2E 运行生成的隔离输出位于未跟踪的 pytest 临时目录，按计划不提交；仓库
+  中既有的 `outputs/`、pytest 临时目录、Python 缓存和 `tmpmded47oq/` 仍保持未跟踪，
+  未纳入本步提交。
+- 计划记录 commit：待提交。
+- Push：计划记录提交待推送。
 
 ## 8. 预期结果
 
