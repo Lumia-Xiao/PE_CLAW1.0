@@ -580,3 +580,10 @@
 - 验证：`PYTHONPATH=src python -m pytest tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step1`，结果 `33 passed`。
 - `PYTHONPATH=src python -m compileall -q src` 和 `git diff --check` 通过。
 - 本修复计划：`Plan/active/llc_resonant_capacitor_step5_fix_plan.md`。
+
+### 第 2 步：补齐 LLC Cr 专项测试和候选状态
+
+- 新增 LLC Cr 专项边界和回归测试，覆盖 9.99%、10.00%、10.01%、75 nF、80 nF、无推荐和 near-miss 场景。
+- Cr CSV 增加 `is_pareto`、`recommended_flag` 和 `rejection_reason` 审计字段。
+- 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step2c`，结果 `37 passed`。
+- `PYTHONPATH=src python -m compileall -q src tests` 和 `git diff --check` 通过。

@@ -133,7 +133,7 @@
 
 - [x] 已建立修复范围和五步执行安排
 - [x] 第 1 步：统一 10% 约束合同
-- [ ] 第 2 步：LLC Cr 专项测试和候选状态
+- [x] 第 2 步：LLC Cr 专项测试和候选状态
 - [ ] 第 3 步：旧 Cr artifact 生命周期
 - [ ] 第 4 步：结构化报告和 GUI 接入
 - [ ] 第 5 步：清理旧输出和端到端验收
@@ -143,8 +143,8 @@
 | 步骤 | 状态 | Commit | Push | 验证 |
 |---|---|---|---|---|
 | 计划文件 | 已建立 | `0fe72bd` | 已 push | 已完成 |
-| 第 1 步 | 已完成 | 待提交 | 待 push | `33 passed`；compileall、diff-check 通过 |
-| 第 2 步 | 未开始 | - | - | - |
+| 第 1 步 | 已完成 | `fed2fef` | 已 push | `33 passed`；compileall、diff-check 通过 |
+| 第 2 步 | 已完成 | 待提交 | 待 push | `37 passed`；compileall、diff-check 通过 |
 | 第 3 步 | 未开始 | - | - | - |
 | 第 4 步 | 未开始 | - | - | - |
 | 第 5 步 | 未开始 | - | - | - |
@@ -155,4 +155,12 @@
 - LLC Cr 搜索的 warning threshold 与 hard limit 改为同一配置来源；coverage summary 增加约束来源，并使用与实际阈值无关的通用统计字段名。
 - 验证：`PYTHONPATH=src python -m pytest tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step1`，结果 `33 passed`。
 - 验证：`python -m compileall -q src` 通过；`git diff --check` 通过。
+- Commit：待提交；Push：待 push。
+
+### 第 2 步执行记录
+
+- 新增 `tests/test_llc_resonant_capacitor_constraint_step5.py`，覆盖 9.99%、10.00%、10.01% 边界、75 nF/80 nF 场景、仅超限候选、near-miss 以及推荐/CSV 状态一致性。
+- LLC Cr CSV 增加 `is_pareto`、`recommended_flag` 和 `rejection_reason` 字段。
+- 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step2c`，结果 `37 passed`。
+- 验证：`python -m compileall -q src tests` 通过；`git diff --check` 通过。
 - Commit：待提交；Push：待 push。
