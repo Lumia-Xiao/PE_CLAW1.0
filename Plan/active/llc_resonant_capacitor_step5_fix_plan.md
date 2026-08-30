@@ -147,7 +147,7 @@
 | 第 2 步 | 已完成 | `2a8dbef` | 已 push | `37 passed`；compileall、diff-check 通过 |
 | 第 3 步 | 已完成 | `853aecc` | 已 push | `38 passed`；compileall、diff-check 通过 |
 | 第 4 步 | 已完成 | `090c8fe` | 已 push | `40 passed`；compileall、diff-check 通过 |
-| 第 5 步 | 已完成 | 待提交 | 待 push | 端到端 `pass`；`45 passed`；compileall、diff-check 通过 |
+| 第 5 步 | 已完成 | `7e08d9f` | 已 push | 端到端 `pass`；`45 passed`；compileall、diff-check 通过 |
 
 ### 第 1 步执行记录
 
@@ -196,4 +196,4 @@
 - 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_reporting_step5.py tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py tests/test_llc_magnetic_result_reporting_step5.py -q --basetemp .pytest-tmp-step5-final`，结果 `45 passed`。
 - 验证：`PYTHONPATH=src python -m compileall -q src tests` 通过；`git diff --check` 通过。
 - 输出目录：`outputs/resonant_capacitor_design`；生成 13 个 LLC Cr artifact，均为本次运行结果。
-- Commit：待提交；Push：待 push。
+- Commit：`7e08d9f`；Push：已 push。

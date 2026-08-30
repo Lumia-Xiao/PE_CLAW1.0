@@ -613,4 +613,4 @@
 - 本次搜索 evaluated=`158980`、feasible=`443`、Pareto=`5`、chosen=`3`；near-miss=`157715`，全部以 `capacitance_error` 拒绝；最新产物不含 `exceeds 5%` 旧文案。
 - 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_reporting_step5.py tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py tests/test_llc_magnetic_result_reporting_step5.py -q --basetemp .pytest-tmp-step5-final`，结果 `45 passed`。
 - `PYTHONPATH=src python -m compileall -q src tests` 和 `git diff --check` 通过。
-- Commit：待提交；Push：待 push。
+- Commit：`7e08d9f`；Push：已 push。
