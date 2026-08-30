@@ -150,7 +150,7 @@ def _run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOption
                 "The separated LLC transformer screening includes a first-pass hotspot estimate.",
                 "The fixed-inductor stack-count thermal comparison is not applied to separated LLC components.",
                 "Transformer and external Lr hotspots are reported separately; no combined thermal network is inferred.",
-                *(f"Thermal summary artifact saved to {artifact_paths[0]}." if artifact_paths else ()),
+                *([f"Thermal summary artifact saved to {artifact_paths[0]}."] if artifact_paths else []),
             ],
             llc_component_thermal=components,
             llc_component_estimates={entry.assembly_type: entry for entry in thermal_entries if entry.assembly_type},
