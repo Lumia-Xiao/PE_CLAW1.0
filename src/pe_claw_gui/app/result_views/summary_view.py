@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ...models.design_report import DesignReport
+from ...models.llc_run_context import is_llc_topology
 from .stress_view import build_stress_summary_lines
 
 
@@ -107,6 +108,20 @@ def _build_electrical_parameter_lines(report: DesignReport) -> list[str]:
     topology_id = report.spec.topology_id
     metadata = candidate.metadata
     waveform_metadata = report.waveform.metadata if report.waveform is not None else {}
+    if is_llc_topology(topology_id):
+        llc_fha = metadata.get("llc_fha") if isinstance(metadata.get("llc_fha"), dict) else {}
+        reason = "FHA electrical result is unavailable."
+        if candidate.failure_reason:
+            reason = candidate.failure_reason
+        return [
+            f"  Vin min/nom/max = {_fmt_triplet(llc_fha, 'vin_min_v', 'vin_nom_v', 'vin_max_v', 'V')}",
+            f"  Vout min/nom/max = {_fmt_triplet(llc_fha, 'vout_min_v', 'vout_nom_v', 'vout_max_v', 'V')}",
+            f"  Pout max = {_fmt_value(llc_fha.get('pout_max_w'), 'W', reason)}",
+            f"  fs min/nom/max = {_fmt_triplet(llc_fha, 'fs_min_hz', 'fr_hz', 'fs_max_hz', 'Hz')}",
+            f"  Iavg/Irms/Ipeak = {_fmt_value(_llc_current_value(llc_fha, 'iout_a'), 'A', reason)} / {_fmt_value(_llc_current_value(llc_fha, 'ir_rms_a'), 'A', reason)} / {_fmt_value(_llc_current_value(llc_fha, 'ir_peak_a'), 'A', reason)}",
+            f"  Lr/Cr/Lm = {_fmt_value(llc_fha.get('lr_h'), 'H', reason)} / {_fmt_value(llc_fha.get('cr_f'), 'F', reason)} / {_fmt_value(llc_fha.get('lm_h'), 'H', reason)}",
+            f"  Mode = {_fmt_text(candidate.mode_capable, reason)}",
+        ]
     if topology_id == "single_phase_full_bridge_inverter":
         lines = [
             f"  Vdc_nom = {candidate.vin_nom:.6f} V",
@@ -210,6 +225,34 @@ def _fmt_float(value) -> str:
         return f"{float(value):.6g}"
     except (TypeError, ValueError):
         return "-"
+
+
+def _llc_current_value(llc_fha: dict, key: str):
+    current = llc_fha.get("current_estimates_nominal_full_load")
+    if isinstance(current, dict) and current.get(key) is not None:
+        return current.get(key)
+    stress = llc_fha.get("worst_case_current_stress")
+    return stress.get(key) if isinstance(stress, dict) else None
+
+
+def _fmt_value(value, unit: str, reason: str) -> str:
+    if value is None:
+        return f"not computed (reason: {reason})"
+    try:
+        return f"{float(value):.6g} {unit}"
+    except (TypeError, ValueError):
+        return f"not computed (reason: {reason})"
+
+
+def _fmt_text(value, reason: str) -> str:
+    return str(value) if value not in (None, "", "unknown") else f"not computed (reason: {reason})"
+
+
+def _fmt_triplet(values: dict, first: str, second: str, third: str, unit: str) -> str:
+    return " / ".join(
+        _fmt_value(values.get(key), unit, "FHA parameter is unavailable")
+        for key in (first, second, third)
+    )
 
 
 def build_stage_runtime_lines(report: DesignReport | None) -> list[str]:

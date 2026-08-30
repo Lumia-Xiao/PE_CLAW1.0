@@ -42,6 +42,13 @@ class EfficiencySweepResult:
     pf_sweep_artifact_paths: dict[str, str] = field(default_factory=dict)
     warnings: tuple[str, ...] = ()
     signature: str | None = None
+    status: str = "available"
+    run_id: str | None = None
+    topology_id: str | None = None
+    input_sha256: str | None = None
+    source_ids: dict[str, str | None] = field(default_factory=dict)
+    fixed_parameters: dict[str, object] = field(default_factory=dict)
+    blocked_reason: str | None = None
 
     def to_dict(self) -> dict[str, object]:
         """Return a serializable representation."""
@@ -58,14 +65,26 @@ class EfficiencySweepResult:
             "pf_sweep_artifact_paths": dict(self.pf_sweep_artifact_paths),
             "warnings": self.warnings,
             "signature": self.signature,
+            "status": self.status,
+            "run_id": self.run_id,
+            "topology_id": self.topology_id,
+            "input_sha256": self.input_sha256,
+            "source_ids": dict(self.source_ids),
+            "fixed_parameters": dict(self.fixed_parameters),
+            "blocked_reason": self.blocked_reason,
         }
 
     def is_complete(self) -> bool:
         """Return True when every load point has efficiency and total loss."""
-        return bool(self.points) and all(point.efficiency is not None and point.total_loss_w is not None for point in self.points)
+        return self.status == "available" and bool(self.points) and all(
+            point.efficiency is not None and point.total_loss_w is not None for point in self.points
+        )
 
     def summary_text(self) -> str:
         """Build a compact user-facing sweep summary."""
+        if self.status == "blocked":
+            reason = self.blocked_reason or (self.warnings[0] if self.warnings else "Required LLC inputs are unavailable.")
+            return f"Efficiency sweep blocked.\nReason: {reason}"
         if not self.points:
             warning_text = "\n".join(f"- {warning}" for warning in self.warnings)
             return "Efficiency sweep has no completed load points." + (f"\n{warning_text}" if warning_text else "")

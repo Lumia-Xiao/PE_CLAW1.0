@@ -49,6 +49,7 @@ class LlcRunContext:
     combined_magnetic_design_id: str | None = None
     cr_design_id: str | None = None
     device_design_id: str | None = None
+    manifest_path: str | None = None
 
     @classmethod
     def create(
@@ -139,6 +140,7 @@ class LlcRunContext:
             "combined_magnetic_design_id": self.combined_magnetic_design_id,
             "cr_design_id": self.cr_design_id,
             "device_design_id": self.device_design_id,
+            "manifest_path": self.manifest_path,
         }
 
 

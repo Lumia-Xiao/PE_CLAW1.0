@@ -13,6 +13,7 @@ from ..models.design_report import DesignReport
 from ..models.thermal_result import ThermalComparisonEntry, ThermalResult
 from .options import MAGNETIC_STAGE_DISABLED_NOTE, MAGNETIC_THERMAL_DISABLED_NOTE, PipelineOptions, resolve_pipeline_options
 from ..engines.magnetics.core_loss_audit import core_loss_is_comparable
+from ..models.llc_run_context import is_llc_topology
 
 
 def _optional_float(value) -> float | None:
@@ -26,6 +27,13 @@ def _optional_float(value) -> float | None:
 
 
 def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions | None = None) -> DesignReport:
+    """Attach a first-pass magnetic thermal estimate and close LLC lifecycle state."""
+
+    result = _run_thermal_pipeline(report, pipeline_options=pipeline_options)
+    return _finalize_llc_thermal_stage(result)
+
+
+def _run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions | None = None) -> DesignReport:
     """Attach a first-pass magnetic thermal estimate to a design report."""
     options = resolve_pipeline_options(pipeline_options)
     if not options.enable_magnetic_design:
@@ -217,6 +225,24 @@ def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions
         unavailable_loss_entry_count=unavailable_loss_entry_count,
     )
     return replace(report, thermal=thermal_result)
+
+
+def _finalize_llc_thermal_stage(report: DesignReport) -> DesignReport:
+    """Close the LLC thermal stage from the thermal result actually produced."""
+
+    context = report.llc_run_context
+    if context is None or not is_llc_topology(report.spec.topology_id):
+        return report
+    thermal = report.thermal
+    if thermal is not None and thermal.status == "valid" and thermal.recommended_design_id:
+        updated_context = context.transition("thermal", "succeeded")
+    else:
+        updated_context = context.transition(
+            "thermal",
+            "blocked",
+            reason="LLC thermal result is incomplete; no current-run thermal recommendation is available.",
+        )
+    return replace(report, llc_run_context=updated_context)
 
 
 def _resolve_recommended_design_id(report: DesignReport) -> str | None:

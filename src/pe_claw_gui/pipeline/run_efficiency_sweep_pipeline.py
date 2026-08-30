@@ -19,6 +19,7 @@ from ..libraries.magnetics.sendust_steinmetz import (
 )
 from ..models.design_report import DesignReport
 from ..models.efficiency_sweep import EfficiencySweepPoint, EfficiencySweepResult
+from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
 from ..models.waveform import WaveformSet
 from ..topologies.base import TopologyPlugin
@@ -47,6 +48,22 @@ def run_efficiency_sweep(
     load_grid = _normalize_load_grid(load_points)
     warnings: list[str] = []
     signature = _build_signature(report, load_grid)
+    llc_validation = _validate_llc_efficiency_dependencies(report)
+    if llc_validation is not None:
+        output_root = _resolve_efficiency_output_dir(report, output_dir)
+        result = EfficiencySweepResult(
+            load_grid=load_grid,
+            warnings=(llc_validation,),
+            signature=signature,
+            status="blocked",
+            run_id=getattr(report.llc_run_context, "run_id", None),
+            topology_id=report.spec.topology_id,
+            input_sha256=getattr(report.llc_run_context, "input_sha256", None),
+            source_ids=_llc_source_ids(report),
+            fixed_parameters=_llc_fixed_parameters(report),
+            blocked_reason=llc_validation,
+        )
+        return _write_blocked_llc_result(result, output_root)
     if _can_reuse_sweep_result(report.efficiency_sweep, signature, output_dir):
         return report.efficiency_sweep
 
@@ -72,18 +89,32 @@ def run_efficiency_sweep(
         warnings.extend(point_warnings)
 
     result = _build_result(points, load_grid, warnings, signature, report)
-    artifacts = _write_artifacts(result, output_dir)
+    if is_llc_topology(report.spec.topology_id) and not _all_points_complete(points):
+        reason = "LLC efficiency sweep blocked: one or more load points did not produce complete efficiency results."
+        result = replace(
+            result,
+            status="blocked",
+            blocked_reason=reason,
+            warnings=tuple(_dedupe([*result.warnings, reason])),
+            run_id=getattr(report.llc_run_context, "run_id", None),
+            topology_id=report.spec.topology_id,
+            input_sha256=getattr(report.llc_run_context, "input_sha256", None),
+            source_ids=_llc_source_ids(report),
+            fixed_parameters=_llc_fixed_parameters(report),
+        )
+        return _write_blocked_llc_result(result, _resolve_efficiency_output_dir(report, output_dir))
+    artifacts = _write_artifacts(result, _resolve_efficiency_output_dir(report, output_dir))
     pf_sweep_points: tuple[dict[str, object], ...] = ()
     pf_sweep_artifacts: dict[str, str] = {}
     if _is_single_phase_inverter_topology(report):
-        pf_sweep_points, pf_sweep_artifacts, pf_warnings = _build_inverter_pf_sweep(report, plugin, output_dir)
+        pf_sweep_points, pf_sweep_artifacts, pf_warnings = _build_inverter_pf_sweep(report, plugin, _resolve_efficiency_output_dir(report, output_dir))
         warnings.extend(pf_warnings)
         result = _build_result(points, load_grid, warnings, signature, report)
     elif _is_three_phase_two_level_inverter_topology(report) or _is_three_phase_npc_inverter_topology(report):
         pf_sweep_points, pf_sweep_artifacts, pf_warnings = _build_inverter_pf_sweep(
             report,
             plugin,
-            output_dir,
+            _resolve_efficiency_output_dir(report, output_dir),
             zvs_mode="not_applicable_npc" if _is_three_phase_npc_inverter_topology(report) else "not_applicable",
         )
         warnings.extend(pf_warnings)
@@ -93,7 +124,112 @@ def run_efficiency_sweep(
         artifact_paths=artifacts,
         pf_sweep_points=pf_sweep_points,
         pf_sweep_artifact_paths=pf_sweep_artifacts,
+        run_id=getattr(report.llc_run_context, "run_id", None),
+        topology_id=report.spec.topology_id,
+        input_sha256=getattr(report.llc_run_context, "input_sha256", None),
+        source_ids=_llc_source_ids(report),
+        fixed_parameters=_llc_fixed_parameters(report),
     )
+
+
+def _validate_llc_efficiency_dependencies(report: DesignReport) -> str | None:
+    """Reject LLC efficiency sweeps that are not tied to complete current-run hardware."""
+
+    if not is_llc_topology(report.spec.topology_id):
+        return None
+    context = report.llc_run_context
+    if context is None:
+        return "LLC efficiency sweep blocked: current run context is unavailable."
+    if report.candidate is None:
+        return "LLC efficiency sweep blocked: current electrical design is unavailable."
+    for stage in ("design", "magnetics", "capacitors"):
+        if context.stage_status.get(stage) != "succeeded":
+            return f"LLC efficiency sweep blocked: stage {stage} is not succeeded."
+    device = report.device
+    if device is None or not device.recommended_scheme_id or not device.selected_devices:
+        return "LLC efficiency sweep blocked: current semiconductor recommendation is incomplete."
+    if context.device_design_id != device.recommended_scheme_id:
+        return "LLC efficiency sweep blocked: semiconductor recommendation ID does not match the current run."
+    magnetic = report.magnetic
+    contract = getattr(magnetic, "llc_magnetic_contract", None) if magnetic is not None else None
+    if contract is None:
+        return "LLC efficiency sweep blocked: current magnetic combination contract is unavailable."
+    if contract.run_id != context.run_id or contract.topology_id != report.spec.topology_id:
+        return "LLC efficiency sweep blocked: magnetic contract does not match the current run."
+    if context.transformer_design_id != contract.transformer_design_id:
+        return "LLC efficiency sweep blocked: transformer ID does not match the current run contract."
+    if context.external_lr_design_id != contract.external_lr_design_id:
+        return "LLC efficiency sweep blocked: external Lr ID does not match the current run contract."
+    transformer_search = getattr(magnetic, "llc_transformer_result", None)
+    transformer_candidates = getattr(transformer_search, "candidates", []) if transformer_search is not None else []
+    if not any(getattr(candidate, "candidate_id", None) == contract.transformer_design_id for candidate in transformer_candidates):
+        return "LLC efficiency sweep blocked: current transformer candidate is not in the run result set."
+    external_search = getattr(magnetic, "llc_external_resonant_inductor_search_result", None)
+    external_candidates = getattr(external_search, "candidates", []) if external_search is not None else []
+    if contract.external_lr_design_id is not None and not any(
+        getattr(candidate, "design_id", None) == contract.external_lr_design_id for candidate in external_candidates
+    ):
+        return "LLC efficiency sweep blocked: current external Lr candidate is not in the run result set."
+    capacitor = report.capacitor
+    cr_search = getattr(capacitor, "llc_resonant_capacitor_search_result", None) if capacitor is not None else None
+    cr_candidate = getattr(cr_search, "recommended_candidate", None) if cr_search is not None else None
+    if cr_candidate is None:
+        return "LLC efficiency sweep blocked: current LLC Cr recommendation is unavailable."
+    if context.cr_design_id != cr_candidate.design_id:
+        return "LLC efficiency sweep blocked: LLC Cr recommendation ID does not match the current run."
+    return None
+
+
+def _all_points_complete(points: Sequence[EfficiencySweepPoint]) -> bool:
+    return bool(points) and all(point.efficiency is not None and point.total_loss_w is not None for point in points)
+
+
+def _llc_source_ids(report: DesignReport) -> dict[str, str | None]:
+    context = report.llc_run_context
+    contract = getattr(report.magnetic, "llc_magnetic_contract", None) if report.magnetic is not None else None
+    return {
+        "transformer_design_id": getattr(contract, "transformer_design_id", None),
+        "external_lr_design_id": getattr(contract, "external_lr_design_id", None),
+        "combined_magnetic_design_id": getattr(contract, "combined_magnetic_design_id", None),
+        "cr_design_id": getattr(context, "cr_design_id", None),
+        "device_design_id": getattr(context, "device_design_id", None),
+    }
+
+
+def _llc_fixed_parameters(report: DesignReport) -> dict[str, object]:
+    contract = getattr(report.magnetic, "llc_magnetic_contract", None) if report.magnetic is not None else None
+    cr_search = getattr(report.capacitor, "llc_resonant_capacitor_search_result", None) if report.capacitor is not None else None
+    cr = getattr(cr_search, "recommended_candidate", None) if cr_search is not None else None
+    return {
+        "fs_hz": getattr(contract, "fs_hz", None) or getattr(report.candidate, "fs_hz", None),
+        "lm_target_h": getattr(contract, "lm_target_h", None),
+        "lm_actual_h": getattr(contract, "lm_actual_h", None),
+        "total_lr_target_h": getattr(contract, "total_lr_target_h", None),
+        "total_lr_actual_h": getattr(contract, "total_lr_actual_h", None),
+        "cr_target_f": getattr(cr, "cr_target_f", None),
+        "cr_actual_f": getattr(cr, "bank_capacitance_f", None),
+        "cr_error_percent": getattr(cr, "capacitance_error_percent", None),
+    }
+
+
+def _resolve_efficiency_output_dir(report: DesignReport, output_dir: str | Path | None) -> Path:
+    if output_dir is not None:
+        return Path(output_dir)
+    context = report.llc_run_context
+    if is_llc_topology(report.spec.topology_id) and context is not None and context.output_root:
+        return Path(context.output_root) / "efficiency_sweep"
+    return _project_root() / "outputs" / "efficiency_sweep"
+
+
+def _write_blocked_llc_result(result: EfficiencySweepResult, output_dir: Path) -> EfficiencySweepResult:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    for name in ("efficiency_curve.png", "loss_breakdown_stacked.png", "semiconductor_loss_vs_pf.png", "efficiency_vs_pf.png", "zvs_segments_vs_pf.png"):
+        path = output_dir / name
+        if path.exists():
+            path.unlink()
+    path = output_dir / "efficiency_sweep_result.json"
+    path.write_text(json.dumps(result.to_dict(), indent=2, sort_keys=True, default=str), encoding="utf-8")
+    return replace(result, artifact_paths={"diagnostic_json": str(path)})
 
 
 def _evaluate_sweep_load_point(

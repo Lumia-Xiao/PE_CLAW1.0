@@ -7,6 +7,7 @@ from .run_capacitor_pipeline import run_capacitor_operating_point_refresh, run_c
 from .run_full_pipeline import run_full_pipeline
 from .run_geometry_pipeline import run_geometry_pipeline
 from .run_loss_pipeline import run_loss_pipeline
+from .run_manifest_pipeline import build_llc_manifest, write_llc_manifest
 from .run_magnetic_pipeline import run_magnetic_pipeline
 from .run_operating_point_refresh import run_operating_point_refresh
 from .run_thermal_pipeline import run_thermal_pipeline
@@ -23,6 +24,8 @@ __all__ = [
     "run_full_pipeline",
     "run_geometry_pipeline",
     "run_loss_pipeline",
+    "build_llc_manifest",
+    "write_llc_manifest",
     "run_magnetic_pipeline",
     "run_operating_point_refresh",
     "run_scheme_pipeline",

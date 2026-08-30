@@ -8,6 +8,9 @@ from time import perf_counter
 
 from ...models.operating_point import OperatingPoint
 from ...pipeline import run_efficiency_sweep
+from ...pipeline.run_manifest_pipeline import write_llc_manifest
+from ...engines.hardware_overview import build_and_generate_hardware_overview
+from ...models.llc_run_context import is_llc_topology
 from ..shell.state_store import AppStateStore
 
 
@@ -47,7 +50,7 @@ class EfficiencySweepController:
         runtime_s = perf_counter() - started_s
         finished_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
         updated_report = replace(
-            report,
+            sweep_report,
             operating_point=sweep_report.operating_point,
             efficiency_sweep=result,
             run_efficiency_sweep_started_at=started_at,
@@ -57,8 +60,22 @@ class EfficiencySweepController:
         if updated_report.llc_run_context is not None:
             updated_report = replace(
                 updated_report,
-                llc_run_context=updated_report.llc_run_context.transition("efficiency_sweep", "succeeded"),
+                llc_run_context=updated_report.llc_run_context.transition(
+                    "efficiency_sweep",
+                    "succeeded" if result.status == "available" else "blocked",
+                    reason=result.blocked_reason,
+                ),
             )
+            if is_llc_topology(updated_report.spec.topology_id):
+                overview = build_and_generate_hardware_overview(updated_report)
+                overview_status = "succeeded" if overview.status == "available" else "blocked"
+                updated_report = replace(
+                    updated_report,
+                    llc_run_context=updated_report.llc_run_context.transition(
+                        "hardware_overview", overview_status, reason=overview.blocked_reason
+                    ),
+                )
+                updated_report, _ = write_llc_manifest(updated_report, hardware_overview=overview)
         self._state_store.active_plugin = plugin
         self._state_store.design_report = updated_report
         return updated_report

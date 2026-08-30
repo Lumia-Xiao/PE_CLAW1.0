@@ -15,6 +15,7 @@ from ..engines.magnetics.inductor_adapter import (
 from ..engines.magnetics.inductor_design import evaluate_selected_designs, export_design_artifacts
 from ..topology_capabilities import is_single_phase_full_bridge_inverter_topology
 from ..engines.magnetics.core_loss_audit import core_loss_consistency, core_loss_status
+from ..models.llc_run_context import is_llc_topology
 
 
 def run_loss_pipeline(
@@ -35,11 +36,30 @@ def run_loss_pipeline(
         refresh_plot_artifact=refresh_plot_artifact,
         pipeline_options=pipeline_options,
     )
-    return attach_core_loss_excitation_audit(
+    completed = attach_core_loss_excitation_audit(
         completed,
         include_design_reference=False,
         include_operating_waveform=True,
     )
+    return _finalize_llc_loss_stage(completed)
+
+
+def _finalize_llc_loss_stage(report: DesignReport) -> DesignReport:
+    """Close the LLC loss stage from the result actually produced."""
+
+    context = report.llc_run_context
+    if context is None or not is_llc_topology(report.spec.topology_id):
+        return report
+    loss = report.loss
+    if loss is not None and loss.recommended_design_id and loss.total_loss_w is not None:
+        updated_context = context.transition("loss", "succeeded")
+    else:
+        updated_context = context.transition(
+            "loss",
+            "blocked",
+            reason="LLC loss result is incomplete; no current-run recommended magnetic loss is available.",
+        )
+    return replace(report, llc_run_context=updated_context)
 
 
 def _run_loss_pipeline_without_excitation_audit(
