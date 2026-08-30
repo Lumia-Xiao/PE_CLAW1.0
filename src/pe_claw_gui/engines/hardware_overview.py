@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 import math
-from dataclasses import asdict, dataclass, field
+import re
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,7 @@ from ..models.capacitor import CapacitorGeometryTarget, CapacitorSelectionEntry,
 from ..models.design_report import DesignReport
 from ..models.geometry_result import GeometryTarget, InductorGeometryLayout
 from ..models.inductor import FixedInductorDesignCandidate
+from ..models.llc_run_context import is_llc_topology
 from ..models.semiconductor_geometry_result import SemiconductorGeometryRoleLayout, SemiconductorGeometryTarget
 from ..topology_capabilities import (
     has_dc_link_output_capacitor_only,
@@ -26,7 +28,7 @@ from ..topology_capabilities import (
     is_single_phase_full_bridge_inverter_topology,
 )
 
-_GROUP_IDS = ("bridge_rectifier", "semiconductor", "inductor", "capacitor")
+_GROUP_IDS = ("bridge_rectifier", "semiconductor", "transformer", "inductor", "capacitor")
 _OVERVIEW_OUTPUT_DIR = Path("outputs") / "hardware_overview"
 
 
@@ -177,6 +179,12 @@ class HardwareOverviewPayload:
 
     component_groups: list[HardwareOverviewComponentGroup]
     global_geometry_scale: HardwareOverviewGlobalScale
+    status: str = "available"
+    run_id: str | None = None
+    topology_id: str | None = None
+    blocked_reason: str | None = None
+    source_ids: dict[str, str | None] = field(default_factory=dict)
+    dependency_diagnostics: dict[str, Any] = field(default_factory=dict)
     artifact_paths: list[str] = field(default_factory=list)
     overview_artifacts: dict[str, str] = field(default_factory=dict)
     integrated_layout: HardwareIntegratedLayoutPayload | None = None
@@ -191,13 +199,19 @@ def build_hardware_overview_payload(
 ) -> HardwareOverviewPayload:
     """Build and persist the Hardware Overview backend payload without rerunning design stages."""
 
-    resolved_output_dir = _resolve_output_dir(output_dir)
+    resolved_output_dir = _resolve_output_dir(output_dir, report)
+    if is_llc_topology(report.spec.topology_id):
+        validation = _validate_llc_hardware_overview_dependencies(report)
+        if not validation["valid"]:
+            return _build_blocked_llc_hardware_overview_payload(report, resolved_output_dir, validation)
     groups = []
     bridge_group = _build_bridge_rectifier_group(report)
     if bridge_group is not None:
         groups.append(bridge_group)
     if _should_include_semiconductor_group(report):
         groups.append(_build_semiconductor_group(report))
+    if is_llc_topology(report.spec.topology_id):
+        groups.append(_build_llc_transformer_group(report))
     if has_inductor_result_pages(report.spec.topology_id):
         groups.append(_build_inductor_group(report))
     groups.append(_build_capacitor_group(report))
@@ -206,6 +220,11 @@ def build_hardware_overview_payload(
     payload = HardwareOverviewPayload(
         component_groups=groups,
         global_geometry_scale=global_scale,
+        status="available",
+        run_id=report.llc_run_context.run_id if report.llc_run_context is not None else None,
+        topology_id=report.spec.topology_id,
+        source_ids=_hardware_overview_source_ids(report),
+        dependency_diagnostics=(validation if is_llc_topology(report.spec.topology_id) else {}),
         integrated_layout=integrated_layout,
         notes=[
             "Hardware Overview payload is assembled from existing report results only.",
@@ -218,6 +237,12 @@ def build_hardware_overview_payload(
     return HardwareOverviewPayload(
         component_groups=payload.component_groups,
         global_geometry_scale=payload.global_geometry_scale,
+        status=payload.status,
+        run_id=payload.run_id,
+        topology_id=payload.topology_id,
+        blocked_reason=payload.blocked_reason,
+        source_ids=payload.source_ids,
+        dependency_diagnostics=payload.dependency_diagnostics,
         artifact_paths=[str(json_path)],
         overview_artifacts=payload.overview_artifacts,
         integrated_layout=payload.integrated_layout,
@@ -233,10 +258,12 @@ def build_and_generate_hardware_overview(
 ) -> HardwareOverviewPayload:
     """Build the overview payload, generate overview artifacts, and persist updated JSON."""
 
-    resolved_output_dir = _resolve_output_dir(output_dir)
+    resolved_output_dir = _resolve_output_dir(output_dir, report)
     payload = build_hardware_overview_payload(report, resolved_output_dir)
     from ..visualization.hardware_overview import generate_hardware_overview_artifacts
 
+    if payload.status != "available":
+        return payload
     return generate_hardware_overview_artifacts(payload, resolved_output_dir)
 
 
@@ -253,6 +280,236 @@ def write_hardware_overview_payload_json(payload: HardwareOverviewPayload, outpu
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(asdict(payload), indent=2, sort_keys=True), encoding="utf-8")
     return path
+
+
+def _validate_llc_hardware_overview_dependencies(report: DesignReport) -> dict[str, Any]:
+    """Validate that an LLC overview is assembled only from the current run."""
+
+    context = report.llc_run_context
+    magnetic = report.magnetic
+    capacitor = report.capacitor
+    missing: list[str] = []
+    mismatches: list[str] = []
+    warnings: list[str] = []
+    contract = getattr(magnetic, "llc_magnetic_contract", None) if magnetic is not None else None
+    source_ids = {
+        "transformer_design_id": getattr(contract, "transformer_design_id", None),
+        "external_lr_design_id": getattr(contract, "external_lr_design_id", None),
+        "combined_magnetic_design_id": getattr(contract, "combined_magnetic_design_id", None),
+        "cr_design_id": getattr(context, "cr_design_id", None),
+        "device_design_id": getattr(context, "device_design_id", None),
+    }
+    if context is None:
+        missing.append("llc_run_context")
+    else:
+        if context.topology_id != report.spec.topology_id:
+            mismatches.append("run context topology_id does not match the report topology_id")
+        required_stage_statuses = {
+            "design": "succeeded",
+            "magnetics": "succeeded",
+            "capacitors": "succeeded",
+            "geometry": "succeeded",
+        }
+        for stage, expected in required_stage_statuses.items():
+            if context.stage_status.get(stage) != expected:
+                missing.append(f"stage {stage}={expected}")
+        if not context.device_design_id:
+            missing.append("device_design_id")
+
+    if magnetic is None:
+        missing.append("magnetic result")
+    if contract is None:
+        missing.append("llc_magnetic_contract")
+    if contract is not None and context is not None:
+        if contract.run_id != context.run_id:
+            mismatches.append("magnetic contract run_id does not match the current run")
+        if contract.topology_id != report.spec.topology_id:
+            mismatches.append("magnetic contract topology_id does not match the report")
+        for field_name, context_value in (
+            ("transformer_design_id", context.transformer_design_id),
+            ("external_lr_design_id", context.external_lr_design_id),
+            ("combined_magnetic_design_id", context.combined_magnetic_design_id),
+        ):
+            contract_value = getattr(contract, field_name)
+            if not context_value or context_value != contract_value:
+                mismatches.append(f"current run {field_name} is not bound to the magnetic contract")
+        source_ids.update(
+            {
+                "transformer_design_id": contract.transformer_design_id,
+                "external_lr_design_id": contract.external_lr_design_id,
+                "combined_magnetic_design_id": contract.combined_magnetic_design_id,
+            }
+        )
+
+    transformer = _llc_transformer_candidate(report, getattr(contract, "transformer_design_id", None))
+    if transformer is None:
+        missing.append("current transformer recommendation")
+    external_lr = _llc_external_lr_candidate(report, getattr(contract, "external_lr_design_id", None))
+    if external_lr is None:
+        missing.append("current external Lr recommendation")
+    if contract is not None and magnetic is not None:
+        try:
+            contract.validate(
+                topology_id=report.spec.topology_id,
+                run_id=context.run_id if context is not None else "",
+                transformer_candidates=_llc_transformer_candidates(report),
+                external_lr_candidates=_llc_external_lr_candidates(report),
+            )
+        except (TypeError, ValueError) as exc:
+            mismatches.append(f"magnetic contract validation failed: {exc}")
+
+    search = getattr(capacitor, "llc_resonant_capacitor_search_result", None) if capacitor is not None else None
+    cr_candidate = getattr(search, "recommended_candidate", None) if search is not None else None
+    if search is None:
+        missing.append("LLC Cr search result")
+    if cr_candidate is None:
+        missing.append("current LLC Cr recommendation")
+    elif context is None or context.cr_design_id != cr_candidate.design_id:
+        mismatches.append("current run cr_design_id does not match the LLC Cr recommendation")
+    if report.device is None or not report.device.recommended_scheme_id or not report.device.selected_devices:
+        missing.append("complete semiconductor recommendation")
+    elif context is None or context.device_design_id != report.device.recommended_scheme_id:
+        mismatches.append("current run device_design_id does not match the semiconductor recommendation")
+
+    geometry = report.geometry
+    external_id = getattr(contract, "external_lr_design_id", None)
+    recommended_target = next((target for target in geometry.targets if target.role == "recommended"), None) if geometry else None
+    if geometry is None or geometry.selected_design_id != external_id:
+        mismatches.append("external Lr geometry selected_design_id does not match the current contract")
+    if recommended_target is None or recommended_target.design_id != external_id:
+        mismatches.append("external Lr recommended geometry target does not match the current contract")
+    if recommended_target is not None:
+        if recommended_target.layout is None:
+            missing.append("external Lr recommended geometry layout")
+        if not recommended_target.artifact_paths:
+            missing.append("external Lr recommended geometry artifacts")
+        for artifact in recommended_target.artifact_paths:
+            path = Path(artifact)
+            if not path.exists():
+                missing.append(f"missing external Lr geometry artifact: {artifact}")
+            elif context is not None and context.output_root:
+                try:
+                    path.resolve().relative_to(Path(context.output_root).resolve())
+                except ValueError:
+                    mismatches.append(f"external Lr geometry artifact is outside the current run output root: {artifact}")
+    if geometry is not None and geometry.artifact_paths:
+        warnings.append("Only the recommended geometry target is admitted to the current LLC overview.")
+
+    valid = not missing and not mismatches
+    return {
+        "valid": valid,
+        "status": "available" if valid else "blocked",
+        "run_id": context.run_id if context is not None else None,
+        "topology_id": report.spec.topology_id,
+        "source_ids": source_ids,
+        "missing": missing,
+        "mismatches": mismatches,
+        "warnings": warnings,
+        "reason": _llc_overview_block_reason(missing, mismatches),
+    }
+
+
+def _hardware_overview_source_ids(report: DesignReport) -> dict[str, str | None]:
+    """Return the component IDs that supplied the current overview payload."""
+
+    context = report.llc_run_context
+    contract = getattr(report.magnetic, "llc_magnetic_contract", None) if report.magnetic is not None else None
+    return {
+        "transformer_design_id": getattr(contract, "transformer_design_id", None),
+        "external_lr_design_id": getattr(contract, "external_lr_design_id", None),
+        "combined_magnetic_design_id": getattr(contract, "combined_magnetic_design_id", None),
+        "cr_design_id": getattr(context, "cr_design_id", None),
+        "device_design_id": getattr(context, "device_design_id", None),
+    }
+
+
+def _build_blocked_llc_hardware_overview_payload(
+    report: DesignReport,
+    output_dir: Path,
+    validation: dict[str, Any],
+) -> HardwareOverviewPayload:
+    """Persist a diagnostic-only payload without assembling historical components."""
+
+    groups = [
+        _missing_group("transformer", "LLC Transformer", "LLC transformer result is unavailable for this run."),
+        _missing_group("inductor", "External Resonant Inductor", "Current external Lr result is unavailable for this run."),
+        _missing_group("capacitor", "LLC Resonant Capacitor (Cr)", "Current LLC Cr result is unavailable for this run."),
+        _missing_group("semiconductor", "Semiconductor", "Current semiconductor recommendation is unavailable for this run."),
+    ]
+    reason = str(validation.get("reason") or "LLC hardware overview dependencies are incomplete.")
+    payload = HardwareOverviewPayload(
+        component_groups=groups,
+        global_geometry_scale=_build_global_scale(groups),
+        status="blocked",
+        run_id=validation.get("run_id"),
+        topology_id=report.spec.topology_id,
+        blocked_reason=reason,
+        source_ids=dict(validation.get("source_ids") or {}),
+        dependency_diagnostics=validation,
+        notes=["LLC hardware overview is diagnostic-only because current-run dependencies are incomplete."],
+        warnings=[reason, *validation.get("missing", []), *validation.get("mismatches", [])],
+    )
+    json_path = write_hardware_overview_payload_json(payload, output_dir)
+    return replace(payload, artifact_paths=[str(json_path)])
+
+
+def _llc_overview_block_reason(missing: list[str], mismatches: list[str]) -> str:
+    parts = []
+    if missing:
+        parts.append("missing: " + ", ".join(missing))
+    if mismatches:
+        parts.append("mismatch: " + ", ".join(mismatches))
+    return "LLC hardware overview blocked; current-run results are incomplete or inconsistent" + (" (" + "; ".join(parts) + ")" if parts else ".")
+
+
+def _llc_transformer_candidates(report: DesignReport) -> list[Any]:
+    magnetic = report.magnetic
+    if magnetic is None:
+        return []
+    search = getattr(magnetic, "llc_transformer_result", None)
+    pareto = getattr(magnetic, "transformer_pareto_result", None)
+    values = [
+        *getattr(magnetic, "transformer_pareto_candidates", []),
+        *getattr(search, "feasible_candidates", []),
+        *getattr(search, "evaluated_candidates", []),
+        getattr(pareto, "recommended_candidate", None),
+        getattr(search, "recommended_preliminary_candidate", None),
+    ]
+    return _unique_by_design_id(values, "candidate_id")
+
+
+def _llc_transformer_candidate(report: DesignReport, design_id: str | None) -> Any | None:
+    if not design_id:
+        return None
+    return next((item for item in _llc_transformer_candidates(report) if getattr(item, "candidate_id", None) == design_id), None)
+
+
+def _llc_external_lr_candidates(report: DesignReport) -> list[Any]:
+    search = getattr(report.magnetic, "llc_external_resonant_inductor_search_result", None) if report.magnetic else None
+    return _unique_by_design_id(
+        [*getattr(search, "feasible_candidates", []), *getattr(search, "candidates", []), getattr(search, "recommended_candidate", None)],
+        "design_id",
+    )
+
+
+def _llc_external_lr_candidate(report: DesignReport, design_id: str | None) -> Any | None:
+    if not design_id:
+        return None
+    return next((item for item in _llc_external_lr_candidates(report) if getattr(item, "design_id", None) == design_id), None)
+
+
+def _unique_by_design_id(values: list[Any], attribute: str) -> list[Any]:
+    result: list[Any] = []
+    seen: set[str] = set()
+    for value in values:
+        if value is None:
+            continue
+        identity = str(getattr(value, attribute, ""))
+        if not identity or identity in seen:
+            continue
+        seen.add(identity)
+        result.append(value)
+    return result
 
 
 def build_integrated_hardware_layout_from_groups(
@@ -599,6 +856,15 @@ def _integrated_layout_objects(groups: list[HardwareOverviewComponentGroup]) -> 
     by_id = {group.group_id: group for group in groups}
     objects: list[HardwareIntegratedLayoutObject] = []
     topology_id = _overview_topology_id(groups)
+    transformer = by_id.get("transformer")
+    if transformer is not None and _group_available_for_integrated_layout(transformer):
+        objects.append(
+            _integrated_object_from_group(
+                transformer,
+                object_id="transformer",
+                display_name=transformer.display_name or "LLC Transformer",
+            )
+        )
     bridge_rectifier = by_id.get("bridge_rectifier")
     if bridge_rectifier is not None and _group_available_for_integrated_layout(bridge_rectifier):
         objects.append(_integrated_object_from_group(bridge_rectifier, object_id="bridge_rectifier", display_name="Bridge rectifier"))
@@ -618,7 +884,15 @@ def _integrated_layout_objects(groups: list[HardwareOverviewComponentGroup]) -> 
     if capacitor is not None:
         capacitor_children = [child for child in capacitor.child_entries if _bbox_complete(child.bounding_box_mm)]
         for child in capacitor_children:
-            if child.entry_id == "input_capacitor":
+            if child.entry_id == "llc_resonant_capacitor":
+                objects.append(
+                    _integrated_object_from_child(
+                        child,
+                        "llc_resonant_capacitor",
+                        "LLC resonant capacitor (Cr)",
+                    )
+                )
+            elif child.entry_id == "input_capacitor":
                 objects.append(
                     _integrated_object_from_child(
                         child,
@@ -749,11 +1023,13 @@ def _place_integrated_objects(
 ) -> list[HardwareIntegratedLayoutObject]:
     by_id = {obj.id: obj for obj in objects}
     ordered_ids = (
+        "transformer",
         "capacitor_input",
         "capacitor_upper",
         "bridge_rectifier",
         "semiconductor",
         "inductor",
+        "llc_resonant_capacitor",
         "capacitor_lower",
         "capacitor_output",
         "capacitor",
@@ -853,6 +1129,9 @@ def _integrated_missing_warnings(
     present_ids = {obj.id for obj in objects}
     by_id = {group.group_id: group for group in groups}
     warnings: list[str] = []
+    if by_id.get("transformer") is not None and "transformer" not in present_ids:
+        warning = _first_warning(by_id.get("transformer")) or "Transformer is unavailable for integrated hardware overview."
+        warnings.append(warning)
     if by_id.get("bridge_rectifier") is not None and "bridge_rectifier" not in present_ids:
         warning = _first_warning(by_id.get("bridge_rectifier")) or "Bridge rectifier is unavailable for integrated hardware overview."
         warnings.append(warning)
@@ -863,6 +1142,8 @@ def _integrated_missing_warnings(
         warning = _first_warning(by_id.get("inductor")) or "Inductor is unavailable for integrated hardware overview."
         warnings.append(warning)
     capacitor = by_id.get("capacitor")
+    if _group_has_child(capacitor, "llc_resonant_capacitor") and "llc_resonant_capacitor" not in present_ids:
+        warnings.append("LLC resonant capacitor (Cr) is unavailable for integrated hardware overview.")
     split_dc_link = capacitor is not None and has_split_dc_link_capacitor_bank(str(capacitor.metadata.get("topology_id") or ""))
     if _group_has_child(capacitor, "input_capacitor") and not ({"capacitor_input", "capacitor_upper"} & present_ids):
         warnings.append("Upper split-link capacitor is unavailable for integrated hardware overview." if split_dc_link else "Input capacitor is unavailable for integrated hardware overview.")
@@ -894,6 +1175,8 @@ def _box_height(box: HardwareIntegratedBox) -> float:
 
 
 def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    if is_llc_topology(report.spec.topology_id) and report.llc_run_context is not None:
+        return _build_llc_external_lr_group(report)
     if report.magnetic is None:
         display_name = _inductor_group_display_name(report.spec.topology_id)
         return _missing_group("inductor", display_name, "Run Magnetics first to populate inductor overview.")
@@ -983,6 +1266,127 @@ def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGrou
     )
 
 
+def _build_llc_transformer_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    """Build the transformer group from the contract-selected current candidate."""
+
+    magnetic = report.magnetic
+    contract = getattr(magnetic, "llc_magnetic_contract", None) if magnetic is not None else None
+    design_id = getattr(contract, "transformer_design_id", None)
+    candidate = _llc_transformer_candidate(report, design_id)
+    if candidate is None:
+        return _missing_group("transformer", "LLC Transformer", "Current LLC transformer recommendation is unavailable.")
+    visualization = (
+        getattr(magnetic, "transformer_visualization", None)
+        if magnetic is not None
+        else None
+    )
+    image_2d = getattr(visualization, "image_2d_path", None) or None
+    image_3d = getattr(visualization, "image_3d_path", None) or None
+    bbox = _llc_transformer_bbox(candidate, visualization)
+    return HardwareOverviewComponentGroup(
+        group_id="transformer",
+        display_name="LLC Transformer",
+        status="available",
+        recommended_name=design_id or "",
+        series=str(getattr(candidate, "core_id", "") or "") or None,
+        part_number=design_id,
+        quantity=1,
+        volume_cm3=_positive_or_none(_float_or_none(getattr(candidate, "estimated_volume_cm3", None))),
+        loss_w=_positive_or_none(_float_or_none(getattr(candidate, "total_loss_w", None))),
+        image_2d_path_existing=image_2d if image_2d and Path(image_2d).exists() else None,
+        image_3d_path_existing=image_3d if image_3d and Path(image_3d).exists() else None,
+        image_2d=_local_image_ref(image_2d if image_2d and Path(image_2d).exists() else None),
+        image_3d=_local_image_ref(image_3d if image_3d and Path(image_3d).exists() else None),
+        geometry_source="transformer_visualization_or_core_proxy",
+        bounding_box_mm=bbox,
+        shape_type="magnetic_core_assembly",
+        metadata={
+            "topology_id": report.spec.topology_id,
+            "run_id": report.llc_run_context.run_id if report.llc_run_context is not None else None,
+            "design_id": design_id,
+            "component_role": "llc_transformer",
+            "core_id": getattr(candidate, "core_id", None),
+            "material_id": getattr(candidate, "material_id", None),
+            "np": getattr(candidate, "np", None),
+            "ns": getattr(candidate, "ns", None),
+            "lm_target_h": getattr(candidate, "lm_target_h", None),
+            "lm_actual_h": getattr(candidate, "lm_actual_h", None),
+            "gap_m": getattr(candidate, "gap_m", None),
+            "hotspot_c": getattr(candidate, "hotspot_c", None),
+            "source_contract": contract.to_dict() if contract is not None else None,
+        },
+        notes=["Transformer hardware group is resolved by the current LLC magnetic combination contract."],
+        warnings=_bbox_warnings(bbox),
+    )
+
+
+def _build_llc_external_lr_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    """Build the external Lr group without using generic historical fallbacks."""
+
+    magnetic = report.magnetic
+    contract = getattr(magnetic, "llc_magnetic_contract", None) if magnetic is not None else None
+    design_id = getattr(contract, "external_lr_design_id", None)
+    candidate = _llc_external_lr_candidate(report, design_id)
+    geometry = report.geometry
+    target = next((item for item in geometry.targets if item.role == "recommended"), None) if geometry else None
+    if candidate is None or target is None or target.design_id != design_id or target.layout is None:
+        return _missing_group("inductor", "External Resonant Inductor", "Current external Lr geometry is unavailable or is not bound to the magnetic contract.")
+    artifacts = _dedupe_paths(target.artifact_paths)
+    image_2d_path = _first_existing_path(artifacts, suffixes=(".png",), excluded_markers=("_3d",))
+    image_3d_path = _first_existing_path(artifacts, suffixes=("_3d.png",))
+    layout = target.layout
+    bbox = _inductor_bbox(layout)
+    quantity = 1
+    volume_cm3 = _positive_or_none(_float_or_none(getattr(candidate, "estimated_volume_cm3", None)))
+    return HardwareOverviewComponentGroup(
+        group_id="inductor",
+        display_name="External Resonant Inductor",
+        status="available",
+        recommended_name=design_id or "",
+        series=getattr(candidate, "core_id", None),
+        part_number=design_id,
+        quantity=quantity,
+        volume_cm3=volume_cm3,
+        loss_w=_positive_or_none(_float_or_none(getattr(candidate, "total_loss_w", None))),
+        image_2d_path_existing=image_2d_path,
+        image_3d_path_existing=image_3d_path,
+        image_2d=_local_image_ref(image_2d_path),
+        image_3d=_local_image_ref(image_3d_path),
+        geometry_source="current_llc_external_lr_geometry_target",
+        bounding_box_mm=bbox,
+        shape_type="magnetic_core_assembly",
+        metadata={
+            "topology_id": report.spec.topology_id,
+            "run_id": report.llc_run_context.run_id if report.llc_run_context is not None else None,
+            "design_id": design_id,
+            "component_role": "external_resonant_inductor",
+            "transformer_design_id": getattr(contract, "transformer_design_id", None),
+            "combined_magnetic_design_id": getattr(contract, "combined_magnetic_design_id", None),
+            "target_l_h": getattr(candidate, "target_l_h", None),
+            "actual_l_h": getattr(candidate, "actual_l_h", None),
+            "total_lr_actual_h": getattr(candidate, "total_lr_actual_h", None),
+            "source_geometry_design_id": target.design_id,
+            "source_artifact_paths": artifacts,
+        },
+        notes=["External Lr hardware group uses only the recommended geometry target bound to the current contract."],
+        warnings=_bbox_warnings(bbox),
+    )
+
+
+def _llc_transformer_bbox(candidate: Any, visualization: Any | None) -> HardwareOverviewBoundingBox:
+    metadata = getattr(visualization, "render_metadata", {}) if visualization is not None else {}
+    if isinstance(metadata, dict):
+        values = [metadata.get(key) for key in ("overall_width_mm", "overall_height_mm", "overall_depth_mm")]
+        if all(value is not None for value in values):
+            return HardwareOverviewBoundingBox(*(float(value) for value in values))
+    numbers = re.findall(r"\d+(?:\.\d+)?", str(getattr(candidate, "core_id", "")))
+    if len(numbers) >= 3:
+        return HardwareOverviewBoundingBox(*(float(value) for value in numbers[:3]))
+    volume_cm3 = max(float(getattr(candidate, "estimated_volume_cm3", 0.0) or 0.0), 0.0)
+    edge_mm = (volume_cm3 * 1000.0) ** (1.0 / 3.0) if volume_cm3 > 0.0 else 0.0
+    return HardwareOverviewBoundingBox(edge_mm, edge_mm, edge_mm)
+
+
 def _inductor_group_display_name(topology_id: str) -> str:
     if topology_id == "llc_resonant_converter_diode_rectifier":
         return "External Resonant Inductor"
@@ -996,6 +1400,8 @@ def _inductor_group_display_name(topology_id: str) -> str:
 
 
 def _build_capacitor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    if is_llc_topology(report.spec.topology_id) and report.llc_run_context is not None:
+        return _build_llc_resonant_capacitor_group(report)
     if report.capacitor is None:
         return _missing_group("capacitor", "Capacitors", "Run Capacitor first to populate capacitor overview.")
 
@@ -1047,6 +1453,88 @@ def _build_capacitor_group(report: DesignReport) -> HardwareOverviewComponentGro
         notes=[_capacitor_group_note(report.spec.topology_id, dc_link_output_only)],
         warnings=warnings,
     )
+
+
+def _build_llc_resonant_capacitor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    """Build the LLC Cr group from the current run's dedicated Cr search."""
+
+    search = (
+        report.capacitor.llc_resonant_capacitor_search_result
+        if report.capacitor is not None
+        else None
+    )
+    candidate = getattr(search, "recommended_candidate", None) if search is not None else None
+    context = report.llc_run_context
+    if candidate is None or context is None or context.cr_design_id != candidate.design_id:
+        return _missing_group("capacitor", "LLC Resonant Capacitor (Cr)", "Current LLC Cr recommendation is unavailable or is not bound to this run.")
+    bbox = _llc_capacitor_bbox(candidate)
+    artifacts = _dedupe_paths(
+        [
+            getattr(search, "feasible_csv_path", ""),
+            getattr(search, "pareto_csv_path", ""),
+            getattr(search, "chosen_csv_path", ""),
+            *getattr(search, "geometry_artifact_paths", []),
+        ]
+    )
+    child = HardwareOverviewChildEntry(
+        entry_id="llc_resonant_capacitor",
+        display_name="LLC Resonant Capacitor (Cr)",
+        recommended_name=f"{candidate.part_number} P={candidate.parallel_count}",
+        manufacturer=candidate.manufacturer,
+        series=candidate.series,
+        part_number=candidate.part_number,
+        quantity=candidate.parallel_count,
+        volume_cm3=candidate.estimated_volume_cm3,
+        loss_w=candidate.loss_w,
+        bounding_box_mm=bbox,
+        shape_type=candidate.package_shape or "unknown",
+        metadata={
+            "design_id": candidate.design_id,
+            "run_id": context.run_id,
+            "bank_capacitance_f": candidate.bank_capacitance_f,
+            "bank_capacitance_nF": candidate.bank_capacitance_nF,
+            "cr_target_f": candidate.cr_target_f,
+            "cr_target_nF": candidate.cr_target_nF,
+            "capacitance_error_percent": candidate.capacitance_error_percent,
+            "source_artifact_paths": artifacts,
+        },
+        notes=["Cr is sourced from the dedicated LLC resonant-capacitor search result."],
+        warnings=_bbox_warnings(bbox),
+    )
+    return HardwareOverviewComponentGroup(
+        group_id="capacitor",
+        display_name="LLC Resonant Capacitor (Cr)",
+        status="available",
+        recommended_name=child.recommended_name,
+        manufacturer=child.manufacturer,
+        series=child.series,
+        part_number=child.part_number,
+        quantity=child.quantity,
+        volume_cm3=child.volume_cm3,
+        loss_w=child.loss_w,
+        geometry_source="current_llc_resonant_capacitor_search",
+        bounding_box_mm=bbox,
+        shape_type=child.shape_type,
+        child_entries=[child],
+        metadata={
+            "topology_id": report.spec.topology_id,
+            "run_id": context.run_id,
+            "design_id": candidate.design_id,
+            "component_role": "llc_resonant_capacitor",
+            "source_artifact_paths": artifacts,
+        },
+        notes=["LLC hardware overview includes the dedicated resonant capacitor Cr as a separate component."],
+        warnings=_bbox_warnings(bbox),
+    )
+
+
+def _llc_capacitor_bbox(candidate: Any) -> HardwareOverviewBoundingBox:
+    width = float(getattr(candidate, "body_width_mm", None) or getattr(candidate, "diameter_mm", 0.0) or 0.0)
+    depth = float(getattr(candidate, "body_depth_mm", None) or getattr(candidate, "diameter_mm", 0.0) or 0.0)
+    height = float(getattr(candidate, "body_height_mm", None) or getattr(candidate, "height_mm", 0.0) or 0.0)
+    count = max(int(getattr(candidate, "parallel_count", 1) or 1), 1)
+    spacing = max(8.0, 0.10 * max(width, depth, 1.0))
+    return HardwareOverviewBoundingBox(count * width + (count - 1) * spacing, height, depth)
 
 
 def _capacitor_group_note(topology_id: str, dc_link_output_only: bool) -> str:
@@ -1883,9 +2371,21 @@ def _positive_or_none(value: float | None) -> float | None:
     return value if value > 0.0 else None
 
 
-def _resolve_output_dir(output_dir: str | Path | None) -> Path:
+def _float_or_none(value: Any) -> float | None:
+    if value is None:
+        return None
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return None
+    return result if math.isfinite(result) else None
+
+
+def _resolve_output_dir(output_dir: str | Path | None, report: DesignReport | None = None) -> Path:
     if output_dir is not None:
         return Path(output_dir)
+    if report is not None and is_llc_topology(report.spec.topology_id) and report.llc_run_context is not None:
+        return Path(report.llc_run_context.output_root) / "hardware_overview"
     return Path(__file__).resolve().parents[3] / _OVERVIEW_OUTPUT_DIR
 
 

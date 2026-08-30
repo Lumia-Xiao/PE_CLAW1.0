@@ -53,9 +53,12 @@ def run_topology_pipeline(
         topology_result=topology_result,
     )
     if is_llc_topology(spec.topology_id):
+        context = LlcRunContext.create(spec.topology_id, raw_input)
+        if report.device is not None and report.device.recommended_scheme_id:
+            context = context.with_result_ids(device_design_id=report.device.recommended_scheme_id)
         report = replace(
             report,
-            llc_run_context=LlcRunContext.create(spec.topology_id, raw_input),
+            llc_run_context=context,
             notes=[*report.notes, "LLC run context created with isolated input and output identity."],
         )
     return TopologyPipelineBundle(

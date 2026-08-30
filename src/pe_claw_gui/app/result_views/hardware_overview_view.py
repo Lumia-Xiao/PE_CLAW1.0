@@ -25,10 +25,11 @@ from ...topology_capabilities import (
 )
 from .summary_view import build_stage_runtime_lines
 
-_GROUP_ORDER = ("bridge_rectifier", "semiconductor", "inductor", "capacitor")
+_GROUP_ORDER = ("bridge_rectifier", "semiconductor", "transformer", "inductor", "capacitor")
 _GROUP_TITLES = {
     "bridge_rectifier": "Bridge Rectifier",
     "semiconductor": "Semiconductor",
+    "transformer": "LLC Transformer",
     "inductor": "Inductor",
     "capacitor": "Capacitors",
 }
@@ -139,12 +140,19 @@ class HardwareOverviewView(ttk.Frame):
             return
 
         self._payload = payload
-        self.message.configure(text="Recommended hardware overview with shared-scale geometry artifacts.")
+        if payload.status == "blocked":
+            self.message.configure(text="Hardware Overview is blocked for the current LLC run.")
+        else:
+            self.message.configure(text="Recommended hardware overview with shared-scale geometry artifacts.")
         self.notes.configure(text=f"{_overview_scale_note(payload, report)}\n{_VOLUME_NOTE}")
         self._set_summary_text(build_hardware_overview_summary_text(payload, report=report))
-        self._render_pie(payload)
-        self._render_integrated_image(payload, mode="2D")
-        self._render_integrated_image(payload, mode="3D")
+        if payload.status == "blocked":
+            self.pie_placeholder.configure(text="Hardware Overview is blocked; diagnostic details are shown below.")
+            self._set_integrated_placeholders("Hardware Overview is blocked; no current-run overview images were generated.")
+        else:
+            self._render_pie(payload)
+            self._render_integrated_image(payload, mode="2D")
+            self._render_integrated_image(payload, mode="3D")
 
     def _render_pie(self, payload: HardwareOverviewPayload) -> None:
         path = _resolve_integrated_artifact_path(payload, "volume_pie", "hardware_volume_pie.png")
@@ -215,7 +223,12 @@ def build_hardware_overview_summary_text(payload: HardwareOverviewPayload | None
 
     if payload is None:
         return "No Hardware Overview payload is available."
-    lines = ["Hardware Overview", _overview_scale_note(payload, report), "Overview images are first-pass engineering visualizations.", _VOLUME_NOTE, ""]
+    lines = ["Hardware Overview", f"status: {payload.status}"]
+    if payload.run_id:
+        lines.append(f"run: {payload.run_id}")
+    if payload.blocked_reason:
+        lines.append(f"blocked reason: {payload.blocked_reason}")
+    lines.extend([_overview_scale_note(payload, report), "Overview images are first-pass engineering visualizations.", _VOLUME_NOTE, ""])
     groups_by_id = {group.group_id: group for group in payload.component_groups}
     for group_id in _GROUP_ORDER:
         group = groups_by_id.get(group_id)

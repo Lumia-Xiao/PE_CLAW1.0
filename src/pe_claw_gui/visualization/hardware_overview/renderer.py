@@ -24,11 +24,13 @@ from .pie import export_hardware_volume_pie
 
 _GROUP_BASENAMES = {
     "semiconductor": ("overview_semiconductor_2d.png", "overview_semiconductor_3d.png"),
+    "transformer": ("overview_transformer_2d.png", "overview_transformer_3d.png"),
     "inductor": ("overview_inductor_2d.png", "overview_inductor_3d.png"),
     "capacitor": ("overview_capacitor_2d.png", "overview_capacitor_3d.png"),
 }
 _GROUP_COLORS = {
     "semiconductor": "#cbd5e1",
+    "transformer": "#fef3c7",
     "inductor": "#d9dde6",
     "capacitor": "#dbeafe",
 }
@@ -39,6 +41,9 @@ def generate_hardware_overview_artifacts(payload: HardwareOverviewPayload, outpu
 
     output_root = Path(output_dir)
     output_root.mkdir(parents=True, exist_ok=True)
+    if payload.status != "available":
+        json_path = write_hardware_overview_payload_json(payload, output_root)
+        return replace(payload, artifact_paths=_dedupe_strings([*payload.artifact_paths, str(json_path)]))
     scale = _resolve_scale_settings(payload)
     updated_groups: list[HardwareOverviewComponentGroup] = []
     overview_artifacts: dict[str, str] = dict(payload.overview_artifacts)
@@ -98,6 +103,12 @@ def generate_hardware_overview_artifacts(payload: HardwareOverviewPayload, outpu
     updated_payload = HardwareOverviewPayload(
         component_groups=updated_groups,
         global_geometry_scale=updated_global_scale,
+        status=payload.status,
+        run_id=payload.run_id,
+        topology_id=payload.topology_id,
+        blocked_reason=payload.blocked_reason,
+        source_ids=dict(payload.source_ids),
+        dependency_diagnostics=dict(payload.dependency_diagnostics),
         artifact_paths=_dedupe_strings([*payload.artifact_paths, *overview_artifacts.values(), *integrated_artifacts.values()]),
         overview_artifacts=overview_artifacts,
         integrated_layout=integrated_layout,
@@ -422,7 +433,9 @@ def _short_component_label(obj: HardwareIntegratedLayoutObject) -> str:
     labels = {
         "capacitor_input": "Input capacitor",
         "semiconductor": "Semiconductor",
+        "transformer": "LLC transformer",
         "inductor": "Inductor",
+        "llc_resonant_capacitor": "LLC resonant capacitor",
         "capacitor_output": "Output capacitor",
         "capacitor": "Capacitors",
     }

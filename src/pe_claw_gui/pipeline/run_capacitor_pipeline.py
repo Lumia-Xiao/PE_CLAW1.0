@@ -154,7 +154,7 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
             notes=notes,
             warnings=["Capacitor selection did not run because no topology candidate is available."],
         )
-        return replace(report, capacitor=result)
+        return _attach_llc_cr_design_id(replace(report, capacitor=result))
 
     waveform_start_s = time.perf_counter()
     design_report = _build_design_point_waveform_report(report, plugin)
@@ -166,7 +166,7 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
             notes=notes,
             warnings=["Capacitor selection did not run because waveform data is unavailable."],
         )
-        return replace(report, capacitor=result)
+        return _attach_llc_cr_design_id(replace(report, capacitor=result))
 
     ripple_ratio_percent = _resolve_ripple_ratio_percent(design_report)
     ambient_temp_c = resolve_ambient_temperature_c(design_report)
@@ -220,7 +220,7 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
     )
     completed = run_capacitor_geometry_pipeline(replace(report, capacitor=result))
     if completed.capacitor is None:
-        return completed
+        return _attach_llc_cr_design_id(completed)
     total_elapsed_s = time.perf_counter() - pipeline_start_s
     capacitor = replace(
         completed.capacitor,
@@ -232,7 +232,26 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
     completed = _refresh_selected_active_pfc(completed, plugin)
     completed = _refresh_selected_npc_inverter(completed, plugin)
     completed = _refresh_selected_llc(completed, plugin)
-    return run_capacitor_operating_point_refresh(completed) if completed.waveform is not None else completed
+    completed = run_capacitor_operating_point_refresh(completed) if completed.waveform is not None else completed
+    return _attach_llc_cr_design_id(completed)
+
+
+def _attach_llc_cr_design_id(report: DesignReport) -> DesignReport:
+    """Bind the LLC Cr recommendation to the current run context."""
+
+    context = report.llc_run_context
+    search = (
+        report.capacitor.llc_resonant_capacitor_search_result
+        if report.capacitor is not None
+        else None
+    )
+    recommended = search.recommended_candidate if search is not None else None
+    if context is None or recommended is None:
+        return report
+    return replace(
+        report,
+        llc_run_context=context.with_result_ids(cr_design_id=recommended.design_id),
+    )
 
 
 def _refresh_selected_llc(report: DesignReport, plugin: TopologyPlugin | None) -> DesignReport:
