@@ -339,7 +339,7 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
 | --- | --- | --- | --- | --- | --- |
 | 第 1 步 | `completed` | `b349847` | `2311c67` | `pushed` | `$env:PYTHONPATH='src'; python -m pytest -q tests/test_llc_latest_run_result_chain_polish_step1.py tests/test_llc_magnetic_result_display_baseline.py tests/test_llc_magnetic_result_display_step2.py tests/test_llc_magnetic_result_reporting_step5.py` -> `20 passed`; evidence fixture generated |
 | 第 2 步 | `completed` | `27ab107` | `3d21f5a` | `pushed` | 专项 `23 passed`；相关回归 `14 passed`；完整 LLC 回归 `96 passed` |
-| 第 3 步 | `pending` | - | - | - | - |
+| 第 3 步 | `completed` | `f6ee297` | `pending` | `pushed` | LLC 全量 `99 passed in 104.41s`；受影响专项 `21 passed`；全仓库 `433 passed, 1 skipped`，另有既有 AC-DC Tk/Tcl 环境错误和 1 个既有 GUI 断言失败，详见本步记录 |
 | 第 4 步 | `pending` | - | - | - | - |
 | 第 5 步 | `pending` | - | - | - | - |
 | 第 6 步 | `pending` | - | - | - | - |
@@ -369,6 +369,24 @@ manifest 在磁件阶段成功且有磁件损耗时仍保留
   - 全部 `test_llc_*.py`：`96 passed in 108.36s`。
 - 计划记录 commit：`3d21f5a docs: record LLC Pareto mapping step`。
 - Push：已成功推送到 `origin/codex/sync-gui-backend-from-2`。
+
+### 第 3 步执行记录
+
+- 实现 commit：`f6ee297 fix: connect LLC component thermal results`。
+- 本步内容：将分离式 LLC 的 transformer 和 external Lr 组件热估算接入
+  `ThermalResult` 的组件条目和推荐消费字段；组件记录统一携带 design ID、assembly type、
+  loss basis、ambient、core/copper/total loss、hotspot 和 source；Thermal 页面改为分别
+  展示两个组件，不再显示固定电感专用的 1/2/3-core stack-count 区块，也不生成虚构的组合温度；
+  结构化输出补齐 LLC 组件热字段；硬件总览在 LLC 无通用推荐热条目时使用最大组件热点作为
+  明确的组件热点上限 proxy，普通拓扑逻辑保持不变；LLC 文本摘要补齐组件损耗。
+- 测试：
+  - 第 3 步专项、结构化输出、最新基线和相关回归：`21 passed`。
+  - 全部 `test_llc_*.py`：`99 passed in 104.41s`。
+  - 全仓库：`433 passed, 1 skipped`；其余为既有 AC-DC GUI/绘图环境问题：Python Tk
+    安装缺少 `ttk/menubutton.tcl` 导致 13 个 setup error，另有 1 个 AC-DC GUI 断言失败，
+    均不涉及本步 LLC 改动。
+- 计划记录 commit：待提交。
+- Push：实现提交已成功推送；计划记录提交待推送。
 
 ## 8. 预期结果
 
