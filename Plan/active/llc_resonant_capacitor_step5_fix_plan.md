@@ -145,7 +145,7 @@
 | 计划文件 | 已建立 | `0fe72bd` | 已 push | 已完成 |
 | 第 1 步 | 已完成 | `fed2fef` | 已 push | `33 passed`；compileall、diff-check 通过 |
 | 第 2 步 | 已完成 | `2a8dbef` | 已 push | `37 passed`；compileall、diff-check 通过 |
-| 第 3 步 | 已完成 | 待提交 | 待 push | `38 passed`；compileall、diff-check 通过 |
+| 第 3 步 | 已完成 | `853aecc` | 已 push | `38 passed`；compileall、diff-check 通过 |
 | 第 4 步 | 未开始 | - | - | - |
 | 第 5 步 | 未开始 | - | - | - |
 
@@ -155,7 +155,7 @@
 - LLC Cr 搜索的 warning threshold 与 hard limit 改为同一配置来源；coverage summary 增加约束来源，并使用与实际阈值无关的通用统计字段名。
 - 验证：`PYTHONPATH=src python -m pytest tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step1`，结果 `33 passed`。
 - 验证：`python -m compileall -q src` 通过；`git diff --check` 通过。
-- Commit：待提交；Push：待 push。
+- Commit：`fed2fef`；Push：已 push。
 
 ### 第 2 步执行记录
 
@@ -163,7 +163,7 @@
 - LLC Cr CSV 增加 `is_pareto`、`recommended_flag` 和 `rejection_reason` 字段。
 - 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step2c`，结果 `37 passed`。
 - 验证：`python -m compileall -q src tests` 通过；`git diff --check` 通过。
-- Commit：待提交；Push：待 push。
+- Commit：`2a8dbef`；Push：已 push。
 
 ### 第 3 步执行记录
 
@@ -172,4 +172,4 @@
 - 新增重复运行回归测试：第一次有推荐、第二次仅有超限候选时，旧 Pareto 图和推荐几何被清理，第二次不继承旧推荐。
 - 验证：`PYTHONPATH=src python -m pytest tests/test_llc_resonant_capacitor_constraint_step5.py tests/test_capacitor_selection.py -q --basetemp .pytest-tmp-step5-step3`，结果 `38 passed`。
 - `PYTHONPATH=src python -m compileall -q src tests` 和 `git diff --check` 通过。
-- Commit：待提交；Push：待 push。
+- Commit：`853aecc`；Push：已 push。

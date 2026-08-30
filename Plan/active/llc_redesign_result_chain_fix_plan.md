@@ -594,4 +594,4 @@
 - 无可行候选时生成只有表头的 feasible、Pareto、chosen CSV，明确区分本次无候选与未执行，并返回空推荐。
 - 新增重复运行测试，确认第二次无候选时不会继承第一次的 Pareto 图、推荐几何或推荐对象。
 - 验证：相关 LLC Cr 和通用电容测试共 `38 passed`；compileall、`git diff --check` 通过。
-- Commit：待提交；Push：待 push。
+- Commit：`853aecc`；Push：已 push。
