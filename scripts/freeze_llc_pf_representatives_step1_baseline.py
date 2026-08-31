@@ -151,7 +151,7 @@ def _display_baseline(repo_root: Path, topology_id: str) -> dict[str, Any]:
         "single_generic_plot_host": "self.plot_host = ttk.Frame" in source,
         "generic_plot_resolver": "def resolve_pareto_front_path" in source,
         "notebook_tabs_present": "ttk.Notebook" in source,
-        "llc_role_specific_tabs_present": "Transformer PF" in source and "External Resonant Inductor PF" in source,
+        "llc_role_specific_tabs_present": is_llc and "Transformer PF" in source and "External Resonant Inductor PF" in source,
         "observed_llc_geometry_roles": ["recommended"] if is_llc else [],
     }
 

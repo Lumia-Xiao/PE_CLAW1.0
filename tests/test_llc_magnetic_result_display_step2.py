@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from pathlib import Path
+import shutil
+from uuid import uuid4
 
 from scripts.build_llc_magnetic_result_display_step1_baseline import (
     COMBINED_ID,
@@ -14,7 +17,12 @@ from pe_claw_gui.models.magnetic_result import (
 )
 from pe_claw_gui.app.result_views.inductor_view import build_inductor_summary_text
 from pe_claw_gui.app.result_views.magnetic_view import MagneticView
-from pe_claw_gui.app.result_views.inductor_pf_view import build_inductor_pf_summary_text
+from pe_claw_gui.app.result_views.inductor_pf_view import (
+    build_inductor_pf_summary_text,
+    build_llc_pf_side_summary,
+    is_llc_report,
+    resolve_llc_pf_plot_paths,
+)
 from pe_claw_gui.pipeline.run_magnetic_pipeline import (
     _llc_external_lr_stage_summary,
     _llc_stage_summary,
@@ -244,3 +252,53 @@ def test_llc_structured_stage_payload_exposes_chosen_counts() -> None:
 
     assert llc["transformer"]["metrics"]["chosen_candidates"]["value"] == 4.0
     assert llc["external_lr"]["metrics"]["chosen_candidates"]["value"] == 4.0
+
+
+def test_llc_pf_paths_are_resolved_by_role() -> None:
+    report = _report_with_llc_display_summary()
+    magnetic = report.magnetic
+    transformer_path = Path("transformer") / "llc_transformer_pareto_front.png"
+    external_path = Path("external") / "llc_external_resonant_inductor_pareto_front.png"
+    magnetic.transformer_pareto_result.artifact_paths = [str(transformer_path)]
+    magnetic.llc_external_resonant_inductor_search_result.artifact_paths = [str(external_path)]
+    # The resolver is intentionally path-contract based; existence is checked at consumption time.
+    paths = resolve_llc_pf_plot_paths(report)
+    assert paths == {"transformer": None, "external_lr": None}
+
+
+def test_llc_pf_paths_resolve_existing_role_specific_images() -> None:
+    root = Path(f".pytest-tmp-llc-step2-{uuid4().hex}")
+    try:
+        transformer_path = root / "transformer" / "llc_transformer_pareto_front.png"
+        external_path = root / "external" / "llc_external_resonant_inductor_pareto_front.png"
+        transformer_path.parent.mkdir(parents=True)
+        external_path.parent.mkdir(parents=True)
+        transformer_path.write_bytes(b"transformer-png")
+        external_path.write_bytes(b"external-png")
+        report = _report_with_llc_display_summary()
+        magnetic = report.magnetic
+        magnetic.transformer_pareto_result.artifact_paths = [str(transformer_path)]
+        magnetic.llc_external_resonant_inductor_search_result.artifact_paths = [str(external_path)]
+        paths = resolve_llc_pf_plot_paths(report)
+        assert paths == {"transformer": transformer_path, "external_lr": external_path}
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+def test_llc_pf_side_summary_keeps_role_identity_when_artifact_is_missing() -> None:
+    report = _report_with_llc_display_summary()
+    transformer = build_llc_pf_side_summary(report, "transformer")
+    external = build_llc_pf_side_summary(report, "external_lr")
+    assert "Transformer PF" in transformer
+    assert "External Resonant Inductor PF" in external
+    assert "transformer" not in external.casefold() or "external" in external.casefold()
+    assert "Unavailable" in transformer
+    assert "Unavailable" in external
+
+
+def test_llc_result_type_uses_role_tabs_even_when_summary_is_missing() -> None:
+    report = build_baseline_report()
+    report = replace(report, magnetic=replace(report.magnetic, llc_result_summary=None))
+    assert is_llc_report(report) is True
+    assert resolve_llc_pf_plot_paths(report) == {"transformer": None, "external_lr": None}
+    assert "summary is missing" in build_llc_pf_side_summary(report, "transformer")
