@@ -389,7 +389,7 @@
 
 | 步骤 | 状态 | 实现 commit | 计划记录 commit | Push | 验证摘要 |
 | --- | --- | --- | --- | --- | --- |
-| 第 1 步 | `pending` |  |  |  | 尚未执行 |
+| 第 1 步 | `completed` | `1010c8d` | 待记录 | `pushed` | 已冻结当前 run `b28792595095416f872f5d9a8b8800f6`；变压器 feasible/Pareto/chosen 为 `10269/16/4`，外置 Lr 为 `11536/28/4`；两类 chosen 均包含 `recommended`、`min-volume`、`min-loss`；输入 checksum 和 run manifest 在当前 payload 中不可用，已明确记录为 unavailable；新增缺失 artifact、缺失角色、非 LLC 边界测试；专项测试 `5 passed`，compileall 与 diff check 通过。实现 commit 已 push。 |
 | 第 2 步 | `pending` |  |  |  | 等待第 1 步完成 |
 | 第 3 步 | `pending` |  |  |  | 等待第 2 步完成 |
 | 第 4 步 | `pending` |  |  |  | 等待第 3 步完成 |
