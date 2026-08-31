@@ -1,199 +1,179 @@
-"""Build final acceptance evidence for the LLC magnetic-result display fix."""
+"""Build Step 6 acceptance evidence from one current LLC E2E run."""
 
 from __future__ import annotations
 
+import argparse
 import json
-from dataclasses import replace
 from pathlib import Path
-from types import SimpleNamespace
+from typing import Any
 
-from pe_claw_gui.app.result_views.inductor_view import build_inductor_summary_text
-from pe_claw_gui.app.result_views.magnetic_view import MagneticView
-from pe_claw_gui.models.magnetic_result import LlcMagneticResultSummary, LlcMagneticStageSummary
-from pe_claw_gui.pipeline.options import PipelineOptions
-from pe_claw_gui.pipeline.run_loss_pipeline import _run_loss_pipeline_without_excitation_audit
-from pe_claw_gui.pipeline.run_thermal_pipeline import run_thermal_pipeline
-from pe_claw_gui.reports.structured_output import build_structured_report
+try:
+    from .validate_llc_manifest_step8 import validate_llc_manifest_file
+except ImportError:
+    from validate_llc_manifest_step8 import validate_llc_manifest_file
 
-from build_llc_magnetic_result_display_step1_baseline import (
-    COMBINED_ID,
-    EXTERNAL_LR_ID,
-    TRANSFORMER_ID,
-    build_baseline_report,
+
+REQUIRED_STAGES = (
+    "design", "magnetics", "capacitors", "loss", "thermal", "geometry",
+    "efficiency_sweep", "hardware_overview", "manifest",
 )
+REQUIRED_REPRESENTATIVE_ROLES = ("recommended", "min-volume", "min-loss")
+REQUIRED_GEOMETRY_ROLES = ("min_volume", "min_loss", "recommended")
 
 
-ROOT = Path(__file__).resolve().parents[1]
-BASELINE_EVIDENCE = (
-    ROOT
-    / "migration"
-    / "evidence"
-    / "20260829"
-    / "llc_magnetic_result_display_step1"
-    / "llc_magnetic_result_display_step1_baseline.json"
-)
-ARTIFACTS = (
-    "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.png",
-    "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.svg",
-    "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.png",
-    "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.svg",
-)
+def build_acceptance_payload(
+    e2e_evidence: dict[str, Any], *, test_summary: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Validate one run-scoped E2E evidence payload without historical fallback."""
 
+    failures: list[str] = []
+    manifest_path = Path(str(e2e_evidence.get("manifest_path") or ""))
+    manifest_validation = validate_llc_manifest_file(manifest_path)
+    if not manifest_validation.get("valid"):
+        failures.extend(str(item) for item in manifest_validation.get("failures", []))
 
-def _llc_summary() -> LlcMagneticResultSummary:
-    return LlcMagneticResultSummary(
-        transformer=LlcMagneticStageSummary(
-            status="available",
-            generated_candidate_count=19216,
-            prefilter_pass_count=19216,
-            precise_evaluated_candidate_count=19216,
-            feasible_candidate_count=10269,
-            pareto_candidate_count=16,
-            recommended_design_id=TRANSFORMER_ID,
-        ),
-        external_lr=LlcMagneticStageSummary(
-            status="available",
-            generated_candidate_count=3020,
-            prefilter_rejected_candidate_count=2764,
-            prefilter_pass_count=256,
-            precise_evaluated_candidate_count=256,
-            feasible_candidate_count=186,
-            pareto_candidate_count=18,
-            recommended_design_id=EXTERNAL_LR_ID,
-        ),
-        recommended_transformer_design_id=TRANSFORMER_ID,
-        recommended_external_lr_design_id=EXTERNAL_LR_ID,
-        recommended_combined_magnetic_design_id=COMBINED_ID,
-    )
+    run_id = str(e2e_evidence.get("run_id") or "")
+    output_root = Path(str(e2e_evidence.get("output_root") or "")).resolve()
+    if manifest_validation.get("run_id") != run_id:
+        failures.append("manifest run ID differs from E2E run ID")
+    if not run_id:
+        failures.append("run ID is unavailable")
+    if not output_root.is_dir():
+        failures.append(f"run output root does not exist: {output_root}")
 
+    input_snapshot = e2e_evidence.get("input_snapshot") or {}
+    for key in ("vin_min", "vin_nom", "vin_max", "vout_min", "vout_nom", "vout_max"):
+        try:
+            value = float(input_snapshot.get(key))
+        except (TypeError, ValueError):
+            failures.append(f"acceptance input is unavailable: {key}")
+            continue
+        if abs(value - 400.0) > 1e-9:
+            failures.append(f"acceptance input is not 400 V: {key}={value:g}")
 
-def build_final_report():
-    report = build_baseline_report()
-    magnetic = replace(
-        report.magnetic,
-        llc_result_summary=_llc_summary(),
-        recommended_transformer_design_id=TRANSFORMER_ID,
-        recommended_external_lr_design_id=EXTERNAL_LR_ID,
-        recommended_combined_magnetic_design_id=COMBINED_ID,
-    )
-    report = replace(report, magnetic=magnetic, candidate=SimpleNamespace(metadata={}, delta_vo=None))
-    options = PipelineOptions(enable_magnetic_design=True, enable_capacitor_design=False)
-    report = _run_loss_pipeline_without_excitation_audit(report, pipeline_options=options)
-    report = run_thermal_pipeline(report, pipeline_options=options)
-    return replace(report, geometry=replace(report.geometry, component_type="external_resonant_inductor"))
+    stages = e2e_evidence.get("stage_status") or {}
+    for stage in REQUIRED_STAGES:
+        if stages.get(stage) != "succeeded":
+            failures.append(f"stage {stage} is {stages.get(stage, 'missing')}")
 
+    ui = e2e_evidence.get("ui_acceptance") or {}
+    failures.extend(str(item) for item in ui.get("failures", []))
+    if ui.get("run_id") != run_id:
+        failures.append("UI acceptance run ID differs from E2E run ID")
+    if Path(str(ui.get("output_root") or "")).resolve() != output_root:
+        failures.append("UI acceptance output root differs from E2E output root")
 
-def _render_magnetic_view_text(report) -> str:
-    captured: dict[str, str] = {}
-
-    class CaptureView:
-        def _set_text(self, value: str) -> None:
-            captured["text"] = value
-
-    MagneticView.render(CaptureView(), report)
-    return captured["text"]
-
-
-def _artifact_manifest() -> list[dict[str, object]]:
-    result = []
-    for relative_path in ARTIFACTS:
-        path = ROOT / relative_path
-        result.append(
-            {
-                "path": relative_path,
-                "exists": path.is_file(),
-                "size_bytes": path.stat().st_size if path.is_file() else None,
-            }
-        )
-    return result
-
-
-def build_acceptance_payload() -> dict[str, object]:
-    report = build_final_report()
-    structured = build_structured_report(report)
-    magnetic_text = _render_magnetic_view_text(report)
-    inductor_text = build_inductor_summary_text(report)
-    baseline = json.loads(BASELINE_EVIDENCE.read_text(encoding="ascii"))
-    forbidden = (
-        "Single-core after engineering allow screening",
-        "Single-core after redundancy compression",
-        "Final combined after engineering allow screening",
-        "Final combined after redundancy compression",
-        "Best Design By Stack Count",
-        "L target = -",
-        "fs = - Hz",
-    )
-    display_text = f"{magnetic_text}\n{inductor_text}"
-    loss = report.loss
-    breakdown = loss.breakdown_w if loss is not None else {}
-    volumes = loss.component_volumes_m3 if loss is not None else {}
-    checks = {
-        "candidate_counts_unchanged": baseline["calculation_source_contract"]["transformer"]
-        == {
-            "evaluated": 19216,
-            "feasible": 10269,
-            "pareto": 16,
-            "recommended_id": TRANSFORMER_ID,
+    pf_artifacts = ui.get("pf_artifacts") or {}
+    expected_pf_names = {
+        "transformer": {
+            "pareto_png_path": "llc_transformer_pareto_front.png",
+            "pareto_csv_path": "llc_transformer_pareto_front.csv",
+            "feasible_csv_path": "llc_transformer_feasible_candidates.csv",
+            "chosen_csv_path": "llc_transformer_chosen_candidates.csv",
         },
-        "recommendations_unchanged": (
-            baseline["calculation_source_contract"]["combined"]["recommended_id"] == COMBINED_ID
-        ),
-        "loss_conservation": (
-            breakdown.get("llc_transformer_total_loss_w", 0.0)
-            + breakdown.get("llc_external_resonant_inductor_total_loss_w", 0.0)
-            == breakdown.get("llc_magnetic_total_loss_w", 0.0)
-        ),
-        "volume_conservation": (
-            volumes.get("transformer_volume_m3", 0.0) + volumes.get("external_lr_volume_m3", 0.0)
-            == volumes.get("combined_magnetic_volume_m3", 0.0)
-        ),
-        "no_legacy_llc_display_fields": not any(item in display_text for item in forbidden),
-        "structured_selection_pass": structured["hardware"]["magnetic"]["selection_status"] == "pass",
-        "external_lr_geometry_role": structured["geometry"]["metadata"]["component_type"]
-        == "external_resonant_inductor",
-        "artifacts_present": all(item["exists"] for item in _artifact_manifest()),
+        "external_lr": {
+            "pareto_png_path": "llc_external_resonant_inductor_pareto_front.png",
+            "pareto_csv_path": "llc_external_resonant_inductor_pareto_front.csv",
+            "feasible_csv_path": "llc_external_resonant_inductor_feasible_candidates.csv",
+            "chosen_csv_path": "llc_external_resonant_inductor_chosen_candidates.csv",
+        },
     }
+    for component in ("transformer", "external_lr"):
+        contract = pf_artifacts.get(component) or {}
+        if contract.get("status") != "available":
+            failures.append(f"{component} PF artifact contract is unavailable")
+        if contract.get("run_id") != run_id:
+            failures.append(f"{component} PF artifact contract is stale")
+        for field, record in (contract.get("files") or {}).items():
+            _validate_current_file(record, output_root, failures, f"{component}.{field}")
+            expected_name = expected_pf_names[component].get(field)
+            if expected_name and Path(str(record.get("path") or "")).name != expected_name:
+                failures.append(f"{component} PF artifact has the wrong role filename: {field}")
+
+    representatives = ui.get("representatives") or {}
+    for component in ("transformer", "external_lr"):
+        for role in REQUIRED_REPRESENTATIVE_ROLES:
+            entry = (representatives.get(component) or {}).get(role) or {}
+            if entry.get("status") != "available" or not entry.get("design_id"):
+                failures.append(f"{component} representative is unavailable: {role}")
+
+    geometry_targets = {
+        item.get("role"): item for item in (ui.get("geometry") or {}).get("targets", [])
+    }
+    for role in REQUIRED_GEOMETRY_ROLES:
+        target = geometry_targets.get(role) or {}
+        if not target.get("design_id") or target.get("error"):
+            failures.append(f"external Lr geometry target is unavailable: {role}")
+        if target.get("component_role") != "external_resonant_inductor":
+            failures.append(f"external Lr geometry component role is invalid: {role}")
+        if not target.get("artifact_paths"):
+            failures.append(f"external Lr geometry has no artifacts: {role}")
+        for raw_path in target.get("artifact_paths", []):
+            _validate_path(Path(str(raw_path)).resolve(), output_root, failures, f"geometry.{role}")
+
+    transformer_geometry = ui.get("transformer_geometry") or {}
+    if transformer_geometry.get("status") == "unavailable" and not transformer_geometry.get("diagnostics"):
+        failures.append("transformer geometry is unavailable without a diagnostic")
+
+    structured_llc = ui.get("structured_llc") or {}
+    structured_recommendations = structured_llc.get("recommendations") or {}
+    expected_recommendations = {
+        "transformer_design_id": ui.get("source_ids", {}).get("transformer_design_id"),
+        "external_lr_design_id": ui.get("source_ids", {}).get("external_lr_design_id"),
+        "combined_magnetic_design_id": ui.get("source_ids", {}).get("combined_magnetic_design_id"),
+    }
+    if structured_recommendations != expected_recommendations:
+        failures.append("structured LLC recommendations differ from the current run IDs")
+
     return {
-        "schema_version": "llc_magnetic_result_display_step6_acceptance_v1",
-        "baseline_source": str(BASELINE_EVIDENCE.relative_to(ROOT)),
-        "checks": checks,
-        "baseline_calculation_source_contract": baseline["calculation_source_contract"],
-        "final_recommendations": {
-            "transformer": TRANSFORMER_ID,
-            "external_lr": EXTERNAL_LR_ID,
-            "combined": COMBINED_ID,
+        "schema_version": "llc_magnetic_pf_representatives_step6_acceptance_v2",
+        "valid": not failures,
+        "failures": list(dict.fromkeys(failures)),
+        "run": {
+            "run_id": run_id, "output_root": str(output_root),
+            "input_snapshot": input_snapshot, "stage_status": stages,
         },
-        "final_loss": {
-            "transformer_total_loss_w": breakdown.get("llc_transformer_total_loss_w"),
-            "external_lr_total_loss_w": breakdown.get("llc_external_resonant_inductor_total_loss_w"),
-            "combined_total_loss_w": breakdown.get("llc_magnetic_total_loss_w"),
-            "component_volumes_m3": volumes,
-        },
-        "final_thermal": getattr(report.thermal, "llc_component_thermal", {}),
-        "artifact_manifest": _artifact_manifest(),
-        "structured_output": structured,
-        "magnetic_view_text": magnetic_text,
-        "inductor_view_text": inductor_text,
-        "test_summary": {
-            "full_suite": "400 passed, 1 skipped",
-            "full_suite_command": "PYTHONPATH=src python -m pytest -q --basetemp .pytest-tmp-step6-full",
-            "compileall": "passed",
-            "diff_check": "passed",
-        },
+        "source_ids": ui.get("source_ids") or {},
+        "pf_artifacts": pf_artifacts,
+        "representatives": representatives,
+        "geometry": ui.get("geometry") or {},
+        "transformer_geometry": transformer_geometry,
+        "thermal_component_ids": ui.get("thermal_component_ids") or {},
+        "structured_selection": ui.get("structured_selection") or {},
+        "structured_recommendations": structured_recommendations,
+        "manifest_validation": manifest_validation,
+        "test_summary": test_summary or {},
     }
+
+
+def _validate_current_file(record: dict[str, Any], output_root: Path, failures: list[str], label: str) -> None:
+    path = Path(str(record.get("path") or "")).resolve()
+    if not record.get("exists") or not record.get("non_empty"):
+        failures.append(f"artifact is missing or empty: {label}")
+    _validate_path(path, output_root, failures, label)
+
+
+def _validate_path(path: Path, output_root: Path, failures: list[str], label: str) -> None:
+    if not path.is_file() or path.stat().st_size <= 0:
+        failures.append(f"artifact does not exist or is empty: {label}")
+    if output_root not in path.parents:
+        failures.append(f"artifact is outside the current run: {label}")
 
 
 def main() -> int:
-    import argparse
-
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--e2e-evidence", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--test-summary", type=Path, default=None)
     args = parser.parse_args()
+    e2e = json.loads(args.e2e_evidence.read_text(encoding="utf-8"))
+    test_summary = json.loads(args.test_summary.read_text(encoding="utf-8")) if args.test_summary else None
+    payload = build_acceptance_payload(e2e, test_summary=test_summary)
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    output = args.output_dir / "llc_magnetic_result_display_step6_acceptance.json"
-    output.write_text(json.dumps(build_acceptance_payload(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(json.dumps({"output": str(output)}, sort_keys=True))
-    return 0
+    output = args.output_dir / "llc_magnetic_pf_representatives_step6_acceptance.json"
+    output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(json.dumps({"output": str(output), "valid": payload["valid"]}, sort_keys=True))
+    return 0 if payload["valid"] else 1
 
 
 if __name__ == "__main__":
