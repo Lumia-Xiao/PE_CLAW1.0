@@ -259,7 +259,7 @@ def test_llc_pipeline_exposes_selected_search_bounds() -> None:
     assert report.magnetic.performance_timing["search_bounds"] == bounds
     output_policy = report.magnetic.design_requirements["magnetic_output_policy"]
     assert output_policy["debug_outputs_enabled"] is False
-    assert output_policy["geometry_roles"] == ["recommended"]
+    assert output_policy["geometry_roles"] == ["min-volume", "min-loss", "recommended"]
     assert output_policy["transformer_debug_csv"] is False
     assert output_policy["transformer_pareto_artifacts"] is False
     assert output_policy["transformer_formal_csv"] is True
@@ -269,11 +269,11 @@ def test_llc_pipeline_exposes_selected_search_bounds() -> None:
     assert report.magnetic.performance_timing["pipeline"]["output_policy"] == output_policy
 
 
-def test_llc_output_policy_defaults_to_one_formal_geometry_target() -> None:
+def test_llc_output_policy_defaults_to_all_formal_geometry_targets() -> None:
     policy = _llc_output_policy(debug_outputs=False, geometry_roles=None)
 
     assert policy["debug_outputs_enabled"] is False
-    assert policy["geometry_roles"] == ["recommended"]
+    assert policy["geometry_roles"] == ["min-volume", "min-loss", "recommended"]
     assert policy["transformer_debug_csv"] is False
     assert policy["transformer_pareto_artifacts"] is False
     assert policy["transformer_formal_csv"] is True

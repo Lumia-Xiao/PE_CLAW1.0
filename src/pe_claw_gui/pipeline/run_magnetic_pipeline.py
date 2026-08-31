@@ -1090,7 +1090,7 @@ def _run_llc_transformer_magnetic_pipeline(
         geometry_started = perf_counter()
         for role in output_policy["geometry_roles"]:
             selection = pareto_result.representative_by_role.get(role)
-            candidate_for_role = selection.candidate if selection is not None else (recommended if role == "recommended" else None)
+            candidate_for_role = selection.candidate if selection is not None else None
             if candidate_for_role is None:
                 continue
             transformer_comparison_candidates[role] = candidate_for_role
@@ -1858,7 +1858,7 @@ def _llc_output_policy(
     requested_roles = (
         valid_roles
         if geometry_roles is None and debug_outputs
-        else geometry_roles or ("recommended",)
+        else geometry_roles or valid_roles
     )
     normalized_roles = tuple(dict.fromkeys(str(role).strip().lower() for role in requested_roles))
     invalid_roles = tuple(role for role in normalized_roles if role not in valid_roles)

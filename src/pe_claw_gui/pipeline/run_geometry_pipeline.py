@@ -440,7 +440,7 @@ def _run_llc_external_lr_geometry_pipeline(
     requested_roles = (
         valid_roles
         if geometry_roles is None and debug_outputs
-        else geometry_roles or ("recommended",)
+        else geometry_roles or valid_roles
     )
     normalized_roles = tuple(dict.fromkeys(str(role).strip().lower() for role in requested_roles))
     invalid_roles = tuple(role for role in normalized_roles if role not in valid_roles)
@@ -454,9 +454,6 @@ def _run_llc_external_lr_geometry_pipeline(
             continue
         selection = selection_by_role.get(role)
         representative_role = role
-        if selection is None and role == "recommended":
-            selection = selection_by_role.get("compromise")
-            representative_role = "compromise"
         if selection is None:
             target_specs.append(
                 {
@@ -549,8 +546,6 @@ def _run_llc_external_lr_geometry_pipeline(
                 "External Lr geometry uses the existing fixed-inductor renderer with first-pass normalized core dimensions.",
                 "Geometry is schematic only; bobbin, creepage, clearance, insulation, and manufacturability are not validated.",
             ]
-            if representative_role == "compromise":
-                target_notes.append("Recommended geometry is represented by the Pareto compromise candidate because no dedicated recommended selection was available.")
             target = GeometryTarget(
                 role=role,
                 label=label,
