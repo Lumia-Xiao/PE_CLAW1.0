@@ -12,7 +12,7 @@
 | 目标拓扑 | `llc_resonant_converter_diode_rectifier` |
 | 目标功能 | LLC 变压器/外置 Lr PF 导航及磁件代表性结果显示 |
 | 计划步骤 | 6 步 |
-| 计划文件 | `Plan/active/llc_magnetic_pf_and_representatives_ui_fix_plan.md` |
+| 计划文件 | `Plan/completed/llc_magnetic_pf_and_representatives_ui_fix_plan.md` |
 
 本计划只处理 LLC 磁件结果的 PF 导航、代表性候选显示、几何代表性结果显示和相关
 结果契约。不修改 LLC FHA 电气模型、变压器搜索算法、外置 Lr 搜索算法、磁损模型、
