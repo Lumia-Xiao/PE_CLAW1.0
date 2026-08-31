@@ -129,6 +129,56 @@ class LlcExternalResonantInductorCandidate:
 
 
 @dataclass(frozen=True)
+class LlcPfArtifactContract:
+    """Run-scoped artifact contract for one separated-LLC magnetic role."""
+
+    role: str
+    run_id: str
+    topology_id: str
+    pareto_png_path: str | None = None
+    pareto_csv_path: str | None = None
+    feasible_csv_path: str | None = None
+    chosen_csv_path: str | None = None
+    recommended_design_id: str | None = None
+    status: str = "unavailable"
+    diagnostics: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-compatible role-specific artifact snapshot."""
+
+        return {
+            "role": self.role,
+            "run_id": self.run_id,
+            "topology_id": self.topology_id,
+            "pareto_png_path": self.pareto_png_path,
+            "pareto_csv_path": self.pareto_csv_path,
+            "feasible_csv_path": self.feasible_csv_path,
+            "chosen_csv_path": self.chosen_csv_path,
+            "recommended_design_id": self.recommended_design_id,
+            "status": self.status,
+            "diagnostics": list(self.diagnostics),
+        }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, object]) -> "LlcPfArtifactContract":
+        """Restore a role-specific artifact contract from structured output."""
+
+        values = dict(payload)
+        values["diagnostics"] = tuple(values.get("diagnostics", ()))
+        return cls(**values)
+
+    def validate_identity(self, *, run_id: str, topology_id: str) -> None:
+        """Reject stale or cross-topology role contracts."""
+
+        if self.run_id != run_id:
+            raise ValueError(f"LLC PF artifact contract run mismatch: {self.run_id!r} != {run_id!r}.")
+        if self.topology_id != topology_id:
+            raise ValueError(
+                f"LLC PF artifact contract topology mismatch: {self.topology_id!r} != {topology_id!r}."
+            )
+
+
+@dataclass(frozen=True)
 class LlcExternalResonantInductorRepresentativeSelection:
     """Named external Lr inductor Pareto representative."""
 
@@ -377,6 +427,7 @@ class MagneticResult:
     transformer_pareto_artifacts: list[str] = field(default_factory=list)
     transformer_pareto_notes: list[str] = field(default_factory=list)
     transformer_recommended_policy: str = ""
+    llc_pf_artifact_contracts: dict[str, LlcPfArtifactContract] = field(default_factory=dict)
     llc_result_summary: LlcMagneticResultSummary | None = None
     llc_magnetic_contract: LlcMagneticCombinationContract | None = None
     recommended_transformer_design_id: str | None = None

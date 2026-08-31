@@ -13,6 +13,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from ..models.design_report import DesignReport
+from ..pipeline.llc_pf_artifacts import llc_pf_artifact_payload
 
 
 REPORT_SCHEMA_VERSION = "pe_claw_structured_design_report_v1"
@@ -202,7 +203,7 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
         },
     }
     llc_summary = getattr(magnetic, "llc_result_summary", None)
-    if getattr(magnetic, "result_type", "") == "separated_llc_transformer" and llc_summary is not None:
+    if getattr(magnetic, "result_type", "") == "separated_llc_transformer":
         contract = getattr(magnetic, "llc_magnetic_contract", None)
         def stage_payload(stage: Any, source: str) -> dict[str, Any]:
             return {
@@ -224,14 +225,22 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
             }
 
         payload["llc"] = {
-            "transformer": stage_payload(llc_summary.transformer, "magnetic.llc.transformer"),
-            "external_lr": stage_payload(llc_summary.external_lr, "magnetic.llc.external_lr"),
+            "transformer": stage_payload(
+                getattr(llc_summary, "transformer", None), "magnetic.llc.transformer"
+            ),
+            "external_lr": stage_payload(
+                getattr(llc_summary, "external_lr", None), "magnetic.llc.external_lr"
+            ),
             "recommendations": {
                 "transformer_design_id": getattr(contract, "transformer_design_id", getattr(llc_summary, "recommended_transformer_design_id", None)),
                 "external_lr_design_id": getattr(contract, "external_lr_design_id", getattr(llc_summary, "recommended_external_lr_design_id", None)),
                 "combined_magnetic_design_id": getattr(contract, "combined_magnetic_design_id", getattr(llc_summary, "recommended_combined_magnetic_design_id", None)),
             },
         }
+        pf_artifacts = llc_pf_artifact_payload(
+            getattr(magnetic, "llc_pf_artifact_contracts", {}) or {}
+        )
+        payload["llc"]["pf_artifacts"] = pf_artifacts
         if contract is not None:
             payload["llc"]["magnetic_contract"] = contract.to_dict()
     return payload

@@ -177,18 +177,55 @@ def resolve_llc_pf_plot_paths(report: DesignReport | None) -> dict[str, Path | N
         return paths
     magnetic = report.magnetic
     assert magnetic is not None
+    contracts = getattr(magnetic, "llc_pf_artifact_contracts", {}) or {}
+    transformer_contract = contracts.get("transformer")
+    external_contract = contracts.get("external_lr")
+    if transformer_contract is not None:
+        transformer_png = getattr(transformer_contract, "pareto_png_path", None)
+    else:
+        transformer_png = None
+    if external_contract is not None:
+        external_png = getattr(external_contract, "pareto_png_path", None)
+    else:
+        external_png = None
     contract = getattr(magnetic, "llc_magnetic_contract", None)
     transformer_paths = list(getattr(contract, "transformer_artifact_paths", ()) or ())
     transformer_paths.extend(getattr(getattr(magnetic, "transformer_pareto_result", None), "artifact_paths", ()) or ())
     external_search = getattr(magnetic, "llc_external_resonant_inductor_search_result", None)
     external_paths = list(getattr(contract, "external_lr_artifact_paths", ()) or ())
     external_paths.extend(getattr(external_search, "artifact_paths", ()) or ())
-    external_png = getattr(external_search, "pareto_png_path", "")
+    if transformer_png:
+        paths["transformer"] = _validated_contract_path(
+            transformer_contract, transformer_png, report, "llc_transformer_pareto_front.png"
+        )
     if external_png:
-        external_paths.append(external_png)
-    paths["transformer"] = _find_named_png(transformer_paths, "llc_transformer_pareto_front.png")
-    paths["external_lr"] = _find_named_png(external_paths, "llc_external_resonant_inductor_pareto_front.png")
+        paths["external_lr"] = _validated_contract_path(
+            external_contract, external_png, report, "llc_external_resonant_inductor_pareto_front.png"
+        )
+    if paths["transformer"] is None and transformer_contract is None:
+        paths["transformer"] = _find_named_png(transformer_paths, "llc_transformer_pareto_front.png")
+    if paths["external_lr"] is None and external_contract is None:
+        paths["external_lr"] = _find_named_png(external_paths, "llc_external_resonant_inductor_pareto_front.png")
     return paths
+
+
+def _validated_contract_path(contract, raw_path: str, report: DesignReport, expected_name: str) -> Path | None:
+    """Use a role contract path only when it belongs to the current LLC run."""
+
+    path = Path(raw_path)
+    context = getattr(report, "llc_run_context", None)
+    if (
+        contract is not None
+        and context is not None
+        and getattr(contract, "run_id", None) == context.run_id
+        and getattr(contract, "topology_id", None) == str(report.spec.topology_id)
+        and path.name == expected_name
+        and path.is_file()
+        and path.stat().st_size > 0
+        and Path(context.output_root).resolve() in path.resolve().parents
+    ):
+        return path
+    return None
 
 
 def _find_named_png(paths, filename: str) -> Path | None:

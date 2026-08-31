@@ -26,6 +26,7 @@ from ..models.magnetic_result import (
     LlcMagneticStageSummary,
     MagneticResult,
 )
+from .llc_pf_artifacts import build_llc_pf_artifact_contract
 try:
     from ..topologies.dc_dc.llc_resonant_converter_diode_rectifier.fha_design import (
         LLCFHADesign,
@@ -799,6 +800,10 @@ def _run_llc_transformer_magnetic_pipeline(
                 "Run Design must complete the diode LLC FHA design before Run Magnetics can screen separated transformer candidates.",
             ],
         )
+        magnetic_result = replace(
+            magnetic_result,
+            llc_pf_artifact_contracts=_build_llc_pf_contracts(report),
+        )
         return _mark_llc_magnetics_blocked(
             replace(report, magnetic=magnetic_result, geometry=geometry_result),
             magnetic_result.llc_result_summary.transformer.failure_reason,
@@ -955,6 +960,14 @@ def _run_llc_transformer_magnetic_pipeline(
             if recommended_external_lr is not None
             and external_lr_stage_summary.status == "available"
             else None
+        )
+        llc_pf_artifact_contracts = _build_llc_pf_contracts(
+            report,
+            transformer_artifact_paths=[*transformer_artifact_paths, *pareto_result.artifact_paths],
+            external_lr_artifact_paths=external_artifact_paths,
+            transformer_design_id=selected_design_id,
+            external_lr_design_id=recommended_external_lr_design_id,
+            external_lr_status=external_lr_stage_summary.status,
         )
         recommended_combined_magnetic_design_id = build_llc_combined_magnetic_design_id(
             selected_design_id,
@@ -1175,6 +1188,7 @@ def _run_llc_transformer_magnetic_pipeline(
             transformer_pareto_artifacts=pareto_result.artifact_paths,
             transformer_pareto_notes=pareto_result.notes,
             transformer_recommended_policy=pareto_result.recommended_policy,
+            llc_pf_artifact_contracts=llc_pf_artifact_contracts,
             transformer_visualization=transformer_visualization,
             transformer_visualizations=transformer_visualizations,
             transformer_comparison_visualization=transformer_comparison_visualization,
@@ -1224,6 +1238,10 @@ def _run_llc_transformer_magnetic_pipeline(
             notes=[
                 "Run Design completed, but Run Magnetics could not screen separated LLC transformer candidates.",
             ],
+        )
+        magnetic_result = replace(
+            magnetic_result,
+            llc_pf_artifact_contracts=_build_llc_pf_contracts(report),
         )
     return _mark_llc_magnetics_blocked(
         replace(report, magnetic=magnetic_result, geometry=geometry_result),
@@ -1522,6 +1540,53 @@ def _llc_transformer_failure_result(
     )
 
 
+def _build_llc_pf_contracts(
+    report: DesignReport,
+    *,
+    transformer_artifact_paths: list[str] | None = None,
+    external_lr_artifact_paths: list[str] | None = None,
+    transformer_design_id: str | None = None,
+    external_lr_design_id: str | None = None,
+    external_lr_status: str | None = None,
+) -> dict[str, object]:
+    """Build role-specific PF contracts without allowing cross-role fallback."""
+
+    context = report.llc_run_context
+    run_id = context.run_id if context is not None else ""
+    topology_id = str(report.spec.topology_id)
+    run_root = context.output_root if context is not None else None
+    contracts = {
+        "transformer": build_llc_pf_artifact_contract(
+            role="transformer",
+            artifact_paths=transformer_artifact_paths or (),
+            run_id=run_id,
+            topology_id=topology_id,
+            run_root=run_root,
+            recommended_design_id=transformer_design_id,
+        )
+    }
+    if external_lr_status == "not_required" and not external_lr_artifact_paths:
+        from ..models.magnetic_result import LlcPfArtifactContract
+
+        contracts["external_lr"] = LlcPfArtifactContract(
+            role="external_lr",
+            run_id=run_id,
+            topology_id=topology_id,
+            status="not_required",
+            diagnostics=("external resonant-inductor design is not required for this run",),
+        )
+    else:
+        contracts["external_lr"] = build_llc_pf_artifact_contract(
+            role="external_lr",
+            artifact_paths=external_lr_artifact_paths or (),
+            run_id=run_id,
+            topology_id=topology_id,
+            run_root=run_root,
+            recommended_design_id=external_lr_design_id,
+        )
+    return contracts
+
+
 def _finish_llc_transformer_failure(
     report: DesignReport,
     geometry_result: GeometryResult,
@@ -1549,6 +1614,10 @@ def _finish_llc_transformer_failure(
         transformer_pareto_result=pareto_result,
         artifact_paths=paths,
         performance_timing={"pipeline": {**pipeline_timing, "output_policy": output_policy}},
+        llc_pf_artifact_contracts=_build_llc_pf_contracts(
+            report,
+            transformer_artifact_paths=paths,
+        ),
     )
     return _mark_llc_magnetics_blocked(
         replace(report, magnetic=result, geometry=geometry_result),
@@ -1604,6 +1673,14 @@ def _finish_llc_external_lr_failure(
         transformer_chosen_candidates=pareto_result.chosen_candidates,
         transformer_representatives=pareto_result.representative_by_role,
         transformer_pareto_artifacts=pareto_result.artifact_paths,
+        llc_pf_artifact_contracts=_build_llc_pf_contracts(
+            report,
+            transformer_artifact_paths=transformer_artifact_paths,
+            external_lr_artifact_paths=list(external_lr_search_result.artifact_paths),
+            transformer_design_id=transformer_stage.recommended_design_id,
+            external_lr_design_id=getattr(external_lr_search_result.recommended_candidate, "design_id", None),
+            external_lr_status=external_stage.status,
+        ),
         llc_external_resonant_inductor_target=external_lr_search_result.request,
         llc_external_resonant_inductor_search_result=external_lr_search_result,
         design_requirements={
@@ -1679,6 +1756,16 @@ def _finish_llc_magnetic_contract_failure(
         transformer_chosen_candidates=pareto_result.chosen_candidates,
         transformer_representatives=pareto_result.representative_by_role,
         transformer_pareto_artifacts=pareto_result.artifact_paths,
+        llc_pf_artifact_contracts=_build_llc_pf_contracts(
+            report,
+            transformer_artifact_paths=transformer_artifact_paths,
+            external_lr_artifact_paths=list(getattr(external_lr_search_result, "artifact_paths", []) or []),
+            transformer_design_id=transformer_stage.recommended_design_id,
+            external_lr_design_id=getattr(
+                getattr(external_lr_search_result, "recommended_candidate", None), "design_id", None
+            ),
+            external_lr_status=external_stage.status,
+        ),
         llc_external_resonant_inductor_target=(
             getattr(external_lr_search_result, "request", None)
         ),
