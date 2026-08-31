@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active` |
+| 计划状态 | `completed` |
 | 计划版本 | `v1.0` |
 | 建立日期 | `2026-08-31` |
 | 目标工程 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0` |
@@ -389,12 +389,21 @@
 
 | 步骤 | 状态 | 实现 commit | 计划记录 commit | Push | 验证摘要 |
 | --- | --- | --- | --- | --- | --- |
-| 第 1 步 | `completed` | `1010c8d` | 待记录 | `pushed` | 已冻结当前 run `b28792595095416f872f5d9a8b8800f6`；变压器 feasible/Pareto/chosen 为 `10269/16/4`，外置 Lr 为 `11536/28/4`；两类 chosen 均包含 `recommended`、`min-volume`、`min-loss`；输入 checksum 和 run manifest 在当前 payload 中不可用，已明确记录为 unavailable；新增缺失 artifact、缺失角色、非 LLC 边界测试；专项测试 `5 passed`，compileall 与 diff check 通过。实现 commit 已 push。 |
-| 第 2 步 | `completed` | `a54bdba` | 待记录 | `pushed` | `InductorPFView` 已增加 LLC 专用 `Transformer PF` 与 `External Resonant Inductor PF` Notebook 页；每页独立维护 plot、placeholder、summary 和 canvas；变压器与外置 Lr 只从各自角色 artifact 集合解析 PF PNG；缺失 artifact、summary 缺失、LLC/非 LLC 模式切换均有明确状态和测试；专项、基线及 GUI 导航回归共 `20 passed`，compileall 与 diff check 通过。实现 commit 已 push。 |
+| 第 1 步 | `completed` | `1010c8d` | `f55a4a7` | `pushed` | 已冻结当前 run `b28792595095416f872f5d9a8b8800f6`；变压器 feasible/Pareto/chosen 为 `10269/16/4`，外置 Lr 为 `11536/28/4`；两类 chosen 均包含 `recommended`、`min-volume`、`min-loss`；输入 checksum 和 run manifest 在当前 payload 中不可用，已明确记录为 unavailable；新增缺失 artifact、缺失角色、非 LLC 边界测试；专项测试 `5 passed`，compileall 与 diff check 通过。实现 commit 已 push。 |
+| 第 2 步 | `completed` | `a54bdba` | `bc5947d` | `pushed` | `InductorPFView` 已增加 LLC 专用 `Transformer PF` 与 `External Resonant Inductor PF` Notebook 页；每页独立维护 plot、placeholder、summary 和 canvas；变压器与外置 Lr 只从各自角色 artifact 集合解析 PF PNG；缺失 artifact、summary 缺失、LLC/非 LLC 模式切换均有明确状态和测试；专项、基线及 GUI 导航回归共 `20 passed`，compileall 与 diff check 通过。实现 commit 已 push。 |
 | 第 3 步 | `completed` | `ade4bde` | `77a0026` | `pushed` | 已新增 `LlcPfArtifactContract` 及 role-specific artifact builder；变压器和外置 Lr 的成功、缺失、失败路径均写入当前 run 的独立 contract；结构化输出增加 `magnetic.llc.pf_artifacts.transformer/external_lr`，包含路径、文件状态、SHA256、run/topology identity、推荐 ID 和诊断；PF GUI 优先读取当前 LLC run 的角色化 contract 路径并拒绝错配/越界文件；新增第 3 步专项测试覆盖完整、缺失、空文件、错角色、越界路径、run/topology 错配、structured output、非 LLC 隔离和 GUI 路径解析；专项及相关 LLC 回归共 `42 passed`，compileall 与 diff check 通过。实现 commit 已 push。 |
-| 第 4 步 | `completed` | `0c54e27` | 待记录 | `pushed` | 新增统一 LLC 代表性结果序列化层，分别从变压器 `representative_by_role`/chosen 列表和外置 Lr chosen/直接代表字段读取 `recommended`、`min-volume`、`min-loss`；structured output 增加 `magnetic.llc.representatives.transformer/external_lr`，包含 role、design ID、source stage、体积、损耗、热点、关键参数和诊断；LLC 磁件摘要列出两类磁件三类代表性结果，缺角色时显示 unavailable，绝不以 recommended 冒充；变压器与外置 Lr chosen CSV 校验角色、当前候选 ID 及体积/损耗/热点字段；新增专项测试并回归持久化、PF、磁件摘要、几何测试共 `31 passed`，compileall 与 diff check 通过。实现 commit 已 push。 |
+| 第 4 步 | `completed` | `0c54e27` | `27450cc` | `pushed` | 新增统一 LLC 代表性结果序列化层，分别从变压器 `representative_by_role`/chosen 列表和外置 Lr chosen/直接代表字段读取 `recommended`、`min-volume`、`min-loss`；structured output 增加 `magnetic.llc.representatives.transformer/external_lr`，包含 role、design ID、source stage、体积、损耗、热点、关键参数和诊断；LLC 磁件摘要列出两类磁件三类代表性结果，缺角色时显示 unavailable，绝不以 recommended 冒充；变压器与外置 Lr chosen CSV 校验角色、当前候选 ID 及体积/损耗/热点字段；新增专项测试并回归持久化、PF、磁件摘要、几何测试共 `31 passed`，compileall 与 diff check 通过。实现 commit 已 push。 |
 | 第 5 步 | `completed` | `5f1347b` | `c8d2d46` | `pushed` | 默认 LLC 几何角色已改为 `min-volume`、`min-loss`、`recommended`；变压器和外置 Lr 均按角色独立绑定 candidate、design ID、volume/loss 与 geometry artifact；缺少角色时显示 unavailable；移除外置 Lr 用 compromise 冒充 dedicated recommended 的回退；新增三目标独立绑定和无推荐回退专项测试。相关专项及跨模块回归 `24 + 23 passed`，`compileall` 与 `git diff --check` 通过；实现 commit 已 push。 |
-| 第 6 步 | `pending` |  |  |  | 等待第 5 步完成 |
+| 第 6 步 | `completed` | `59d4b4a` | 待本次计划记录提交后回填 | `implementation pushed` | 新增显式 `400 V -> 400 V` E2E 输入、当前 run UI/structured/manifest 验收及最终证据生成器；真实 run `511fba6b8ef54c96891ab1a1c4f24dc4` 的 9 个阶段全部 succeeded，PF 双导航路径与角色契约一致，两类三代表结果和外置 Lr 三类 geometry 均通过，loss/thermal/hardware/manifest ID 一致。变压器 geometry renderer 当前不存在，已作为明确 `unavailable` 诊断记录，不使用外置 Lr artifact 冒充。失败场景及导航/Cr 回归 `43 passed`，跨页面目标回归 `67 passed`，compileall 与 diff check 通过。全量工程回归为 `476 passed, 1 skipped, 7 failed`；7 项均是既有 AC-DC efficiency 测试仍断言 artifact keys 不包含新增的 `csv`，与本次 LLC 文件无代码交集，作为工程残余问题记录。 |
+
+### 第 6 步执行记录
+
+- 实现 commit：`59d4b4a`（`LLC UI Step 6: close PF and representative display acceptance`），已 push。
+- 真实验收命令：`python scripts/validate_llc_step8_e2e.py --vin-v 400 --vout-v 400 --output-root .pytest-tmp-step6-400-acceptance-run2 --evidence .pytest-tmp-step6-400-acceptance-e2e.json`。
+- 最终验收命令：`python scripts/build_llc_magnetic_result_display_step6_acceptance.py --e2e-evidence .pytest-tmp-step6-400-acceptance-e2e.json --output-dir .pytest-tmp-step6-acceptance-evidence`，结果 `valid=true`。
+- 当前 run 推荐 ID：Transformer=`P_66_56_SMP97_Np11_Ns11`，External Lr=`Lr_ext_E_55_28_25_SMP97_N10_P2`，Cr=`Cr_R76MD1680_1_40_2_N12`。
+- 临时 run 与验收 evidence 仅用于本机审计，不纳入 Git；提交内容仅包含验收工具、测试和计划记录。
+- 全量回归残余：`tests/test_ac_dc_efficiency_sweep.py` 及对应 GUI E2E 仍期望只有两个 plot artifact key，实际结果已包含 `csv`；该问题不影响 LLC 第 6 步验收，后续应在 AC-DC 专项中统一测试契约。
 
 ## 9. 交付物清单
 
