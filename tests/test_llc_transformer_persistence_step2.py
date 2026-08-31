@@ -35,10 +35,19 @@ def _write_required_artifacts(root: Path) -> list[str]:
         path = root / name
         if name == "llc_transformer_chosen_candidates.csv":
             with path.open("w", encoding="utf-8", newline="") as handle:
-                writer = csv.DictWriter(handle, fieldnames=["role", "candidate_id"])
+                writer = csv.DictWriter(
+                    handle,
+                    fieldnames=["role", "candidate_id", "estimated_volume_cm3", "total_loss_w", "hotspot_c"],
+                )
                 writer.writeheader()
                 for role in ("recommended", "min-volume", "min-loss"):
-                    writer.writerow({"role": role, "candidate_id": f"candidate-{role}"})
+                    writer.writerow({
+                        "role": role,
+                        "candidate_id": f"candidate-{role}",
+                        "estimated_volume_cm3": "10",
+                        "total_loss_w": "2",
+                        "hotspot_c": "40",
+                    })
         else:
             path.write_text("header\nvalue\n", encoding="utf-8")
         paths.append(str(path))

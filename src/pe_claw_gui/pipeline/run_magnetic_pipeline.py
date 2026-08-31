@@ -1470,9 +1470,34 @@ def _validate_llc_transformer_artifacts(
         return {"valid": False, "reason": "Transformer chosen candidates contain an ID absent from feasible candidates."}
     with paths_by_name["llc_transformer_chosen_candidates.csv"].open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
-    persisted_roles = {str(row.get("role", "")) for row in rows}
+    persisted_by_role = {
+        str(row.get("role", "")): row
+        for row in rows
+        if str(row.get("role", ""))
+    }
+    persisted_roles = set(persisted_by_role)
     if not required_roles.issubset(persisted_roles):
         return {"valid": False, "reason": "Transformer chosen CSV does not persist all required representative roles."}
+    selections_by_role = {
+        str(selection.role): selection
+        for selection in pareto_result.chosen_candidates
+        if str(getattr(selection, "role", "")) in required_roles
+    }
+    required_fields = ("candidate_id", "estimated_volume_cm3", "total_loss_w", "hotspot_c")
+    for role in sorted(required_roles):
+        row = persisted_by_role[role]
+        missing_fields = [field for field in required_fields if str(row.get(field, "")).strip() == ""]
+        if missing_fields:
+            return {
+                "valid": False,
+                "reason": f"Transformer chosen CSV role {role} is missing fields: {', '.join(missing_fields)}",
+            }
+        expected_id = getattr(getattr(selections_by_role.get(role), "candidate", None), "candidate_id", None)
+        if expected_id is not None and str(row.get("candidate_id")) != str(expected_id):
+            return {
+                "valid": False,
+                "reason": f"Transformer chosen CSV role {role} does not match current candidate ID.",
+            }
     return {"valid": True, "reason": ""}
 
 
@@ -1514,6 +1539,29 @@ def _validate_llc_external_lr_artifacts(search_result) -> dict[str, object]:
     }
     if not chosen_ids.issubset(persisted_ids):
         return {"valid": False, "reason": "External Lr chosen CSV does not match the current chosen candidate IDs."}
+    selections_by_role = {
+        str(selection.role): selection
+        for selection in selections
+        if str(getattr(selection, "role", "")) in required_roles
+    }
+    required_fields = ("design_id", "estimated_volume_cm3", "total_loss_w", "hotspot_c")
+    for role in sorted(required_roles):
+        row = next(
+            row for row in rows
+            if str(row.get("representative_role", "")) == role
+        )
+        missing_fields = [field for field in required_fields if str(row.get(field, "")).strip() == ""]
+        if missing_fields:
+            return {
+                "valid": False,
+                "reason": f"External Lr chosen CSV role {role} is missing fields: {', '.join(missing_fields)}",
+            }
+        expected_id = getattr(getattr(selections_by_role.get(role), "candidate", None), "design_id", None)
+        if expected_id is not None and str(row.get("design_id")) != str(expected_id):
+            return {
+                "valid": False,
+                "reason": f"External Lr chosen CSV role {role} does not match current candidate ID.",
+            }
     return {"valid": True, "reason": ""}
 
 

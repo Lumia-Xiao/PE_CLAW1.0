@@ -14,6 +14,7 @@ from typing import Any
 
 from ..models.design_report import DesignReport
 from ..pipeline.llc_pf_artifacts import llc_pf_artifact_payload
+from ..pipeline.llc_representatives import build_llc_representative_payload
 
 
 REPORT_SCHEMA_VERSION = "pe_claw_structured_design_report_v1"
@@ -241,6 +242,7 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
             getattr(magnetic, "llc_pf_artifact_contracts", {}) or {}
         )
         payload["llc"]["pf_artifacts"] = pf_artifacts
+        payload["llc"]["representatives"] = build_llc_representative_payload(magnetic)
         if contract is not None:
             payload["llc"]["magnetic_contract"] = contract.to_dict()
     return payload

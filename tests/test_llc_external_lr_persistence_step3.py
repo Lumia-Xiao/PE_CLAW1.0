@@ -29,10 +29,19 @@ def _search_result(root: Path):
         path = root / name
         if name.endswith("chosen_candidates.csv"):
             with path.open("w", encoding="utf-8", newline="") as handle:
-                writer = csv.DictWriter(handle, fieldnames=["representative_role", "design_id"])
+                writer = csv.DictWriter(
+                    handle,
+                    fieldnames=["representative_role", "design_id", "estimated_volume_cm3", "total_loss_w", "hotspot_c"],
+                )
                 writer.writeheader()
                 for role in ROLES:
-                    writer.writerow({"representative_role": role, "design_id": f"lr-{role}"})
+                    writer.writerow({
+                        "representative_role": role,
+                        "design_id": f"lr-{role}",
+                        "estimated_volume_cm3": "10",
+                        "total_loss_w": "2",
+                        "hotspot_c": "40",
+                    })
         else:
             path.write_text("header\nvalue\n", encoding="utf-8")
         paths.append(str(path))

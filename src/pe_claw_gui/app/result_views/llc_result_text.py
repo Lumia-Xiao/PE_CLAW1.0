@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from ...models.design_report import DesignReport
+from ...pipeline.llc_representatives import LLC_REPRESENTATIVE_ROLES, build_llc_representative_payload
 
 
 LLC_RESULT_TYPE = "separated_llc_transformer"
@@ -54,6 +55,8 @@ def build_llc_magnetic_summary_text(report: DesignReport) -> str:
     lines.append(
         f"  Combined magnetic design: {_recommended_label(combined_id, _combined_status(summary))}"
     )
+
+    lines.extend(_representative_lines(magnetic))
 
     if magnetic.design_requirements:
         lines.extend(["", "Design requirements"])
@@ -130,6 +133,28 @@ def _select_pareto_notes(notes: list[str]) -> list[str]:
         if "pareto" in note.casefold() or "plot" in note.casefold() or "artifact" in note.casefold()
     ]
     return selected if selected else notes[:8]
+
+
+def _representative_lines(magnetic: Any) -> list[str]:
+    """Format the three named representatives for both separated LLC roles."""
+
+    payload = build_llc_representative_payload(magnetic)
+    lines = ["", "Representative magnetic designs"]
+    for component, label in (("transformer", "Transformer"), ("external_lr", "External resonant inductor")):
+        lines.append(f"  {label}")
+        for role in LLC_REPRESENTATIVE_ROLES:
+            entry = payload[component][role]
+            status = entry["status"]
+            design_id = entry["design_id"] or f"N/A ({status})"
+            metrics = entry["metrics"]
+            lines.append(
+                f"    {role}: {design_id}, volume={_si_value(metrics['volume_m3'], 1e6, 'cm^3')}, "
+                f"loss={_value_with_unit(metrics['loss_w'], 'W')}, "
+                f"hotspot={_value_with_unit(metrics['hotspot_c'], 'C')}"
+            )
+            if entry["diagnostics"]:
+                lines.append(f"      reason: {entry['diagnostics'][0]}")
+    return lines
 
 
 def _stage_lines(label: str, stage: Any) -> list[str]:
