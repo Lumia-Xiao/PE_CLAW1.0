@@ -14,6 +14,7 @@ from ...pipeline.options import (
     MAGNETIC_THERMAL_DISABLED_NOTE,
     PipelineOptions,
 )
+from ...models.llc_run_context import is_llc_topology
 from ..shell.state_store import AppStateStore
 
 
@@ -36,8 +37,11 @@ class RunDesignController:
         if self._state_store.selected_topology_id is None:
             raise RuntimeError("Select a topology before running the design.")
         plugin = self._state_store.registry.get_plugin(self._state_store.selected_topology_id)
+        if is_llc_topology(self._state_store.selected_topology_id):
+            self._state_store.design_report = None
         started_at = _utc_timestamp()
         start_s = time.perf_counter()
+        report = None
         try:
             report = run_full_pipeline(
                 plugin=plugin,
@@ -45,6 +49,9 @@ class RunDesignController:
                 include_waveforms=False,
                 pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
             )
+        except Exception:
+            self._state_store.design_report = None
+            raise
         finally:
             finished_at = _utc_timestamp()
             elapsed_s = time.perf_counter() - start_s
@@ -54,9 +61,24 @@ class RunDesignController:
             run_design_finished_at=finished_at,
             run_design_runtime_seconds=elapsed_s,
         )
+        if report.llc_run_context is not None:
+            report = replace(
+                report,
+                llc_run_context=report.llc_run_context.transition("design", "succeeded"),
+            )
         self._state_store.active_plugin = plugin
         self._state_store.last_raw_input = raw_input
         self._state_store.design_report = report
+        return report
+
+    def ensure_active_topology_current(self, raw_input: dict[str, str]):
+        """Return a report matching the current form inputs, redesigning when needed."""
+
+        report = self._state_store.design_report
+        if report is None or report.candidate is None:
+            return self.run_active_topology(raw_input)
+        if self._state_store.last_raw_input != raw_input:
+            return self.run_active_topology(raw_input)
         return report
 
     def run_active_capacitors(self):
@@ -68,7 +90,24 @@ class RunDesignController:
         plugin = self._state_store.active_plugin
         if plugin is None and self._state_store.selected_topology_id is not None:
             plugin = self._state_store.registry.get_plugin(self._state_store.selected_topology_id)
-        report = run_capacitor_pipeline(report, plugin=plugin)
+        if report.llc_run_context is not None:
+            report = replace(report, llc_run_context=report.llc_run_context.transition("capacitors", "running"))
+        try:
+            report = run_capacitor_pipeline(
+                report,
+                plugin=plugin,
+                output_root=(report.llc_run_context.output_root if report.llc_run_context is not None else None),
+            )
+        except Exception as exc:
+            if report.llc_run_context is not None:
+                report = replace(
+                    report,
+                    llc_run_context=report.llc_run_context.transition("capacitors", "failed", reason=str(exc)),
+                )
+                self._state_store.design_report = report
+            raise
+        if report.llc_run_context is not None:
+            report = replace(report, llc_run_context=report.llc_run_context.transition("capacitors", "succeeded"))
         self._state_store.design_report = report
         return report
 
@@ -82,11 +121,54 @@ class RunDesignController:
         started_at = _utc_timestamp()
         start_s = time.perf_counter()
         report = _remove_magnetic_disabled_notes(report)
+        if report.llc_run_context is not None:
+            report = replace(report, llc_run_context=report.llc_run_context.transition("magnetics", "running"))
         try:
             report = run_magnetic_pipeline(report)
+            if (
+                is_llc_topology(report.spec.topology_id)
+                and report.magnetic is not None
+                and report.magnetic.llc_result_summary is not None
+                and (
+                    report.magnetic.llc_result_summary.transformer.status != "available"
+                    or (
+                        report.magnetic.llc_result_summary.external_lr.status
+                        not in {"available", "not_required", "not_evaluated"}
+                    )
+                )
+            ):
+                transformer = report.magnetic.llc_result_summary.transformer
+                external_lr = report.magnetic.llc_result_summary.external_lr
+                reason = (
+                    transformer.failure_reason
+                    or external_lr.failure_reason
+                    or f"LLC transformer stage status is {transformer.status}; "
+                    f"external Lr stage status is {external_lr.status}."
+                )
+                report = replace(
+                    report,
+                    llc_run_context=report.llc_run_context.transition(
+                        "magnetics", "blocked", reason=reason
+                    ) if report.llc_run_context is not None else None,
+                )
+                self._state_store.design_report = replace(
+                    report,
+                    run_magnetics_started_at=started_at,
+                    run_magnetics_finished_at=_utc_timestamp(),
+                    run_magnetics_runtime_seconds=time.perf_counter() - start_s,
+                )
+                return self._state_store.design_report
             report = run_loss_pipeline(report, pipeline_options=options)
             report = run_thermal_pipeline(report, pipeline_options=options)
             report = run_geometry_pipeline(report, pipeline_options=options)
+        except Exception as exc:
+            if report.llc_run_context is not None:
+                report = replace(
+                    report,
+                    llc_run_context=report.llc_run_context.transition("magnetics", "failed", reason=str(exc)),
+                )
+                self._state_store.design_report = report
+            raise
         finally:
             finished_at = _utc_timestamp()
             elapsed_s = time.perf_counter() - start_s
@@ -96,6 +178,17 @@ class RunDesignController:
             run_magnetics_finished_at=finished_at,
             run_magnetics_runtime_seconds=elapsed_s,
         )
+        if report.llc_run_context is not None and (
+            not is_llc_topology(report.spec.topology_id)
+            or report.magnetic is None
+            or report.magnetic.llc_result_summary is None
+            or (
+                report.magnetic.llc_result_summary.transformer.status == "available"
+                and report.magnetic.llc_result_summary.external_lr.status
+                in {"available", "not_required", "not_evaluated"}
+            )
+        ):
+            report = replace(report, llc_run_context=report.llc_run_context.transition("magnetics", "succeeded"))
         self._state_store.design_report = report
         return report
 

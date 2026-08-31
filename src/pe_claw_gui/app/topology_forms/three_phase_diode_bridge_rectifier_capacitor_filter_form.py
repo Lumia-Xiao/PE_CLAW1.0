@@ -7,6 +7,7 @@ from tkinter import ttk
 
 from ...models.design_report import DesignReport
 from ...models.operating_point import OperatingPoint
+from ...pipeline.run_efficiency_sweep_pipeline import efficiency_sweep_blocking_warning
 from .base_form import BaseTopologyForm, TopologyField
 
 
@@ -127,10 +128,4 @@ class ThreePhaseDiodeBridgeRectifierCapacitorFilterForm(BaseTopologyForm):
 
 
 def _has_selected_bridge(report: DesignReport | None) -> bool:
-    bridge = report.bridge_rectifier if report is not None else None
-    return bool(
-        report is not None
-        and report.candidate is not None
-        and bridge is not None
-        and bridge.selected_candidate is not None
-    )
+    return efficiency_sweep_blocking_warning(report) is None

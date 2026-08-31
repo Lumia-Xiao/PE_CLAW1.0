@@ -1,0 +1,216 @@
+{
+  "schema_version": "llc_pf_representatives_step1_baseline_v1",
+  "baseline_source": "current_run_artifacts",
+  "run": {
+    "run_id": "b28792595095416f872f5d9a8b8800f6",
+    "run_path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\llc_runs\\b28792595095416f872f5d9a8b8800f6",
+    "topology_id": "llc_resonant_converter_diode_rectifier",
+    "input_checksum": null,
+    "input_checksum_status": "unavailable",
+    "input_checksum_reason": "Current run payload does not include an input checksum.",
+    "manifest": {
+      "status": "unavailable",
+      "path": null,
+      "reason": "No run-scoped manifest JSON was generated for this baseline run."
+    },
+    "source_contract": {
+      "vin_min_v": 380.0,
+      "vin_nom_v": 400.0,
+      "vin_max_v": 420.0,
+      "vout_min_v": 380.0,
+      "vout_nom_v": 400.0,
+      "vout_max_v": 420.0,
+      "transformer_design_id": "E_80_38_32_SMP97_Np18_Ns18",
+      "external_lr_design_id": "Lr_ext_E_55_28_25_SMP97_N11_P4",
+      "combined_magnetic_design_id": "E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4"
+    }
+  },
+  "artifact_contract": {
+    "transformer": {
+      "feasible_csv": {
+        "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\llc_runs\\b28792595095416f872f5d9a8b8800f6\\transformer_design\\llc_transformer_feasible_candidates.csv",
+        "relative_path": "transformer_design/llc_transformer_feasible_candidates.csv",
+        "exists": true,
+        "non_empty": true,
+        "bytes": 28268101,
+        "sha256": "31f3c616c2598f4e7556c91fe85e1d1918d177dab925710352bea6f44019398d",
+        "current_run_scoped": true
+      },
+      "pareto_csv": {
+        "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\llc_runs\\b28792595095416f872f5d9a8b8800f6\\transformer_design\\llc_transformer_pareto_front.csv",
+        "relative_path": "transformer_design/llc_transformer_pareto_front.csv",
+        "exists": true,
+        "non_empty": true,
+        "bytes": 19883,
+        "sha256": "782a548cbe6cb4073b919026bfac16c33aafe13463c45e7745f9650b0d2c871e",
+        "current_run_scoped": true
+      },
+      "chosen_csv": {
+        "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\llc_runs\\b28792595095416f872f5d9a8b8800f6\\transformer_design\\llc_transformer_chosen_candidates.csv",
+        "relative_path": "transformer_design/llc_transformer_chosen_candidates.csv",
+        "exists": true,
+        "non_empty": true,
+        "bytes": 6422,
+        "sha256": "e2dc1512bc58c0382c16a3c6717fa045d08f6cbe04038398c71a65bc83144053",
+        "current_run_scoped": true
+      },
+      "pareto_png": {
+        "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\llc_runs\\b28792595095416f872f5d9a8b8800f6\\transformer_design\\llc_transformer_pareto_front.png",
+        "relative_path": "transformer_design/llc_transformer_pareto_front.png",
+        "exists": true,
+        "non_empty": true,
+        "bytes": 105075,
+        "sha256": "85024ff0b6eacf175c33e80166cbbdc20f57f337120375c0954e9fb1d2dce889",
+        "current_run_scoped": true
+      }
+    },
+    "external_lr": {
+      "feasible_csv": {
+        "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\llc_runs\\b28792595095416f872f5d9a8b8800f6\\resonant_inductor_design\\llc_external_resonant_inductor_feasible_candidates.csv",
+        "relative_path": "resonant_inductor_design/llc_external_resonant_inductor_feasible_candidates.csv",
+        "exists": true,
+        "non_empty": true,
+        "bytes": 8907307,
+        "sha256": "57bec8b317744e72e9958c344042feb7fb99abebaae36080605dae95c3de7e9e",
+        "current_run_scoped": true
+      },
+      "pareto_csv": {
+        "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\llc_runs\\b28792595095416f872f5d9a8b8800f6\\resonant_inductor_design\\llc_external_resonant_inductor_pareto_front.csv",
+        "relative_path": "resonant_inductor_design/llc_external_resonant_inductor_pareto_front.csv",
+        "exists": true,
+        "non_empty": true,
+        "bytes": 22331,
+        "sha256": "2d8278dfb818b219c290bff15400711f5b8ccc1a500f6ec93a2bbcc06d8c6f0a",
+        "current_run_scoped": true
+      },
+      "chosen_csv": {
+        "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\llc_runs\\b28792595095416f872f5d9a8b8800f6\\resonant_inductor_design\\llc_external_resonant_inductor_chosen_candidates.csv",
+        "relative_path": "resonant_inductor_design/llc_external_resonant_inductor_chosen_candidates.csv",
+        "exists": true,
+        "non_empty": true,
+        "bytes": 4058,
+        "sha256": "6df33e66c0879849b30a5c0a40bc4deebeccc0bc851e305d404d87b3459fc03b",
+        "current_run_scoped": true
+      },
+      "pareto_png": {
+        "path": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\llc_runs\\b28792595095416f872f5d9a8b8800f6\\resonant_inductor_design\\llc_external_resonant_inductor_pareto_front.png",
+        "relative_path": "resonant_inductor_design/llc_external_resonant_inductor_pareto_front.png",
+        "exists": true,
+        "non_empty": true,
+        "bytes": 255161,
+        "sha256": "9519084288676778dfb28f836d82e0c493bd4ea39ead1481caacb86bb761ad50",
+        "current_run_scoped": true
+      }
+    }
+  },
+  "candidate_stages": {
+    "transformer": {
+      "feasible_count": 10269,
+      "pareto_count": 16,
+      "chosen": {
+        "row_count": 4,
+        "roles": [
+          "recommended",
+          "min-volume",
+          "min-loss"
+        ],
+        "required_roles": [
+          "recommended",
+          "min-volume",
+          "min-loss"
+        ],
+        "missing_roles": [],
+        "candidates": {
+          "recommended": {
+            "role": "recommended",
+            "design_id": "E_80_38_32_SMP97_Np18_Ns18",
+            "estimated_volume_cm3": 108.89213208549563,
+            "total_loss_w": 3.7437450963848313,
+            "hotspot_c": 54.974980385539325
+          },
+          "min-volume": {
+            "role": "min-volume",
+            "design_id": "E_80_24_30_SMP97_Np10_Ns10",
+            "estimated_volume_cm3": 61.58044423584116,
+            "total_loss_w": 5.852314540001455,
+            "hotspot_c": 66.67590890626462
+          },
+          "min-loss": {
+            "role": "min-loss",
+            "design_id": "PQ_107_87_SMP97_Np12_Ns12",
+            "estimated_volume_cm3": 333.8255783970341,
+            "total_loss_w": 2.6357004819906424,
+            "hotspot_c": 50.54280192796257
+          }
+        }
+      }
+    },
+    "external_lr": {
+      "feasible_count": 11536,
+      "pareto_count": 28,
+      "chosen": {
+        "row_count": 4,
+        "roles": [
+          "recommended",
+          "min-volume",
+          "min-loss"
+        ],
+        "required_roles": [
+          "recommended",
+          "min-volume",
+          "min-loss"
+        ],
+        "missing_roles": [],
+        "candidates": {
+          "recommended": {
+            "role": "recommended",
+            "design_id": "Lr_ext_E_55_28_25_SMP97_N11_P4",
+            "estimated_volume_cm3": 41.858095528281176,
+            "total_loss_w": 1.275889037192824,
+            "hotspot_c": 46.61442743105247
+          },
+          "min-volume": {
+            "role": "min-volume",
+            "design_id": "Lr_ext_T_47_29_15_2_SMP97_N16_P4",
+            "estimated_volume_cm3": 38.58995813238183,
+            "total_loss_w": 5.811063927036529,
+            "hotspot_c": 70.9530457113103
+          },
+          "min-loss": {
+            "role": "min-loss",
+            "design_id": "Lr_ext_P_120_60_SMP97_N7_P2",
+            "estimated_volume_cm3": 295.7736600779768,
+            "total_loss_w": 0.3600082895791703,
+            "hotspot_c": 41.44003315831668
+          }
+        }
+      }
+    }
+  },
+  "current_display_behavior": {
+    "topology_id": "llc_resonant_converter_diode_rectifier",
+    "is_llc": true,
+    "inductor_pf_view_source": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\src\\pe_claw_gui\\app\\result_views\\inductor_pf_view.py",
+    "single_generic_plot_host": true,
+    "generic_plot_resolver": true,
+    "notebook_tabs_present": false,
+    "llc_role_specific_tabs_present": false,
+    "observed_llc_geometry_roles": [
+      "recommended"
+    ]
+  },
+  "boundary_cases": [
+    "complete_llc_result",
+    "missing_external_lr_pf_artifact",
+    "missing_representative_role",
+    "non_llc_inductor_result"
+  ],
+  "baseline_status": "available",
+  "diagnostics": {
+    "missing_or_invalid": [],
+    "payload_status": "available",
+    "payload_warnings": [
+      "Only the recommended geometry target is admitted to the current LLC overview."
+    ]
+  }
+}

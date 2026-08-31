@@ -13,6 +13,8 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from ..models.design_report import DesignReport
+from ..pipeline.llc_pf_artifacts import llc_pf_artifact_payload
+from ..pipeline.llc_representatives import build_llc_representative_payload
 
 
 REPORT_SCHEMA_VERSION = "pe_claw_structured_design_report_v1"
@@ -136,15 +138,39 @@ def _hardware_payload(report: DesignReport) -> dict[str, Any]:
         candidate = getattr(recommended, "candidate", None)
         return getattr(candidate, "part_number", None)
 
-    return {
+    is_llc = bool(magnetic and getattr(magnetic, "result_type", "") == "separated_llc_transformer")
+    llc_summary = getattr(magnetic, "llc_result_summary", None) if is_llc else None
+    llc_contract = getattr(magnetic, "llc_magnetic_contract", None) if is_llc else None
+    llc_transformer_id = (
+        getattr(llc_contract, "transformer_design_id", None)
+        or getattr(magnetic, "recommended_transformer_design_id", None)
+        if is_llc
+        else None
+    )
+    llc_external_id = (
+        getattr(llc_contract, "external_lr_design_id", None)
+        if is_llc and llc_contract is not None
+        else getattr(magnetic, "recommended_external_lr_design_id", None) if is_llc else None
+    )
+    llc_combined_id = (
+        getattr(llc_contract, "combined_magnetic_design_id", None)
+        if is_llc and llc_contract is not None
+        else getattr(magnetic, "recommended_combined_magnetic_design_id", None) if is_llc else None
+    )
+    llc_external_status = getattr(getattr(llc_summary, "external_lr", None), "status", "not_evaluated")
+    llc_selection_id = llc_combined_id or (llc_transformer_id if llc_external_status == "not_required" else None)
+    llc_selection_ids = [item for item in (llc_transformer_id, llc_external_id) if item]
+    payload = {
         "semiconductor": {
             "selected_devices": dict(getattr(device, "selected_devices", {}) or {}) if device else {},
             "selection_status": "pass" if device and device.selected_devices else "not_evaluated",
         },
         "magnetic": {
-            "selected_design_id": getattr(magnetic, "selected_design_id", None) if magnetic else None,
-            "chosen_design_ids": [getattr(item, "design_id", None) for item in (getattr(magnetic, "chosen_designs", []) or [])] if magnetic else [],
-            "selection_status": "pass" if magnetic and magnetic.chosen_designs else "not_evaluated",
+            "selected_design_id": llc_selection_id if is_llc else (getattr(magnetic, "selected_design_id", None) if magnetic else None),
+            "chosen_design_ids": llc_selection_ids if is_llc else [getattr(item, "design_id", None) for item in (getattr(magnetic, "chosen_designs", []) or [])] if magnetic else [],
+            "selection_status": (
+                "pass" if llc_selection_id else (llc_external_status if is_llc else "not_evaluated")
+            ),
         },
         "capacitor": {
             "input_part_number": part("input_selection"),
@@ -152,6 +178,9 @@ def _hardware_payload(report: DesignReport) -> dict[str, Any]:
             "selection_status": "pass" if capacitor else "not_evaluated",
         },
     }
+    if llc_contract is not None:
+        payload["magnetic"]["llc_magnetic_contract"] = llc_contract.to_dict()
+    return payload
 
 
 def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
@@ -160,7 +189,7 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
         return {"available": False, "selected_design_id": None, "chosen_design_ids": [], "metrics": {}, "metadata": {}}
     chosen = getattr(magnetic, "chosen_designs", []) or []
     selected = getattr(magnetic, "selected_design_id", None)
-    return {
+    payload = {
         "available": True,
         "selected_design_id": selected,
         "chosen_design_ids": [getattr(item, "design_id", None) for item in chosen],
@@ -171,14 +200,58 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
         "metadata": {
             "result_type": getattr(magnetic, "result_type", ""),
             "design_type": getattr(magnetic, "design_type", ""),
+            "performance_timing": getattr(magnetic, "performance_timing", {}),
         },
     }
+    llc_summary = getattr(magnetic, "llc_result_summary", None)
+    if getattr(magnetic, "result_type", "") == "separated_llc_transformer":
+        contract = getattr(magnetic, "llc_magnetic_contract", None)
+        def stage_payload(stage: Any, source: str) -> dict[str, Any]:
+            return {
+                "status": getattr(stage, "status", "not_evaluated"),
+                "metrics": {
+                    "generated_candidates": _metric(getattr(stage, "generated_candidate_count", None), "count", f"{source}.generated"),
+                    "prefilter_rejected_candidates": _metric(getattr(stage, "prefilter_rejected_candidate_count", None), "count", f"{source}.prefilter_rejected"),
+                    "prefilter_pass_candidates": _metric(getattr(stage, "prefilter_pass_count", None), "count", f"{source}.prefilter_pass"),
+                    "precise_evaluated_candidates": _metric(getattr(stage, "precise_evaluated_candidate_count", None), "count", f"{source}.precise"),
+                    "feasible_candidates": _metric(getattr(stage, "feasible_candidate_count", None), "count", f"{source}.feasible"),
+                    "pareto_candidates": _metric(getattr(stage, "pareto_candidate_count", None), "count", f"{source}.pareto"),
+                    "chosen_candidates": _metric(getattr(stage, "chosen_candidate_count", None), "count", f"{source}.chosen"),
+                },
+                "recommended_design_id": getattr(stage, "recommended_design_id", None),
+                "prefilter_rejection_counts": dict(getattr(stage, "prefilter_rejection_counts", {}) or {}),
+                "failure_code": getattr(stage, "failure_code", None),
+                "failure_reason": getattr(stage, "failure_reason", None),
+                "artifact_paths": list(getattr(stage, "artifact_paths", []) or []),
+            }
+
+        payload["llc"] = {
+            "transformer": stage_payload(
+                getattr(llc_summary, "transformer", None), "magnetic.llc.transformer"
+            ),
+            "external_lr": stage_payload(
+                getattr(llc_summary, "external_lr", None), "magnetic.llc.external_lr"
+            ),
+            "recommendations": {
+                "transformer_design_id": getattr(contract, "transformer_design_id", getattr(llc_summary, "recommended_transformer_design_id", None)),
+                "external_lr_design_id": getattr(contract, "external_lr_design_id", getattr(llc_summary, "recommended_external_lr_design_id", None)),
+                "combined_magnetic_design_id": getattr(contract, "combined_magnetic_design_id", getattr(llc_summary, "recommended_combined_magnetic_design_id", None)),
+            },
+        }
+        pf_artifacts = llc_pf_artifact_payload(
+            getattr(magnetic, "llc_pf_artifact_contracts", {}) or {}
+        )
+        payload["llc"]["pf_artifacts"] = pf_artifacts
+        payload["llc"]["representatives"] = build_llc_representative_payload(magnetic)
+        if contract is not None:
+            payload["llc"]["magnetic_contract"] = contract.to_dict()
+    return payload
 
 
 def _capacitor_payload(report: DesignReport) -> dict[str, Any]:
     capacitor = report.capacitor
     if capacitor is None:
-        return {"available": False, "input": {}, "output": {}, "metadata": {}}
+        return {"available": False, "input": {}, "output": {}, "llc_resonant": {}, "metadata": {}}
 
     def side_payload(side: Any, source: str) -> dict[str, Any]:
         entry = getattr(side, "recommended", None) if side is not None else None
@@ -194,10 +267,70 @@ def _capacitor_payload(report: DesignReport) -> dict[str, Any]:
             "selection_status": "pass" if entry is not None else "not_evaluated",
         }
 
+    llc_search = getattr(capacitor, "llc_resonant_capacitor_search_result", None)
+    llc_request = getattr(llc_search, "request", None) if llc_search is not None else None
+    llc_recommended = getattr(llc_search, "recommended_candidate", None) if llc_search is not None else None
+    coverage = getattr(llc_search, "coverage_summary", {}) or {}
+
+    def near_miss_payload(candidate: Any) -> dict[str, Any] | None:
+        if candidate is None:
+            return None
+        return {
+            "design_id": getattr(candidate, "design_id", None),
+            "bank_capacitance": _metric(getattr(candidate, "bank_capacitance_f", None), "F", "capacitor.llc_resonant.near_miss"),
+            "capacitance_error": _metric(getattr(candidate, "capacitance_error_percent", None), "%", "capacitor.llc_resonant.near_miss"),
+            "rejection_reason": getattr(candidate, "rejection_reason", ""),
+        }
+
+    llc_status = "not_evaluated"
+    if llc_search is not None and llc_request is not None:
+        llc_status = "pass" if llc_recommended is not None else "fail"
+    llc_payload = {
+        "available": llc_search is not None,
+        "status": llc_status,
+        "target": _metric(getattr(llc_request, "cr_target_f", None), "F", "capacitor.llc_resonant.request"),
+        "constraint": {
+            "capacitance_error_limit": _metric(coverage.get("capacitance_error_limit_percent"), "%", "capacitor.llc_resonant.constraint"),
+            "capacitance_warning_threshold": _metric(coverage.get("capacitance_warning_percent"), "%", "capacitor.llc_resonant.constraint"),
+            "source": coverage.get("capacitance_constraint_source"),
+        },
+        "counts": {
+            "evaluated": _metric(len(getattr(llc_search, "candidates", []) or []) if llc_search is not None else None, "count", "capacitor.llc_resonant.search"),
+            "feasible": _metric(len(getattr(llc_search, "feasible_candidates", []) or []) if llc_search is not None else None, "count", "capacitor.llc_resonant.search"),
+            "pareto": _metric(len(getattr(llc_search, "pareto_candidates", []) or []) if llc_search is not None else None, "count", "capacitor.llc_resonant.search"),
+            "chosen": _metric(len(getattr(llc_search, "chosen_candidates", []) or []) if llc_search is not None else None, "count", "capacitor.llc_resonant.search"),
+        },
+        "recommended": {
+            "design_id": getattr(llc_recommended, "design_id", None),
+            "part_number": getattr(llc_recommended, "part_number", None),
+            "bank_capacitance": _metric(getattr(llc_recommended, "bank_capacitance_f", None), "F", "capacitor.llc_resonant.recommended"),
+            "capacitance_error": _metric(getattr(llc_recommended, "capacitance_error_percent", None), "%", "capacitor.llc_resonant.recommended"),
+        },
+        "rejection_counts": dict(getattr(llc_search, "rejection_counts", {}) or {}),
+        "near_miss": {
+            "closest_absolute_error": near_miss_payload(getattr(llc_search, "closest_absolute_error_bank", None)),
+            "lowest_loss": near_miss_payload(getattr(llc_search, "lowest_loss_near_miss", None)),
+            "lowest_volume": near_miss_payload(getattr(llc_search, "lowest_volume_near_miss", None)),
+        },
+        "artifact_paths": {
+            key: value
+            for key, value in {
+                "feasible_csv": getattr(llc_search, "feasible_csv_path", ""),
+                "near_miss_csv": getattr(llc_search, "near_miss_csv_path", ""),
+                "pareto_csv": getattr(llc_search, "pareto_csv_path", ""),
+                "chosen_csv": getattr(llc_search, "chosen_csv_path", ""),
+                "pareto_png": getattr(llc_search, "pareto_png_path", ""),
+            }.items()
+            if value
+        },
+        "warnings": list(getattr(llc_search, "warnings", []) or []),
+    }
+
     return {
         "available": True,
         "input": side_payload(getattr(capacitor, "input_selection", None), "capacitor.input_selection"),
         "output": side_payload(getattr(capacitor, "output_selection", None), "capacitor.output_selection"),
+        "llc_resonant": llc_payload,
         "metadata": {},
     }
 
@@ -208,7 +341,7 @@ def _thermal_payload(report: DesignReport) -> dict[str, Any]:
     if thermal is None:
         return {"available": False, "status": "not_evaluated", "metrics": {}, "metadata": {}}
     source = "thermal.evaluation"
-    return {
+    payload = {
         "available": True,
         "status": getattr(thermal, "status", "not_evaluated"),
         "metrics": {
@@ -217,6 +350,186 @@ def _thermal_payload(report: DesignReport) -> dict[str, Any]:
             "total_loss": _metric(getattr(estimate, "total_loss_w", None), "W", source),
         },
         "metadata": {"summary": getattr(thermal, "summary", "")},
+    }
+    components = getattr(thermal, "llc_component_thermal", {}) or {}
+    if components:
+        component_entries = getattr(thermal, "llc_component_estimates", {}) or {}
+        payload["llc_components"] = {
+            str(role): {
+                "status": str(values.get("status", "not_evaluated")),
+                "design_id": values.get("design_id"),
+                "assembly_type": values.get("assembly_type", role),
+                "ambient_temperature": _metric(values.get("ambient_c"), "degC", f"thermal.llc.{role}"),
+                "core_loss": _metric(values.get("core_loss_w"), "W", f"thermal.llc.{role}"),
+                "copper_loss": _metric(values.get("copper_loss_w"), "W", f"thermal.llc.{role}"),
+                "total_loss": _metric(values.get("total_loss_w"), "W", f"thermal.llc.{role}"),
+                "hotspot_temperature": _metric(values.get("hotspot_c"), "degC", f"thermal.llc.{role}"),
+                "loss_basis": values.get("loss_basis", ""),
+                "source": values.get("source", ""),
+                "estimate_available": component_entries.get(role) is not None,
+            }
+            for role, values in components.items()
+            if isinstance(values, Mapping)
+        }
+    return payload
+
+
+def _loss_payload(report: DesignReport) -> dict[str, Any]:
+    loss = report.loss
+    if loss is None:
+        return {"available": False, "recommended_design_id": None, "metrics": {}, "metadata": {}}
+    payload: dict[str, Any] = {
+        "available": True,
+        "recommended_design_id": loss.recommended_design_id,
+        "metrics": {
+            "total_loss": _metric(loss.total_loss_w, "W", "loss.total"),
+            "recommended_volume": _metric(
+                loss.recommended_design_total_volume_m3,
+                "m3",
+                "loss.recommended_volume",
+            ),
+        },
+        "metadata": {"core_loss_status": getattr(loss, "core_loss_status", "not_evaluated")},
+    }
+    if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
+        breakdown = loss.breakdown_w
+        volumes = getattr(loss, "component_volumes_m3", {}) or {}
+        contract = getattr(report.magnetic, "llc_magnetic_contract", None)
+        payload["llc"] = {
+            "transformer": {
+                "design_id": getattr(contract, "transformer_design_id", report.magnetic.recommended_transformer_design_id),
+                "core_loss": _metric(breakdown.get("llc_transformer_core_loss_w"), "W", "loss.llc.transformer.core"),
+                "copper_loss": _metric(breakdown.get("llc_transformer_copper_loss_w"), "W", "loss.llc.transformer.copper"),
+                "total_loss": _metric(breakdown.get("llc_transformer_total_loss_w"), "W", "loss.llc.transformer.total"),
+                "volume": _metric(volumes.get("transformer_volume_m3"), "m3", "loss.llc.transformer.volume"),
+            },
+            "external_lr": {
+                "design_id": getattr(contract, "external_lr_design_id", report.magnetic.recommended_external_lr_design_id),
+                "core_loss": _metric(breakdown.get("llc_external_resonant_inductor_core_loss_w"), "W", "loss.llc.external_lr.core"),
+                "copper_loss": _metric(breakdown.get("llc_external_resonant_inductor_copper_loss_w"), "W", "loss.llc.external_lr.copper"),
+                "total_loss": _metric(breakdown.get("llc_external_resonant_inductor_total_loss_w"), "W", "loss.llc.external_lr.total"),
+                "volume": _metric(volumes.get("external_lr_volume_m3"), "m3", "loss.llc.external_lr.volume"),
+            },
+            "combined": {
+                "design_id": getattr(contract, "combined_magnetic_design_id", report.magnetic.recommended_combined_magnetic_design_id),
+                "core_loss": _metric(breakdown.get("llc_magnetic_core_loss_w"), "W", "loss.llc.combined.core"),
+                "copper_loss": _metric(breakdown.get("llc_magnetic_copper_loss_w"), "W", "loss.llc.combined.copper"),
+                "total_loss": _metric(breakdown.get("llc_magnetic_total_loss_w"), "W", "loss.llc.combined.total"),
+                "volume": _metric(volumes.get("combined_magnetic_volume_m3"), "m3", "loss.llc.combined.volume"),
+            },
+        }
+        if contract is not None:
+            payload["llc"]["magnetic_contract"] = contract.to_dict()
+    return payload
+
+
+def _geometry_payload(report: DesignReport) -> dict[str, Any]:
+    geometry = report.geometry
+    if geometry is None:
+        return {"available": False, "selected_design_id": None, "targets": [], "metadata": {}}
+    return {
+        "available": True,
+        "selected_design_id": geometry.selected_design_id,
+        "targets": [
+            {
+                "role": target.role,
+                "label": target.label,
+                "component_role": getattr(target, "component_role", getattr(geometry, "component_type", "fixed_inductor")),
+                "representative_role": getattr(target, "representative_role", None),
+                "design_id": target.design_id,
+                "volume": _metric(target.volume_m3, "m3", f"geometry.{target.role}.volume"),
+                "loss": _metric(target.loss_w, "W", f"geometry.{target.role}.loss"),
+                "artifact_paths": [str(path) for path in target.artifact_paths],
+                "duplicate_of": target.duplicate_of,
+                "error": target.error_message,
+            }
+            for target in geometry.targets
+        ],
+        "metadata": {
+            "component_type": getattr(geometry, "component_type", "fixed_inductor"),
+            "component_roles": sorted({
+                getattr(target, "component_role", getattr(geometry, "component_type", "fixed_inductor"))
+                for target in geometry.targets
+            }),
+            "artifact_paths": [str(path) for path in geometry.artifact_paths],
+            "summary": geometry.summary,
+        },
+    }
+
+
+def _llc_requirements_payload(report: DesignReport) -> dict[str, Any] | None:
+    """Expose LLC FHA targets and downstream actual values with explicit sources."""
+    magnetic = report.magnetic
+    if magnetic is None or getattr(magnetic, "result_type", "") != "separated_llc_transformer":
+        return None
+    requirements = getattr(magnetic, "design_requirements", {}) or {}
+    if not isinstance(requirements, Mapping):
+        return None
+
+    def metric(key: str, unit: str, source: str) -> dict[str, Any]:
+        return _metric(requirements.get(key), unit, source)
+
+    return {
+        "topology_id": requirements.get("topology_id"),
+        "display_name": requirements.get("display_name"),
+        "design_type": requirements.get("design_type"),
+        "control_mode": requirements.get("control_mode"),
+        "mode": requirements.get("mode"),
+        "bridge_type": requirements.get("primary_bridge_type"),
+        "rectifier_type": requirements.get("secondary_rectifier_type"),
+        "field_status": dict(requirements.get("field_status") or {}),
+        "ranges": {
+            "vin": {
+                "min": metric("vin_min_v", "V", "candidate.metadata.llc_fha"),
+                "nom": metric("vin_nom_v", "V", "candidate.metadata.llc_fha"),
+                "max": metric("vin_max_v", "V", "candidate.metadata.llc_fha"),
+            },
+            "vout": {
+                "min": metric("vout_min_v", "V", "candidate.metadata.llc_fha"),
+                "nom": metric("vout_nom_v", "V", "candidate.metadata.llc_fha"),
+                "max": metric("vout_max_v", "V", "candidate.metadata.llc_fha"),
+            },
+            "pout": {
+                "min": metric("pout_min_w", "W", "candidate.metadata.llc_fha"),
+                "max": metric("pout_max_w", "W", "candidate.metadata.llc_fha"),
+            },
+            "fs": {
+                "min": metric("fs_min_hz", "Hz", "candidate.metadata.llc_fha"),
+                "nom": metric("fs_nom_hz", "Hz", "candidate.metadata.llc_fha"),
+                "max": metric("fs_max_hz", "Hz", "candidate.metadata.llc_fha"),
+                "basis": metric("fs_basis_hz", "Hz", "requirements.fs_basis_source"),
+            },
+        },
+        "tank": {
+            "lm_target": metric("lm_target_h", "H", "candidate.metadata.llc_fha"),
+            "lm_actual": metric("lm_actual_h", "H", "magnetic.llc_magnetic_contract"),
+            "lr_target": metric("lr_target_h", "H", "candidate.metadata.llc_fha"),
+            "lr_actual": metric("total_lr_actual_h", "H", "magnetic.llc_magnetic_contract"),
+            "external_lr_target": metric("external_lr_target_h", "H", "magnetic.llc_magnetic_contract"),
+            "external_lr_actual": metric("external_lr_actual_h", "H", "magnetic.llc_magnetic_contract"),
+            "cr_target": metric("cr_target_f", "F", "candidate.metadata.llc_fha"),
+            "cr_actual": metric("cr_actual_f", "F", "capacitor.llc_resonant.recommended"),
+            "cr_error": metric("cr_error_percent", "%", "capacitor.llc_resonant.recommended"),
+            "cr_error_limit": metric("cr_error_limit_percent", "%", "capacitor.llc_resonant.constraint"),
+        },
+        "turns_ratio": {
+            "base_np": requirements.get("base_np"),
+            "base_ns": requirements.get("base_ns"),
+            "recommended_np": requirements.get("recommended_np"),
+            "recommended_ns": requirements.get("recommended_ns"),
+        },
+        "current": {
+            "transformer_primary_rms": metric("primary_current_rms_a", "A", "magnetic.transformer.target"),
+            "transformer_primary_peak": metric("primary_current_peak_a", "A", "magnetic.transformer.target"),
+            "transformer_secondary_rms": metric("secondary_current_rms_a", "A", "magnetic.transformer.target"),
+            "transformer_secondary_peak": metric("secondary_current_peak_a", "A", "magnetic.transformer.target"),
+            "external_lr_rms": metric("external_lr_current_rms_a", "A", "magnetic.external_lr.target"),
+            "external_lr_peak": metric("external_lr_current_peak_a", "A", "magnetic.external_lr.target"),
+        },
+        "constraints": {
+            "b_limit": metric("b_limit_t", "T", "magnetic.transformer.target"),
+            "turns_ratio_tolerance": metric("turns_ratio_tolerance_percent", "%", "candidate.metadata.llc_fha"),
+        },
     }
 
 
@@ -236,7 +549,7 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
     simulated_ripple = None
     if report.waveform is not None and report.waveform.output_voltage_v:
         simulated_ripple = max(report.waveform.output_voltage_v) - min(report.waveform.output_voltage_v)
-    return {
+    payload = {
         "schema_version": REPORT_SCHEMA_VERSION,
         "report_kind": "design_report",
         "topology": {"id": spec.topology_id, "display_name": spec.display_name},
@@ -278,6 +591,8 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
             "rectifier": _stress_metric(getattr(report.stress, "rectifier", None)),
         },
         "magnetic": _magnetic_payload(report),
+        "loss": _loss_payload(report),
+        "geometry": _geometry_payload(report),
         "capacitor": _capacitor_payload(report),
         "thermal": _thermal_payload(report),
         "hardware": _hardware_payload(report),
@@ -301,6 +616,10 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
             "source_stages": ["request", "candidate", "waveform", "stress", "magnetic", "capacitor", "thermal", "status"],
         },
     }
+    llc_requirements = _llc_requirements_payload(report)
+    if llc_requirements is not None:
+        payload["llc_design_requirements"] = llc_requirements
+    return payload
 
 
 def _stress_metric(metric: Any) -> dict[str, Any]:

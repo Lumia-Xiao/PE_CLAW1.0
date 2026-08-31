@@ -1,0 +1,131 @@
+{
+  "contract": "ac_dc_efficiency_sweep_delivery_v2",
+  "status": "COMPLETED_READY_FOR_USER_ACCEPTANCE",
+  "date": "2026-08-28",
+  "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+  "branch": "codex/sync-gui-backend-from-2",
+  "remote": "origin/codex/sync-gui-backend-from-2",
+  "remote_head_before_step12": "3698f0b2fa1d677b809881c29e5026feac997dfa",
+  "step10_commit": "70600e262da9e61f5280c3886bcdcf0997caef1c",
+  "step10_push_verified": true,
+  "step11_commit": "3698f0b2fa1d677b809881c29e5026feac997dfa",
+  "step11_push_verified": true,
+  "step12_subject_commit": "4af87e6fa93711f00d83017a7f33825b1d1dc9a1",
+  "step12_subject_push_verified": true,
+  "step12_remote_head_after_subject_push": "4af87e6fa93711f00d83017a7f33825b1d1dc9a1",
+  "step12_receipt_commit": "09dbce48043390c8357c2697f1fbbc27e2fbd147",
+  "step12_remote_head_after_receipt_push": "09dbce48043390c8357c2697f1fbbc27e2fbd147",
+  "plan_path": "Plan\\completed\\ac_dc_efficiency_sweep_fix_plan.md",
+  "real_gui_chain": {
+    "window": "PEClawMainWindow",
+    "topology_count": 5,
+    "actions": [
+      "Run Design",
+      "Run Capacitor",
+      "Run Magnetics when required",
+      "Generate Waveforms",
+      "Run Efficiency Sweep"
+    ],
+    "run_efficiency_sweep_mocked": false,
+    "load_grid_override": [0.5, 1.0],
+    "output_root_injected": true,
+    "waveform_view_axes_verified": true,
+    "stress_verified": true,
+    "topology_result_verified": true,
+    "efficiency_view_verified": true,
+    "fixed_hardware_summary_verified": true,
+    "successful_sweep_warnings": [],
+    "partial_load_failure_preserves_gui_result": true
+  },
+  "topologies": [
+    {
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "stages": ["design", "capacitor", "waveform", "efficiency_sweep"],
+      "fixed_hardware": ["bridge_rectifier", "dc_link_capacitor"],
+      "valid_efficiency_points": 2,
+      "artifacts": 2
+    },
+    {
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "stages": ["design", "capacitor", "magnetics", "waveform", "efficiency_sweep"],
+      "fixed_hardware": ["bridge_rectifier", "ac_dc_reactor", "dc_link_capacitor"],
+      "valid_efficiency_points": 2,
+      "artifacts": 2
+    },
+    {
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "stages": ["design", "capacitor", "waveform", "efficiency_sweep"],
+      "fixed_hardware": ["bridge_rectifier", "dc_link_capacitor"],
+      "valid_efficiency_points": 2,
+      "artifacts": 2
+    },
+    {
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "stages": ["design", "capacitor", "magnetics", "waveform", "efficiency_sweep"],
+      "fixed_hardware": ["input_bridge", "main_switch", "rectifier_diode", "boost_inductor", "dc_link_capacitor"],
+      "valid_efficiency_points": 2,
+      "artifacts": 2
+    },
+    {
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "stages": ["design", "capacitor", "magnetics", "waveform", "efficiency_sweep"],
+      "fixed_hardware": ["totem_pole_hf_switch", "totem_pole_lf_switch", "boost_inductor", "dc_link_capacitor"],
+      "valid_efficiency_points": 2,
+      "artifacts": 2
+    }
+  ],
+  "artifact_manifest": "gui_artifact_manifest.json",
+  "artifact_count": 10,
+  "validation": {
+    "real_gui_final": {
+      "command": "PE_CLAW_STEP12_GUI_OUTPUT_ROOT=<evidence>/gui_artifacts python -B -m pytest -q tests/test_ac_dc_efficiency_gui_end_to_end.py",
+      "passed": 3,
+      "failed": 0,
+      "duration_seconds": 402.08
+    },
+    "ac_dc": {
+      "command": "python -B -m pytest -q bridge models, AC-DC efficiency backend/GUI, phase6 migration, phase8 topology tests",
+      "passed": 32,
+      "failed": 0,
+      "duration_seconds": 766.79
+    },
+    "dc_ac": {
+      "command": "python -B -m pytest -q all test_dc_ac_*.py plus phase7 migration and phase9 topology tests",
+      "passed": 64,
+      "failed": 0,
+      "duration_seconds": 92.83
+    },
+    "dc_dc_psfb": {
+      "command": "python -B -m pytest -q phase5/phase7 DC-DC, pipeline closure, and PSFB tests",
+      "passed": 25,
+      "failed": 0,
+      "duration_seconds": 113.67
+    },
+    "gui_packaging": {
+      "command": "python -B -m pytest -q AC-DC GUI E2E, GUI bootstrap, packaging, phase10 GUI integration, DC-AC packaged runtime",
+      "passed": 14,
+      "failed": 0,
+      "duration_seconds": 459.18
+    },
+    "full_suite": {
+      "command": "python -B -m pytest -q --basetemp=.pytest-tmp-step12-full",
+      "passed": 343,
+      "skipped": 1,
+      "failed": 0,
+      "errors": 0,
+      "duration_seconds": 1572.68,
+      "skip_reason": "Existing optional legacy external OpenMagnetics reference-database check."
+    },
+    "compileall": "passed",
+    "git_diff_check": "passed",
+    "json_parse": "passed after receipt commit",
+    "remote_containment": "origin/codex/sync-gui-backend-from-2 contains step12 subject and receipt commits"
+  },
+  "release_boundary": {
+    "user_acceptance_required": true,
+    "merge_performed": false,
+    "master_push_performed": false,
+    "tag_performed": false,
+    "origin_master": "e8b5eac5ac9342cf1d8fa88836cf79c7def711a6"
+  }
+}

@@ -18,7 +18,8 @@ from ...models.capacitor import (
 
 MAX_LLC_RESONANT_CAPACITOR_PARALLEL_COUNT = 20
 CAPACITANCE_ERROR_LIMIT_PERCENT = 10.0
-CAPACITANCE_WARNING_PERCENT = 5.0
+CAPACITANCE_WARNING_PERCENT = CAPACITANCE_ERROR_LIMIT_PERCENT
+CAPACITANCE_CONSTRAINT_SOURCE = "LLC resonant capacitor search configuration"
 SUITABLE_APPLICATION_CATEGORIES = {
     "dc_link",
     "dc_link_candidate",
@@ -73,10 +74,29 @@ _CSV_FIELDS = [
     "temperature_rise_c",
     "hotspot_c",
     "estimated_volume_cm3",
+    "is_pareto",
+    "recommended_flag",
+    "rejection_reason",
     "warning",
     "representative_role",
     "representative_reason",
 ]
+
+_LLC_RESONANT_ARTIFACT_NAMES = (
+    "llc_resonant_capacitor_feasible_candidates.csv",
+    "llc_resonant_capacitor_pareto_front.csv",
+    "llc_resonant_capacitor_pareto_front.png",
+    "llc_resonant_capacitor_chosen_candidates.csv",
+    "llc_resonant_capacitor_near_miss_candidates.csv",
+    "llc_resonant_capacitor_min_volume_geometry_2d.png",
+    "llc_resonant_capacitor_min_volume_geometry_3d.png",
+    "llc_resonant_capacitor_min_loss_geometry_2d.png",
+    "llc_resonant_capacitor_min_loss_geometry_3d.png",
+    "llc_resonant_capacitor_recommended_geometry_2d.png",
+    "llc_resonant_capacitor_recommended_geometry_3d.png",
+    "llc_resonant_capacitor_comparison_geometry_2d.png",
+    "llc_resonant_capacitor_comparison_geometry_3d.png",
+)
 
 
 def search_llc_resonant_capacitor_banks(
@@ -88,6 +108,7 @@ def search_llc_resonant_capacitor_banks(
 ) -> LlcResonantCapacitorSearchResult:
     """Evaluate LLC Cr bank candidates without using input/output ripple sizing."""
 
+    _clear_llc_resonant_artifacts(output_dir)
     rejection_counts = _empty_rejection_counts()
     part_rejection_counts = _empty_part_rejection_counts()
     bank_rejection_counts = _empty_bank_rejection_counts()
@@ -171,34 +192,35 @@ def search_llc_resonant_capacitor_banks(
     chosen_csv_path = ""
     pareto_png_path = ""
     plot_diagnostics: dict[str, object] = {}
+    output_dir.mkdir(parents=True, exist_ok=True)
+    feasible_csv_path = str(output_dir / "llc_resonant_capacitor_feasible_candidates.csv")
+    pareto_csv_path = str(output_dir / "llc_resonant_capacitor_pareto_front.csv")
+    chosen_csv_path = str(output_dir / "llc_resonant_capacitor_chosen_candidates.csv")
     if feasible:
-        output_dir.mkdir(parents=True, exist_ok=True)
-        feasible_csv_path = str(output_dir / "llc_resonant_capacitor_feasible_candidates.csv")
         _write_feasible_csv(Path(feasible_csv_path), feasible)
         if pareto:
-            pareto_csv_path = str(output_dir / "llc_resonant_capacitor_pareto_front.csv")
-            chosen_csv_path = str(output_dir / "llc_resonant_capacitor_chosen_candidates.csv")
             pareto_png_path = str(output_dir / "llc_resonant_capacitor_pareto_front.png")
             _write_feasible_csv(Path(pareto_csv_path), pareto)
             _write_feasible_csv(Path(chosen_csv_path), chosen)
             plot_diagnostics = _write_pareto_plot(Path(pareto_png_path), feasible, pareto, chosen)
+    else:
+        _write_feasible_csv(Path(feasible_csv_path), [])
+        _write_feasible_csv(Path(pareto_csv_path), [])
+        _write_feasible_csv(Path(chosen_csv_path), [])
     if near_misses:
-        output_dir.mkdir(parents=True, exist_ok=True)
         near_miss_csv_path = str(output_dir / "llc_resonant_capacitor_near_miss_candidates.csv")
         _write_feasible_csv(Path(near_miss_csv_path), near_misses)
-    within_5_percent = sum(1 for bank in evaluated if abs(bank.capacitance_error_percent) <= CAPACITANCE_WARNING_PERCENT)
-    within_10_percent = len(capacitance_screened)
-    within_10_and_usable = len(feasible)
-    evaluated_capacitance_nF = [bank.bank_capacitance_nF for bank in evaluated]
-    screened_capacitance_nF = [bank.bank_capacitance_nF for bank in capacitance_screened]
+    within_error_limit = len(capacitance_screened)
+    within_error_limit_and_feasible = len(feasible)
     notes = [
         "LLC resonant capacitor search uses Cr target, resonant tank RMS current, voltage rating, ESR/DF loss, and a first-pass thermal estimate.",
         f"Parallel count search range is 1..{MAX_LLC_RESONANT_CAPACITOR_PARALLEL_COUNT} for LLC Cr only.",
         (
             "Library coverage: "
             f"Cr target {request.cr_target_nF:.6g} nF, supported N=1..{MAX_LLC_RESONANT_CAPACITOR_PARALLEL_COUNT}, "
-            f"within +/-5% = {within_5_percent}, within +/-10% = {within_10_percent}, "
-            f"within +/-10% and passing voltage/current/ESR/thermal = {within_10_and_usable}."
+            f"within +/-{CAPACITANCE_ERROR_LIMIT_PERCENT:g}% feasible limit = {within_error_limit}, "
+            f"within +/-{CAPACITANCE_ERROR_LIMIT_PERCENT:g}% and passing voltage/current/ESR/thermal = "
+            f"{within_error_limit_and_feasible}."
         ),
         (
             "Nearest banks: "
@@ -214,7 +236,9 @@ def search_llc_resonant_capacitor_banks(
         notes.append("ESR may be estimated from shared/default DF data; verify datasheet ESR for final design.")
     warnings = []
     if not feasible:
-        warnings.append("No feasible LLC resonant capacitor bank within +/-10% Cr target.")
+        warnings.append(
+            f"No feasible LLC resonant capacitor bank within +/-{CAPACITANCE_ERROR_LIMIT_PERCENT:g}% Cr target."
+        )
     return LlcResonantCapacitorSearchResult(
         request=request,
         candidates=evaluated,
@@ -232,9 +256,11 @@ def search_llc_resonant_capacitor_banks(
             "cr_target_nF": request.cr_target_nF,
             "parallel_count_min": 1,
             "parallel_count_max": MAX_LLC_RESONANT_CAPACITOR_PARALLEL_COUNT,
-            "within_5_percent_count": within_5_percent,
-            "within_10_percent_count": within_10_percent,
-            "within_10_percent_and_feasible_count": within_10_and_usable,
+            "capacitance_error_limit_percent": CAPACITANCE_ERROR_LIMIT_PERCENT,
+            "capacitance_warning_percent": CAPACITANCE_WARNING_PERCENT,
+            "capacitance_constraint_source": CAPACITANCE_CONSTRAINT_SOURCE,
+            "within_error_limit_count": within_error_limit,
+            "within_error_limit_and_feasible_count": within_error_limit_and_feasible,
             "nearest_lower_bank": nearest_lower_bank,
             "nearest_upper_bank": nearest_upper_bank,
             "closest_absolute_error_bank": closest_absolute_error_bank,
@@ -304,8 +330,11 @@ def _evaluate_bank(
             rejection_reason = "thermal"
     else:
         warnings.append("Capacitor thermal hotspot is first-pass or unavailable.")
-    if not rejection_reason and abs(capacitance_error_percent) > CAPACITANCE_WARNING_PERCENT:
-        warnings.append("Cr capacitance error exceeds 5%; verify LLC gain and resonant frequency shift.")
+    if abs(capacitance_error_percent) > CAPACITANCE_WARNING_PERCENT:
+        warnings.append(
+            f"Cr capacitance error exceeds {CAPACITANCE_WARNING_PERCENT:g}%; "
+            "verify LLC gain and resonant frequency shift."
+        )
     if hotspot_c is None:
         warnings.append("Capacitor thermal hotspot is first-pass or unavailable.")
     return LlcResonantCapacitorBankCandidate(
@@ -506,7 +535,7 @@ def _select_recommended(
     compromise: LlcResonantCapacitorBankCandidate,
     pareto: list[LlcResonantCapacitorBankCandidate],
 ) -> LlcResonantCapacitorBankCandidate:
-    if abs(compromise.capacitance_error_percent) <= CAPACITANCE_WARNING_PERCENT:
+    if abs(compromise.capacitance_error_percent) <= CAPACITANCE_ERROR_LIMIT_PERCENT:
         return compromise
     key = _compromise_key_factory(pareto)
     compromise_distance = key(compromise)[0]
@@ -514,7 +543,7 @@ def _select_recommended(
     low_error = [
         candidate
         for candidate in pareto
-        if abs(candidate.capacitance_error_percent) <= CAPACITANCE_WARNING_PERCENT
+        if abs(candidate.capacitance_error_percent) <= CAPACITANCE_ERROR_LIMIT_PERCENT
         and key(candidate)[0] <= comparable_limit
     ]
     return min(low_error, key=key) if low_error else compromise
@@ -611,6 +640,15 @@ def _write_feasible_csv(path: Path, candidates: list[LlcResonantCapacitorBankCan
         writer.writeheader()
         for candidate in candidates:
             writer.writerow({field: getattr(candidate, field) for field in _CSV_FIELDS})
+
+
+def _clear_llc_resonant_artifacts(output_dir: Path) -> None:
+    if not output_dir.exists():
+        return
+    for name in _LLC_RESONANT_ARTIFACT_NAMES:
+        path = output_dir / name
+        if path.is_file():
+            path.unlink()
 
 
 def _write_pareto_plot(

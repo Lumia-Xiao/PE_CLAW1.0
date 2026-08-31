@@ -15,6 +15,7 @@ from ..engines.magnetics.inductor_adapter import (
 from ..engines.magnetics.inductor_design import evaluate_selected_designs, export_design_artifacts
 from ..topology_capabilities import is_single_phase_full_bridge_inverter_topology
 from ..engines.magnetics.core_loss_audit import core_loss_consistency, core_loss_status
+from ..models.llc_run_context import is_llc_topology
 
 
 def run_loss_pipeline(
@@ -35,11 +36,30 @@ def run_loss_pipeline(
         refresh_plot_artifact=refresh_plot_artifact,
         pipeline_options=pipeline_options,
     )
-    return attach_core_loss_excitation_audit(
+    completed = attach_core_loss_excitation_audit(
         completed,
         include_design_reference=False,
         include_operating_waveform=True,
     )
+    return _finalize_llc_loss_stage(completed)
+
+
+def _finalize_llc_loss_stage(report: DesignReport) -> DesignReport:
+    """Close the LLC loss stage from the result actually produced."""
+
+    context = report.llc_run_context
+    if context is None or not is_llc_topology(report.spec.topology_id):
+        return report
+    loss = report.loss
+    if loss is not None and loss.recommended_design_id and loss.total_loss_w is not None:
+        updated_context = context.transition("loss", "succeeded")
+    else:
+        updated_context = context.transition(
+            "loss",
+            "blocked",
+            reason="LLC loss result is incomplete; no current-run recommended magnetic loss is available.",
+        )
+    return replace(report, llc_run_context=updated_context)
 
 
 def _run_loss_pipeline_without_excitation_audit(
@@ -58,6 +78,12 @@ def _run_loss_pipeline_without_excitation_audit(
         return replace(report, loss=loss_result)
 
     if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
+        contract = report.magnetic.llc_magnetic_contract
+        if report.llc_run_context is not None and (contract is None or not contract.combined_magnetic_design_id):
+            loss_result = LossResult(
+                notes=["LLC magnetic loss is blocked because the magnetic combination contract is incomplete."]
+            )
+            return replace(report, loss=loss_result)
         transformer_result = report.magnetic.transformer_pareto_result
         transformer = getattr(transformer_result, "recommended_candidate", None)
         external_result = report.magnetic.llc_external_resonant_inductor_search_result
@@ -80,9 +106,33 @@ def _run_loss_pipeline_without_excitation_audit(
                 _optional_float(getattr(transformer, "estimated_volume_m3", None)),
                 _optional_float(getattr(external, "estimated_volume_m3", None)),
             )
-            transformer_id = getattr(transformer, "candidate_id", None)
-            external_id = getattr(external, "design_id", None)
-            ids = "+".join(value for value in (transformer_id, external_id) if value) or None
+            transformer_id = (
+                contract.transformer_design_id
+                if contract is not None
+                else getattr(transformer, "candidate_id", None)
+            )
+            external_id = (
+                contract.external_lr_design_id
+                if contract is not None
+                else getattr(external, "design_id", None)
+            )
+            ids = (
+                contract.combined_magnetic_design_id
+                if contract is not None
+                else report.magnetic.recommended_combined_magnetic_design_id
+                or "+".join(value for value in (transformer_id, external_id) if value)
+                or transformer_id
+                or external_id
+            )
+            component_volumes = {
+                key: value
+                for key, value in {
+                    "transformer_volume_m3": _optional_float(getattr(transformer, "estimated_volume_m3", None)),
+                    "external_lr_volume_m3": _optional_float(getattr(external, "estimated_volume_m3", None)),
+                    "combined_magnetic_volume_m3": volume,
+                }.items()
+                if value is not None
+            }
             breakdown = {
                 key: value
                 for key, value in {
@@ -103,6 +153,7 @@ def _run_loss_pipeline_without_excitation_audit(
                 breakdown_w=breakdown,
                 recommended_design_id=ids,
                 recommended_design_total_volume_m3=volume,
+                component_volumes_m3=component_volumes,
                 notes=[
                     "LLC magnetic loss is aggregated from the recommended transformer and external resonant-inductor candidates.",
                     "Transformer leakage is not added to the external resonant-inductor loss; the two roles remain separate.",

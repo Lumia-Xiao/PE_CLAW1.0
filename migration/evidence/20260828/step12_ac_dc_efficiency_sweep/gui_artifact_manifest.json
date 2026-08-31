@@ -1,0 +1,77 @@
+{
+  "contract": "ac_dc_step12_gui_artifact_manifest_v1",
+  "generated_from": "tests/test_ac_dc_efficiency_gui_end_to_end.py",
+  "load_grid": [0.5, 1.0],
+  "artifacts": [
+    {
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "name": "efficiency_curve",
+      "path": "gui_artifacts/single_phase_boost_pfc_diode_bridge/outputs/efficiency_sweep/efficiency_curve.png",
+      "size_bytes": 24251,
+      "sha256": "c4b0d4c1d177a03787bbb8fb770e76bb73b8875eba094869dc4877a46a99ef67"
+    },
+    {
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "name": "loss_breakdown_stacked",
+      "path": "gui_artifacts/single_phase_boost_pfc_diode_bridge/outputs/efficiency_sweep/loss_breakdown_stacked.png",
+      "size_bytes": 17752,
+      "sha256": "96983fe9569ff10d7113ddf5117c795539e820e9cdf1e5e860fe9ab64e2b1f72"
+    },
+    {
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "name": "efficiency_curve",
+      "path": "gui_artifacts/single_phase_diode_bridge_rectifier_capacitor_filter/outputs/efficiency_sweep/efficiency_curve.png",
+      "size_bytes": 24626,
+      "sha256": "3de4e28d540169d9c81a8e2fe7cc19645823759dfb8431afe07d3e91dbb70dd0"
+    },
+    {
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "name": "loss_breakdown_stacked",
+      "path": "gui_artifacts/single_phase_diode_bridge_rectifier_capacitor_filter/outputs/efficiency_sweep/loss_breakdown_stacked.png",
+      "size_bytes": 14524,
+      "sha256": "6746a83098ef38a6bc8ce2322d21b2bf3326d5e5840d4f5cb68c27aecbe0b583"
+    },
+    {
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "name": "efficiency_curve",
+      "path": "gui_artifacts/single_phase_diode_bridge_rectifier_dc_inductor_filter/outputs/efficiency_sweep/efficiency_curve.png",
+      "size_bytes": 27509,
+      "sha256": "00afffd652d484244e372dfa80f0787fc8be494926256ece0c03360cf17bf1e6"
+    },
+    {
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "name": "loss_breakdown_stacked",
+      "path": "gui_artifacts/single_phase_diode_bridge_rectifier_dc_inductor_filter/outputs/efficiency_sweep/loss_breakdown_stacked.png",
+      "size_bytes": 16304,
+      "sha256": "cf27b7c50c2a414f110cf7fc6bb54280855214ad717c3a954dc9389188c40d49"
+    },
+    {
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "name": "efficiency_curve",
+      "path": "gui_artifacts/single_phase_totem_pole_bridgeless_pfc/outputs/efficiency_sweep/efficiency_curve.png",
+      "size_bytes": 22294,
+      "sha256": "2887957ac2dbee968e0603135523c69fde65946cc0f7920913fc35793c2a7ba8"
+    },
+    {
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "name": "loss_breakdown_stacked",
+      "path": "gui_artifacts/single_phase_totem_pole_bridgeless_pfc/outputs/efficiency_sweep/loss_breakdown_stacked.png",
+      "size_bytes": 16546,
+      "sha256": "0e8d895203e66e3fcc2118a418f3d43565c5475a5553693cc5a94afd792a2d30"
+    },
+    {
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "name": "efficiency_curve",
+      "path": "gui_artifacts/three_phase_diode_bridge_rectifier_capacitor_filter/outputs/efficiency_sweep/efficiency_curve.png",
+      "size_bytes": 27537,
+      "sha256": "e734af578ff548bcbbc62703fa52d3ee52b690c2102d8b9855655f7c8defed20"
+    },
+    {
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "name": "loss_breakdown_stacked",
+      "path": "gui_artifacts/three_phase_diode_bridge_rectifier_capacitor_filter/outputs/efficiency_sweep/loss_breakdown_stacked.png",
+      "size_bytes": 14621,
+      "sha256": "471d944fe66ed9c0a86050afa66be2bd204af16c173e1098a9bb47629818bac3"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "baseline_source": "user_supplied_llc_run_255120bd9d1b45a5ac3845bf2830927d",
+  "calculation_source_contract": {
+    "combined": {
+      "recommended_id": "E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4",
+      "total_loss_w": 5.019634133577655,
+      "volume_cm3": 150.7502276137768
+    },
+    "external_lr": {
+      "hotspot_c": 46.61442743105247,
+      "loss_w": 1.275889037192824,
+      "recommended_id": "Lr_ext_E_55_28_25_SMP97_N11_P4",
+      "target_uH": 22.271218018445026
+    },
+    "geometry_roles_present": [
+      "recommended"
+    ],
+    "run_id": "255120bd9d1b45a5ac3845bf2830927d",
+    "transformer": {
+      "evaluated": 19216,
+      "feasible": 10269,
+      "hotspot_c": 54.974980385539325,
+      "loss_w": 3.7437450963848313,
+      "pareto": 16,
+      "recommended_id": "E_80_38_32_SMP97_Np18_Ns18"
+    }
+  },
+  "current_display_behavior": {
+    "inductor_view": {
+      "shows_requirement_dash": true,
+      "shows_stack_count_block": true,
+      "shows_zero_fixed_inductor_counts": true
+    },
+    "magnetic_view": {
+      "shows_requirement_dash": true,
+      "shows_stack_count_block": true,
+      "shows_zero_fixed_inductor_counts": true
+    },
+    "thermal_view": {
+      "shows_hotspot_dash": true,
+      "shows_stack_count_block": true
+    }
+  },
+  "fixture": "deterministic completed separated-LLC report fixture",
+  "inductor_view_text": "Separated LLC transformer first-pass magnetic screening evaluated 19216 candidates and found 10269 feasible candidates. Transformer Pareto front contains 16 candidates. Preliminary transformer recommendation: E 80/38/32/SMP97, Np:Ns=18:18, gap=2.18359 mm, loss=3.74375 W.\n\nCandidate count transitions\n  single-core basic feasible: 19216\n  single-core after allow screening: 0\n  single-core after compression: 0\n  final after allow screening: 0\n  final after compression: 0\n  Pareto points: 16\n  selected/recommended design: E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4\n\nDesign requirements\n  topology: llc_resonant_converter_diode_rectifier\n  L target: -\n  fs: - Hz\n  Iavg: - A\n  Irms: - A\n  Ipeak: - A\n  Delta iL: - A\n  throughput: - W\n  mode: -\n\nBest by stack count\n  1-core: unavailable\n  2-core: unavailable\n  3-core: unavailable\n\nMagnetic loss\n  loss basis: design point\n  recommended design: E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4\n  total loss: 5.01963 W\n  copper loss: - W\n  core loss: - W\n  recommended volume: 150.75 cm^3\n\nMagnetic thermal\nLLC transformer and external resonant-inductor thermal screening uses magnetic first-pass hotspot estimates.\n  ambient: 25 C\n  recommended design: E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4\n\nGeometry\n  External resonant inductor geometry prepared with fixed targets.\n  Recommended: Lr_ext_E_55_28_25_SMP97_N11_P4, volume=41.8581 cm^3, loss=1.27589 W\n\nNotes\n  LLC transformer design type: separated LLC transformer.\n  Transformer realizes Np:Ns and Lm; external resonant inductor realizes Lr.\n  Transformer visualization is separate from external Lr geometry.\n  The separated LLC transformer screening includes a first-pass hotspot estimate.\n  Transformer and external Lr hotspots are reported separately; no combined thermal network is inferred.\n  Thermal summary artifact saved to outputs/llc_runs/255120bd9d1b45a5ac3845bf2830927d/thermal/thermal_summary.csv.\n  Min-volume and min-loss representatives exist in the candidate CSV but are absent from this baseline geometry view.",
+  "magnetic_view_text": "Separated LLC transformer first-pass magnetic screening evaluated 19216 candidates and found 10269 feasible candidates. Transformer Pareto front contains 16 candidates. Preliminary transformer recommendation: E 80/38/32/SMP97, Np:Ns=18:18, gap=2.18359 mm, loss=3.74375 W.\n\nSingle-core basic feasible candidates: 19216\nSingle-core after engineering allow screening: 0\nSingle-core after redundancy compression: 0\nFinal combined after engineering allow screening: 0\nFinal combined after redundancy compression: 0\nPareto points: 16\nSelected/recommended design: E_80_38_32_SMP97_Np18_Ns18\n\nDesign requirements\n  Topology = llc_resonant_converter_diode_rectifier\n  L target = -\n  fs = - Hz\n  Iavg = - A\n  Irms = - A\n  Ipeak = - A\n  Delta iL = - A\n  Throughput = - W\n  Mode = -\n\nBest Design By Stack Count\n  No surviving 1-core candidate\n  No surviving 2-core candidate\n  No surviving 3-core candidate\n\nArtifacts\n  outputs/llc_runs/255120bd9d1b45a5ac3845bf2830927d/transformer_design/llc_transformer_pareto_front.csv\n  outputs/llc_runs/255120bd9d1b45a5ac3845bf2830927d/resonant_inductor_design/llc_external_resonant_inductor_pareto_front.csv\n  outputs/llc_runs/255120bd9d1b45a5ac3845bf2830927d/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.png\n\nNotes\n  LLC transformer design type: separated LLC transformer.\n  Transformer realizes Np:Ns and Lm; external resonant inductor realizes Lr.\n  Transformer visualization is separate from external Lr geometry.",
+  "schema_version": "llc_latest_run_result_chain_polish_step1_baseline_v1",
+  "structured_output_baseline": {
+    "hardware_selection_status": "not_evaluated",
+    "magnetic_available": true,
+    "selected_design_id": "E_80_38_32_SMP97_Np18_Ns18"
+  },
+  "thermal_view_text": "LLC transformer and external resonant-inductor thermal screening uses magnetic first-pass hotspot estimates.\n\nAmbient temperature: 25 C\nRecommended design: E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4\nRecommended hotspot proxy: - C\n\nBest Design By Stack Count\n  No thermal estimate is available for the best 1-core design.\n  No thermal estimate is available for the best 2-core design.\n  No thermal estimate is available for the best 3-core design.\n\nNotes\n  The separated LLC transformer screening includes a first-pass hotspot estimate.\n  Transformer and external Lr hotspots are reported separately; no combined thermal network is inferred.\n  Thermal summary artifact saved to outputs/llc_runs/255120bd9d1b45a5ac3845bf2830927d/thermal/thermal_summary.csv."
+}

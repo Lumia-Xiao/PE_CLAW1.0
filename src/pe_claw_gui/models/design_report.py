@@ -13,6 +13,7 @@ from .device_result import DeviceSelectionResult
 from .efficiency_sweep import EfficiencySweepResult
 from .geometry_result import GeometryResult
 from .loss_result import LossResult
+from .llc_run_context import LlcRunContext
 from .magnetic_result import MagneticResult
 from .operating_point import OperatingPoint
 from .semiconductor_geometry_result import SemiconductorGeometryResult
@@ -55,3 +56,4 @@ class DesignReport:
     run_efficiency_sweep_runtime_seconds: float | None = None
     topology_result: "TopologyResult | None" = None
     notes: list[str] = field(default_factory=list)
+    llc_run_context: LlcRunContext | None = None

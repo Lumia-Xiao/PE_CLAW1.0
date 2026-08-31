@@ -1,0 +1,72 @@
+{
+  "contract": "ac_dc_efficiency_sweep_delivery_v1",
+  "status": "READY_FOR_USER_ACCEPTANCE",
+  "date": "2026-08-28",
+  "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+  "branch": "codex/sync-gui-backend-from-2",
+  "remote": "origin/codex/sync-gui-backend-from-2",
+  "remote_head_before_step9": "309e65fc0a993d855205d329fe0b5a74209ac0b4",
+  "step9_subject_commit": "e95183924f871745bfec624ad4857faa24744c91",
+  "step9_subject_push_verified": true,
+  "plan_path": "Plan\\completed\\ac_dc_efficiency_sweep_fix_plan.md",
+  "topologies": [
+    {
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "evaluator": "_evaluate_ac_dc_load_point",
+      "fixed_hardware": ["bridge_rectifier", "dc_link_capacitor"],
+      "losses": ["bridge_rectifier", "capacitor"]
+    },
+    {
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "evaluator": "_evaluate_ac_dc_load_point",
+      "fixed_hardware": ["bridge_rectifier", "ac_dc_reactor", "dc_link_capacitor"],
+      "losses": ["bridge_rectifier", "magnetic", "capacitor"]
+    },
+    {
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "evaluator": "_evaluate_ac_dc_load_point",
+      "fixed_hardware": ["bridge_rectifier", "dc_link_capacitor"],
+      "losses": ["bridge_rectifier", "capacitor"]
+    },
+    {
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "evaluator": "_evaluate_single_phase_boost_pfc_load_point",
+      "fixed_hardware": ["input_bridge", "main_switch", "rectifier_diode", "boost_inductor", "dc_link_capacitor"],
+      "losses": ["semiconductor", "bridge_rectifier", "magnetic", "capacitor"]
+    },
+    {
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "evaluator": "_evaluate_single_phase_totem_pole_pfc_load_point",
+      "fixed_hardware": ["totem_pole_hf_switch", "totem_pole_lf_switch", "boost_inductor", "dc_link_capacitor"],
+      "losses": ["semiconductor", "magnetic", "capacitor"]
+    }
+  ],
+  "artifacts": ["efficiency_curve.png", "loss_breakdown_stacked.png"],
+  "validation": {
+    "ac_dc": {"command": "pytest -q bridge-rectifier models, AC-DC efficiency backend/GUI, phase6 migration, and phase8 topology tests", "passed": 27, "failed": 0, "duration_seconds": 328.09},
+    "dc_ac": {"command": "PowerShell: pytest all test_dc_ac_*.py plus phase7 migration and phase9 topology tests", "passed": 64, "failed": 0, "duration_seconds": 92.78},
+    "dc_dc_psfb": {"command": "pytest -q phase5/phase7 DC-DC, phase5 pipeline closure, and PSFB duty-policy/evidence tests", "passed": 25, "failed": 0, "duration_seconds": 116.42},
+    "gui_packaging": {"command": "pytest -q AC-DC GUI E2E, GUI bootstrap, packaging, phase10 GUI integration, and DC-AC packaged runtime tests", "passed": 13, "failed": 0, "duration_seconds": 68.86},
+    "full_suite": {"command": "pytest -q --basetemp=.pytest-tmp-step8-full", "passed": 338, "skipped": 1, "failed": 0, "errors": 0, "duration_seconds": 1169.51},
+    "step9_e2e_rerun": {"command": "pytest -q --basetemp=.pytest-tmp-step9-e2e tests/test_ac_dc_efficiency_gui_end_to_end.py", "passed": 2, "failed": 0, "duration_seconds": 10.98}
+  },
+  "commits": [
+    {"step": 1, "commit": "931ca386088059900674e47ab828092067599087", "subject": "test: add AC-DC efficiency sweep baseline"},
+    {"step": 2, "commit": "eb0f7526450c91436e2f6950a8472dab006660cc", "subject": "fix: connect AC-DC bridge rectifier selection"},
+    {"step": 3, "commit": "bc47deb80c84e8c781c47e2294e0563a9b4dd65f", "subject": "fix: dispatch AC-DC efficiency sweep evaluators"},
+    {"step": 4, "commit": "f0e9273f1d3da2fe2247b0e0b015b30f824d343f", "subject": "fix: align AC-DC efficiency sweep prerequisites"},
+    {"step": 5, "commit": "5ac1bb98d059f40b030e3b036cba438887ca22c6", "subject": "fix: refresh AC-DC sweep operating-point losses"},
+    {"step": 6, "commit": "ce1de2c52f727d316cbd0e0add833670dae6f2c7", "subject": "fix: complete AC-DC efficiency sweep result artifacts"},
+    {"step": 7, "commit": "2728fd4284200af39ba8adc06163a86bef95ed37", "subject": "test: cover AC-DC efficiency sweep regressions"},
+    {"step": 8, "commit": "309e65fc0a993d855205d329fe0b5a74209ac0b4", "subject": "test: validate AC-DC efficiency sweep end to end"},
+    {"step": 9, "commit": "e95183924f871745bfec624ad4857faa24744c91", "subject": "docs: finalize AC-DC efficiency sweep delivery"}
+  ],
+  "release_boundary": {
+    "user_acceptance_required": true,
+    "merge_performed": false,
+    "master_push_performed": false,
+    "tag_performed": false,
+    "origin_master": "e8b5eac5ac9342cf1d8fa88836cf79c7def711a6",
+    "step8_contained_in_origin_master": false
+  }
+}

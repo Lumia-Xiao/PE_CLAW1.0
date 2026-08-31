@@ -623,6 +623,13 @@ def run_device_pipeline(report: DesignReport, plugin: TopologyPlugin | None = No
         ],
     )
     report_with_device = replace(report, device=device_result)
+    if report_with_device.llc_run_context is not None and recommended_scheme_id:
+        report_with_device = replace(
+            report_with_device,
+            llc_run_context=report_with_device.llc_run_context.with_result_ids(
+                device_design_id=recommended_scheme_id,
+            ),
+        )
     report_with_device = _apply_psfb_selected_device_evidence(
         report_with_device,
         active_scheme=active_scheme,

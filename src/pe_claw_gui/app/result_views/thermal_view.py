@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ...models.design_report import DesignReport
+from ...models.llc_run_context import is_llc_topology
 from ...pipeline.options import MAGNETIC_STAGE_DISABLED_NOTE, MAGNETIC_THERMAL_DISABLED_NOTE
 
 
@@ -31,6 +32,10 @@ class ThermalView(ttk.Frame):
         thermal = report.thermal
         if thermal.summary == MAGNETIC_THERMAL_DISABLED_NOTE or MAGNETIC_STAGE_DISABLED_NOTE in thermal.notes:
             self._set_text(f"{MAGNETIC_THERMAL_DISABLED_NOTE}\n\n{MAGNETIC_STAGE_DISABLED_NOTE}")
+            return
+
+        if is_llc_topology(report.spec.topology_id) and thermal.llc_component_thermal:
+            self._set_text("\n".join(_llc_lines(thermal)))
             return
 
         lines = [thermal.summary or "Thermal evaluation has not run yet."]
@@ -89,6 +94,43 @@ def _entry_lines(entry, indent: str) -> list[str]:
         lines.extend(f"{indent}  {note}" for note in entry.notes)
         return lines
     lines.extend(_estimate_lines(estimate, indent=f"{indent}  "))
+    return lines
+
+
+def _llc_lines(thermal) -> list[str]:
+    """Render separated LLC thermal results without implying a combined temperature."""
+    lines = [thermal.summary or "LLC thermal evaluation has not run yet."]
+    lines.extend(
+        [
+            "",
+            f"Ambient temperature: {_fmt_float(thermal.ambient_temp_c)} C",
+            f"Recommended combined design: {thermal.recommended_design_id or '-'}",
+            "Component hotspots are estimated separately; no combined thermal network is modeled.",
+        ]
+    )
+    components = thermal.llc_component_thermal
+    for role, label in (("transformer", "Transformer"), ("external_lr", "External Lr")):
+        component = components.get(role, {})
+        status = str(component.get("status", "not_evaluated"))
+        lines.extend(["", label, f"  status: {status}", f"  design: {component.get('design_id') or '-'}"])
+        if status == "available":
+            lines.extend(
+                [
+                    f"  hotspot proxy: {_fmt_float(component.get('hotspot_c'))} C",
+                    f"  core loss: {_fmt_float(component.get('core_loss_w'))} W",
+                    f"  copper loss: {_fmt_float(component.get('copper_loss_w'))} W",
+                    f"  total loss: {_fmt_float(component.get('total_loss_w'))} W",
+                ]
+            )
+        else:
+            lines.append(f"  hotspot proxy: N/A ({status})")
+        lines.append(f"  source: {component.get('source') or '-'}")
+    if thermal.artifact_paths:
+        lines.extend(["", "Artifacts"])
+        lines.extend(f"  {path}" for path in thermal.artifact_paths)
+    if thermal.notes:
+        lines.extend(["", "Notes"])
+        lines.extend(f"  {note}" for note in thermal.notes)
     return lines
 
 

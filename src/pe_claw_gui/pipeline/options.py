@@ -16,6 +16,9 @@ class PipelineOptions:
 
     enable_magnetic_design: bool = False
     enable_capacitor_design: bool = True
+    enable_bridge_rectifier_selection: bool = True
+    enable_magnetic_debug_outputs: bool = False
+    llc_geometry_roles: tuple[str, ...] | None = None
 
 
 def resolve_pipeline_options(options: PipelineOptions | None = None) -> PipelineOptions:

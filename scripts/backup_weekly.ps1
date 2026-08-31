@@ -1,12 +1,16 @@
 [CmdletBinding()]
 param(
-    [string]$SourceRoot = (Split-Path -Parent $PSScriptRoot),
+    [string]$SourceRoot = '',
     [string]$BackupRoot = '',
     [switch]$Force
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+if ([string]::IsNullOrWhiteSpace($SourceRoot)) {
+    $SourceRoot = Split-Path -Parent $PSScriptRoot
+}
 
 if ([string]::IsNullOrWhiteSpace($BackupRoot)) {
     $BackupRoot = Split-Path -Parent $SourceRoot
@@ -30,6 +34,7 @@ if ((Test-Path -LiteralPath $archivePath) -and -not $Force) {
     throw "Backup already exists for $dateStamp. Use -Force to replace it: $archivePath"
 }
 
+Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $excludedDirectoryNames = @('__pycache__')

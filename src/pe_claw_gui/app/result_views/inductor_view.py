@@ -13,6 +13,7 @@ from ...pipeline.options import (
     MAGNETIC_THERMAL_DISABLED_NOTE,
 )
 from .geometry_view import GeometryView
+from .llc_result_text import build_llc_magnetic_summary_text, has_llc_display_summary
 
 
 class InductorView(ttk.Frame):
@@ -91,6 +92,8 @@ def build_inductor_summary_text(report: DesignReport | None) -> str:
         return "Magnetic design has not run yet. Run Magnetics to view inductor results."
 
     magnetic = report.magnetic
+    if has_llc_display_summary(report):
+        return build_llc_magnetic_summary_text(report)
     lines: list[str] = [magnetic.summary or "Magnetic design has not run yet."]
     lines.extend(
         [

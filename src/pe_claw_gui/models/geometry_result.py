@@ -105,6 +105,8 @@ class GeometryTarget:
     artifact_paths: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
     error_message: str | None = None
+    component_role: str = "fixed_inductor"
+    representative_role: str | None = None
 
 
 @dataclass(frozen=True)
@@ -117,4 +119,5 @@ class GeometryResult:
     targets: list[GeometryTarget] = field(default_factory=list)
     artifact_paths: list[str] = field(default_factory=list)
     footprint_mm2: float | None = None
+    component_type: str = "fixed_inductor"
     notes: list[str] = field(default_factory=list)

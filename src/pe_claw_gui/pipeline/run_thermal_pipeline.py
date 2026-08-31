@@ -10,12 +10,30 @@ from ..engines.thermal.thermal_estimator import (
     resolve_ambient_temperature_c,
 )
 from ..models.design_report import DesignReport
-from ..models.thermal_result import ThermalComparisonEntry, ThermalResult
+from ..models.thermal_result import ThermalComparisonEntry, ThermalEstimate, ThermalResult
 from .options import MAGNETIC_STAGE_DISABLED_NOTE, MAGNETIC_THERMAL_DISABLED_NOTE, PipelineOptions, resolve_pipeline_options
 from ..engines.magnetics.core_loss_audit import core_loss_is_comparable
+from ..models.llc_run_context import is_llc_topology
+
+
+def _optional_float(value) -> float | None:
+    if value is None:
+        return None
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return None
+    return result if result == result and abs(result) != float("inf") else None
 
 
 def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions | None = None) -> DesignReport:
+    """Attach a first-pass magnetic thermal estimate and close LLC lifecycle state."""
+
+    result = _run_thermal_pipeline(report, pipeline_options=pipeline_options)
+    return _finalize_llc_thermal_stage(result)
+
+
+def _run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions | None = None) -> DesignReport:
     """Attach a first-pass magnetic thermal estimate to a design report."""
     options = resolve_pipeline_options(pipeline_options)
     if not options.enable_magnetic_design:
@@ -27,13 +45,120 @@ def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions
         return replace(report, thermal=thermal_result)
 
     if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
+        contract = report.magnetic.llc_magnetic_contract
+        if report.llc_run_context is not None and contract is None:
+            thermal_result = ThermalResult(
+                ambient_temp_c=resolve_ambient_temperature_c(report),
+                summary="LLC thermal screening is blocked because the magnetic combination contract is incomplete.",
+                notes=["No unified LLC magnetic combination contract is available."],
+                status="unavailable",
+            )
+            return replace(report, thermal=thermal_result)
+        transformer_result = report.magnetic.transformer_pareto_result
+        transformer = getattr(transformer_result, "recommended_candidate", None)
+        external_result = report.magnetic.llc_external_resonant_inductor_search_result
+        external = getattr(external_result, "recommended_candidate", None)
+        transformer_id = (
+            contract.transformer_design_id
+            if contract is not None
+            else report.magnetic.recommended_transformer_design_id
+            or getattr(transformer, "candidate_id", None)
+        )
+        external_id = (
+            contract.external_lr_design_id
+            if contract is not None
+            else report.magnetic.recommended_external_lr_design_id
+            or getattr(external, "design_id", None)
+        )
+        combined_id = (
+            contract.combined_magnetic_design_id
+            if contract is not None
+            else report.magnetic.recommended_combined_magnetic_design_id
+        )
+        components: dict[str, dict[str, object]] = {}
+        if transformer is not None:
+            components["transformer"] = {
+                "status": "available",
+                "design_id": transformer_id,
+                "assembly_type": "transformer",
+                "loss_basis": "LLC current operating-point first-pass magnetic screening",
+                "ambient_c": resolve_ambient_temperature_c(report),
+                "core_loss_w": _optional_float(getattr(transformer, "core_loss_w", None)),
+                "copper_loss_w": _optional_float(getattr(transformer, "copper_loss_w", None)),
+                "total_loss_w": _optional_float(getattr(transformer, "total_loss_w", None)),
+                "hotspot_c": _optional_float(getattr(transformer, "hotspot_c", None)),
+                "source": "LLC transformer magnetic screening first-pass hotspot estimate",
+            }
+        else:
+            components["transformer"] = {
+                "status": "not_evaluated",
+                "design_id": transformer_id,
+                "assembly_type": "transformer",
+                "loss_basis": "LLC current operating-point first-pass magnetic screening",
+                "ambient_c": resolve_ambient_temperature_c(report),
+                "core_loss_w": None,
+                "copper_loss_w": None,
+                "total_loss_w": None,
+                "hotspot_c": None,
+                "source": "LLC transformer magnetic screening",
+            }
+        if external is not None:
+            components["external_lr"] = {
+                "status": "available",
+                "design_id": external_id,
+                "assembly_type": "external_lr",
+                "loss_basis": "LLC current operating-point first-pass magnetic screening",
+                "ambient_c": resolve_ambient_temperature_c(report),
+                "core_loss_w": _optional_float(getattr(external, "core_loss_w", None)),
+                "copper_loss_w": _optional_float(getattr(external, "copper_loss_w", None)),
+                "total_loss_w": _optional_float(getattr(external, "total_loss_w", None)),
+                "hotspot_c": _optional_float(getattr(external, "hotspot_c", None)),
+                "source": "External Lr magnetic screening first-pass hotspot estimate",
+            }
+        else:
+            external_status = "not_required"
+            target = report.magnetic.llc_external_resonant_inductor_target
+            if target is None:
+                external_status = "not_evaluated"
+            elif target.is_design_required:
+                external_status = "no_feasible_candidate"
+            components["external_lr"] = {
+                "status": external_status,
+                "design_id": external_id,
+                "assembly_type": "external_lr",
+                "loss_basis": "LLC current operating-point first-pass magnetic screening",
+                "ambient_c": resolve_ambient_temperature_c(report),
+                "core_loss_w": None,
+                "copper_loss_w": None,
+                "total_loss_w": None,
+                "hotspot_c": None,
+                "source": "External Lr magnetic screening",
+            }
+        valid_component_count = sum(
+            item.get("hotspot_c") is not None for item in components.values()
+        )
+        thermal_entries = _llc_thermal_entries(report, transformer, external, components)
+        artifact_paths = export_thermal_summary(
+            thermal_entries,
+            output_dir=_llc_thermal_output_dir(report),
+        )
         thermal_result = ThermalResult(
             ambient_temp_c=resolve_ambient_temperature_c(report),
-            summary="LLC transformer thermal screening is reported on the Magnetics page.",
+            recommended_design_id=combined_id or transformer_id,
+            summary="LLC transformer and external resonant-inductor thermal screening uses magnetic first-pass hotspot estimates.",
             notes=[
                 "The separated LLC transformer screening includes a first-pass hotspot estimate.",
-                "The fixed-inductor thermal comparison stage is not applied to LLC transformer candidates.",
+                "The fixed-inductor stack-count thermal comparison is not applied to separated LLC components.",
+                "Transformer and external Lr hotspots are reported separately; no combined thermal network is inferred.",
+                *([f"Thermal summary artifact saved to {artifact_paths[0]}."] if artifact_paths else []),
             ],
+            llc_component_thermal=components,
+            llc_component_estimates={entry.assembly_type: entry for entry in thermal_entries if entry.assembly_type},
+            chosen_design_estimates=thermal_entries,
+            artifact_paths=artifact_paths,
+            status="valid" if valid_component_count else "unavailable",
+            valid_loss_entry_count=valid_component_count,
+            unavailable_loss_entry_count=len(components) - valid_component_count,
         )
         return replace(report, thermal=thermal_result)
 
@@ -96,7 +221,7 @@ def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions
         recommended_design_id = recommended_entry.design_id
 
     unique_entries = _dedupe_entries([*chosen_design_estimates, *best_by_stack_count.values()])
-    artifact_paths = export_thermal_summary(unique_entries)
+    artifact_paths = export_thermal_summary(unique_entries, output_dir=_llc_thermal_output_dir(report))
 
     notes = [
         f"Ambient temperature resolved to {ambient_temp_c:.1f} C from GUI/spec input, with 25.0 C as the blank-field fallback.",
@@ -133,6 +258,66 @@ def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions
         unavailable_loss_entry_count=unavailable_loss_entry_count,
     )
     return replace(report, thermal=thermal_result)
+
+
+def _finalize_llc_thermal_stage(report: DesignReport) -> DesignReport:
+    """Close the LLC thermal stage from the thermal result actually produced."""
+
+    context = report.llc_run_context
+    if context is None or not is_llc_topology(report.spec.topology_id):
+        return report
+    thermal = report.thermal
+    if thermal is not None and thermal.status == "valid" and thermal.recommended_design_id:
+        updated_context = context.transition("thermal", "succeeded")
+    else:
+        updated_context = context.transition(
+            "thermal",
+            "blocked",
+            reason="LLC thermal result is incomplete; no current-run thermal recommendation is available.",
+        )
+    return replace(report, llc_run_context=updated_context)
+
+
+def _llc_thermal_entries(report, transformer, external, components):
+    """Adapt LLC component hotspot estimates to the shared thermal CSV contract."""
+
+    entries = []
+    for role, candidate in (("transformer", transformer), ("external_lr", external)):
+        if candidate is None:
+            continue
+        component = components.get(role, {})
+        ambient_c = _optional_float(component.get("ambient_c")) or resolve_ambient_temperature_c(report)
+        hotspot_c = _optional_float(component.get("hotspot_c"))
+        core_loss_w = _optional_float(component.get("core_loss_w"))
+        copper_loss_w = _optional_float(component.get("copper_loss_w"))
+        total_loss_w = _optional_float(component.get("total_loss_w"))
+        entries.append(
+            ThermalComparisonEntry(
+                design_id=str(component.get("design_id") or getattr(candidate, "candidate_id", getattr(candidate, "design_id", role))),
+                assembly_type=role,
+                loss_basis="LLC current operating-point first-pass magnetic screening",
+                estimate=ThermalEstimate(
+                    ambient_temp_c=ambient_c,
+                    core_loss_w=core_loss_w,
+                    copper_loss_w=copper_loss_w,
+                    total_loss_w=total_loss_w,
+                    hotspot_proxy_temp_c=hotspot_c,
+                ),
+                notes=[str(component.get("source") or "LLC magnetic component thermal estimate")],
+            )
+        )
+    return entries
+
+
+def _llc_thermal_output_dir(report: DesignReport):
+    """Keep LLC thermal artifacts inside the current run when one exists."""
+
+    context = report.llc_run_context
+    if context is not None and context.output_root:
+        from pathlib import Path
+
+        return Path(context.output_root) / "thermal"
+    return None
 
 
 def _resolve_recommended_design_id(report: DesignReport) -> str | None:

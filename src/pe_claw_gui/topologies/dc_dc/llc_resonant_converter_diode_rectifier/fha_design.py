@@ -2,10 +2,24 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from dataclasses import dataclass, field, replace
 from math import atan2, pi, sqrt
 
 from ...base.spec import TopologySpec
+
+
+FHA_BOUNDARY_SOLVER_VERSION = "fha-grid-scan-v1"
+FHA_BOUNDARY_SCAN_POINTS = 1501
+FHA_BOUNDARY_CACHE_MAXSIZE = 512
+
+
+@dataclass(frozen=True)
+class _FhaBoundaryCacheFailure:
+    """Cached failure metadata for a deterministic FHA boundary solve."""
+
+    exception_type: str
+    message: str
 
 
 @dataclass(frozen=True)
@@ -24,6 +38,11 @@ class LLCOperatingPointResult:
     m_req: float
     m_actual: float
     gain_error: float
+
+
+_FHA_BOUNDARY_CACHE: OrderedDict[tuple[object, ...], LLCOperatingPointResult | _FhaBoundaryCacheFailure] = OrderedDict()
+_FHA_BOUNDARY_CACHE_HITS = 0
+_FHA_BOUNDARY_CACHE_MISSES = 0
 
 
 @dataclass(frozen=True)
@@ -372,15 +391,64 @@ def solve_operating_frequency(
 ) -> LLCOperatingPointResult:
     """Find the switching frequency whose FHA gain best matches one corner."""
 
+    global _FHA_BOUNDARY_CACHE_HITS, _FHA_BOUNDARY_CACHE_MISSES
     if vin_v <= 0.0 or vout_v <= 0.0 or pout_w <= 0.0:
         raise ValueError("Operating-point voltage and power values must be positive.")
+
+    cache_key = _fha_boundary_cache_key(design, vin_v, vout_v, pout_w)
+    cached = _get_cached_fha_boundary_result(cache_key)
+    if cached is not None:
+        return cached
+
+    _FHA_BOUNDARY_CACHE_MISSES += 1
+    try:
+        result = _solve_operating_frequency_uncached(design, vin_v, vout_v, pout_w)
+    except Exception as exc:
+        _cache_fha_boundary_result(
+            cache_key,
+            _FhaBoundaryCacheFailure(type(exc).__name__, str(exc)),
+        )
+        raise
+    _cache_fha_boundary_result(cache_key, result)
+    return result
+
+
+def clear_fha_boundary_frequency_cache() -> None:
+    """Clear cached FHA boundary results and reset hit/miss counters."""
+
+    global _FHA_BOUNDARY_CACHE_HITS, _FHA_BOUNDARY_CACHE_MISSES
+    _FHA_BOUNDARY_CACHE.clear()
+    _FHA_BOUNDARY_CACHE_HITS = 0
+    _FHA_BOUNDARY_CACHE_MISSES = 0
+
+
+def fha_boundary_frequency_cache_info() -> dict[str, int | str]:
+    """Return bounded-cache diagnostics for performance evidence and tests."""
+
+    return {
+        "solver_version": FHA_BOUNDARY_SOLVER_VERSION,
+        "scan_points": FHA_BOUNDARY_SCAN_POINTS,
+        "maxsize": FHA_BOUNDARY_CACHE_MAXSIZE,
+        "size": len(_FHA_BOUNDARY_CACHE),
+        "hits": _FHA_BOUNDARY_CACHE_HITS,
+        "misses": _FHA_BOUNDARY_CACHE_MISSES,
+    }
+
+
+def _solve_operating_frequency_uncached(
+    design: LLCFHADesign,
+    vin_v: float,
+    vout_v: float,
+    pout_w: float,
+) -> LLCOperatingPointResult:
+    """Perform one FHA boundary scan without consulting the result cache."""
 
     rout_ohm = vout_v**2 / pout_w
     rac_ohm = (8.0 / pi**2) * design.turns_ratio**2 * rout_ohm
     q_op = design.zr_ohm / rac_ohm
     m_req = design.turns_ratio * vout_v / (design.primary_bridge_gain_factor * vin_v)
 
-    points = 1501
+    points = FHA_BOUNDARY_SCAN_POINTS
     best_fs_hz = design.fs_min_hz
     best_gain = llc_fha_gain(best_fs_hz / design.fr_hz, design.ln, q_op)
     best_error = abs(best_gain - m_req)
@@ -409,6 +477,69 @@ def solve_operating_frequency(
         m_actual=best_gain,
         gain_error=relative_error,
     )
+
+
+def _fha_boundary_cache_key(
+    design: LLCFHADesign,
+    vin_v: float,
+    vout_v: float,
+    pout_w: float,
+) -> tuple[object, ...]:
+    """Build a stable key containing every dependency of the FHA grid scan."""
+
+    def normalized(value: object) -> float | str:
+        if isinstance(value, str):
+            return value
+        return round(float(value), 12)
+
+    return (
+        FHA_BOUNDARY_SOLVER_VERSION,
+        normalized(getattr(design, "topology_id", "")),
+        normalized(vin_v),
+        normalized(vout_v),
+        normalized(pout_w),
+        normalized(design.zr_ohm),
+        normalized(design.turns_ratio),
+        normalized(design.primary_bridge_gain_factor),
+        normalized(design.fr_hz),
+        normalized(design.ln),
+        normalized(design.fs_min_hz),
+        normalized(design.fs_max_hz),
+        FHA_BOUNDARY_SCAN_POINTS,
+    )
+
+
+def _cache_fha_boundary_result(
+    key: tuple[object, ...],
+    result: LLCOperatingPointResult | _FhaBoundaryCacheFailure,
+) -> None:
+    _FHA_BOUNDARY_CACHE[key] = result
+    _FHA_BOUNDARY_CACHE.move_to_end(key)
+    while len(_FHA_BOUNDARY_CACHE) > FHA_BOUNDARY_CACHE_MAXSIZE:
+        _FHA_BOUNDARY_CACHE.popitem(last=False)
+
+
+def _get_cached_fha_boundary_result(
+    key: tuple[object, ...],
+) -> LLCOperatingPointResult | None:
+    """Read one cached result and account for a cache hit when present."""
+
+    cached = _FHA_BOUNDARY_CACHE.get(key)
+    if cached is None:
+        return None
+    global _FHA_BOUNDARY_CACHE_HITS
+    _FHA_BOUNDARY_CACHE.move_to_end(key)
+    _FHA_BOUNDARY_CACHE_HITS += 1
+    if isinstance(cached, _FhaBoundaryCacheFailure):
+        raise _restore_fha_boundary_failure(cached)
+    return cached
+
+
+def _restore_fha_boundary_failure(failure: _FhaBoundaryCacheFailure) -> Exception:
+    """Recreate a stable exception class while retaining the original message."""
+
+    exception_type = ValueError if failure.exception_type == "ValueError" else RuntimeError
+    return exception_type(failure.message)
 
 
 def solve_fixed_frequency_operating_point(

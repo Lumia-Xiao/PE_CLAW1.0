@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import csv
 import re
-from collections import Counter
+from time import perf_counter
+from collections import Counter, OrderedDict
 from statistics import median
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields, replace
 from pathlib import Path
-from math import ceil, pi, sqrt
+from math import ceil, isfinite, pi, sqrt
 from typing import Any, Callable, Iterable, Mapping
 
 from ....engines.magnetics.leakage import (
@@ -40,6 +41,10 @@ EXTERNAL_LR_GAP_MAX_M = 8.0e-3
 EXTERNAL_LR_GAP_TO_LE_MAX = 0.15
 EXTERNAL_LR_INDUCTANCE_ERROR_LIMIT_PERCENT = 10.0
 EXTERNAL_LR_MAX_TURNS_ABSOLUTE = 180
+LLC_PARETO_FILTER_ALGORITHM = "finite-2d-sweep-v1"
+LLC_REUSABLE_MAGNETIC_METRICS_VERSION = "llc-transformer-reusable-metrics-v1"
+LLC_REUSABLE_MAGNETIC_METRICS_UNITS = "SI: m, m2, m3, H, T, Hz, A, W"
+LLC_REUSABLE_MAGNETIC_METRICS_MAXSIZE = 4096
 
 BOUNDARY_SATURATION_CASES: tuple[tuple[str, str, str], ...] = (
     ("Vin_min/Vout_min/Pmax", "vin_min_v", "vout_min_v"),
@@ -49,6 +54,42 @@ BOUNDARY_SATURATION_CASES: tuple[tuple[str, str, str], ...] = (
 )
 
 FrequencySolver = Callable[["LLCTransformerDesignInputs", str, float, float, float], float]
+
+
+@dataclass(frozen=True)
+class LLCMagneticSearchBounds:
+    """Explicit search bounds shared by transformer and external Lr searches."""
+
+    mode: str
+    max_scale_factor: int
+    transformer_core_limit: int | None
+    transformer_material_limit: int | None
+    transformer_wire_limit: int | None
+    external_lr_core_limit: int | None
+    external_lr_material_limit: int | None
+    external_lr_wire_limit: int | None
+    external_lr_max_turns: int
+    design_basis: dict[str, float | int | str]
+    selection_policy: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "mode": self.mode,
+            "max_scale_factor": self.max_scale_factor,
+            "transformer": {
+                "core_limit": self.transformer_core_limit,
+                "material_limit": self.transformer_material_limit,
+                "wire_limit": self.transformer_wire_limit,
+            },
+            "external_lr": {
+                "core_limit": self.external_lr_core_limit,
+                "material_limit": self.external_lr_material_limit,
+                "wire_limit": self.external_lr_wire_limit,
+                "max_turns": self.external_lr_max_turns,
+            },
+            "design_basis": dict(self.design_basis),
+            "selection_policy": self.selection_policy,
+        }
 
 
 @dataclass(frozen=True)
@@ -85,6 +126,82 @@ class LLCTransformerDesignInputs:
     lm_tolerance_percent: float = 10.0
     leakage_fraction_estimate: float = 0.02
     leakage_limit_h: float = 0.0
+
+
+def build_llc_magnetic_search_bounds(
+    inputs: LLCTransformerDesignInputs,
+    *,
+    mode: str = "fast",
+) -> LLCMagneticSearchBounds:
+    """Build auditable LLC search bounds from design inputs.
+
+    ``fast`` keeps the database breadth bounded while retaining the existing
+    physical selectors. ``full`` removes catalog truncation and leaves only
+    explicit physical enumeration ceilings for turns.
+    """
+
+    normalized_mode = str(mode).strip().lower()
+    if normalized_mode in {"full", "full_search", "audit"}:
+        return LLCMagneticSearchBounds(
+            mode="full",
+            max_scale_factor=120,
+            transformer_core_limit=None,
+            transformer_material_limit=None,
+            transformer_wire_limit=None,
+            external_lr_core_limit=None,
+            external_lr_material_limit=None,
+            external_lr_wire_limit=None,
+            external_lr_max_turns=EXTERNAL_LR_MAX_TURNS_ABSOLUTE,
+            design_basis={
+                "pout_max_w": inputs.pout_max_w,
+                "fs_min_hz": inputs.fs_min_hz,
+                "fs_nom_hz": inputs.fs_nom_hz,
+                "fs_max_hz": inputs.fs_max_hz,
+            },
+            selection_policy="full catalog search; deterministic id/geometry ordering; explicit turns ceilings",
+        )
+    if normalized_mode not in {"fast", "quick", "bounded"}:
+        raise ValueError("LLC magnetic search mode must be 'fast' or 'full'.")
+
+    power_w = max(float(inputs.pout_max_w), 1.0)
+    current_a = max(float(inputs.primary_current_rms_a), float(inputs.secondary_current_rms_a), 1.0)
+    frequency_span = max(inputs.fs_max_hz / max(inputs.fs_min_hz, 1.0), 1.0)
+    core_limit = min(
+        48,
+        max(12, 16 + 8 * int(power_w >= 2000.0) + 8 * int(power_w >= 3500.0) + 16 * int(power_w >= 4000.0)),
+    )
+    material_limit = min(16, max(8, 8 + 4 * int(frequency_span >= 1.5) + 4 * int(power_w >= 4000.0)))
+    wire_limit = min(16, max(8, 8 + 4 * int(current_a >= 8.0) + 4 * int(current_a >= 50.0)))
+    max_scale_factor = min(
+        80,
+        max(48, 40 + 8 * int(power_w >= 2000.0) + 8 * int(power_w >= 3500.0) + 24 * int(power_w >= 4000.0)),
+    )
+    external_core_limit = min(24, max(8, core_limit // 2 + 8 * int(power_w >= 4000.0)))
+    external_material_limit = min(12, max(4, material_limit))
+    external_wire_limit = min(12, max(6, wire_limit))
+    return LLCMagneticSearchBounds(
+        mode="fast",
+        max_scale_factor=max_scale_factor,
+        transformer_core_limit=core_limit,
+        transformer_material_limit=material_limit,
+        transformer_wire_limit=wire_limit,
+        external_lr_core_limit=external_core_limit,
+        external_lr_material_limit=external_material_limit,
+        external_lr_wire_limit=external_wire_limit,
+        external_lr_max_turns=min(EXTERNAL_LR_MAX_TURNS_ABSOLUTE, max(80, 80 + int(current_a * 5.0))),
+        design_basis={
+            "pout_max_w": power_w,
+            "max_winding_current_rms_a": current_a,
+            "fs_min_hz": inputs.fs_min_hz,
+            "fs_nom_hz": inputs.fs_nom_hz,
+            "fs_max_hz": inputs.fs_max_hz,
+            "frequency_span_ratio": frequency_span,
+        },
+        selection_policy=(
+            "design-driven physical preselection, then deterministic geometry/current/Bsat ordering "
+            "with evenly spread records across the retained range"
+        ),
+    )
 
 
 @dataclass(frozen=True)
@@ -441,6 +558,10 @@ class LLCTransformerCandidateSearchResult:
     closest_fill_candidates: list[dict[str, object]] = field(default_factory=list)
     scale_search_diagnostics: dict[str, object] = field(default_factory=dict)
     leakage_rejection_audit: dict[str, object] = field(default_factory=dict)
+    prefilter_rejection_counts: dict[str, int] = field(default_factory=dict)
+    search_bounds: dict[str, object] = field(default_factory=dict)
+    performance_timing: dict[str, float] = field(default_factory=dict)
+    performance_counts: dict[str, int] = field(default_factory=dict)
     artifact_paths: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
@@ -467,6 +588,8 @@ class LLCTransformerParetoResult:
     recommended_policy: str
     artifact_paths: list[str] = field(default_factory=list)
     plot_diagnostics: dict[str, object] = field(default_factory=dict)
+    performance_timing: dict[str, float] = field(default_factory=dict)
+    performance_counts: dict[str, object] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
@@ -519,6 +642,275 @@ class _NormalizedWireRecord:
     wire_name: str = ""
     source_wire_record: Mapping[str, Any] = field(default_factory=dict)
     conducting_area_basis: str = "engine_bundle_copper_area"
+
+
+@dataclass(frozen=True)
+class _CachedBoundaryFluxCase:
+    """Immutable cache form of one boundary flux case."""
+
+    case_name: str
+    vin_v: float
+    vout_v: float
+    pout_w: float
+    fs_hz: float
+    primary_voltage_v: float
+    ae_m2: float
+    np: int
+    delta_b_t: float
+    b_peak_t: float
+    pass_b_limit: bool
+    fs_source: str
+    notes: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class _CachedWindingEstimate:
+    """Immutable cache form of a winding estimate."""
+
+    winding_name: str
+    turns: int
+    current_rms_a: float
+    current_peak_a: float
+    current_density_a_per_mm2: float
+    conductor_area_mm2: float
+    selected_wire_id: str
+    strands_or_parallel: int
+    dc_resistance_ohm: float
+    ac_resistance_ohm: float
+    copper_loss_w: float
+    fill_area_mm2: float
+    bundle_equivalent_diameter_m: float
+    turns_per_layer: int
+    layer_count: int
+    radial_build_m: float
+    occupied_height_m: float
+    notes: tuple[str, ...]
+    warnings: tuple[str, ...]
+    winding_evidence: WindingElectricalEvidence | None
+
+
+@dataclass(frozen=True)
+class _LLCReusableMagneticMetricsKey:
+    """Complete dependency key for material-independent transformer metrics."""
+
+    model_version: str
+    units: str
+    winding_arrangement: str
+    core_signature: tuple[object, ...]
+    turns_signature: tuple[object, ...]
+    operating_point_signature: tuple[object, ...]
+    wire_signature: tuple[object, ...]
+    frequency_solver_token: tuple[object, ...]
+
+
+@dataclass(frozen=True)
+class _LLCReusableMagneticMetrics:
+    """Immutable material-independent metrics shared by material candidates."""
+
+    boundary_flux_cases: tuple[_CachedBoundaryFluxCase, ...]
+    gap_m: float
+    lm_actual_h: float
+    lm_error_percent: float
+    gap_to_le: float
+    lm_pass: bool
+    primary_winding: _CachedWindingEstimate | None
+    secondary_winding: _CachedWindingEstimate | None
+    leakage_effective_height_m: float
+    leakage_height_source: str
+    leakage_height_warning: str
+    leakage_usable_window_height_m: float
+    leakage_primary_occupied_height_m: float
+    leakage_secondary_occupied_height_m: float
+    leakage_window_area_m2: float
+    leakage_inferred_window_width_m: float
+    leakage_primary_radial_build_m: float
+    leakage_secondary_radial_build_m: float
+    leakage_insulation_gap_m: float
+    estimated_lk_h: float
+    leakage_method: str
+    leakage_warning: str
+    lk_over_lr: float
+    leakage_pass: bool
+    model_version: str = LLC_REUSABLE_MAGNETIC_METRICS_VERSION
+    units: str = LLC_REUSABLE_MAGNETIC_METRICS_UNITS
+
+
+_LLC_REUSABLE_MAGNETIC_METRICS_CACHE: OrderedDict[
+    _LLCReusableMagneticMetricsKey, _LLCReusableMagneticMetrics
+] = OrderedDict()
+_LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS = 0
+_LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES = 0
+
+
+def clear_llc_reusable_magnetic_metrics_cache() -> None:
+    """Clear reusable LLC transformer metrics and reset its counters."""
+
+    global _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS
+    global _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE.clear()
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS = 0
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES = 0
+
+
+def llc_reusable_magnetic_metrics_cache_info() -> dict[str, int | str]:
+    """Return cache statistics for LLC performance evidence and tests."""
+
+    return {
+        "model_version": LLC_REUSABLE_MAGNETIC_METRICS_VERSION,
+        "units": LLC_REUSABLE_MAGNETIC_METRICS_UNITS,
+        "maxsize": LLC_REUSABLE_MAGNETIC_METRICS_MAXSIZE,
+        "hits": _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS,
+        "misses": _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES,
+        "size": len(_LLC_REUSABLE_MAGNETIC_METRICS_CACHE),
+    }
+
+
+def _cache_signature(value: object) -> object:
+    """Convert normalized record data into a stable, hashable cache signature."""
+
+    if isinstance(value, Mapping):
+        return tuple(sorted((str(key), _cache_signature(item)) for key, item in value.items()))
+    if isinstance(value, (list, tuple)):
+        return tuple(_cache_signature(item) for item in value)
+    if isinstance(value, float):
+        return f"{value:.17g}"
+    if isinstance(value, (str, int, bool)) or value is None:
+        return value
+    return repr(value)
+
+
+def _llc_reusable_metrics_key(
+    *,
+    inputs: LLCTransformerDesignInputs,
+    core: _NormalizedCoreRecord,
+    turns: LLCTransformerTurnsCandidate,
+    wires: list[_NormalizedWireRecord],
+    frequency_solver: FrequencySolver | None,
+) -> _LLCReusableMagneticMetricsKey:
+    return _LLCReusableMagneticMetricsKey(
+        model_version=LLC_REUSABLE_MAGNETIC_METRICS_VERSION,
+        units=LLC_REUSABLE_MAGNETIC_METRICS_UNITS,
+        winding_arrangement=DEFAULT_WINDING_ARRANGEMENT,
+        core_signature=_cache_signature(tuple(getattr(core, field.name) for field in fields(core))),
+        turns_signature=_cache_signature(tuple(getattr(turns, field.name) for field in fields(turns))),
+        operating_point_signature=_cache_signature(
+            tuple(getattr(inputs, field.name) for field in fields(inputs))
+        ),
+        wire_signature=_cache_signature(
+            tuple(
+                tuple(getattr(wire, field.name) for field in fields(wire))
+                for wire in wires
+            ),
+        ),
+        frequency_solver_token=(
+            "default" if frequency_solver is None else "callable",
+            None if frequency_solver is None else id(frequency_solver),
+        ),
+    )
+
+
+def _freeze_boundary_flux_cases(
+    cases: Iterable[LLCTransformerBoundaryFluxCase],
+) -> tuple[_CachedBoundaryFluxCase, ...]:
+    return tuple(
+        _CachedBoundaryFluxCase(
+            case_name=case.case_name,
+            vin_v=case.vin_v,
+            vout_v=case.vout_v,
+            pout_w=case.pout_w,
+            fs_hz=case.fs_hz,
+            primary_voltage_v=case.primary_voltage_v,
+            ae_m2=case.ae_m2,
+            np=case.np,
+            delta_b_t=case.delta_b_t,
+            b_peak_t=case.b_peak_t,
+            pass_b_limit=case.pass_b_limit,
+            fs_source=case.fs_source,
+            notes=tuple(case.notes),
+        )
+        for case in cases
+    )
+
+
+def _thaw_boundary_flux_cases(
+    cases: tuple[_CachedBoundaryFluxCase, ...],
+) -> list[LLCTransformerBoundaryFluxCase]:
+    return [
+        LLCTransformerBoundaryFluxCase(
+            case_name=case.case_name,
+            vin_v=case.vin_v,
+            vout_v=case.vout_v,
+            pout_w=case.pout_w,
+            fs_hz=case.fs_hz,
+            primary_voltage_v=case.primary_voltage_v,
+            ae_m2=case.ae_m2,
+            np=case.np,
+            delta_b_t=case.delta_b_t,
+            b_peak_t=case.b_peak_t,
+            pass_b_limit=case.pass_b_limit,
+            fs_source=case.fs_source,
+            notes=list(case.notes),
+        )
+        for case in cases
+    ]
+
+
+def _freeze_winding_estimate(
+    winding: LLCTransformerWindingEstimate | None,
+) -> _CachedWindingEstimate | None:
+    if winding is None:
+        return None
+    return _CachedWindingEstimate(
+        winding_name=winding.winding_name,
+        turns=winding.turns,
+        current_rms_a=winding.current_rms_a,
+        current_peak_a=winding.current_peak_a,
+        current_density_a_per_mm2=winding.current_density_a_per_mm2,
+        conductor_area_mm2=winding.conductor_area_mm2,
+        selected_wire_id=winding.selected_wire_id,
+        strands_or_parallel=winding.strands_or_parallel,
+        dc_resistance_ohm=winding.dc_resistance_ohm,
+        ac_resistance_ohm=winding.ac_resistance_ohm,
+        copper_loss_w=winding.copper_loss_w,
+        fill_area_mm2=winding.fill_area_mm2,
+        bundle_equivalent_diameter_m=winding.bundle_equivalent_diameter_m,
+        turns_per_layer=winding.turns_per_layer,
+        layer_count=winding.layer_count,
+        radial_build_m=winding.radial_build_m,
+        occupied_height_m=winding.occupied_height_m,
+        notes=tuple(winding.notes),
+        warnings=tuple(winding.warnings),
+        winding_evidence=winding.winding_evidence,
+    )
+
+
+def _thaw_winding_estimate(
+    winding: _CachedWindingEstimate | None,
+) -> LLCTransformerWindingEstimate | None:
+    if winding is None:
+        return None
+    return LLCTransformerWindingEstimate(
+        winding_name=winding.winding_name,
+        turns=winding.turns,
+        current_rms_a=winding.current_rms_a,
+        current_peak_a=winding.current_peak_a,
+        current_density_a_per_mm2=winding.current_density_a_per_mm2,
+        conductor_area_mm2=winding.conductor_area_mm2,
+        selected_wire_id=winding.selected_wire_id,
+        strands_or_parallel=winding.strands_or_parallel,
+        dc_resistance_ohm=winding.dc_resistance_ohm,
+        ac_resistance_ohm=winding.ac_resistance_ohm,
+        copper_loss_w=winding.copper_loss_w,
+        fill_area_mm2=winding.fill_area_mm2,
+        bundle_equivalent_diameter_m=winding.bundle_equivalent_diameter_m,
+        turns_per_layer=winding.turns_per_layer,
+        layer_count=winding.layer_count,
+        radial_build_m=winding.radial_build_m,
+        occupied_height_m=winding.occupied_height_m,
+        notes=list(winding.notes),
+        warnings=list(winding.warnings),
+        winding_evidence=winding.winding_evidence,
+    )
 
 
 def primary_bridge_gain_factor(primary_bridge_type: str) -> float:
@@ -958,6 +1350,131 @@ def build_boundary_flux_cases(
     return cases
 
 
+def _build_llc_reusable_magnetic_metrics(
+    *,
+    inputs: LLCTransformerDesignInputs,
+    core: _NormalizedCoreRecord,
+    turns: LLCTransformerTurnsCandidate,
+    wires: list[_NormalizedWireRecord],
+    frequency_solver: FrequencySolver | None,
+) -> _LLCReusableMagneticMetrics:
+    """Build the material-independent portion of a transformer evaluation."""
+
+    flux_cases = build_boundary_flux_cases(inputs, core.ae_m2, turns.np, frequency_solver)
+    worst_flux = max(flux_cases, key=lambda case: case.b_peak_t)
+    gap_m = compute_gap_for_lm(turns.np, core.ae_m2, inputs.lm_target_h, core.le_m)
+    lm_actual_h = compute_lm_from_gap(turns.np, core.ae_m2, gap_m)
+    lm_error_percent = 100.0 * (lm_actual_h - inputs.lm_target_h) / inputs.lm_target_h
+    gap_to_le = gap_m / core.le_m if core.le_m > 0.0 else float("inf")
+    lm_pass = abs(lm_error_percent) <= inputs.lm_tolerance_percent and gap_m > 0.0 and gap_to_le <= 0.15
+    primary_winding = _estimate_winding(
+        winding_name="primary",
+        turns=turns.np,
+        current_rms_a=inputs.primary_current_rms_a,
+        current_peak_a=inputs.primary_current_peak_a,
+        mlt_m=core.mean_length_per_turn_m,
+        fs_hz=worst_flux.fs_hz,
+        wires=wires,
+    )
+    secondary_winding = _estimate_winding(
+        winding_name="secondary",
+        turns=turns.ns,
+        current_rms_a=inputs.secondary_current_rms_a,
+        current_peak_a=inputs.secondary_current_peak_a,
+        mlt_m=core.mean_length_per_turn_m,
+        fs_hz=worst_flux.fs_hz,
+        wires=wires,
+    )
+    leakage_geometry, primary_radial_build_m, secondary_radial_build_m, insulation_gap_m = _estimate_leakage_geometry(
+        primary_winding,
+        secondary_winding,
+        core,
+    )
+    estimated_lk_h, leakage_method, leakage_warning = _estimate_candidate_leakage(
+        primary_turns=turns.np,
+        mean_length_per_turn_m=core.mean_length_per_turn_m,
+        effective_winding_height_m=leakage_geometry.leakage_effective_height_m,
+        primary_radial_build_m=primary_radial_build_m,
+        secondary_radial_build_m=secondary_radial_build_m,
+        insulation_gap_m=insulation_gap_m,
+        leakage_fraction_estimate=inputs.leakage_fraction_estimate,
+        fallback_lm_actual_h=lm_actual_h,
+    )
+    lk_over_lr = estimated_lk_h / inputs.lr_target_h if inputs.lr_target_h > 0.0 else float("inf")
+    return _LLCReusableMagneticMetrics(
+        boundary_flux_cases=_freeze_boundary_flux_cases(flux_cases),
+        gap_m=gap_m,
+        lm_actual_h=lm_actual_h,
+        lm_error_percent=lm_error_percent,
+        gap_to_le=gap_to_le,
+        lm_pass=lm_pass,
+        primary_winding=_freeze_winding_estimate(primary_winding),
+        secondary_winding=_freeze_winding_estimate(secondary_winding),
+        leakage_effective_height_m=leakage_geometry.leakage_effective_height_m,
+        leakage_height_source=leakage_geometry.leakage_height_source,
+        leakage_height_warning=leakage_geometry.leakage_height_warning,
+        leakage_usable_window_height_m=leakage_geometry.leakage_usable_window_height_m,
+        leakage_primary_occupied_height_m=leakage_geometry.leakage_primary_occupied_height_m,
+        leakage_secondary_occupied_height_m=leakage_geometry.leakage_secondary_occupied_height_m,
+        leakage_window_area_m2=leakage_geometry.leakage_window_area_m2,
+        leakage_inferred_window_width_m=leakage_geometry.leakage_inferred_window_width_m,
+        leakage_primary_radial_build_m=primary_radial_build_m,
+        leakage_secondary_radial_build_m=secondary_radial_build_m,
+        leakage_insulation_gap_m=insulation_gap_m,
+        estimated_lk_h=estimated_lk_h,
+        leakage_method=leakage_method,
+        leakage_warning=leakage_warning,
+        lk_over_lr=lk_over_lr,
+        leakage_pass=lk_over_lr <= 0.80,
+    )
+
+
+def _get_llc_reusable_magnetic_metrics(
+    *,
+    inputs: LLCTransformerDesignInputs,
+    core: _NormalizedCoreRecord,
+    turns: LLCTransformerTurnsCandidate,
+    wires: list[_NormalizedWireRecord],
+    frequency_solver: FrequencySolver | None,
+    performance_timing: dict[str, float] | None,
+) -> _LLCReusableMagneticMetrics:
+    """Read or build reusable metrics and update cache evidence counters."""
+
+    global _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS
+    global _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES
+    key = _llc_reusable_metrics_key(
+        inputs=inputs,
+        core=core,
+        turns=turns,
+        wires=wires,
+        frequency_solver=frequency_solver,
+    )
+    cached = _LLC_REUSABLE_MAGNETIC_METRICS_CACHE.get(key)
+    if cached is not None:
+        _LLC_REUSABLE_MAGNETIC_METRICS_CACHE.move_to_end(key)
+        _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_HITS += 1
+        return cached
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE_MISSES += 1
+    started = perf_counter()
+    metrics = _build_llc_reusable_magnetic_metrics(
+        inputs=inputs,
+        core=core,
+        turns=turns,
+        wires=wires,
+        frequency_solver=frequency_solver,
+    )
+    if performance_timing is not None:
+        performance_timing["reusable_metrics_build_seconds"] = (
+            performance_timing.get("reusable_metrics_build_seconds", 0.0)
+            + perf_counter() - started
+        )
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE[key] = metrics
+    _LLC_REUSABLE_MAGNETIC_METRICS_CACHE.move_to_end(key)
+    while len(_LLC_REUSABLE_MAGNETIC_METRICS_CACHE) > LLC_REUSABLE_MAGNETIC_METRICS_MAXSIZE:
+        _LLC_REUSABLE_MAGNETIC_METRICS_CACHE.popitem(last=False)
+    return metrics
+
+
 def generate_saturation_driven_turns_candidates(
     inputs: LLCTransformerDesignInputs,
     ae_m2: float,
@@ -1143,11 +1660,16 @@ def generate_separated_llc_transformer_candidates(
     core_limit: int | None = 24,
     material_limit: int | None = 8,
     wire_limit: int | None = 16,
+    search_bounds: LLCMagneticSearchBounds | None = None,
     write_debug_csv: bool = False,
     output_dir: Path | None = None,
 ) -> LLCTransformerCandidateSearchResult:
     """Generate and screen separated LLC transformer candidates from normalized magnetic records."""
 
+    total_started = perf_counter()
+    timing: dict[str, float] = {}
+    counts: dict[str, int] = {}
+    preparation_started = perf_counter()
     raw_cores, raw_materials, raw_wires, backend_notes = _resolve_candidate_source_records(
         core_records,
         material_records,
@@ -1159,15 +1681,41 @@ def generate_separated_llc_transformer_candidates(
     cores, missing_core_count = _normalize_core_records(raw_cores)
     materials, missing_material_count = _normalize_material_records(raw_materials)
     wires, missing_wire_count = _normalize_wire_records(raw_wires)
+    resolved_bounds = search_bounds or LLCMagneticSearchBounds(
+        mode="explicit",
+        max_scale_factor=max_scale_factor,
+        transformer_core_limit=core_limit,
+        transformer_material_limit=material_limit,
+        transformer_wire_limit=wire_limit,
+        external_lr_core_limit=None,
+        external_lr_material_limit=None,
+        external_lr_wire_limit=None,
+        external_lr_max_turns=EXTERNAL_LR_MAX_TURNS_ABSOLUTE,
+        design_basis={},
+        selection_policy="caller-supplied explicit bounds",
+    )
+    max_scale_factor = resolved_bounds.max_scale_factor
+    core_limit = resolved_bounds.transformer_core_limit
+    material_limit = resolved_bounds.transformer_material_limit
+    wire_limit = resolved_bounds.transformer_wire_limit
     cores = _select_search_cores(cores, transformer_inputs, core_limit)
     materials = _limit_records(
         sorted(materials, key=lambda item: (-item.b_sat_t, item.material_id)),
         material_limit,
     )
     wires = _select_search_wires(wires, transformer_inputs, wire_limit)
+    timing["parameter_preparation_seconds"] = perf_counter() - preparation_started
 
     screened: list[LLCTransformerScreeningCandidate] = []
     skipped_core_diagnostics: list[dict[str, object]] = []
+    candidate_generation_started = perf_counter()
+    turns_candidate_count = 0
+    theoretical_candidate_count = 0
+    turns_by_core: dict[str, int] = {}
+    generated_turns: dict[
+        str,
+        tuple[list[LLCTransformerTurnsCandidate], dict[str, object]],
+    ] = {}
     for core in cores:
         turns_candidates, turns_diagnostics = generate_saturation_driven_turns_candidates(
             transformer_inputs,
@@ -1184,8 +1732,46 @@ def generate_separated_llc_transformer_candidates(
                 }
             )
             continue
+        turns_candidate_count += len(turns_candidates)
+        theoretical_candidate_count += len(turns_candidates) * len(materials)
+        turns_by_core[core.core_id] = len(turns_candidates)
+        generated_turns[core.core_id] = (turns_candidates, turns_diagnostics)
+    timing["candidate_generation_seconds"] = perf_counter() - candidate_generation_started
+    counts.update(
+        {
+            "selected_core_count": len(cores),
+            "selected_material_count": len(materials),
+            "selected_wire_count": len(wires),
+            "turns_candidate_count": turns_candidate_count,
+            "theoretical_candidate_count": theoretical_candidate_count,
+        }
+    )
+
+    candidate_evaluation_started = perf_counter()
+    evaluation_timing: dict[str, float] = {"core_loss_seconds": 0.0, "thermal_seconds": 0.0}
+    reusable_cache_before = llc_reusable_magnetic_metrics_cache_info()
+    prefilter_rejection_counts: Counter[str] = Counter()
+    prefilter_rejected_candidate_count = 0
+    prefilter_pass_count = 0
+    for core in cores:
+        generated = generated_turns.get(core.core_id)
+        if generated is None:
+            continue
+        turns_candidates, turns_diagnostics = generated
         for material in materials:
             for turns in turns_candidates:
+                prefilter_reasons = _prefilter_transformer_candidate(
+                    inputs=transformer_inputs,
+                    core=core,
+                    wires=wires,
+                    turns=turns,
+                    turns_diagnostics=turns_diagnostics,
+                )
+                if prefilter_reasons:
+                    prefilter_rejected_candidate_count += 1
+                    prefilter_rejection_counts.update(prefilter_reasons)
+                    continue
+                prefilter_pass_count += 1
                 screened.append(
                     _screen_transformer_candidate(
                         inputs=transformer_inputs,
@@ -1195,8 +1781,19 @@ def generate_separated_llc_transformer_candidates(
                         turns=turns,
                         turns_diagnostics=turns_diagnostics,
                         frequency_solver=frequency_solver,
+                        performance_timing=evaluation_timing,
                     )
                 )
+    timing["candidate_evaluation_seconds"] = perf_counter() - candidate_evaluation_started
+    timing.update(evaluation_timing)
+    reusable_cache_after = llc_reusable_magnetic_metrics_cache_info()
+    reusable_cache_hits = reusable_cache_after["hits"] - reusable_cache_before["hits"]
+    reusable_cache_misses = reusable_cache_after["misses"] - reusable_cache_before["misses"]
+    reusable_cache_lookups = reusable_cache_hits + reusable_cache_misses
+    timing["reusable_metrics_cache_hit_rate"] = (
+        reusable_cache_hits / reusable_cache_lookups if reusable_cache_lookups else 0.0
+    )
+    timing["reusable_metrics_cache_size"] = float(reusable_cache_after["size"])
 
     feasible_candidates = sorted(
         [candidate for candidate in screened if candidate.feasible],
@@ -1205,6 +1802,7 @@ def generate_separated_llc_transformer_candidates(
     recommended = feasible_candidates[0] if feasible_candidates else None
     sample = _screened_sample(screened)
     artifact_paths: list[str] = []
+    debug_output_started = perf_counter()
     if write_debug_csv:
         artifact_paths = export_llc_transformer_feasible_candidates(
             feasible_candidates,
@@ -1215,8 +1813,20 @@ def generate_separated_llc_transformer_candidates(
             output_dir=output_dir,
         )
         artifact_paths.extend(leakage_audit_path)
+    timing["debug_output_seconds"] = perf_counter() - debug_output_started
     candidate_missing_hard_count = _count_rejection(screened, "missing_data_hard")
-    missing_data_count = missing_core_count + missing_material_count + missing_wire_count + candidate_missing_hard_count
+    prefilter_missing_data_count = sum(
+        count
+        for reason, count in prefilter_rejection_counts.items()
+        if reason.startswith("missing_data_hard")
+    )
+    missing_data_count = (
+        missing_core_count
+        + missing_material_count
+        + missing_wire_count
+        + candidate_missing_hard_count
+        + prefilter_missing_data_count
+    )
     hard_missing_reasons = _hard_missing_data_reason_counts(screened)
     if missing_core_count:
         hard_missing_reasons["core_required_fields"] = hard_missing_reasons.get("core_required_fields", 0) + missing_core_count
@@ -1224,16 +1834,41 @@ def generate_separated_llc_transformer_candidates(
         hard_missing_reasons["material_identity_or_bsat"] = hard_missing_reasons.get("material_identity_or_bsat", 0) + missing_material_count
     if missing_wire_count:
         hard_missing_reasons["wire_required_fields"] = hard_missing_reasons.get("wire_required_fields", 0) + missing_wire_count
+    for reason, count in prefilter_rejection_counts.items():
+        if reason.startswith("missing_data_hard"):
+            hard_missing_reasons[reason] = hard_missing_reasons.get(reason, 0) + count
     closest_saturation = _closest_saturation_candidates(screened, transformer_inputs.b_limit_t)
     closest_fill = _closest_fill_candidates(screened)
     scale_diagnostics = _scale_search_diagnostics(screened, skipped_core_diagnostics)
     leakage_audit = _leakage_rejection_audit(screened)
+    counts.update(
+        {
+            "generated_candidate_count": theoretical_candidate_count,
+            "prefilter_rejected_candidate_count": prefilter_rejected_candidate_count,
+            "prefilter_pass_count": prefilter_pass_count,
+            "precise_evaluated_candidate_count": len(screened),
+            "prefilter_rejected_by_saturation_count": _count_prefilter_reason(prefilter_rejection_counts, "saturation"),
+            "prefilter_rejected_by_lm_count": _count_prefilter_reason(prefilter_rejection_counts, "lm"),
+            "prefilter_rejected_by_current_density_count": _count_prefilter_reason(prefilter_rejection_counts, "current_density"),
+            "prefilter_rejected_by_fill_count": _count_prefilter_reason(prefilter_rejection_counts, "fill"),
+            "prefilter_rejected_by_missing_data_count": prefilter_missing_data_count,
+            "evaluated_candidate_count": len(screened),
+            "feasible_candidate_count": len(feasible_candidates),
+            "skipped_core_count": len(skipped_core_diagnostics),
+            "reusable_metrics_cache_hits": reusable_cache_hits,
+            "reusable_metrics_cache_misses": reusable_cache_misses,
+            "reusable_metrics_build_count": reusable_cache_misses,
+            "reusable_metrics_avoided_repeated_builds": reusable_cache_hits,
+            "reusable_metrics_cache_size": reusable_cache_after["size"],
+        }
+    )
     notes = _dedupe_text([
         *backend_notes,
         "Separated LLC transformer candidate search uses packaged-normalized magnetic records when records are not supplied.",
         "The separated transformer realizes Np:Ns and Lm; external Lr remains a separate resonant inductor.",
         "Flux model uses Bpeak = Vpri / (4 * Np * Ae * fs) and delta_B = Vpri / (2 * Np * Ae * fs) under symmetric bipolar excitation.",
         "Screening uses first-pass winding, leakage, core-loss, and thermal approximations.",
+        "Deterministic saturation, Lm/gap, winding-capacity, and minimum-fill failures are rejected before precise magnetic-loss and thermal evaluation.",
     ])
     if not feasible_candidates:
         notes.append(
@@ -1250,10 +1885,10 @@ def generate_separated_llc_transformer_candidates(
         registered_wire_count=registered_wire_count,
         evaluated_candidate_count=len(screened),
         feasible_candidate_count=len(feasible_candidates),
-        rejected_by_saturation_count=_count_rejection(screened, "saturation"),
-        rejected_by_lm_count=_count_rejection(screened, "lm"),
+        rejected_by_saturation_count=_count_rejection(screened, "saturation") + _count_prefilter_reason(prefilter_rejection_counts, "saturation"),
+        rejected_by_lm_count=_count_rejection(screened, "lm") + _count_prefilter_reason(prefilter_rejection_counts, "lm"),
         rejected_by_leakage_count=_count_rejection(screened, "leakage"),
-        rejected_by_fill_count=_count_rejection(screened, "fill"),
+        rejected_by_fill_count=_count_rejection(screened, "fill") + _count_prefilter_reason(prefilter_rejection_counts, "fill"),
         rejected_by_thermal_count=_count_rejection(screened, "thermal"),
         rejected_by_missing_data_count=missing_data_count,
         rejected_by_missing_hard_data_count=missing_data_count,
@@ -1264,10 +1899,17 @@ def generate_separated_llc_transformer_candidates(
         screened_candidates_sample=sample,
         recommended_preliminary_candidate=recommended,
         hard_missing_data_reasons=hard_missing_reasons,
+        prefilter_rejection_counts=dict(prefilter_rejection_counts),
         closest_saturation_candidates=closest_saturation,
         closest_fill_candidates=closest_fill,
         scale_search_diagnostics=scale_diagnostics,
         leakage_rejection_audit=leakage_audit,
+        performance_timing={
+            **timing,
+            "total_seconds": perf_counter() - total_started,
+        },
+        performance_counts=counts,
+        search_bounds=resolved_bounds.to_dict(),
         artifact_paths=artifact_paths,
         notes=notes,
         warnings=_dedupe_text([
@@ -1543,7 +2185,9 @@ def build_llc_transformer_pareto_result(
         [candidate for candidate in feasible_candidates if candidate.feasible],
         key=lambda candidate: (candidate.estimated_volume_m3, candidate.total_loss_w, candidate.candidate_id),
     )
+    pareto_started = perf_counter()
     pareto = build_llc_transformer_pareto_front(feasible)
+    pareto_seconds = perf_counter() - pareto_started
     representatives = select_llc_transformer_representatives(pareto)
     recommended_selection = representatives.get("recommended")
     recommended = recommended_selection.candidate if recommended_selection is not None else None
@@ -1577,8 +2221,15 @@ def build_llc_transformer_pareto_result(
             "Leakage is first-pass estimated and checked only; it is not designed as Lr.",
             "The PNG may hide extreme feasible outliers for readability; CSV artifacts remain complete.",
             "Detailed winding-stack geometry, detailed leakage model, isolation/creepage/clearance checks, and final optimization are not implemented.",
+            f"Pareto filtering uses {LLC_PARETO_FILTER_ALGORITHM}; finite two-objective inputs use a sorted sweep and non-finite inputs use the reference oracle.",
         ],
         warnings=[],
+        performance_timing={"pareto_seconds": pareto_seconds},
+        performance_counts={
+            "pareto_algorithm_version": LLC_PARETO_FILTER_ALGORITHM,
+            "pareto_input_count": len(feasible),
+            "pareto_output_count": len(pareto),
+        },
     )
 
 
@@ -1588,26 +2239,138 @@ def build_llc_transformer_pareto_front(
     """Return nondominated transformer candidates by volume and total loss."""
 
     feasible = [candidate for candidate in candidates if candidate.feasible]
-    pareto: list[LLCTransformerScreeningCandidate] = []
-    for candidate in feasible:
+    return _build_llc_2d_pareto_front(
+        feasible,
+        volume_key=lambda candidate: candidate.estimated_volume_m3,
+        loss_key=lambda candidate: candidate.total_loss_w,
+        identifier_key=lambda candidate: candidate.candidate_id,
+    )
+
+
+def _build_llc_2d_pareto_front_reference(
+    candidates: Iterable[Any],
+    *,
+    volume_key: Callable[[Any], float],
+    loss_key: Callable[[Any], float],
+    identifier_key: Callable[[Any], str],
+) -> list[Any]:
+    """Quadratic Pareto oracle retained to verify the optimized sweep."""
+
+    items = list(candidates)
+    pareto: list[Any] = []
+    for candidate in items:
+        candidate_volume = volume_key(candidate)
+        candidate_loss = loss_key(candidate)
         dominated = False
-        for other in feasible:
-            if other.candidate_id == candidate.candidate_id:
+        for other in items:
+            if identifier_key(other) == identifier_key(candidate):
                 continue
-            no_worse = (
-                other.estimated_volume_m3 <= candidate.estimated_volume_m3
-                and other.total_loss_w <= candidate.total_loss_w
-            )
-            strictly_better = (
-                other.estimated_volume_m3 < candidate.estimated_volume_m3
-                or other.total_loss_w < candidate.total_loss_w
-            )
+            other_volume = volume_key(other)
+            other_loss = loss_key(other)
+            no_worse = other_volume <= candidate_volume and other_loss <= candidate_loss
+            strictly_better = other_volume < candidate_volume or other_loss < candidate_loss
             if no_worse and strictly_better:
                 dominated = True
                 break
         if not dominated:
             pareto.append(candidate)
-    return sorted(pareto, key=lambda item: (item.estimated_volume_m3, item.total_loss_w, item.candidate_id))
+    return sorted(pareto, key=lambda item: (volume_key(item), loss_key(item), identifier_key(item)))
+
+
+def _update_llc_two_minima(
+    best_by_id: dict[str, float],
+    minima: list[tuple[float, str]],
+    identifier: str,
+    loss: float,
+) -> None:
+    """Maintain the two lowest losses belonging to distinct candidate IDs."""
+
+    previous = best_by_id.get(identifier)
+    if previous is not None and loss >= previous:
+        return
+    best_by_id[identifier] = loss
+    minima[:] = [item for item in minima if item[1] != identifier]
+    minima.append((loss, identifier))
+    minima.sort(key=lambda item: (item[0], item[1]))
+    del minima[2:]
+
+
+def _llc_minimum_excluding_id(minima: list[tuple[float, str]], identifier: str) -> float | None:
+    """Return the lowest tracked loss whose ID differs from ``identifier``."""
+
+    for loss, item_id in minima:
+        if item_id != identifier:
+            return loss
+    return None
+
+
+def _build_llc_2d_pareto_front(
+    candidates: Iterable[Any],
+    *,
+    volume_key: Callable[[Any], float],
+    loss_key: Callable[[Any], float],
+    identifier_key: Callable[[Any], str],
+) -> list[Any]:
+    """Return a stable 2-D minimization front in O(n log n) for finite metrics."""
+
+    items = list(candidates)
+    if not items:
+        return []
+    if any(
+        not isfinite(float(metric))
+        for item in items
+        for metric in (volume_key(item), loss_key(item))
+    ):
+        return _build_llc_2d_pareto_front_reference(
+            items,
+            volume_key=volume_key,
+            loss_key=loss_key,
+            identifier_key=identifier_key,
+        )
+
+    ordered = sorted(items, key=lambda item: (volume_key(item), loss_key(item), identifier_key(item)))
+    pareto: list[Any] = []
+    prior_best_by_id: dict[str, float] = {}
+    prior_minima: list[tuple[float, str]] = []
+    index = 0
+    while index < len(ordered):
+        volume = volume_key(ordered[index])
+        end = index + 1
+        while end < len(ordered) and volume_key(ordered[end]) == volume:
+            end += 1
+        group_best_by_id: dict[str, float] = {}
+        group_minima: list[tuple[float, str]] = []
+        for candidate in ordered[index:end]:
+            identifier = identifier_key(candidate)
+            loss = loss_key(candidate)
+            prior_loss = _llc_minimum_excluding_id(prior_minima, identifier)
+            same_volume_loss = _llc_minimum_excluding_id(group_minima, identifier)
+            dominated = (
+                prior_loss is not None and prior_loss <= loss
+            ) or (
+                same_volume_loss is not None and same_volume_loss < loss
+            )
+            if not dominated:
+                pareto.append(candidate)
+            _update_llc_two_minima(group_best_by_id, group_minima, identifier, loss)
+        for identifier, loss in group_best_by_id.items():
+            _update_llc_two_minima(prior_best_by_id, prior_minima, identifier, loss)
+        index = end
+    return sorted(pareto, key=lambda item: (volume_key(item), loss_key(item), identifier_key(item)))
+
+
+def build_llc_transformer_pareto_front_reference(
+    candidates: Iterable[LLCTransformerScreeningCandidate],
+) -> list[LLCTransformerScreeningCandidate]:
+    """Return the original quadratic transformer Pareto oracle for regression tests."""
+
+    feasible = [candidate for candidate in candidates if candidate.feasible]
+    return _build_llc_2d_pareto_front_reference(
+        feasible,
+        volume_key=lambda candidate: candidate.estimated_volume_m3,
+        loss_key=lambda candidate: candidate.total_loss_w,
+        identifier_key=lambda candidate: candidate.candidate_id,
+    )
 
 
 def select_llc_transformer_representatives(
@@ -2193,6 +2956,7 @@ def make_fha_boundary_frequency_solver(design: object) -> FrequencySolver:
     """Build a boundary frequency solver that reuses FHA coverage when present, then solves."""
 
     coverage = list(getattr(design, "coverage_results", []))
+    from .fha_design import _cache_fha_boundary_result, _fha_boundary_cache_key, _get_cached_fha_boundary_result
 
     def _solver(
         inputs: LLCTransformerDesignInputs,
@@ -2207,6 +2971,11 @@ def make_fha_boundary_frequency_solver(design: object) -> FrequencySolver:
                 and abs(float(getattr(result, "vout_v", float("nan"))) - vout_v) <= 1e-9
                 and abs(float(getattr(result, "pout_w", float("nan"))) - pout_w) <= 1e-9
             ):
+                cache_key = _fha_boundary_cache_key(design, vin_v, vout_v, pout_w)
+                cached_result = _get_cached_fha_boundary_result(cache_key)
+                if cached_result is not None:
+                    return float(cached_result.fs_hz)
+                _cache_fha_boundary_result(cache_key, replace(result, label=""))
                 return float(getattr(result, "fs_hz"))
         from .fha_design import solve_operating_frequency
 
@@ -2273,14 +3042,35 @@ def generate_llc_external_resonant_inductor_candidates(
     core_limit: int | None = 18,
     material_limit: int | None = 4,
     wire_limit: int | None = 10,
-    write_csv: bool = True,
+    search_bounds: LLCMagneticSearchBounds | None = None,
+    write_csv: bool = False,
     output_dir: Path | None = None,
 ) -> LlcExternalResonantInductorSearchResult:
     """Screen first-pass external Lr inductor candidates using an energy/current model."""
 
+    total_started = perf_counter()
+    timing: dict[str, float] = {}
+    counts: dict[str, int] = {}
+    preparation_started = perf_counter()
     rejection_counts = _external_lr_rejection_counter()
     warnings: list[str] = []
     notes: list[str] = []
+    resolved_bounds = search_bounds or LLCMagneticSearchBounds(
+        mode="explicit",
+        max_scale_factor=8,
+        transformer_core_limit=None,
+        transformer_material_limit=None,
+        transformer_wire_limit=None,
+        external_lr_core_limit=core_limit,
+        external_lr_material_limit=material_limit,
+        external_lr_wire_limit=wire_limit,
+        external_lr_max_turns=EXTERNAL_LR_MAX_TURNS_ABSOLUTE,
+        design_basis={},
+        selection_policy="caller-supplied explicit bounds",
+    )
+    core_limit = resolved_bounds.external_lr_core_limit
+    material_limit = resolved_bounds.external_lr_material_limit
+    wire_limit = resolved_bounds.external_lr_wire_limit
     if request.warning:
         warnings.append(request.warning)
     if not request.is_design_required or request.external_lr_target_h <= EXTERNAL_LR_TARGET_TOLERANCE_H:
@@ -2290,6 +3080,7 @@ def generate_llc_external_resonant_inductor_candidates(
         )
         return LlcExternalResonantInductorSearchResult(
             request=request,
+            search_bounds=resolved_bounds.to_dict(),
             rejection_counts=rejection_counts,
             notes=["External Lr candidate search did not run because no positive external Lr target is required."],
             warnings=_dedupe_text([*warnings, warning]),
@@ -2298,6 +3089,7 @@ def generate_llc_external_resonant_inductor_candidates(
         rejection_counts["invalid_target"] += 1
         return LlcExternalResonantInductorSearchResult(
             request=request,
+            search_bounds=resolved_bounds.to_dict(),
             rejection_counts=rejection_counts,
             notes=["External Lr candidate search did not run because current/frequency basis is invalid."],
             warnings=_dedupe_text([*warnings, "External Lr search requires positive Irms, Ipeak, and fs basis."]),
@@ -2321,26 +3113,40 @@ def generate_llc_external_resonant_inductor_candidates(
         for material in materials
         if _material_loss_model_covers_frequency(material, request.fs_basis_hz)
     ]
+    materials_for_search = materials if resolved_bounds.mode == "full" else materials_with_frequency_coverage
     materials = _limit_records(
         sorted(
-            materials_with_frequency_coverage,
+            materials_for_search,
             key=lambda item: (-item.b_sat_t, item.material_id),
         ),
         material_limit,
     )
     wires = _select_external_lr_wires(wires, request, wire_limit)
+    timing["parameter_preparation_seconds"] = perf_counter() - preparation_started
     notes.append(
         "External Lr material prefilter retained "
         f"{len(materials_with_frequency_coverage)} of {registered_normalized_material_count} normalized materials "
         f"with a core-loss model covering {request.fs_basis_hz:.6g} Hz; "
         f"{len(materials)} entered the bounded Bsat-ranked search."
     )
+    if resolved_bounds.mode == "full":
+        notes.append(
+            "Full search retains all normalized materials, including records without a loss model, "
+            "so missing-data outcomes remain auditable."
+        )
     if not materials:
         warnings.append(
             "No normalized magnetic material has a core-loss model covering the external Lr loss frequency."
         )
 
     candidates: list[LlcExternalResonantInductorCandidate] = []
+    candidate_evaluation_started = perf_counter()
+    evaluation_timing: dict[str, float] = {"core_loss_seconds": 0.0, "thermal_seconds": 0.0}
+    prefilter_rejection_counts: Counter[str] = Counter()
+    prefilter_rejected_candidate_count = 0
+    prefilter_pass_count = 0
+    precise_evaluated_candidate_count = 0
+    turns_candidate_count = 0
     for core in cores:
         for material in materials:
             b_limit_t = _external_lr_b_limit_t(material)
@@ -2348,9 +3154,51 @@ def generate_llc_external_resonant_inductor_candidates(
                 rejection_counts["missing_data"] += 1
                 continue
             n_min = max(1, ceil(request.external_lr_target_h * request.current_peak_a / (b_limit_t * core.ae_m2)))
-            n_max = min(max(n_min + 40, n_min), EXTERNAL_LR_MAX_TURNS_ABSOLUTE)
+            n_max = min(max(n_min + 40, n_min), resolved_bounds.external_lr_max_turns)
+            turns_candidate_count += n_max - n_min + 1
             for turns in range(n_min, n_max + 1):
                 for wire in wires:
+                    cheap_metrics = (
+                        _external_lr_cheap_metrics(
+                            request=request,
+                            core=core,
+                            wire=wire,
+                            turns=turns,
+                            b_limit_t=b_limit_t,
+                        )
+                        if b_limit_t > 0.0 and core.ae_m2 > 0.0 and core.window_area_m2 > 0.0
+                        else None
+                    )
+                    prefilter_reasons = _external_lr_prefilter_reasons(
+                        request=request,
+                        core=core,
+                        wire=wire,
+                        turns=turns,
+                        b_limit_t=b_limit_t,
+                        metrics=cheap_metrics,
+                    )
+                    if prefilter_reasons:
+                        prefilter_rejected_candidate_count += 1
+                        prefilter_rejection_counts.update(prefilter_reasons)
+                        if cheap_metrics is not None:
+                            rejection_reason = f"prefilter:{prefilter_reasons[0]}"
+                            candidates.append(
+                                _build_external_lr_prefiltered_candidate(
+                                    request=request,
+                                    core=core,
+                                    material=material,
+                                    wire=wire,
+                                    turns=turns,
+                                    b_limit_t=b_limit_t,
+                                    metrics=cheap_metrics,
+                                    rejection_reason=rejection_reason,
+                                )
+                            )
+                            for reason in prefilter_reasons:
+                                prefilter_key = f"prefilter_{reason.split(':', 1)[0]}"
+                                rejection_counts[prefilter_key] = rejection_counts.get(prefilter_key, 0) + 1
+                            continue
+                    prefilter_pass_count += 1
                     best_for_wire = _screen_external_lr_wire_options(
                         request=request,
                         core=core,
@@ -2358,10 +3206,14 @@ def generate_llc_external_resonant_inductor_candidates(
                         wire=wire,
                         turns=turns,
                         b_limit_t=b_limit_t,
+                        performance_timing=evaluation_timing,
                     )
                     candidates.append(best_for_wire)
+                    precise_evaluated_candidate_count += 1
                     if best_for_wire.rejection_reason:
                         _increment_external_lr_rejection(rejection_counts, best_for_wire.rejection_reason)
+    timing["candidate_evaluation_seconds"] = perf_counter() - candidate_evaluation_started
+    timing.update(evaluation_timing)
 
     feasible = sorted(
         [candidate for candidate in candidates if not candidate.rejection_reason],
@@ -2373,7 +3225,9 @@ def generate_llc_external_resonant_inductor_candidates(
             candidate.design_id,
         ),
     )
+    pareto_started = perf_counter()
     pareto = build_llc_external_resonant_inductor_pareto_front(feasible)
+    timing["pareto_seconds"] = perf_counter() - pareto_started
     representatives = select_llc_external_resonant_inductor_representatives(pareto)
     chosen = [
         representatives[role]
@@ -2391,6 +3245,7 @@ def generate_llc_external_resonant_inductor_candidates(
     pareto_csv_path = ""
     chosen_csv_path = ""
     pareto_png_path = ""
+    output_started = perf_counter()
     if write_csv:
         artifact_paths, plot_diagnostics = export_llc_external_resonant_inductor_pareto_artifacts(
             feasible_candidates=feasible,
@@ -2402,6 +3257,32 @@ def generate_llc_external_resonant_inductor_candidates(
         pareto_csv_path = _first_path_named(artifact_paths, "llc_external_resonant_inductor_pareto_front.csv")
         chosen_csv_path = _first_path_named(artifact_paths, "llc_external_resonant_inductor_chosen_candidates.csv")
         pareto_png_path = _first_path_named(artifact_paths, "llc_external_resonant_inductor_pareto_front.png")
+    timing["debug_output_seconds"] = perf_counter() - output_started
+    counts.update(
+        {
+            "selected_core_count": len(cores),
+            "selected_material_count": len(materials),
+            "selected_wire_count": len(wires),
+            "turns_candidate_count": turns_candidate_count,
+            "generated_candidate_count": turns_candidate_count * len(wires),
+            "prefilter_rejected_candidate_count": prefilter_rejected_candidate_count,
+            "prefilter_pass_count": prefilter_pass_count,
+            "precise_evaluated_candidate_count": precise_evaluated_candidate_count,
+            "prefilter_rejected_by_gap_count": sum(
+                count for reason, count in prefilter_rejection_counts.items()
+                if reason.startswith("invalid_gap")
+            ),
+            "prefilter_rejected_by_saturation_count": prefilter_rejection_counts.get("saturation", 0),
+            "prefilter_rejected_by_fill_count": prefilter_rejection_counts.get("fill", 0),
+            "prefilter_rejected_by_current_density_count": prefilter_rejection_counts.get("current_density", 0),
+            "evaluated_candidate_count": len(candidates),
+            "feasible_candidate_count": len(feasible),
+            "pareto_candidate_count": len(pareto),
+            "pareto_algorithm_version": LLC_PARETO_FILTER_ALGORITHM,
+            "pareto_input_count": len(feasible),
+            "pareto_output_count": len(pareto),
+        }
+    )
     notes.extend(
         [
             "External Lr candidate search uses Lr_ext_target = Lr_target - transformer Llk.",
@@ -2411,6 +3292,8 @@ def generate_llc_external_resonant_inductor_candidates(
             "Core loss requires Steinmetz coefficients; missing-coefficient materials are rejected.",
             "Thermal screening reuses the first-pass volume-proxy lumped estimate.",
             "Actual Lr is a first-pass gap-derived estimate; manufacturing gap tolerance is not modeled.",
+            "External Lr cheap prefilters reject deterministic geometry, saturation, fill, and current-density failures before core-loss and thermal evaluation.",
+            "Prefiltered candidates remain in the candidate audit list with a prefilter: rejection reason and lightweight metrics.",
         ]
     )
     pareto_notes = [
@@ -2432,6 +3315,7 @@ def generate_llc_external_resonant_inductor_candidates(
         min_loss_candidate=min_loss_selection.candidate if min_loss_selection is not None else None,
         compromise_candidate=compromise_selection.candidate if compromise_selection is not None else None,
         rejection_counts=rejection_counts,
+        prefilter_rejection_counts=dict(prefilter_rejection_counts),
         notes=_dedupe_text(notes),
         warnings=_dedupe_text(warnings),
         artifact_paths=artifact_paths,
@@ -2441,6 +3325,9 @@ def generate_llc_external_resonant_inductor_candidates(
         pareto_png_path=pareto_png_path,
         pareto_notes=pareto_notes,
         plot_diagnostics=plot_diagnostics,
+        performance_timing={**timing, "total_seconds": perf_counter() - total_started},
+        performance_counts=counts,
+        search_bounds=resolved_bounds.to_dict(),
     )
 
 
@@ -2470,26 +3357,26 @@ def build_llc_external_resonant_inductor_pareto_front(
     """Return nondominated external Lr inductor candidates by volume and total loss."""
 
     feasible = [candidate for candidate in candidates if not candidate.rejection_reason]
-    pareto: list[LlcExternalResonantInductorCandidate] = []
-    for candidate in feasible:
-        dominated = False
-        for other in feasible:
-            if other.design_id == candidate.design_id:
-                continue
-            no_worse = (
-                other.estimated_volume_cm3 <= candidate.estimated_volume_cm3
-                and other.total_loss_w <= candidate.total_loss_w
-            )
-            strictly_better = (
-                other.estimated_volume_cm3 < candidate.estimated_volume_cm3
-                or other.total_loss_w < candidate.total_loss_w
-            )
-            if no_worse and strictly_better:
-                dominated = True
-                break
-        if not dominated:
-            pareto.append(candidate)
-    return sorted(pareto, key=lambda item: (item.estimated_volume_cm3, item.total_loss_w, item.design_id))
+    return _build_llc_2d_pareto_front(
+        feasible,
+        volume_key=lambda candidate: candidate.estimated_volume_cm3,
+        loss_key=lambda candidate: candidate.total_loss_w,
+        identifier_key=lambda candidate: candidate.design_id,
+    )
+
+
+def build_llc_external_resonant_inductor_pareto_front_reference(
+    candidates: Iterable[LlcExternalResonantInductorCandidate],
+) -> list[LlcExternalResonantInductorCandidate]:
+    """Return the original quadratic external-Lr Pareto oracle for regression tests."""
+
+    feasible = [candidate for candidate in candidates if not candidate.rejection_reason]
+    return _build_llc_2d_pareto_front_reference(
+        feasible,
+        volume_key=lambda candidate: candidate.estimated_volume_cm3,
+        loss_key=lambda candidate: candidate.total_loss_w,
+        identifier_key=lambda candidate: candidate.design_id,
+    )
 
 
 def select_llc_external_resonant_inductor_representatives(
@@ -2767,6 +3654,7 @@ def _screen_external_lr_wire_options(
     wire: _NormalizedWireRecord,
     turns: int,
     b_limit_t: float,
+    performance_timing: dict[str, float] | None = None,
 ) -> LlcExternalResonantInductorCandidate:
     min_parallel = max(
         1,
@@ -2784,6 +3672,7 @@ def _screen_external_lr_wire_options(
             turns=turns,
             parallel_count=12,
             b_limit_t=b_limit_t,
+            performance_timing=performance_timing,
         )
     return _build_external_lr_candidate(
         request=request,
@@ -2793,6 +3682,7 @@ def _screen_external_lr_wire_options(
         turns=turns,
         parallel_count=min_parallel,
         b_limit_t=b_limit_t,
+        performance_timing=performance_timing,
     )
 
 
@@ -2805,6 +3695,7 @@ def _build_external_lr_candidate(
     turns: int,
     parallel_count: int,
     b_limit_t: float,
+    performance_timing: dict[str, float] | None = None,
 ) -> LlcExternalResonantInductorCandidate:
     warnings: list[str] = [
         "High-mu gap approximation used because material relative permeability is unavailable.",
@@ -2844,12 +3735,14 @@ def _build_external_lr_candidate(
     core_loss_model_id = None
     core_loss_reconstruction = "unavailable"
     if material.steinmetz_ranges:
+        core_loss_started = perf_counter()
         routed, built = evaluate_candidate_core_loss(
             material_id=material.material_id, material_name=material.material_id,
             frequency_hz=request.fs_basis_hz, effective_volume_m3=core.ve_m3,
             effective_area_m2=core.ae_m2, turns=turns, inductance_h=actual_l_h,
             b_peak_t=b_peak_t, steinmetz_ranges=material.steinmetz_ranges,
             source_role="llc_external_resonant_inductor_core", source_component_id=f"{core.core_id}:N{turns}",
+            requested_sample_count=5,
         )
         core_loss_status = routed.validity_status.value
         core_loss_method = routed.method_used
@@ -2859,12 +3752,17 @@ def _build_external_lr_candidate(
             rejection_reason = f"missing_data: shared core-loss route unavailable ({core_loss_status})"
         else:
             core_loss_w = routed.core_loss_w
+        if performance_timing is not None:
+            performance_timing["core_loss_seconds"] = performance_timing.get("core_loss_seconds", 0.0) + perf_counter() - core_loss_started
     else:
         rejection_reason = "missing_data: material core-loss model unavailable"
     winding_volume_m3 = fill_area_m2 * core.mean_length_per_turn_m
     estimated_volume_m3 = core.gross_volume_m3 + winding_volume_m3
     total_loss_w = core_loss_w + copper_loss_w
+    thermal_started = perf_counter()
     thermal = _estimate_transformer_thermal(total_loss_w, estimated_volume_m3)
+    if performance_timing is not None:
+        performance_timing["thermal_seconds"] = performance_timing.get("thermal_seconds", 0.0) + perf_counter() - thermal_started
     total_lr_actual_h = actual_l_h + request.transformer_lk_h
     total_lr_error_percent = 100.0 * (total_lr_actual_h - request.lr_total_target_h) / request.lr_total_target_h
     lr_closure_status = "ok"
@@ -2935,6 +3833,89 @@ def _build_external_lr_candidate(
     )
 
 
+def _build_external_lr_prefiltered_candidate(
+    *,
+    request: LlcExternalResonantInductorTarget,
+    core: _NormalizedCoreRecord,
+    material: _NormalizedMaterialRecord,
+    wire: _NormalizedWireRecord,
+    turns: int,
+    b_limit_t: float,
+    metrics: _ExternalLRCheapMetrics,
+    rejection_reason: str,
+) -> LlcExternalResonantInductorCandidate:
+    """Build an auditable lightweight result without invoking loss or thermal models."""
+
+    conductor_area_m2 = wire.bundle_copper_area_m2 * metrics.parallel_count
+    dc_resistance_ohm = (
+        COPPER_RESISTIVITY_25C_OHM_M
+        * core.mean_length_per_turn_m
+        * turns
+        / max(conductor_area_m2, 1e-18)
+    )
+    ac_multiplier = _ac_resistance_multiplier(
+        wire.strand_diameter_m,
+        wire.strands_per_bundle * metrics.parallel_count,
+        request.fs_basis_hz,
+    )
+    copper_loss_w = request.current_rms_a**2 * dc_resistance_ohm * ac_multiplier
+    winding_volume_m3 = metrics.fill_factor * core.window_area_m2 * core.mean_length_per_turn_m
+    estimated_volume_m3 = core.gross_volume_m3 + winding_volume_m3
+    total_lr_actual_h = metrics.actual_l_h + request.transformer_lk_h
+    total_lr_error_percent = 100.0 * (total_lr_actual_h - request.lr_total_target_h) / request.lr_total_target_h
+    design_id = f"Lr_ext_{_sanitize_identifier(core.core_id)}_{_sanitize_identifier(material.material_id)}_N{turns}_P{metrics.parallel_count}"
+    return LlcExternalResonantInductorCandidate(
+        design_id=design_id,
+        core_id=core.core_id,
+        core_family=_core_family(core.core_id),
+        material_name=material.material_id,
+        turns=turns,
+        gap_m=metrics.gap_m,
+        gap_mm=metrics.gap_m * 1e3,
+        target_l_h=request.external_lr_target_h,
+        actual_l_h=metrics.actual_l_h,
+        actual_l_uH=metrics.actual_l_h * 1e6,
+        inductance_error_percent=metrics.inductance_error_percent,
+        transformer_lk_h=request.transformer_lk_h,
+        transformer_lk_uH=request.transformer_lk_h * 1e6,
+        total_lr_actual_h=total_lr_actual_h,
+        total_lr_actual_uH=total_lr_actual_h * 1e6,
+        total_lr_error_percent=total_lr_error_percent,
+        current_rms_a=request.current_rms_a,
+        current_peak_a=request.current_peak_a,
+        fs_basis_hz=request.fs_basis_hz,
+        b_peak_t=metrics.b_peak_t,
+        b_limit_t=b_limit_t,
+        b_margin_percent=metrics.b_margin_percent,
+        fill_factor=metrics.fill_factor,
+        current_density_a_per_mm2=metrics.current_density_a_per_mm2,
+        core_loss_w=0.0,
+        copper_loss_w=copper_loss_w,
+        total_loss_w=copper_loss_w,
+        hotspot_c=DEFAULT_AMBIENT_C,
+        estimated_volume_m3=estimated_volume_m3,
+        estimated_volume_cm3=estimated_volume_m3 * 1e6,
+        wire_name=wire.wire_id,
+        wire_parallel_count=metrics.parallel_count,
+        warning="Prefiltered before core-loss and thermal evaluation; detailed fields are not evaluated.",
+        rejection_reason=rejection_reason,
+        core_effective_area_m2=core.ae_m2,
+        core_effective_area_source_field=core.ae_source_field,
+        bpeak_formula="L_actual_H * Ipeak_A / (turns * Ae_m2)",
+        current_convention="sinusoidal_peak",
+        core_window_area_m2=core.window_area_m2,
+        core_width_m=core.outer_width_m,
+        core_height_m=core.outer_height_m,
+        core_depth_m=_external_lr_core_depth_m(core),
+        core_volume_m3=core.gross_volume_m3,
+        winding_volume_m3=winding_volume_m3,
+        gross_volume_m3=core.gross_volume_m3,
+        transformer_design_id_used_for_lk=request.transformer_design_id,
+        external_lr_design_id=design_id,
+        lr_closure_status="warning" if abs(total_lr_error_percent) > 5.0 else "ok",
+    )
+
+
 def _external_lr_rejection_reason(
     *,
     core: _NormalizedCoreRecord,
@@ -2980,6 +3961,97 @@ def compute_llc_external_lr_bpeak_t(
 
 def _external_lr_b_limit_t(material: _NormalizedMaterialRecord) -> float:
     return min(0.18, 0.8 * material.b_sat_t) if material.b_sat_t > 0.0 else 0.0
+
+
+@dataclass(frozen=True)
+class _ExternalLRCheapMetrics:
+    """Deterministic external-Lr metrics needed before loss and thermal models."""
+
+    gap_m: float
+    actual_l_h: float
+    inductance_error_percent: float
+    b_peak_t: float
+    b_margin_percent: float
+    parallel_count: int
+    fill_factor: float
+    current_density_a_per_mm2: float
+
+
+def _external_lr_cheap_metrics(
+    *,
+    request: LlcExternalResonantInductorTarget,
+    core: _NormalizedCoreRecord,
+    wire: _NormalizedWireRecord,
+    turns: int,
+    b_limit_t: float,
+) -> _ExternalLRCheapMetrics:
+    """Resolve cheap, material-aware geometry/current metrics once per combination."""
+
+    gap_m = compute_gap_for_lm(turns, core.ae_m2, request.external_lr_target_h)
+    actual_l_h = compute_lm_from_gap(turns, core.ae_m2, gap_m)
+    inductance_error_percent = 100.0 * (actual_l_h - request.external_lr_target_h) / request.external_lr_target_h
+    b_peak_t = compute_llc_external_lr_bpeak_t(actual_l_h, request.current_peak_a, turns, core.ae_m2)
+    b_margin_percent = 100.0 * (b_limit_t - b_peak_t) / b_limit_t if b_limit_t > 0.0 else float("-inf")
+    min_parallel = max(
+        1,
+        ceil(
+            request.current_rms_a
+            / max(DEFAULT_CURRENT_DENSITY_LIMIT_A_PER_MM2 * wire.bundle_copper_area_m2 * 1e6, 1e-12)
+        ),
+    )
+    parallel_count = min(min_parallel, 12)
+    conductor_area_m2 = wire.bundle_copper_area_m2 * parallel_count
+    current_density_a_per_mm2 = request.current_rms_a / max(conductor_area_m2 * 1e6, 1e-12)
+    fill_area_m2 = turns * parallel_count * (pi * (wire.outer_diameter_m / 2.0) ** 2) * LITZ_PACKING_FACTOR
+    fill_factor = fill_area_m2 / core.window_area_m2
+    return _ExternalLRCheapMetrics(
+        gap_m=gap_m,
+        actual_l_h=actual_l_h,
+        inductance_error_percent=inductance_error_percent,
+        b_peak_t=b_peak_t,
+        b_margin_percent=b_margin_percent,
+        parallel_count=parallel_count,
+        fill_factor=fill_factor,
+        current_density_a_per_mm2=current_density_a_per_mm2,
+    )
+
+
+def _external_lr_prefilter_reasons(
+    *,
+    request: LlcExternalResonantInductorTarget,
+    core: _NormalizedCoreRecord,
+    wire: _NormalizedWireRecord,
+    turns: int,
+    b_limit_t: float,
+    metrics: _ExternalLRCheapMetrics | None = None,
+) -> tuple[str, ...]:
+    """Return only failures that are provable without core-loss or thermal evaluation."""
+
+    if core.ae_m2 <= 0.0 or core.le_m <= 0.0 or core.window_area_m2 <= 0.0:
+        return ("invalid_geometry",)
+    if b_limit_t <= 0.0:
+        return ("missing_data",)
+    metrics = metrics or _external_lr_cheap_metrics(
+        request=request,
+        core=core,
+        wire=wire,
+        turns=turns,
+        b_limit_t=b_limit_t,
+    )
+    reasons: list[str] = []
+    if metrics.gap_m <= 0.0 or metrics.gap_m < EXTERNAL_LR_GAP_MIN_M or metrics.gap_m > EXTERNAL_LR_GAP_MAX_M:
+        reasons.append("invalid_gap")
+    elif metrics.gap_m / core.le_m > EXTERNAL_LR_GAP_TO_LE_MAX:
+        reasons.append("invalid_gap")
+    if abs(metrics.inductance_error_percent) > EXTERNAL_LR_INDUCTANCE_ERROR_LIMIT_PERCENT:
+        reasons.append("invalid_gap")
+    if metrics.b_peak_t > b_limit_t:
+        reasons.append("saturation")
+    if metrics.fill_factor <= 0.0 or metrics.fill_factor > DEFAULT_FILL_FACTOR_LIMIT:
+        reasons.append("fill")
+    if metrics.current_density_a_per_mm2 > DEFAULT_CURRENT_DENSITY_LIMIT_A_PER_MM2:
+        reasons.append("current_density")
+    return tuple(reasons)
 
 
 def _select_external_lr_cores(
@@ -3321,15 +4393,24 @@ def _screen_transformer_candidate(
     turns: LLCTransformerTurnsCandidate,
     turns_diagnostics: dict[str, object] | None = None,
     frequency_solver: FrequencySolver | None = None,
+    performance_timing: dict[str, float] | None = None,
 ) -> LLCTransformerScreeningCandidate:
-    flux_cases = build_boundary_flux_cases(inputs, core.ae_m2, turns.np, frequency_solver)
+    reusable_metrics = _get_llc_reusable_magnetic_metrics(
+        inputs=inputs,
+        core=core,
+        turns=turns,
+        wires=wires,
+        frequency_solver=frequency_solver,
+        performance_timing=performance_timing,
+    )
+    flux_cases = _thaw_boundary_flux_cases(reusable_metrics.boundary_flux_cases)
     worst_flux = max(flux_cases, key=lambda case: case.b_peak_t)
     saturation_pass = all(case.pass_b_limit for case in flux_cases)
-    gap_m = compute_gap_for_lm(turns.np, core.ae_m2, inputs.lm_target_h, core.le_m)
-    lm_actual_h = compute_lm_from_gap(turns.np, core.ae_m2, gap_m)
-    lm_error_percent = 100.0 * (lm_actual_h - inputs.lm_target_h) / inputs.lm_target_h
-    gap_to_le = gap_m / core.le_m if core.le_m > 0.0 else float("inf")
-    lm_pass = abs(lm_error_percent) <= inputs.lm_tolerance_percent and gap_m > 0.0 and gap_to_le <= 0.15
+    gap_m = reusable_metrics.gap_m
+    lm_actual_h = reusable_metrics.lm_actual_h
+    lm_error_percent = reusable_metrics.lm_error_percent
+    gap_to_le = reusable_metrics.gap_to_le
+    lm_pass = reusable_metrics.lm_pass
     turns_diagnostics = turns_diagnostics or {}
     np_required_by_saturation = int(turns_diagnostics.get("np_required_by_saturation", turns.np))
     scale_min_by_saturation = int(turns_diagnostics.get("scale_min_by_saturation", turns.scale_factor))
@@ -3339,41 +4420,16 @@ def _screen_transformer_candidate(
     max_scale_factor_used = int(turns_diagnostics.get("max_scale_factor_used", scale_factor_range[1]))
     saturation_worst_case = str(turns_diagnostics.get("saturation_worst_case", worst_flux.case_name))
 
-    primary_winding = _estimate_winding(
-        winding_name="primary",
-        turns=turns.np,
-        current_rms_a=inputs.primary_current_rms_a,
-        current_peak_a=inputs.primary_current_peak_a,
-        mlt_m=core.mean_length_per_turn_m,
-        fs_hz=worst_flux.fs_hz,
-        wires=wires,
-    )
-    secondary_winding = _estimate_winding(
-        winding_name="secondary",
-        turns=turns.ns,
-        current_rms_a=inputs.secondary_current_rms_a,
-        current_peak_a=inputs.secondary_current_peak_a,
-        mlt_m=core.mean_length_per_turn_m,
-        fs_hz=worst_flux.fs_hz,
-        wires=wires,
-    )
-    leakage_geometry, leakage_primary_radial_build_m, leakage_secondary_radial_build_m, leakage_insulation_gap_m = _estimate_leakage_geometry(
-        primary_winding,
-        secondary_winding,
-        core,
-    )
-    estimated_lk_h, leakage_method, leakage_warning = _estimate_candidate_leakage(
-        primary_turns=turns.np,
-        mean_length_per_turn_m=core.mean_length_per_turn_m,
-        effective_winding_height_m=leakage_geometry.leakage_effective_height_m,
-        primary_radial_build_m=leakage_primary_radial_build_m,
-        secondary_radial_build_m=leakage_secondary_radial_build_m,
-        insulation_gap_m=leakage_insulation_gap_m,
-        leakage_fraction_estimate=inputs.leakage_fraction_estimate,
-        fallback_lm_actual_h=lm_actual_h,
-    )
-    lk_over_lr = estimated_lk_h / inputs.lr_target_h if inputs.lr_target_h > 0.0 else float("inf")
-    leakage_pass = lk_over_lr <= 0.80
+    primary_winding = _thaw_winding_estimate(reusable_metrics.primary_winding)
+    secondary_winding = _thaw_winding_estimate(reusable_metrics.secondary_winding)
+    leakage_primary_radial_build_m = reusable_metrics.leakage_primary_radial_build_m
+    leakage_secondary_radial_build_m = reusable_metrics.leakage_secondary_radial_build_m
+    leakage_insulation_gap_m = reusable_metrics.leakage_insulation_gap_m
+    estimated_lk_h = reusable_metrics.estimated_lk_h
+    leakage_method = reusable_metrics.leakage_method
+    leakage_warning = reusable_metrics.leakage_warning
+    lk_over_lr = reusable_metrics.lk_over_lr
+    leakage_pass = reusable_metrics.leakage_pass
 
     hard_missing_reasons: list[str] = []
     if not wires:
@@ -3407,6 +4463,7 @@ def _screen_transformer_candidate(
     loss_model = "shared_router_unavailable_plus_first_pass_litz_ac_resistance"
     core_loss_status = "loss_data_not_available"
     if material.steinmetz_ranges:
+        core_loss_started = perf_counter()
         routed, _built = evaluate_candidate_core_loss(
             material_id=material.material_id, material_name=material.material_id,
             frequency_hz=worst_flux.fs_hz, effective_volume_m3=core.ve_m3,
@@ -3414,6 +4471,7 @@ def _screen_transformer_candidate(
             b_peak_t=worst_flux.b_peak_t, steinmetz_ranges=material.steinmetz_ranges,
             source_role="llc_transformer_core", source_component_id=f"{core.core_id}:{material.material_id}:Np{turns.np}:Ns{turns.ns}",
             dc_offset_policy="zero_cycle_average",
+            requested_sample_count=5,
         )
         core_loss_status = routed.validity_status.value
         if routed.core_loss_w is not None:
@@ -3421,6 +4479,8 @@ def _screen_transformer_candidate(
             loss_model = "shared_router_plus_first_pass_litz_ac_resistance"
         else:
             loss_warnings.append(f"Shared core-loss route unavailable: {core_loss_status}.")
+        if performance_timing is not None:
+            performance_timing["core_loss_seconds"] = performance_timing.get("core_loss_seconds", 0.0) + perf_counter() - core_loss_started
     else:
         loss_warnings.append("Soft missing core-loss data: material has no usable model; candidate is not loss-comparable.")
 
@@ -3428,7 +4488,10 @@ def _screen_transformer_candidate(
     total_loss_w = core_loss_w + copper_loss_w
     winding_volume_m3 = _estimate_winding_volume_m3(primary_winding, secondary_winding, core.mean_length_per_turn_m)
     estimated_volume_m3 = core.gross_volume_m3 + winding_volume_m3
+    thermal_started = perf_counter()
     thermal = _estimate_transformer_thermal(total_loss_w, estimated_volume_m3)
+    if performance_timing is not None:
+        performance_timing["thermal_seconds"] = performance_timing.get("thermal_seconds", 0.0) + perf_counter() - thermal_started
     thermal_pass = thermal.hotspot_c <= DEFAULT_HOTSPOT_LIMIT_C
 
     rejection_reasons: list[str] = []
@@ -3571,14 +4634,14 @@ def _screen_transformer_candidate(
         leakage_method=leakage_method,
         leakage_winding_arrangement=DEFAULT_WINDING_ARRANGEMENT,
         leakage_warning=leakage_warning,
-        leakage_height_source=leakage_geometry.leakage_height_source,
-        leakage_height_warning=leakage_geometry.leakage_height_warning,
-        leakage_usable_window_height_mm=leakage_geometry.leakage_usable_window_height_m * 1e3,
-        leakage_primary_occupied_height_mm=leakage_geometry.leakage_primary_occupied_height_m * 1e3,
-        leakage_secondary_occupied_height_mm=leakage_geometry.leakage_secondary_occupied_height_m * 1e3,
-        leakage_window_area_mm2=leakage_geometry.leakage_window_area_m2 * 1e6,
-        leakage_inferred_window_width_mm=leakage_geometry.leakage_inferred_window_width_m * 1e3,
-        leakage_effective_height_m=leakage_geometry.leakage_effective_height_m,
+        leakage_height_source=reusable_metrics.leakage_height_source,
+        leakage_height_warning=reusable_metrics.leakage_height_warning,
+        leakage_usable_window_height_mm=reusable_metrics.leakage_usable_window_height_m * 1e3,
+        leakage_primary_occupied_height_mm=reusable_metrics.leakage_primary_occupied_height_m * 1e3,
+        leakage_secondary_occupied_height_mm=reusable_metrics.leakage_secondary_occupied_height_m * 1e3,
+        leakage_window_area_mm2=reusable_metrics.leakage_window_area_m2 * 1e6,
+        leakage_inferred_window_width_mm=reusable_metrics.leakage_inferred_window_width_m * 1e3,
+        leakage_effective_height_m=reusable_metrics.leakage_effective_height_m,
         leakage_primary_radial_build_m=leakage_primary_radial_build_m,
         leakage_secondary_radial_build_m=leakage_secondary_radial_build_m,
         leakage_insulation_gap_m=leakage_insulation_gap_m,
@@ -3622,6 +4685,86 @@ def _screen_transformer_candidate(
         notes=notes,
         warnings=warnings,
     )
+
+
+def _prefilter_transformer_candidate(
+    *,
+    inputs: LLCTransformerDesignInputs,
+    core: _NormalizedCoreRecord,
+    wires: list[_NormalizedWireRecord],
+    turns: LLCTransformerTurnsCandidate,
+    turns_diagnostics: Mapping[str, object],
+) -> tuple[str, ...]:
+    """Apply only conservative, deterministic checks before full screening.
+
+    Every check mirrors a later full-screening constraint.  Missing records
+    are left to the established hard-missing-data path so their diagnostics
+    remain unchanged.
+    """
+
+    reasons: list[str] = []
+    required_np = int(turns_diagnostics.get("np_required_by_saturation", turns.np))
+    if turns.np < required_np:
+        reasons.append("saturation_b_limit")
+
+    gap_m = compute_gap_for_lm(turns.np, core.ae_m2, inputs.lm_target_h, core.le_m)
+    lm_actual_h = compute_lm_from_gap(turns.np, core.ae_m2, gap_m)
+    lm_error_percent = 100.0 * (lm_actual_h - inputs.lm_target_h) / inputs.lm_target_h
+    gap_to_le = gap_m / core.le_m if core.le_m > 0.0 else float("inf")
+    if (
+        gap_m <= 0.0
+        or gap_to_le > 0.15
+        or abs(lm_error_percent) > inputs.lm_tolerance_percent
+    ):
+        reasons.append("lm_or_gap_limit")
+
+    if not wires:
+        return tuple(reasons)
+
+    primary = _minimum_winding_capacity(
+        turns=turns.np,
+        current_rms_a=inputs.primary_current_rms_a,
+        wires=wires,
+    )
+    secondary = _minimum_winding_capacity(
+        turns=turns.ns,
+        current_rms_a=inputs.secondary_current_rms_a,
+        wires=wires,
+    )
+    if primary is None or secondary is None:
+        reasons.append("current_density_limit")
+        return tuple(reasons)
+
+    minimum_fill_area_m2 = (
+        primary[0]
+        + secondary[0]
+        + core.window_area_m2 * DEFAULT_INSULATION_WINDOW_RESERVE_FRACTION
+    )
+    if minimum_fill_area_m2 / core.window_area_m2 > DEFAULT_FILL_FACTOR_LIMIT:
+        reasons.append("fill_factor_limit")
+    return tuple(reasons)
+
+
+def _minimum_winding_capacity(
+    *,
+    turns: int,
+    current_rms_a: float,
+    wires: list[_NormalizedWireRecord],
+) -> tuple[float, int] | None:
+    """Return the smallest exact fill area that satisfies the 12-parallel limit."""
+
+    best: tuple[float, int] | None = None
+    for wire in wires:
+        for parallel in range(1, 13):
+            conductor_area_m2 = wire.bundle_copper_area_m2 * parallel
+            current_density = current_rms_a / max(conductor_area_m2 * 1e6, 1e-12)
+            if current_density <= DEFAULT_CURRENT_DENSITY_LIMIT_A_PER_MM2:
+                fill_area_m2 = turns * conductor_area_m2 * LITZ_PACKING_FACTOR
+                candidate = (fill_area_m2, parallel)
+                if best is None or candidate < best:
+                    best = candidate
+                break
+    return best
 
 
 def _estimate_winding(
@@ -4011,6 +5154,16 @@ def _count_rejection(candidates: list[LLCTransformerScreeningCandidate], reason_
         1
         for candidate in candidates
         if any(reason_token in reason for reason in candidate.rejection_reasons)
+    )
+
+
+def _count_prefilter_reason(counts: Mapping[str, int], reason_token: str) -> int:
+    """Count prefilter rejections by their stable primary reason token."""
+
+    return sum(
+        count
+        for reason, count in counts.items()
+        if reason.split("(", 1)[0].split(":", 1)[0].startswith(reason_token)
     )
 
 

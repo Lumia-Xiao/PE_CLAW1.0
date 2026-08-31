@@ -45,7 +45,11 @@ LLC_RESONANT_CAPACITOR_TOPOLOGY_IDS = {
 }
 
 
-def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None = None) -> DesignReport:
+def run_capacitor_pipeline(
+    report: DesignReport,
+    plugin: TopologyPlugin | None = None,
+    output_root: str | Path | None = None,
+) -> DesignReport:
     """Attach first-pass registered capacitor selection results to a design report."""
 
     pipeline_start_s = time.perf_counter()
@@ -143,6 +147,7 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
         llc_resonant_request,
         candidates,
         ambient_temp_c,
+        output_root=output_root or _llc_output_root(report),
     )
     if llc_resonant_search is not None:
         warnings.extend(llc_resonant_search.warnings)
@@ -154,7 +159,7 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
             notes=notes,
             warnings=["Capacitor selection did not run because no topology candidate is available."],
         )
-        return replace(report, capacitor=result)
+        return _attach_llc_cr_design_id(replace(report, capacitor=result))
 
     waveform_start_s = time.perf_counter()
     design_report = _build_design_point_waveform_report(report, plugin)
@@ -166,13 +171,13 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
             notes=notes,
             warnings=["Capacitor selection did not run because waveform data is unavailable."],
         )
-        return replace(report, capacitor=result)
+        return _attach_llc_cr_design_id(replace(report, capacitor=result))
 
     ripple_ratio_percent = _resolve_ripple_ratio_percent(design_report)
     ambient_temp_c = resolve_ambient_temperature_c(design_report)
     output_selection = _select_output_capacitor(design_report, candidates, ripple_ratio_percent, ambient_temp_c)
     input_selection = _select_input_capacitor(design_report, candidates, ripple_ratio_percent, ambient_temp_c)
-    output_dir = _project_root() / "outputs" / "capacitor_design"
+    output_dir = _capacitor_output_dir(report, output_root)
     output_selection = write_capacitor_pareto_artifacts(output_selection, output_dir)
     if input_selection is not None and input_selection.request is not None:
         input_selection = write_capacitor_pareto_artifacts(input_selection, output_dir)
@@ -218,9 +223,9 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
         ]),
         diagnostics=diagnostics,
     )
-    completed = run_capacitor_geometry_pipeline(replace(report, capacitor=result))
+    completed = run_capacitor_geometry_pipeline(replace(report, capacitor=result), output_root=output_root or _llc_output_root(report))
     if completed.capacitor is None:
-        return completed
+        return _attach_llc_cr_design_id(completed)
     total_elapsed_s = time.perf_counter() - pipeline_start_s
     capacitor = replace(
         completed.capacitor,
@@ -232,7 +237,52 @@ def run_capacitor_pipeline(report: DesignReport, plugin: TopologyPlugin | None =
     completed = _refresh_selected_active_pfc(completed, plugin)
     completed = _refresh_selected_npc_inverter(completed, plugin)
     completed = _refresh_selected_llc(completed, plugin)
-    return run_capacitor_operating_point_refresh(completed) if completed.waveform is not None else completed
+    completed = run_capacitor_operating_point_refresh(completed) if completed.waveform is not None else completed
+    return _attach_llc_cr_design_id(completed)
+
+
+def _attach_llc_cr_design_id(report: DesignReport) -> DesignReport:
+    """Bind the LLC Cr recommendation to the current run context."""
+
+    context = report.llc_run_context
+    search = (
+        report.capacitor.llc_resonant_capacitor_search_result
+        if report.capacitor is not None
+        else None
+    )
+    recommended = search.recommended_candidate if search is not None else None
+    updated_report = report
+    if context is not None and recommended is not None:
+        updated_report = replace(
+            updated_report,
+            llc_run_context=context.with_result_ids(cr_design_id=recommended.design_id),
+        )
+    magnetic = updated_report.magnetic
+    if magnetic is None or magnetic.result_type != "separated_llc_transformer":
+        return updated_report
+    requirements = dict(magnetic.design_requirements or {})
+    request = getattr(search, "request", None) if search is not None else None
+    coverage = (getattr(search, "coverage_summary", {}) or {}) if search is not None else {}
+    requirements.update(
+        {
+            "cr_target_f": getattr(request, "cr_target_f", requirements.get("cr_target_f")),
+            "cr_actual_f": getattr(recommended, "bank_capacitance_f", None),
+            "cr_error_percent": getattr(recommended, "capacitance_error_percent", None),
+            "cr_error_limit_percent": coverage.get("capacitance_error_limit_percent"),
+            "cr_status": (
+                "available"
+                if recommended is not None
+                else "no_feasible_candidate"
+                if search is not None and request is not None
+                else "not_evaluated"
+            ),
+            "cr_actual_source": "LLC resonant capacitor recommended candidate",
+        }
+    )
+    field_status = dict(requirements.get("field_status") or {})
+    field_status["cr"] = requirements["cr_status"]
+    requirements["field_status"] = field_status
+    return replace(updated_report, magnetic=replace(magnetic, design_requirements=requirements))
 
 
 def _refresh_selected_llc(report: DesignReport, plugin: TopologyPlugin | None) -> DesignReport:
@@ -993,13 +1043,21 @@ def _resolve_ripple_ratio_percent(report: DesignReport) -> float:
     return 1.0
 
 
-def _run_llc_resonant_capacitor_search(request, candidates, ambient_temp_c: float):
+def _run_llc_resonant_capacitor_search(
+    request,
+    candidates,
+    ambient_temp_c: float,
+    *,
+    output_root: str | Path | None = None,
+):
     if request is None:
         return None
     return search_llc_resonant_capacitor_banks(
         request,
         candidates,
-        output_dir=_project_root() / "outputs" / "resonant_capacitor_design",
+        output_dir=Path(output_root) / "resonant_capacitor_design"
+        if output_root is not None
+        else _project_root() / "outputs" / "resonant_capacitor_design",
         ambient_temp_c=ambient_temp_c,
     )
 
@@ -1216,3 +1274,15 @@ def _dedupe(values: list[str]) -> list[str]:
 
 def _project_root() -> Path:
     return Path(__file__).resolve().parents[3]
+
+
+def _llc_output_root(report: DesignReport) -> Path | None:
+    if report.llc_run_context is None or not report.llc_run_context.output_root:
+        return None
+    return Path(report.llc_run_context.output_root)
+
+
+def _capacitor_output_dir(report: DesignReport, output_root: str | Path | None) -> Path:
+    if output_root is not None and report.llc_run_context is not None:
+        return Path(output_root) / "capacitor_design"
+    return _project_root() / "outputs" / "capacitor_design"

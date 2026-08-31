@@ -1,0 +1,416 @@
+{
+  "cases": [
+    {
+      "backend": "packaged_normalized_v2",
+      "backend_mode": "normalized_v2_production",
+      "backend_provenance": {
+        "cache_audit_sha256": "476B514179B907A6D4CDA6F75DDE81BE4FC108CA2D00F845551FC2E6089233DE",
+        "cache_contract_version": "openmagnetics-step22b-fixed-v2-cache-v1",
+        "cache_dir": "C:/Users/Lumia/Documents/PE_Claw/PE-Claw1.0/src/pe_claw_gui/libraries/magnetics/openmagnetics_data_v2",
+        "cache_identity": "B434F64A3E56B7EE96AE21F6AA11A8193AB08D690A5ED8287067CEE540764D6D",
+        "mas_commit": "881cceaf1d91ee88c8c5b5b611a0703e6126e825",
+        "mkf_commit": "8d3bad38297ddca92a2aafe9c88a4fc93ef75d5b",
+        "pyopenmagnetics_version": "1.6.2+b960e88109a12c4455bbded5d11bb80c9d8fc114",
+        "source_manifest_sha256": "D053E7B5D332FF25E3187C5A9A36837CD52F9E62D72CCAE808A09F7F5E1F18CF"
+      },
+      "case": "transformer-small",
+      "external_lr": null,
+      "fha_boundary_cache": {
+        "hits": 366,
+        "maxsize": 512,
+        "misses": 1575,
+        "scan_points": 1501,
+        "size": 512,
+        "solver_version": "fha-grid-scan-v1"
+      },
+      "input_sha256": "78ff14f66ef428a4c270398e245e2234cec919f27159c70046a8d5faca31b7cd",
+      "platform": "Windows-11-10.0.22621-SP0",
+      "python_version": "3.12.10",
+      "registered_database_counts": {
+        "cores": 637,
+        "materials": 160,
+        "wires": 1628
+      },
+      "scalar_triangular_loss_cache": {
+        "hits": 0,
+        "maxsize": 4096,
+        "misses": 135,
+        "model_version": "llc_scalar_triangular_igse_v1",
+        "size": 135
+      },
+      "search_limits": {
+        "core_limit": 2,
+        "material_limit": 2,
+        "max_scale_factor": 4,
+        "wire_limit": 4
+      },
+      "status": "completed",
+      "transformer": {
+        "counts": {
+          "evaluated_candidate_count": 90,
+          "feasible_candidate_count": 0,
+          "registered_core_count": 637,
+          "registered_material_count": 160,
+          "registered_wire_count": 1628,
+          "rejected_by_fill_count": 52,
+          "rejected_by_leakage_count": 78,
+          "rejected_by_lm_count": 64,
+          "rejected_by_missing_data_count": 0,
+          "rejected_by_saturation_count": 6,
+          "rejected_by_thermal_count": 73,
+          "selected_core_count": 2,
+          "selected_material_count": 2,
+          "selected_wire_count": 4,
+          "skipped_core_count": 0,
+          "theoretical_candidate_count": 90,
+          "turns_candidate_count": 45
+        },
+        "representative": null,
+        "timing": {
+          "candidate_evaluation_seconds": 0.05785680000553839,
+          "candidate_generation_seconds": 0.00040699999954085797,
+          "core_loss_seconds": 0.035307900005136617,
+          "debug_output_seconds": 1.00000761449337e-07,
+          "parameter_preparation_seconds": 0.044255699998757336,
+          "thermal_seconds": 0.00044170003820909187,
+          "total_seconds": 0.10470139999961248
+        }
+      }
+    },
+    {
+      "backend": "packaged_normalized_v2",
+      "backend_mode": "normalized_v2_production",
+      "backend_provenance": {
+        "cache_audit_sha256": "476B514179B907A6D4CDA6F75DDE81BE4FC108CA2D00F845551FC2E6089233DE",
+        "cache_contract_version": "openmagnetics-step22b-fixed-v2-cache-v1",
+        "cache_dir": "C:/Users/Lumia/Documents/PE_Claw/PE-Claw1.0/src/pe_claw_gui/libraries/magnetics/openmagnetics_data_v2",
+        "cache_identity": "B434F64A3E56B7EE96AE21F6AA11A8193AB08D690A5ED8287067CEE540764D6D",
+        "mas_commit": "881cceaf1d91ee88c8c5b5b611a0703e6126e825",
+        "mkf_commit": "8d3bad38297ddca92a2aafe9c88a4fc93ef75d5b",
+        "pyopenmagnetics_version": "1.6.2+b960e88109a12c4455bbded5d11bb80c9d8fc114",
+        "source_manifest_sha256": "D053E7B5D332FF25E3187C5A9A36837CD52F9E62D72CCAE808A09F7F5E1F18CF"
+      },
+      "case": "transformer-medium",
+      "external_lr": null,
+      "fha_boundary_cache": {
+        "hits": 1422,
+        "maxsize": 512,
+        "misses": 1575,
+        "scan_points": 1501,
+        "size": 512,
+        "solver_version": "fha-grid-scan-v1"
+      },
+      "input_sha256": "3ed5c75868b98801773b4ee9b200ad95c6568c5798b6b779122ee00f099d2779",
+      "platform": "Windows-11-10.0.22621-SP0",
+      "python_version": "3.12.10",
+      "registered_database_counts": {
+        "cores": 637,
+        "materials": 160,
+        "wires": 1628
+      },
+      "scalar_triangular_loss_cache": {
+        "hits": 0,
+        "maxsize": 4096,
+        "misses": 440,
+        "model_version": "llc_scalar_triangular_igse_v1",
+        "size": 440
+      },
+      "search_limits": {
+        "core_limit": 4,
+        "material_limit": 4,
+        "max_scale_factor": 8,
+        "wire_limit": 8
+      },
+      "status": "completed",
+      "transformer": {
+        "counts": {
+          "evaluated_candidate_count": 352,
+          "feasible_candidate_count": 9,
+          "registered_core_count": 637,
+          "registered_material_count": 160,
+          "registered_wire_count": 1628,
+          "rejected_by_fill_count": 268,
+          "rejected_by_leakage_count": 284,
+          "rejected_by_lm_count": 260,
+          "rejected_by_missing_data_count": 0,
+          "rejected_by_saturation_count": 16,
+          "rejected_by_thermal_count": 175,
+          "selected_core_count": 4,
+          "selected_material_count": 4,
+          "selected_wire_count": 8,
+          "skipped_core_count": 0,
+          "theoretical_candidate_count": 352,
+          "turns_candidate_count": 88
+        },
+        "representative": {
+          "candidate_id": "T_134_77_155_FT-3M_Np16_Ns2",
+          "core_id": "T 134/77/155",
+          "estimated_volume_cm3": 2237.0575733490887,
+          "hotspot_c": 76.51596172702668,
+          "material_id": "FT-3M",
+          "np": 16,
+          "ns": 2,
+          "total_loss_w": 9.12899043175667
+        },
+        "timing": {
+          "candidate_evaluation_seconds": 0.2302510000008624,
+          "candidate_generation_seconds": 0.0005640000017592683,
+          "core_loss_seconds": 0.13297520000924123,
+          "debug_output_seconds": 2.00001522898674e-07,
+          "parameter_preparation_seconds": 0.02416770000127144,
+          "thermal_seconds": 0.0019148999854223803,
+          "total_seconds": 0.26285539999662433
+        }
+      }
+    },
+    {
+      "backend": "packaged_normalized_v2",
+      "backend_mode": "normalized_v2_production",
+      "backend_provenance": {
+        "cache_audit_sha256": "476B514179B907A6D4CDA6F75DDE81BE4FC108CA2D00F845551FC2E6089233DE",
+        "cache_contract_version": "openmagnetics-step22b-fixed-v2-cache-v1",
+        "cache_dir": "C:/Users/Lumia/Documents/PE_Claw/PE-Claw1.0/src/pe_claw_gui/libraries/magnetics/openmagnetics_data_v2",
+        "cache_identity": "B434F64A3E56B7EE96AE21F6AA11A8193AB08D690A5ED8287067CEE540764D6D",
+        "mas_commit": "881cceaf1d91ee88c8c5b5b611a0703e6126e825",
+        "mkf_commit": "8d3bad38297ddca92a2aafe9c88a4fc93ef75d5b",
+        "pyopenmagnetics_version": "1.6.2+b960e88109a12c4455bbded5d11bb80c9d8fc114",
+        "source_manifest_sha256": "D053E7B5D332FF25E3187C5A9A36837CD52F9E62D72CCAE808A09F7F5E1F18CF"
+      },
+      "case": "external-lr-small",
+      "external_lr": {
+        "counts": {
+          "evaluated_candidate_count": 414,
+          "feasible_candidate_count": 0,
+          "pareto_candidate_count": 0,
+          "rejection_counts": {
+            "current_density": 0,
+            "fill": 0,
+            "invalid_gap": 390,
+            "invalid_geometry": 0,
+            "invalid_target": 0,
+            "missing_data": 0,
+            "no_wire_fit": 0,
+            "saturation": 0,
+            "thermal": 24
+          },
+          "selected_core_count": 2,
+          "selected_material_count": 2,
+          "selected_wire_count": 3,
+          "turns_candidate_count": 138
+        },
+        "representative": null,
+        "timing": {
+          "candidate_evaluation_seconds": 0.14000649999798043,
+          "core_loss_seconds": 0.12527579993911786,
+          "debug_output_seconds": 1.00000761449337e-07,
+          "parameter_preparation_seconds": 0.026199899999483023,
+          "pareto_seconds": 2.0000006770715117e-06,
+          "thermal_seconds": 0.001635299988265615,
+          "total_seconds": 0.166346899997734
+        }
+      },
+      "fha_boundary_cache": {
+        "hits": 1422,
+        "maxsize": 512,
+        "misses": 1575,
+        "scan_points": 1501,
+        "size": 512,
+        "solver_version": "fha-grid-scan-v1"
+      },
+      "input_sha256": "1b95ee9e261d5de651c567349ae9a35959b3817de1cd25a84e31f98d0da101bc",
+      "platform": "Windows-11-10.0.22621-SP0",
+      "python_version": "3.12.10",
+      "registered_database_counts": {
+        "cores": 637,
+        "materials": 160,
+        "wires": 1628
+      },
+      "scalar_triangular_loss_cache": {
+        "hits": 0,
+        "maxsize": 4096,
+        "misses": 440,
+        "model_version": "llc_scalar_triangular_igse_v1",
+        "size": 440
+      },
+      "search_limits": {
+        "core_limit": 2,
+        "material_limit": 2,
+        "wire_limit": 3
+      },
+      "status": "completed",
+      "transformer": {
+        "counts": {
+          "evaluated_candidate_count": 352,
+          "feasible_candidate_count": 9,
+          "registered_core_count": 637,
+          "registered_material_count": 160,
+          "registered_wire_count": 1628,
+          "rejected_by_fill_count": 268,
+          "rejected_by_leakage_count": 284,
+          "rejected_by_lm_count": 260,
+          "rejected_by_missing_data_count": 0,
+          "rejected_by_saturation_count": 16,
+          "rejected_by_thermal_count": 175,
+          "selected_core_count": 4,
+          "selected_material_count": 4,
+          "selected_wire_count": 8,
+          "skipped_core_count": 0,
+          "theoretical_candidate_count": 352,
+          "turns_candidate_count": 88
+        },
+        "representative": {
+          "candidate_id": "T_134_77_155_FT-3M_Np16_Ns2",
+          "core_id": "T 134/77/155",
+          "estimated_volume_cm3": 2237.0575733490887,
+          "hotspot_c": 76.51596172702668,
+          "material_id": "FT-3M",
+          "np": 16,
+          "ns": 2,
+          "total_loss_w": 9.12899043175667
+        },
+        "timing": {
+          "candidate_evaluation_seconds": 0.20255669999460224,
+          "candidate_generation_seconds": 0.0006044000037945807,
+          "core_loss_seconds": 0.11779340014618356,
+          "debug_output_seconds": 2.00001522898674e-07,
+          "parameter_preparation_seconds": 0.025311299999884795,
+          "thermal_seconds": 0.0016877999587450176,
+          "total_seconds": 0.23331540000071982
+        }
+      }
+    },
+    {
+      "backend": "packaged_normalized_v2",
+      "backend_mode": "normalized_v2_production",
+      "backend_provenance": {
+        "cache_audit_sha256": "476B514179B907A6D4CDA6F75DDE81BE4FC108CA2D00F845551FC2E6089233DE",
+        "cache_contract_version": "openmagnetics-step22b-fixed-v2-cache-v1",
+        "cache_dir": "C:/Users/Lumia/Documents/PE_Claw/PE-Claw1.0/src/pe_claw_gui/libraries/magnetics/openmagnetics_data_v2",
+        "cache_identity": "B434F64A3E56B7EE96AE21F6AA11A8193AB08D690A5ED8287067CEE540764D6D",
+        "mas_commit": "881cceaf1d91ee88c8c5b5b611a0703e6126e825",
+        "mkf_commit": "8d3bad38297ddca92a2aafe9c88a4fc93ef75d5b",
+        "pyopenmagnetics_version": "1.6.2+b960e88109a12c4455bbded5d11bb80c9d8fc114",
+        "source_manifest_sha256": "D053E7B5D332FF25E3187C5A9A36837CD52F9E62D72CCAE808A09F7F5E1F18CF"
+      },
+      "case": "external-lr-medium",
+      "external_lr": {
+        "counts": {
+          "evaluated_candidate_count": 3020,
+          "feasible_candidate_count": 186,
+          "pareto_candidate_count": 18,
+          "rejection_counts": {
+            "current_density": 0,
+            "fill": 364,
+            "invalid_gap": 2400,
+            "invalid_geometry": 0,
+            "invalid_target": 0,
+            "missing_data": 0,
+            "no_wire_fit": 0,
+            "saturation": 0,
+            "thermal": 70
+          },
+          "selected_core_count": 4,
+          "selected_material_count": 4,
+          "selected_wire_count": 5,
+          "turns_candidate_count": 604
+        },
+        "representative": {
+          "core_id": "E 72/28/19",
+          "design_id": "Lr_ext_E_72_28_19_FT_3M_N7_P6",
+          "estimated_volume_cm3": 42.05701900477625,
+          "hotspot_c": 48.479289805027,
+          "material_name": "FT-3M",
+          "total_loss_w": 1.6381982938797763,
+          "turns": 7
+        },
+        "timing": {
+          "candidate_evaluation_seconds": 0.9928644999963581,
+          "core_loss_seconds": 0.880968000026769,
+          "debug_output_seconds": 2.00001522898674e-07,
+          "parameter_preparation_seconds": 0.024084599994239397,
+          "pareto_seconds": 0.0010529000064707361,
+          "thermal_seconds": 0.012391600219416432,
+          "total_seconds": 1.018946500000311
+        }
+      },
+      "fha_boundary_cache": {
+        "hits": 1422,
+        "maxsize": 512,
+        "misses": 1575,
+        "scan_points": 1501,
+        "size": 512,
+        "solver_version": "fha-grid-scan-v1"
+      },
+      "input_sha256": "945828703123eaeb2432d3af32aea719a2d6df6ca0fb53eefdc34626c92cea09",
+      "platform": "Windows-11-10.0.22621-SP0",
+      "python_version": "3.12.10",
+      "registered_database_counts": {
+        "cores": 637,
+        "materials": 160,
+        "wires": 1628
+      },
+      "scalar_triangular_loss_cache": {
+        "hits": 0,
+        "maxsize": 4096,
+        "misses": 440,
+        "model_version": "llc_scalar_triangular_igse_v1",
+        "size": 440
+      },
+      "search_limits": {
+        "core_limit": 4,
+        "material_limit": 4,
+        "wire_limit": 5
+      },
+      "status": "completed",
+      "transformer": {
+        "counts": {
+          "evaluated_candidate_count": 352,
+          "feasible_candidate_count": 9,
+          "registered_core_count": 637,
+          "registered_material_count": 160,
+          "registered_wire_count": 1628,
+          "rejected_by_fill_count": 268,
+          "rejected_by_leakage_count": 284,
+          "rejected_by_lm_count": 260,
+          "rejected_by_missing_data_count": 0,
+          "rejected_by_saturation_count": 16,
+          "rejected_by_thermal_count": 175,
+          "selected_core_count": 4,
+          "selected_material_count": 4,
+          "selected_wire_count": 8,
+          "skipped_core_count": 0,
+          "theoretical_candidate_count": 352,
+          "turns_candidate_count": 88
+        },
+        "representative": {
+          "candidate_id": "T_134_77_155_FT-3M_Np16_Ns2",
+          "core_id": "T 134/77/155",
+          "estimated_volume_cm3": 2237.0575733490887,
+          "hotspot_c": 76.51596172702668,
+          "material_id": "FT-3M",
+          "np": 16,
+          "ns": 2,
+          "total_loss_w": 9.12899043175667
+        },
+        "timing": {
+          "candidate_evaluation_seconds": 0.1914069999984349,
+          "candidate_generation_seconds": 0.00035650000063469633,
+          "core_loss_seconds": 0.10801859999628505,
+          "debug_output_seconds": 1.00000761449337e-07,
+          "parameter_preparation_seconds": 0.02466629999980796,
+          "thermal_seconds": 0.0015351999827544205,
+          "total_seconds": 0.22083759999804897
+        }
+      }
+    }
+  ],
+  "created_at_utc": "2026-08-28T12:23:30.488777+00:00",
+  "repository": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+  "schema_version": "llc_magnetic_performance_baseline_v1",
+  "summary": {
+    "case_count": 4,
+    "completed_count": 4,
+    "error_count": 0,
+    "timeout_count": 0
+  }
+}

@@ -211,7 +211,14 @@ class Workspace(ttk.Frame):
             on_generate_waveforms=self._on_generate_waveforms,
             on_run_efficiency_sweep=self._on_run_efficiency_sweep,
         )
+        self.active_form.set_design_input_change_handler(self._on_design_input_changed)
         self.active_form.grid(row=0, column=0, sticky="nsew")
+        self.render_report(None)
+
+    def _on_design_input_changed(self) -> None:
+        """Invalidate reports that no longer match the active form inputs."""
+
+        self._state_store.invalidate_design_report()
         self.render_report(None)
 
     def render_report(self, report: DesignReport | None) -> None:

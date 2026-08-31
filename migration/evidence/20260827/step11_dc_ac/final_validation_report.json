@@ -1,0 +1,55 @@
+{
+  "baseline_commit": "e8b5eac",
+  "branch": "codex/sync-gui-backend-from-2",
+  "classifications": {
+    "errors": [],
+    "failures": [],
+    "skips": [
+      "Optional legacy external OpenMagnetics debug/reference database is unavailable; packaged_normalized production path passed."
+    ],
+    "warnings": []
+  },
+  "contract": "dc_ac_step11_final_validation_v1",
+  "focused_validation": {
+    "command": "PowerShell: $dcAc = Get-ChildItem tests -File -Filter 'test_dc_ac_*.py'; python -m pytest -q -ra --junitxml=.pytest-step11-focused.xml --basetemp .pytest-tmp-step11 $dcAc tests/test_phase7_dc_ac_migration.py tests/test_phase9_dc_ac_topologies.py tests/test_phase9_operating_point_migration.py tests/test_phase10_gui_integration.py tests/test_phase11_ai_isolation.py tests/test_device_selector_rejects_overstress.py tests/test_device_selector_single_candidate.py tests/test_capacitor_registry.py tests/test_capacitor_selection.py tests/test_magnetic_library_schema.py tests/test_magnetic_loss_contract.py tests/test_magnetic_static_registry.py tests/test_core_loss_kernel.py tests/test_core_loss_router.py tests/test_default_packaged_normalized_magnetic_backend.py",
+    "errors": 0,
+    "failures": 0,
+    "passed": 183,
+    "skipped": 1,
+    "tests": 184,
+    "warning_count": 0
+  },
+  "full_suite": {
+    "command": "python -m pytest -q --basetemp .pytest-tmp-full -rA",
+    "duration_seconds": 1018.49,
+    "errors": 0,
+    "exit_code": 0,
+    "failures": 0,
+    "passed": 323,
+    "skip_reason": "Optional legacy external OpenMagnetics debug/reference database is unavailable; packaged_normalized production path passed.",
+    "skipped": 1,
+    "warnings": 0
+  },
+  "migration_changed_file_count": 38,
+  "overall_status": "passed",
+  "pre_step11_commit": "6438f7a3260ff2cbcd96ebd153924f7660e1404e",
+  "runtime_scans": {
+    "note": "Tests and frozen evidence may retain source paths as migration provenance; runtime package files may not.",
+    "runtime_absolute_source_path_hits": [],
+    "runtime_forbidden_import_hits": [],
+    "runtime_forbidden_package_directories": [],
+    "status": "passed"
+  },
+  "source_target_comparison": {
+    "contract": "dc_ac_source_target_comparison_v1",
+    "difference_count": 0,
+    "field_count": 45,
+    "policy": "Numeric values use 1e-9 relative tolerance; strings and booleans require exact equality.",
+    "source_commit": "6726f508fcf0e545f69512654d1ea5543e6333cf",
+    "source_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
+    "status": "passed",
+    "target_commit_before_step11": "6438f7a3260ff2cbcd96ebd153924f7660e1404e",
+    "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+    "topology_count": 3
+  }
+}

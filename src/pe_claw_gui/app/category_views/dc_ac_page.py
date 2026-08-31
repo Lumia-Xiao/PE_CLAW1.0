@@ -29,7 +29,7 @@ _TOPOLOGY_HINTS = {
 
 
 class DCACCategoryPage(ttk.Frame):
-    """List registered DC-AC topology placeholders."""
+    """List registered DC-AC topologies."""
 
     def __init__(self, parent, registry: TopologyRegistry, on_topology_selected, on_back) -> None:
         super().__init__(parent, padding=24)
@@ -62,7 +62,7 @@ class DCACCategoryPage(ttk.Frame):
         else:
             ttk.Label(
                 self,
-                text="No DC-AC topology placeholders are registered yet.",
+                text="No DC-AC topology is registered yet.",
                 justify="left",
             ).grid(row=2, column=0, sticky="w")
 

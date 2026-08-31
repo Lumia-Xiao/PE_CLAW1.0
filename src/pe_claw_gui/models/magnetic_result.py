@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Mapping
 
 from .inductor import FixedInductorDesignCandidate, InductorOperatingEvaluation
 from .ac_dc_reactor import AcDcReactorSelectionResult
@@ -129,6 +129,56 @@ class LlcExternalResonantInductorCandidate:
 
 
 @dataclass(frozen=True)
+class LlcPfArtifactContract:
+    """Run-scoped artifact contract for one separated-LLC magnetic role."""
+
+    role: str
+    run_id: str
+    topology_id: str
+    pareto_png_path: str | None = None
+    pareto_csv_path: str | None = None
+    feasible_csv_path: str | None = None
+    chosen_csv_path: str | None = None
+    recommended_design_id: str | None = None
+    status: str = "unavailable"
+    diagnostics: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-compatible role-specific artifact snapshot."""
+
+        return {
+            "role": self.role,
+            "run_id": self.run_id,
+            "topology_id": self.topology_id,
+            "pareto_png_path": self.pareto_png_path,
+            "pareto_csv_path": self.pareto_csv_path,
+            "feasible_csv_path": self.feasible_csv_path,
+            "chosen_csv_path": self.chosen_csv_path,
+            "recommended_design_id": self.recommended_design_id,
+            "status": self.status,
+            "diagnostics": list(self.diagnostics),
+        }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, object]) -> "LlcPfArtifactContract":
+        """Restore a role-specific artifact contract from structured output."""
+
+        values = dict(payload)
+        values["diagnostics"] = tuple(values.get("diagnostics", ()))
+        return cls(**values)
+
+    def validate_identity(self, *, run_id: str, topology_id: str) -> None:
+        """Reject stale or cross-topology role contracts."""
+
+        if self.run_id != run_id:
+            raise ValueError(f"LLC PF artifact contract run mismatch: {self.run_id!r} != {run_id!r}.")
+        if self.topology_id != topology_id:
+            raise ValueError(
+                f"LLC PF artifact contract topology mismatch: {self.topology_id!r} != {topology_id!r}."
+            )
+
+
+@dataclass(frozen=True)
 class LlcExternalResonantInductorRepresentativeSelection:
     """Named external Lr inductor Pareto representative."""
 
@@ -151,6 +201,7 @@ class LlcExternalResonantInductorSearchResult:
     min_loss_candidate: LlcExternalResonantInductorCandidate | None = None
     compromise_candidate: LlcExternalResonantInductorCandidate | None = None
     rejection_counts: dict[str, int] = field(default_factory=dict)
+    prefilter_rejection_counts: dict[str, int] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     artifact_paths: list[str] = field(default_factory=list)
@@ -160,6 +211,179 @@ class LlcExternalResonantInductorSearchResult:
     pareto_png_path: str = ""
     pareto_notes: list[str] = field(default_factory=list)
     plot_diagnostics: dict[str, object] = field(default_factory=dict)
+    performance_timing: dict[str, float] = field(default_factory=dict)
+    performance_counts: dict[str, int] = field(default_factory=dict)
+    search_bounds: dict[str, object] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class LlcMagneticCombinationContract:
+    """Single source of truth for one separated-LLC magnetic recommendation."""
+
+    run_id: str
+    topology_id: str
+    transformer_design_id: str
+    external_lr_design_id: str | None
+    combined_magnetic_design_id: str | None
+    np: int
+    ns: int
+    lm_target_h: float
+    lm_actual_h: float
+    transformer_leakage_h: float
+    external_lr_target_h: float | None
+    external_lr_actual_h: float | None
+    total_lr_target_h: float
+    total_lr_actual_h: float | None
+    fs_hz: float | None
+    vin_min_v: float | None
+    vin_nom_v: float | None
+    vin_max_v: float | None
+    vout_min_v: float | None
+    vout_nom_v: float | None
+    vout_max_v: float | None
+    transformer_current_basis: str
+    transformer_current_rms_a: float | None
+    transformer_current_peak_a: float | None
+    external_lr_current_basis: str | None
+    external_lr_current_rms_a: float | None
+    external_lr_current_peak_a: float | None
+    transformer_artifact_paths: tuple[str, ...] = ()
+    external_lr_artifact_paths: tuple[str, ...] = ()
+    lr_closure_tolerance_h: float = 1e-9
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-compatible contract snapshot."""
+
+        return {
+            "run_id": self.run_id,
+            "topology_id": self.topology_id,
+            "transformer_design_id": self.transformer_design_id,
+            "external_lr_design_id": self.external_lr_design_id,
+            "combined_magnetic_design_id": self.combined_magnetic_design_id,
+            "np": self.np,
+            "ns": self.ns,
+            "lm_target_h": self.lm_target_h,
+            "lm_actual_h": self.lm_actual_h,
+            "transformer_leakage_h": self.transformer_leakage_h,
+            "external_lr_target_h": self.external_lr_target_h,
+            "external_lr_actual_h": self.external_lr_actual_h,
+            "total_lr_target_h": self.total_lr_target_h,
+            "total_lr_actual_h": self.total_lr_actual_h,
+            "fs_hz": self.fs_hz,
+            "vin_min_v": self.vin_min_v,
+            "vin_nom_v": self.vin_nom_v,
+            "vin_max_v": self.vin_max_v,
+            "vout_min_v": self.vout_min_v,
+            "vout_nom_v": self.vout_nom_v,
+            "vout_max_v": self.vout_max_v,
+            "transformer_current_basis": self.transformer_current_basis,
+            "transformer_current_rms_a": self.transformer_current_rms_a,
+            "transformer_current_peak_a": self.transformer_current_peak_a,
+            "external_lr_current_basis": self.external_lr_current_basis,
+            "external_lr_current_rms_a": self.external_lr_current_rms_a,
+            "external_lr_current_peak_a": self.external_lr_current_peak_a,
+            "transformer_artifact_paths": list(self.transformer_artifact_paths),
+            "external_lr_artifact_paths": list(self.external_lr_artifact_paths),
+            "lr_closure_tolerance_h": self.lr_closure_tolerance_h,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, object]) -> "LlcMagneticCombinationContract":
+        """Restore a contract from a manifest or structured report payload."""
+
+        values = dict(payload)
+        values["transformer_artifact_paths"] = tuple(values.get("transformer_artifact_paths", ()))
+        values["external_lr_artifact_paths"] = tuple(values.get("external_lr_artifact_paths", ()))
+        return cls(**values)
+
+    def validate(
+        self,
+        *,
+        topology_id: str,
+        run_id: str,
+        transformer_candidates: list[Any],
+        external_lr_candidates: list[Any] | None = None,
+    ) -> None:
+        """Reject stale IDs, cross-topology data, or an open total-Lr closure."""
+
+        if self.topology_id != topology_id:
+            raise ValueError(
+                f"LLC magnetic contract topology mismatch: {self.topology_id!r} != {topology_id!r}."
+            )
+        if self.run_id != run_id:
+            raise ValueError(f"LLC magnetic contract run mismatch: {self.run_id!r} != {run_id!r}.")
+        transformer_ids = {
+            str(getattr(candidate, "candidate_id", ""))
+            for candidate in transformer_candidates
+        }
+        if self.transformer_design_id not in transformer_ids:
+            raise ValueError(
+                f"LLC magnetic contract references unknown transformer design ID: {self.transformer_design_id}."
+            )
+        if self.external_lr_design_id is not None:
+            external_ids = {
+                str(getattr(candidate, "design_id", ""))
+                for candidate in (external_lr_candidates or [])
+            }
+            if self.external_lr_design_id not in external_ids:
+                raise ValueError(
+                    f"LLC magnetic contract references unknown external Lr design ID: {self.external_lr_design_id}."
+                )
+        expected_combined = (
+            f"{self.transformer_design_id}+{self.external_lr_design_id}"
+            if self.external_lr_design_id is not None
+            else None
+        )
+        if self.combined_magnetic_design_id != expected_combined:
+            raise ValueError(
+                "LLC magnetic contract combined design ID does not match its component design IDs."
+            )
+        if self.external_lr_target_h is None or self.external_lr_actual_h is None:
+            if self.combined_magnetic_design_id is not None:
+                raise ValueError("LLC magnetic contract has a combined ID without complete external Lr values.")
+            return
+        target_error = abs(
+            self.total_lr_target_h
+            - (self.transformer_leakage_h + self.external_lr_target_h)
+        )
+        actual_error = abs(
+            (self.total_lr_actual_h or 0.0)
+            - (self.transformer_leakage_h + self.external_lr_actual_h)
+        )
+        if target_error > self.lr_closure_tolerance_h:
+            raise ValueError(f"LLC magnetic contract total Lr target is not closed: error={target_error:g} H.")
+        if actual_error > self.lr_closure_tolerance_h:
+            raise ValueError(f"LLC magnetic contract total Lr actual is not closed: error={actual_error:g} H.")
+
+
+@dataclass(frozen=True)
+class LlcMagneticStageSummary:
+    """Presentation-safe count summary for one separated-LLC magnetic stage."""
+
+    status: str = "not_evaluated"
+    generated_candidate_count: int = 0
+    prefilter_rejected_candidate_count: int = 0
+    prefilter_pass_count: int = 0
+    precise_evaluated_candidate_count: int = 0
+    feasible_candidate_count: int = 0
+    pareto_candidate_count: int = 0
+    chosen_candidate_count: int = 0
+    recommended_design_id: str | None = None
+    prefilter_rejection_counts: dict[str, int] = field(default_factory=dict)
+    failure_code: str | None = None
+    failure_reason: str | None = None
+    artifact_paths: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class LlcMagneticResultSummary:
+    """Dedicated result contract for separated LLC transformer plus external Lr."""
+
+    transformer: LlcMagneticStageSummary = field(default_factory=LlcMagneticStageSummary)
+    external_lr: LlcMagneticStageSummary = field(default_factory=LlcMagneticStageSummary)
+    recommended_transformer_design_id: str | None = None
+    recommended_external_lr_design_id: str | None = None
+    recommended_combined_magnetic_design_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -203,6 +427,12 @@ class MagneticResult:
     transformer_pareto_artifacts: list[str] = field(default_factory=list)
     transformer_pareto_notes: list[str] = field(default_factory=list)
     transformer_recommended_policy: str = ""
+    llc_pf_artifact_contracts: dict[str, LlcPfArtifactContract] = field(default_factory=dict)
+    llc_result_summary: LlcMagneticResultSummary | None = None
+    llc_magnetic_contract: LlcMagneticCombinationContract | None = None
+    recommended_transformer_design_id: str | None = None
+    recommended_external_lr_design_id: str | None = None
+    recommended_combined_magnetic_design_id: str | None = None
     transformer_visualization: TransformerVisualizationArtifact | None = None
     transformer_visualizations: dict[str, TransformerVisualizationArtifact] = field(default_factory=dict)
     transformer_comparison_visualization: TransformerVisualizationArtifact | None = None
@@ -211,5 +441,6 @@ class MagneticResult:
     ac_dc_reactor_result: AcDcReactorSelectionResult | None = None
     core_loss_excitation_audit: dict[str, object] = field(default_factory=dict)
     frontier_search_audit: dict[str, object] = field(default_factory=dict)
+    performance_timing: dict[str, object] = field(default_factory=dict)
     artifact_paths: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)

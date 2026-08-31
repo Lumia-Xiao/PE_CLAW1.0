@@ -43,6 +43,12 @@ class AppStateStore:
         self.last_raw_input = None
         self.design_report = None
 
+    def invalidate_design_report(self) -> None:
+        """Discard results that were produced from changed design inputs."""
+
+        self.last_raw_input = None
+        self.design_report = None
+
     def reset_to_category_selection(self) -> None:
         """Return the GUI to the first-level category selection page."""
         self.selected_category_id = None

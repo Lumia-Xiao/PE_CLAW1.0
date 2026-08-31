@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import Any
 
 from ..libraries.semiconductors.metadata import (
@@ -12,6 +13,7 @@ from ..libraries.semiconductors.metadata import (
 from ..models.common_spec import CommonSpec
 from ..models.design_report import DesignReport
 from ..models.operating_point import OperatingPoint
+from ..models.llc_run_context import LlcRunContext, is_llc_topology
 from ..models.waveform import WaveformSet
 from ..topologies.base import TopologyCandidate, TopologyPlugin, TopologyResult
 
@@ -34,6 +36,7 @@ def run_topology_pipeline(
     raw_input: dict[str, str],
     operating_point: OperatingPoint | None = None,
     include_waveforms: bool = False,
+    output_root: str | Path | None = None,
 ) -> TopologyPipelineBundle:
     """Run the selected topology plugin through synthesis and evaluation."""
     spec = plugin.build_spec(raw_input)
@@ -51,6 +54,15 @@ def run_topology_pipeline(
         stress_result=stress_result,
         topology_result=topology_result,
     )
+    if is_llc_topology(spec.topology_id):
+        context = LlcRunContext.create(spec.topology_id, raw_input, output_root=output_root)
+        if report.device is not None and report.device.recommended_scheme_id:
+            context = context.with_result_ids(device_design_id=report.device.recommended_scheme_id)
+        report = replace(
+            report,
+            llc_run_context=context,
+            notes=[*report.notes, "LLC run context created with isolated input and output identity."],
+        )
     return TopologyPipelineBundle(
         plugin=plugin,
         spec=spec,

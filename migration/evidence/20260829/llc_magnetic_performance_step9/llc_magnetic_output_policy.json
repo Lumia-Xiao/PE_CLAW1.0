@@ -1,0 +1,66 @@
+{
+  "baseline_file": "migration\\evidence\\20260829\\llc_magnetic_performance_step9\\llc_magnetic_performance_baseline.json",
+  "benchmark_cases": [
+    {
+      "case": "transformer-small",
+      "external_lr_debug_output_seconds": null,
+      "external_lr_generated_candidate_count": null,
+      "external_lr_precise_evaluated_candidate_count": null,
+      "external_lr_total_seconds": null,
+      "status": "completed",
+      "transformer_debug_output_seconds": 9.999985195463523e-08,
+      "transformer_generated_candidate_count": 90,
+      "transformer_precise_evaluated_candidate_count": 6,
+      "transformer_total_seconds": 0.03324809999958234
+    },
+    {
+      "case": "external-lr-small",
+      "external_lr_debug_output_seconds": 9.999985195463523e-08,
+      "external_lr_generated_candidate_count": 414,
+      "external_lr_precise_evaluated_candidate_count": 24,
+      "external_lr_total_seconds": 0.04412769999999,
+      "status": "completed",
+      "transformer_debug_output_seconds": 9.999985195463523e-08,
+      "transformer_generated_candidate_count": 352,
+      "transformer_precise_evaluated_candidate_count": 16,
+      "transformer_total_seconds": 0.047153200000138895
+    }
+  ],
+  "diagnostic_mode": {
+    "debug_outputs_enabled": true,
+    "diagnostic_output_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0\\outputs\\llc_diagnostics",
+    "external_lr_artifacts": true,
+    "formal_output_roots": [
+      "outputs/resonant_inductor_design",
+      "outputs/inductor_design"
+    ],
+    "geometry_roles": [
+      "min-volume",
+      "min-loss",
+      "recommended"
+    ],
+    "transformer_debug_csv": true,
+    "transformer_pareto_artifacts": true
+  },
+  "formal_mode": {
+    "debug_outputs_enabled": false,
+    "diagnostic_output_root": "",
+    "external_lr_artifacts": false,
+    "formal_output_roots": [
+      "outputs/resonant_inductor_design",
+      "outputs/inductor_design"
+    ],
+    "geometry_roles": [
+      "recommended"
+    ],
+    "transformer_debug_csv": false,
+    "transformer_pareto_artifacts": false
+  },
+  "repeat_run_strategy": {
+    "diagnostic_outputs_are_opt_in": true,
+    "diagnostic_root": "outputs/llc_diagnostics",
+    "formal_geometry_root": "outputs/resonant_inductor_design",
+    "stable_role_file_names": true
+  },
+  "schema_version": "llc_magnetic_output_policy_step9_v1"
+}

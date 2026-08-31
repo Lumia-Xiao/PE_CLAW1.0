@@ -1,0 +1,624 @@
+{
+  "artifact_manifest": [
+    {
+      "exists": true,
+      "path": "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.png",
+      "size_bytes": 65897
+    },
+    {
+      "exists": true,
+      "path": "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.svg",
+      "size_bytes": 91565
+    },
+    {
+      "exists": true,
+      "path": "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.png",
+      "size_bytes": 83137
+    },
+    {
+      "exists": true,
+      "path": "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.svg",
+      "size_bytes": 63004
+    }
+  ],
+  "baseline_calculation_source_contract": {
+    "combined": {
+      "recommended_id": "E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4",
+      "total_loss_w": 5.01963,
+      "volume_cm3": 150.75
+    },
+    "external_lr": {
+      "feasible": 186,
+      "generated": 3020,
+      "pareto": 18,
+      "recommended_id": "Lr_ext_E_55_28_25_SMP97_N11_P4"
+    },
+    "geometry_roles": [
+      "recommended"
+    ],
+    "transformer": {
+      "evaluated": 19216,
+      "feasible": 10269,
+      "pareto": 16,
+      "recommended_id": "E_80_38_32_SMP97_Np18_Ns18"
+    }
+  },
+  "baseline_source": "migration\\evidence\\20260829\\llc_magnetic_result_display_step1\\llc_magnetic_result_display_step1_baseline.json",
+  "checks": {
+    "artifacts_present": true,
+    "candidate_counts_unchanged": true,
+    "external_lr_geometry_role": true,
+    "loss_conservation": true,
+    "no_legacy_llc_display_fields": true,
+    "recommendations_unchanged": true,
+    "structured_selection_pass": true,
+    "volume_conservation": true
+  },
+  "final_loss": {
+    "combined_total_loss_w": 5.01964,
+    "component_volumes_m3": {
+      "combined_magnetic_volume_m3": 0.00015075,
+      "external_lr_volume_m3": 4.18581e-05,
+      "transformer_volume_m3": 0.0001088919
+    },
+    "external_lr_total_loss_w": 1.27589,
+    "transformer_total_loss_w": 3.74375
+  },
+  "final_recommendations": {
+    "combined": "E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4",
+    "external_lr": "Lr_ext_E_55_28_25_SMP97_N11_P4",
+    "transformer": "E_80_38_32_SMP97_Np18_Ns18"
+  },
+  "final_thermal": {
+    "external_lr": {
+      "design_id": "Lr_ext_E_55_28_25_SMP97_N11_P4",
+      "hotspot_c": 48.5,
+      "source": "External Lr magnetic screening first-pass hotspot estimate",
+      "status": "available"
+    },
+    "transformer": {
+      "design_id": "E_80_38_32_SMP97_Np18_Ns18",
+      "hotspot_c": 76.2,
+      "source": "LLC transformer magnetic screening first-pass hotspot estimate",
+      "status": "available"
+    }
+  },
+  "inductor_view_text": "Separated LLC transformer first-pass magnetic screening evaluated 19216 candidates and found 10269 feasible candidates. Transformer Pareto front contains 16 candidates. Preliminary transformer recommendation: E 80/38/32/SMP97, Np:Ns=18:18, gap=2.18359 mm, loss=3.74375 W.\n\nCandidate counts\n  Transformer: available\n    generated candidates: 19216\n    prefilter rejected candidates: 0\n    precise evaluated candidates: 19216\n    feasible candidates: 10269\n    Pareto candidates: 16\n  External resonant inductor: available\n    generated candidates: 3020\n    prefilter rejected candidates: 2764\n    precise evaluated candidates: 256\n    feasible candidates: 186\n    Pareto candidates: 18\n\nRecommended magnetic designs\n  Transformer: E_80_38_32_SMP97_Np18_Ns18\n  External resonant inductor: Lr_ext_E_55_28_25_SMP97_N11_P4\n  Combined magnetic design: E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4\n\nDesign requirements\n  Topology: llc_resonant_converter_diode_rectifier\n  Design type: separated_llc_transformer\n  Vin min/nom/max: N/A (not available) / N/A (not available) / N/A (not available)\n  Vout min/nom/max: N/A (not available) / N/A (not available) / N/A (not available)\n  Pout min/max: N/A (not available) / N/A (not available)\n  fs min/nom/max: N/A (not available) / N/A (not available) / N/A (not available)\n  Base transformer Np:Ns: N/A (not available)\n  Recommended transformer Np:Ns: N/A (not available)\n  Lm target: 1800 uH\n  Total Lr target: 1200 uH\n  Transformer estimated Llk: N/A (not available)\n  External Lr target: N/A (not available) (not available)\n  Transformer primary Irms/Ipeak: N/A (not available) / N/A (not available)\n  Transformer secondary Irms/Ipeak: N/A (not available) / N/A (not available)\n  External Lr Irms/Ipeak: N/A (not available) / N/A (not available)\n  External Lr fs basis: N/A (not available)\n  B limit: 0.24 T\n  Primary bridge: full_bridge\n  Secondary rectifier: diode_rectifier\n  Magnetic search mode: N/A (not available)\n  Saturation boundary cases: nominal_full_load, low_input_full_load\n  Search bounds: N/A (not available)\n\nMagnetic loss\n  recommended combined design: E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4\n  transformer design: E_80_38_32_SMP97_Np18_Ns18\n    core loss: 2.1 W\n    copper loss: 1.64375 W\n    total loss: 3.74375 W\n    volume: 108.892 cm^3\n  external Lr design: Lr_ext_E_55_28_25_SMP97_N11_P4\n    core loss: 0.7 W\n    copper loss: 0.57589 W\n    total loss: 1.27589 W\n    volume: 41.8581 cm^3\n  combined core loss: 2.8 W\n  combined copper loss: 2.21964 W\n  combined total loss: 5.01964 W\n  combined volume: 150.75 cm^3\n\nMagnetic thermal\n  ambient: 25 C\n  recommended design: E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4\n  Transformer: available\n    design: E_80_38_32_SMP97_Np18_Ns18\n    hotspot: 76.2 C\n    source: LLC transformer magnetic screening first-pass hotspot estimate\n  External Lr: available\n    design: Lr_ext_E_55_28_25_SMP97_N11_P4\n    hotspot: 48.5 C\n    source: External Lr magnetic screening first-pass hotspot estimate\n\nGeometry\n  component: external_resonant_inductor\n  External resonant inductor geometry prepared with fixed targets.\n  Recommended: Lr_ext_E_55_28_25_SMP97_N11_P4, volume=41.8581 cm^3, loss=1.27589 W\n\nArtifacts\n  outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.png\n  outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.svg\n  outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.png\n  outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.svg\n\nNotes\n  LLC transformer design type: separated LLC transformer.\n  Transformer realizes Np:Ns and Lm; external resonant inductor realizes Lr.\n  Transformer geometry is shown on the Transformer page; these artifacts are for external Lr.",
+  "magnetic_view_text": "Separated LLC transformer first-pass magnetic screening evaluated 19216 candidates and found 10269 feasible candidates. Transformer Pareto front contains 16 candidates. Preliminary transformer recommendation: E 80/38/32/SMP97, Np:Ns=18:18, gap=2.18359 mm, loss=3.74375 W.\n\nCandidate counts\n  Transformer: available\n    generated candidates: 19216\n    prefilter rejected candidates: 0\n    precise evaluated candidates: 19216\n    feasible candidates: 10269\n    Pareto candidates: 16\n  External resonant inductor: available\n    generated candidates: 3020\n    prefilter rejected candidates: 2764\n    precise evaluated candidates: 256\n    feasible candidates: 186\n    Pareto candidates: 18\n\nRecommended magnetic designs\n  Transformer: E_80_38_32_SMP97_Np18_Ns18\n  External resonant inductor: Lr_ext_E_55_28_25_SMP97_N11_P4\n  Combined magnetic design: E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4\n\nDesign requirements\n  Topology: llc_resonant_converter_diode_rectifier\n  Design type: separated_llc_transformer\n  Vin min/nom/max: N/A (not available) / N/A (not available) / N/A (not available)\n  Vout min/nom/max: N/A (not available) / N/A (not available) / N/A (not available)\n  Pout min/max: N/A (not available) / N/A (not available)\n  fs min/nom/max: N/A (not available) / N/A (not available) / N/A (not available)\n  Base transformer Np:Ns: N/A (not available)\n  Recommended transformer Np:Ns: N/A (not available)\n  Lm target: 1800 uH\n  Total Lr target: 1200 uH\n  Transformer estimated Llk: N/A (not available)\n  External Lr target: N/A (not available) (not available)\n  Transformer primary Irms/Ipeak: N/A (not available) / N/A (not available)\n  Transformer secondary Irms/Ipeak: N/A (not available) / N/A (not available)\n  External Lr Irms/Ipeak: N/A (not available) / N/A (not available)\n  External Lr fs basis: N/A (not available)\n  B limit: 0.24 T\n  Primary bridge: full_bridge\n  Secondary rectifier: diode_rectifier\n  Magnetic search mode: N/A (not available)\n  Saturation boundary cases: nominal_full_load, low_input_full_load\n  Search bounds: N/A (not available)\n\nMagnetic loss\n  recommended combined design: E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4\n  transformer design: E_80_38_32_SMP97_Np18_Ns18\n    core loss: 2.1 W\n    copper loss: 1.64375 W\n    total loss: 3.74375 W\n    volume: 108.892 cm^3\n  external Lr design: Lr_ext_E_55_28_25_SMP97_N11_P4\n    core loss: 0.7 W\n    copper loss: 0.57589 W\n    total loss: 1.27589 W\n    volume: 41.8581 cm^3\n  combined core loss: 2.8 W\n  combined copper loss: 2.21964 W\n  combined total loss: 5.01964 W\n  combined volume: 150.75 cm^3\n\nMagnetic thermal\n  ambient: 25 C\n  recommended design: E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4\n  Transformer: available\n    design: E_80_38_32_SMP97_Np18_Ns18\n    hotspot: 76.2 C\n    source: LLC transformer magnetic screening first-pass hotspot estimate\n  External Lr: available\n    design: Lr_ext_E_55_28_25_SMP97_N11_P4\n    hotspot: 48.5 C\n    source: External Lr magnetic screening first-pass hotspot estimate\n\nGeometry\n  component: external_resonant_inductor\n  External resonant inductor geometry prepared with fixed targets.\n  Recommended: Lr_ext_E_55_28_25_SMP97_N11_P4, volume=41.8581 cm^3, loss=1.27589 W\n\nArtifacts\n  outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.png\n  outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.svg\n  outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.png\n  outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.svg\n\nNotes\n  LLC transformer design type: separated LLC transformer.\n  Transformer realizes Np:Ns and Lm; external resonant inductor realizes Lr.\n  Transformer geometry is shown on the Transformer page; these artifacts are for external Lr.",
+  "schema_version": "llc_magnetic_result_display_step6_acceptance_v1",
+  "structured_output": {
+    "audit": {
+      "notes": [],
+      "source_stages": [
+        "request",
+        "candidate",
+        "waveform",
+        "stress",
+        "magnetic",
+        "capacitor",
+        "thermal",
+        "status"
+      ]
+    },
+    "candidate": {
+      "available": true,
+      "capacitance": {
+        "source": "candidate.synthesis",
+        "unit": "F",
+        "value": null
+      },
+      "ccm_valid": null,
+      "duty": {
+        "source": "candidate.synthesis",
+        "unit": "ratio",
+        "value": null
+      },
+      "feasible": null,
+      "inductance": {
+        "source": "candidate.synthesis",
+        "unit": "H",
+        "value": null
+      },
+      "inductor_ripple": {
+        "source": "candidate.synthesis",
+        "unit": "A",
+        "value": null
+      },
+      "mode": null,
+      "output_current": {
+        "source": "candidate.synthesis",
+        "unit": "A",
+        "value": null
+      },
+      "output_ripple_estimated": {
+        "source": "candidate.synthesis",
+        "unit": "V",
+        "value": null
+      },
+      "switching_frequency": {
+        "source": "candidate.synthesis",
+        "unit": "Hz",
+        "value": null
+      }
+    },
+    "capacitor": {
+      "available": false,
+      "input": {},
+      "metadata": {},
+      "output": {}
+    },
+    "geometry": {
+      "available": true,
+      "metadata": {
+        "artifact_paths": [
+          "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.png",
+          "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.svg",
+          "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.png",
+          "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.svg"
+        ],
+        "component_type": "external_resonant_inductor",
+        "summary": "External resonant inductor geometry prepared with fixed targets."
+      },
+      "selected_design_id": "Lr_ext_E_55_28_25_SMP97_N11_P4",
+      "targets": [
+        {
+          "artifact_paths": [
+            "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.png",
+            "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_2d.svg",
+            "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.png",
+            "outputs/resonant_inductor_design/llc_external_resonant_inductor_recommended_geometry_3d.svg"
+          ],
+          "design_id": "Lr_ext_E_55_28_25_SMP97_N11_P4",
+          "duplicate_of": null,
+          "error": null,
+          "label": "Recommended",
+          "loss": {
+            "source": "geometry.recommended.loss",
+            "unit": "W",
+            "value": 1.27589
+          },
+          "role": "recommended",
+          "volume": {
+            "source": "geometry.recommended.volume",
+            "unit": "m3",
+            "value": 4.18581e-05
+          }
+        }
+      ]
+    },
+    "hardware": {
+      "capacitor": {
+        "input_part_number": null,
+        "output_part_number": null,
+        "selection_status": "not_evaluated"
+      },
+      "magnetic": {
+        "chosen_design_ids": [
+          "E_80_38_32_SMP97_Np18_Ns18",
+          "Lr_ext_E_55_28_25_SMP97_N11_P4"
+        ],
+        "selected_design_id": "E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4",
+        "selection_status": "pass"
+      },
+      "semiconductor": {
+        "selected_devices": {},
+        "selection_status": "not_evaluated"
+      }
+    },
+    "loss": {
+      "available": true,
+      "llc": {
+        "combined": {
+          "copper_loss": {
+            "source": "loss.llc.combined.copper",
+            "unit": "W",
+            "value": 2.21964
+          },
+          "core_loss": {
+            "source": "loss.llc.combined.core",
+            "unit": "W",
+            "value": 2.8
+          },
+          "design_id": "E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4",
+          "total_loss": {
+            "source": "loss.llc.combined.total",
+            "unit": "W",
+            "value": 5.01964
+          },
+          "volume": {
+            "source": "loss.llc.combined.volume",
+            "unit": "m3",
+            "value": 0.00015075
+          }
+        },
+        "external_lr": {
+          "copper_loss": {
+            "source": "loss.llc.external_lr.copper",
+            "unit": "W",
+            "value": 0.57589
+          },
+          "core_loss": {
+            "source": "loss.llc.external_lr.core",
+            "unit": "W",
+            "value": 0.7
+          },
+          "design_id": "Lr_ext_E_55_28_25_SMP97_N11_P4",
+          "total_loss": {
+            "source": "loss.llc.external_lr.total",
+            "unit": "W",
+            "value": 1.27589
+          },
+          "volume": {
+            "source": "loss.llc.external_lr.volume",
+            "unit": "m3",
+            "value": 4.18581e-05
+          }
+        },
+        "transformer": {
+          "copper_loss": {
+            "source": "loss.llc.transformer.copper",
+            "unit": "W",
+            "value": 1.64375
+          },
+          "core_loss": {
+            "source": "loss.llc.transformer.core",
+            "unit": "W",
+            "value": 2.1
+          },
+          "design_id": "E_80_38_32_SMP97_Np18_Ns18",
+          "total_loss": {
+            "source": "loss.llc.transformer.total",
+            "unit": "W",
+            "value": 3.74375
+          },
+          "volume": {
+            "source": "loss.llc.transformer.volume",
+            "unit": "m3",
+            "value": 0.0001088919
+          }
+        }
+      },
+      "metadata": {
+        "core_loss_status": "not_evaluated"
+      },
+      "metrics": {
+        "recommended_volume": {
+          "source": "loss.recommended_volume",
+          "unit": "m3",
+          "value": 0.00015075
+        },
+        "total_loss": {
+          "source": "loss.total",
+          "unit": "W",
+          "value": 5.01964
+        }
+      },
+      "recommended_design_id": "E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4"
+    },
+    "magnetic": {
+      "available": true,
+      "chosen_design_ids": [],
+      "llc": {
+        "external_lr": {
+          "metrics": {
+            "feasible_candidates": {
+              "source": "magnetic.llc.external_lr.feasible",
+              "unit": "count",
+              "value": 186.0
+            },
+            "generated_candidates": {
+              "source": "magnetic.llc.external_lr.generated",
+              "unit": "count",
+              "value": 3020.0
+            },
+            "pareto_candidates": {
+              "source": "magnetic.llc.external_lr.pareto",
+              "unit": "count",
+              "value": 18.0
+            },
+            "precise_evaluated_candidates": {
+              "source": "magnetic.llc.external_lr.precise",
+              "unit": "count",
+              "value": 256.0
+            },
+            "prefilter_pass_candidates": {
+              "source": "magnetic.llc.external_lr.prefilter_pass",
+              "unit": "count",
+              "value": 256.0
+            },
+            "prefilter_rejected_candidates": {
+              "source": "magnetic.llc.external_lr.prefilter_rejected",
+              "unit": "count",
+              "value": 2764.0
+            }
+          },
+          "prefilter_rejection_counts": {},
+          "recommended_design_id": "Lr_ext_E_55_28_25_SMP97_N11_P4",
+          "status": "available"
+        },
+        "recommendations": {
+          "combined_magnetic_design_id": "E_80_38_32_SMP97_Np18_Ns18+Lr_ext_E_55_28_25_SMP97_N11_P4",
+          "external_lr_design_id": "Lr_ext_E_55_28_25_SMP97_N11_P4",
+          "transformer_design_id": "E_80_38_32_SMP97_Np18_Ns18"
+        },
+        "transformer": {
+          "metrics": {
+            "feasible_candidates": {
+              "source": "magnetic.llc.transformer.feasible",
+              "unit": "count",
+              "value": 10269.0
+            },
+            "generated_candidates": {
+              "source": "magnetic.llc.transformer.generated",
+              "unit": "count",
+              "value": 19216.0
+            },
+            "pareto_candidates": {
+              "source": "magnetic.llc.transformer.pareto",
+              "unit": "count",
+              "value": 16.0
+            },
+            "precise_evaluated_candidates": {
+              "source": "magnetic.llc.transformer.precise",
+              "unit": "count",
+              "value": 19216.0
+            },
+            "prefilter_pass_candidates": {
+              "source": "magnetic.llc.transformer.prefilter_pass",
+              "unit": "count",
+              "value": 19216.0
+            },
+            "prefilter_rejected_candidates": {
+              "source": "magnetic.llc.transformer.prefilter_rejected",
+              "unit": "count",
+              "value": 0.0
+            }
+          },
+          "prefilter_rejection_counts": {},
+          "recommended_design_id": "E_80_38_32_SMP97_Np18_Ns18",
+          "status": "available"
+        }
+      },
+      "metadata": {
+        "design_type": "separated_llc_transformer",
+        "performance_timing": {
+          "pipeline": {
+            "total_seconds": 3.2
+          }
+        },
+        "result_type": "separated_llc_transformer"
+      },
+      "metrics": {
+        "feasible_count": {
+          "source": "magnetic.selection",
+          "unit": "count",
+          "value": 10269.0
+        },
+        "pareto_count": {
+          "source": "magnetic.selection",
+          "unit": "count",
+          "value": 16.0
+        }
+      },
+      "selected_design_id": "E_80_38_32_SMP97_Np18_Ns18"
+    },
+    "operating_point": {
+      "available": false,
+      "input_voltage": {
+        "source": "operating_point.input",
+        "unit": "V",
+        "value": null
+      },
+      "load_ratio": {
+        "source": "operating_point.input",
+        "unit": "p.u.",
+        "value": null
+      },
+      "output_voltage": {
+        "source": "operating_point.input",
+        "unit": "V",
+        "value": null
+      },
+      "power_factor": {
+        "source": "operating_point.input",
+        "unit": "ratio",
+        "value": null
+      },
+      "switching_frequency": {
+        "source": "operating_point.input",
+        "unit": "Hz",
+        "value": null
+      }
+    },
+    "report_kind": "design_report",
+    "request": {
+      "input_voltage_max": {
+        "source": "request.normalized",
+        "unit": "V",
+        "value": 420.0
+      },
+      "input_voltage_min": {
+        "source": "request.normalized",
+        "unit": "V",
+        "value": 360.0
+      },
+      "output_power": {
+        "source": "request.normalized",
+        "unit": "W",
+        "value": 4000.0
+      },
+      "output_voltage": {
+        "source": "request.normalized",
+        "unit": "V",
+        "value": 48.0
+      },
+      "raw_input": {
+        "fixture": "user-run-step1-baseline"
+      },
+      "ripple_current_ratio": {
+        "source": "request.normalized",
+        "unit": "ratio",
+        "value": 0.2
+      },
+      "ripple_voltage_ratio": {
+        "source": "request.normalized",
+        "unit": "ratio",
+        "value": 0.01
+      },
+      "switching_frequency": {
+        "source": "request.normalized",
+        "unit": "Hz",
+        "value": 100000.0
+      }
+    },
+    "ripple": {
+      "dc_link_ripple_limit": {
+        "source": "request.normalized",
+        "unit": "V",
+        "value": null
+      },
+      "dc_link_ripple_predicted": {
+        "source": "capacitor.selection",
+        "unit": "V",
+        "value": null
+      },
+      "output_ripple_estimated": {
+        "source": "candidate.synthesis",
+        "unit": "V",
+        "value": null
+      },
+      "output_ripple_predicted": {
+        "source": "capacitor.selection",
+        "unit": "V",
+        "value": null
+      },
+      "output_ripple_simulated": {
+        "source": "waveform.post_processing",
+        "unit": "V",
+        "value": null
+      },
+      "output_ripple_target": {
+        "source": "request.normalized",
+        "unit": "V",
+        "value": 0.48
+      }
+    },
+    "schema_version": "pe_claw_structured_design_report_v1",
+    "status": {
+      "ccm_valid": null,
+      "feasible": null,
+      "pf_status": "not_evaluated",
+      "thermal_status": "unknown",
+      "zvs_status": "not_evaluated"
+    },
+    "stress": {
+      "available": false,
+      "rectifier": {
+        "current_average": {
+          "source": "stress.extraction",
+          "unit": "A",
+          "value": null
+        },
+        "current_peak": {
+          "source": "stress.extraction",
+          "unit": "A",
+          "value": null
+        },
+        "current_rms": {
+          "source": "stress.extraction",
+          "unit": "A",
+          "value": null
+        },
+        "voltage_max": {
+          "source": "stress.extraction",
+          "unit": "V",
+          "value": null
+        }
+      },
+      "switch": {
+        "current_average": {
+          "source": "stress.extraction",
+          "unit": "A",
+          "value": null
+        },
+        "current_peak": {
+          "source": "stress.extraction",
+          "unit": "A",
+          "value": null
+        },
+        "current_rms": {
+          "source": "stress.extraction",
+          "unit": "A",
+          "value": null
+        },
+        "voltage_max": {
+          "source": "stress.extraction",
+          "unit": "V",
+          "value": null
+        }
+      }
+    },
+    "thermal": {
+      "available": true,
+      "llc_components": {
+        "external_lr": {
+          "design_id": "Lr_ext_E_55_28_25_SMP97_N11_P4",
+          "hotspot_temperature": {
+            "source": "thermal.llc.external_lr",
+            "unit": "degC",
+            "value": 48.5
+          },
+          "source": "External Lr magnetic screening first-pass hotspot estimate",
+          "status": "available"
+        },
+        "transformer": {
+          "design_id": "E_80_38_32_SMP97_Np18_Ns18",
+          "hotspot_temperature": {
+            "source": "thermal.llc.transformer",
+            "unit": "degC",
+            "value": 76.2
+          },
+          "source": "LLC transformer magnetic screening first-pass hotspot estimate",
+          "status": "available"
+        }
+      },
+      "metadata": {
+        "summary": "LLC transformer and external resonant-inductor thermal screening uses magnetic first-pass hotspot estimates."
+      },
+      "metrics": {
+        "ambient_temperature": {
+          "source": "thermal.evaluation",
+          "unit": "degC",
+          "value": 25.0
+        },
+        "hotspot_temperature": {
+          "source": "thermal.evaluation",
+          "unit": "degC",
+          "value": null
+        },
+        "total_loss": {
+          "source": "thermal.evaluation",
+          "unit": "W",
+          "value": null
+        }
+      },
+      "status": "valid"
+    },
+    "topology": {
+      "display_name": "LLC Resonant Converter Diode Rectifier",
+      "id": "llc_resonant_converter_diode_rectifier"
+    },
+    "waveform": {
+      "available": false,
+      "metadata": {},
+      "operating": {},
+      "series": {}
+    }
+  },
+  "test_summary": {
+    "compileall": "passed",
+    "diff_check": "passed",
+    "full_suite": "400 passed, 1 skipped",
+    "full_suite_command": "PYTHONPATH=src python -m pytest -q --basetemp .pytest-tmp-step6-full"
+  }
+}

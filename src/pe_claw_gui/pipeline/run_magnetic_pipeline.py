@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import csv
 from dataclasses import fields, replace
 from pathlib import Path
+from time import perf_counter
 
 from ..engines.magnetics.allow_profiles import get_default_allow_profile
 from ..engines.magnetics.ac_dc_reactor_selector import select_ac_dc_sendust_reactor
@@ -18,18 +20,27 @@ from ..engines.magnetics.stacked_expansion import (
 from ..models.design_report import DesignReport
 from ..models.ac_dc_reactor import AcDcReactorDesignRequest
 from ..models.geometry_result import GeometryResult
-from ..models.magnetic_result import MagneticResult
+from ..models.magnetic_result import (
+    LlcMagneticCombinationContract,
+    LlcMagneticResultSummary,
+    LlcMagneticStageSummary,
+    MagneticResult,
+)
+from .llc_pf_artifacts import build_llc_pf_artifact_contract
 try:
     from ..topologies.dc_dc.llc_resonant_converter_diode_rectifier.fha_design import (
         LLCFHADesign,
         LLCOperatingPointResult,
+        fha_boundary_frequency_cache_info,
     )
     from ..topologies.dc_dc.llc_resonant_converter_diode_rectifier.transformer_design import (
         build_llc_external_resonant_inductor_target,
         build_llc_transformer_pareto_result,
+        build_llc_magnetic_search_bounds,
         build_transformer_design_inputs_from_fha,
         generate_llc_external_resonant_inductor_candidates,
         generate_separated_llc_transformer_candidates,
+        llc_reusable_magnetic_metrics_cache_info,
         make_fha_boundary_frequency_solver,
     )
 except ModuleNotFoundError:  # New LLC topology package is outside the 1.0 GUI scope.
@@ -37,10 +48,13 @@ except ModuleNotFoundError:  # New LLC topology package is outside the 1.0 GUI s
     LLCOperatingPointResult = None
     build_llc_external_resonant_inductor_target = None
     build_llc_transformer_pareto_result = None
+    build_llc_magnetic_search_bounds = None
     build_transformer_design_inputs_from_fha = None
     generate_llc_external_resonant_inductor_candidates = None
     generate_separated_llc_transformer_candidates = None
+    llc_reusable_magnetic_metrics_cache_info = None
     make_fha_boundary_frequency_solver = None
+    fha_boundary_frequency_cache_info = None
 
 try:
     from ..topologies.dc_dc.flyback_diode_rectified_isolated.coupled_inductor_design import (
@@ -87,8 +101,6 @@ LLC_TRANSFORMER_TOPOLOGY_IDS = {
     "llc_resonant_converter_diode_rectifier",
     "llc_resonant_converter_synchronous_rectifier",
 }
-LLC_TRANSFORMER_MATERIAL_LIMIT = 16
-LLC_EXTERNAL_LR_MATERIAL_LIMIT = 16
 FLYBACK_MATERIAL_LIMIT = 16
 
 
@@ -96,6 +108,9 @@ def run_magnetic_pipeline(
     report: DesignReport,
     *,
     backend_config: MagneticDataBackendConfig | None = None,
+    llc_search_mode: str = "fast",
+    llc_debug_outputs: bool = False,
+    llc_geometry_roles: tuple[str, ...] | None = None,
 ) -> DesignReport:
     """Attach magnetic design plus a shadow-only core-loss excitation audit."""
 
@@ -103,7 +118,13 @@ def run_magnetic_pipeline(
         attach_core_loss_excitation_audit,
     )
 
-    completed = _run_magnetic_pipeline_without_excitation_audit(report, backend_config=backend_config)
+    completed = _run_magnetic_pipeline_without_excitation_audit(
+        report,
+        backend_config=backend_config,
+        llc_search_mode=llc_search_mode,
+        llc_debug_outputs=llc_debug_outputs,
+        llc_geometry_roles=llc_geometry_roles,
+    )
     return attach_core_loss_excitation_audit(completed)
 
 
@@ -111,6 +132,9 @@ def _run_magnetic_pipeline_without_excitation_audit(
     report: DesignReport,
     *,
     backend_config: MagneticDataBackendConfig | None = None,
+    llc_search_mode: str = "fast",
+    llc_debug_outputs: bool = False,
+    llc_geometry_roles: tuple[str, ...] | None = None,
 ) -> DesignReport:
     """Attach the inductor magnetic stage to a design report."""
     geometry_result = report.geometry or GeometryResult(notes=["Geometry estimation remains a placeholder stage."])
@@ -129,6 +153,9 @@ def _run_magnetic_pipeline_without_excitation_audit(
             report,
             geometry_result,
             backend_config=resolved_backend_config,
+            llc_search_mode=llc_search_mode,
+            llc_debug_outputs=llc_debug_outputs,
+            llc_geometry_roles=llc_geometry_roles,
         )
 
     if report.spec.topology_id == "flyback_diode_rectified_isolated":
@@ -743,9 +770,18 @@ def _run_llc_transformer_magnetic_pipeline(
     geometry_result: GeometryResult,
     *,
     backend_config: MagneticDataBackendConfig | None = None,
+    llc_search_mode: str = "fast",
+    llc_debug_outputs: bool = False,
+    llc_geometry_roles: tuple[str, ...] | None = None,
 ) -> DesignReport:
     """Run separated LLC transformer first-pass magnetic screening from Run Magnetics."""
 
+    pipeline_started = perf_counter()
+    pipeline_timing: dict[str, object] = {}
+    output_policy = _llc_output_policy(
+        debug_outputs=llc_debug_outputs,
+        geometry_roles=llc_geometry_roles,
+    )
     llc_fha_metadata = (
         report.candidate.metadata.get("llc_fha", {})
         if report.candidate is not None and isinstance(report.candidate.metadata, dict)
@@ -757,59 +793,271 @@ def _run_llc_transformer_magnetic_pipeline(
         else {}
     )
     if not isinstance(transformer_target, dict) or not transformer_target:
-        magnetic_result = MagneticResult(
-            summary="LLC transformer magnetic screening could not run because transformer target metadata is missing.",
-            result_type="separated_llc_transformer",
-            design_type="separated_llc_transformer",
+        magnetic_result = _llc_transformer_failure_result(
+            failure_code="missing_transformer_target",
+            failure_reason="LLC transformer target metadata is missing from the FHA design result.",
             notes=[
                 "Run Design must complete the diode LLC FHA design before Run Magnetics can screen separated transformer candidates.",
             ],
         )
-        return replace(report, magnetic=magnetic_result, geometry=geometry_result)
+        magnetic_result = replace(
+            magnetic_result,
+            llc_pf_artifact_contracts=_build_llc_pf_contracts(report),
+        )
+        return _mark_llc_magnetics_blocked(
+            replace(report, magnetic=magnetic_result, geometry=geometry_result),
+            magnetic_result.llc_result_summary.transformer.failure_reason,
+        )
 
     try:
+        preparation_started = perf_counter()
         backend_bundle = resolve_magnetic_data_backend(
             backend_config or get_production_magnetic_backend_config()
         )
         fha_design = _rebuild_llc_fha_design(llc_fha_metadata)
         transformer_inputs = build_transformer_design_inputs_from_fha(fha_design)
+        search_bounds = build_llc_magnetic_search_bounds(transformer_inputs, mode=llc_search_mode)
+        pipeline_timing["parameter_preparation_seconds"] = perf_counter() - preparation_started
+        transformer_search_started = perf_counter()
         search_result = generate_separated_llc_transformer_candidates(
             transformer_inputs,
             core_records=(backend_bundle.cores if backend_bundle is not None else None),
             material_records=(backend_bundle.materials if backend_bundle is not None else None),
             wire_records=(backend_bundle.wires if backend_bundle is not None else None),
-            max_scale_factor=80,
+            max_scale_factor=search_bounds.max_scale_factor,
             frequency_solver=make_fha_boundary_frequency_solver(fha_design),
-            core_limit=48,
-            material_limit=LLC_TRANSFORMER_MATERIAL_LIMIT,
-            wire_limit=16,
+            search_bounds=search_bounds,
             write_debug_csv=True,
+            output_dir=_llc_transformer_output_dir(report),
         )
+        pipeline_timing["transformer_search_seconds"] = perf_counter() - transformer_search_started
+        transformer_output_dir = _llc_transformer_output_dir(report)
+        transformer_artifact_paths = list(search_result.artifact_paths)
+        if not search_result.feasible_candidates:
+            return _finish_llc_transformer_failure(
+                report,
+                geometry_result,
+                search_result=search_result,
+                output_policy=output_policy,
+                pipeline_timing=pipeline_timing,
+                failure_code="no_feasible_candidate",
+                failure_reason=(
+                    "Transformer candidate search completed, but no candidate passed the LLC magnetic constraints."
+                ),
+            )
+        transformer_pareto_started = perf_counter()
         pareto_result = build_llc_transformer_pareto_result(
             search_result.feasible_candidates,
             write_artifacts=True,
+            output_dir=transformer_output_dir,
         )
+        pipeline_timing["transformer_pareto_seconds"] = perf_counter() - transformer_pareto_started
         recommended = pareto_result.recommended_candidate or search_result.recommended_preliminary_candidate
         selected_design_id = recommended.candidate_id if recommended is not None else None
+        artifact_validation = _validate_llc_transformer_artifacts(
+            [*transformer_artifact_paths, *pareto_result.artifact_paths],
+            pareto_result,
+        )
+        if not artifact_validation["valid"]:
+            return _finish_llc_transformer_failure(
+                report,
+                geometry_result,
+                search_result=search_result,
+                pareto_result=pareto_result,
+                output_policy=output_policy,
+                pipeline_timing=pipeline_timing,
+                failure_code="artifact_incomplete",
+                failure_reason=str(artifact_validation["reason"]),
+                artifact_paths=[*transformer_artifact_paths, *pareto_result.artifact_paths],
+            )
+        # The ID becomes run-scoped state only after all required CSVs pass validation.
+        if report.llc_run_context is not None:
+            report = replace(
+                report,
+                llc_run_context=report.llc_run_context.with_result_ids(
+                    transformer_design_id=selected_design_id,
+                ),
+            )
         external_lr_target = (
             build_llc_external_resonant_inductor_target(fha_design, recommended)
             if recommended is not None
             else None
         )
+        external_lr_search_started = perf_counter()
         external_lr_search_result = (
             generate_llc_external_resonant_inductor_candidates(
                 external_lr_target,
                 core_records=(backend_bundle.cores if backend_bundle is not None else None),
                 material_records=(backend_bundle.materials if backend_bundle is not None else None),
                 wire_records=(backend_bundle.wires if backend_bundle is not None else None),
-                material_limit=LLC_EXTERNAL_LR_MATERIAL_LIMIT,
+                search_bounds=search_bounds,
+                write_csv=True,
+                output_dir=_llc_external_lr_output_dir(report),
             )
             if external_lr_target is not None
             else None
         )
-        design_requirements = _llc_transformer_design_requirements(transformer_target, search_result)
+        pipeline_timing["external_lr_search_seconds"] = perf_counter() - external_lr_search_started
+        recommended_external_lr = (
+            external_lr_search_result.recommended_candidate
+            if external_lr_search_result is not None
+            else None
+        )
+        transformer_stage_summary = _llc_stage_summary(
+            search_result,
+            pareto_count=pareto_result.pareto_count,
+            chosen_count=pareto_result.chosen_count,
+            recommended_design_id=selected_design_id,
+            status=_llc_transformer_status(search_result, selected_design_id),
+        )
+        transformer_stage_summary = replace(
+            transformer_stage_summary,
+            artifact_paths=[*transformer_artifact_paths, *pareto_result.artifact_paths],
+        )
+        external_lr_stage_summary = _llc_external_lr_stage_summary(
+            external_lr_target,
+            external_lr_search_result,
+        )
+        if external_lr_target is not None and external_lr_target.is_design_required:
+            if external_lr_stage_summary.status != "available" or recommended_external_lr is None:
+                return _finish_llc_external_lr_failure(
+                    report,
+                    geometry_result,
+                    search_result=search_result,
+                    pareto_result=pareto_result,
+                    external_lr_search_result=external_lr_search_result,
+                    transformer_artifact_paths=[*transformer_artifact_paths, *pareto_result.artifact_paths],
+                    output_policy=output_policy,
+                    pipeline_timing=pipeline_timing,
+                    failure_code="no_feasible_candidate",
+                    failure_reason=(
+                        "External resonant-inductor search completed, but no candidate passed the LLC Lr constraints."
+                    ),
+                )
+            external_artifact_validation = _validate_llc_external_lr_artifacts(
+                external_lr_search_result,
+            )
+            if not external_artifact_validation["valid"]:
+                return _finish_llc_external_lr_failure(
+                    report,
+                    geometry_result,
+                    search_result=search_result,
+                    pareto_result=pareto_result,
+                    external_lr_search_result=external_lr_search_result,
+                    transformer_artifact_paths=[*transformer_artifact_paths, *pareto_result.artifact_paths],
+                    output_policy=output_policy,
+                    pipeline_timing=pipeline_timing,
+                    failure_code="artifact_incomplete",
+                    failure_reason=str(external_artifact_validation["reason"]),
+                )
+        external_artifact_paths = list(external_lr_search_result.artifact_paths) if external_lr_search_result is not None else []
+        external_lr_stage_summary = replace(
+            external_lr_stage_summary,
+            artifact_paths=external_artifact_paths,
+        )
+        recommended_external_lr_design_id = (
+            recommended_external_lr.design_id
+            if recommended_external_lr is not None
+            and external_lr_stage_summary.status == "available"
+            else None
+        )
+        llc_pf_artifact_contracts = _build_llc_pf_contracts(
+            report,
+            transformer_artifact_paths=[*transformer_artifact_paths, *pareto_result.artifact_paths],
+            external_lr_artifact_paths=external_artifact_paths,
+            transformer_design_id=selected_design_id,
+            external_lr_design_id=recommended_external_lr_design_id,
+            external_lr_status=external_lr_stage_summary.status,
+        )
+        recommended_combined_magnetic_design_id = build_llc_combined_magnetic_design_id(
+            selected_design_id,
+            recommended_external_lr_design_id,
+            external_lr_stage_summary.status,
+        )
+        magnetic_contract = build_llc_magnetic_combination_contract(
+            report=report,
+            fha_design=fha_design,
+            transformer_target=transformer_target,
+            transformer=recommended,
+            external_lr=recommended_external_lr,
+            external_lr_target=external_lr_target,
+            transformer_artifact_paths=[*transformer_artifact_paths, *pareto_result.artifact_paths],
+            external_lr_artifact_paths=external_artifact_paths,
+            external_lr_status=external_lr_stage_summary.status,
+        )
+        contract_validation = validate_llc_magnetic_combination_contract(
+            report=report,
+            contract=magnetic_contract,
+            transformer_candidates=search_result.feasible_candidates,
+            external_lr_candidates=(
+                external_lr_search_result.feasible_candidates
+                if external_lr_search_result is not None
+                else []
+            ),
+        )
+        if not contract_validation["valid"]:
+            return _finish_llc_magnetic_contract_failure(
+                report,
+                geometry_result,
+                search_result=search_result,
+                pareto_result=pareto_result,
+                external_lr_search_result=external_lr_search_result,
+                transformer_artifact_paths=[*transformer_artifact_paths, *pareto_result.artifact_paths],
+                output_policy=output_policy,
+                pipeline_timing=pipeline_timing,
+                failure_reason=str(contract_validation["reason"]),
+            )
+        llc_result_summary = LlcMagneticResultSummary(
+            transformer=transformer_stage_summary,
+            external_lr=replace(
+                external_lr_stage_summary,
+                recommended_design_id=recommended_external_lr_design_id,
+            ),
+            recommended_transformer_design_id=selected_design_id,
+            recommended_external_lr_design_id=recommended_external_lr_design_id,
+            recommended_combined_magnetic_design_id=recommended_combined_magnetic_design_id,
+        )
+        if report.llc_run_context is not None and recommended_external_lr_design_id:
+            report = replace(
+                report,
+                llc_run_context=report.llc_run_context.with_result_ids(
+                    external_lr_design_id=recommended_external_lr_design_id,
+                    combined_magnetic_design_id=magnetic_contract.combined_magnetic_design_id,
+                ),
+            )
+        design_requirements = _llc_transformer_design_requirements(
+            transformer_target,
+            search_result,
+            fha_design=fha_design,
+            display_name=report.candidate.display_name,
+            recommended_candidate=recommended,
+            external_lr_target=external_lr_target,
+            search_bounds=search_bounds,
+        )
+        design_requirements["external_lr_status"] = external_lr_stage_summary.status
+        field_status = design_requirements.get("field_status")
+        if isinstance(field_status, dict):
+            field_status["external_lr"] = external_lr_stage_summary.status
+        design_requirements["magnetic_search_bounds"] = search_bounds.to_dict()
+        design_requirements["magnetic_output_policy"] = output_policy
         design_requirements["transformer_pareto_count"] = pareto_result.pareto_count
         design_requirements["transformer_chosen_count"] = pareto_result.chosen_count
+        design_requirements["llc_magnetic_contract"] = magnetic_contract.to_dict()
+        design_requirements.update(
+            {
+                "lm_actual_h": magnetic_contract.lm_actual_h,
+                "transformer_lm_actual_h": magnetic_contract.lm_actual_h,
+                "external_lr_actual_h": magnetic_contract.external_lr_actual_h,
+                "total_lr_actual_h": magnetic_contract.total_lr_actual_h,
+                "total_lr_target_h": magnetic_contract.total_lr_target_h,
+                "fs_basis_hz": magnetic_contract.fs_hz,
+                "fs_basis_source": (
+                    "external Lr target frequency basis"
+                    if external_lr_target is not None
+                    else "LLC FHA resonant frequency"
+                ),
+            }
+        )
         if external_lr_target is not None:
             design_requirements["external_lr_target_h"] = external_lr_target.external_lr_target_h
             design_requirements["external_lr_fraction"] = external_lr_target.lr_external_fraction
@@ -839,12 +1087,18 @@ def _run_llc_transformer_magnetic_pipeline(
         transformer_comparison_candidates = {}
         visualization_warnings: list[str] = []
         visualization_artifact_paths: list[str] = []
-        for role in ("min-volume", "min-loss", "recommended"):
+        geometry_started = perf_counter()
+        for role in output_policy["geometry_roles"]:
             selection = pareto_result.representative_by_role.get(role)
-            candidate_for_role = selection.candidate if selection is not None else (recommended if role == "recommended" else None)
+            candidate_for_role = selection.candidate if selection is not None else None
             if candidate_for_role is None:
                 continue
             transformer_comparison_candidates[role] = candidate_for_role
+            if transformer_geometry_renderer is None:
+                visualization_warnings.append(
+                    "LLC transformer geometry renderer is unavailable; structured magnetic results remain available."
+                )
+                continue
             try:
                 artifact = transformer_geometry_renderer.render_llc_transformer_geometry(
                     candidate_for_role,
@@ -866,7 +1120,7 @@ def _run_llc_transformer_magnetic_pipeline(
                 visualization_warnings.append(
                     f"Transformer geometry generation failed for {role}: {type(exc).__name__}: {exc}"
                 )
-        if transformer_comparison_candidates:
+        if llc_debug_outputs and transformer_geometry_renderer is not None and transformer_comparison_candidates:
             try:
                 transformer_comparison_visualization = transformer_geometry_renderer.render_llc_transformer_comparison_geometry(
                     transformer_comparison_candidates,
@@ -881,6 +1135,9 @@ def _run_llc_transformer_magnetic_pipeline(
                 visualization_warnings.append(
                     f"Transformer comparison geometry generation failed: {type(exc).__name__}: {exc}"
                 )
+        pipeline_timing["geometry_seconds"] = perf_counter() - geometry_started
+        pipeline_timing["output_policy"] = output_policy
+        pipeline_timing["total_seconds"] = perf_counter() - pipeline_started
 
         notes = [
             "LLC transformer design type: separated LLC transformer.",
@@ -918,6 +1175,11 @@ def _run_llc_transformer_magnetic_pipeline(
             feasible_count=search_result.feasible_candidate_count,
             pareto_count=pareto_result.pareto_count,
             selected_design_id=selected_design_id,
+            llc_result_summary=llc_result_summary,
+            llc_magnetic_contract=magnetic_contract,
+            recommended_transformer_design_id=selected_design_id,
+            recommended_external_lr_design_id=recommended_external_lr_design_id,
+            recommended_combined_magnetic_design_id=recommended_combined_magnetic_design_id,
             llc_transformer_result=search_result,
             transformer_pareto_result=pareto_result,
             transformer_pareto_candidates=pareto_result.pareto_candidates,
@@ -926,25 +1188,67 @@ def _run_llc_transformer_magnetic_pipeline(
             transformer_pareto_artifacts=pareto_result.artifact_paths,
             transformer_pareto_notes=pareto_result.notes,
             transformer_recommended_policy=pareto_result.recommended_policy,
+            llc_pf_artifact_contracts=llc_pf_artifact_contracts,
             transformer_visualization=transformer_visualization,
             transformer_visualizations=transformer_visualizations,
             transformer_comparison_visualization=transformer_comparison_visualization,
             llc_external_resonant_inductor_target=external_lr_target,
             llc_external_resonant_inductor_search_result=external_lr_search_result,
+            performance_timing={
+                "pipeline": pipeline_timing,
+                "transformer_search": search_result.performance_timing,
+                "transformer_counts": search_result.performance_counts,
+                "transformer_pareto_timing": pareto_result.performance_timing,
+                "transformer_pareto_counts": pareto_result.performance_counts,
+                "search_bounds": search_bounds.to_dict(),
+                "external_lr_search": (
+                    external_lr_search_result.performance_timing
+                    if external_lr_search_result is not None
+                    else {}
+                ),
+                "external_lr_counts": (
+                    {
+                        **external_lr_search_result.performance_counts,
+                        "prefilter_rejection_counts": external_lr_search_result.prefilter_rejection_counts,
+                    }
+                    if external_lr_search_result is not None
+                    else {}
+                ),
+                "fha_boundary_cache": (
+                    fha_boundary_frequency_cache_info()
+                    if fha_boundary_frequency_cache_info is not None
+                    else {}
+                ),
+                "reusable_magnetic_metrics_cache": (
+                    llc_reusable_magnetic_metrics_cache_info()
+                    if llc_reusable_magnetic_metrics_cache_info is not None
+                    else {}
+                ),
+            },
             artifact_paths=artifact_paths,
             notes=_dedupe_notes(notes),
         )
     except Exception as exc:
-        magnetic_result = MagneticResult(
-            summary="Separated LLC transformer magnetic screening failed unexpectedly.",
-            result_type="separated_llc_transformer",
-            design_type="separated_llc_transformer",
+        failure_code = "invalid_transformer_parameters" if isinstance(exc, ValueError) else "transformer_search_failed"
+        if isinstance(exc, OSError):
+            failure_code = "artifact_write_failed"
+        magnetic_result = _llc_transformer_failure_result(
+            failure_code=failure_code,
+            failure_reason=f"{type(exc).__name__}: {exc}",
             notes=[
                 "Run Design completed, but Run Magnetics could not screen separated LLC transformer candidates.",
-                f"{type(exc).__name__}: {exc}",
             ],
         )
-    return replace(report, magnetic=magnetic_result, geometry=geometry_result)
+        magnetic_result = replace(
+            magnetic_result,
+            llc_pf_artifact_contracts=_build_llc_pf_contracts(report),
+        )
+    return _mark_llc_magnetics_blocked(
+        replace(report, magnetic=magnetic_result, geometry=geometry_result),
+        magnetic_result.llc_result_summary.transformer.failure_reason
+        if magnetic_result.llc_result_summary is not None
+        else str(exc),
+    )
 
 
 def _rebuild_llc_fha_design(llc_fha_metadata: dict[str, object]) -> LLCFHADesign:
@@ -969,23 +1273,126 @@ def _rebuild_llc_fha_design(llc_fha_metadata: dict[str, object]) -> LLCFHADesign
 def _llc_transformer_design_requirements(
     transformer_target: dict[str, object],
     search_result,
-) -> dict[str, float | str | bool | None]:
-    return {
-        "topology_id": str(transformer_target.get("topology_id") or "llc_resonant_converter_diode_rectifier"),
+    *,
+    fha_design=None,
+    display_name: str | None = None,
+    recommended_candidate=None,
+    external_lr_target=None,
+    search_bounds=None,
+) -> dict[str, object]:
+    fha = fha_design
+    topology_id = str(
+        getattr(fha, "topology_id", None)
+        or transformer_target.get("topology_id")
+        or "llc_resonant_converter_diode_rectifier"
+    )
+    requirements: dict[str, object] = {
+        "topology_id": topology_id,
+        "display_name": display_name or topology_id,
         "design_type": "separated_llc_transformer",
+        "control_mode": "variable_frequency",
+        "mode": "variable_frequency_fixed_50_percent_bridge_drive",
         "transformer_realizes": "Np:Ns and Lm",
         "external_resonant_inductor_realizes": "Lr",
+        "vin_min_v": getattr(fha, "vin_min_v", None),
+        "vin_nom_v": getattr(fha, "vin_nom_v", None),
+        "vin_max_v": getattr(fha, "vin_max_v", None),
+        "vout_min_v": getattr(fha, "vout_min_v", None),
+        "vout_nom_v": getattr(fha, "vout_nom_v", None),
+        "vout_max_v": getattr(fha, "vout_max_v", None),
+        "pout_min_w": getattr(fha, "pout_min_w", None),
+        "pout_max_w": getattr(fha, "pout_max_w", None),
+        "fs_min_hz": getattr(fha, "fs_min_hz", None),
+        "fs_nom_hz": getattr(fha, "fr_hz", None),
+        "fs_max_hz": getattr(fha, "fs_max_hz", None),
+        "fr_hz": getattr(fha, "fr_hz", None),
+        "base_np": transformer_target.get("base_np"),
+        "base_ns": transformer_target.get("base_ns"),
+        "recommended_np": getattr(recommended_candidate, "np", None),
+        "recommended_ns": getattr(recommended_candidate, "ns", None),
         "np": transformer_target.get("base_np"),
         "ns": transformer_target.get("base_ns"),
         "lm_target_h": transformer_target.get("lm_target_h"),
         "lr_target_h": transformer_target.get("lr_target_h"),
+        "cr_target_f": getattr(fha, "cr_f", None),
+        "cr_actual_f": None,
+        "cr_error_percent": None,
+        "cr_error_limit_percent": None,
+        "cr_status": "not_evaluated",
+        "lm_actual_h": getattr(recommended_candidate, "lm_actual_h", None),
+        "transformer_lm_actual_h": getattr(recommended_candidate, "lm_actual_h", None),
+        "external_lr_actual_h": None,
+        "total_lr_actual_h": None,
+        "fs_basis_hz": getattr(fha, "fr_hz", None),
+        "fs_basis_source": "LLC FHA resonant frequency; replaced by external Lr basis when available",
         "b_limit_t": transformer_target.get("b_limit_t"),
         "primary_bridge_type": transformer_target.get("primary_bridge_type"),
         "secondary_rectifier_type": transformer_target.get("secondary_rectifier_type"),
-        "boundary_saturation_cases": ", ".join(str(case) for case in transformer_target.get("boundary_saturation_case_names", [])),
+        "boundary_saturation_cases": list(transformer_target.get("boundary_saturation_case_names", [])),
+        "primary_current_basis": transformer_target.get("primary_current_basis"),
+        "primary_current_rms_a": transformer_target.get("primary_current_rms_a"),
+        "primary_current_peak_a": transformer_target.get("primary_current_peak_a"),
+        "secondary_current_basis": transformer_target.get("secondary_current_basis"),
+        "secondary_current_rms_a": transformer_target.get("secondary_current_rms_a"),
+        "secondary_current_peak_a": transformer_target.get("secondary_current_peak_a"),
+        "transformer_estimated_lk_h": getattr(recommended_candidate, "estimated_lk_h", None),
+        "transformer_leakage_method": getattr(recommended_candidate, "leakage_method", None),
+        "transformer_leakage_status": getattr(recommended_candidate, "leakage_status", None),
         "evaluated_candidate_count": search_result.evaluated_candidate_count,
         "feasible_candidate_count": search_result.feasible_candidate_count,
     }
+    if external_lr_target is None:
+        requirements.update(
+            {
+                "external_lr_status": "not_evaluated",
+                "external_lr_target_h": None,
+                "external_lr_target_uH": None,
+                "external_lr_is_design_required": False,
+                "external_lr_current_rms_a": None,
+                "external_lr_current_peak_a": None,
+                "external_lr_fs_basis_hz": None,
+                "external_lr_fs_min_hz": None,
+                "external_lr_fs_max_hz": None,
+                "external_lr_actual_h": None,
+                "total_lr_actual_h": None,
+            }
+        )
+    else:
+        requirements.update(
+            {
+                "external_lr_status": "available" if external_lr_target.is_design_required else "not_required",
+                "external_lr_target_h": external_lr_target.external_lr_target_h,
+                "external_lr_target_uH": external_lr_target.external_lr_target_uH,
+                "external_lr_total_target_h": external_lr_target.lr_total_target_h,
+                "external_lr_transformer_lk_h": external_lr_target.transformer_lk_h,
+                "external_lr_is_design_required": external_lr_target.is_design_required,
+                "external_lr_current_basis": external_lr_target.current_basis,
+                "external_lr_frequency_basis": external_lr_target.frequency_basis,
+                "external_lr_current_rms_a": external_lr_target.current_rms_a,
+                "external_lr_current_peak_a": external_lr_target.current_peak_a,
+                "external_lr_fs_basis_hz": external_lr_target.fs_basis_hz,
+                "external_lr_fs_min_hz": external_lr_target.fs_min_hz,
+                "external_lr_fs_max_hz": external_lr_target.fs_max_hz,
+                "external_lr_actual_h": None,
+                "total_lr_actual_h": None,
+                "external_lr_warning": external_lr_target.warning,
+            }
+        )
+    if search_bounds is not None:
+        requirements["magnetic_search_mode"] = search_bounds.mode
+        requirements["magnetic_search_selection_policy"] = search_bounds.selection_policy
+        requirements["magnetic_search_bounds"] = search_bounds.to_dict()
+    else:
+        requirements["magnetic_search_mode"] = "not_available"
+    requirements["field_status"] = {
+        "vin_range": "available" if fha is not None else "not_available",
+        "vout_range": "available" if fha is not None else "not_available",
+        "power_range": "available" if fha is not None else "not_available",
+        "frequency_range": "available" if fha is not None else "not_available",
+        "transformer_leakage": "available" if recommended_candidate is not None else "not_evaluated",
+        "external_lr": requirements["external_lr_status"],
+    }
+    return requirements
 
 
 def _dedupe_notes(notes: list[str]) -> list[str]:
@@ -1010,3 +1417,675 @@ def _describe_chosen_stack_options(chosen_designs) -> str:
 
 def _project_root() -> Path:
     return Path(__file__).resolve().parents[3]
+
+
+def _llc_diagnostic_output_dir(kind: str) -> Path:
+    """Keep optional LLC diagnostics separate from formal geometry outputs."""
+
+    return _project_root() / "outputs" / "llc_diagnostics" / kind
+
+
+def _llc_transformer_output_dir(report: DesignReport) -> Path:
+    """Return the formal transformer output directory for this run."""
+
+    if report.llc_run_context is not None and report.llc_run_context.output_root:
+        return Path(report.llc_run_context.output_root) / "transformer_design"
+    return _project_root() / "outputs" / "transformer_design"
+
+
+def _llc_external_lr_output_dir(report: DesignReport) -> Path:
+    """Return the formal external Lr output directory for this run."""
+
+    if report.llc_run_context is not None and report.llc_run_context.output_root:
+        return Path(report.llc_run_context.output_root) / "resonant_inductor_design"
+    return _project_root() / "outputs" / "resonant_inductor_design"
+
+
+def _validate_llc_transformer_artifacts(
+    artifact_paths: list[str],
+    pareto_result,
+) -> dict[str, object]:
+    """Validate the persisted transformer contract before downstream stages run."""
+
+    required_names = (
+        "llc_transformer_feasible_candidates.csv",
+        "llc_transformer_pareto_front.csv",
+        "llc_transformer_chosen_candidates.csv",
+        "llc_transformer_leakage_rejection_audit.csv",
+    )
+    paths_by_name = {Path(path).name: Path(path) for path in artifact_paths}
+    missing = [name for name in required_names if name not in paths_by_name]
+    if missing:
+        return {"valid": False, "reason": f"Required transformer artifacts were not reported: {', '.join(missing)}"}
+    empty = [name for name in required_names if not paths_by_name[name].is_file() or paths_by_name[name].stat().st_size <= 0]
+    if empty:
+        return {"valid": False, "reason": f"Required transformer artifacts are missing or empty: {', '.join(empty)}"}
+    roles = {selection.role for selection in pareto_result.chosen_candidates}
+    required_roles = {"recommended", "min-volume", "min-loss"}
+    if not required_roles.issubset(roles):
+        return {"valid": False, "reason": f"Transformer chosen candidates are missing roles: {', '.join(sorted(required_roles - roles))}"}
+    chosen_ids = {selection.candidate.candidate_id for selection in pareto_result.chosen_candidates}
+    feasible_ids = {candidate.candidate_id for candidate in pareto_result.feasible_candidates}
+    if not chosen_ids.issubset(feasible_ids):
+        return {"valid": False, "reason": "Transformer chosen candidates contain an ID absent from feasible candidates."}
+    with paths_by_name["llc_transformer_chosen_candidates.csv"].open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    persisted_by_role = {
+        str(row.get("role", "")): row
+        for row in rows
+        if str(row.get("role", ""))
+    }
+    persisted_roles = set(persisted_by_role)
+    if not required_roles.issubset(persisted_roles):
+        return {"valid": False, "reason": "Transformer chosen CSV does not persist all required representative roles."}
+    selections_by_role = {
+        str(selection.role): selection
+        for selection in pareto_result.chosen_candidates
+        if str(getattr(selection, "role", "")) in required_roles
+    }
+    required_fields = ("candidate_id", "estimated_volume_cm3", "total_loss_w", "hotspot_c")
+    for role in sorted(required_roles):
+        row = persisted_by_role[role]
+        missing_fields = [field for field in required_fields if str(row.get(field, "")).strip() == ""]
+        if missing_fields:
+            return {
+                "valid": False,
+                "reason": f"Transformer chosen CSV role {role} is missing fields: {', '.join(missing_fields)}",
+            }
+        expected_id = getattr(getattr(selections_by_role.get(role), "candidate", None), "candidate_id", None)
+        if expected_id is not None and str(row.get("candidate_id")) != str(expected_id):
+            return {
+                "valid": False,
+                "reason": f"Transformer chosen CSV role {role} does not match current candidate ID.",
+            }
+    return {"valid": True, "reason": ""}
+
+
+def _validate_llc_external_lr_artifacts(search_result) -> dict[str, object]:
+    """Validate external Lr CSVs and representative roles before geometry use."""
+
+    required_names = (
+        "llc_external_resonant_inductor_feasible_candidates.csv",
+        "llc_external_resonant_inductor_pareto_front.csv",
+        "llc_external_resonant_inductor_chosen_candidates.csv",
+    )
+    if search_result is None:
+        return {"valid": False, "reason": "External Lr search result is missing."}
+    paths_by_name = {Path(path).name: Path(path) for path in search_result.artifact_paths}
+    missing = [name for name in required_names if name not in paths_by_name]
+    if missing:
+        return {"valid": False, "reason": f"Required external Lr artifacts were not reported: {', '.join(missing)}"}
+    empty = [name for name in required_names if not paths_by_name[name].is_file() or paths_by_name[name].stat().st_size <= 0]
+    if empty:
+        return {"valid": False, "reason": f"Required external Lr artifacts are missing or empty: {', '.join(empty)}"}
+    required_roles = {"recommended", "min-volume", "min-loss"}
+    selections = list(search_result.chosen_candidates)
+    roles = {selection.role for selection in selections}
+    if not required_roles.issubset(roles):
+        return {"valid": False, "reason": f"External Lr chosen candidates are missing roles: {', '.join(sorted(required_roles - roles))}"}
+    feasible_ids = {candidate.design_id for candidate in search_result.feasible_candidates}
+    chosen_ids = {selection.candidate.design_id for selection in selections}
+    if not chosen_ids.issubset(feasible_ids):
+        return {"valid": False, "reason": "External Lr chosen candidates contain an ID absent from feasible candidates."}
+    with paths_by_name["llc_external_resonant_inductor_chosen_candidates.csv"].open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    persisted_roles = {str(row.get("representative_role", "")) for row in rows}
+    if not required_roles.issubset(persisted_roles):
+        return {"valid": False, "reason": "External Lr chosen CSV does not persist all required representative roles."}
+    persisted_ids = {
+        str(row.get("design_id", ""))
+        for row in rows
+        if str(row.get("representative_role", "")) in required_roles
+    }
+    if not chosen_ids.issubset(persisted_ids):
+        return {"valid": False, "reason": "External Lr chosen CSV does not match the current chosen candidate IDs."}
+    selections_by_role = {
+        str(selection.role): selection
+        for selection in selections
+        if str(getattr(selection, "role", "")) in required_roles
+    }
+    required_fields = ("design_id", "estimated_volume_cm3", "total_loss_w", "hotspot_c")
+    for role in sorted(required_roles):
+        row = next(
+            row for row in rows
+            if str(row.get("representative_role", "")) == role
+        )
+        missing_fields = [field for field in required_fields if str(row.get(field, "")).strip() == ""]
+        if missing_fields:
+            return {
+                "valid": False,
+                "reason": f"External Lr chosen CSV role {role} is missing fields: {', '.join(missing_fields)}",
+            }
+        expected_id = getattr(getattr(selections_by_role.get(role), "candidate", None), "design_id", None)
+        if expected_id is not None and str(row.get("design_id")) != str(expected_id):
+            return {
+                "valid": False,
+                "reason": f"External Lr chosen CSV role {role} does not match current candidate ID.",
+            }
+    return {"valid": True, "reason": ""}
+
+
+def _llc_transformer_failure_result(
+    *,
+    failure_code: str,
+    failure_reason: str,
+    notes: list[str] | None = None,
+    stage_artifact_paths: list[str] | None = None,
+) -> MagneticResult:
+    stage = LlcMagneticStageSummary(
+        status="failed" if failure_code not in {"no_feasible_candidate", "artifact_incomplete"} else failure_code,
+        failure_code=failure_code,
+        failure_reason=failure_reason,
+        artifact_paths=list(stage_artifact_paths or []),
+    )
+    return MagneticResult(
+        summary=f"Separated LLC transformer magnetic screening failed: {failure_reason}",
+        result_type="separated_llc_transformer",
+        design_type="separated_llc_transformer",
+        llc_result_summary=LlcMagneticResultSummary(transformer=stage),
+        design_requirements={"transformer_failure_code": failure_code, "transformer_failure_reason": failure_reason},
+        notes=[*(notes or []), f"Transformer failure code: {failure_code}.", failure_reason],
+    )
+
+
+def _build_llc_pf_contracts(
+    report: DesignReport,
+    *,
+    transformer_artifact_paths: list[str] | None = None,
+    external_lr_artifact_paths: list[str] | None = None,
+    transformer_design_id: str | None = None,
+    external_lr_design_id: str | None = None,
+    external_lr_status: str | None = None,
+) -> dict[str, object]:
+    """Build role-specific PF contracts without allowing cross-role fallback."""
+
+    context = report.llc_run_context
+    run_id = context.run_id if context is not None else ""
+    topology_id = str(report.spec.topology_id)
+    run_root = context.output_root if context is not None else None
+    contracts = {
+        "transformer": build_llc_pf_artifact_contract(
+            role="transformer",
+            artifact_paths=transformer_artifact_paths or (),
+            run_id=run_id,
+            topology_id=topology_id,
+            run_root=run_root,
+            recommended_design_id=transformer_design_id,
+        )
+    }
+    if external_lr_status == "not_required" and not external_lr_artifact_paths:
+        from ..models.magnetic_result import LlcPfArtifactContract
+
+        contracts["external_lr"] = LlcPfArtifactContract(
+            role="external_lr",
+            run_id=run_id,
+            topology_id=topology_id,
+            status="not_required",
+            diagnostics=("external resonant-inductor design is not required for this run",),
+        )
+    else:
+        contracts["external_lr"] = build_llc_pf_artifact_contract(
+            role="external_lr",
+            artifact_paths=external_lr_artifact_paths or (),
+            run_id=run_id,
+            topology_id=topology_id,
+            run_root=run_root,
+            recommended_design_id=external_lr_design_id,
+        )
+    return contracts
+
+
+def _finish_llc_transformer_failure(
+    report: DesignReport,
+    geometry_result: GeometryResult,
+    *,
+    search_result,
+    output_policy: dict[str, object],
+    pipeline_timing: dict[str, object],
+    failure_code: str,
+    failure_reason: str,
+    pareto_result=None,
+    artifact_paths: list[str] | None = None,
+) -> DesignReport:
+    paths = list(artifact_paths or search_result.artifact_paths)
+    result = _llc_transformer_failure_result(
+        failure_code=failure_code,
+        failure_reason=failure_reason,
+        notes=["External resonant-inductor screening was blocked because transformer results are incomplete."],
+        stage_artifact_paths=paths,
+    )
+    result = replace(
+        result,
+        basic_feasible_count=search_result.evaluated_candidate_count,
+        feasible_count=search_result.feasible_candidate_count,
+        llc_transformer_result=search_result,
+        transformer_pareto_result=pareto_result,
+        artifact_paths=paths,
+        performance_timing={"pipeline": {**pipeline_timing, "output_policy": output_policy}},
+        llc_pf_artifact_contracts=_build_llc_pf_contracts(
+            report,
+            transformer_artifact_paths=paths,
+        ),
+    )
+    return _mark_llc_magnetics_blocked(
+        replace(report, magnetic=result, geometry=geometry_result),
+        failure_reason,
+    )
+
+
+def _finish_llc_external_lr_failure(
+    report: DesignReport,
+    geometry_result: GeometryResult,
+    *,
+    search_result,
+    pareto_result,
+    external_lr_search_result,
+    transformer_artifact_paths: list[str],
+    output_policy: dict[str, object],
+    pipeline_timing: dict[str, object],
+    failure_code: str,
+    failure_reason: str,
+) -> DesignReport:
+    transformer_stage = _llc_stage_summary(
+        search_result,
+        pareto_count=pareto_result.pareto_count,
+        chosen_count=pareto_result.chosen_count,
+        recommended_design_id=pareto_result.recommended_candidate.candidate_id if pareto_result.recommended_candidate else None,
+        status="available",
+    )
+    transformer_stage = replace(transformer_stage, artifact_paths=transformer_artifact_paths)
+    external_stage = _llc_external_lr_stage_summary(
+        external_lr_search_result.request,
+        external_lr_search_result,
+    )
+    external_stage = replace(
+        external_stage,
+        status="failed" if failure_code == "artifact_incomplete" else "no_feasible_candidate",
+        failure_code=failure_code,
+        failure_reason=failure_reason,
+        artifact_paths=list(external_lr_search_result.artifact_paths),
+    )
+    summary = LlcMagneticResultSummary(transformer=transformer_stage, external_lr=external_stage)
+    result = MagneticResult(
+        summary=f"Separated LLC external resonant-inductor screening failed: {failure_reason}",
+        result_type="separated_llc_transformer",
+        design_type="separated_llc_transformer",
+        basic_feasible_count=search_result.evaluated_candidate_count,
+        feasible_count=search_result.feasible_candidate_count,
+        selected_design_id=transformer_stage.recommended_design_id,
+        recommended_transformer_design_id=transformer_stage.recommended_design_id,
+        llc_result_summary=summary,
+        llc_transformer_result=search_result,
+        transformer_pareto_result=pareto_result,
+        transformer_pareto_candidates=pareto_result.pareto_candidates,
+        transformer_chosen_candidates=pareto_result.chosen_candidates,
+        transformer_representatives=pareto_result.representative_by_role,
+        transformer_pareto_artifacts=pareto_result.artifact_paths,
+        llc_pf_artifact_contracts=_build_llc_pf_contracts(
+            report,
+            transformer_artifact_paths=transformer_artifact_paths,
+            external_lr_artifact_paths=list(external_lr_search_result.artifact_paths),
+            transformer_design_id=transformer_stage.recommended_design_id,
+            external_lr_design_id=getattr(external_lr_search_result.recommended_candidate, "design_id", None),
+            external_lr_status=external_stage.status,
+        ),
+        llc_external_resonant_inductor_target=external_lr_search_result.request,
+        llc_external_resonant_inductor_search_result=external_lr_search_result,
+        design_requirements={
+            "external_lr_failure_code": failure_code,
+            "external_lr_failure_reason": failure_reason,
+            "magnetic_output_policy": output_policy,
+        },
+        performance_timing={"pipeline": {**pipeline_timing, "output_policy": output_policy}},
+        artifact_paths=_dedupe_notes([*transformer_artifact_paths, *external_lr_search_result.artifact_paths]),
+        notes=[
+            "External resonant-inductor screening was not accepted as a successful stage.",
+            f"External Lr failure code: {failure_code}.",
+            failure_reason,
+        ],
+    )
+    return _mark_llc_magnetics_blocked(
+        replace(report, magnetic=result, geometry=geometry_result),
+        failure_reason,
+    )
+
+
+def _finish_llc_magnetic_contract_failure(
+    report: DesignReport,
+    geometry_result: GeometryResult,
+    *,
+    search_result,
+    pareto_result,
+    external_lr_search_result,
+    transformer_artifact_paths: list[str],
+    output_policy: dict[str, object],
+    pipeline_timing: dict[str, object],
+    failure_reason: str,
+) -> DesignReport:
+    """Return a blocked result when the cross-component LLC contract is invalid."""
+
+    transformer_stage = replace(
+        _llc_stage_summary(
+            search_result,
+            pareto_count=pareto_result.pareto_count,
+            chosen_count=pareto_result.chosen_count,
+            recommended_design_id=(
+                pareto_result.recommended_candidate.candidate_id
+                if pareto_result.recommended_candidate
+                else None
+            ),
+            status="available",
+        ),
+        artifact_paths=transformer_artifact_paths,
+    )
+    external_stage = _llc_external_lr_stage_summary(
+        getattr(external_lr_search_result, "request", None),
+        external_lr_search_result,
+    )
+    external_stage = replace(
+        external_stage,
+        failure_code="contract_inconsistent",
+        failure_reason=failure_reason,
+        artifact_paths=list(getattr(external_lr_search_result, "artifact_paths", []) or []),
+    )
+    summary = LlcMagneticResultSummary(transformer=transformer_stage, external_lr=external_stage)
+    result = MagneticResult(
+        summary=f"Separated LLC magnetic combination contract failed: {failure_reason}",
+        result_type="separated_llc_transformer",
+        design_type="separated_llc_transformer",
+        basic_feasible_count=search_result.evaluated_candidate_count,
+        feasible_count=search_result.feasible_candidate_count,
+        selected_design_id=transformer_stage.recommended_design_id,
+        recommended_transformer_design_id=transformer_stage.recommended_design_id,
+        llc_result_summary=summary,
+        llc_transformer_result=search_result,
+        transformer_pareto_result=pareto_result,
+        transformer_pareto_candidates=pareto_result.pareto_candidates,
+        transformer_chosen_candidates=pareto_result.chosen_candidates,
+        transformer_representatives=pareto_result.representative_by_role,
+        transformer_pareto_artifacts=pareto_result.artifact_paths,
+        llc_pf_artifact_contracts=_build_llc_pf_contracts(
+            report,
+            transformer_artifact_paths=transformer_artifact_paths,
+            external_lr_artifact_paths=list(getattr(external_lr_search_result, "artifact_paths", []) or []),
+            transformer_design_id=transformer_stage.recommended_design_id,
+            external_lr_design_id=getattr(
+                getattr(external_lr_search_result, "recommended_candidate", None), "design_id", None
+            ),
+            external_lr_status=external_stage.status,
+        ),
+        llc_external_resonant_inductor_target=(
+            getattr(external_lr_search_result, "request", None)
+        ),
+        llc_external_resonant_inductor_search_result=external_lr_search_result,
+        design_requirements={
+            "magnetic_contract_failure_code": "contract_inconsistent",
+            "magnetic_contract_failure_reason": failure_reason,
+            "magnetic_output_policy": output_policy,
+        },
+        performance_timing={"pipeline": {**pipeline_timing, "output_policy": output_policy}},
+        artifact_paths=_dedupe_notes(
+            [*transformer_artifact_paths, *getattr(external_lr_search_result, "artifact_paths", [])]
+        ),
+        notes=[
+            "LLC magnetic results were blocked because the transformer/external Lr contract was inconsistent.",
+            failure_reason,
+        ],
+    )
+    return _mark_llc_magnetics_blocked(
+        replace(report, magnetic=result, geometry=geometry_result),
+        failure_reason,
+    )
+
+
+def _mark_llc_magnetics_blocked(report: DesignReport, reason: str | None) -> DesignReport:
+    if report.llc_run_context is None:
+        return report
+    return replace(
+        report,
+        llc_run_context=report.llc_run_context.transition(
+            "magnetics", "blocked", reason=reason or "LLC transformer magnetic stage failed."
+        ),
+    )
+
+
+def _llc_output_policy(
+    *,
+    debug_outputs: bool,
+    geometry_roles: tuple[str, ...] | None,
+) -> dict[str, object]:
+    valid_roles = ("min-volume", "min-loss", "recommended")
+    requested_roles = (
+        valid_roles
+        if geometry_roles is None and debug_outputs
+        else geometry_roles or valid_roles
+    )
+    normalized_roles = tuple(dict.fromkeys(str(role).strip().lower() for role in requested_roles))
+    invalid_roles = tuple(role for role in normalized_roles if role not in valid_roles)
+    if invalid_roles:
+        raise ValueError(
+            "LLC geometry roles must be selected from min-volume, min-loss, and recommended; "
+            f"got {', '.join(invalid_roles)}."
+        )
+    selected_roles = tuple(role for role in valid_roles if role in normalized_roles)
+    return {
+        "debug_outputs_enabled": bool(debug_outputs),
+        "geometry_roles": list(selected_roles),
+        "transformer_debug_csv": bool(debug_outputs),
+        "transformer_pareto_artifacts": bool(debug_outputs),
+        "transformer_formal_csv": True,
+        "transformer_formal_pareto_artifacts": True,
+        "external_lr_artifacts": bool(debug_outputs),
+        "external_lr_formal_artifacts": True,
+        "diagnostic_output_root": str(_project_root() / "outputs" / "llc_diagnostics") if debug_outputs else "",
+        "formal_output_roots": [
+            "outputs/resonant_inductor_design",
+            "outputs/inductor_design",
+        ],
+    }
+
+
+def _llc_count(performance_counts: object, key: str, fallback: int = 0) -> int:
+    """Read a non-negative integer count from a search result contract."""
+
+    value = performance_counts.get(key) if isinstance(performance_counts, dict) else None
+    if value is None:
+        value = fallback
+    try:
+        return max(0, int(value))
+    except (TypeError, ValueError):
+        return max(0, int(fallback))
+
+
+def _llc_stage_summary(
+    search_result,
+    *,
+    pareto_count: int,
+    chosen_count: int = 0,
+    recommended_design_id: str | None,
+    status: str,
+) -> LlcMagneticStageSummary:
+    counts = getattr(search_result, "performance_counts", {}) or {}
+    evaluated = _llc_count(counts, "evaluated_candidate_count", getattr(search_result, "evaluated_candidate_count", 0))
+    generated = _llc_count(counts, "generated_candidate_count", evaluated)
+    precise = _llc_count(counts, "precise_evaluated_candidate_count", evaluated)
+    prefilter_pass = _llc_count(counts, "prefilter_pass_count", precise)
+    prefilter_rejected = _llc_count(
+        counts,
+        "prefilter_rejected_candidate_count",
+        max(0, generated - prefilter_pass),
+    )
+    return LlcMagneticStageSummary(
+        status=status,
+        generated_candidate_count=generated,
+        prefilter_rejected_candidate_count=prefilter_rejected,
+        prefilter_pass_count=prefilter_pass,
+        precise_evaluated_candidate_count=precise,
+        feasible_candidate_count=_llc_count(
+            counts,
+            "feasible_candidate_count",
+            getattr(search_result, "feasible_candidate_count", 0),
+        ),
+        pareto_candidate_count=max(0, int(pareto_count)),
+        chosen_candidate_count=max(0, int(chosen_count)),
+        recommended_design_id=recommended_design_id,
+        prefilter_rejection_counts=dict(getattr(search_result, "prefilter_rejection_counts", {}) or {}),
+    )
+
+
+def _llc_transformer_status(search_result, recommended_design_id: str | None) -> str:
+    if search_result is None:
+        return "not_evaluated"
+    feasible = _llc_count(
+        getattr(search_result, "performance_counts", {}),
+        "feasible_candidate_count",
+        getattr(search_result, "feasible_candidate_count", 0),
+    )
+    if feasible <= 0:
+        return "no_feasible_candidate"
+    return "available" if recommended_design_id else "no_recommendation"
+
+
+def _llc_external_lr_stage_summary(target, search_result) -> LlcMagneticStageSummary:
+    if search_result is None:
+        return LlcMagneticStageSummary(status="not_evaluated")
+    if target is not None and not target.is_design_required:
+        return LlcMagneticStageSummary(status="not_required")
+    counts = getattr(search_result, "performance_counts", {}) or {}
+    request = getattr(search_result, "request", target)
+    if request is not None and min(
+        float(getattr(request, "current_rms_a", 0.0) or 0.0),
+        float(getattr(request, "current_peak_a", 0.0) or 0.0),
+        float(getattr(request, "fs_basis_hz", 0.0) or 0.0),
+    ) <= 0.0:
+        status = "invalid_target"
+    elif _llc_count(counts, "feasible_candidate_count") > 0:
+        status = "available"
+    else:
+        status = "no_feasible_candidate"
+    return _llc_stage_summary(
+        search_result,
+        pareto_count=_llc_count(counts, "pareto_candidate_count"),
+        chosen_count=len(getattr(search_result, "chosen_candidates", []) or []),
+        recommended_design_id=None,
+        status=status,
+    )
+
+
+def build_llc_combined_magnetic_design_id(
+    transformer_design_id: str | None,
+    external_lr_design_id: str | None,
+    external_lr_status: str,
+) -> str | None:
+    """Build a combined ID only when both separated-LLC magnetic roles exist."""
+
+    if external_lr_status != "available" or not transformer_design_id or not external_lr_design_id:
+        return None
+    return f"{transformer_design_id}+{external_lr_design_id}"
+
+
+def build_llc_magnetic_combination_contract(
+    *,
+    report: DesignReport,
+    fha_design,
+    transformer_target: dict[str, object],
+    transformer,
+    external_lr,
+    external_lr_target,
+    transformer_artifact_paths: list[str],
+    external_lr_artifact_paths: list[str],
+    external_lr_status: str,
+) -> LlcMagneticCombinationContract:
+    """Build the single handoff contract shared by LLC downstream stages."""
+
+    context = report.llc_run_context
+    if context is None:
+        raise ValueError("LLC magnetic combination contract requires a run context.")
+    transformer_id = str(getattr(transformer, "candidate_id", ""))
+    if not transformer_id:
+        raise ValueError("LLC magnetic combination contract requires a transformer design ID.")
+    external_id = (
+        str(getattr(external_lr, "design_id", ""))
+        if external_lr is not None and external_lr_status == "available"
+        else None
+    )
+    external_target = external_lr_target
+    external_target_h = (
+        float(getattr(external_target, "external_lr_target_h"))
+        if external_target is not None and external_id is not None
+        else None
+    )
+    external_actual_h = float(getattr(external_lr, "actual_l_h")) if external_id is not None else None
+    total_target_h = float(
+        getattr(external_target, "lr_total_target_h", None)
+        or getattr(fha_design, "lr_h")
+        or transformer_target.get("lr_target_h", 0.0)
+    )
+    total_actual_h = float(getattr(external_lr, "total_lr_actual_h")) if external_id is not None else None
+    transformer_leakage_h = float(getattr(transformer, "estimated_lk_h"))
+    return LlcMagneticCombinationContract(
+        run_id=context.run_id,
+        topology_id=str(report.spec.topology_id),
+        transformer_design_id=transformer_id,
+        external_lr_design_id=external_id,
+        combined_magnetic_design_id=(
+            build_llc_combined_magnetic_design_id(transformer_id, external_id, external_lr_status)
+        ),
+        np=int(getattr(transformer, "np")),
+        ns=int(getattr(transformer, "ns")),
+        lm_target_h=float(getattr(transformer, "lm_target_h")),
+        lm_actual_h=float(getattr(transformer, "lm_actual_h")),
+        transformer_leakage_h=transformer_leakage_h,
+        external_lr_target_h=external_target_h,
+        external_lr_actual_h=external_actual_h,
+        total_lr_target_h=total_target_h,
+        total_lr_actual_h=total_actual_h,
+        fs_hz=(
+            float(getattr(external_target, "fs_basis_hz"))
+            if external_target is not None and getattr(external_target, "fs_basis_hz", None) is not None
+            else float(getattr(fha_design, "fr_hz", 0.0))
+        ),
+        vin_min_v=float(getattr(fha_design, "vin_min_v", None)),
+        vin_nom_v=float(getattr(fha_design, "vin_nom_v", None)),
+        vin_max_v=float(getattr(fha_design, "vin_max_v", None)),
+        vout_min_v=float(getattr(fha_design, "vout_min_v", None)),
+        vout_nom_v=float(getattr(fha_design, "vout_nom_v", None)),
+        vout_max_v=float(getattr(fha_design, "vout_max_v", None)),
+        transformer_current_basis=str(getattr(transformer, "current_basis_label", "")),
+        transformer_current_rms_a=getattr(transformer, "primary_rms_current_design_a", None),
+        transformer_current_peak_a=(
+            float(getattr(fha_design, "worst_case_current_stress", {}).get("resonant_tank_peak_a"))
+            if isinstance(getattr(fha_design, "worst_case_current_stress", {}), dict)
+            and getattr(fha_design, "worst_case_current_stress", {}).get("resonant_tank_peak_a") is not None
+            else None
+        ),
+        external_lr_current_basis=(str(getattr(external_target, "current_basis", "")) if external_target is not None else None),
+        external_lr_current_rms_a=(float(getattr(external_target, "current_rms_a")) if external_target is not None else None),
+        external_lr_current_peak_a=(float(getattr(external_target, "current_peak_a")) if external_target is not None else None),
+        transformer_artifact_paths=tuple(transformer_artifact_paths),
+        external_lr_artifact_paths=tuple(external_lr_artifact_paths),
+    )
+
+
+def validate_llc_magnetic_combination_contract(
+    *,
+    report: DesignReport,
+    contract: LlcMagneticCombinationContract,
+    transformer_candidates: list,
+    external_lr_candidates: list,
+) -> dict[str, object]:
+    """Validate the contract at the magnetic-to-downstream pipeline boundary."""
+
+    context = report.llc_run_context
+    if context is None:
+        return {"valid": False, "reason": "LLC magnetic combination contract has no run context."}
+    try:
+        contract.validate(
+            topology_id=report.spec.topology_id,
+            run_id=context.run_id,
+            transformer_candidates=transformer_candidates,
+            external_lr_candidates=external_lr_candidates,
+        )
+    except (TypeError, ValueError) as exc:
+        return {"valid": False, "reason": str(exc)}
+    return {"valid": True, "reason": ""}

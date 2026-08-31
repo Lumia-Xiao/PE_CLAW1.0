@@ -7,7 +7,13 @@ from tkinter import ttk
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+from ...engines.hardware_overview import build_bridge_rectifier_overview_group, build_bridge_rectifier_top_candidate_rows
+from ...models.bridge_rectifier import (
+    bridge_rectifier_package_confidence_label,
+    bridge_rectifier_thermal_confidence_label,
+)
 from ...models.design_report import DesignReport
+from ...topology_capabilities import is_llc_resonant_topology
 from ...visualization.semiconductors.geometry_3d import (
     create_semiconductor_geometry_comparison_figure_3d,
     find_supported_3d_targets,
@@ -16,6 +22,7 @@ from ...visualization.semiconductors.geometry_renderer import (
     create_semiconductor_geometry_comparison_figure,
     create_semiconductor_geometry_figure,
 )
+from .bridge_rectifier_view_helpers import bridge_rectifier_display_label
 
 
 class DeviceView(ttk.Frame):
@@ -84,13 +91,24 @@ class DeviceView(ttk.Frame):
     def render(self, report: DesignReport | None) -> None:
         summary_text = build_device_summary_text(report)
         geometry_result = None if report is None else report.semiconductor_geometry
+        has_bridge_result = report is not None and report.bridge_rectifier is not None
+
+        if has_bridge_result:
+            self.message.configure(text=f"Selected {bridge_rectifier_display_label(report)} summary.")
+            self._set_summary_text(summary_text)
+            self._clear_canvas()
+            placeholder_text = resolve_device_geometry_placeholder(report)
+            self.placeholder.configure(text=placeholder_text)
+            self.placeholder_3d.configure(text=placeholder_text)
+            return
 
         if report is None or report.device is None:
             self.message.configure(text="Device selection has not run yet.")
             self._set_summary_text(summary_text)
             self._clear_canvas()
-            self.placeholder.configure(text="No semiconductor geometry is available yet.")
-            self.placeholder_3d.configure(text="No Single Device semiconductor 3D geometry is available yet.")
+            placeholder_text = resolve_device_geometry_placeholder(report)
+            self.placeholder.configure(text=placeholder_text)
+            self.placeholder_3d.configure(text=placeholder_text)
             return
 
         self.message.configure(text="Selected semiconductor summary and first-pass package/heatsink sketch.")
@@ -172,11 +190,24 @@ class DeviceView(ttk.Frame):
 def build_device_summary_text(report: DesignReport | None) -> str:
     """Build the compact Device-window summary text."""
 
-    if report is None or report.device is None:
+    bridge_lines = build_bridge_rectifier_device_lines(report)
+    if report is None:
+        return "Device selection has not run yet."
+    if bridge_lines:
+        return "\n".join([
+            *bridge_lines,
+            "",
+            "Bridge rectifier package geometry",
+            "  2D/3D package and heatsink proxy are shown below.",
+        ])
+    if report.device is None:
         return "Device selection has not run yet."
 
     device_result = report.device
     lines: list[str] = []
+    if bridge_lines:
+        lines.extend(bridge_lines)
+        lines.append("")
     lines.append("Semiconductor library filter")
     lines.append(f"  device type: {device_result.selected_device_type_filter}")
     lines.append(f"  manufacturer: {device_result.selected_manufacturer_filter}")
@@ -186,6 +217,8 @@ def build_device_summary_text(report: DesignReport | None) -> str:
         f"({device_result.active_scheme_id or '-'}, {device_result.active_parallel_count}x)"
     )
     lines.append(f"  recommended semiconductor scheme: {device_result.recommended_scheme_id or '-'}")
+    if is_llc_resonant_topology(report.spec.topology_id):
+        lines.extend(_build_llc_device_filter_lines(report))
 
     if device_result.scheme_results:
         lines.append("")
@@ -218,6 +251,20 @@ def build_device_summary_text(report: DesignReport | None) -> str:
                     f"scheme={_fmt_optional_float(role_result.total_loss_w)} W, "
                     f"sink={_fmt_optional_float(role_result.sink_volume_cm3)} cm^3"
                 )
+                if is_llc_resonant_topology(report.spec.topology_id):
+                    lines.append(
+                        "      topology count: "
+                        f"positions={role_result.topology_position_count}, "
+                        f"parallel per position={role_result.parallel_count}, "
+                        f"total physical devices={role_result.total_physical_device_count}"
+                    )
+                    lines.append("      stress per position: " + _format_position_stress(role_result.per_device_stress, role_result.parallel_count))
+                    lines.append("      stress per physical device: " + _format_switch_stress(role_result.per_device_stress))
+                    lines.append(
+                        "      loss: "
+                        f"per physical device={_fmt_optional_float(role_result.per_device_loss_w)} W, "
+                        f"total role={_fmt_optional_float(role_result.total_loss_w)} W"
+                    )
                 matching_loss = _find_role_loss(device_result.design_point_losses, role_result.role)
                 if matching_loss is not None and matching_loss.interface_model_name:
                     lines.append(
@@ -363,9 +410,162 @@ def build_device_summary_text(report: DesignReport | None) -> str:
     return "\n".join(lines)
 
 
+def build_bridge_rectifier_device_lines(report: DesignReport | None) -> list[str]:
+    """Return selected bridge-rectifier lines for the Device view."""
+
+    if report is None or report.bridge_rectifier is None:
+        return []
+    result = report.bridge_rectifier
+    selected = result.selected_candidate
+    if selected is None:
+        return [
+            bridge_rectifier_display_label(report),
+            f"  status: no candidate passed ({result.passed_candidate_count} / {result.candidate_count})",
+        ]
+    selected_evaluation = next(
+        (evaluation for evaluation in result.evaluations if evaluation.candidate.candidate_id == selected.candidate_id),
+        None,
+    )
+    loss = selected_evaluation.loss_estimate if selected_evaluation is not None else None
+    thermal = selected_evaluation.thermal_estimate if selected_evaluation is not None else None
+    ranking = selected_evaluation.ranking_breakdown if selected_evaluation is not None else None
+    lines = [
+        bridge_rectifier_display_label(report),
+        f"  selected: {selected.part_number} ({selected.manufacturer})",
+        (
+            "  package: "
+            f"{selected.package_family}, {selected.package_case}, "
+            f"{selected.body_length_mm:.6g} x {selected.body_width_mm:.6g} x {selected.body_height_mm:.6g} mm"
+        ),
+        f"  package data: {bridge_rectifier_package_confidence_label(selected)}",
+        (
+            "  ratings: "
+            f"VRRM={selected.v_rrm_v:.6g} V, "
+            f"Io={selected.io_avg_rectified_a:.6g} A, "
+            f"Vf(max)={selected.vf_max_v:.6g} V @ {selected.vf_test_current_a:.6g} A"
+        ),
+        *_bridge_voltage_margin_lines(result, selected),
+        f"  price/stock: ${selected.unit_price_usd:.6g} USD, stock={selected.stock_qty:.6g}",
+        f"  candidates: {result.passed_candidate_count} / {result.candidate_count} passed hard filters",
+        f"  data policy: {result.request.data_confidence_policy or 'allow_rough_estimates'}",
+    ]
+    if loss is not None:
+        lines.append(
+            "  loss: "
+            f"{loss.total_loss_w:.6g} W "
+            f"({loss.current_basis_label}={loss.current_basis_a:.6g} A, "
+            f"samples={loss.waveform_sample_count})"
+        )
+        for note in _bridge_loss_notes_for_display(loss.notes):
+            lines.append(f"    {note}")
+    if thermal is not None:
+        tj_text = "-" if thermal.tj_est_c is None else f"{thermal.tj_est_c:.6g} C"
+        margin_text = "-" if thermal.junction_margin_c is None else f"{thermal.junction_margin_c:.6g} C"
+        lines.append(f"  thermal: Tj={tj_text}, margin={margin_text}, basis={thermal.rth_basis}")
+        lines.append(f"  thermal data: {bridge_rectifier_thermal_confidence_label(selected, thermal)}")
+        if thermal.required_sink_rth_k_per_w is not None:
+            sink_volume_text = (
+                "-"
+                if thermal.estimated_sink_volume_cm3 is None
+                else f"{thermal.estimated_sink_volume_cm3:.6g} cm^3"
+            )
+            lines.append(
+                "  sink backsolve: "
+                f"Rth_sa<={thermal.required_sink_rth_k_per_w:.6g} K/W, "
+                f"volume={sink_volume_text}, "
+                f"class={thermal.sink_thermal_classification or '-'}"
+            )
+    if ranking is not None:
+        lines.append(
+            "  ranking: "
+            f"score={ranking.total_score:.6g} "
+            f"(loss={ranking.loss_score_component:.6g}, "
+            f"Tj={ranking.tj_score_component:.6g}, "
+            f"price={ranking.price_score_component:.6g}, "
+            f"volume={ranking.volume_score_component:.6g}, "
+            f"thermal={ranking.thermal_penalty_component:.6g}, "
+            f"data={ranking.data_confidence_penalty_component:.6g})"
+        )
+    if result.request.notes:
+        lines.append("  selection basis:")
+        lines.extend(f"    {note}" for note in result.request.notes[:3])
+    if selected_evaluation is not None and selected_evaluation.advisory_notes:
+        voltage_notes = [note for note in selected_evaluation.advisory_notes if "recommended margin" in note]
+        if voltage_notes:
+            lines.append("  voltage warning:")
+            lines.extend(f"    {note}" for note in voltage_notes[:2])
+    top_lines = _build_bridge_rectifier_top_candidate_lines(result)
+    if top_lines:
+        lines.extend(["", *top_lines])
+    rejection_lines = _build_bridge_rectifier_rejection_lines(result)
+    if rejection_lines:
+        lines.extend(["", *rejection_lines])
+    return lines
+
+
+def _build_bridge_rectifier_top_candidate_lines(result) -> list[str]:
+    rows = build_bridge_rectifier_top_candidate_rows(result)
+    if not rows:
+        return []
+    lines = [
+        "  Top bridge candidates (ranked comparison)",
+        "    rank | part | manufacturer | package | Vf_V | loss_W | Tj_C | price_USD | body_cm3 | score",
+    ]
+    for row in rows:
+        lines.append(
+            "    "
+            f"{row['rank']} | {row['part_number']} | {row['manufacturer']} | "
+            f"{row['package']} | "
+            f"{_format_bridge_table_value(row['vf_max_v'])} | "
+            f"{_format_bridge_table_value(row['loss_w'])} | "
+            f"{_format_bridge_table_value(row['tj_est_c'])} | "
+            f"{_format_bridge_table_value(row['unit_price_usd'])} | "
+            f"{_format_bridge_table_value(row['body_volume_cm3'])} | "
+            f"{_format_bridge_table_value(row['ranking_score'])}"
+        )
+    return lines
+
+
+def _bridge_voltage_margin_lines(result, selected) -> list[str]:
+    recommended_v = result.request.recommended_reverse_voltage_v
+    if recommended_v is None:
+        return []
+    ratio = selected.v_rrm_v / recommended_v
+    status = "meets recommended margin" if selected.v_rrm_v >= recommended_v else "below recommended margin"
+    return [
+        (
+            "  voltage margin: "
+            f"stress_basis={result.request.required_reverse_voltage_v:.6g} V, "
+            f"recommended={recommended_v:.6g} V, "
+            f"selected_ratio={ratio:.3g}, "
+            f"status={status}, "
+            f"policy={result.request.voltage_margin_policy}"
+        )
+    ]
+
+
+def _format_bridge_table_value(value: object) -> str:
+    if value is None:
+        return "-"
+    if isinstance(value, float):
+        return f"{value:.6g}"
+    return str(value)
+
+
+def _build_bridge_rectifier_rejection_lines(result) -> list[str]:
+    if not result.rejection_summary:
+        return []
+    lines = ["  Bridge rejection diagnostics"]
+    for reason, count in sorted(result.rejection_summary.items()):
+        lines.append(f"    {reason}: {count}")
+    return lines
+
+
 def resolve_device_geometry_placeholder(report: DesignReport | None) -> str:
     """Resolve the Device-window placeholder text for missing geometry."""
 
+    if report is not None and report.bridge_rectifier is not None:
+        return f"{bridge_rectifier_display_label(report)} package 2D/3D geometry is shown in the Device tabs."
     if report is None or report.device is None:
         return "Run device selection first to view semiconductor geometry."
     geometry_result = report.semiconductor_geometry
@@ -374,6 +574,52 @@ def resolve_device_geometry_placeholder(report: DesignReport | None) -> str:
     if geometry_result.placeholder_message:
         return geometry_result.placeholder_message
     return "No semiconductor geometry artifact is available."
+
+
+def _bridge_loss_notes_for_display(notes: tuple[str, ...]) -> list[str]:
+    """Keep concise bridge loss notes that clarify topology and current basis."""
+
+    selected: list[str] = []
+    for note in notes:
+        if "bridge estimate" in note or "Current basis" in note or "six-pulse" in note:
+            selected.append(note)
+    return selected[:3]
+
+
+def _build_llc_device_filter_lines(report: DesignReport) -> list[str]:
+    from ...libraries.semiconductors.metadata import (
+        PRIMARY_SWITCH_DEVICE_TYPE_INPUT_KEY,
+        PRIMARY_SWITCH_MANUFACTURER_INPUT_KEY,
+        RECTIFIER_DIODE_DEVICE_TYPE_INPUT_KEY,
+        RECTIFIER_DIODE_MANUFACTURER_INPUT_KEY,
+    )
+    from ...topologies.dc_dc.llc_resonant_converter_synchronous_rectifier.input_schema import (
+        SECONDARY_SYNC_SWITCH_DEVICE_TYPE_INPUT_KEY,
+        SECONDARY_SYNC_SWITCH_MANUFACTURER_INPUT_KEY,
+    )
+
+    metadata = report.spec.metadata
+    if report.spec.topology_id == "llc_resonant_converter_synchronous_rectifier":
+        secondary_lines = [
+            "  LLC secondary sync switch filter: "
+            f"{metadata.get(SECONDARY_SYNC_SWITCH_DEVICE_TYPE_INPUT_KEY, '-')}, "
+            f"{metadata.get(SECONDARY_SYNC_SWITCH_MANUFACTURER_INPUT_KEY, '-')}",
+            "  LLC SR loss/timing: first-pass readback; Coss/Eoss, deadtime, reverse conduction, and layout parasitics need follow-up.",
+        ]
+    else:
+        secondary_lines = [
+            "  LLC rectifier diode filter: "
+            f"{metadata.get(RECTIFIER_DIODE_DEVICE_TYPE_INPUT_KEY, '-')}, "
+            f"{metadata.get(RECTIFIER_DIODE_MANUFACTURER_INPUT_KEY, '-')}",
+            "  Detailed LLC switching loss: not implemented in this round",
+        ]
+    return [
+        "  LLC primary switch filter: "
+        f"{metadata.get(PRIMARY_SWITCH_DEVICE_TYPE_INPUT_KEY, '-')}, "
+        f"{metadata.get(PRIMARY_SWITCH_MANUFACTURER_INPUT_KEY, '-')}",
+        *secondary_lines,
+        "  LLC selection stress source: worst-case FHA coverage corner",
+    ]
 
 
 def _select_focused_device_notes(report: DesignReport) -> list[str]:
@@ -397,6 +643,29 @@ def _fmt_optional_float(value: float | None) -> str:
     if value is None:
         return "-"
     return f"{value:.6g}"
+
+
+def _format_switch_stress(stress) -> str:
+    if stress is None:
+        return "unavailable"
+    return (
+        f"V={_fmt_optional_float(stress.v_block_V)} V, "
+        f"Irms={_fmt_optional_float(stress.i_rms_A)} A, "
+        f"Iavg={_fmt_optional_float(stress.i_avg_A)} A, "
+        f"Ipeak={_fmt_optional_float(max(stress.i_turn_on_A, stress.i_turn_off_A))} A"
+    )
+
+
+def _format_position_stress(stress, parallel_count: int) -> str:
+    if stress is None:
+        return "unavailable"
+    multiplier = max(int(parallel_count), 1)
+    return (
+        f"V={_fmt_optional_float(stress.v_block_V)} V, "
+        f"Irms={_fmt_optional_float(stress.i_rms_A * multiplier)} A, "
+        f"Iavg={_fmt_optional_float(stress.i_avg_A * multiplier)} A, "
+        f"Ipeak={_fmt_optional_float(max(stress.i_turn_on_A, stress.i_turn_off_A) * multiplier)} A"
+    )
 
 
 def _fmt_optional_value(value: object) -> str:

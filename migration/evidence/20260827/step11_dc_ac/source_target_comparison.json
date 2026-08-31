@@ -1,0 +1,12 @@
+{
+  "contract": "dc_ac_source_target_comparison_v1",
+  "difference_count": 0,
+  "field_count": 45,
+  "policy": "Numeric values use 1e-9 relative tolerance; strings and booleans require exact equality.",
+  "source_commit": "6726f508fcf0e545f69512654d1ea5543e6333cf",
+  "source_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE_Claw260517_1_extracted\\PE_Claw",
+  "status": "passed",
+  "target_commit_before_step11": "6438f7a3260ff2cbcd96ebd153924f7660e1404e",
+  "target_root": "C:\\Users\\Lumia\\Documents\\PE_Claw\\PE-Claw1.0",
+  "topology_count": 3
+}

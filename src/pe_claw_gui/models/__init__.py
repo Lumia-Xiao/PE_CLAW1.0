@@ -22,6 +22,7 @@ from .inductor import (
     InductorOperatingPointRequest,
 )
 from .loss_result import LossResult
+from .llc_run_context import LlcRunContext
 from .magnetic_loss_contract import (
     CoreLossExcitation,
     CoreLossExcitationBuildRequest,
@@ -37,7 +38,12 @@ from .magnetic_loss_contract import (
     SourceProvenance,
     TabulatedModelPoint,
 )
-from .magnetic_result import MagneticResult
+from .magnetic_result import (
+    LlcMagneticCombinationContract,
+    LlcMagneticResultSummary,
+    LlcMagneticStageSummary,
+    MagneticResult,
+)
 from .magnetic_winding_contract import WindingElectricalEvidence
 from .openmagnetics_component_contract import (
     CatalogDistributorEntry,
@@ -102,6 +108,7 @@ __all__ = [
     "InductorOperatingEvaluation",
     "InductorOperatingPointRequest",
     "LossResult",
+    "LlcRunContext",
     "CoreLossExcitation",
     "CoreLossExcitationBuildRequest",
     "CoreLossExcitationBuildResult",
@@ -115,6 +122,9 @@ __all__ = [
     "ComponentNormalizationBatch",
     "ComponentNormalizationIssue",
     "MagneticResult",
+    "LlcMagneticCombinationContract",
+    "LlcMagneticResultSummary",
+    "LlcMagneticStageSummary",
     "WindingElectricalEvidence",
     "MaterialLossModel",
     "MeasuredLossDataset",

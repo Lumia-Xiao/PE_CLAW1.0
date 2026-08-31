@@ -56,7 +56,22 @@ def test_phase8_topologies_run_deterministic_backend_pipeline() -> None:
         assert report.waveform is not None
         assert report.stress is not None
         assert report.topology_result is not None
-        assert report.device is not None
+        if topology_id in {
+            "single_phase_diode_bridge_rectifier_capacitor_filter",
+            "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+            "three_phase_diode_bridge_rectifier_capacitor_filter",
+        }:
+            assert report.device is None
+            assert report.bridge_rectifier is not None
+            assert report.bridge_rectifier.selected_candidate is not None
+        else:
+            assert report.device is not None
+            if topology_id == "single_phase_boost_pfc_diode_bridge":
+                assert report.bridge_rectifier is not None
+                assert report.bridge_rectifier.selected_candidate is not None
+            else:
+                assert topology_id == "single_phase_totem_pole_bridgeless_pfc"
+                assert report.bridge_rectifier is None
         assert report.loss is not None
         assert report.thermal is not None
         assert report.geometry is not None

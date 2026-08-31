@@ -4,7 +4,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 计划状态 | `active` |
+| 计划状态 | `completed` |
 | 计划版本 | `v1.0` |
 | 建立日期 | `2026-08-24` |
 | 目标工程 | `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0` |
