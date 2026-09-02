@@ -535,3 +535,14 @@ listed here.
   - Implementation commit: `c8eccee973341abee41c27f93a8a78e019340e56`
     (`fix: align NPC semiconductor loss and efficiency model`).
   - Implementation push and local/remote hash verification passed.
+# 2026-09-02
+
+## NPC Step 6: Semiconductor Thermal Design
+
+- Added NPC-specific five-scenario semiconductor thermal screening.
+- Reused corrected Step 5 per-device losses and physical role counts for shared-sink sizing.
+- Added structured junction, case, interface, heatsink Rth/volume, airflow, coupling, and worst-case results.
+- Recorded TIM stack, installation-pressure, airflow-derating, and thermal-coupling assumptions.
+- Exported run-scoped `npc_thermal_design.json` and `npc_thermal_scenarios.csv` artifacts.
+- Added structured report and thermal-view readback for NPC scenarios.
+- Allowed declared NPC overload points to reach waveform and loss evaluation.
