@@ -39,6 +39,7 @@ NPC_DESIGN_BASIS_DEFAULTS = {
     "load_ratio_min": "0.05",
     "overload_ratio_max": "1.10",
     "ambient_temp_c": "25",
+    "ambient_temp_max_c": "45",
     "cooling_method": "forced_air",
     "altitude_m": "0",
     "target_junction_temp_c": "100",
@@ -96,6 +97,7 @@ def normalize_design_basis(raw_input: Mapping[str, object]) -> dict[str, object]
     load_ratio_min = number("load_ratio_min")
     overload_ratio_max = number("overload_ratio_max")
     ambient_temp_c = number("ambient_temp_c")
+    ambient_temp_max_c = number("ambient_temp_max_c")
     altitude_m = number("altitude_m")
     target_junction_temp_c = number("target_junction_temp_c")
     dead_time_ns = number("dead_time_ns")
@@ -164,6 +166,8 @@ def normalize_design_basis(raw_input: Mapping[str, object]) -> dict[str, object]
         raise ValueError("Modulation method must not be empty.")
     if not str(values["cooling_method"]).strip():
         raise ValueError("Cooling method must not be empty.")
+    if ambient_temp_max_c < ambient_temp_c:
+        raise ValueError("Maximum ambient temperature must not be below design ambient temperature.")
 
     vac_phase_peak_v = math.sqrt(2.0 / 3.0) * vac_ll_rms_v
     derived_phase_current_rms_a = output_power_w / (math.sqrt(3.0) * vac_ll_rms_v * abs(power_factor))
@@ -207,6 +211,7 @@ def normalize_design_basis(raw_input: Mapping[str, object]) -> dict[str, object]
         "operating_range": {"load_ratio_min": load_ratio_min, "overload_ratio_max": overload_ratio_max},
         "thermal": {
             "ambient_temperature_c": ambient_temp_c,
+            "maximum_ambient_temperature_c": ambient_temp_max_c,
             "cooling_method": str(values["cooling_method"]).strip(),
             "altitude_m": altitude_m,
             "target_junction_temperature_c": target_junction_temp_c,
@@ -256,6 +261,7 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
                 "vdc_min_v": vdc_min_v,
                 "vdc_nom_v": vdc_nom_v,
                 "vdc_max_v": vdc_max_v,
+                "ambient_temp_max_c": float(basis["thermal"]["maximum_ambient_temperature_c"]),
                 "vac_ll_rms_v": vac_ll_rms_v,
                 "f_line_hz": f_line_hz,
                 "fsw_hz": fsw_hz,

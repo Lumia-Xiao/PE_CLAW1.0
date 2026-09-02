@@ -18,7 +18,7 @@ def generate_waveforms(
     """Generate one line cycle of NPC PD level-shifted SPWM preview waveforms."""
 
     metadata = candidate.metadata
-    vdc_v = float(metadata["vdc_nom_v"])
+    vdc_v = float(operating_point.vin_v) if operating_point is not None else float(metadata["vdc_nom_v"])
     half_bus_v = 0.5 * vdc_v
     vac_ll_rms_v = float(metadata["vac_ll_rms_v"])
     vac_phase_rms_v = float(metadata["vac_phase_rms_v"])
@@ -659,7 +659,9 @@ def _clamp_load_ratio(value: float) -> float:
         numeric = float(value)
     except (TypeError, ValueError):
         return 1.0
-    return min(max(numeric, 0.0), 1.0)
+    # NPC thermal and efficiency validation includes the declared overload
+    # point; the topology input schema remains the authority for its limit.
+    return min(max(numeric, 0.0), 2.0)
 
 
 def _triangular_unit_carrier(phase: float) -> float:

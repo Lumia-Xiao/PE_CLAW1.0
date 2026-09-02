@@ -372,7 +372,57 @@ def _thermal_payload(report: DesignReport) -> dict[str, Any]:
             for role, values in components.items()
             if isinstance(values, Mapping)
         }
+    npc_scenarios = getattr(thermal, "npc_scenarios", ()) or ()
+    if npc_scenarios:
+        payload["npc_semiconductor"] = {
+            "worst_case": _npc_scenario_payload(getattr(thermal, "npc_worst_case", None)),
+            "assumptions": dict(getattr(thermal, "npc_assumptions", {}) or {}),
+            "scenarios": [_npc_scenario_payload(item) for item in npc_scenarios],
+        }
     return payload
+
+
+def _npc_scenario_payload(scenario) -> dict[str, Any] | None:
+    if scenario is None:
+        return None
+    return {
+        "scenario_id": scenario.scenario_id,
+        "label": scenario.label,
+        "load_ratio": _metric(scenario.load_ratio, "ratio", "thermal.npc.scenario"),
+        "power_factor": _metric(scenario.power_factor, "ratio", "thermal.npc.scenario"),
+        "vdc": _metric(scenario.vdc_v, "V", "thermal.npc.scenario"),
+        "ambient_temperature": _metric(scenario.ambient_temp_c, "degC", "thermal.npc.scenario"),
+        "total_semiconductor_loss": _metric(scenario.total_semiconductor_loss_w, "W", "thermal.npc.scenario"),
+        "required_sink_rth": _metric(scenario.required_sink_rth_k_per_w, "K/W", "thermal.npc.scenario"),
+        "selected_sink_rth": _metric(scenario.selected_sink_rth_k_per_w, "K/W", "thermal.npc.scenario"),
+        "heatsink_model": scenario.heatsink_model,
+        "heatsink_volume": _metric(scenario.heatsink_volume_cm3, "cm3", "thermal.npc.scenario"),
+        "required_airflow": _metric(scenario.required_airflow_m3_h, "m3/h", "thermal.npc.scenario"),
+        "design_airflow": _metric(scenario.design_airflow_m3_h, "m3/h", "thermal.npc.scenario"),
+        "airflow_derating": scenario.airflow_derating,
+        "thermal_coupling_factor": scenario.thermal_coupling_factor,
+        "worst_role": scenario.worst_role,
+        "worst_junction_temperature": _metric(scenario.worst_junction_temp_c, "degC", "thermal.npc.scenario"),
+        "minimum_junction_margin": _metric(scenario.minimum_junction_margin_c, "degC", "thermal.npc.scenario"),
+        "passed": scenario.passed,
+        "roles": [
+            {
+                "role": role.role,
+                "part_number": role.part_number,
+                "physical_device_count": role.physical_device_count,
+                "per_device_loss": _metric(role.per_device_loss_w, "W", "thermal.npc.role"),
+                "total_loss": _metric(role.total_loss_w, "W", "thermal.npc.role"),
+                "junction_temperature": _metric(role.junction_temp_c, "degC", "thermal.npc.role"),
+                "case_temperature": _metric(role.case_temp_c, "degC", "thermal.npc.role"),
+                "interface_temperature": _metric(role.interface_temperature_c, "degC", "thermal.npc.role"),
+                "junction_margin": _metric(role.junction_margin_c, "degC", "thermal.npc.role"),
+                "thermal_passed": role.thermal_passed,
+                "interface_model": role.interface_model_name,
+                "interface_layers": role.interface_layer_summary,
+            }
+            for role in scenario.roles
+        ],
+    }
 
 
 def _loss_payload(report: DesignReport) -> dict[str, Any]:

@@ -37,6 +37,9 @@ class ThermalView(ttk.Frame):
         if is_llc_topology(report.spec.topology_id) and thermal.llc_component_thermal:
             self._set_text("\n".join(_llc_lines(thermal)))
             return
+        if thermal.npc_scenarios:
+            self._set_text("\n".join(_npc_lines(thermal)))
+            return
 
         lines = [thermal.summary or "Thermal evaluation has not run yet."]
         lines.extend(
@@ -125,6 +128,34 @@ def _llc_lines(thermal) -> list[str]:
         else:
             lines.append(f"  hotspot proxy: N/A ({status})")
         lines.append(f"  source: {component.get('source') or '-'}")
+    if thermal.artifact_paths:
+        lines.extend(["", "Artifacts"])
+        lines.extend(f"  {path}" for path in thermal.artifact_paths)
+    if thermal.notes:
+        lines.extend(["", "Notes"])
+        lines.extend(f"  {note}" for note in thermal.notes)
+    return lines
+
+
+def _npc_lines(thermal) -> list[str]:
+    lines = [thermal.summary or "NPC semiconductor thermal evaluation has not run yet.", "", "NPC scenario checks"]
+    for scenario in thermal.npc_scenarios:
+        lines.extend([
+            "",
+            f"{scenario.label} [{scenario.scenario_id}]",
+            f"  Vdc={_fmt_float(scenario.vdc_v)} V  load={_fmt_float(scenario.load_ratio)}  PF={_fmt_float(scenario.power_factor)}  ambient={_fmt_float(scenario.ambient_temp_c)} C",
+            f"  semiconductor loss={_fmt_float(scenario.total_semiconductor_loss_w)} W  required Rth_sa={_fmt_float(scenario.required_sink_rth_k_per_w)} K/W",
+            f"  heatsink={scenario.heatsink_model}  selected Rth_sa={_fmt_float(scenario.selected_sink_rth_k_per_w)} K/W  airflow={_fmt_float(scenario.design_airflow_m3_h)} m3/h",
+            f"  worst role={scenario.worst_role or '-'}  Tj={_fmt_float(scenario.worst_junction_temp_c)} C  margin={_fmt_float(scenario.minimum_junction_margin_c)} C  result={'PASS' if scenario.passed else 'FAIL'}",
+        ])
+        for role in scenario.roles:
+            lines.append(
+                f"  {role.role}: {role.part_number}, count={role.physical_device_count}, loss={_fmt_float(role.per_device_loss_w)} W/device, "
+                f"Tinterface={_fmt_float(role.interface_temperature_c)} C, Tcase={_fmt_float(role.case_temp_c)} C, Tj={_fmt_float(role.junction_temp_c)} C"
+            )
+    if thermal.npc_assumptions:
+        lines.extend(["", "NPC assumptions"])
+        lines.extend(f"  {key}: {value}" for key, value in thermal.npc_assumptions.items())
     if thermal.artifact_paths:
         lines.extend(["", "Artifacts"])
         lines.extend(f"  {path}" for path in thermal.artifact_paths)
