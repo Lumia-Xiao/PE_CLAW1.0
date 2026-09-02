@@ -58,22 +58,24 @@ class LlcRunContext:
         raw_input: Mapping[str, object],
         *,
         output_root: str | Path | None = None,
+        run_id: str | None = None,
+        created_at: str | None = None,
     ) -> "LlcRunContext":
         """Create a fresh context without inheriting any prior stage state."""
 
         snapshot = {str(key): str(value) for key, value in raw_input.items()}
         encoded = json.dumps(snapshot, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode("utf-8")
-        run_id = uuid4().hex
-        resolved_root = Path(output_root) if output_root is not None else _default_output_root(run_id)
+        resolved_run_id = run_id or uuid4().hex
+        resolved_root = Path(output_root) if output_root is not None else _default_output_root(resolved_run_id)
         statuses = {stage: "not_started" for stage in LLC_RUN_STAGES}
         statuses["design"] = "running"
         return cls(
-            run_id=run_id,
+            run_id=resolved_run_id,
             topology_id=str(topology_id),
             input_sha256=hashlib.sha256(encoded).hexdigest(),
             raw_input_snapshot=snapshot,
             output_root=str(resolved_root.resolve()),
-            created_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            created_at=created_at or datetime.now(timezone.utc).isoformat(timespec="seconds"),
             stage_status=statuses,
         )
 

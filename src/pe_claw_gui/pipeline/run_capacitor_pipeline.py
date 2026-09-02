@@ -20,6 +20,7 @@ from ..models.capacitor import (
     LlcResonantCapacitorDesignRequest,
 )
 from ..models.design_report import DesignReport
+from ..models.design_run_context import get_run_output_root
 from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
 from ..topology_capabilities import has_split_dc_link_capacitor_bank
@@ -147,7 +148,7 @@ def run_capacitor_pipeline(
         llc_resonant_request,
         candidates,
         ambient_temp_c,
-        output_root=output_root or _llc_output_root(report),
+        output_root=output_root or get_run_output_root(report),
     )
     if llc_resonant_search is not None:
         warnings.extend(llc_resonant_search.warnings)
@@ -223,7 +224,10 @@ def run_capacitor_pipeline(
         ]),
         diagnostics=diagnostics,
     )
-    completed = run_capacitor_geometry_pipeline(replace(report, capacitor=result), output_root=output_root or _llc_output_root(report))
+    completed = run_capacitor_geometry_pipeline(
+        replace(report, capacitor=result),
+        output_root=output_root or get_run_output_root(report),
+    )
     if completed.capacitor is None:
         return _attach_llc_cr_design_id(completed)
     total_elapsed_s = time.perf_counter() - pipeline_start_s
@@ -1276,13 +1280,10 @@ def _project_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
-def _llc_output_root(report: DesignReport) -> Path | None:
-    if report.llc_run_context is None or not report.llc_run_context.output_root:
-        return None
-    return Path(report.llc_run_context.output_root)
-
-
 def _capacitor_output_dir(report: DesignReport, output_root: str | Path | None) -> Path:
-    if output_root is not None and report.llc_run_context is not None:
+    if output_root is not None:
         return Path(output_root) / "capacitor_design"
+    run_root = get_run_output_root(report)
+    if run_root is not None:
+        return run_root / "capacitor_design"
     return _project_root() / "outputs" / "capacitor_design"

@@ -16,6 +16,7 @@ from ..models.bridge_rectifier import (
 )
 from ..models.capacitor import CapacitorGeometryTarget, CapacitorSelectionEntry, capacitor_series_display_name
 from ..models.design_report import DesignReport
+from ..models.design_run_context import get_run_context, get_run_output_dir
 from ..models.geometry_result import GeometryTarget, InductorGeometryLayout
 from ..models.inductor import FixedInductorDesignCandidate
 from ..models.llc_run_context import is_llc_topology
@@ -221,7 +222,7 @@ def build_hardware_overview_payload(
         component_groups=groups,
         global_geometry_scale=global_scale,
         status="available",
-        run_id=report.llc_run_context.run_id if report.llc_run_context is not None else None,
+        run_id=getattr(get_run_context(report), "run_id", None),
         topology_id=report.spec.topology_id,
         source_ids=_hardware_overview_source_ids(report),
         dependency_diagnostics=(validation if is_llc_topology(report.spec.topology_id) else {}),
@@ -2392,8 +2393,10 @@ def _float_or_none(value: Any) -> float | None:
 def _resolve_output_dir(output_dir: str | Path | None, report: DesignReport | None = None) -> Path:
     if output_dir is not None:
         return Path(output_dir)
-    if report is not None and is_llc_topology(report.spec.topology_id) and report.llc_run_context is not None:
-        return Path(report.llc_run_context.output_root) / "hardware_overview"
+    if report is not None:
+        run_dir = get_run_output_dir(report, "hardware_overview")
+        if run_dir is not None:
+            return run_dir
     return Path(__file__).resolve().parents[3] / _OVERVIEW_OUTPUT_DIR
 
 

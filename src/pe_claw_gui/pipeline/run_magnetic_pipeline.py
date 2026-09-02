@@ -18,6 +18,7 @@ from ..engines.magnetics.stacked_expansion import (
     select_stacked_seed_candidates,
 )
 from ..models.design_report import DesignReport
+from ..models.design_run_context import get_run_output_dir
 from ..models.ac_dc_reactor import AcDcReactorDesignRequest
 from ..models.geometry_result import GeometryResult
 from ..models.magnetic_result import (
@@ -340,6 +341,7 @@ def _run_magnetic_pipeline_without_excitation_audit(
             chosen_candidates=chosen_designs,
             stack_count_comparison=best_by_stack_count,
             recommended_design_id=selected_design_id,
+            output_dir=get_run_output_dir(report, "inductor_design"),
         )
 
         notes.append(describe_design_spread(chosen_designs))
@@ -599,7 +601,11 @@ def _run_ac_dc_reactor_magnetic_pipeline(
 
     try:
         request = _build_ac_dc_reactor_request(report)
-        selection = select_ac_dc_sendust_reactor(request, output_dir=_project_root() / "outputs" / "ac_dc_reactor_design")
+        selection = select_ac_dc_sendust_reactor(
+            request,
+            output_dir=get_run_output_dir(report, "inductor_design")
+            or _project_root() / "outputs" / "ac_dc_reactor_design",
+        )
         selected = selection.selected_candidate
         requirements = _ac_dc_reactor_design_requirements(request)
         notes = [*request.notes, *selection.notes, *selection.warnings]

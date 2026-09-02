@@ -11,6 +11,7 @@ from ..libraries.semiconductors.metadata import (
     SEMICONDUCTOR_MANUFACTURER_INPUT_KEY,
 )
 from ..models.common_spec import CommonSpec
+from ..models.design_run_context import DesignRunContext, write_design_run_manifest
 from ..models.design_report import DesignReport
 from ..models.operating_point import OperatingPoint
 from ..models.llc_run_context import LlcRunContext, is_llc_topology
@@ -39,30 +40,49 @@ def run_topology_pipeline(
     output_root: str | Path | None = None,
 ) -> TopologyPipelineBundle:
     """Run the selected topology plugin through synthesis and evaluation."""
-    spec = plugin.build_spec(raw_input)
-    candidate = plugin.synthesize(spec)
-    # Synthesis defines the design-point hardware once; waveform generation must
-    # reuse that candidate and only vary the requested operating point.
-    waveform_set = plugin.generate_waveforms(candidate, operating_point) if include_waveforms else None
-    stress_result = plugin.extract_stress(candidate, waveform_set=waveform_set)
-    topology_result = plugin.evaluate(candidate, waveform_set=waveform_set, stress_result=stress_result)
-    report = plugin.build_report(
-        spec=spec,
-        candidate=candidate,
-        operating_point=operating_point,
-        waveform_set=waveform_set,
-        stress_result=stress_result,
-        topology_result=topology_result,
+    context = DesignRunContext.create(plugin.topology_id, raw_input, output_root=output_root)
+    try:
+        spec = plugin.build_spec(raw_input)
+        candidate = plugin.synthesize(spec)
+        # Synthesis defines the design-point hardware once; waveform generation must
+        # reuse that candidate and only vary the requested operating point.
+        waveform_set = plugin.generate_waveforms(candidate, operating_point) if include_waveforms else None
+        stress_result = plugin.extract_stress(candidate, waveform_set=waveform_set)
+        topology_result = plugin.evaluate(candidate, waveform_set=waveform_set, stress_result=stress_result)
+        report = plugin.build_report(
+            spec=spec,
+            candidate=candidate,
+            operating_point=operating_point,
+            waveform_set=waveform_set,
+            stress_result=stress_result,
+            topology_result=topology_result,
+        )
+    except Exception as exc:
+        context = context.transition("design", "failed", reason=f"{type(exc).__name__}: {exc}")
+        write_design_run_manifest(context)
+        raise
+    context = context.transition("design", "succeeded")
+    report = replace(
+        report,
+        run_context=context,
+        notes=[*report.notes, "Design run context created with an isolated output directory."],
     )
     if is_llc_topology(spec.topology_id):
-        context = LlcRunContext.create(spec.topology_id, raw_input, output_root=output_root)
+        llc_context = LlcRunContext.create(
+            spec.topology_id,
+            raw_input,
+            output_root=context.output_root,
+            run_id=context.run_id,
+            created_at=context.created_at,
+        )
         if report.device is not None and report.device.recommended_scheme_id:
-            context = context.with_result_ids(device_design_id=report.device.recommended_scheme_id)
+            llc_context = llc_context.with_result_ids(device_design_id=report.device.recommended_scheme_id)
         report = replace(
             report,
-            llc_run_context=context,
+            llc_run_context=llc_context,
             notes=[*report.notes, "LLC run context created with isolated input and output identity."],
         )
+    write_design_run_manifest(context)
     return TopologyPipelineBundle(
         plugin=plugin,
         spec=spec,

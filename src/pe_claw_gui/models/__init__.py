@@ -10,6 +10,7 @@ from .bridge_rectifier import (
 from .common_spec import CommonSpec
 from .design_assessment import AssessmentDimension, DesignAssessment
 from .design_report import DesignReport
+from .design_run_context import DesignRunContext
 from .device_loss import DeviceLossResult, SwitchStress
 from .device_result import DeviceSelectionResult
 from .efficiency_sweep import EfficiencySweepPoint, EfficiencySweepResult
