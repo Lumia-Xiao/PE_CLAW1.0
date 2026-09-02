@@ -161,7 +161,7 @@ outputs/
 
 ### 步骤 5：修复半导体损耗与效率模型
 
-状态：已完成。实现提交 `c8eccee` 已推送至 `origin/codex/npc-output-run-isolation-step1`；计划与 ChangeLog 提交待本次文档提交后填写。
+状态：已完成。实现提交 `c8eccee` 与计划/ChangeLog 提交 `3b4fa4f` 均已推送至 `origin/codex/npc-output-run-isolation-step1`。
 
 完成记录：统一 NPC 外管、内管和箝位二极管的器件级损耗与物理数量统计；补充反向导通、死区、Eoss 和栅极损耗分项；每个负载点重新生成波形、应力并刷新固定硬件损耗；加入驱动、控制、均压电阻和风机辅助损耗；对 `|PF| < 0.05` 设置效率计算边界；Hardware Overview、损耗视图、器件方案和效率扫描复用同一半导体汇总口径。效率扫描 CSV 保留为可复算的原始审计数据。
 
