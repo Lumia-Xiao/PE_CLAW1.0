@@ -568,6 +568,32 @@ listed here.
   - Implementation push and local/remote hash verification passed.
 # 2026-09-02
 
+## NPC Step 8: Output Inductor and Filter Audit
+
+- Added a run-scoped NPC output-filter audit for the historical E 80/38/20,
+  FT-3M, 34-turn, 6-parallel baseline and the same-core Litz 600x0.08,
+  34-turn, 2-parallel comparison.
+- Reproduced the baseline at 271.102 uH, 0.468 T, and 4.8096 W per inductor;
+  the Litz comparison is 3.9393 W per inductor with the larger winding-volume
+  tradeoff retained.
+- Added five operating cases covering rated, maximum bus, minimum PF, declared
+  overload, and maximum ambient temperature with saturation margin, Bsat(100 C),
+  hot copper resistance, skin, proximity, fringing, core-loss, copper-loss, and
+  hotspot estimates.
+- Added three-phase LC resonance, series-RC damping, control-bandwidth ratio,
+  and current-ripple checks.
+- Exported `npc_output_filter_audit.json` and
+  `npc_inductor_operating_cases.csv` under the active run's `inductor_design`
+  directory and exposed the audit through structured output.
+- Kept the result conditional because the normalized FT-3M record lacks a
+  vendor DC-bias loss map and temperature loss coefficient; filter capacitor,
+  grid impedance, and hardware thermal assumptions require later validation.
+- Validation: Step-8 focused tests `3 passed`; NPC contract, loss, thermal,
+  capacitor, and run-isolation regression `32 passed`; compileall and
+  `git diff --check` passed.
+- Git: implementation commit `f87f9da2868c8d27cf6379600f1a8b84071b2a95`
+  pushed to `origin/codex/npc-output-run-isolation-step1`.
+
 ## NPC Step 6: Semiconductor Thermal Design
 
 - Added NPC-specific five-scenario semiconductor thermal screening.
