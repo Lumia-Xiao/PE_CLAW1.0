@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+from dataclasses import asdict, is_dataclass
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -597,7 +598,12 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
             "available": report.stress is not None,
             "switch": _stress_metric(getattr(report.stress, "switch", None)),
             "rectifier": _stress_metric(getattr(report.stress, "rectifier", None)),
+            "npc_voltage_checks": {
+                role: asdict(check) if is_dataclass(check) else dict(check)
+                for role, check in (getattr(report.stress, "role_voltage_checks", {}) or {}).items()
+            },
         },
+        "semiconductor_voltage_checks": dict(getattr(report.device, "voltage_checks", {}) or {}),
         "magnetic": _magnetic_payload(report),
         "loss": _loss_payload(report),
         "geometry": _geometry_payload(report),

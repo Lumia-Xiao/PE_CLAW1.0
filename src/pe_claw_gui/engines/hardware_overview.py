@@ -779,6 +779,7 @@ def _build_semiconductor_group(report: DesignReport) -> HardwareOverviewComponen
             "efficiency_sweep_power_factor": _efficiency_sweep_power_factor(report),
             **module_metadata,
             **_npc_semiconductor_overview_metadata(report, target),
+            "voltage_checks": dict(getattr(report.device, "voltage_checks", {}) or {}),
         },
         notes=notes,
         warnings=warnings,

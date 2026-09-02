@@ -30,6 +30,11 @@ NPC_DESIGN_BASIS_DEFAULTS = {
     "inductor_current_ripple_ratio": "0.2",
     "dc_link_voltage_ripple_ratio": "0.05",
     "neutral_point_voltage_deviation_ratio": "0.02",
+    "neutral_point_voltage_stress_factor": "1.02",
+    "switching_overvoltage_v": "50",
+    "switching_overvoltage_source": "engineering_assumption_pending_double_pulse_test",
+    "switching_overvoltage_validation_status": "unverified_assumption",
+    "static_voltage_margin_ratio": "0.20",
     "efficiency_target": "0.98",
     "load_ratio_min": "0.05",
     "overload_ratio_max": "1.10",
@@ -78,6 +83,9 @@ def normalize_design_basis(raw_input: Mapping[str, object]) -> dict[str, object]
     current_ripple_ratio = number("inductor_current_ripple_ratio")
     voltage_ripple_ratio = number("dc_link_voltage_ripple_ratio")
     neutral_point_deviation_ratio = number("neutral_point_voltage_deviation_ratio")
+    neutral_point_stress_factor = number("neutral_point_voltage_stress_factor")
+    switching_overvoltage_v = number("switching_overvoltage_v")
+    static_voltage_margin_ratio = number("static_voltage_margin_ratio")
     efficiency_target = number("efficiency_target")
     load_ratio_min = number("load_ratio_min")
     overload_ratio_max = number("overload_ratio_max")
@@ -108,6 +116,12 @@ def normalize_design_basis(raw_input: Mapping[str, object]) -> dict[str, object]
             raise ValueError(f"{label} must be positive.")
     if not vdc_min_v <= vdc_nom_v <= vdc_max_v:
         raise ValueError("NPC DC-link voltage basis must satisfy Vdc_min <= Vdc_nom <= Vdc_max.")
+    if neutral_point_stress_factor < 1.0:
+        raise ValueError("Neutral-point voltage stress factor must be at least 1.")
+    if switching_overvoltage_v < 0.0:
+        raise ValueError("Switching overvoltage must not be negative.")
+    if static_voltage_margin_ratio < 0.20:
+        raise ValueError("Static voltage margin must be at least 20%.")
     if not 0.0 < abs(power_factor) <= 1.0:
         raise ValueError("Power factor magnitude must be in the range (0, 1].")
     if not 0.0 < power_factor_min <= power_factor_max <= 1.0:
@@ -153,7 +167,16 @@ def normalize_design_basis(raw_input: Mapping[str, object]) -> dict[str, object]
             "inductor_current_ripple_ratio": current_ripple_ratio,
             "dc_link_voltage_ripple_ratio": voltage_ripple_ratio,
             "neutral_point_voltage_deviation_ratio": neutral_point_deviation_ratio,
+            "neutral_point_voltage_stress_factor": neutral_point_stress_factor,
+            "static_voltage_margin_ratio": static_voltage_margin_ratio,
             "efficiency": efficiency_target,
+        },
+        "voltage_stress": {
+            "neutral_point_stress_factor": neutral_point_stress_factor,
+            "switching_overvoltage_v": switching_overvoltage_v,
+            "switching_overvoltage_source": str(values["switching_overvoltage_source"]).strip(),
+            "switching_overvoltage_validation_status": str(values["switching_overvoltage_validation_status"]).strip(),
+            "static_voltage_margin_ratio": static_voltage_margin_ratio,
         },
         "operating_range": {"load_ratio_min": load_ratio_min, "overload_ratio_max": overload_ratio_max},
         "thermal": {
@@ -167,7 +190,7 @@ def normalize_design_basis(raw_input: Mapping[str, object]) -> dict[str, object]
             "Vdc min/nominal/max are explicit design-basis operating points.",
             "Output and line frequency are independently recorded; this grid-connected basis uses the same default value.",
             "Output current is derived at the design power factor and is not an independently entered rating.",
-            "Neutral-point balancing and dynamic overvoltage are targets for later validation stages.",
+            "Dynamic switching overvoltage is an explicit engineering assumption until double-pulse and busbar validation are available.",
         ],
         "source": {
             "type": "runtime_raw_input",
@@ -206,6 +229,11 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
                 "conduction_mode": "ccm",
                 "inductor_current_ripple_ratio": inductor_current_ripple_ratio,
                 "dc_link_voltage_ripple_ratio": dc_link_voltage_ripple_ratio,
+                "npc_neutral_point_stress_factor": float(basis["voltage_stress"]["neutral_point_stress_factor"]),
+                "npc_switching_overvoltage_v": float(basis["voltage_stress"]["switching_overvoltage_v"]),
+                "npc_switching_overvoltage_source": basis["voltage_stress"]["switching_overvoltage_source"],
+                "npc_switching_overvoltage_validation_status": basis["voltage_stress"]["switching_overvoltage_validation_status"],
+                "npc_static_voltage_margin_ratio": float(basis["voltage_stress"]["static_voltage_margin_ratio"]),
                 "modulation_scheme": f"{basis['switching']['modulation_method']}_first_pass",
                 "topology_level_count": 3,
                 "phase_count": 3,

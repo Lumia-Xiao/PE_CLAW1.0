@@ -35,7 +35,7 @@ class DeviceSelectionAudit:
 def build_filter_criteria(
     stress: SwitchStress,
     *,
-    voltage_margin: float = VOLTAGE_MARGIN_FACTOR,
+    voltage_margin: float | None = None,
     current_margin: float = CURRENT_MARGIN_FACTOR,
 ) -> DeviceFilterCriteria:
     """Translate normalized switch stress into conservative hard-filter thresholds."""
@@ -43,7 +43,11 @@ def build_filter_criteria(
     reference_temp_c = stress.case_temp_C if stress.case_temp_C is not None else (stress.ambient_temp_C or 25.0)
     peak_current_a = max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A))
     return DeviceFilterCriteria(
-        min_vdss_V=stress.v_block_V * voltage_margin,
+        min_vdss_V=stress.v_block_V * (
+            1.0 + stress.voltage_margin_ratio
+            if voltage_margin is None
+            else voltage_margin
+        ),
         min_continuous_current_A=abs(stress.i_rms_A) * current_margin,
         min_pulse_current_A=peak_current_a * current_margin,
         reference_temp_C=reference_temp_c,
@@ -56,7 +60,7 @@ def select_switch_device(
     stress: SwitchStress,
     *,
     method: str = "accurate",
-    voltage_margin: float = VOLTAGE_MARGIN_FACTOR,
+    voltage_margin: float | None = None,
     current_margin: float = CURRENT_MARGIN_FACTOR,
     loss_weight: float = LOSS_WEIGHT,
     tj_weight: float = TJ_WEIGHT,
@@ -82,7 +86,7 @@ def select_switch_device_with_audit(
     stress: SwitchStress,
     *,
     method: str = "accurate",
-    voltage_margin: float = VOLTAGE_MARGIN_FACTOR,
+    voltage_margin: float | None = None,
     current_margin: float = CURRENT_MARGIN_FACTOR,
     loss_weight: float = LOSS_WEIGHT,
     tj_weight: float = TJ_WEIGHT,
@@ -224,4 +228,10 @@ def merge_switch_stresses(stresses: Sequence[SwitchStress]) -> SwitchStress:
             (stress.interface_rth_cs_K_per_W for stress in stresses if stress.interface_rth_cs_K_per_W is not None),
             default=None,
         ),
+        voltage_margin_ratio=first.voltage_margin_ratio,
+        static_voltage_basis_V=first.static_voltage_basis_V,
+        neutral_point_stress_factor=first.neutral_point_stress_factor,
+        dynamic_overvoltage_V=first.dynamic_overvoltage_V,
+        overvoltage_source=first.overvoltage_source,
+        overvoltage_validation_status=first.overvoltage_validation_status,
     )

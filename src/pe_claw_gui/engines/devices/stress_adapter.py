@@ -196,6 +196,12 @@ def _build_flyback_stresses(
         "fsw_Hz": 1.0 / switching_period_s,
         "ambient_temp_C": _ambient_temp_c(report),
         "target_junction_temp_C": _target_junction_temp_c(report),
+        "voltage_margin_ratio": _npc_voltage_margin_ratio(report),
+        "static_voltage_basis_V": _npc_static_voltage_basis(report),
+        "neutral_point_stress_factor": _npc_metadata_float(report, "npc_neutral_point_stress_factor"),
+        "dynamic_overvoltage_V": _npc_metadata_float(report, "npc_switching_overvoltage_v"),
+        "overvoltage_source": _npc_metadata_text(report, "npc_switching_overvoltage_source"),
+        "overvoltage_validation_status": _npc_metadata_text(report, "npc_switching_overvoltage_validation_status"),
     }
     return (
         SwitchStress(
@@ -454,6 +460,31 @@ def _build_three_phase_npc_inverter_stresses(report: DesignReport) -> tuple[Swit
         **common,
     )
     return outer, inner, clamp
+
+
+def _npc_metadata_float(report: DesignReport, key: str) -> float | None:
+    if report.spec.topology_id != "three_phase_three_level_npc_inverter":
+        return None
+    try:
+        return float(report.candidate.metadata[key]) if report.candidate is not None else None
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def _npc_metadata_text(report: DesignReport, key: str) -> str:
+    if report.spec.topology_id != "three_phase_three_level_npc_inverter" or report.candidate is None:
+        return "not_applicable"
+    return str(report.candidate.metadata.get(key, "unverified_assumption"))
+
+
+def _npc_voltage_margin_ratio(report: DesignReport) -> float:
+    value = _npc_metadata_float(report, "npc_static_voltage_margin_ratio")
+    return 0.20 if value is None else value
+
+
+def _npc_static_voltage_basis(report: DesignReport) -> float | None:
+    value = _npc_metadata_float(report, "npc_static_blocking_voltage_v")
+    return value
 
 
 def _build_psfb_diode_rectifier_stresses(report: DesignReport) -> tuple[SwitchStress, SwitchStress]:

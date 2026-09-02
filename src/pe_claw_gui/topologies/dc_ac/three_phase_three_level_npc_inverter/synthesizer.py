@@ -12,12 +12,16 @@ from .topology_contract import CONVENTIONAL_NPC_CONTRACT
 def calculate_three_phase_three_level_npc_inverter(
     *,
     vdc_nom_v: float,
+    vdc_max_v: float | None = None,
     vac_ll_rms_v: float,
     fsw_hz: float,
     pout_w: float,
     power_factor: float,
     inductor_current_ripple_ratio: float,
     dc_link_voltage_ripple_ratio: float,
+    neutral_point_stress_factor: float = 1.02,
+    switching_overvoltage_v: float = 50.0,
+    static_voltage_margin_ratio: float = 0.20,
     modulation_index_limit: float = 1.0,
 ) -> dict[str, float | str | bool | int]:
     """Return CCM fixed-frequency PD level-shifted SPWM first-pass estimates."""
@@ -40,6 +44,7 @@ def calculate_three_phase_three_level_npc_inverter(
     current_vector_peak_a = i_phase_peak_a
     d_axis_current_limit_a = max(1.85 * i_phase_peak_a, 1.5 * current_vector_peak_a)
     ccm_valid = delta_il_pp_a < 2.0 * i_phase_peak_a
+    vdc_stress_basis_v = vdc_nom_v if vdc_max_v is None else vdc_max_v
     return {
         "vac_phase_rms_v": vac_phase_rms_v,
         "vac_phase_peak_v": vac_phase_peak_v,
@@ -73,11 +78,18 @@ def calculate_three_phase_three_level_npc_inverter(
         "npc_role_position_counts": CONVENTIONAL_NPC_CONTRACT.role_position_counts,
         "npc_role_kinds": CONVENTIONAL_NPC_CONTRACT.role_kinds,
         "npc_conduction_state_basis": CONVENTIONAL_NPC_CONTRACT.conduction_state_basis,
-        "npc_switch_blocking_basis": CONVENTIONAL_NPC_CONTRACT.switch_blocking_basis,
+        "npc_switch_blocking_basis": "Vdc_max/2 * Kneutral + Vovershoot; device rating includes static margin",
         "npc_state_voltage_levels": list(CONVENTIONAL_NPC_CONTRACT.state_voltage_levels),
         "npc_role_position_labels": CONVENTIONAL_NPC_CONTRACT.role_position_labels,
         "dc_link_split_capacitor_count": 2,
         "npc_half_bus_voltage_v": 0.5 * vdc_nom_v,
+        "npc_static_blocking_voltage_v": 0.5 * vdc_stress_basis_v * neutral_point_stress_factor,
+        "npc_neutral_point_stress_factor": neutral_point_stress_factor,
+        "npc_switching_overvoltage_v": switching_overvoltage_v,
+        "npc_static_voltage_margin_ratio": static_voltage_margin_ratio,
+        "npc_worst_case_blocking_voltage_v": (
+            0.5 * vdc_stress_basis_v * neutral_point_stress_factor + switching_overvoltage_v
+        ),
         "current_controller_kp": 5.0,
         "current_controller_ki": 500.0,
         "dc_voltage_controller_kp": 0.2,
@@ -110,12 +122,16 @@ def synthesize(spec: TopologySpec) -> TopologyCandidate:
     metadata = dict(spec.metadata)
     estimates = calculate_three_phase_three_level_npc_inverter(
         vdc_nom_v=float(metadata["vdc_nom_v"]),
+        vdc_max_v=float(metadata["vdc_max_v"]),
         vac_ll_rms_v=float(metadata["vac_ll_rms_v"]),
         fsw_hz=float(metadata["fsw_hz"]),
         pout_w=spec.pout,
         power_factor=float(metadata["power_factor"]),
         inductor_current_ripple_ratio=float(metadata["inductor_current_ripple_ratio"]),
         dc_link_voltage_ripple_ratio=float(metadata["dc_link_voltage_ripple_ratio"]),
+        neutral_point_stress_factor=float(metadata["npc_neutral_point_stress_factor"]),
+        switching_overvoltage_v=float(metadata["npc_switching_overvoltage_v"]),
+        static_voltage_margin_ratio=float(metadata["npc_static_voltage_margin_ratio"]),
         modulation_index_limit=float(metadata["design_basis"]["switching"]["modulation_index_limit"]),
     )
     candidate_metadata = {**metadata, **estimates}

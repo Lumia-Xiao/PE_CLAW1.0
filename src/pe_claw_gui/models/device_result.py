@@ -15,6 +15,7 @@ class SemiconductorRoleSchemeResult:
     parallel_count: int
     registered_candidate_count: int = 0
     selected_part_number: str | None = None
+    selected_voltage_rating_v: float | None = None
     vendor: str | None = None
     device_type: str | None = None
     device_structure_type: str | None = None
@@ -113,4 +114,5 @@ class DeviceSelectionResult:
     active_scheme_label: str | None = None
     active_parallel_count: int = 1
     recommended_scheme_id: str | None = None
+    voltage_checks: dict[str, dict[str, object]] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)

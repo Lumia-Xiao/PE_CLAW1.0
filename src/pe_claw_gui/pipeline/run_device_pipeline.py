@@ -624,6 +624,7 @@ def run_device_pipeline(report: DesignReport, plugin: TopologyPlugin | None = No
         active_scheme_label=active_scheme_label,
         active_parallel_count=active_parallel_count,
         recommended_scheme_id=recommended_scheme_id,
+        voltage_checks=_build_npc_voltage_checks(report, active_scheme),
         notes=[
             *notes,
             *active_scheme_notes,
@@ -647,6 +648,35 @@ def run_device_pipeline(report: DesignReport, plugin: TopologyPlugin | None = No
         active_scheme=active_scheme,
         registry=registry,
     )
+
+
+def _build_npc_voltage_checks(report: DesignReport, scheme: SemiconductorSchemeResult) -> dict[str, dict[str, object]]:
+    """Serialize the shared NPC voltage checks with selected device ratings."""
+
+    if report.spec.topology_id != CONVENTIONAL_NPC_CONTRACT.topology_id or report.stress is None:
+        return {}
+    role_results = {item.role: item for item in scheme.role_results}
+    checks = {}
+    for role, check in report.stress.role_voltage_checks.items():
+        selected_rating = role_results.get(role).selected_voltage_rating_v if role_results.get(role) else None
+        static_margin = None if selected_rating is None else selected_rating / check.static_blocking_voltage_v - 1.0
+        dynamic_margin = None if selected_rating is None else selected_rating / check.worst_case_blocking_voltage_v - 1.0
+        checks[role] = {
+            "role": role,
+            "static_blocking_voltage_v": check.static_blocking_voltage_v,
+            "dynamic_overvoltage_v": check.dynamic_overvoltage_v,
+            "worst_case_blocking_voltage_v": check.worst_case_blocking_voltage_v,
+            "required_device_rating_v": check.required_device_rating_v,
+            "selected_device_rating_v": selected_rating,
+            "neutral_point_stress_factor": check.neutral_point_stress_factor,
+            "static_margin_target_ratio": check.static_margin_target_ratio,
+            "static_margin_ratio": static_margin,
+            "dynamic_margin_ratio": dynamic_margin,
+            "overvoltage_source": check.overvoltage_source,
+            "overvoltage_validation_status": check.overvoltage_validation_status,
+            "passed": None if selected_rating is None else selected_rating >= check.required_device_rating_v,
+        }
+    return checks
 
 
 def _apply_llc_sr_selected_device_readback(
@@ -1381,6 +1411,7 @@ def _evaluate_parallel_scheme(
                 SemiconductorRoleSchemeResult(
                     role=role,
                     parallel_count=parallel_count,
+                    selected_voltage_rating_v=None,
                     registered_candidate_count=len(registered_switch_candidates),
                     candidate_count=0,
                     passed_candidate_count=0,
@@ -1463,6 +1494,7 @@ def _evaluate_parallel_scheme(
                 SemiconductorRoleSchemeResult(
                     role=role,
                     parallel_count=parallel_count,
+                    selected_voltage_rating_v=None,
                     registered_candidate_count=len(registered_switch_candidates),
                     candidate_count=0,
                     passed_candidate_count=0,
@@ -1890,6 +1922,7 @@ def _summarize_scheme_role(
         parallel_count=parallel_count,
         registered_candidate_count=registered_candidate_count,
         selected_part_number=device.part_number,
+        selected_voltage_rating_v=float(device.static.vdss_max_V),
         vendor=device.vendor,
         device_type=device.selection_device_type,
         device_structure_type=device.device_structure_type,

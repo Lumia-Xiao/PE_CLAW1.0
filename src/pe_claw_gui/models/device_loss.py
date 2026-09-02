@@ -29,6 +29,12 @@ class SwitchStress:
     ambient_temp_C: float | None = None
     target_junction_temp_C: float | None = None
     interface_rth_cs_K_per_W: float | None = None
+    voltage_margin_ratio: float = 0.20
+    static_voltage_basis_V: float | None = None
+    neutral_point_stress_factor: float | None = None
+    dynamic_overvoltage_V: float = 0.0
+    overvoltage_source: str = "not_applicable"
+    overvoltage_validation_status: str = "not_applicable"
 
 
 @dataclass(frozen=True)

@@ -109,6 +109,50 @@ def test_npc_design_basis_ranges_are_rejected(field: str, value: str, message: s
         _plugin().build_spec(raw)
 
 
+def test_npc_voltage_stress_inputs_are_validated_and_used() -> None:
+    raw = MODULE.build_default_inputs()
+    raw.update({
+        "vdc_max": "800",
+        "neutral_point_voltage_stress_factor": "1.05",
+        "switching_overvoltage_v": "80",
+        "static_voltage_margin_ratio": "0.25",
+    })
+    plugin = _plugin()
+    candidate = plugin.synthesize(plugin.build_spec(raw))
+    assert candidate.metadata["npc_worst_case_blocking_voltage_v"] == pytest.approx(500.0)
+    assert candidate.metadata["npc_static_voltage_margin_ratio"] == pytest.approx(0.25)
+
+    for field, value in (
+        ("neutral_point_voltage_stress_factor", "0.99"),
+        ("switching_overvoltage_v", "-1"),
+        ("static_voltage_margin_ratio", "0.19"),
+    ):
+        invalid = MODULE.build_default_inputs()
+        invalid[field] = value
+        with pytest.raises(ValueError):
+            plugin.build_spec(invalid)
+
+
+def test_npc_voltage_stress_inputs_are_validated_and_used() -> None:
+    raw = MODULE.build_default_inputs()
+    raw.update({
+        "vdc_max": "800",
+        "neutral_point_voltage_stress_factor": "1.05",
+        "switching_overvoltage_v": "80",
+        "static_voltage_margin_ratio": "0.25",
+    })
+    plugin = _plugin()
+    candidate = plugin.synthesize(plugin.build_spec(raw))
+    assert candidate.metadata["npc_worst_case_blocking_voltage_v"] == pytest.approx(500.0)
+    assert candidate.metadata["npc_static_voltage_margin_ratio"] == pytest.approx(0.25)
+
+    for field, value in (("neutral_point_voltage_stress_factor", "0.99"), ("switching_overvoltage_v", "-1"), ("static_voltage_margin_ratio", "0.19")):
+        invalid = MODULE.build_default_inputs()
+        invalid[field] = value
+        with pytest.raises(ValueError):
+            plugin.build_spec(invalid)
+
+
 def test_design_request_snapshot_is_registered_in_manifest(tmp_path: Path) -> None:
     context = DesignRunContext.create(TOPOLOGY_ID, MODULE.build_default_inputs(), output_root=tmp_path / "run")
     basis = _plugin().build_spec(MODULE.build_default_inputs()).metadata["design_basis"]
@@ -169,8 +213,15 @@ def test_npc_stress_preserves_outer_inner_and_clamp_roles() -> None:
     stress = plugin.extract_stress(candidate, waveform)
     roles = waveform.metadata["three_phase_npc_device_currents"]["roles"]
 
-    assert stress.switch.voltage_max_v == pytest.approx(350.0)
-    assert stress.rectifier.voltage_max_v == pytest.approx(350.0)
+    assert stress.switch.voltage_max_v == pytest.approx(432.5)
+    assert stress.rectifier.voltage_max_v == pytest.approx(432.5)
+    assert set(stress.role_voltage_checks) == {
+        "npc_outer_switch",
+        "npc_inner_switch",
+        "npc_clamp_diode",
+    }
+    assert stress.role_voltage_checks["npc_outer_switch"].required_device_rating_v == pytest.approx(519.0)
+    assert stress.role_voltage_checks["npc_clamp_diode"].overvoltage_validation_status == "unverified_assumption"
     assert stress.switch.current_peak_a == pytest.approx(roles["inner_switch"]["peak_absolute_current_a"])
     assert stress.switch.current_rms_a == pytest.approx(roles["inner_switch"]["rms_current_a"])
     assert stress.rectifier.current_rms_a == pytest.approx(roles["clamp_diode"]["rms_current_a"])
@@ -227,6 +278,12 @@ def test_npc_device_and_overview_counts_are_consistent(tmp_path: Path) -> None:
     assert group.metadata["clamp_diode_physical_count"] == 6
     assert group.metadata["total_physical_device_count"] == 18
     assert {item.entry_id: item.quantity for item in group.child_entries} == role_counts
+    assert set(group.metadata["voltage_checks"]) == {
+        "npc_outer_switch",
+        "npc_inner_switch",
+        "npc_clamp_diode",
+    }
+    assert group.metadata["voltage_checks"]["npc_inner_switch"]["passed"] is True
 
 
 def test_operating_refresh_updates_npc_load_and_pf_without_redesigning_hardware() -> None:

@@ -42,7 +42,7 @@ def evaluate(
         f"Sizing-target CCM valid = {bool(candidate.ccm_valid)}.",
         f"Switch positions = {int(metadata.get('switch_position_count', 0))}.",
         f"Clamp diode positions = {int(metadata.get('clamp_diode_count', 0))}.",
-        f"Device blocking basis = Vdc/2 = {_fmt(metadata.get('npc_half_bus_voltage_v'))} V.",
+        f"Device worst-case blocking basis = Vdc_max/2 x Kneutral + Vovershoot = {_fmt(metadata.get('npc_worst_case_blocking_voltage_v'))} V; required rating = {_fmt(float(metadata.get('npc_worst_case_blocking_voltage_v', 0.0)) * (1.0 + float(metadata.get('npc_static_voltage_margin_ratio', 0.20))))} V.",
         *waveform_lines,
         "Split upper/lower DC-link capacitor bank selection is available through Run Capacitor.",
         "Loss stage available: NPC outer/inner switches, clamp diodes, split DC-link capacitors, and 3x output-inductor first-pass operating loss.",

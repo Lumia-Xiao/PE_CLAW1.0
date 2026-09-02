@@ -116,6 +116,16 @@ def build_stress_summary_lines(
         f"  {rectifier_avg_label} = {_fmt_current(stress.rectifier.current_avg_a)}",
         f"  {rectifier_rms_label} = {_fmt_current(stress.rectifier.current_rms_a)}",
     ]
+    if stress.role_voltage_checks:
+        lines.extend(["", "NPC voltage-margin checks"])
+        for role, check in sorted(stress.role_voltage_checks.items()):
+            lines.append(
+                f"  {role}: static={check.static_blocking_voltage_v:.6g} V, "
+                f"dynamic={check.worst_case_blocking_voltage_v:.6g} V, "
+                f"required_rating={check.required_device_rating_v:.6g} V, "
+                f"margin_target={check.static_margin_target_ratio:.3g}, "
+                f"overvoltage={check.overvoltage_validation_status}"
+            )
     if include_notes and stress.notes:
         lines.extend(["", "Stress notes", *[f"  {note}" for note in stress.notes]])
     return lines
