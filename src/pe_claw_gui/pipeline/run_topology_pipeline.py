@@ -11,7 +11,7 @@ from ..libraries.semiconductors.metadata import (
     SEMICONDUCTOR_MANUFACTURER_INPUT_KEY,
 )
 from ..models.common_spec import CommonSpec
-from ..models.design_run_context import DesignRunContext, write_design_run_manifest
+from ..models.design_run_context import attach_design_request, DesignRunContext, write_design_run_manifest
 from ..models.design_report import DesignReport
 from ..models.operating_point import OperatingPoint
 from ..models.llc_run_context import LlcRunContext, is_llc_topology
@@ -43,6 +43,9 @@ def run_topology_pipeline(
     context = DesignRunContext.create(plugin.topology_id, raw_input, output_root=output_root)
     try:
         spec = plugin.build_spec(raw_input)
+        design_basis = spec.metadata.get("design_basis") if isinstance(spec.metadata, dict) else None
+        if isinstance(design_basis, dict):
+            context = attach_design_request(context, design_basis)
         candidate = plugin.synthesize(spec)
         # Synthesis defines the design-point hardware once; waveform generation must
         # reuse that candidate and only vary the requested operating point.

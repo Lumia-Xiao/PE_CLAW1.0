@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from importlib import import_module
+import hashlib
 import inspect
+import json
 import sys
 from pathlib import Path
 
@@ -17,6 +19,7 @@ from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
 from pe_claw_gui.topologies.base.registry import build_default_registry
+from pe_claw_gui.models.design_run_context import DesignRunContext
 
 
 TOPOLOGY_ID = "three_phase_three_level_npc_inverter"
@@ -45,6 +48,50 @@ def test_default_npc_inputs_preserve_three_level_split_link_contract() -> None:
     assert candidate.metadata["dc_link_split_capacitor_count"] == 2
     assert candidate.metadata["npc_half_bus_voltage_v"] == pytest.approx(350.0)
     assert candidate.metadata["dc_link_series_equivalent_capacitance_f"] > 0.0
+
+
+def test_npc_design_basis_is_explicit_and_normalized() -> None:
+    plugin = _plugin()
+    raw = MODULE.build_default_inputs()
+    raw.update({"vdc_min": "640", "vdc_nom": "700", "vdc_max": "760", "pout_w": "12000"})
+    spec = plugin.build_spec(raw)
+    basis = spec.metadata["design_basis"]
+
+    assert basis["dc_link_voltage_v"] == {"min": 640.0, "nominal": 700.0, "max": 760.0}
+    assert basis["ac_output"]["frequency_hz"] == pytest.approx(50.0)
+    assert basis["switching"]["modulation_index_limit"] == pytest.approx(1.0)
+    assert basis["power_factor"] == {"design": 1.0, "min": 0.8, "max": 1.0}
+    assert basis["operating_range"]["overload_ratio_max"] == pytest.approx(1.1)
+    assert basis["ac_output"]["phase_current_rms_a"] == pytest.approx(
+        12000.0 / (3.0**0.5 * 400.0)
+    )
+    assert spec.vin_min == pytest.approx(640.0)
+    assert spec.vin_max == pytest.approx(760.0)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [("vdc_min", "800", "Vdc_min"), ("power_factor_min", "1.1", "PF_min"), ("efficiency_target", "1.1", "Efficiency")],
+)
+def test_npc_design_basis_ranges_are_rejected(field: str, value: str, message: str) -> None:
+    raw = MODULE.build_default_inputs()
+    raw[field] = value
+    with pytest.raises(ValueError, match=message):
+        _plugin().build_spec(raw)
+
+
+def test_design_request_snapshot_is_registered_in_manifest(tmp_path: Path) -> None:
+    context = DesignRunContext.create(TOPOLOGY_ID, MODULE.build_default_inputs(), output_root=tmp_path / "run")
+    basis = _plugin().build_spec(MODULE.build_default_inputs()).metadata["design_basis"]
+    from pe_claw_gui.models.design_run_context import attach_design_request
+
+    updated = attach_design_request(context, basis)
+    request_path = Path(updated.output_root) / "design_request" / "design_request.json"
+    manifest = json.loads(Path(updated.manifest_path or "").read_text(encoding="utf-8"))
+    assert request_path.is_file()
+    assert (request_path.with_suffix(".md")).is_file()
+    assert manifest["design_request"]["path"] == "design_request/design_request.json"
+    assert manifest["design_request"]["sha256"] == hashlib.sha256(request_path.read_bytes()).hexdigest()
 
 
 @pytest.mark.parametrize(

@@ -7,6 +7,7 @@ from tkinter import ttk
 
 from ...models.operating_point import OperatingPoint
 from .base_form import BaseTopologyForm, TopologyField
+from ...topologies.dc_ac.three_phase_three_level_npc_inverter.input_schema import NPC_DESIGN_BASIS_DEFAULTS
 
 
 THREE_PHASE_NPC_NOTES = (
@@ -37,6 +38,22 @@ class ThreePhaseThreeLevelNPCInverterForm(BaseTopologyForm):
         TopologyField("ambient_temp_c", "Ambient temperature [C]", "25"),
         TopologyField("target_junction_temp_c", "Target junction temperature [C]", "100"),
     )
+    design_basis_fields = (
+        TopologyField("vdc_min", "Vdc minimum [V]", NPC_DESIGN_BASIS_DEFAULTS["vdc_min"]),
+        TopologyField("vdc_max", "Vdc maximum [V]", NPC_DESIGN_BASIS_DEFAULTS["vdc_max"]),
+        TopologyField("f_output_hz", "Output frequency [Hz]", NPC_DESIGN_BASIS_DEFAULTS["f_output_hz"]),
+        TopologyField("power_factor_min", "PF minimum", NPC_DESIGN_BASIS_DEFAULTS["power_factor_min"]),
+        TopologyField("power_factor_max", "PF maximum", NPC_DESIGN_BASIS_DEFAULTS["power_factor_max"]),
+        TopologyField("modulation_method", "Modulation method", NPC_DESIGN_BASIS_DEFAULTS["modulation_method"]),
+        TopologyField("modulation_index_limit", "Modulation index limit", NPC_DESIGN_BASIS_DEFAULTS["modulation_index_limit"]),
+        TopologyField("neutral_point_voltage_deviation_ratio", "Neutral-point deviation ratio", NPC_DESIGN_BASIS_DEFAULTS["neutral_point_voltage_deviation_ratio"]),
+        TopologyField("efficiency_target", "Efficiency target", NPC_DESIGN_BASIS_DEFAULTS["efficiency_target"]),
+        TopologyField("load_ratio_min", "Minimum load ratio", NPC_DESIGN_BASIS_DEFAULTS["load_ratio_min"]),
+        TopologyField("overload_ratio_max", "Maximum overload ratio", NPC_DESIGN_BASIS_DEFAULTS["overload_ratio_max"]),
+        TopologyField("cooling_method", "Cooling method", NPC_DESIGN_BASIS_DEFAULTS["cooling_method"]),
+        TopologyField("altitude_m", "Altitude [m]", NPC_DESIGN_BASIS_DEFAULTS["altitude_m"]),
+        TopologyField("application_notes", "Application notes", NPC_DESIGN_BASIS_DEFAULTS["application_notes"]),
+    )
 
     def __init__(
         self,
@@ -61,8 +78,9 @@ class ThreePhaseThreeLevelNPCInverterForm(BaseTopologyForm):
         design_frame = ttk.LabelFrame(self, text="Design Inputs", style="Section.TLabelframe")
         design_frame.grid(row=1, column=0, sticky="ew")
         design_frame.columnconfigure(1, weight=1)
-        self.build_design_input_rows(design_frame, (*self.design_fields, *self.get_semiconductor_design_fields()))
-        self.build_design_action_buttons(design_frame, row=len(self.design_fields) + len(self.get_semiconductor_design_fields()))
+        all_design_fields = (*self.design_fields, *self.design_basis_fields, *self.get_semiconductor_design_fields())
+        self.build_design_input_rows(design_frame, all_design_fields)
+        self.build_design_action_buttons(design_frame, row=len(all_design_fields))
         if self.run_capacitor_button is not None:
             self.run_capacitor_button.configure(state="normal")
         if self.run_magnetics_button is not None:

@@ -429,3 +429,20 @@ listed here.
 - Git:
   - Branch: `codex/npc-output-run-isolation-step1`.
   - Commit and push are recorded by the commit containing this entry.
+
+## 2026-09-02 NPC Design-Basis Normalization
+
+- What changed:
+  - Added explicit NPC design-basis inputs for DC-link range, AC/grid frequency,
+    PF range, modulation limit, operating range, thermal environment, cooling,
+    ripple and neutral-point targets, efficiency target, and application notes.
+  - Preserved legacy callers that provide only `vdc_nom` by normalizing a fixed
+    nominal bus range.
+  - Persisted the normalized basis as run-local JSON/Markdown design requests,
+    registered with the run manifest by relative path and SHA-256.
+  - Routed the same normalized basis into synthesis metadata and structured
+    reports so later stages have one authoritative input contract.
+- Validation:
+  - NPC contract plus run-isolation regression: `18 passed`.
+  - DC-AC topology/shared/operating-refresh regression: `12 passed`.
+  - `python -m compileall -q src tests` and `git diff --check`: passed.

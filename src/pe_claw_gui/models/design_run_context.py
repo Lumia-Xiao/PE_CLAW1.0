@@ -50,6 +50,8 @@ class DesignRunContext:
     failure_stage: str | None = None
     failure_reason: str | None = None
     manifest_path: str | None = None
+    design_request_path: str | None = None
+    design_request_sha256: str | None = None
 
     @classmethod
     def create(
@@ -132,6 +134,8 @@ class DesignRunContext:
             "failure_stage": self.failure_stage,
             "failure_reason": self.failure_reason,
             "manifest_path": self.manifest_path,
+            "design_request_path": self.design_request_path,
+            "design_request_sha256": self.design_request_sha256,
         }
 
 
@@ -171,11 +175,59 @@ def write_design_run_manifest(context: DesignRunContext) -> Path:
             "stage": context.failure_stage,
             "reason": context.failure_reason,
         },
+        "design_request": {
+            "path": context.design_request_path,
+            "sha256": context.design_request_sha256,
+            "status": "available" if context.design_request_path else "not_available",
+        },
         "artifact_groups": artifacts,
     }
     path = root / "manifest.json"
     path.write_text(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=True), encoding="utf-8")
     return path
+
+
+def attach_design_request(context: DesignRunContext, design_basis: Mapping[str, object]) -> DesignRunContext:
+    """Persist one normalized design basis inside this run and register its hash."""
+
+    root = Path(context.output_root).resolve()
+    request_dir = root / "design_request"
+    request_dir.mkdir(parents=True, exist_ok=True)
+    encoded = json.dumps(design_basis, indent=2, sort_keys=True, ensure_ascii=True).encode("utf-8")
+    request_path = request_dir / "design_request.json"
+    request_path.write_bytes(encoded)
+    markdown = _design_request_markdown(design_basis)
+    (request_dir / "design_request.md").write_text(markdown, encoding="utf-8")
+    updated = replace(
+        context,
+        design_request_path=request_path.relative_to(root).as_posix(),
+        design_request_sha256=hashlib.sha256(encoded).hexdigest(),
+    )
+    write_design_run_manifest(updated)
+    return updated
+
+
+def _design_request_markdown(design_basis: Mapping[str, object]) -> str:
+    """Render a compact human-readable copy without changing the JSON authority."""
+
+    lines = [
+        "# Normalized Design Basis",
+        "",
+        f"- Status: `{design_basis.get('status', 'unknown')}`",
+        f"- Topology: `{design_basis.get('topology_id', 'unknown')}`",
+        "",
+        "The authoritative machine-readable request is `design_request.json` in this directory.",
+        "",
+    ]
+    for section in ("dc_link_voltage_v", "ac_output", "switching", "power_factor", "targets", "operating_range", "thermal"):
+        value = design_basis.get(section)
+        if value is None:
+            continue
+        lines.extend([f"## {section}", "", "```json", json.dumps(value, indent=2, sort_keys=True, ensure_ascii=True), "```", ""])
+    notes = design_basis.get("application_notes")
+    if notes:
+        lines.extend(["## Application Notes", "", str(notes), ""])
+    return "\n".join(lines)
 
 
 def _overall_run_status(context: DesignRunContext) -> str:

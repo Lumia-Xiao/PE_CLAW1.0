@@ -562,6 +562,7 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
             "switching_frequency": _metric(spec.fs_khz * 1000.0, "Hz", "request.normalized"),
             "ripple_current_ratio": _metric(spec.ripple_current_ratio, "ratio", "request.normalized"),
             "ripple_voltage_ratio": _metric(spec.ripple_voltage_ratio_percent / 100.0, "ratio", "request.normalized"),
+            "design_basis": metadata.get("design_basis", {}),
         },
         "candidate": {
             "available": candidate is not None,

@@ -17,6 +17,7 @@ def calculate_three_phase_three_level_npc_inverter(
     power_factor: float,
     inductor_current_ripple_ratio: float,
     dc_link_voltage_ripple_ratio: float,
+    modulation_index_limit: float = 1.0,
 ) -> dict[str, float | str | bool | int]:
     """Return CCM fixed-frequency PD level-shifted SPWM first-pass estimates."""
 
@@ -44,8 +45,8 @@ def calculate_three_phase_three_level_npc_inverter(
         "i_phase_rms_a": i_phase_rms_a,
         "i_phase_peak_a": i_phase_peak_a,
         "modulation_index": modulation_index,
-        "modulation_limit": 1.0,
-        "modulation_valid": modulation_index <= 1.0,
+        "modulation_limit": modulation_index_limit,
+        "modulation_valid": modulation_index <= modulation_index_limit,
         "delta_il_pp_a": delta_il_pp_a,
         "inductor_ripple_design_target_pp_a": delta_il_pp_a,
         "inductor_ripple_design_target_ratio": inductor_current_ripple_ratio,
@@ -107,6 +108,7 @@ def synthesize(spec: TopologySpec) -> TopologyCandidate:
         power_factor=float(metadata["power_factor"]),
         inductor_current_ripple_ratio=float(metadata["inductor_current_ripple_ratio"]),
         dc_link_voltage_ripple_ratio=float(metadata["dc_link_voltage_ripple_ratio"]),
+        modulation_index_limit=float(metadata["design_basis"]["switching"]["modulation_index_limit"]),
     )
     candidate_metadata = {**metadata, **estimates}
     candidate_metadata["pll_frequency_hz"] = float(metadata["f_line_hz"])
@@ -115,8 +117,8 @@ def synthesize(spec: TopologySpec) -> TopologyCandidate:
     return TopologyCandidate(
         topology_id=spec.topology_id,
         display_name=spec.display_name,
-        vin_min=float(metadata["vdc_nom_v"]),
-        vin_max=float(metadata["vdc_nom_v"]),
+        vin_min=float(metadata["vdc_min_v"]),
+        vin_max=float(metadata["vdc_max_v"]),
         vin_nom=float(metadata["vdc_nom_v"]),
         vout_target=float(metadata["vac_ll_rms_v"]),
         pout_target=spec.pout,
