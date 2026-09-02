@@ -666,6 +666,11 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
         "geometry": _geometry_payload(report),
         "capacitor": _capacitor_payload(report),
         "thermal": _thermal_payload(report),
+        "system_validation": (
+            report.system_validation.to_dict()
+            if report.system_validation is not None and hasattr(report.system_validation, "to_dict")
+            else None
+        ),
         "hardware": _hardware_payload(report),
         "ripple": {
             "output_ripple_target": _metric(output_ripple_target, "V", "request.normalized"),

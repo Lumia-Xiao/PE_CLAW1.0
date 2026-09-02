@@ -2167,7 +2167,8 @@ def _thermal_hotspot_c(report: DesignReport) -> float | None:
             if isinstance(values, dict) and values.get("hotspot_c") is not None
         ]
         return max(hotspots) if hotspots else None
-    return report.thermal.recommended_estimate.hotspot_proxy_temp_c
+    estimate = report.thermal.recommended_estimate
+    return estimate.hotspot_proxy_temp_c if estimate is not None else None
 
 
 def _capacitor_recommended_target(report: DesignReport, side: str) -> CapacitorGeometryTarget | None:

@@ -12,6 +12,7 @@ from .run_magnetic_pipeline import run_magnetic_pipeline
 from .run_operating_point_refresh import run_operating_point_refresh
 from .run_thermal_pipeline import run_thermal_pipeline
 from .run_topology_pipeline import TopologyPipelineBundle, run_design_pipeline, run_topology_pipeline, run_waveform_pipeline
+from .run_npc_step9_pipeline import run_npc_step9_pipeline, run_npc_system_validation
 
 __all__ = [
     "TopologyPipelineBundle",
@@ -32,4 +33,6 @@ __all__ = [
     "run_thermal_pipeline",
     "run_topology_pipeline",
     "run_waveform_pipeline",
+    "run_npc_step9_pipeline",
+    "run_npc_system_validation",
 ]
