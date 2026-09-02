@@ -412,3 +412,20 @@ listed here.
   - Branch: `codex/npc-output-run-isolation-step1`.
   - Implementation commit: `c5e748d` (`Add run-scoped design output isolation`).
   - Implementation commit pushed to the matching origin branch.
+
+## 2026-09-02 NPC Plan Commit-and-Push Governance
+
+- What changed:
+  - Added a mandatory rule to the active NPC revision plan requiring every
+    plan step and independently testable modification batch to be validated,
+    committed, pushed, and verified against the remote branch before it can be
+    marked complete.
+  - Required each completion record to include scope, validation, branch,
+    commit hash, and push status.
+  - Explicitly kept runtime outputs, caches, bytecode, and local logs outside
+    Git commits.
+- Validation:
+  - Markdown structure and `git diff --check` verified.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Commit and push are recorded by the commit containing this entry.
