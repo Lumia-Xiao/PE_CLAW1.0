@@ -161,6 +161,14 @@ outputs/
 
 ### 步骤 5：修复半导体损耗与效率模型
 
+状态：已完成。实现提交 `c8eccee` 已推送至 `origin/codex/npc-output-run-isolation-step1`；计划与 ChangeLog 提交待本次文档提交后填写。
+
+完成记录：统一 NPC 外管、内管和箝位二极管的器件级损耗与物理数量统计；补充反向导通、死区、Eoss 和栅极损耗分项；每个负载点重新生成波形、应力并刷新固定硬件损耗；加入驱动、控制、均压电阻和风机辅助损耗；对 `|PF| < 0.05` 设置效率计算边界；Hardware Overview、损耗视图、器件方案和效率扫描复用同一半导体汇总口径。效率扫描 CSV 保留为可复算的原始审计数据。
+
+默认 NPC 结果已写入 `outputs/step5_npc_loss_model`：满载半导体损耗 `97.8938 W`，辅助损耗 `37 W`，总损耗 `134.8938 W`，满载效率约 `98.669%`；Hardware Overview 顶层半导体损耗与三个角色子项之和一致。
+
+验证：第五步专项 `5 passed`；NPC 损耗、拓扑和效率相关回归 `24 passed`；现有 AC-DC 效率回归 `17 passed`；`python -B -m compileall -q src tests` 与 `git diff --check` 通过。实现 commit 为 `c8eccee973341abee41c27f93a8a78e019340e56`，push 成功；本地 HEAD 与远端分支一致。
+
 #### 修改内容
 
 1. 按外管、内管和箝位二极管分别计算导通损耗、开关损耗、反向导通损耗和死区损耗。

@@ -503,3 +503,35 @@ listed here.
     (`feat: redesign NPC semiconductor voltage margins`).
   - Push passed; local HEAD and
     `origin/codex/npc-output-run-isolation-step1` were identical.
+
+## 2026-09-02 NPC Semiconductor Loss and Efficiency Model
+
+- What changed:
+  - Added shared semiconductor loss aggregation using each role's topology
+    position count and parallel-device count.
+  - Split reverse conduction from reverse-recovery loss and added explicit NPC
+    dead-time loss for outer and inner switch positions.
+  - Added NPC Eoss and gate-drive loss handling where the selected device data
+    supports it, while keeping diode roles free of switch-only terms.
+  - Recomputed semiconductor loss for every load/PF operating point using
+    refreshed waveform and stress data instead of reusing a fixed design-point
+    scalar.
+  - Added explicit NPC auxiliary-loss inputs for gate drivers, control power,
+    balancing resistors, and fan power; these now contribute to efficiency.
+  - Added a `|PF| < 0.05` efficiency calculation boundary with an auditable
+    warning and no meaningless efficiency value.
+  - Aligned Hardware Overview, loss view, device scheme totals, and efficiency
+    sweep totals; exported efficiency CSV remains the raw recomputation audit
+    artifact.
+  - Wrote the verified default NPC result set to
+    `outputs/step5_npc_loss_model`.
+- Validation:
+  - Step-5 focused tests: `5 passed`.
+  - NPC loss/topology/efficiency regression: `24 passed`.
+  - Existing AC-DC efficiency regression: `17 passed`.
+  - `python -B -m compileall -q src tests` and `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `c8eccee973341abee41c27f93a8a78e019340e56`
+    (`fix: align NPC semiconductor loss and efficiency model`).
+  - Implementation push and local/remote hash verification passed.
