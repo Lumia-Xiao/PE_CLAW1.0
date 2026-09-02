@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ...topologies.base.registry import build_default_registry
+from ...topologies.dc_ac.three_phase_three_level_npc_inverter.topology_contract import CONVENTIONAL_NPC_CONTRACT
 from .metadata import ANY_ACTIVE_SWITCH_CATEGORY, ANY_COMPATIBLE_ACTIVE_SWITCH_CATEGORY, ANY_DIODE_CATEGORY
 
 
@@ -287,7 +288,7 @@ _THREE_PHASE_NPC_INVERTER_ROLE_SPECS: tuple[SemiconductorRoleSpec, ...] = (
         allowed_electrical_types=("MOSFET", "IGBT"),
         role_kind="three_phase_npc_switch",
         default_category=ANY_ACTIVE_SWITCH_CATEGORY,
-        quantity_per_power_cell=6,
+        quantity_per_power_cell=CONVENTIONAL_NPC_CONTRACT.role_position_counts["npc_outer_switch"],
         can_use_discrete=True,
         can_use_module_section=True,
         can_use_internal_diode=False,
@@ -299,7 +300,7 @@ _THREE_PHASE_NPC_INVERTER_ROLE_SPECS: tuple[SemiconductorRoleSpec, ...] = (
         allowed_electrical_types=("MOSFET", "IGBT"),
         role_kind="three_phase_npc_switch",
         default_category=ANY_ACTIVE_SWITCH_CATEGORY,
-        quantity_per_power_cell=6,
+        quantity_per_power_cell=CONVENTIONAL_NPC_CONTRACT.role_position_counts["npc_inner_switch"],
         can_use_discrete=True,
         can_use_module_section=True,
         can_use_internal_diode=False,
@@ -309,13 +310,13 @@ _THREE_PHASE_NPC_INVERTER_ROLE_SPECS: tuple[SemiconductorRoleSpec, ...] = (
         role_name="npc_clamp_diode",
         role_label="NPC clamp diode",
         allowed_electrical_types=("Diode",),
-        role_kind="rectifier_diode",
+        role_kind="clamp_diode",
         default_category=ANY_DIODE_CATEGORY,
-        quantity_per_power_cell=6,
+        quantity_per_power_cell=CONVENTIONAL_NPC_CONTRACT.role_position_counts["npc_clamp_diode"],
         can_use_discrete=True,
         can_use_module_section=True,
         can_use_internal_diode=False,
-        notes="Neutral-point clamp diode positions across three phases.",
+        notes="Neutral-point clamp diode positions across three phases; two physical diodes per phase.",
     ),
 )
 

@@ -16,6 +16,7 @@ from ..models.bridge_rectifier import (
 )
 from ..models.capacitor import CapacitorGeometryTarget, CapacitorSelectionEntry, capacitor_series_display_name
 from ..models.design_report import DesignReport
+from ..topologies.dc_ac.three_phase_three_level_npc_inverter.topology_contract import CONVENTIONAL_NPC_CONTRACT, validate_npc_role_positions
 from ..models.design_run_context import get_run_context, get_run_output_dir
 from ..models.geometry_result import GeometryTarget, InductorGeometryLayout
 from ..models.inductor import FixedInductorDesignCandidate
@@ -1850,13 +1851,20 @@ def _npc_semiconductor_overview_metadata(
         for role in target.role_layouts
         if role.role_name in clamp_roles
     )
+    role_positions = {
+        role.role_name: int(role.topology_position_count)
+        for role in target.role_layouts
+        if role.role_name in CONVENTIONAL_NPC_CONTRACT.role_position_counts
+    }
+    validate_npc_role_positions(role_positions)
     return {
         "npc_semiconductor_group_type": "three_phase_three_level_npc",
-        "active_switch_position_count": 12,
-        "clamp_diode_position_count": 6,
+        "active_switch_position_count": CONVENTIONAL_NPC_CONTRACT.active_switch_position_count,
+        "clamp_diode_position_count": CONVENTIONAL_NPC_CONTRACT.clamp_diode_position_count,
         "active_switch_physical_count": active_count,
         "clamp_diode_physical_count": clamp_count,
         "total_physical_device_count": active_count + clamp_count,
+        "npc_topology_contract": CONVENTIONAL_NPC_CONTRACT.to_dict(),
         "semiconductor_physical_quantity_basis": (
             "NPC discrete role totals: 12 active switch positions and 6 clamp diode positions, "
             "multiplied by the selected parallel count per position."

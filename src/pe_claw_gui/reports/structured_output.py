@@ -564,6 +564,13 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
             "ripple_voltage_ratio": _metric(spec.ripple_voltage_ratio_percent / 100.0, "ratio", "request.normalized"),
             "design_basis": metadata.get("design_basis", {}),
         },
+        "topology_contract": metadata.get("npc_topology_contract", {}),
+        "semiconductor_topology": {
+            "active_switch_position_count": metadata.get("switch_position_count"),
+            "clamp_diode_position_count": metadata.get("clamp_diode_count"),
+            "role_position_counts": metadata.get("npc_role_position_counts", {}),
+            "role_kinds": metadata.get("npc_role_kinds", {}),
+        },
         "candidate": {
             "available": candidate is not None,
             "inductance": _metric(getattr(candidate, "inductance_h", None), "H", "candidate.synthesis"),

@@ -6,6 +6,7 @@ import math
 
 from ...base.candidate import TopologyCandidate
 from ...base.spec import TopologySpec
+from .topology_contract import CONVENTIONAL_NPC_CONTRACT
 
 
 def calculate_three_phase_three_level_npc_inverter(
@@ -64,10 +65,17 @@ def calculate_three_phase_three_level_npc_inverter(
         "idc_avg_a": idc_avg_a,
         "ccm_valid": ccm_valid,
         "ccm_validity_basis": "design_target_ripple_below_twice_fundamental_phase_current_peak",
-        "phase_count": 3,
-        "topology_level_count": 3,
-        "switch_position_count": 12,
-        "clamp_diode_count": 6,
+        "phase_count": CONVENTIONAL_NPC_CONTRACT.phase_count,
+        "topology_level_count": CONVENTIONAL_NPC_CONTRACT.level_count,
+        "switch_position_count": CONVENTIONAL_NPC_CONTRACT.active_switch_position_count,
+        "clamp_diode_count": CONVENTIONAL_NPC_CONTRACT.clamp_diode_position_count,
+        "npc_topology_contract": CONVENTIONAL_NPC_CONTRACT.to_dict(),
+        "npc_role_position_counts": CONVENTIONAL_NPC_CONTRACT.role_position_counts,
+        "npc_role_kinds": CONVENTIONAL_NPC_CONTRACT.role_kinds,
+        "npc_conduction_state_basis": CONVENTIONAL_NPC_CONTRACT.conduction_state_basis,
+        "npc_switch_blocking_basis": CONVENTIONAL_NPC_CONTRACT.switch_blocking_basis,
+        "npc_state_voltage_levels": list(CONVENTIONAL_NPC_CONTRACT.state_voltage_levels),
+        "npc_role_position_labels": CONVENTIONAL_NPC_CONTRACT.role_position_labels,
         "dc_link_split_capacitor_count": 2,
         "npc_half_bus_voltage_v": 0.5 * vdc_nom_v,
         "current_controller_kp": 5.0,

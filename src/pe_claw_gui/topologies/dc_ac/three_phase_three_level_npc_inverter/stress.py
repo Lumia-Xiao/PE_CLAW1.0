@@ -58,6 +58,8 @@ def extract_stress(candidate: TopologyCandidate, waveform_set: WaveformSet | Non
         switch=switch_metric,
         rectifier=clamp_metric,
         notes=[
+            f"NPC topology contract: {metadata.get('npc_topology_contract', {}).get('topology_family', 'conventional_diode_clamped_npc')} with 12 active switch positions and 6 clamp diode positions.",
+            "Role stress mapping: outer S1/S4, inner S2/S3, clamp diodes DNP+/DNP- in the zero state.",
             "First-pass three-phase three-level NPC stress uses Vdc/2 device blocking voltage.",
             "Outer and inner switch branches are resolved separately in waveform metadata; the shared switch metric is the conservative role maximum.",
             "Clamp diode current is resolved from zero-state phase-current direction and does not include neutral-point balancing dynamics.",

@@ -44,6 +44,7 @@ from ..models.device_result import (
     SemiconductorSchemeResult,
 )
 from ..topologies.base import TopologyPlugin
+from ..topologies.dc_ac.three_phase_three_level_npc_inverter.topology_contract import CONVENTIONAL_NPC_CONTRACT, validate_npc_role_positions
 try:
     from ..topologies.dc_dc.llc_resonant_converter_diode_rectifier.fha_design import (
         assess_llc_fha_input_impedance,
@@ -269,14 +270,14 @@ class _SchemeSelectionContext(NamedTuple):
 def _is_switch_role(role: str) -> bool:
     spec = get_semiconductor_role_spec(role)
     if spec is not None:
-        return spec.role_kind != "rectifier_diode"
+        return spec.role_kind not in {"rectifier_diode", "clamp_diode"}
     return role.endswith("switch")
 
 
 def _is_rectifier_diode_role(role: str) -> bool:
     spec = get_semiconductor_role_spec(role)
     if spec is not None:
-        return spec.role_kind == "rectifier_diode"
+        return spec.role_kind in {"rectifier_diode", "clamp_diode"}
     return role.strip().casefold() in {"rectifier_diode", "diode", "rectifier"} or role.strip().casefold().endswith("_diode")
 
 
@@ -334,7 +335,10 @@ def _declares_internal_diode_binding(device) -> bool:
 
 
 def _topology_requires_rectifier_diode(topology_id: str | None) -> bool:
-    return "rectifier_diode" in set(get_semiconductor_roles_for_topology(topology_id or ""))
+    return bool(
+        {"rectifier_diode", "npc_clamp_diode"}
+        & set(get_semiconductor_roles_for_topology(topology_id or ""))
+    )
 
 
 def _filter_unavailable_module_bound_switches(candidates, role: str, topology_id: str | None) -> tuple[list, list[str]]:
@@ -404,7 +408,7 @@ def _topology_position_count_for_role(role: str, topology_id: str | None, metada
         "npc_inner_switch",
         "npc_clamp_diode",
     }:
-        return 6
+        return CONVENTIONAL_NPC_CONTRACT.role_position_counts[role.strip().casefold()]
     if topology_id == _PSFB_DIODE_RECTIFIER_TOPOLOGY_ID and role.strip().casefold() in {
         "main_switch",
         "rectifier_diode",
@@ -457,6 +461,9 @@ def run_device_pipeline(report: DesignReport, plugin: TopologyPlugin | None = No
             notes=["Device stage skipped because the report has no candidate or stress result."],
         )
         return replace(report, device=device_result)
+
+    if report.spec.topology_id == CONVENTIONAL_NPC_CONTRACT.topology_id:
+        validate_npc_role_positions(CONVENTIONAL_NPC_CONTRACT.role_position_counts)
 
     registry = build_default_semiconductor_registry()
     design_cases = build_design_point_switch_stress_cases(report, plugin=plugin)
@@ -1388,7 +1395,10 @@ def _evaluate_parallel_scheme(
         role_source_candidates = switch_candidates
         diode_binding_policy = str(spec_metadata.get(DIODE_BINDING_POLICY_INPUT_KEY, "auto"))
         bound_to_role: str | None = None
-        if _is_rectifier_diode_role(role) and topology_id in _INDEPENDENT_SECONDARY_DIODE_TOPOLOGY_IDS:
+        if _is_rectifier_diode_role(role) and (
+            topology_id in _INDEPENDENT_SECONDARY_DIODE_TOPOLOGY_IDS
+            or (topology_id == CONVENTIONAL_NPC_CONTRACT.topology_id and role.strip().casefold() == "npc_clamp_diode")
+        ):
             diode_binding_policy = "independent"
         elif _is_rectifier_diode_role(role) and diode_binding_policy in {"auto", "internal_module_diode"}:
             main_device = selected_device_objects.get("main_switch")

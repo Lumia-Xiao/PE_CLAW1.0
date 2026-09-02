@@ -33,6 +33,7 @@ _DIODE_ROLE_NAMES = {
     "rectifier_diode",
     "freewheel_diode",
     "boost_diode",
+    "npc_clamp_diode",
 }
 
 
@@ -56,7 +57,7 @@ def is_structure_compatible_with_role(device: PowerDevice, role_name: str, topol
     spec = get_semiconductor_role_spec(role_name, topology_id=topology_id)
     normalized_role = role_name.strip().casefold()
     structure = device.device_structure_type
-    if (spec is not None and spec.role_kind != "rectifier_diode") or normalized_role in _ACTIVE_SWITCH_ROLE_NAMES or normalized_role.endswith("_switch"):
+    if (spec is not None and spec.role_kind not in {"rectifier_diode", "clamp_diode"}) or normalized_role in _ACTIVE_SWITCH_ROLE_NAMES or normalized_role.endswith("_switch"):
         if structure in {"diode_module"} or device.module_internal_topology in {"single_diode", "diode_only"}:
             return False, f"{device.part_number}: diode-only structure is not compatible with active switch role {role_name}."
         if structure in {"six_pack_module", "three_phase_module"}:
@@ -64,7 +65,7 @@ def is_structure_compatible_with_role(device: PowerDevice, role_name: str, topol
         if structure == "unknown":
             return True, f"{device.part_number}: unknown structure accepted for {role_name}; topology matching is future work."
         return True, None
-    if (spec is not None and spec.role_kind in {"rectifier_diode", "freewheel_diode"}) or normalized_role in _DIODE_ROLE_NAMES or normalized_role.endswith("_diode"):
+    if (spec is not None and spec.role_kind in {"rectifier_diode", "clamp_diode", "freewheel_diode"}) or normalized_role in _DIODE_ROLE_NAMES or normalized_role.endswith("_diode"):
         if device.selection_device_type == "Diode" or structure in {"diode_module"}:
             return True, None
         if structure == "mosfet_sbd_module":
@@ -86,9 +87,9 @@ def matches_semiconductor_category(device: PowerDevice, category: object, role_n
     if normalized == INTERNAL_MODULE_DIODE_CATEGORY:
         return device.selection_device_type == "Diode" and device.module_section_role == "internal_diode"
 
-    if (spec is not None and spec.role_kind != "rectifier_diode") or role in _ACTIVE_SWITCH_ROLE_NAMES or role.endswith("_switch"):
+    if (spec is not None and spec.role_kind not in {"rectifier_diode", "clamp_diode"}) or role in _ACTIVE_SWITCH_ROLE_NAMES or role.endswith("_switch"):
         return _matches_active_switch_category(device, normalized)
-    if (spec is not None and spec.role_kind in {"rectifier_diode", "freewheel_diode"}) or role in _DIODE_ROLE_NAMES or role.endswith("_diode"):
+    if (spec is not None and spec.role_kind in {"rectifier_diode", "clamp_diode", "freewheel_diode"}) or role in _DIODE_ROLE_NAMES or role.endswith("_diode"):
         return _matches_diode_category(device, normalized)
     return True
 

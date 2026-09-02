@@ -20,6 +20,10 @@ from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
 from pe_claw_gui.topologies.base.registry import build_default_registry
 from pe_claw_gui.models.design_run_context import DesignRunContext
+from pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter.topology_contract import (
+    CONVENTIONAL_NPC_CONTRACT,
+    validate_npc_role_positions,
+)
 
 
 TOPOLOGY_ID = "three_phase_three_level_npc_inverter"
@@ -48,6 +52,31 @@ def test_default_npc_inputs_preserve_three_level_split_link_contract() -> None:
     assert candidate.metadata["dc_link_split_capacitor_count"] == 2
     assert candidate.metadata["npc_half_bus_voltage_v"] == pytest.approx(350.0)
     assert candidate.metadata["dc_link_series_equivalent_capacitance_f"] > 0.0
+
+
+def test_npc_topology_contract_is_conventional_and_complete() -> None:
+    contract = CONVENTIONAL_NPC_CONTRACT
+    assert contract.topology_family == "conventional_diode_clamped_npc"
+    assert contract.active_switch_position_count == 12
+    assert contract.clamp_diode_position_count == 6
+    assert contract.total_semiconductor_position_count == 18
+    assert contract.role_position_counts == {
+        "npc_outer_switch": 6,
+        "npc_inner_switch": 6,
+        "npc_clamp_diode": 6,
+    }
+    validate_npc_role_positions(contract.role_position_counts)
+    assert len(contract.role_position_labels["npc_clamp_diode"]) == 6
+
+
+def test_npc_clamp_role_is_an_independent_physical_diode() -> None:
+    from pe_claw_gui.libraries.semiconductors.topology_roles import get_semiconductor_role_spec
+
+    clamp = get_semiconductor_role_spec("npc_clamp_diode", topology_id=TOPOLOGY_ID)
+    assert clamp is not None
+    assert clamp.role_kind == "clamp_diode"
+    assert clamp.quantity_per_power_cell == 6
+    assert clamp.can_use_internal_diode is False
 
 
 def test_npc_design_basis_is_explicit_and_normalized() -> None:
@@ -167,10 +196,37 @@ def test_full_pipeline_returns_npc_specific_report_and_device_roles() -> None:
     assert report.topology_result is not None
     assert report.device is not None
     assert set(report.device.selected_devices) >= {"npc_outer_switch", "npc_inner_switch", "npc_clamp_diode"}
+    assert all(role.total_physical_device_count == 6 for role in report.device.scheme_results[0].role_results)
     assert any("NPC PD level-shifted SPWM" in line for line in report.topology_result.summary_lines)
     assert any("split DC-link capacitor" in line for line in report.topology_result.summary_lines)
     assert all("buck" not in line.lower() and "boost" not in line.lower() for line in report.topology_result.summary_lines)
     assert any("neutral-point balancing" in note.lower() for note in report.notes)
+
+
+def test_npc_device_and_overview_counts_are_consistent(tmp_path: Path) -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        pipeline_options=NO_DOWNSTREAM,
+        output_root=tmp_path / "npc-run",
+    )
+    assert report.device is not None
+    assert report.semiconductor_geometry is not None
+    target = next(item for item in report.semiconductor_geometry.targets if item.scheme_id == "single")
+    role_counts = {item.role_name: item.total_physical_device_count for item in target.role_layouts}
+    assert role_counts == CONVENTIONAL_NPC_CONTRACT.role_position_counts
+
+    from pe_claw_gui.engines.hardware_overview import build_hardware_overview_payload
+
+    overview = build_hardware_overview_payload(report)
+    group = next(item for item in overview.component_groups if item.group_id == "semiconductor")
+    assert group.metadata["active_switch_position_count"] == 12
+    assert group.metadata["clamp_diode_position_count"] == 6
+    assert group.metadata["active_switch_physical_count"] == 12
+    assert group.metadata["clamp_diode_physical_count"] == 6
+    assert group.metadata["total_physical_device_count"] == 18
+    assert {item.entry_id: item.quantity for item in group.child_entries} == role_counts
 
 
 def test_operating_refresh_updates_npc_load_and_pf_without_redesigning_hardware() -> None:

@@ -373,6 +373,7 @@ def generate_waveforms(
                 "modulation_index": modulation_index,
                 "uncompensated_modulation_index": float(metadata["modulation_index"]),
                 "mode_capable": candidate.mode_capable,
+                "npc_topology_contract": metadata.get("npc_topology_contract", {}),
             },
             "three_phase_npc_pd_spwm_operating": {
                 "load_ratio": load_ratio,
