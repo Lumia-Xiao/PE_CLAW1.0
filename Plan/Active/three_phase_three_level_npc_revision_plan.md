@@ -117,6 +117,10 @@ outputs/
 
 ### 步骤 3：确定并补齐真实 NPC 拓扑
 
+状态：已完成。实现提交 `062bbea` 已推送并完成远端一致性核验；分支为 `codex/npc-output-run-isolation-step1`。
+
+完成记录：修改范围为传统二极管箝位 NPC 拓扑契约、器件角色分类与数量、应力/波形角色说明、器件选择、几何与硬件总览一致性校验，以及结构化报告输出。传统 NPC 明确为每相 4 个有源开关和 2 个箝位二极管，整机为 12 个有源开关位置、6 个独立箝位二极管位置；缺失任一角色会被拒绝。NPC 契约测试 `18 passed`；DC-AC 回归 `12 passed`；器件选择/几何回归 `14 passed`；compileall 与 `git diff --check` 通过。实现 commit `062bbeae2b77ff73ee1928672c44ba021e26677c`，push 成功；本地 HEAD 与 `origin/codex/npc-output-run-isolation-step1` 一致。
+
 #### 修改内容
 
 1. 默认按传统二极管箝位 NPC 实现：每相 4 个有源开关和 2 个箝位二极管，整机共 12 个有源开关和 6 个箝位二极管。

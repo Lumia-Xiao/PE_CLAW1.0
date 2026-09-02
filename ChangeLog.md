@@ -450,3 +450,26 @@ listed here.
   - Branch: `codex/npc-output-run-isolation-step1`.
   - Implementation commit: `d91e6d4613dc9bfaa7a9230ef14c477ca0a59f36`.
   - Implementation push and local/remote hash verification passed.
+
+## 2026-09-02 NPC Topology Contract
+
+- What changed:
+  - Added an authoritative conventional diode-clamped NPC topology contract:
+    three phases, three levels, 12 active-switch positions, and 6 independent
+    clamp-diode positions.
+  - Bound semiconductor role quantities, role kinds, position labels, state
+    levels, conduction-state notes, and blocking-voltage basis to that contract.
+  - Classified `npc_clamp_diode` as a physical clamp-diode role and kept it
+    independent from internal module-diode binding.
+  - Added cross-stage count validation for device selection and Hardware
+    Overview, plus contract data in synthesis, waveform, stress, and structured
+    report outputs.
+- Validation:
+  - NPC topology/device/overview contract: `18 passed`.
+  - DC-AC topology/shared/operating-refresh regression: `12 passed`.
+  - Device selector and semiconductor geometry regression: `14 passed`.
+  - `python -m compileall -q src tests` and `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `062bbeae2b77ff73ee1928672c44ba021e26677c`.
+  - Implementation push and local/remote hash verification passed.
