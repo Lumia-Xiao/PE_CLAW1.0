@@ -30,6 +30,10 @@
 
 ### 步骤 1：实现每次设计结果独立归档
 
+状态：已完成。实现提交 `c5e748d` 已推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+实施结果：所有拓扑现在都创建通用 `DesignRunContext`；默认目录采用时间戳、拓扑标识和唯一 `run_id` 命名。电容、电感、热、效率和硬件总览统一写入当前运行目录，根级 `manifest.json` 记录输入摘要、阶段状态和产物清单。原有 NPC 结果已非破坏性归档到 `outputs/20260902_151541_three_phase_three_level_npc_inverter_legacy_current_output`，原公共目录暂时保留以兼容其中已有的绝对路径引用。
+
 #### 修改内容
 
 1. 每次设计开始时，在 `outputs` 下创建唯一的运行根目录，不再把多个设计结果直接写入公共的 `hardware_overview`、`capacitor_design`、`inductor_design` 和 `efficiency_sweep` 目录。

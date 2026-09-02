@@ -374,3 +374,41 @@ listed here.
   - Subject push passed and the remote branch containment check succeeded; this
     metadata update is the independent push receipt.
   - Merge, tag, release, and `master` push are outside this step.
+
+## 2026-09-02 Run-Scoped Design Output Isolation
+
+- What changed:
+  - Added a generic `DesignRunContext` for every topology with a unique
+    timestamp/topology/run-ID directory under `outputs/`.
+  - Added root-level `manifest.json` generation with input hash, raw input
+    snapshot, stage lifecycle state, software version, failure details, and a
+    run-local artifact inventory.
+  - Routed capacitor, inductor, magnetic thermal, efficiency-sweep, and
+    hardware-overview artifacts to the active run root while preserving the
+    existing LLC run contract.
+  - Added controller lifecycle updates for design, capacitor, magnetic, loss,
+    thermal, efficiency, and hardware-overview stages.
+  - Archived the existing NPC result non-destructively under
+    `outputs/20260902_151541_three_phase_three_level_npc_inverter_legacy_current_output`;
+    the four copied artifact groups match the source file counts and byte
+    totals.
+- Why:
+  - Prevent repeated converter designs from overwriting or mixing artifacts in
+    shared `outputs/<stage>` directories and make every result traceable to one
+    input snapshot and run identity.
+- Validation:
+  - New isolation plus LLC compatibility: `8 passed`.
+  - NPC, LLC hardware overview, geometry, and thermal focused regression:
+    `24 passed`.
+  - Final NPC isolation and topology regression: `18 passed`.
+  - Real NPC smoke generated efficiency CSV/plots and overview artifacts only
+    inside the selected run root, with the same run ID recorded in the result.
+  - Broader capacitor/LLC manifest/AC-DC efficiency regression: `54 passed,
+    6 failed`. All six failures are pre-existing contract drift: tests expect
+    only two efficiency artifact keys while current `HEAD` also returns the
+    generated `csv` key; no output-isolation assertion failed.
+  - `python -m compileall -q src tests` and `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `c5e748d` (`Add run-scoped design output isolation`).
+  - Implementation commit pushed to the matching origin branch.
