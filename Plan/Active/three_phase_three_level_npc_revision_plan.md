@@ -94,11 +94,11 @@ outputs/
 
 ### 步骤 2：补齐并冻结设计基准
 
-状态：进行中。实现提交和远端核验完成后登记最终完成状态；当前分支为 `codex/npc-output-isolation-step1`。
+状态：已完成。实现提交 `d91e6d4` 已推送并完成远端一致性核验；分支为 `codex/npc-output-run-isolation-step1`。
 
 实施记录：NPC 输入已扩展为显式的母线最小/额定/最大值、输出与电网频率、功率和派生相电流、开关频率、调制方式/限制、设计点 PF 与 PF 范围、环境/冷却/海拔、结温目标、纹波/中点偏差/效率目标、负载范围、过载和应用说明。归一化基准同时进入 `TopologySpec.metadata["design_basis"]`、候选参数和结构化报告；每个运行目录的 `design_request/design_request.json` 为机器可读权威快照，`design_request.md` 为人工查阅副本，manifest 登记路径和 SHA-256。旧调用只提供 `vdc_nom` 时保留固定母线兼容行为，并明确归一化结果。
 
-验证、提交和推送记录将在本步骤实现 commit 完成后补入。
+完成记录：修改范围为 NPC 设计基准输入归一化、GUI 字段、运行目录设计请求快照、manifest 哈希登记、候选/报告基准一致性及回归测试。NPC 契约与运行隔离回归 `18 passed`；DC-AC 拓扑/共享/运行点回归 `12 passed`；compileall 与 `git diff --check` 通过。实现 commit `d91e6d4613dc9bfaa7a9230ef14c477ca0a59f36`，push 成功；本地 HEAD 与 `origin/codex/npc-output-run-isolation-step1` 一致。
 
 #### 修改内容
 

@@ -446,3 +446,7 @@ listed here.
   - NPC contract plus run-isolation regression: `18 passed`.
   - DC-AC topology/shared/operating-refresh regression: `12 passed`.
   - `python -m compileall -q src tests` and `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `d91e6d4613dc9bfaa7a9230ef14c477ca0a59f36`.
+  - Implementation push and local/remote hash verification passed.
