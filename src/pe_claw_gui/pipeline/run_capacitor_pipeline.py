@@ -25,6 +25,7 @@ from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
 from ..topology_capabilities import has_split_dc_link_capacitor_bank
 from .run_capacitor_geometry_pipeline import run_capacitor_geometry_pipeline
+from .npc_capacitor_design import build_npc_capacitor_design
 
 _SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID = "single_phase_boost_pfc_diode_bridge"
 _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID = "single_phase_totem_pole_bridgeless_pfc"
@@ -97,7 +98,8 @@ def run_capacitor_pipeline(
                 [
                     "Three-phase NPC capacitor selection is for the split upper/lower DC-link capacitor banks.",
                     "Upper and lower banks are selected separately from the NPC PWM-level split-link current proxies.",
-                    "Neutral-point balancing dynamics, balancing resistors, dead-time, Coss, and harmonic-by-harmonic ESR remain pending.",
+                    "NPC split-link audit adds equalizing/discharge resistors, bridge-leg film decoupling, midpoint scenarios, life, ripple, surge, and precharge checks.",
+                    "Neutral-point closed-loop dynamics, dead-time, Coss, commutation overlap, parasitics, and harmonic-by-harmonic ESR remain outside this first-pass proxy.",
                 ]
             )
         elif report.spec.topology_id == "three_phase_two_level_voltage_source_inverter":
@@ -187,6 +189,15 @@ def run_capacitor_pipeline(
         warnings.extend(input_selection.warnings)
     if output_selection is not None:
         warnings.extend(output_selection.warnings)
+    npc_design = None
+    if report.spec.topology_id == "three_phase_three_level_npc_inverter":
+        npc_design = build_npc_capacitor_design(
+            design_report,
+            input_selection,
+            output_selection,
+            output_dir,
+        )
+        warnings.extend(npc_design.warnings)
     total_before_geometry_s = time.perf_counter() - pipeline_start_s
     diagnostics = {
         "registered_candidates": len(candidates),
@@ -213,6 +224,7 @@ def run_capacitor_pipeline(
     result = CapacitorResult(
         input_selection=input_selection,
         output_selection=output_selection,
+        npc_design=npc_design,
         llc_resonant_capacitor_request=llc_resonant_request,
         llc_resonant_capacitor_search_result=llc_resonant_search,
         notes=notes,
@@ -220,6 +232,7 @@ def run_capacitor_pipeline(
         artifact_paths=_dedupe([
             *(input_selection.artifact_paths if input_selection is not None else []),
             *output_selection.artifact_paths,
+            *(npc_design.artifact_paths if npc_design is not None else []),
             *(_llc_resonant_artifact_paths(llc_resonant_search)),
         ]),
         diagnostics=diagnostics,
@@ -651,6 +664,7 @@ def _build_output_request(report, ripple_ratio_percent: float, ambient_temp_c: f
         design_type=_output_design_type(report),
         topology_id=report.spec.topology_id,
         basis=basis,
+        min_series_count=2 if report.spec.topology_id == "three_phase_three_level_npc_inverter" else 1,
     )
 
 
@@ -820,6 +834,7 @@ def _build_split_link_request(
         design_type=_output_design_type(report),
         topology_id=report.spec.topology_id,
         basis=basis,
+        min_series_count=2,
     )
 
 

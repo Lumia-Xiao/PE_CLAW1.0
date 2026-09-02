@@ -96,7 +96,8 @@ def select_capacitor_bank(
     entries: list[CapacitorSelectionEntry] = []
     stats = prepare_capacitor_waveform_stats(request)
     max_parallel_count = _resolve_max_parallel_count(request)
-    max_series_count = _resolve_max_series_count(request)
+    min_series_count = _resolve_min_series_count(request)
+    max_series_count = max(_resolve_max_series_count(request), min_series_count)
     registered_count = len(candidates)
     application_filtered = _filter_application_candidates(request, candidates)
     technology_filtered = filter_capacitor_technology_candidates(request, application_filtered)
@@ -112,7 +113,14 @@ def select_capacitor_bank(
         and _passes_nmax_prefilter(request, stats, candidate, max_parallel_count, max_series_count)
     ]
     dominance_filtered = _dominance_prefilter(rough_filtered) if optimize_parallel_counts else rough_filtered
-    nmin_feasible_plans = _build_candidate_parallel_plans(request, stats, dominance_filtered, max_parallel_count, max_series_count)
+    nmin_feasible_plans = _build_candidate_parallel_plans(
+        request,
+        stats,
+        dominance_filtered,
+        max_parallel_count,
+        max_series_count,
+        min_series_count=min_series_count,
+    )
     if optimize_parallel_counts:
         boundary_plans = _candidate_boundary_prefilter(request, stats, nmin_feasible_plans)
         improved_dominance_plans = _plan_dominance_prefilter(boundary_plans)
@@ -167,6 +175,7 @@ def select_capacitor_bank(
         "pareto_entries": len(pareto_front),
         "selection_time_s": selection_elapsed_s,
         "max_parallel_count": max_parallel_count,
+        "min_series_count": min_series_count,
         "max_series_count": max_series_count,
         "parallel_count_optimization_enabled": optimize_parallel_counts,
     }
@@ -424,6 +433,12 @@ def _resolve_max_series_count(request: CapacitorSizingRequest) -> int:
     return min(max(int(request.max_series_count or 4), 4), 4)
 
 
+def _resolve_min_series_count(request: CapacitorSizingRequest) -> int:
+    if not _uses_series_parallel_dc_link_bank(request):
+        return 1
+    return min(max(int(request.min_series_count or 1), 1), 4)
+
+
 def _uses_series_parallel_dc_link_bank(request: CapacitorSizingRequest) -> bool:
     return (
         request.side in {"output", "upper", "lower"}
@@ -552,10 +567,12 @@ def _build_candidate_parallel_plans(
     candidates: list[CapacitorCandidate],
     max_parallel_count: int,
     max_series_count: int = 1,
+    *,
+    min_series_count: int = 1,
 ) -> list[_CandidateParallelPlan]:
     plans: list[_CandidateParallelPlan] = []
     for candidate in candidates:
-        for series_count in range(1, max_series_count + 1):
+        for series_count in range(min_series_count, max_series_count + 1):
             nmin = estimate_min_feasible_parallel_count(request, stats, candidate, max_parallel_count, series_count=series_count)
             if nmin is None:
                 continue

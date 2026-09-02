@@ -183,6 +183,7 @@ class CapacitorSizingRequest:
     f_line_hz: float = 0.0
     allowed_capacitor_technologies: tuple[str, ...] | None = None
     include_epcos_screw_terminal_electrolytics: bool = False
+    min_series_count: int = 1
 
 
 @dataclass(frozen=True)
@@ -446,6 +447,92 @@ class CapacitorSideGeometryResult:
 
 
 @dataclass(frozen=True)
+class NpcCapacitorBankDesign:
+    """NPC split-link bank checks for one upper or lower half-link."""
+
+    side: str
+    part_number: str
+    series_count: int
+    parallel_count: int
+    capacitor_count: int
+    capacitance_per_cap_f: float
+    bank_capacitance_f: float
+    bank_voltage_rating_v: float
+    nominal_capacitor_voltage_v: float
+    worst_case_capacitor_voltage_v: float
+    conservative_esr_ohm: float
+    conservative_esr_basis: str
+    capacitor_hotspot_c: float
+    expected_life_hours: float
+    ripple_current_rms_a: float
+    ripple_current_rating_a: float
+    ripple_current_margin_ratio: float
+    surge_current_peak_a: float
+    surge_current_rating_a: float
+    surge_current_margin_ratio: float
+    equalizer_resistance_ohm: float
+    equalizer_power_per_cap_w: float
+    equalizer_total_loss_w: float
+    equalizer_voltage_rating_v: float
+    equalizer_tolerance_percent: float
+    discharge_time_constant_s: float
+    discharge_to_safe_voltage_s: float
+    film_capacitance_per_leg_f: float
+    film_total_capacitance_f: float
+    film_voltage_rating_v: float
+    film_ripple_current_per_leg_a: float
+    precharge_resistance_ohm: float
+    precharge_current_peak_a: float
+    precharge_energy_j: float
+    precharge_time_to_95_percent_s: float
+    checks: dict[str, bool] = field(default_factory=dict)
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class NpcMidpointScenario:
+    """One deterministic first-pass midpoint-balance scenario."""
+
+    scenario_id: str
+    load_ratio: float
+    power_factor: float
+    modulation_index_ratio: float
+    capacitor_mismatch_ratio: float
+    phase_imbalance_ratio: float
+    upper_voltage_v: float
+    lower_voltage_v: float
+    midpoint_deviation_v: float
+    midpoint_deviation_ratio: float
+    upper_ripple_vpp: float
+    lower_ripple_vpp: float
+    pass_fail: str
+    basis: str
+
+
+@dataclass(frozen=True)
+class NpcCapacitorDesignResult:
+    """NPC split-link, decoupling, and midpoint-balance design audit."""
+
+    status: str = "not_evaluated"
+    target_midpoint_deviation_ratio: float = 0.02
+    upper_bank: NpcCapacitorBankDesign | None = None
+    lower_bank: NpcCapacitorBankDesign | None = None
+    baseline_part_number: str = "B43705A9568M600"
+    baseline_series_count: int = 2
+    baseline_parallel_count: int = 1
+    baseline_total_volume_l: float = 0.0
+    installed_total_volume_l: float = 0.0
+    film_decoupling_total_volume_l: float = 0.0
+    total_design_volume_l: float = 0.0
+    scenarios: list[NpcMidpointScenario] = field(default_factory=list)
+    worst_midpoint_deviation_v: float = 0.0
+    worst_midpoint_deviation_ratio: float = 0.0
+    artifact_paths: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class CapacitorResult:
     """Aggregate capacitor-stage result."""
 
@@ -457,6 +544,7 @@ class CapacitorResult:
     current_operating_output: CapacitorSideResult | None = None
     input_geometry: CapacitorSideGeometryResult | None = None
     output_geometry: CapacitorSideGeometryResult | None = None
+    npc_design: NpcCapacitorDesignResult | None = None
     notes: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     artifact_paths: list[str] = field(default_factory=list)

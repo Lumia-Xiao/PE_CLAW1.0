@@ -327,10 +327,14 @@ def _capacitor_payload(report: DesignReport) -> dict[str, Any]:
         "warnings": list(getattr(llc_search, "warnings", []) or []),
     }
 
+    npc_design = getattr(capacitor, "npc_design", None)
+    npc_payload = asdict(npc_design) if npc_design is not None and is_dataclass(npc_design) else {}
+
     return {
         "available": True,
         "input": side_payload(getattr(capacitor, "input_selection", None), "capacitor.input_selection"),
         "output": side_payload(getattr(capacitor, "output_selection", None), "capacitor.output_selection"),
+        "npc_split_link": npc_payload,
         "llc_resonant": llc_payload,
         "metadata": {},
     }
