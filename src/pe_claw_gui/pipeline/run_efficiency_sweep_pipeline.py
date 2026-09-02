@@ -19,6 +19,7 @@ from ..libraries.magnetics.sendust_steinmetz import (
     get_sendust_steinmetz_material,
 )
 from ..models.design_report import DesignReport
+from ..models.design_run_context import get_run_context, get_run_output_dir
 from ..models.efficiency_sweep import EfficiencySweepPoint, EfficiencySweepResult
 from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
@@ -49,6 +50,7 @@ def run_efficiency_sweep(
     load_grid = _normalize_load_grid(load_points)
     warnings: list[str] = []
     signature = _build_signature(report, load_grid)
+    run_context = get_run_context(report)
     llc_validation = _validate_llc_efficiency_dependencies(report)
     if llc_validation is not None:
         output_root = _resolve_efficiency_output_dir(report, output_dir)
@@ -57,15 +59,19 @@ def run_efficiency_sweep(
             warnings=(llc_validation,),
             signature=signature,
             status="blocked",
-            run_id=getattr(report.llc_run_context, "run_id", None),
+            run_id=getattr(run_context, "run_id", None),
             topology_id=report.spec.topology_id,
-            input_sha256=getattr(report.llc_run_context, "input_sha256", None),
+            input_sha256=getattr(run_context, "input_sha256", None),
             source_ids=_llc_source_ids(report),
             fixed_parameters=_llc_fixed_parameters(report),
             blocked_reason=llc_validation,
         )
         return _write_blocked_llc_result(result, output_root)
-    if _can_reuse_sweep_result(report.efficiency_sweep, signature, output_dir):
+    if _can_reuse_sweep_result(
+        report.efficiency_sweep,
+        signature,
+        _resolve_efficiency_output_dir(report, output_dir),
+    ):
         return report.efficiency_sweep
 
     blocking_warning = _blocking_warning(report, plugin)
@@ -99,9 +105,9 @@ def run_efficiency_sweep(
             status="blocked",
             blocked_reason=reason,
             warnings=tuple(_dedupe([*result.warnings, reason])),
-            run_id=getattr(report.llc_run_context, "run_id", None),
+            run_id=getattr(run_context, "run_id", None),
             topology_id=report.spec.topology_id,
-            input_sha256=getattr(report.llc_run_context, "input_sha256", None),
+            input_sha256=getattr(run_context, "input_sha256", None),
             source_ids=_llc_source_ids(report),
             fixed_parameters=_llc_fixed_parameters(report),
         )
@@ -127,9 +133,9 @@ def run_efficiency_sweep(
         artifact_paths=artifacts,
         pf_sweep_points=pf_sweep_points,
         pf_sweep_artifact_paths=pf_sweep_artifacts,
-        run_id=getattr(report.llc_run_context, "run_id", None),
+        run_id=getattr(run_context, "run_id", None),
         topology_id=report.spec.topology_id,
-        input_sha256=getattr(report.llc_run_context, "input_sha256", None),
+        input_sha256=getattr(run_context, "input_sha256", None),
         source_ids=_llc_source_ids(report),
         fixed_parameters=_llc_fixed_parameters(report),
     )
@@ -222,9 +228,9 @@ def _llc_fixed_parameters(report: DesignReport) -> dict[str, object]:
 def _resolve_efficiency_output_dir(report: DesignReport, output_dir: str | Path | None) -> Path:
     if output_dir is not None:
         return Path(output_dir)
-    context = report.llc_run_context
-    if is_llc_topology(report.spec.topology_id) and context is not None and context.output_root:
-        return Path(context.output_root) / "efficiency_sweep"
+    run_dir = get_run_output_dir(report, "efficiency_sweep")
+    if run_dir is not None:
+        return run_dir
     return _project_root() / "outputs" / "efficiency_sweep"
 
 

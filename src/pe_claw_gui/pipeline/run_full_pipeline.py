@@ -6,6 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from ..models.design_report import DesignReport
+from ..models.design_run_context import get_run_output_root
 from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
@@ -114,7 +115,7 @@ def run_full_pipeline(
     report = run_thermal_pipeline(report, pipeline_options=options)
     report = run_geometry_pipeline(report, pipeline_options=options)
     if not is_llc_topology(report.spec.topology_id) and options.enable_capacitor_design:
-        report = run_capacitor_pipeline(report, plugin=plugin)
+        report = run_capacitor_pipeline(report, plugin=plugin, output_root=get_run_output_root(report))
     return report
 
 

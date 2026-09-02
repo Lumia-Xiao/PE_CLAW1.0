@@ -7,6 +7,7 @@ from dataclasses import replace
 from time import perf_counter
 
 from ...models.operating_point import OperatingPoint
+from ...models.design_run_context import update_design_run
 from ...pipeline import run_efficiency_sweep
 from ...pipeline.run_manifest_pipeline import write_llc_manifest
 from ...engines.hardware_overview import build_and_generate_hardware_overview
@@ -34,18 +35,21 @@ class EfficiencySweepController:
                 sweep_report,
                 llc_run_context=sweep_report.llc_run_context.transition("efficiency_sweep", "running"),
             )
+        sweep_report = update_design_run(sweep_report, {"efficiency_sweep": "running"})
         started_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
         started_s = perf_counter()
         try:
             result = run_efficiency_sweep(sweep_report, plugin=plugin)
         except Exception as exc:
             if sweep_report.llc_run_context is not None:
-                self._state_store.design_report = replace(
+                sweep_report = replace(
                     sweep_report,
                     llc_run_context=sweep_report.llc_run_context.transition(
                         "efficiency_sweep", "failed", reason=str(exc)
                     ),
                 )
+            sweep_report = update_design_run(sweep_report, {"efficiency_sweep": "failed"}, reason=str(exc))
+            self._state_store.design_report = sweep_report
             raise
         runtime_s = perf_counter() - started_s
         finished_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -66,16 +70,27 @@ class EfficiencySweepController:
                     reason=result.blocked_reason,
                 ),
             )
-            if is_llc_topology(updated_report.spec.topology_id):
-                overview = build_and_generate_hardware_overview(updated_report)
-                overview_status = "succeeded" if overview.status == "available" else "blocked"
-                updated_report = replace(
-                    updated_report,
-                    llc_run_context=updated_report.llc_run_context.transition(
-                        "hardware_overview", overview_status, reason=overview.blocked_reason
-                    ),
-                )
-                updated_report, _ = write_llc_manifest(updated_report, hardware_overview=overview)
+        sweep_status = "succeeded" if result.status == "available" else "blocked"
+        updated_report = update_design_run(
+            updated_report,
+            {"efficiency_sweep": sweep_status},
+            reason=result.blocked_reason,
+        )
+        overview = build_and_generate_hardware_overview(updated_report)
+        overview_status = "succeeded" if overview.status == "available" else "blocked"
+        updated_report = update_design_run(
+            updated_report,
+            {"hardware_overview": overview_status},
+            reason=overview.blocked_reason,
+        )
+        if updated_report.llc_run_context is not None and is_llc_topology(updated_report.spec.topology_id):
+            updated_report = replace(
+                updated_report,
+                llc_run_context=updated_report.llc_run_context.transition(
+                    "hardware_overview", overview_status, reason=overview.blocked_reason
+                ),
+            )
+            updated_report, _ = write_llc_manifest(updated_report, hardware_overview=overview)
         self._state_store.active_plugin = plugin
         self._state_store.design_report = updated_report
         return updated_report

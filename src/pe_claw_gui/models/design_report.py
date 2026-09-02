@@ -9,6 +9,7 @@ from .capacitor import CapacitorResult
 from .bridge_rectifier import BridgeRectifierSelectionResult
 from .common_spec import CommonSpec
 from .design_assessment import DesignAssessment
+from .design_run_context import DesignRunContext
 from .device_result import DeviceSelectionResult
 from .efficiency_sweep import EfficiencySweepResult
 from .geometry_result import GeometryResult
@@ -56,4 +57,5 @@ class DesignReport:
     run_efficiency_sweep_runtime_seconds: float | None = None
     topology_result: "TopologyResult | None" = None
     notes: list[str] = field(default_factory=list)
+    run_context: DesignRunContext | None = None
     llc_run_context: LlcRunContext | None = None
