@@ -4,6 +4,39 @@ This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
 
+## 2026-09-02 NPC Step 9 System Validation and Result Regeneration
+
+- What changed:
+  - Added the complete NPC Step-9 pipeline that runs design, semiconductor,
+    capacitor, magnetic, loss, thermal, geometry, efficiency, Hardware Overview,
+    and system-validation stages in one isolated run.
+  - Added a deterministic 72-point validation matrix for minimum/nominal/maximum
+    DC bus, 5%/25%/50%/75%/100%/110% load, and PF -1/-0.8/0.8/1.
+  - Added cross-stage checks for modulation, CCM/ripple, current limit, NPC
+    voltage rating, thermal result, split-link midpoint proxy, output filter,
+    efficiency completeness, switch-state paths, dead-time, and run artifact
+    containment.
+  - Added `system_validation` to the design report and structured report output.
+  - Made Hardware Overview tolerate an NPC thermal result without a generic
+    recommended estimate.
+- Validation:
+  - Step-9 focused tests: `4 passed`.
+  - Step-9 plus NPC/topology, loss, thermal, capacitor, inductor/filter,
+    run-isolation, and structured-output regression: `42 passed`.
+  - `python -B -m compileall -q src tests` and `git diff --check`: passed.
+  - Regenerated result root:
+    `outputs/20260902_step9_npc_system_validation`.
+- Engineering conclusion:
+  - Final status is `fail` for the default design because the 650 V minimum-bus
+    modulation index is `1.0049188688`, above the declared `1.0` limit.
+  - The 72-point matrix and all other implemented hard checks are retained as
+    auditable evidence. Short-circuit protection, double-pulse/busbar
+    overvoltage, and EMI remain explicitly `unverified`.
+- Git:
+  - Implementation commit `f26b0665fc5f5cdd87eb4fbe189847314d004f4a` was pushed
+    to `origin/codex/npc-output-run-isolation-step1` and verified equal to the
+    remote branch HEAD.
+
 ## 2026-09-02 NPC Step 7 Split-Link Capacitor and Midpoint Balance
 
 - What changed:
