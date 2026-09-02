@@ -17,6 +17,10 @@ from ..engines.magnetics.stacked_expansion import (
     expand_stacked_same_core_candidates,
     select_stacked_seed_candidates,
 )
+from ..engines.magnetics.npc_output_filter_audit import (
+    build_npc_output_filter_audit,
+    export_npc_output_filter_audit,
+)
 from ..models.design_report import DesignReport
 from ..models.design_run_context import get_run_output_dir
 from ..models.ac_dc_reactor import AcDcReactorDesignRequest
@@ -344,6 +348,23 @@ def _run_magnetic_pipeline_without_excitation_audit(
             output_dir=get_run_output_dir(report, "inductor_design"),
         )
 
+        npc_output_filter_audit = None
+        if request.topology_id == "three_phase_three_level_npc_inverter":
+            npc_output_filter_audit = build_npc_output_filter_audit(
+                request,
+                [*basic_feasible_candidates, *final_compression_result.compressed_candidates],
+                design_metadata=(report.candidate.metadata if report.candidate is not None else {}),
+                selected_design_id=selected_design_id,
+            )
+            audit_dir = get_run_output_dir(report, "inductor_design")
+            if audit_dir is not None:
+                npc_output_filter_audit = export_npc_output_filter_audit(npc_output_filter_audit, audit_dir)
+            notes.extend(npc_output_filter_audit.notes)
+            notes.append(
+                "NPC Step-8 output-filter audit artifacts saved under "
+                f"{audit_dir or '<run>/inductor_design'}."
+            )
+
         notes.append(describe_design_spread(chosen_designs))
         notes.append(_describe_chosen_stack_options(chosen_designs))
         notes.extend(describe_best_by_stack_count(best_by_stack_count))
@@ -389,6 +410,7 @@ def _run_magnetic_pipeline_without_excitation_audit(
             compressed_candidates=final_compression_result.compressed_candidates,
             chosen_designs=chosen_designs,
             best_by_stack_count=best_by_stack_count,
+            npc_output_filter_audit=npc_output_filter_audit,
             frontier_search_audit=frontier_search_audit,
             artifact_paths=artifact_result.artifact_paths,
             notes=notes,

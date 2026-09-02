@@ -204,6 +204,9 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
             "performance_timing": getattr(magnetic, "performance_timing", {}),
         },
     }
+    npc_audit = getattr(magnetic, "npc_output_filter_audit", None)
+    if npc_audit is not None and hasattr(npc_audit, "to_dict"):
+        payload["npc_output_filter_audit"] = npc_audit.to_dict()
     llc_summary = getattr(magnetic, "llc_result_summary", None)
     if getattr(magnetic, "result_type", "") == "separated_llc_transformer":
         contract = getattr(magnetic, "llc_magnetic_contract", None)
