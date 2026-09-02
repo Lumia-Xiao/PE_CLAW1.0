@@ -136,6 +136,12 @@ outputs/
 
 ### 步骤 4：重新设计半导体耐压裕量
 
+状态：已完成。实现提交 `c66aa20` 已推送至 `origin/codex/npc-output-run-isolation-step1`；计划记录提交待本次文档提交后填写。
+
+完成记录：修改范围为 NPC 耐压输入、最坏阻断应力计算、外管/内管/箝位二极管独立耐压校核、器件硬筛选、结构化报告、Stress View 和 Hardware Overview。默认基准为 `Vdc_max=750 V`、`Kneutral=1.02`、`Vovershoot=50 V`，得到 `Vstress_max=432.5 V`；静态耐压目标为至少 20%，器件额定电压筛选门槛为 `519 V`。默认运行实际选择的三类器件均为 1200 V；过冲来源明确标记为工程假设，验证状态为 `unverified_assumption`，不伪造双脉冲或母排实测结果。`650 V` 器件保留为候选数据，但不再以旧的 `Vdc_nom/2` 门槛通过定型筛选。
+
+验证：NPC、器件选择、结构化输出和 Hardware Overview 专项回归 `29 passed`；`python -B -m compileall -q src tests` 通过；`git diff --check` 通过。分支为 `codex/npc-output-run-isolation-step1`，实现 commit 为 `c66aa20ce9cd7bc58669ec1406ae86bdb7dab211`，push 成功；本地 HEAD 与远端分支一致。
+
 #### 修改内容
 
 1. 按最大母线电压、中点不平衡和开关过冲计算最坏器件电压：

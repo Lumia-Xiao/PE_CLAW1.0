@@ -473,3 +473,33 @@ listed here.
   - Branch: `codex/npc-output-run-isolation-step1`.
   - Implementation commit: `062bbeae2b77ff73ee1928672c44ba021e26677c`.
   - Implementation push and local/remote hash verification passed.
+## 2026-09-02 NPC Semiconductor Voltage-Margin Redesign
+
+- What changed:
+  - Added explicit NPC voltage-stress inputs for neutral-point stress factor,
+    switching overvoltage, overvoltage source/status, and static voltage margin.
+  - Replaced the NPC `Vdc_nom / 2` blocking basis with
+    `Vdc_max / 2 * Kneutral + Vovershoot`.
+  - Added independent voltage checks for NPC outer switches, inner switches,
+    and clamp diodes, including worst-case stress, required rating, selected
+    rating, static/dynamic margin, and validation status.
+  - Applied the same required rating to the semiconductor hard filter and
+    exposed the result in structured output, Stress View, and Hardware Overview.
+  - Updated NPC regression coverage; the default 650 V-class comparison
+    candidates cannot pass the new worst-case rating gate unless their rating
+    satisfies the explicit margin requirement.
+- Why:
+  - Prevent device selection and reporting from using the nominal half-bus
+    voltage while ignoring maximum bus voltage, neutral-point imbalance, and
+    switching overshoot.
+- Validation:
+  - NPC, device-selection, structured-output, and Hardware Overview regression:
+    `29 passed`.
+  - `python -B -m compileall -q src tests`: passed.
+  - `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `c66aa20ce9cd7bc58669ec1406ae86bdb7dab211`
+    (`feat: redesign NPC semiconductor voltage margins`).
+  - Push passed; local HEAD and
+    `origin/codex/npc-output-run-isolation-step1` were identical.
