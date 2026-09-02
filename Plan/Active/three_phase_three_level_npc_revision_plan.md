@@ -214,7 +214,7 @@ outputs/
 
 默认验证结果：上下 bank 均为 2S/1P，推荐器件为 `B43704A4688M600`；保守 ESR 约 `20 mOhm`，电容热点约 `56.4 摄氏度`，估算寿命约 `36,263 h`，均压电阻单只损耗约 `2.025 W`，放电至 `60 V` 约 `1,370 s`，预充电电阻 `10 kOhm`、达到 95% 约 `102 s`。中点稳态偏差代理模型最坏约 `0.8%`，低于 2% 目标；电容本体体积约 `1.86 L`，增加三桥臂薄膜旁路后的总设计体积约 `1.92 L`。审计状态为 `pass`。
 
-验证：步骤 7 专项、NPC 合同、步骤 5 损耗、步骤 6 热设计和运行目录隔离回归共 `32 passed`；结构化输出与步骤 7 回归 `5 passed`；`python -m compileall -q src tests` 与 `git diff --check` 通过。结果为解析代理模型，不等同于闭环中点控制或硬件实测；B43705 的 ESRmax、逐行寿命数据、薄膜脉冲额定、均压电阻脉冲能力、接触器/熔断器和浪涌控制仍需依据最终 datasheet、双脉冲和样机测试复核。分支为 `codex/npc-output-run-isolation-step1`，实现 commit 为 `8c98962`，push 成功；文档 commit 和第二次 push 待本次记录提交后补充。
+验证：步骤 7 专项、NPC 合同、步骤 5 损耗、步骤 6 热设计和运行目录隔离回归共 `32 passed`；结构化输出与步骤 7 回归 `5 passed`；`python -m compileall -q src tests` 与 `git diff --check` 通过。结果为解析代理模型，不等同于闭环中点控制或硬件实测；B43705 的 ESRmax、逐行寿命数据、薄膜脉冲额定、均压电阻脉冲能力、接触器/熔断器和浪涌控制仍需依据最终 datasheet、双脉冲和样机测试复核。分支为 `codex/npc-output-run-isolation-step1`，实现 commit 为 `8c98962`，文档 commit 为 `dd533ca`；两次 push 均成功，最终本地 HEAD 与远端一致。
 
 #### 修改内容
 

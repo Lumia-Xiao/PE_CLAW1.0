@@ -32,8 +32,8 @@ listed here.
 - Git:
   - Implementation commit `8c98962` was pushed to
     `origin/codex/npc-output-run-isolation-step1`.
-  - The separate documentation receipt is created by this entry's commit and
-    will be pushed after verification.
+  - Separate documentation receipt commit `dd533ca` was pushed and verified
+    equal to the remote branch HEAD.
 
 ## 2026-08-28 AC-DC Efficiency Sweep Step 12 Real GUI Delivery
 
