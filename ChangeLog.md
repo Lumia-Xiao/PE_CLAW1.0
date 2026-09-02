@@ -4,6 +4,37 @@ This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
 
+## 2026-09-02 NPC Step 7 Split-Link Capacitor and Midpoint Balance
+
+- What changed:
+  - Enforced the NPC split-link capacitor bank baseline as at least 2S and
+    retained `B43705A9568M600` as the reference design.
+  - Added structured equalizing/discharge resistor, high-frequency film
+    decoupling, conservative ESR, hotspot/life, ripple-current, surge-current,
+    and precharge checks.
+  - Added deterministic midpoint-balance scenarios for load, PF, modulation,
+    capacitor mismatch, and three-phase imbalance.
+  - Added run-scoped JSON and CSV artifacts under `capacitor_design` and exposed
+    the result through the structured report capacitor payload.
+- Validation:
+  - Step 7 plus NPC contract, loss, thermal, and output-isolation regression:
+    `32 passed`.
+  - Structured-output and Step 7 regression: `5 passed`.
+  - Compileall and `git diff --check`: passed.
+  - Default audit: 2S/1P split banks, 100 kOhm equalizers, 56.4 C hotspot,
+    approximately 36,263 h estimated life, 0.8% worst midpoint deviation,
+    1.86 L capacitor body volume and 1.92 L including film decoupling.
+- Engineering boundary:
+  - Midpoint results are an analytical proxy, not closed-loop or hardware
+    validation. B43705 ESRmax/endurance normalization, film pulse rating,
+    resistor pulse SOA, precharge contactor/fuse, and surge control remain
+    sample-stage validation items.
+- Git:
+  - Implementation commit `8c98962` was pushed to
+    `origin/codex/npc-output-run-isolation-step1`.
+  - The separate documentation receipt is created by this entry's commit and
+    will be pushed after verification.
+
 ## 2026-08-28 AC-DC Efficiency Sweep Step 12 Real GUI Delivery
 
 - What changed:
