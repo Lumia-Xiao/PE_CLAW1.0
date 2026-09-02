@@ -58,6 +58,12 @@ class ThreePhaseThreeLevelNPCInverterForm(BaseTopologyForm):
         TopologyField("cooling_method", "Cooling method", NPC_DESIGN_BASIS_DEFAULTS["cooling_method"]),
         TopologyField("altitude_m", "Altitude [m]", NPC_DESIGN_BASIS_DEFAULTS["altitude_m"]),
         TopologyField("application_notes", "Application notes", NPC_DESIGN_BASIS_DEFAULTS["application_notes"]),
+        TopologyField("dead_time_ns", "Dead time [ns]", NPC_DESIGN_BASIS_DEFAULTS["dead_time_ns"]),
+        TopologyField("gate_drive_v", "Gate-drive voltage [V]", NPC_DESIGN_BASIS_DEFAULTS["gate_drive_v"]),
+        TopologyField("gate_driver_loss_w", "Gate-driver loss [W]", NPC_DESIGN_BASIS_DEFAULTS["gate_driver_loss_w"]),
+        TopologyField("control_power_loss_w", "Control power loss [W]", NPC_DESIGN_BASIS_DEFAULTS["control_power_loss_w"]),
+        TopologyField("balancing_resistor_loss_w", "Balancing resistor loss [W]", NPC_DESIGN_BASIS_DEFAULTS["balancing_resistor_loss_w"]),
+        TopologyField("fan_loss_w", "Fan loss [W]", NPC_DESIGN_BASIS_DEFAULTS["fan_loss_w"]),
     )
 
     def __init__(

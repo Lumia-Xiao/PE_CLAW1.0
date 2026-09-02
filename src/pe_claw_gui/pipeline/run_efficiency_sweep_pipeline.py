@@ -32,6 +32,7 @@ from .run_bridge_rectifier_pipeline import (
 )
 from .run_capacitor_pipeline import run_capacitor_operating_point_refresh
 from .run_device_pipeline import run_device_operating_point_refresh
+from ..engines.devices.loss_aggregation import active_scheme, semiconductor_losses_total_w
 from .run_loss_pipeline import run_loss_pipeline
 from .run_thermal_pipeline import run_thermal_pipeline
 
@@ -288,6 +289,22 @@ def _evaluate_load_point(
 ) -> tuple[EfficiencySweepPoint, list[str]]:
     point_warnings: list[str] = []
     operating_point = _sweep_operating_point(base_report, load_pu)
+    if operating_point.power_factor is not None and abs(float(operating_point.power_factor)) < 0.05:
+        warning = "Efficiency point omitted because |PF| < 0.05 is outside the meaningful loss/efficiency calculation boundary."
+        return (
+            EfficiencySweepPoint(
+                load_pu=load_pu,
+                output_power_w=0.0,
+                total_loss_w=None,
+                efficiency=None,
+                semiconductor_loss_w=None,
+                magnetic_loss_w=None,
+                capacitor_loss_w=None,
+                other_loss_w=None,
+                warnings=(warning,),
+            ),
+            [warning],
+        )
     waveform_set = plugin.generate_waveforms(base_report.candidate, operating_point=operating_point)
     if waveform_set is None:
         warning = f"Waveform generation returned no data at {load_pu:.1f} p.u.; point omitted."
@@ -333,7 +350,8 @@ def _evaluate_load_point(
     semiconductor_loss_w = _semiconductor_loss_w(refreshed)
     magnetic_loss_w = _magnetic_loss_w(refreshed)
     capacitor_loss_w = _capacitor_loss_w(refreshed)
-    available_losses = [semiconductor_loss_w, magnetic_loss_w, capacitor_loss_w]
+    other_loss_w = _auxiliary_loss_w(refreshed)
+    available_losses = [semiconductor_loss_w, magnetic_loss_w, capacitor_loss_w, other_loss_w]
     total_loss_w = sum(loss for loss in available_losses if loss is not None)
     if not any(loss is not None for loss in available_losses):
         total_loss_w = None
@@ -355,11 +373,12 @@ def _evaluate_load_point(
             semiconductor_loss_w=semiconductor_loss_w,
             magnetic_loss_w=magnetic_loss_w,
             capacitor_loss_w=capacitor_loss_w,
-            other_loss_w=0.0,
+            other_loss_w=other_loss_w,
             loss_breakdown_w=_loss_breakdown(
                 semiconductor=semiconductor_loss_w,
                 magnetic=magnetic_loss_w,
                 capacitor=capacitor_loss_w,
+                other=other_loss_w,
             ),
             warnings=tuple(point_warnings),
         ),
@@ -800,35 +819,26 @@ def _semiconductor_loss_w(report: DesignReport) -> float | None:
     if device is None:
         return None
     if device.current_operating_losses:
-        total = 0.0
-        for key, loss_result in device.current_operating_losses.items():
-            role_name = key.split(":", 1)[1] if ":" in key else loss_result.role
-            total += _role_total_device_count(device, role_name) * float(loss_result.p_total_W)
-        return total
-    active_scheme = _active_scheme(device)
-    if active_scheme is not None:
-        return active_scheme.total_scheme_loss_w
+        return semiconductor_losses_total_w(device, device.current_operating_losses)
+    scheme = active_scheme(device)
+    if scheme is not None:
+        return scheme.total_scheme_loss_w
     if device.design_point_losses:
-        return sum(loss.p_total_W for loss in device.design_point_losses.values())
+        return semiconductor_losses_total_w(device, device.design_point_losses)
     return None
 
 
-def _active_scheme(device):
-    active_scheme_id = device.active_scheme_id or device.recommended_scheme_id
-    for scheme in device.scheme_results:
-        if scheme.scheme_id == active_scheme_id:
-            return scheme
-    return None
+def _auxiliary_loss_w(report: DesignReport) -> float | None:
+    """Return explicitly entered non-semiconductor auxiliary losses."""
 
-
-def _role_total_device_count(device, role_name: str) -> int:
-    active_scheme = _active_scheme(device)
-    if active_scheme is None:
-        return max(int(getattr(device, "active_parallel_count", 1) or 1), 1)
-    for role_result in active_scheme.role_results:
-        if role_result.role == role_name:
-            return max(int(role_result.total_physical_device_count or 1), int(role_result.parallel_count or 1), 1)
-    return max(int(getattr(device, "active_parallel_count", 1) or 1), 1)
+    if not _is_three_phase_npc_inverter_topology(report):
+        return 0.0
+    metadata = report.spec.metadata if isinstance(report.spec.metadata, dict) else {}
+    try:
+        value = float(metadata.get("npc_auxiliary_loss_w", 0.0))
+    except (TypeError, ValueError):
+        return 0.0
+    return max(value, 0.0)
 
 
 def _magnetic_loss_w(report: DesignReport) -> float | None:

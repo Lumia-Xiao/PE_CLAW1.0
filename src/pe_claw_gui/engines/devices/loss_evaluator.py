@@ -84,18 +84,44 @@ def _compute_reverse_recovery_loss(device: PowerDevice, stress: SwitchStress, ju
     if stress.body_diode_conduction_time_s <= 0.0 or stress.fsw_Hz <= 0.0:
         return 0.0
 
-    duty_ratio = stress.body_diode_conduction_time_s * stress.fsw_Hz
-    representative_current_a = max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A))
-    if device.dynamic.conduction_off_voltage_drop is not None:
-        diode_voltage_v = abs(device.dynamic.conduction_off_voltage_drop.evaluate(-representative_current_a, junction_temp_c, warnings))
-    else:
-        diode_voltage_v = device.static.vsd_typ_V
-    diode_conduction_loss_w = diode_voltage_v * representative_current_a * max(duty_ratio, 0.0)
-
     qrr_c = device.static.qrr_typ_uC * 1e-6
     reverse_recovery_energy_j = qrr_c * max(stress.v_block_V, 0.0)
-    reverse_recovery_loss_w = reverse_recovery_energy_j * stress.fsw_Hz
-    return diode_conduction_loss_w + reverse_recovery_loss_w
+    return reverse_recovery_energy_j * stress.fsw_Hz
+
+
+def _compute_reverse_conduction_loss(
+    device: PowerDevice,
+    stress: SwitchStress,
+    junction_temp_c: float,
+    warnings: list[str],
+) -> float:
+    """Calculate antiparallel/body-diode conduction separately from Qrr."""
+
+    if stress.body_diode_conduction_time_s <= 0.0 or stress.fsw_Hz <= 0.0:
+        return 0.0
+    duty_ratio = stress.body_diode_conduction_time_s * stress.fsw_Hz
+    current_a = max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A))
+    if device.dynamic.conduction_off_voltage_drop is not None:
+        voltage_v = abs(device.dynamic.conduction_off_voltage_drop.evaluate(-current_a, junction_temp_c, warnings))
+    else:
+        voltage_v = abs(device.static.vsd_typ_V)
+    return voltage_v * current_a * max(duty_ratio, 0.0)
+
+
+def _compute_deadtime_loss(device: PowerDevice, stress: SwitchStress, junction_temp_c: float, warnings: list[str]) -> float:
+    """Estimate antiparallel-diode conduction during commanded dead time."""
+
+    if stress.dead_time_s <= 0.0 or stress.fsw_Hz <= 0.0:
+        return 0.0
+    current_a = max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A))
+    if current_a <= 0.0:
+        return 0.0
+    if device.dynamic.conduction_off_voltage_drop is not None:
+        voltage_v = abs(device.dynamic.conduction_off_voltage_drop.evaluate(-current_a, junction_temp_c, warnings))
+    else:
+        voltage_v = abs(device.static.vsd_typ_V)
+    deadtime_duty = min(max(2.0 * stress.dead_time_s * stress.fsw_Hz, 0.0), 1.0)
+    return voltage_v * current_a * deadtime_duty
 
 
 def _compute_eoss_loss(device: PowerDevice, stress: SwitchStress, junction_temp_c: float, method: str, warnings: list[str]) -> float:
@@ -194,6 +220,7 @@ def evaluate_switch_loss(
     p_sw_on_w = 0.0
     p_sw_off_w = 0.0
     p_rr_w = 0.0
+    p_reverse_conduction_w = 0.0
     p_eoss_w = 0.0
     p_gate_w = 0.0
     p_total_w = 0.0
@@ -224,9 +251,13 @@ def evaluate_switch_loss(
             warnings=warnings,
         ) * stress.fsw_Hz
         p_rr_w = _compute_reverse_recovery_loss(device, stress, junction_temp_c, warnings)
+        p_reverse_conduction_w = _compute_reverse_conduction_loss(device, stress, junction_temp_c, warnings)
         p_eoss_w = _compute_eoss_loss(device, stress, junction_temp_c, method, warnings)
         p_gate_w = _compute_gate_loss(device, stress)
-        p_total_w = p_cond_w + p_sw_on_w + p_sw_off_w + p_rr_w + p_eoss_w + p_gate_w
+        p_total_w = (
+            p_cond_w + p_sw_on_w + p_sw_off_w + p_rr_w
+            + p_reverse_conduction_w + p_eoss_w + p_gate_w
+        )
         thermal_reference = estimate_reference_junction_temperature(
             p_total_w=p_total_w,
             rth_jc_k_per_w=device.static.rth_jc_K_per_W,
@@ -305,6 +336,8 @@ def evaluate_switch_loss(
         warnings=warnings,
         thermal_source=thermal_reference.method,
         method=method,
+        p_reverse_conduction_W=p_reverse_conduction_w,
+        p_deadtime_W=0.0,
         **_device_loss_interface_kwargs(interface_stack),
     )
 
@@ -319,14 +352,26 @@ def _build_loss_result_from_reference(
     p_rr_w: float,
     tj_est_c: float,
     method: str,
+    p_reverse_conduction_w: float = 0.0,
+    p_deadtime_w: float = 0.0,
     thermal_source: str | None = None,
     warnings: list[str] | None = None,
     thermal_design_notes: list[str] | None = None,
 ) -> DeviceLossResult:
     warning_list = _dedupe_preserve_order(list(warnings or []))
-    p_eoss_w = 0.0
-    p_gate_w = 0.0
-    p_total_w = p_cond_w + p_sw_on_w + p_sw_off_w + p_rr_w + p_eoss_w + p_gate_w
+    is_switch = (
+        device.selection_device_type in {"MOSFET", "IGBT"}
+        and device.module_section_role != "internal_diode"
+    )
+    p_eoss_w = (
+        _compute_eoss_loss(device, stress, tj_est_c, method="accurate", warnings=warning_list)
+        if is_switch else 0.0
+    )
+    p_gate_w = _compute_gate_loss(device, stress) if is_switch else 0.0
+    p_total_w = (
+        p_cond_w + p_sw_on_w + p_sw_off_w + p_rr_w + p_reverse_conduction_w
+        + p_deadtime_w + p_eoss_w + p_gate_w
+    )
     bare_reference_valid = tj_est_c <= device.static.tj_max_C
     if not bare_reference_valid:
         warning_list.append(
@@ -391,6 +436,8 @@ def _build_loss_result_from_reference(
         thermal_interpretation_label=sink_requirement.thermal_interpretation_label,
         warnings=warning_list,
         method=method,
+        p_reverse_conduction_W=p_reverse_conduction_w,
+        p_deadtime_W=p_deadtime_w,
         **_device_loss_interface_kwargs(interface_stack),
     )
 
@@ -804,7 +851,11 @@ def _evaluate_rohm_sc_loss(
         p_sw_on_w = stress.fsw_Hz * rohm_device.eon_mJ(abs(stress.i_turn_on_A), stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) / 1000.0
         p_sw_off_w = stress.fsw_Hz * rohm_device.eoff_mJ(abs(stress.i_turn_off_A), stress.v_block_V, junction_temp_c, stress.rg_off_Ohm) / 1000.0
     p_rr_w = 0.0
-    tj_est_c = rohm_device.estimate_junction_temperature_C(p_cond_w + p_sw_on_w + p_sw_off_w + p_rr_w, reference_temp_c)["tj_C"]
+    p_deadtime_w = _compute_deadtime_loss(device, stress, junction_temp_c, [])
+    tj_est_c = rohm_device.estimate_junction_temperature_C(
+        p_cond_w + p_sw_on_w + p_sw_off_w + p_rr_w + p_deadtime_w,
+        reference_temp_c,
+    )["tj_C"]
     return _build_loss_result_from_reference(
         device=device,
         stress=stress,
@@ -814,6 +865,7 @@ def _evaluate_rohm_sc_loss(
         p_rr_w=p_rr_w,
         tj_est_c=tj_est_c,
         method="rohm_sc",
+        p_deadtime_w=p_deadtime_w,
     )
 
 

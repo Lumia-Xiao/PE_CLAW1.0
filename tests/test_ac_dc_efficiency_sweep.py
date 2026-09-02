@@ -173,7 +173,7 @@ def test_ac_dc_complete_design_and_efficiency_sweep(
     )
     assert result.warnings == ()
     assert result.signature
-    assert set(result.artifact_paths) == {"efficiency_curve", "loss_breakdown_stacked"}
+    assert set(result.artifact_paths) == {"csv", "efficiency_curve", "loss_breakdown_stacked"}
     assert all(
         Path(path).exists() and Path(path).stat().st_size > 0
         for path in result.artifact_paths.values()
@@ -356,7 +356,7 @@ def test_ac_dc_result_names_bridge_loss_and_writes_artifacts(
     assert result.full_load_efficiency == result.points[1].efficiency
     assert result.light_load_efficiency == result.points[0].efficiency
     assert "bridge rectifier" in result.sweep_basis["included_losses"]
-    assert set(result.artifact_paths) == {"efficiency_curve", "loss_breakdown_stacked"}
+    assert set(result.artifact_paths) == {"csv", "efficiency_curve", "loss_breakdown_stacked"}
     assert all(Path(path).exists() for path in result.artifact_paths.values())
     assert "bridge rectifier:" in build_efficiency_summary_text(result)
 

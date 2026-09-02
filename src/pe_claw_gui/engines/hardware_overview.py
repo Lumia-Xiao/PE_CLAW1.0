@@ -16,6 +16,10 @@ from ..models.bridge_rectifier import (
 )
 from ..models.capacitor import CapacitorGeometryTarget, CapacitorSelectionEntry, capacitor_series_display_name
 from ..models.design_report import DesignReport
+from .devices.loss_aggregation import (
+    role_physical_device_count,
+    semiconductor_losses_total_w,
+)
 from ..topologies.dc_ac.three_phase_three_level_npc_inverter.topology_contract import CONVENTIONAL_NPC_CONTRACT, validate_npc_role_positions
 from ..models.design_run_context import get_run_context, get_run_output_dir
 from ..models.geometry_result import GeometryTarget, InductorGeometryLayout
@@ -1998,21 +2002,11 @@ def _efficiency_sweep_power_factor(report: DesignReport) -> float | None:
 
 
 def _semiconductor_losses_total_w(report: DesignReport, losses: dict) -> float:
-    return sum(_semiconductor_role_total_count(report, _role_name_from_loss_key(key)) * loss.p_total_W for key, loss in losses.items())
+    return semiconductor_losses_total_w(report.device, losses)
 
 
 def _semiconductor_role_total_count(report: DesignReport, role_name: str) -> int:
-    device = report.device
-    if device is None:
-        return 1
-    scheme_id = device.active_scheme_id or device.recommended_scheme_id
-    scheme = next((item for item in device.scheme_results if item.scheme_id == scheme_id), None)
-    if scheme is None:
-        return max(int(getattr(device, "active_parallel_count", 1) or 1), 1)
-    role_result = next((item for item in scheme.role_results if item.role == role_name), None)
-    if role_result is None:
-        return max(int(scheme.parallel_count or 1), 1)
-    return max(int(role_result.total_physical_device_count or 1), 1)
+    return role_physical_device_count(report.device, role_name)
 
 
 def _role_name_from_loss_key(key: str) -> str:

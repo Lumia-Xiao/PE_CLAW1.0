@@ -79,3 +79,5 @@ class DeviceLossResult:
     interface_warnings: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     method: str = "accurate"
+    p_reverse_conduction_W: float = 0.0
+    p_deadtime_W: float = 0.0

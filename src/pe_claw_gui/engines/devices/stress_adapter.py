@@ -196,12 +196,6 @@ def _build_flyback_stresses(
         "fsw_Hz": 1.0 / switching_period_s,
         "ambient_temp_C": _ambient_temp_c(report),
         "target_junction_temp_C": _target_junction_temp_c(report),
-        "voltage_margin_ratio": _npc_voltage_margin_ratio(report),
-        "static_voltage_basis_V": _npc_static_voltage_basis(report),
-        "neutral_point_stress_factor": _npc_metadata_float(report, "npc_neutral_point_stress_factor"),
-        "dynamic_overvoltage_V": _npc_metadata_float(report, "npc_switching_overvoltage_v"),
-        "overvoltage_source": _npc_metadata_text(report, "npc_switching_overvoltage_source"),
-        "overvoltage_validation_status": _npc_metadata_text(report, "npc_switching_overvoltage_validation_status"),
     }
     return (
         SwitchStress(
@@ -420,6 +414,15 @@ def _build_three_phase_npc_inverter_stresses(report: DesignReport) -> tuple[Swit
         "fsw_Hz": candidate.fs_hz,
         "ambient_temp_C": _ambient_temp_c(report),
         "target_junction_temp_C": _target_junction_temp_c(report),
+        "dead_time_s": _npc_metadata_float(report, "npc_dead_time_s") or 0.0,
+        "v_drive_on_V": _npc_metadata_float(report, "npc_gate_drive_v") or 15.0,
+        "v_drive_off_V": 0.0,
+        "voltage_margin_ratio": _npc_voltage_margin_ratio(report),
+        "static_voltage_basis_V": _npc_static_voltage_basis(report),
+        "neutral_point_stress_factor": _npc_metadata_float(report, "npc_neutral_point_stress_factor"),
+        "dynamic_overvoltage_V": _npc_metadata_float(report, "npc_switching_overvoltage_v") or 0.0,
+        "overvoltage_source": _npc_metadata_text(report, "npc_switching_overvoltage_source"),
+        "overvoltage_validation_status": _npc_metadata_text(report, "npc_switching_overvoltage_validation_status"),
     }
     outer_duty = role_metric("outer_switch", "conduction_duty", 0.5)
     inner_duty = role_metric("inner_switch", "conduction_duty", 0.5)
