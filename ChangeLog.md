@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-03 NPC Switching Loss Event Model
+
+- What changed:
+  - NPC switching loss now uses actual gate-edge current and actual upper/lower half-link event voltage.
+  - Negative turn-on current is treated as soft switching with `Eon=0`; positive turn-on and turn-off use the sampled event current.
+  - NPC SiC diode reverse-recovery loss is set to zero; switching frequency continues to come from the original `fsw_hz` input.
+  - Added event stress fields, parallel event-current scaling, and focused regression tests.
+
 This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.

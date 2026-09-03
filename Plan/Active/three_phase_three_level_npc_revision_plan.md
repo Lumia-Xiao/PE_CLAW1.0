@@ -310,6 +310,41 @@ outputs/
 - 实现提交：`a7f1db19e1ed07885ea1d78fa1b6fef1767ffd5a`（`fix: restore NPC original input form`）。
 - push：成功；本地 HEAD 与 `origin/codex/npc-output-run-isolation-step1` 一致。
 
+### 补充修改批次：NPC 开关损耗七项修正
+
+状态：已完成。该批次按用户确认的七项内容修正损耗模型，不新增用户输入，继续使用原始表单中的 `fsw_hz`。
+
+#### 七项修改内容
+
+1. NPC 外管、内管和箝位二极管角色的反向恢复损耗强制为 `Prr=0`，按 SiC 二极管处理；其他拓扑保持原有行为。
+2. 波形和开关应力统一读取用户输入的 `fsw_hz`，开关事件率由完整工频窗口内实际门极边沿计数得到。
+3. 开通和关断事件在门极边沿处采样实际相电流，不再使用角色最大峰值代替事件电流。
+4. 开通事件电流小于 0 时判定为软开关并令 `Eon=0`；大于等于 0 时按实际电流计算硬开通，关断按实际关断电流计算。
+5. 箝位二极管死区损耗逻辑保持现状。
+6. ROHM 路径潜在死区损耗重复问题保持现状。
+7. 开关能量查表电压使用事件时刻实际半母线电压：S1/S2 使用上半母线，S3/S4 使用下半母线；耐压校核的最坏阻断电压与开关能量电压分开。
+
+#### 实施结果
+
+- `SwitchStress` 增加开通/关断事件电流、电压、事件窗口和物理位置数量。
+- NPC 波形记录三相各开关位置的门极边沿事件，并汇总到外管/内管角色。
+- 事件能量按 `sum(Eevent) / event_window_s / event_position_count` 换算为单器件平均功率；无事件数据时保留原有标量回退公式。
+- 并联器件缩放同步缩放事件电流数组，不缩放事件电压。
+- 增加 `tests/test_npc_switching_loss_events.py`，覆盖用户开关频率、实际事件电流、软开通、事件电压和 `Prr=0`。
+
+#### 验证与 Git 记录
+
+- NPC/选择器/系统关联回归：`26 passed`。
+- 事件级开关损耗专项：`3 passed`。
+- `python -B -m compileall -q src tests`：通过。
+- `git diff --check`：通过。
+- 分支：`codex/npc-output-run-isolation-step1`。
+- 实现提交：`b0d015c5c9ee2963aa435d0d1fce4d34a228bc9d`（`fix: use NPC switching event loss model`）。
+- 实现提交已 push 至 `origin/codex/npc-output-run-isolation-step1`；本地 HEAD 与远端 HEAD 一致。
+- 计划与 ChangeLog 文档提交独立完成后，本批次全部 Git 记录闭合。
+- 文档收尾前专项复核：事件专项 `3 passed`；NPC/选择器/系统关联回归 `26 passed`。
+- 全量回归结果：`513 passed, 1 skipped, 3 failed`。失败项为既有 AC-DC GUI 临时输出断言、旧的 NPC `350 V` 电压夹具和旧步骤 6 损耗阈值夹具；本批次专项与 NPC 关联回归均通过，未以放宽断言方式处理这些基线差异。
+
 ## 5. 实施顺序与依赖关系
 
 执行顺序必须保持为：
