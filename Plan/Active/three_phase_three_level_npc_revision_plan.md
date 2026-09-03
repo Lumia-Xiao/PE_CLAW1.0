@@ -9,6 +9,21 @@
 - 当前结果目录：`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\outputs`
 - 计划目标：修复结果归档、拓扑完整性、器件耐压、损耗一致性和系统验证问题，形成可追溯、可复算、可用于硬件定型的设计结果。
 
+## 1.1 测试临时文件规则
+
+为避免测试文件与设计结果混放，测试临时文件统一使用工程根目录下的
+`pytest_temp`：
+
+1. pytest 基础临时目录固定为 `pytest_temp`。
+2. pytest 缓存固定为 `pytest_temp/.pytest_cache`。
+3. `pytest_temp/` 加入 `.gitignore`，不提交测试生成物。
+4. 现有测试中直接写入工程根目录的临时路径改为使用 `tmp_path` 或
+   `tmp_path_factory`。
+5. 测试规则扫描和实际 pytest 回归必须确认测试临时文件不写入 `outputs/`。
+
+执行约束：上述五项按顺序完成；每项完成后更新本计划、`ChangeLog.md`，并
+单独执行 `git commit` 和 `git push`。
+
 ## 2. 当前结果基线
 
 本轮结果可作为后续修改的对照基线，但不能直接作为最终设计结论。
