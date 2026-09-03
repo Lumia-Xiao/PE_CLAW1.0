@@ -9,6 +9,7 @@ from pe_claw_gui.engines.hardware_overview import _resolve_output_dir as resolve
 from pe_claw_gui.models.design_run_context import (
     DESIGN_RUN_SUBDIRECTORIES,
     DesignRunContext,
+    abbreviate_topology_id,
     update_design_run,
     write_design_run_manifest,
 )
@@ -45,12 +46,20 @@ def test_default_run_directories_are_unique_and_do_not_modify_prior_results(tmp_
     assert first.output_root != second.output_root
     assert Path(first.output_root).parent == output_base
     assert Path(second.output_root).parent == output_base
-    assert TOPOLOGY_ID in Path(first.output_root).name
+    directory_name = Path(first.output_root).name
+    assert directory_name.startswith(f"{first.created_at[:10].replace('-', '')}_3p_3l_npc_i_")
+    assert directory_name.endswith(f"_{first.run_id[:8]}")
+    assert TOPOLOGY_ID not in directory_name
     assert all((Path(first.output_root) / name).is_dir() for name in DESIGN_RUN_SUBDIRECTORIES)
     assert all((Path(second.output_root) / name).is_dir() for name in DESIGN_RUN_SUBDIRECTORIES)
     assert first_marker.read_text(encoding="utf-8") == "first"
     assert first_marker.stat().st_mtime_ns == first_marker_mtime_before
     assert Path(first.manifest_path or "").read_bytes() == first_manifest_before
+
+
+def test_topology_directory_aliases_cover_registered_and_future_topologies() -> None:
+    assert abbreviate_topology_id(TOPOLOGY_ID) == "3p_3l_npc_i"
+    assert abbreviate_topology_id("future_three_phase_custom_converter") == "f3pcc"
 
 
 def test_npc_pipeline_routes_all_formal_artifact_groups_to_one_run_root(tmp_path: Path) -> None:
@@ -70,6 +79,9 @@ def test_npc_pipeline_routes_all_formal_artifact_groups_to_one_run_root(tmp_path
     report = update_design_run(report, {"capacitor_design": "succeeded"})
     manifest = json.loads((run_root / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["run"]["run_id"] == report.run_context.run_id
+    assert manifest["run"]["run_id_short"] == report.run_context.run_id[:8]
+    assert manifest["run"]["topology_id"] == TOPOLOGY_ID
+    assert manifest["run"]["topology_directory_alias"] == "3p_3l_npc_i"
     assert manifest["run"]["input_sha256"] == report.run_context.input_sha256
     assert manifest["stage_status"]["design"] == "succeeded"
     assert manifest["stage_status"]["capacitor_design"] == "succeeded"

@@ -13,6 +13,14 @@ listed here.
 - Required future topologies to use the shared run context and documented the commit/push rule in the active NPC plan.
 - Validation: focused output-isolation, LLC context, AC-DC topology, and AC-DC efficiency tests passed; full-suite execution was affected by the host pytest temporary-directory permission conflict.
 
+## 2026-09-03 Short Run Directory Names
+
+- Changed new run directories to `YYYYMMDD_<topology_alias>_<run_id_8>`.
+- Kept the full topology ID and full run ID in the manifest and design request for traceability.
+- Added explicit aliases for registered topologies and a generic abbreviation fallback for future topology plugins.
+- Existing output directories are intentionally left unchanged.
+- Validation: output-isolation tests cover date-only naming, eight-character run IDs, and future-topology fallback naming.
+
 ## 2026-08-28 AC-DC Efficiency Sweep Step 12 Real GUI Delivery
 
 - What changed:

@@ -37,6 +37,31 @@ DESIGN_RUN_SUBDIRECTORIES = (
 )
 DESIGN_RUN_STATUSES = frozenset({"not_started", "running", "succeeded", "failed", "blocked"})
 
+# Keep current directory names readable while retaining a deterministic fallback
+# for topology plugins added later without requiring a central registry change.
+_TOPOLOGY_DIRECTORY_ALIASES = {
+    "single_phase_diode_bridge_rectifier_capacitor_filter": "sp_dbr_cf",
+    "single_phase_diode_bridge_rectifier_dc_inductor_filter": "sp_dbr_dif",
+    "three_phase_diode_bridge_rectifier_capacitor_filter": "3p_dbr_cf",
+    "single_phase_boost_pfc_diode_bridge": "sp_bpfc_db",
+    "single_phase_totem_pole_bridgeless_pfc": "sp_tp_bpfc",
+    "single_phase_full_bridge_inverter": "sp_fbi",
+    "three_phase_two_level_voltage_source_inverter": "3p_2l_vsi",
+    "three_phase_three_level_npc_inverter": "3p_3l_npc_i",
+    "buck_diode_rectified_unidirectional": "b_dr_u",
+    "buck_synchronous_rectified_unidirectional": "b_sr_u",
+    "buck_boost_diode_rectified_unidirectional": "bb_dr_u",
+    "four_switch_buck_boost_simplified_four_mode": "4s_bb_s4m",
+    "three_level_tzcm_fixed_frequency": "3l_tzcm_ff",
+    "boost_diode_rectified_unidirectional": "bo_dr_u",
+    "boost_synchronous_rectified_unidirectional": "bo_sr_u",
+    "llc_resonant_converter_diode_rectifier": "llc_dr",
+    "llc_resonant_converter_synchronous_rectifier": "llc_sr",
+    "flyback_diode_rectified_isolated": "fb_dr_i",
+    "phase_shifted_full_bridge_diode_rectifier_isolated": "psfb_dr_i",
+}
+_NUMBER_WORDS = {"one": "1", "two": "2", "three": "3", "four": "4", "five": "5"}
+
 _ACTIVE_RUN_CONTEXT: ContextVar["DesignRunContext | None"] = ContextVar(
     "pe_claw_active_design_run", default=None
 )
@@ -82,6 +107,10 @@ class DesignRunContext:
                 output_base_root=output_base_root,
             )
         ).resolve()
+        if output_root is None and resolved_root.exists():
+            raise FileExistsError(
+                f"Design run directory collision for short run ID {run_id[:8]}: {resolved_root}"
+            )
         resolved_root.mkdir(parents=True, exist_ok=True)
         for name in DESIGN_RUN_SUBDIRECTORIES:
             (resolved_root / name).mkdir(exist_ok=True)
@@ -163,6 +192,8 @@ class DesignRunContext:
             "failure_stage": self.failure_stage,
             "failure_reason": self.failure_reason,
             "manifest_path": self.manifest_path,
+            "topology_directory_alias": abbreviate_topology_id(self.topology_id),
+            "run_id_short": self.run_id[:8],
         }
 
 
@@ -189,7 +220,9 @@ def write_design_run_manifest(context: DesignRunContext) -> Path:
         "status": _overall_run_status(context),
         "run": {
             "run_id": context.run_id,
+            "run_id_short": context.run_id[:8],
             "topology_id": context.topology_id,
+            "topology_directory_alias": abbreviate_topology_id(context.topology_id),
             "input_sha256": context.input_sha256,
             "raw_input_snapshot": dict(context.raw_input_snapshot),
             "output_root": str(root),
@@ -291,6 +324,17 @@ def _default_output_root(
 ) -> Path:
     project_root = Path(__file__).resolve().parents[3]
     base = Path(output_base_root) if output_base_root is not None else project_root / "outputs"
-    timestamp = datetime.fromisoformat(created_at).astimezone(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    safe_topology_id = re.sub(r"[^A-Za-z0-9_-]+", "_", topology_id).strip("_") or "unknown_topology"
-    return base / f"{timestamp}_{safe_topology_id}_{run_id}"
+    timestamp = datetime.fromisoformat(created_at).astimezone(timezone.utc).strftime("%Y%m%d")
+    topology_alias = abbreviate_topology_id(topology_id)
+    return base / f"{timestamp}_{topology_alias}_{run_id[:8]}"
+
+
+def abbreviate_topology_id(topology_id: str) -> str:
+    """Return the filesystem alias for a topology without changing its identity."""
+
+    normalized = re.sub(r"[^A-Za-z0-9_]+", "_", str(topology_id).strip()).strip("_").lower()
+    if normalized in _TOPOLOGY_DIRECTORY_ALIASES:
+        return _TOPOLOGY_DIRECTORY_ALIASES[normalized]
+    tokens = [token for token in normalized.split("_") if token]
+    compact = "".join(_NUMBER_WORDS.get(token, token[:1]) for token in tokens)
+    return compact or "topo"

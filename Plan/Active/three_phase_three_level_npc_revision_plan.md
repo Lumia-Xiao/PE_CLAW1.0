@@ -33,15 +33,19 @@
 #### 修改内容
 
 1. 每次设计开始时，在 `outputs` 下创建唯一的运行根目录，不再把多个设计结果直接写入公共的 `hardware_overview`、`capacitor_design`、`inductor_design` 和 `efficiency_sweep` 目录。
-2. 运行目录名称采用以下格式：
+2. 运行目录名称采用以下格式，时间戳精确到天，运行标识保留 8 位：
 
-   `YYYYMMDD_HHMMSS_<topology_id>_<run_id>`
+   `YYYYMMDD_<topology_alias>_<run_id_8>`
+
+   例如：`20260903_3p_3l_npc_i_a1b2c3d4`。当前拓扑使用显式短别名；未来
+   未登记拓扑使用统一的首字母/数字压缩规则。完整 `topology_id` 和完整
+   `run_id` 仍写入 `manifest.json` 与 `design_request.json`。
 
 3. 每个运行目录内部按照结果类型继续细分，建议结构如下：
 
 ```text
 outputs/
-  20260902_151500_three_phase_three_level_npc_inverter_<run_id>/
+  20260903_3p_3l_npc_i_<run_id_8>/
     manifest.json
     design_request/
     semiconductor_design/
@@ -68,12 +72,17 @@ outputs/
 6. 硬件总览只能读取当前 `run_id` 对应子目录的结果，禁止从 `outputs` 下搜索并混用其他运行的文件。
 7. 本轮已有结果在实施时应整体迁入一个标记为 `legacy` 或具有明确时间戳的运行目录；迁移过程不得覆盖或删除原文件，确认完整后再切换引用。
 
+8. 新运行的目录名只使用日期、拓扑短别名和 8 位运行标识，避免 Windows 路径
+   过长；已有运行目录不重命名、不迁移、不删除。
+
 #### 验收条件
 
 - 连续运行两次设计后，生成两个互不覆盖的运行目录。
 - 每个目录都具有独立的 `manifest.json` 和完整子目录。
 - 任一结果文件都能反向定位到唯一 `run_id` 和设计请求。
 - 第二次运行不修改第一次运行目录内文件的时间戳、内容和校验值。
+- 新运行目录不再包含小时、分钟、秒、完整拓扑名称或完整 32 位运行标识。
+- manifest 中的完整运行身份与目录中的 8 位标识一致可追溯。
 
 ### 步骤 2：补齐并冻结设计基准
 
