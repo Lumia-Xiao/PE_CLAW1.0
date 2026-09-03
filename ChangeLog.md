@@ -1,5 +1,16 @@
 # Change Log
 
+## 2026-09-03 NPC Capacitor PF GUI Mapping
+
+- What changed:
+  - Mapped NPC PF view input/output display sides to the generated upper/lower split-link capacitor artifacts.
+  - Updated NPC tab labels and artifact summaries to use upper/lower DC-link terminology.
+  - Added regressions for NPC artifact loading and non-NPC input/output compatibility.
+- Validation:
+  - NPC PF view: `2 passed`.
+  - NPC split-link capacitor regression: `2 passed`.
+  - `python -B -m compileall -q src tests` and `git diff --check`: passed.
+
 ## 2026-09-03 NPC Switching Loss Event Model
 
 - What changed:

@@ -345,6 +345,27 @@ outputs/
 - 文档收尾前专项复核：事件专项 `3 passed`；NPC/选择器/系统关联回归 `26 passed`。
 - 全量回归结果：`513 passed, 1 skipped, 3 failed`。失败项为既有 AC-DC GUI 临时输出断言、旧的 NPC `350 V` 电压夹具和旧步骤 6 损耗阈值夹具；本批次专项与 NPC 关联回归均通过，未以放宽断言方式处理这些基线差异。
 
+### 补充修改批次：NPC 电容 PF 图 GUI 映射
+
+状态：已完成。NPC 电容 PF 图后端已生成，但原 PF 视图只按通用 `input/output` 文件名查找，无法加载 NPC 的 `upper/lower` 分裂母线产物。本批次修复了显示侧到物理电容 bank 的映射。
+
+#### 修改内容
+
+1. NPC PF 视图将 `input` 显示侧映射到 `upper` 上半母线电容。
+2. NPC PF 视图将 `output` 显示侧映射到 `lower` 下半母线电容。
+3. NPC 标签、PNG 路径、CSV 路径和占位/错误提示统一显示上、下分裂母线名称。
+4. 增加 NPC PF 图路径、摘要产物和非 NPC 文件名兼容性回归测试。
+
+#### 验证与 Git 记录
+
+- NPC PF 视图专项：`2 passed`。
+- NPC 分裂母线电容回归：`2 passed`。
+- `python -B -m compileall -q src tests` 与 `git diff --check`：通过。
+- 分支：`codex/npc-output-run-isolation-step1`。
+- 实现与测试提交：`87e51f073c07bd2dc824aafc62bfdcc00eddde0c`（`fix: load NPC capacitor Pareto plots in GUI`）。
+- 实现提交已 push 至 `origin/codex/npc-output-run-isolation-step1`，push 后本地 HEAD 与远端 HEAD 一致。
+- 计划与 ChangeLog 文档提交：待提交后填写。
+
 ## 5. 实施顺序与依赖关系
 
 执行顺序必须保持为：
