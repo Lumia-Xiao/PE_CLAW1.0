@@ -418,56 +418,52 @@ def test_llc_reusable_metrics_search_reports_avoided_repeated_builds() -> None:
     assert result.performance_timing["reusable_metrics_cache_hit_rate"] == 0.5
 
 
-def test_llc_baseline_script_has_bounded_repeatable_cases() -> None:
-    output_dir = ROOT / ".test-llc-baseline-output"
-    shutil.rmtree(output_dir, ignore_errors=True)
-    try:
-        completed = subprocess.run(
-            [
-                sys.executable,
-                str(SCRIPT),
-                "--case",
-                "transformer-small",
-                "--timeout-seconds",
-                "60",
-                "--output-dir",
-                str(output_dir),
-            ],
-            cwd=ROOT,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        output = json.loads(completed.stdout)
-        assert output["summary"] == {"case_count": 1, "completed_count": 1, "error_count": 0, "timeout_count": 0}
-        evidence = json.loads((output_dir / "llc_magnetic_performance_baseline.json").read_text(encoding="ascii"))
-        case = evidence["cases"][0]
-        assert case["status"] == "completed"
-        assert case["input_sha256"]
-        assert case["registered_database_counts"]["cores"] > 0
-        assert case["fha_boundary_cache"]["solver_version"] == "fha-grid-scan-v1"
-        assert case["fha_boundary_cache"]["maxsize"] == 512
-        assert case["scalar_triangular_loss_cache"]["maxsize"] == 4096
-        assert case["scalar_triangular_loss_cache"]["misses"] > 0
-        assert case["scalar_triangular_loss_cache"]["size"] <= 4096
-        assert case["reusable_magnetic_metrics_cache"]["model_version"] == "llc-transformer-reusable-metrics-v1"
-        assert case["reusable_magnetic_metrics_cache"]["units"].startswith("SI:")
-        assert case["reusable_magnetic_metrics_cache"]["maxsize"] == 4096
-        assert case["reusable_magnetic_metrics_cache"]["hits"] == case["transformer"]["counts"]["reusable_metrics_cache_hits"]
-        assert case["transformer"]["counts"]["evaluated_candidate_count"] > 0
-        assert case["transformer"]["timing"]["total_seconds"] >= 0.0
-        assert case["transformer"]["search_bounds"]["mode"] == "explicit"
-        counts = case["transformer"]["counts"]
-        assert counts["generated_candidate_count"] == (
-            counts["prefilter_rejected_candidate_count"]
-            + counts["precise_evaluated_candidate_count"]
-        )
-        assert counts["prefilter_rejected_candidate_count"] == 0 or (
+def test_llc_baseline_script_has_bounded_repeatable_cases(tmp_path: Path) -> None:
+    output_dir = tmp_path / "llc-baseline-output"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            "--case",
+            "transformer-small",
+            "--timeout-seconds",
+            "60",
+            "--output-dir",
+            str(output_dir),
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    output = json.loads(completed.stdout)
+    assert output["summary"] == {"case_count": 1, "completed_count": 1, "error_count": 0, "timeout_count": 0}
+    evidence = json.loads((output_dir / "llc_magnetic_performance_baseline.json").read_text(encoding="ascii"))
+    case = evidence["cases"][0]
+    assert case["status"] == "completed"
+    assert case["input_sha256"]
+    assert case["registered_database_counts"]["cores"] > 0
+    assert case["fha_boundary_cache"]["solver_version"] == "fha-grid-scan-v1"
+    assert case["fha_boundary_cache"]["maxsize"] == 512
+    assert case["scalar_triangular_loss_cache"]["maxsize"] == 4096
+    assert case["scalar_triangular_loss_cache"]["misses"] > 0
+    assert case["scalar_triangular_loss_cache"]["size"] <= 4096
+    assert case["reusable_magnetic_metrics_cache"]["model_version"] == "llc-transformer-reusable-metrics-v1"
+    assert case["reusable_magnetic_metrics_cache"]["units"].startswith("SI:")
+    assert case["reusable_magnetic_metrics_cache"]["maxsize"] == 4096
+    assert case["reusable_magnetic_metrics_cache"]["hits"] == case["transformer"]["counts"]["reusable_metrics_cache_hits"]
+    assert case["transformer"]["counts"]["evaluated_candidate_count"] > 0
+    assert case["transformer"]["timing"]["total_seconds"] >= 0.0
+    assert case["transformer"]["search_bounds"]["mode"] == "explicit"
+    counts = case["transformer"]["counts"]
+    assert counts["generated_candidate_count"] == (
+        counts["prefilter_rejected_candidate_count"]
+        + counts["precise_evaluated_candidate_count"]
+    )
+    assert counts["prefilter_rejected_candidate_count"] == 0 or (
             counts["prefilter_rejected_by_saturation_count"]
             + counts["prefilter_rejected_by_lm_count"]
             + counts["prefilter_rejected_by_fill_count"]
             + counts["prefilter_rejected_by_missing_data_count"]
             > 0
-        )
-    finally:
-        shutil.rmtree(output_dir, ignore_errors=True)
+    )

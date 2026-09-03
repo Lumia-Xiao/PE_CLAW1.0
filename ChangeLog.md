@@ -26,6 +26,12 @@ listed here.
 - Added `pytest_temp/` to `.gitignore` so pytest-generated files and caches are not committed.
 - Recorded the repository-local pytest temporary-directory rule in the active NPC plan.
 
+## 2026-09-03 Pytest Temporary Path Cleanup
+
+- Updated LLC and GUI tests that created temporary files directly under the repository root to use pytest `tmp_path` fixtures.
+- Kept read-only historical evidence and existing user design outputs unchanged.
+- The affected tests now place generated files below the configured `pytest_temp/` base directory.
+
 ## 2026-08-28 AC-DC Efficiency Sweep Step 12 Real GUI Delivery
 
 - What changed:

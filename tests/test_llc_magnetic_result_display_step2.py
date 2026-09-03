@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import replace
 from pathlib import Path
 import shutil
-from uuid import uuid4
 
 from scripts.build_llc_magnetic_result_display_step1_baseline import (
     COMBINED_ID,
@@ -266,23 +265,20 @@ def test_llc_pf_paths_are_resolved_by_role() -> None:
     assert paths == {"transformer": None, "external_lr": None}
 
 
-def test_llc_pf_paths_resolve_existing_role_specific_images() -> None:
-    root = Path(f".pytest-tmp-llc-step2-{uuid4().hex}")
-    try:
-        transformer_path = root / "transformer" / "llc_transformer_pareto_front.png"
-        external_path = root / "external" / "llc_external_resonant_inductor_pareto_front.png"
-        transformer_path.parent.mkdir(parents=True)
-        external_path.parent.mkdir(parents=True)
-        transformer_path.write_bytes(b"transformer-png")
-        external_path.write_bytes(b"external-png")
-        report = _report_with_llc_display_summary()
-        magnetic = report.magnetic
-        magnetic.transformer_pareto_result.artifact_paths = [str(transformer_path)]
-        magnetic.llc_external_resonant_inductor_search_result.artifact_paths = [str(external_path)]
-        paths = resolve_llc_pf_plot_paths(report)
-        assert paths == {"transformer": transformer_path, "external_lr": external_path}
-    finally:
-        shutil.rmtree(root, ignore_errors=True)
+def test_llc_pf_paths_resolve_existing_role_specific_images(tmp_path: Path) -> None:
+    root = tmp_path / "llc-step2"
+    transformer_path = root / "transformer" / "llc_transformer_pareto_front.png"
+    external_path = root / "external" / "llc_external_resonant_inductor_pareto_front.png"
+    transformer_path.parent.mkdir(parents=True)
+    external_path.parent.mkdir(parents=True)
+    transformer_path.write_bytes(b"transformer-png")
+    external_path.write_bytes(b"external-png")
+    report = _report_with_llc_display_summary()
+    magnetic = report.magnetic
+    magnetic.transformer_pareto_result.artifact_paths = [str(transformer_path)]
+    magnetic.llc_external_resonant_inductor_search_result.artifact_paths = [str(external_path)]
+    paths = resolve_llc_pf_plot_paths(report)
+    assert paths == {"transformer": transformer_path, "external_lr": external_path}
 
 
 def test_llc_pf_side_summary_keeps_role_identity_when_artifact_is_missing() -> None:

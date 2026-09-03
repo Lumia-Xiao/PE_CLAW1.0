@@ -117,19 +117,15 @@ def test_external_lr_prefilter_preserves_candidate_count_and_skips_expensive_mod
     assert all(candidate.rejection_reason.startswith("prefilter:") for candidate in result.candidates)
 
 
-def test_external_lr_output_is_opt_in_and_isolated() -> None:
-    output_dir = Path(__file__).resolve().parents[1] / ".test-llc-step9-output"
-    shutil.rmtree(output_dir, ignore_errors=True)
-    try:
-        result = td.generate_llc_external_resonant_inductor_candidates(
+def test_external_lr_output_is_opt_in_and_isolated(tmp_path: Path) -> None:
+    output_dir = tmp_path / "llc-step9-output"
+    result = td.generate_llc_external_resonant_inductor_candidates(
             replace(_request(), is_design_required=False),
             core_records=[_core()],
             material_records=[],
             wire_records=[_wire()],
             output_dir=output_dir,
-        )
+    )
 
-        assert result.artifact_paths == []
-        assert not output_dir.exists()
-    finally:
-        shutil.rmtree(output_dir, ignore_errors=True)
+    assert result.artifact_paths == []
+    assert not output_dir.exists()
