@@ -21,6 +21,11 @@ listed here.
 - Existing output directories are intentionally left unchanged.
 - Validation: output-isolation tests cover date-only naming, eight-character run IDs, and future-topology fallback naming.
 
+## 2026-09-03 Repository-Local Pytest Temporary Directory
+
+- Added `pytest_temp/` to `.gitignore` so pytest-generated files and caches are not committed.
+- Recorded the repository-local pytest temporary-directory rule in the active NPC plan.
+
 ## 2026-08-28 AC-DC Efficiency Sweep Step 12 Real GUI Delivery
 
 - What changed:
