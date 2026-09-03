@@ -4,6 +4,29 @@ This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
 
+## 2026-09-03 NPC Restore Original Input Form
+
+- What changed:
+  - Removed the expanded NPC design-basis field block from the GUI form.
+  - Restored the original 10 user-facing NPC design inputs.
+  - Kept semiconductor filters, waveform operating-point controls, and the
+    efficiency-sweep action unchanged.
+  - Kept the expanded voltage, thermal, loss, and validation basis in the
+    backend defaults; 10-input calls use nominal Vdc for hidden minimum and
+    maximum bus values.
+  - Added a regression proving the original form contract and backend default
+    normalization.
+- Validation:
+  - NPC input contract: `20 passed`.
+  - NPC Step 5-Step 9 and output-isolation regression: `20 passed`.
+  - `python -B -m compileall -q src tests` and `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `a7f1db19e1ed07885ea1d78fa1b6fef1767ffd5a`
+    (`fix: restore NPC original input form`).
+  - Push passed; local HEAD and
+    `origin/codex/npc-output-run-isolation-step1` were identical.
+
 ## 2026-09-02 NPC Step 9 System Validation and Result Regeneration
 
 - What changed:

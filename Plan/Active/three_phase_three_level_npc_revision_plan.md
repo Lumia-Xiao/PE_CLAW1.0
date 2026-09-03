@@ -287,6 +287,29 @@ outputs/
 - 验证：第九步专项 `4 passed`；第九步与 NPC 拓扑、步骤 5 损耗、步骤 6 热设计、步骤 7 电容、步骤 8 电感滤波、运行隔离和结构化输出回归 `42 passed`；`python -B -m compileall -q src tests` 与 `git diff --check` 通过。
 - Git：实现提交 `f26b0665fc5f5cdd87eb4fbe189847314d004f4a` 已推送，且本地 HEAD 与远端分支一致；计划与变更日志将使用独立文档提交并再次核验远端一致性。
 
+### 补充修改批次：恢复原始 NPC 用户输入窗口
+
+状态：已完成。该批次不是撤销步骤 2 至步骤 9 的后端设计能力，而是将设计基准、耐压、辅助损耗和热设计参数恢复为后端隐藏默认值，恢复原始 GUI 的 10 项核心输入契约。
+
+#### 六项修改内容
+
+1. 删除 NPC 表单中的 `design_basis_fields` 用户可见字段。
+2. 删除表单对 `NPC_DESIGN_BASIS_DEFAULTS` 的直接依赖，避免后端完整基准泄漏到 GUI。
+3. 恢复设计区只显示原始 10 项输入：`vdc_nom`、`vac_ll_rms`、`f_line_hz`、`fsw_hz`、`pout_w`、`power_factor`、电感电流纹波比、母线电压纹波比、环境温度和目标结温。
+4. 保留 NPC 专用器件类别/厂商筛选，以及波形操作点和效率扫描控件，不改变原有操作流程。
+5. 仅提交这 10 项输入时，由后端 `input_schema` 补齐隐藏设计基准；缺少 `vdc_min` 和 `vdc_max` 时按 `vdc_nom` 处理，其他基准沿用后端默认值。
+6. 增加 GUI 输入契约和隐藏基准归一化回归，防止后续再次把内部工程参数扩展成用户输入。
+
+#### 验证与 Git 记录
+
+- NPC 输入契约专项：`20 passed`。
+- 步骤 5 至步骤 9、NPC 输出隔离关联回归：`20 passed`。
+- `python -B -m compileall -q src tests`：通过。
+- `git diff --check`：通过。
+- 分支：`codex/npc-output-run-isolation-step1`。
+- 实现提交：`a7f1db19e1ed07885ea1d78fa1b6fef1767ffd5a`（`fix: restore NPC original input form`）。
+- push：成功；本地 HEAD 与 `origin/codex/npc-output-run-isolation-step1` 一致。
+
 ## 5. 实施顺序与依赖关系
 
 执行顺序必须保持为：
