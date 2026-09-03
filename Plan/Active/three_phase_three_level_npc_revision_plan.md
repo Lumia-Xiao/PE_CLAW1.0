@@ -29,8 +29,13 @@
 - [x] 第 1 项：pytest 基础临时目录和缓存目录配置
 - [x] 第 2 项：`pytest_temp/` Git 忽略规则
 - [x] 第 3 项：整改直接写入工程根目录的测试临时路径
-- [ ] 第 4 项：扫描测试代码和 Git 状态，确认临时产物边界
+- [x] 第 4 项：扫描测试代码和 Git 状态，确认临时产物边界
 - [ ] 第 5 项：使用 `pytest_temp` 执行专项与回归验证
+
+第 4 项检查结论：测试中用于写入文件的临时路径均已转为 pytest
+`tmp_path`/`tmp_path_factory` 或由 pytest 管理的 `pytest_temp`；历史
+`migration`/`outputs` 路径仅作为只读证据引用。GUI 端到端测试通过
+`PE_CLAW_STEP12_GUI_OUTPUT_ROOT` 指向 pytest 临时目录。
 
 ## 2. 当前结果基线
 

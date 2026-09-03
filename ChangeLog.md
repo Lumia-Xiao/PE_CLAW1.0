@@ -32,6 +32,11 @@ listed here.
 - Kept read-only historical evidence and existing user design outputs unchanged.
 - The affected tests now place generated files below the configured `pytest_temp/` base directory.
 
+## 2026-09-03 Pytest Temporary Path Boundary Scan
+
+- Updated the AC-DC GUI end-to-end test to use its pytest `tmp_path` as the subprocess output root.
+- Scanned tests for repository-root temporary output paths; remaining `outputs` and `migration` references are read-only historical evidence.
+
 ## 2026-08-28 AC-DC Efficiency Sweep Step 12 Real GUI Delivery
 
 - What changed:
