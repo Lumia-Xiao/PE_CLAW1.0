@@ -69,17 +69,17 @@ def test_npc_loss_components_are_complete_and_deadtime_is_explicit() -> None:
     assert report.device.design_point_losses["design_point:npc_inner_switch"].p_deadtime_W > 0.0
 
 
-def test_npc_efficiency_recomputes_loss_by_load_and_includes_auxiliary_loss(tmp_path: Path) -> None:
+def test_npc_efficiency_recomputes_loss_by_load_without_auxiliary_loss(tmp_path: Path) -> None:
     plugin, report = _report()
     result = run_efficiency_sweep(report, plugin=plugin, load_points=(0.5, 1.0), output_dir=tmp_path)
     assert result.points[0].semiconductor_loss_w < result.points[1].semiconductor_loss_w
-    assert result.points[0].other_loss_w == pytest.approx(37.0)
-    assert result.points[1].other_loss_w == pytest.approx(37.0)
+    assert result.points[0].other_loss_w is None
+    assert result.points[1].other_loss_w is None
+    assert all("other" not in point.loss_breakdown_w for point in result.points)
     assert result.points[1].total_loss_w == pytest.approx(
         result.points[1].semiconductor_loss_w
         + (result.points[1].magnetic_loss_w or 0.0)
         + (result.points[1].capacitor_loss_w or 0.0)
-        + result.points[1].other_loss_w
     )
     assert result.points[1].efficiency == pytest.approx(10000.0 / (10000.0 + result.points[1].total_loss_w))
 

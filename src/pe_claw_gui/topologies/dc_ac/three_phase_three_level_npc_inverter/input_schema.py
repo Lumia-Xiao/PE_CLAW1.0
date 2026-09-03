@@ -45,10 +45,6 @@ NPC_DESIGN_BASIS_DEFAULTS = {
     "target_junction_temp_c": "100",
     "dead_time_ns": "200",
     "gate_drive_v": "15",
-    "gate_driver_loss_w": "12",
-    "control_power_loss_w": "8",
-    "balancing_resistor_loss_w": "2",
-    "fan_loss_w": "15",
     "application_notes": "Grid-connected three-phase inverter; CCM first-pass design basis.",
 }
 
@@ -102,10 +98,6 @@ def normalize_design_basis(raw_input: Mapping[str, object]) -> dict[str, object]
     target_junction_temp_c = number("target_junction_temp_c")
     dead_time_ns = number("dead_time_ns")
     gate_drive_v = number("gate_drive_v")
-    gate_driver_loss_w = number("gate_driver_loss_w")
-    control_power_loss_w = number("control_power_loss_w")
-    balancing_resistor_loss_w = number("balancing_resistor_loss_w")
-    fan_loss_w = number("fan_loss_w")
 
     positive = {
         "vdc_min": vdc_min_v,
@@ -138,14 +130,6 @@ def normalize_design_basis(raw_input: Mapping[str, object]) -> dict[str, object]
         raise ValueError("Dead time must not be negative.")
     if gate_drive_v <= 0.0:
         raise ValueError("Gate-drive voltage must be positive.")
-    for key, value in {
-        "gate_driver_loss_w": gate_driver_loss_w,
-        "control_power_loss_w": control_power_loss_w,
-        "balancing_resistor_loss_w": balancing_resistor_loss_w,
-        "fan_loss_w": fan_loss_w,
-    }.items():
-        if value < 0.0:
-            raise ValueError(f"{key} must not be negative.")
     if dead_time_ns < 0.0:
         raise ValueError("Dead time must not be negative.")
     if static_voltage_margin_ratio < 0.20:
@@ -219,11 +203,6 @@ def normalize_design_basis(raw_input: Mapping[str, object]) -> dict[str, object]
         "losses": {
             "gate_drive_voltage_v": gate_drive_v,
             "dead_time_ns": dead_time_ns,
-            "gate_driver_w": gate_driver_loss_w,
-            "control_power_w": control_power_loss_w,
-            "balancing_resistor_w": balancing_resistor_loss_w,
-            "fan_w": fan_loss_w,
-            "auxiliary_total_w": gate_driver_loss_w + control_power_loss_w + balancing_resistor_loss_w + fan_loss_w,
         },
         "application_notes": str(values["application_notes"]).strip(),
         "assumptions": [
@@ -277,13 +256,6 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
                 "npc_static_voltage_margin_ratio": float(basis["voltage_stress"]["static_voltage_margin_ratio"]),
                 "npc_dead_time_s": float(basis["losses"]["dead_time_ns"]) * 1.0e-9,
                 "npc_gate_drive_v": float(basis["losses"]["gate_drive_voltage_v"]),
-                "npc_auxiliary_loss_w": float(basis["losses"]["auxiliary_total_w"]),
-                "npc_auxiliary_loss_breakdown_w": {
-                    "gate_driver": float(basis["losses"]["gate_driver_w"]),
-                    "control_power": float(basis["losses"]["control_power_w"]),
-                    "balancing_resistor": float(basis["losses"]["balancing_resistor_w"]),
-                    "fan": float(basis["losses"]["fan_w"]),
-                },
                 "modulation_scheme": f"{basis['switching']['modulation_method']}_first_pass",
                 "topology_level_count": 3,
                 "phase_count": 3,

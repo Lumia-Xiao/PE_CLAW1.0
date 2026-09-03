@@ -350,8 +350,8 @@ def _evaluate_load_point(
     semiconductor_loss_w = _semiconductor_loss_w(refreshed)
     magnetic_loss_w = _magnetic_loss_w(refreshed)
     capacitor_loss_w = _capacitor_loss_w(refreshed)
-    other_loss_w = _auxiliary_loss_w(refreshed)
-    available_losses = [semiconductor_loss_w, magnetic_loss_w, capacitor_loss_w, other_loss_w]
+    other_loss_w = None
+    available_losses = [semiconductor_loss_w, magnetic_loss_w, capacitor_loss_w]
     total_loss_w = sum(loss for loss in available_losses if loss is not None)
     if not any(loss is not None for loss in available_losses):
         total_loss_w = None
@@ -826,19 +826,6 @@ def _semiconductor_loss_w(report: DesignReport) -> float | None:
     if device.design_point_losses:
         return semiconductor_losses_total_w(device, device.design_point_losses)
     return None
-
-
-def _auxiliary_loss_w(report: DesignReport) -> float | None:
-    """Return explicitly entered non-semiconductor auxiliary losses."""
-
-    if not _is_three_phase_npc_inverter_topology(report):
-        return 0.0
-    metadata = report.spec.metadata if isinstance(report.spec.metadata, dict) else {}
-    try:
-        value = float(metadata.get("npc_auxiliary_loss_w", 0.0))
-    except (TypeError, ValueError):
-        return 0.0
-    return max(value, 0.0)
 
 
 def _magnetic_loss_w(report: DesignReport) -> float | None:

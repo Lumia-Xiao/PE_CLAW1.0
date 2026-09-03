@@ -119,7 +119,7 @@ def test_original_npc_form_inputs_use_backend_defaults_for_hidden_basis() -> Non
     assert not hasattr(form, "design_basis_fields")
     assert basis["dc_link_voltage_v"] == {"min": 700.0, "nominal": 700.0, "max": 700.0}
     assert basis["voltage_stress"]["neutral_point_stress_factor"] == pytest.approx(1.02)
-    assert basis["losses"]["auxiliary_total_w"] == pytest.approx(37.0)
+    assert set(basis["losses"]) == {"gate_drive_voltage_v", "dead_time_ns"}
 
 
 @pytest.mark.parametrize(
