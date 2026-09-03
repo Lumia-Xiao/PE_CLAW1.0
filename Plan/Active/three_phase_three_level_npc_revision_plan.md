@@ -366,6 +366,26 @@ outputs/
 - 实现提交已 push 至 `origin/codex/npc-output-run-isolation-step1`，push 后本地 HEAD 与远端 HEAD 一致。
 - 计划与 ChangeLog 文档提交：待提交后填写。
 
+### 补充修改批次：移除 NPC 固定辅助损耗
+
+状态：已完成。根据复核结论，NPC 的栅极驱动、控制电源、均压电阻和风机损耗此前只是固定假设值，并非基于器件或工作点计算。本批次将它们从 NPC 设计基准和效率计算中移除，不再计入 `Other` 或总损耗。
+
+#### 修改内容
+
+1. 删除 NPC 后端默认输入中的四项固定辅助损耗参数。
+2. 删除 NPC 设计基准和 metadata 中的 `npc_auxiliary_loss_w` 及分项字段。
+3. NPC 效率扫描只汇总半导体、磁性器件和电容损耗；`other_loss_w` 保留为通用结果模型兼容字段，但 NPC 值为 `None`。
+4. 更新 NPC 设计基准和效率回归，确认 breakdown 不包含 `other`，总损耗不包含固定辅助损耗。
+
+#### 验证与 Git 记录
+
+- NPC 拓扑契约与损耗回归：`25 passed`。
+- `python -B -m compileall -q src tests` 与 `git diff --check`：通过。
+- 分支：`codex/npc-output-run-isolation-step1`。
+- 实现与测试提交：`cf06db796606004f3737bb2edc0e3b278a030b97`（`fix: remove NPC auxiliary losses from efficiency`）。
+- 实现提交已 push 至 `origin/codex/npc-output-run-isolation-step1`，push 后本地 HEAD 与远端 HEAD 一致。
+- 计划与 ChangeLog 文档提交：待提交后填写。
+
 ## 5. 实施顺序与依赖关系
 
 执行顺序必须保持为：

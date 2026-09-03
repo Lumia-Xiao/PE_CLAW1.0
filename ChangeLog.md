@@ -1,5 +1,16 @@
 # Change Log
 
+## 2026-09-03 Remove NPC Fixed Auxiliary Losses
+
+- What changed:
+  - Removed the fixed NPC gate-driver, control-power, balancing-resistor, and fan loss assumptions.
+  - NPC efficiency calculations no longer add an `Other` loss component or include those values in total loss.
+  - Kept the generic `other_loss_w` result field for compatibility; NPC values are now `None`.
+  - Updated NPC contract and efficiency regression expectations.
+- Validation:
+  - NPC contract and loss regression: `25 passed`.
+  - `python -B -m compileall -q src tests` and `git diff --check`: passed.
+
 ## 2026-09-03 NPC Capacitor PF GUI Mapping
 
 - What changed:
