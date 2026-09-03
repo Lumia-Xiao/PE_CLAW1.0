@@ -19,7 +19,7 @@ from ..libraries.magnetics.sendust_steinmetz import (
     get_sendust_steinmetz_material,
 )
 from ..models.design_report import DesignReport
-from ..models.design_run_context import get_run_context, get_run_output_dir
+from ..models.design_run_context import call_with_report_run, get_run_context, get_run_output_dir
 from ..models.efficiency_sweep import EfficiencySweepPoint, EfficiencySweepResult
 from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
@@ -288,7 +288,9 @@ def _evaluate_load_point(
 ) -> tuple[EfficiencySweepPoint, list[str]]:
     point_warnings: list[str] = []
     operating_point = _sweep_operating_point(base_report, load_pu)
-    waveform_set = plugin.generate_waveforms(base_report.candidate, operating_point=operating_point)
+    waveform_set = call_with_report_run(
+        base_report, plugin.generate_waveforms, base_report.candidate, operating_point=operating_point
+    )
     if waveform_set is None:
         warning = f"Waveform generation returned no data at {load_pu:.1f} p.u.; point omitted."
         return (
@@ -431,7 +433,9 @@ def _evaluate_single_phase_boost_pfc_load_point(
 ) -> tuple[EfficiencySweepPoint, list[str]]:
     point_warnings: list[str] = []
     operating_point = _sweep_operating_point(base_report, load_pu)
-    waveform_set = plugin.generate_waveforms(base_report.candidate, operating_point=operating_point)
+    waveform_set = call_with_report_run(
+        base_report, plugin.generate_waveforms, base_report.candidate, operating_point=operating_point
+    )
     if waveform_set is None:
         warning = f"Boost PFC waveform generation returned no data at {load_pu:.1f} p.u.; point omitted."
         return (
@@ -542,7 +546,9 @@ def _evaluate_ac_dc_load_point(
 ) -> tuple[EfficiencySweepPoint, list[str]]:
     point_warnings: list[str] = []
     operating_point = _sweep_operating_point(base_report, load_pu)
-    waveform_set = plugin.generate_waveforms(base_report.candidate, operating_point=operating_point)
+    waveform_set = call_with_report_run(
+        base_report, plugin.generate_waveforms, base_report.candidate, operating_point=operating_point
+    )
     if waveform_set is None:
         warning = f"AC-DC waveform generation returned no data at {load_pu:.1f} p.u.; point omitted."
         return (
@@ -1001,8 +1007,9 @@ def _write_artifacts(result: EfficiencySweepResult, output_dir: str | Path | Non
     _write_sweep_csv(result, csv_path)
     _write_efficiency_curve(result, efficiency_path)
     _write_loss_breakdown(result, loss_path)
+    # Keep the public artifact contract stable: CSV remains an on-disk audit
+    # artifact, while the result view exposes the two plotted artifacts.
     return {
-        "csv": str(csv_path),
         "efficiency_curve": str(efficiency_path),
         "loss_breakdown_stacked": str(loss_path),
     }

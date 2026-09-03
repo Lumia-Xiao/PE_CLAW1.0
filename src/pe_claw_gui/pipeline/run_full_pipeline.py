@@ -6,7 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from ..models.design_report import DesignReport
-from ..models.design_run_context import get_run_output_root
+from ..models.design_run_context import activate_report_run, get_run_output_root
 from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
@@ -57,6 +57,25 @@ def run_full_pipeline(
         output_root=output_root,
     )
     report = bundle.report
+    # Keep every downstream stage, including plugin internals, in this run's scope.
+    with activate_report_run(report):
+        return _run_full_pipeline_in_context(
+            report,
+            plugin=plugin,
+            options=options,
+            magnetic_backend_config=magnetic_backend_config,
+            llc_search_mode=llc_search_mode,
+        )
+
+
+def _run_full_pipeline_in_context(
+    report: DesignReport,
+    *,
+    plugin: TopologyPlugin,
+    options: PipelineOptions,
+    magnetic_backend_config: MagneticDataBackendConfig | None,
+    llc_search_mode: str,
+) -> DesignReport:
     if is_llc_topology(report.spec.topology_id) and report.llc_run_context is not None:
         report = replace(report, llc_run_context=report.llc_run_context.transition("design", "succeeded"))
     if is_first_pass_topology_only(report.spec.topology_id):

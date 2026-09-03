@@ -4,6 +4,15 @@ This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
 
+## 2026-09-03 All-Topology Design Output Isolation
+
+- Added an active `DesignRunContext` resolver so topology internals, operating-point refresh, device stress refresh, capacitor refresh, efficiency sweep, loss refresh, and full-pipeline execution share one isolated run directory.
+- Routed AC-DC rectifier synthesis and refresh waveform artifacts into the current run's `validation` directory.
+- Prevented GUI capacitor, inductor, and hardware-overview views from loading public legacy artifacts for reports that carry a run context.
+- Added cross-topology isolation tests for single-phase and three-phase AC-DC rectifier synthesis.
+- Required future topologies to use the shared run context and documented the commit/push rule in the active NPC plan.
+- Validation: focused output-isolation, LLC context, AC-DC topology, and AC-DC efficiency tests passed; full-suite execution was affected by the host pytest temporary-directory permission conflict.
+
 ## 2026-08-28 AC-DC Efficiency Sweep Step 12 Real GUI Delivery
 
 - What changed:

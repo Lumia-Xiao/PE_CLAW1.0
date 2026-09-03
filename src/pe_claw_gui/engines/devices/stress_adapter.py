@@ -928,7 +928,11 @@ def build_design_point_switch_stress_cases(report: DesignReport, plugin: Topolog
         fallback = _fallback_case(report, case_id="design_point", label="Design Point", operating_point=design_operating_point)
         return [] if fallback is None else [fallback]
 
-    waveform = plugin.generate_waveforms(report.candidate, operating_point=design_operating_point)
+    from ...models.design_run_context import call_with_report_run
+
+    waveform = call_with_report_run(
+        report, plugin.generate_waveforms, report.candidate, operating_point=design_operating_point
+    )
     if waveform is None:
         fallback = _fallback_case(report, case_id="design_point", label="Design Point", operating_point=design_operating_point)
         return [] if fallback is None else [fallback]
@@ -936,7 +940,7 @@ def build_design_point_switch_stress_cases(report: DesignReport, plugin: Topolog
         report,
         operating_point=design_operating_point,
         waveform=waveform,
-        stress=plugin.extract_stress(report.candidate, waveform_set=waveform),
+        stress=call_with_report_run(report, plugin.extract_stress, report.candidate, waveform_set=waveform),
     )
     return [_build_case(case_report, waveform, design_operating_point, "design_point", "Design Point")]
 
@@ -954,14 +958,18 @@ def build_current_operating_switch_stress_case(report: DesignReport, plugin: Top
     if plugin is None or report.spec.topology_id not in set(get_active_topology_ids()):
         return _fallback_case(report, case_id="current", label="Current Operating Point", operating_point=operating_point)
 
-    waveform = plugin.generate_waveforms(report.candidate, operating_point=operating_point)
+    from ...models.design_run_context import call_with_report_run
+
+    waveform = call_with_report_run(
+        report, plugin.generate_waveforms, report.candidate, operating_point=operating_point
+    )
     if waveform is None:
         return _fallback_case(report, case_id="current", label="Current Operating Point", operating_point=operating_point)
     case_report = replace(
         report,
         operating_point=operating_point,
         waveform=waveform,
-        stress=plugin.extract_stress(report.candidate, waveform_set=waveform),
+        stress=call_with_report_run(report, plugin.extract_stress, report.candidate, waveform_set=waveform),
     )
     return _build_case(case_report, waveform, operating_point, "current", "Current Operating Point")
 

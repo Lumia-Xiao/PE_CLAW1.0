@@ -150,12 +150,12 @@ class HardwareOverviewView(ttk.Frame):
             self.pie_placeholder.configure(text="Hardware Overview is blocked; diagnostic details are shown below.")
             self._set_integrated_placeholders("Hardware Overview is blocked; no current-run overview images were generated.")
         else:
-            self._render_pie(payload)
-            self._render_integrated_image(payload, mode="2D")
-            self._render_integrated_image(payload, mode="3D")
+            self._render_pie(payload, report)
+            self._render_integrated_image(payload, mode="2D", report=report)
+            self._render_integrated_image(payload, mode="3D", report=report)
 
-    def _render_pie(self, payload: HardwareOverviewPayload) -> None:
-        path = _resolve_integrated_artifact_path(payload, "volume_pie", "hardware_volume_pie.png")
+    def _render_pie(self, payload: HardwareOverviewPayload, report: DesignReport | None = None) -> None:
+        path = _resolve_integrated_artifact_path(payload, "volume_pie", "hardware_volume_pie.png", report)
         if path is None:
             path = _resolve_existing_path(payload.overview_artifacts.get("volume_pie"))
         if path is None or not path.exists():
@@ -163,16 +163,20 @@ class HardwareOverviewView(ttk.Frame):
             return
         self._render_image("volume_pie", path, self.pie_frame, self.pie_placeholder)
 
-    def _render_integrated_image(self, payload: HardwareOverviewPayload, *, mode: str) -> None:
+    def _render_integrated_image(
+        self, payload: HardwareOverviewPayload, *, mode: str, report: DesignReport | None = None
+    ) -> None:
         widgets = self._integrated_widgets[mode]
         host = widgets["host"]
         placeholder = widgets["placeholder"]
         if mode == "2D":
-            path = _resolve_integrated_artifact_path(payload, "hardware_2d", "overview_hardware_2d.png")
+            path = _resolve_integrated_artifact_path(payload, "hardware_2d", "overview_hardware_2d.png", report)
             missing_message = _MISSING_2D_MESSAGE
         else:
-            path = _resolve_integrated_artifact_path(payload, "hardware_3d", "overview_hardware_3d.png")
+            path = _resolve_integrated_artifact_path(payload, "hardware_3d", "overview_hardware_3d.png", report)
             missing_message = _MISSING_3D_MESSAGE
+        if path is None:
+            path = _resolve_existing_path(payload.overview_artifacts.get("hardware_2d" if mode == "2D" else "hardware_3d"))
         if path is None:
             placeholder.configure(text=missing_message)
             return
@@ -576,6 +580,7 @@ def _resolve_integrated_artifact_path(
     payload: HardwareOverviewPayload,
     artifact_key: str,
     conventional_name: str,
+    report: DesignReport | None = None,
 ) -> Path | None:
     path = _resolve_existing_path(payload.integrated_overview_artifacts.get(artifact_key))
     if path is not None:
@@ -584,6 +589,10 @@ def _resolve_integrated_artifact_path(
         path = _resolve_existing_path(payload.integrated_layout.artifact_paths.get(artifact_key))
         if path is not None:
             return path
+    if report is not None and (
+        getattr(report, "run_context", None) is not None or getattr(report, "llc_run_context", None) is not None
+    ):
+        return None
     conventional_path = _project_root() / "outputs" / "hardware_overview" / conventional_name
     return conventional_path if conventional_path.exists() else None
 

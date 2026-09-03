@@ -6,6 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from ..models.design_report import DesignReport
+from ..models.design_run_context import get_run_output_dir
 from ..models.loss_result import LossResult
 from .options import MAGNETIC_LOSS_DISABLED_NOTE, PipelineOptions, resolve_pipeline_options
 from ..engines.magnetics.inductor_adapter import (
@@ -438,6 +439,7 @@ def _run_loss_pipeline_without_excitation_audit(
                     chosen_candidates=report.magnetic.chosen_designs,
                     recommended_design_id=recommended_design_id,
                     write_csvs=False,
+                    output_dir=get_run_output_dir(report, "inductor_design"),
                 )
                 if artifact_result.artifact_paths:
                     artifact_paths = _merge_artifact_paths(report.magnetic.artifact_paths, artifact_result.artifact_paths)

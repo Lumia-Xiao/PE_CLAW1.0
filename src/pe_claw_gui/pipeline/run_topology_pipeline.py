@@ -42,21 +42,22 @@ def run_topology_pipeline(
     """Run the selected topology plugin through synthesis and evaluation."""
     context = DesignRunContext.create(plugin.topology_id, raw_input, output_root=output_root)
     try:
-        spec = plugin.build_spec(raw_input)
-        candidate = plugin.synthesize(spec)
-        # Synthesis defines the design-point hardware once; waveform generation must
-        # reuse that candidate and only vary the requested operating point.
-        waveform_set = plugin.generate_waveforms(candidate, operating_point) if include_waveforms else None
-        stress_result = plugin.extract_stress(candidate, waveform_set=waveform_set)
-        topology_result = plugin.evaluate(candidate, waveform_set=waveform_set, stress_result=stress_result)
-        report = plugin.build_report(
-            spec=spec,
-            candidate=candidate,
-            operating_point=operating_point,
-            waveform_set=waveform_set,
-            stress_result=stress_result,
-            topology_result=topology_result,
-        )
+        with context.activate():
+            spec = plugin.build_spec(raw_input)
+            candidate = plugin.synthesize(spec)
+            # Synthesis defines the design-point hardware once; waveform generation must
+            # reuse that candidate and only vary the requested operating point.
+            waveform_set = plugin.generate_waveforms(candidate, operating_point) if include_waveforms else None
+            stress_result = plugin.extract_stress(candidate, waveform_set=waveform_set)
+            topology_result = plugin.evaluate(candidate, waveform_set=waveform_set, stress_result=stress_result)
+            report = plugin.build_report(
+                spec=spec,
+                candidate=candidate,
+                operating_point=operating_point,
+                waveform_set=waveform_set,
+                stress_result=stress_result,
+                topology_result=topology_result,
+            )
     except Exception as exc:
         context = context.transition("design", "failed", reason=f"{type(exc).__name__}: {exc}")
         write_design_run_manifest(context)

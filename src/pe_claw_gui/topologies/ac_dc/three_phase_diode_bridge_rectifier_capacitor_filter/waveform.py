@@ -331,13 +331,15 @@ def generate_waveforms(
 def simulate_three_phase_rectifier_for_load(
     candidate: TopologyCandidate,
     load_ratio: float,
+    *,
+    artifact_suffix: str | None = None,
 ) -> ThreePhaseRectifierSimulationResult:
     """Regenerate the physical waveform at a fixed-resistance load ratio."""
 
     ratio = _clamp_load_ratio(load_ratio)
     nominal_rload_ohm = float(candidate.metadata.get("rload_ohm", candidate.r_load_nom_ohm))
     rload_ohm = 1e12 if ratio <= 0.0 else nominal_rload_ohm / ratio
-    return simulate_three_phase_capacitor_rectifier(
+    result = simulate_three_phase_capacitor_rectifier(
         vll_rms_v=float(candidate.metadata["vll_rms_v"]),
         f_line_hz=float(candidate.metadata["f_line_hz"]),
         diode_forward_drop_v=float(candidate.metadata["diode_forward_drop_v"]),
@@ -346,6 +348,21 @@ def simulate_three_phase_rectifier_for_load(
         rload_ohm=rload_ohm,
         initial_vdc_v=float(candidate.metadata.get("vout_achieved_v", candidate.vout_target)),
     )
+    if result.succeeded and artifact_suffix is not None:
+        from ....models.design_run_context import get_active_run_output_dir
+
+        artifact_dir = get_active_run_output_dir()
+        if artifact_dir is not None:
+            return replace(
+                result,
+                artifact_paths=_write_artifacts(
+                    artifact_dir,
+                    _preview_waveform_aliases(result.waveforms),
+                    result.metrics,
+                    artifact_suffix=artifact_suffix,
+                ),
+            )
+    return result
 
 
 def refresh_selected_capacitor_candidate(
@@ -410,6 +427,10 @@ def _write_artifacts(
     *,
     artifact_suffix: str,
 ) -> dict[str, str]:
+    if artifact_dir is None:
+        from ....models.design_run_context import get_active_run_output_dir
+
+        artifact_dir = get_active_run_output_dir()
     output_dir = Path(artifact_dir) if artifact_dir is not None else Path("outputs") / "ac_dc_three_phase_rectifier"
     output_dir.mkdir(parents=True, exist_ok=True)
     safe_suffix = _safe_artifact_suffix(artifact_suffix)
@@ -673,6 +694,12 @@ def _safe_artifact_suffix(value: str) -> str:
         return ""
     safe = "".join(char if char.isalnum() else "_" for char in value.strip())
     return f"_{safe.strip('_')}" if safe.strip("_") else ""
+
+
+def _load_ratio_suffix(load_ratio: float) -> str:
+    """Return a stable filename token for a normalized load point."""
+
+    return f"{float(load_ratio):.2f}".replace(".", "p")
 
 
 def _csv_value(value: object) -> str:

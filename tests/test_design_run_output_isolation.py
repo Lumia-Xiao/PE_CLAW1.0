@@ -18,6 +18,12 @@ from pe_claw_gui.pipeline.run_geometry_pipeline import _project_output_dir as re
 from pe_claw_gui.pipeline.run_thermal_pipeline import _llc_thermal_output_dir
 from pe_claw_gui.pipeline.run_topology_pipeline import run_topology_pipeline
 from pe_claw_gui.topologies.base.registry import build_default_registry
+from pe_claw_gui.topologies.ac_dc.single_phase_diode_bridge_rectifier_capacitor_filter.input_schema import (
+    build_default_inputs as build_single_phase_rectifier_inputs,
+)
+from pe_claw_gui.topologies.ac_dc.three_phase_diode_bridge_rectifier_capacitor_filter.input_schema import (
+    build_default_inputs as build_three_phase_rectifier_inputs,
+)
 from pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter.input_schema import build_default_inputs
 
 
@@ -82,3 +88,33 @@ def test_failed_design_keeps_a_failed_run_manifest(tmp_path: Path) -> None:
     assert manifest["stage_status"]["design"] == "failed"
     assert manifest["failure"]["stage"] == "design"
     assert "ValueError" in manifest["failure"]["reason"]
+
+
+@pytest.mark.parametrize(
+    ("topology_id", "raw_input_factory"),
+    [
+        (
+            "single_phase_diode_bridge_rectifier_capacitor_filter",
+            build_single_phase_rectifier_inputs,
+        ),
+        (
+            "three_phase_diode_bridge_rectifier_capacitor_filter",
+            build_three_phase_rectifier_inputs,
+        ),
+    ],
+)
+def test_ac_dc_synthesis_waveform_artifacts_use_the_active_run_validation_dir(
+    tmp_path: Path, topology_id: str, raw_input_factory
+) -> None:
+    run_root = tmp_path / topology_id
+    plugin = build_default_registry().get_plugin(topology_id)
+    bundle = run_topology_pipeline(plugin, raw_input_factory(), output_root=run_root)
+
+    artifact_paths = bundle.report.candidate.metadata.get(
+        "pulse_simulation_artifacts"
+        if topology_id == "single_phase_diode_bridge_rectifier_capacitor_filter"
+        else "six_pulse_waveform_preview_artifacts",
+        {},
+    )
+    assert artifact_paths
+    assert all(run_root.resolve() / "validation" in Path(path).resolve().parents for path in artifact_paths.values())

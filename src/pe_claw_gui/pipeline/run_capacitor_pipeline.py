@@ -20,7 +20,7 @@ from ..models.capacitor import (
     LlcResonantCapacitorDesignRequest,
 )
 from ..models.design_report import DesignReport
-from ..models.design_run_context import get_run_output_root
+from ..models.design_run_context import call_with_report_run, get_run_output_root
 from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
 from ..topology_capabilities import has_split_dc_link_capacitor_bank
@@ -348,7 +348,7 @@ def _refresh_selected_llc(report: DesignReport, plugin: TopologyPlugin | None) -
             llc_fha.get("commanded_switching_frequency_hz", candidate.fs_hz)
         ),
     )
-    waveform = plugin.generate_waveforms(candidate, operating_point=operating_point)
+    waveform = call_with_report_run(report, plugin.generate_waveforms, candidate, operating_point=operating_point)
     stress = plugin.extract_stress(candidate, waveform_set=waveform)
     topology_result = plugin.evaluate(candidate, waveform_set=waveform, stress_result=stress)
     waveform_metadata = waveform.metadata.get("llc_fha_waveforms", {}) if waveform is not None else {}
@@ -421,7 +421,7 @@ def _refresh_selected_single_phase_rectifier(
             load_ratio=load_ratio,
         )
     operating_point = report.operating_point or OperatingPoint(vin_v=candidate.vin_nom, load_ratio=load_ratio)
-    waveform = plugin.generate_waveforms(candidate, operating_point=operating_point)
+    waveform = call_with_report_run(report, plugin.generate_waveforms, candidate, operating_point=operating_point)
     stress = plugin.extract_stress(candidate, waveform_set=waveform)
     topology_result = plugin.evaluate(candidate, waveform_set=waveform, stress_result=stress)
     metrics_key = {
@@ -484,7 +484,7 @@ def _refresh_selected_active_pfc(
         float(selected.equivalent_capacitance_f),
     )
     operating_point = report.operating_point or OperatingPoint(vin_v=candidate.vin_nom, load_ratio=1.0)
-    waveform = plugin.generate_waveforms(candidate, operating_point=operating_point)
+    waveform = call_with_report_run(report, plugin.generate_waveforms, candidate, operating_point=operating_point)
     stress = plugin.extract_stress(candidate, waveform_set=waveform)
     topology_result = plugin.evaluate(candidate, waveform_set=waveform, stress_result=stress)
     waveform_metadata = waveform.metadata if waveform is not None else {}
@@ -548,7 +548,7 @@ def _refresh_selected_npc_inverter(
         },
     )
     operating_point = report.operating_point or OperatingPoint(vin_v=candidate.vin_nom, load_ratio=1.0)
-    waveform = plugin.generate_waveforms(candidate, operating_point=operating_point)
+    waveform = call_with_report_run(report, plugin.generate_waveforms, candidate, operating_point=operating_point)
     stress = plugin.extract_stress(candidate, waveform_set=waveform)
     topology_result = plugin.evaluate(candidate, waveform_set=waveform, stress_result=stress)
     return replace(
@@ -596,7 +596,9 @@ def _build_design_point_waveform_report(report: DesignReport, plugin: TopologyPl
             else None
         ),
     )
-    waveform_set = plugin.generate_waveforms(report.candidate, operating_point=operating_point)
+    waveform_set = call_with_report_run(
+        report, plugin.generate_waveforms, report.candidate, operating_point=operating_point
+    )
     stress_result = plugin.extract_stress(report.candidate, waveform_set=waveform_set)
     topology_result = plugin.evaluate(report.candidate, waveform_set=waveform_set, stress_result=stress_result)
     return replace(

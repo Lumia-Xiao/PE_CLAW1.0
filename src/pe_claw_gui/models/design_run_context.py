@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
+from contextlib import contextmanager
+from contextvars import ContextVar
 import hashlib
 import json
 from pathlib import Path
@@ -34,6 +36,10 @@ DESIGN_RUN_SUBDIRECTORIES = (
     "logs",
 )
 DESIGN_RUN_STATUSES = frozenset({"not_started", "running", "succeeded", "failed", "blocked"})
+
+_ACTIVE_RUN_CONTEXT: ContextVar["DesignRunContext | None"] = ContextVar(
+    "pe_claw_active_design_run", default=None
+)
 
 
 @dataclass(frozen=True)
@@ -91,6 +97,21 @@ class DesignRunContext:
             stage_status=statuses,
             manifest_path=str(resolved_root / "manifest.json"),
         )
+        request_path = resolved_root / "design_request" / "design_request.json"
+        request_path.write_text(
+            json.dumps(
+                {
+                    "topology_id": str(topology_id),
+                    "run_id": run_id,
+                    "input_sha256": context.input_sha256,
+                    "raw_input": snapshot,
+                },
+                indent=2,
+                sort_keys=True,
+                ensure_ascii=True,
+            ),
+            encoding="utf-8",
+        )
         write_design_run_manifest(context)
         return context
 
@@ -117,6 +138,16 @@ class DesignRunContext:
         if name not in DESIGN_RUN_SUBDIRECTORIES:
             raise ValueError(f"Unknown design run output directory: {name!r}")
         return Path(self.output_root) / name
+
+    @contextmanager
+    def activate(self):
+        """Make this run available to topology internals during one call chain."""
+
+        token = _ACTIVE_RUN_CONTEXT.set(self)
+        try:
+            yield self
+        finally:
+            _ACTIVE_RUN_CONTEXT.reset(token)
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-compatible run snapshot."""
@@ -205,6 +236,32 @@ def get_run_output_dir(report: Any, name: str) -> Path | None:
 
     root = get_run_output_root(report)
     return None if root is None else root / name
+
+
+@contextmanager
+def activate_report_run(report: Any):
+    """Activate the report's run context for legacy plugin APIs without output arguments."""
+
+    context = get_run_context(report)
+    if context is None:
+        yield
+        return
+    with context.activate():
+        yield
+
+
+def call_with_report_run(report: Any, callback, /, *args, **kwargs):
+    """Call a topology/plugin function while preserving the report's run scope."""
+
+    with activate_report_run(report):
+        return callback(*args, **kwargs)
+
+
+def get_active_run_output_dir(name: str = "validation") -> Path | None:
+    """Resolve an output directory for low-level topology code in an active run."""
+
+    context = _ACTIVE_RUN_CONTEXT.get()
+    return None if context is None else context.output_dir(name)
 
 
 def update_design_run(

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from ..models.design_report import DesignReport
+from ..models.design_run_context import call_with_report_run
 from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
 from ..topology_capabilities import has_semiconductor_selection_path, is_first_pass_topology_only
@@ -30,9 +31,13 @@ def run_operating_point_refresh(
     if report.candidate is None:
         raise RuntimeError("Run Design first before generating waveforms.")
 
-    waveform_set = plugin.generate_waveforms(report.candidate, operating_point=operating_point)
-    stress_result = plugin.extract_stress(report.candidate, waveform_set=waveform_set)
-    topology_result = plugin.evaluate(
+    waveform_set = call_with_report_run(
+        report, plugin.generate_waveforms, report.candidate, operating_point=operating_point
+    )
+    stress_result = call_with_report_run(report, plugin.extract_stress, report.candidate, waveform_set=waveform_set)
+    topology_result = call_with_report_run(
+        report,
+        plugin.evaluate,
         report.candidate,
         waveform_set=waveform_set,
         stress_result=stress_result,

@@ -18,7 +18,7 @@ from ..engines.magnetics.stacked_expansion import (
     select_stacked_seed_candidates,
 )
 from ..models.design_report import DesignReport
-from ..models.design_run_context import get_run_output_dir
+from ..models.design_run_context import call_with_report_run, get_run_output_dir
 from ..models.ac_dc_reactor import AcDcReactorDesignRequest
 from ..models.geometry_result import GeometryResult
 from ..models.magnetic_result import (
@@ -681,7 +681,7 @@ def _refresh_ac_dc_reactor_hardware(report: DesignReport, selected: object) -> D
         vout_v=float(result.metrics["vdc_avg_v"]),
         power_factor=float(result.metrics["power_factor"]),
     )
-    waveform = generate_waveforms(candidate, operating_point=operating_point)
+    waveform = call_with_report_run(report, generate_waveforms, candidate, operating_point=operating_point)
     stress = extract_stress(candidate, waveform_set=waveform)
     topology_result = evaluate(candidate, waveform_set=waveform, stress_result=stress)
     return replace(

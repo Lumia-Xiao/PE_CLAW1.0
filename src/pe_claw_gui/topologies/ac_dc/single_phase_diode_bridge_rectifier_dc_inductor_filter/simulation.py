@@ -827,6 +827,10 @@ def _write_artifacts(
     *,
     artifact_suffix: str,
 ) -> dict[str, str]:
+    if artifact_dir is None:
+        from ....models.design_run_context import get_active_run_output_dir
+
+        artifact_dir = get_active_run_output_dir()
     output_dir = Path(artifact_dir) if artifact_dir is not None else Path("outputs") / "ac_dc_rectifier_inductor_filter"
     output_dir.mkdir(parents=True, exist_ok=True)
     safe_suffix = _safe_artifact_suffix(artifact_suffix)
