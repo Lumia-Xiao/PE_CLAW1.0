@@ -24,6 +24,11 @@ _SIDE_LABELS = {
     "output": "Output capacitor",
     "llc_resonant": "LLC resonant capacitor (Cr)",
 }
+_NPC_TOPOLOGY_ID = "three_phase_three_level_npc_inverter"
+_NPC_SIDE_LABELS = {
+    "input": "Upper DC-link capacitor",
+    "output": "Lower DC-link capacitor",
+}
 
 
 class CapacitorPFView(ttk.Frame):
@@ -89,9 +94,12 @@ class CapacitorPFView(ttk.Frame):
         for side in _SIDES:
             path = self._plot_paths.get(side)
             self._set_summary_text(side, build_capacitor_pf_side_summary(report, side, path))
-            self._render_plot(side, path)
+            self._render_plot(side, path, report)
 
     def _configure_tabs(self, report: DesignReport | None) -> None:
+        for side in ("input", "output"):
+            side_host = self._side_widgets[side]["side_host"]
+            self.side_tabs.tab(side_host, text=_side_label(report, side))
         llc_search = (
             report.capacitor.llc_resonant_capacitor_search_result
             if report is not None and report.capacitor is not None
@@ -104,10 +112,10 @@ class CapacitorPFView(ttk.Frame):
         elif llc_search is None and visible:
             self.side_tabs.forget(llc_tab)
 
-    def _render_plot(self, side: str, path: Path | None) -> None:
+    def _render_plot(self, side: str, path: Path | None, report: DesignReport | None) -> None:
         placeholder = self._side_widgets[side]["placeholder"]
         if path is None:
-            placeholder.configure(text=f"{_SIDE_LABELS[side]} Pareto-front image is not available. Please run design first.")
+            placeholder.configure(text=f"{_side_label(report, side)} Pareto-front image is not available. Please run design first.")
             return
         try:
             image = imread(path)
@@ -123,7 +131,7 @@ class CapacitorPFView(ttk.Frame):
             self._figures[side] = figure
             self._canvases[side] = canvas
         except Exception as exc:
-            placeholder.configure(text=f"Could not load {_SIDE_LABELS[side]} Pareto-front image: {type(exc).__name__}: {exc}")
+            placeholder.configure(text=f"Could not load {_side_label(report, side)} Pareto-front image: {type(exc).__name__}: {exc}")
 
     def _clear_canvases(self) -> None:
         for canvas in self._canvases.values():
@@ -142,7 +150,7 @@ class CapacitorPFView(ttk.Frame):
 
 
 def resolve_capacitor_pf_plot_paths(report: DesignReport | None) -> dict[str, Path]:
-    """Resolve input/output capacitor Pareto PNG paths from report artifacts or conventional output paths."""
+    """Resolve capacitor Pareto PNG paths using topology-specific bank names."""
 
     paths: dict[str, Path] = {}
     if report is None or report.capacitor is None:
@@ -155,9 +163,10 @@ def resolve_capacitor_pf_plot_paths(report: DesignReport | None) -> dict[str, Pa
                 if artifact.exists():
                     paths[side] = artifact
             continue
-        artifact = _find_side_artifact(report, side, suffix=f"{side}_capacitor_pareto_front.png")
+        artifact_side = _artifact_side(report, side)
+        artifact = _find_side_artifact(report, side, suffix=f"{artifact_side}_capacitor_pareto_front.png")
         if artifact is None:
-            fallback = _project_root() / "outputs" / "capacitor_design" / f"{side}_capacitor_pareto_front.png"
+            fallback = _project_root() / "outputs" / "capacitor_design" / f"{artifact_side}_capacitor_pareto_front.png"
             artifact = fallback if fallback.exists() else None
         if artifact is not None:
             paths[side] = artifact
@@ -168,7 +177,7 @@ def build_capacitor_pf_side_summary(report: DesignReport | None, side: str, plot
     """Build compact PF metadata for one capacitor side."""
 
     if report is None or report.capacitor is None:
-        return f"{_SIDE_LABELS[side]} Pareto-front data is not available. Please run design first."
+        return f"{_side_label(report, side)} Pareto-front data is not available. Please run design first."
 
     if side == "llc_resonant":
         return _build_llc_resonant_pf_summary(report, plot_path)
@@ -176,13 +185,13 @@ def build_capacitor_pf_side_summary(report: DesignReport | None, side: str, plot
     side_result = report.capacitor.input_selection if side == "input" else report.capacitor.output_selection
     if side_result is None or side_result.request is None:
         warnings = side_result.warnings if side_result is not None else []
-        lines = [f"{_SIDE_LABELS[side]} Pareto front", "  not evaluated"]
+        lines = [f"{_side_label(report, side)} Pareto front", "  not evaluated"]
         lines.extend(f"  {warning}" for warning in warnings)
         return "\n".join(lines)
 
     request = side_result.request
     lines = [
-        f"{_SIDE_LABELS[side]} Pareto front",
+        f"{_side_label(report, side)} Pareto front",
         f"  DC voltage: {_fmt_float(request.dc_voltage_v)} V",
         f"  ripple target: {_fmt_float(request.ripple_ratio_percent)} %",
         f"  evaluated candidates: {side_result.evaluated_count}",
@@ -290,9 +299,10 @@ def _representative_line(label: str, entry: CapacitorSelectionEntry | None) -> s
 
 def _side_artifact_lines(report: DesignReport, side: str, plot_path: Path | None) -> list[str]:
     lines: list[str] = []
+    artifact_side = _artifact_side(report, side)
     for suffix, label in (
-        (f"{side}_capacitor_feasible_candidates.csv", "feasible CSV"),
-        (f"{side}_capacitor_pareto_front.csv", "Pareto CSV"),
+        (f"{artifact_side}_capacitor_feasible_candidates.csv", "feasible CSV"),
+        (f"{artifact_side}_capacitor_pareto_front.csv", "Pareto CSV"),
     ):
         path = _find_side_artifact(report, side, suffix=suffix)
         if path is not None:
@@ -316,6 +326,20 @@ def _find_side_artifact(report: DesignReport, side: str, *, suffix: str) -> Path
         if path.name == suffix and path.exists():
             return path
     return None
+
+
+def _artifact_side(report: DesignReport | None, display_side: str) -> str:
+    """Map generic PF display sides to the physical NPC split-link banks."""
+
+    if report is not None and report.spec.topology_id == _NPC_TOPOLOGY_ID:
+        return {"input": "upper", "output": "lower"}.get(display_side, display_side)
+    return display_side
+
+
+def _side_label(report: DesignReport | None, side: str) -> str:
+    if report is not None and report.spec.topology_id == _NPC_TOPOLOGY_ID:
+        return _NPC_SIDE_LABELS.get(side, _SIDE_LABELS[side])
+    return _SIDE_LABELS[side]
 
 
 def _select_pf_notes(notes: list[str]) -> list[str]:
