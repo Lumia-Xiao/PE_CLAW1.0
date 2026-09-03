@@ -7,7 +7,6 @@ from tkinter import ttk
 
 from ...models.operating_point import OperatingPoint
 from .base_form import BaseTopologyForm, TopologyField
-from ...topologies.dc_ac.three_phase_three_level_npc_inverter.input_schema import NPC_DESIGN_BASIS_DEFAULTS
 
 
 THREE_PHASE_NPC_NOTES = (
@@ -38,34 +37,6 @@ class ThreePhaseThreeLevelNPCInverterForm(BaseTopologyForm):
         TopologyField("ambient_temp_c", "Ambient temperature [C]", "25"),
         TopologyField("target_junction_temp_c", "Target junction temperature [C]", "100"),
     )
-    design_basis_fields = (
-        TopologyField("vdc_min", "Vdc minimum [V]", NPC_DESIGN_BASIS_DEFAULTS["vdc_min"]),
-        TopologyField("vdc_max", "Vdc maximum [V]", NPC_DESIGN_BASIS_DEFAULTS["vdc_max"]),
-        TopologyField("f_output_hz", "Output frequency [Hz]", NPC_DESIGN_BASIS_DEFAULTS["f_output_hz"]),
-        TopologyField("power_factor_min", "PF minimum", NPC_DESIGN_BASIS_DEFAULTS["power_factor_min"]),
-        TopologyField("power_factor_max", "PF maximum", NPC_DESIGN_BASIS_DEFAULTS["power_factor_max"]),
-        TopologyField("modulation_method", "Modulation method", NPC_DESIGN_BASIS_DEFAULTS["modulation_method"]),
-        TopologyField("modulation_index_limit", "Modulation index limit", NPC_DESIGN_BASIS_DEFAULTS["modulation_index_limit"]),
-        TopologyField("neutral_point_voltage_deviation_ratio", "Neutral-point deviation ratio", NPC_DESIGN_BASIS_DEFAULTS["neutral_point_voltage_deviation_ratio"]),
-        TopologyField("neutral_point_voltage_stress_factor", "Neutral-point stress factor", NPC_DESIGN_BASIS_DEFAULTS["neutral_point_voltage_stress_factor"]),
-        TopologyField("switching_overvoltage_v", "Switching overvoltage [V]", NPC_DESIGN_BASIS_DEFAULTS["switching_overvoltage_v"]),
-        TopologyField("switching_overvoltage_source", "Overvoltage source", NPC_DESIGN_BASIS_DEFAULTS["switching_overvoltage_source"]),
-        TopologyField("switching_overvoltage_validation_status", "Overvoltage validation status", NPC_DESIGN_BASIS_DEFAULTS["switching_overvoltage_validation_status"]),
-        TopologyField("static_voltage_margin_ratio", "Static voltage margin", NPC_DESIGN_BASIS_DEFAULTS["static_voltage_margin_ratio"]),
-        TopologyField("efficiency_target", "Efficiency target", NPC_DESIGN_BASIS_DEFAULTS["efficiency_target"]),
-        TopologyField("load_ratio_min", "Minimum load ratio", NPC_DESIGN_BASIS_DEFAULTS["load_ratio_min"]),
-        TopologyField("overload_ratio_max", "Maximum overload ratio", NPC_DESIGN_BASIS_DEFAULTS["overload_ratio_max"]),
-        TopologyField("cooling_method", "Cooling method", NPC_DESIGN_BASIS_DEFAULTS["cooling_method"]),
-        TopologyField("altitude_m", "Altitude [m]", NPC_DESIGN_BASIS_DEFAULTS["altitude_m"]),
-        TopologyField("application_notes", "Application notes", NPC_DESIGN_BASIS_DEFAULTS["application_notes"]),
-        TopologyField("dead_time_ns", "Dead time [ns]", NPC_DESIGN_BASIS_DEFAULTS["dead_time_ns"]),
-        TopologyField("gate_drive_v", "Gate-drive voltage [V]", NPC_DESIGN_BASIS_DEFAULTS["gate_drive_v"]),
-        TopologyField("gate_driver_loss_w", "Gate-driver loss [W]", NPC_DESIGN_BASIS_DEFAULTS["gate_driver_loss_w"]),
-        TopologyField("control_power_loss_w", "Control power loss [W]", NPC_DESIGN_BASIS_DEFAULTS["control_power_loss_w"]),
-        TopologyField("balancing_resistor_loss_w", "Balancing resistor loss [W]", NPC_DESIGN_BASIS_DEFAULTS["balancing_resistor_loss_w"]),
-        TopologyField("fan_loss_w", "Fan loss [W]", NPC_DESIGN_BASIS_DEFAULTS["fan_loss_w"]),
-    )
-
     def __init__(
         self,
         parent,
@@ -89,7 +60,7 @@ class ThreePhaseThreeLevelNPCInverterForm(BaseTopologyForm):
         design_frame = ttk.LabelFrame(self, text="Design Inputs", style="Section.TLabelframe")
         design_frame.grid(row=1, column=0, sticky="ew")
         design_frame.columnconfigure(1, weight=1)
-        all_design_fields = (*self.design_fields, *self.design_basis_fields, *self.get_semiconductor_design_fields())
+        all_design_fields = (*self.design_fields, *self.get_semiconductor_design_fields())
         self.build_design_input_rows(design_frame, all_design_fields)
         self.build_design_action_buttons(design_frame, row=len(all_design_fields))
         if self.run_capacitor_button is not None:

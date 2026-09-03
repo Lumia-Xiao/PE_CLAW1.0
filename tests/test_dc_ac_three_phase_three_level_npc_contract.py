@@ -98,6 +98,30 @@ def test_npc_design_basis_is_explicit_and_normalized() -> None:
     assert spec.vin_max == pytest.approx(760.0)
 
 
+def test_original_npc_form_inputs_use_backend_defaults_for_hidden_basis() -> None:
+    form = ThreePhaseThreeLevelNPCInverterForm
+    raw = {field.key: field.default for field in form.design_fields}
+    spec = _plugin().build_spec(raw)
+    basis = spec.metadata["design_basis"]
+
+    assert [field.key for field in form.design_fields] == [
+        "vdc_nom",
+        "vac_ll_rms",
+        "f_line_hz",
+        "fsw_hz",
+        "pout_w",
+        "power_factor",
+        "inductor_current_ripple_ratio",
+        "dc_link_voltage_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c",
+    ]
+    assert not hasattr(form, "design_basis_fields")
+    assert basis["dc_link_voltage_v"] == {"min": 700.0, "nominal": 700.0, "max": 700.0}
+    assert basis["voltage_stress"]["neutral_point_stress_factor"] == pytest.approx(1.02)
+    assert basis["losses"]["auxiliary_total_w"] == pytest.approx(37.0)
+
+
 @pytest.mark.parametrize(
     ("field", "value", "message"),
     [("vdc_min", "800", "Vdc_min"), ("power_factor_min", "1.1", "PF_min"), ("efficiency_target", "1.1", "Efficiency")],
