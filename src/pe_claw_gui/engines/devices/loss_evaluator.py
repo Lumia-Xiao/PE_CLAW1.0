@@ -64,23 +64,110 @@ def _compute_switching_energy(
     junction_temp_c: float,
     method: str,
     warnings: list[str],
+    event_current_a: float | None = None,
+    event_voltage_v: float | None = None,
 ) -> float:
-    event_current_a = abs(stress.i_turn_on_A if turn_on else stress.i_turn_off_A)
+    current_a = stress.i_turn_on_A if turn_on else stress.i_turn_off_A
+    event_current_a = abs(current_a if event_current_a is None else event_current_a)
+    voltage_v = stress.v_block_V if event_voltage_v is None else max(0.0, event_voltage_v)
     if method == "accurate":
         table = device.dynamic.turn_on_energy if turn_on else device.dynamic.turn_off_energy
         if table is not None:
-            return max(table.evaluate(event_current_a, stress.v_block_V, junction_temp_c, warnings), 0.0)
+            return max(table.evaluate(event_current_a, voltage_v, junction_temp_c, warnings), 0.0)
         fallback_table = device.dynamic.eon_rg_on_i_v if turn_on else device.dynamic.eoff_rg_off_i_v
         if fallback_table is not None:
             gate_resistance_ohm = stress.rg_on_Ohm if turn_on else stress.rg_off_Ohm
-            return max(fallback_table.evaluate(gate_resistance_ohm, event_current_a, stress.v_block_V, warnings), 0.0)
+            return max(fallback_table.evaluate(gate_resistance_ohm, event_current_a, voltage_v, warnings), 0.0)
 
     ratings = device.static
     transition_ns = (ratings.td_on_ns + ratings.tr_ns) if turn_on else (ratings.td_off_ns + ratings.tf_ns)
-    return 0.5 * stress.v_block_V * event_current_a * transition_ns * 1e-9
+    return 0.5 * voltage_v * event_current_a * transition_ns * 1e-9
+
+
+def _is_npc_sic_diode_role(stress: SwitchStress) -> bool:
+    return stress.role in {"npc_outer_switch", "npc_inner_switch", "npc_clamp_diode"}
+
+
+def _switching_power_from_events(
+    device: PowerDevice,
+    stress: SwitchStress,
+    *,
+    turn_on: bool,
+    junction_temp_c: float,
+    method: str,
+    warnings: list[str],
+) -> float:
+    """Convert recorded edge events into per-device average switching power."""
+
+    return _event_average_power(
+        stress,
+        turn_on=turn_on,
+        energy_fn=lambda current_a, voltage_v: _compute_switching_energy(
+            device,
+            stress,
+            turn_on=turn_on,
+            junction_temp_c=junction_temp_c,
+            method=method,
+            warnings=warnings,
+            event_current_a=current_a,
+            event_voltage_v=voltage_v,
+        ),
+        fallback_energy_fn=lambda: _compute_switching_energy(
+            device,
+            stress,
+            turn_on=turn_on,
+            junction_temp_c=junction_temp_c,
+            method=method,
+            warnings=warnings,
+        ),
+    )
+
+
+def _event_average_power(
+    stress: SwitchStress,
+    *,
+    turn_on: bool,
+    energy_fn,
+    fallback_energy_fn,
+) -> float:
+    """Average a switching-energy function over all recorded physical positions."""
+
+    currents = stress.turn_on_event_currents_A if turn_on else stress.turn_off_event_currents_A
+    voltages = stress.turn_on_event_voltages_V if turn_on else stress.turn_off_event_voltages_V
+    if currents and stress.event_window_s > 0.0:
+        energy_sum_j = 0.0
+        for index, current_a in enumerate(currents):
+            # Negative current at turn-on means the antiparallel diode is carrying
+            # current, so the commanded device turn-on is treated as ZVS.
+            if turn_on and current_a < 0.0:
+                continue
+            voltage_v = voltages[index] if index < len(voltages) else stress.v_block_V
+            energy_sum_j += energy_fn(current_a, voltage_v)
+        return energy_sum_j / stress.event_window_s / max(stress.event_position_count, 1)
+
+    if turn_on and stress.i_turn_on_A < 0.0:
+        return 0.0
+    return fallback_energy_fn() * stress.fsw_Hz
+
+
+def _module_switching_power_from_events(
+    stress: SwitchStress,
+    *,
+    turn_on: bool,
+    energy_fn,
+    fallback_energy_fn,
+) -> float:
+    return _event_average_power(
+        stress,
+        turn_on=turn_on,
+        energy_fn=energy_fn,
+        fallback_energy_fn=fallback_energy_fn,
+    )
 
 
 def _compute_reverse_recovery_loss(device: PowerDevice, stress: SwitchStress, junction_temp_c: float, warnings: list[str]) -> float:
+    if _is_npc_sic_diode_role(stress):
+        return 0.0
     if stress.body_diode_conduction_time_s <= 0.0 or stress.fsw_Hz <= 0.0:
         return 0.0
 
@@ -234,22 +321,12 @@ def evaluate_switch_loss(
 
     for _ in range(8):
         p_cond_w = _compute_conduction_loss(device, stress, junction_temp_c, method, warnings)
-        p_sw_on_w = _compute_switching_energy(
-            device,
-            stress,
-            turn_on=True,
-            junction_temp_c=junction_temp_c,
-            method=method,
-            warnings=warnings,
-        ) * stress.fsw_Hz
-        p_sw_off_w = _compute_switching_energy(
-            device,
-            stress,
-            turn_on=False,
-            junction_temp_c=junction_temp_c,
-            method=method,
-            warnings=warnings,
-        ) * stress.fsw_Hz
+        p_sw_on_w = _switching_power_from_events(
+            device, stress, turn_on=True, junction_temp_c=junction_temp_c, method=method, warnings=warnings
+        )
+        p_sw_off_w = _switching_power_from_events(
+            device, stress, turn_on=False, junction_temp_c=junction_temp_c, method=method, warnings=warnings
+        )
         p_rr_w = _compute_reverse_recovery_loss(device, stress, junction_temp_c, warnings)
         p_reverse_conduction_w = _compute_reverse_conduction_loss(device, stress, junction_temp_c, warnings)
         p_eoss_w = _compute_eoss_loss(device, stress, junction_temp_c, method, warnings)
@@ -462,8 +539,10 @@ def _evaluate_standalone_diode_loss(
     )
     for _ in range(8):
         p_cond_w = _compute_standalone_diode_conduction_loss(device, stress, junction_temp_c, method, warnings)
-        qrr_c = max(device.static.qrr_typ_uC, 0.0) * 1e-6
-        p_rr_w = qrr_c * max(stress.v_block_V, 0.0) * max(stress.fsw_Hz, 0.0)
+        p_rr_w = 0.0 if _is_npc_sic_diode_role(stress) else (
+            max(device.static.qrr_typ_uC, 0.0) * 1e-6
+            * max(stress.v_block_V, 0.0) * max(stress.fsw_Hz, 0.0)
+        )
         p_total_w = p_cond_w + p_rr_w
         thermal_reference = estimate_reference_junction_temperature(
             p_total_w=p_total_w,
@@ -526,7 +605,7 @@ def _evaluate_rohm_sic_module_sbd_section_loss(
     duty = stress.conduction_time_s * stress.fsw_Hz if stress.fsw_Hz > 0.0 else stress.duty
     diode_voltage_v = module.sbd_vf_V(representative_current_a, junction_temp_c)
     p_cond_w = abs(diode_voltage_v * representative_current_a) * max(duty, 1e-6)
-    p_rr_w = module.sbd_reverse_recovery_loss_W(
+    p_rr_w = 0.0 if _is_npc_sic_diode_role(stress) else module.sbd_reverse_recovery_loss_W(
         stress.fsw_Hz,
         max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A)),
         stress.v_block_V,
@@ -578,7 +657,7 @@ def _evaluate_mitsubishi_module_fwd_section_loss(
     duty = stress.conduction_time_s * stress.fsw_Hz if stress.fsw_Hz > 0.0 else stress.duty
     diode_voltage_v = module.vec_V(representative_current_a, junction_temp_c)
     p_cond_w = abs(diode_voltage_v * representative_current_a) * max(duty, 1e-6)
-    p_rr_w = module.fwd_reverse_recovery_loss_W(
+    p_rr_w = 0.0 if _is_npc_sic_diode_role(stress) else module.fwd_reverse_recovery_loss_W(
         stress.fsw_Hz,
         max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A)),
         stress.v_block_V,
@@ -634,9 +713,27 @@ def _evaluate_rohm_sic_module_loss(
     switch_cond_w = abs(switch_voltage_v * representative_current_a) * max(switch_duty, 1e-6)
     diode_cond_w = abs(diode_voltage_v * representative_current_a) * max(diode_duty, 0.0)
     p_cond_w = switch_cond_w + diode_cond_w
-    p_sw_on_w = stress.fsw_Hz * module.eon_mJ(abs(stress.i_turn_on_A), stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) / 1000.0
-    p_sw_off_w = stress.fsw_Hz * module.eoff_mJ(abs(stress.i_turn_off_A), stress.v_block_V, junction_temp_c, stress.rg_off_Ohm) / 1000.0
-    p_rr_w = module.sbd_reverse_recovery_loss_W(
+    p_sw_on_w = _module_switching_power_from_events(
+        stress,
+        turn_on=True,
+        energy_fn=lambda current_a, voltage_v: module.eon_mJ(
+            abs(current_a), voltage_v, junction_temp_c, stress.rg_on_Ohm
+        ) / 1000.0,
+        fallback_energy_fn=lambda: module.eon_mJ(
+            abs(stress.i_turn_on_A), stress.v_block_V, junction_temp_c, stress.rg_on_Ohm
+        ) / 1000.0,
+    )
+    p_sw_off_w = _module_switching_power_from_events(
+        stress,
+        turn_on=False,
+        energy_fn=lambda current_a, voltage_v: module.eoff_mJ(
+            abs(current_a), voltage_v, junction_temp_c, stress.rg_off_Ohm
+        ) / 1000.0,
+        fallback_energy_fn=lambda: module.eoff_mJ(
+            abs(stress.i_turn_off_A), stress.v_block_V, junction_temp_c, stress.rg_off_Ohm
+        ) / 1000.0,
+    )
+    p_rr_w = 0.0 if _is_npc_sic_diode_role(stress) else module.sbd_reverse_recovery_loss_W(
         stress.fsw_Hz,
         max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A)),
         stress.v_block_V,
@@ -684,7 +781,7 @@ def _evaluate_wolfspeed_module_diode_section_loss(
     duty = stress.conduction_time_s * stress.fsw_Hz if stress.fsw_Hz > 0.0 else stress.duty
     diode_voltage_v = module.diode_vf_V(representative_current_a, junction_temp_c)
     p_cond_w = abs(diode_voltage_v * representative_current_a) * max(duty, 1e-6)
-    p_rr_w = module.diode_reverse_recovery_loss_W(
+    p_rr_w = 0.0 if _is_npc_sic_diode_role(stress) else module.diode_reverse_recovery_loss_W(
         stress.fsw_Hz,
         max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A)),
         stress.v_block_V,
@@ -739,9 +836,19 @@ def _evaluate_wolfspeed_module_loss(
     switch_cond_w = abs(switch_voltage_v * representative_current_a) * max(switch_duty, 1e-6)
     diode_cond_w = abs(diode_voltage_v * representative_current_a) * max(diode_duty, 0.0)
     p_cond_w = switch_cond_w + diode_cond_w
-    p_sw_on_w = stress.fsw_Hz * module.eon_mJ(abs(stress.i_turn_on_A), stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) / 1000.0
-    p_sw_off_w = stress.fsw_Hz * module.eoff_mJ(abs(stress.i_turn_off_A), stress.v_block_V, junction_temp_c, stress.rg_off_Ohm) / 1000.0
-    p_rr_w = module.diode_reverse_recovery_loss_W(
+    p_sw_on_w = _module_switching_power_from_events(
+        stress,
+        turn_on=True,
+        energy_fn=lambda current_a, voltage_v: module.eon_mJ(abs(current_a), voltage_v, junction_temp_c, stress.rg_on_Ohm) / 1000.0,
+        fallback_energy_fn=lambda: module.eon_mJ(abs(stress.i_turn_on_A), stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) / 1000.0,
+    )
+    p_sw_off_w = _module_switching_power_from_events(
+        stress,
+        turn_on=False,
+        energy_fn=lambda current_a, voltage_v: module.eoff_mJ(abs(current_a), voltage_v, junction_temp_c, stress.rg_off_Ohm) / 1000.0,
+        fallback_energy_fn=lambda: module.eoff_mJ(abs(stress.i_turn_off_A), stress.v_block_V, junction_temp_c, stress.rg_off_Ohm) / 1000.0,
+    )
+    p_rr_w = 0.0 if _is_npc_sic_diode_role(stress) else module.diode_reverse_recovery_loss_W(
         stress.fsw_Hz,
         max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A)),
         stress.v_block_V,
@@ -794,9 +901,19 @@ def _evaluate_rohm_rg_igbt_loss(
     switch_cond_w = abs(switch_voltage_v * representative_current_a) * max(switch_duty, 1e-6)
     diode_cond_w = abs(diode_voltage_v * representative_current_a) * max(diode_duty, 0.0)
     p_cond_w = switch_cond_w + diode_cond_w
-    p_sw_on_w = stress.fsw_Hz * igbt.eon_mJ(abs(stress.i_turn_on_A), stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) / 1000.0
-    p_sw_off_w = stress.fsw_Hz * igbt.eoff_mJ(abs(stress.i_turn_off_A), stress.v_block_V, junction_temp_c, stress.rg_off_Ohm) / 1000.0
-    p_rr_w = igbt.frd_reverse_recovery_loss_W(
+    p_sw_on_w = _module_switching_power_from_events(
+        stress,
+        turn_on=True,
+        energy_fn=lambda current_a, voltage_v: igbt.eon_mJ(abs(current_a), voltage_v, junction_temp_c, stress.rg_on_Ohm) / 1000.0,
+        fallback_energy_fn=lambda: igbt.eon_mJ(abs(stress.i_turn_on_A), stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) / 1000.0,
+    )
+    p_sw_off_w = _module_switching_power_from_events(
+        stress,
+        turn_on=False,
+        energy_fn=lambda current_a, voltage_v: igbt.eoff_mJ(abs(current_a), voltage_v, junction_temp_c, stress.rg_off_Ohm) / 1000.0,
+        fallback_energy_fn=lambda: igbt.eoff_mJ(abs(stress.i_turn_off_A), stress.v_block_V, junction_temp_c, stress.rg_off_Ohm) / 1000.0,
+    )
+    p_rr_w = 0.0 if _is_npc_sic_diode_role(stress) else igbt.frd_reverse_recovery_loss_W(
         stress.fsw_Hz,
         max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A)),
         stress.v_block_V,
@@ -848,8 +965,18 @@ def _evaluate_rohm_sc_loss(
         p_sw_on_w = 0.0
         p_sw_off_w = 0.0
     else:
-        p_sw_on_w = stress.fsw_Hz * rohm_device.eon_mJ(abs(stress.i_turn_on_A), stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) / 1000.0
-        p_sw_off_w = stress.fsw_Hz * rohm_device.eoff_mJ(abs(stress.i_turn_off_A), stress.v_block_V, junction_temp_c, stress.rg_off_Ohm) / 1000.0
+        p_sw_on_w = _module_switching_power_from_events(
+            stress,
+            turn_on=True,
+            energy_fn=lambda current_a, voltage_v: rohm_device.eon_mJ(abs(current_a), voltage_v, junction_temp_c, stress.rg_on_Ohm) / 1000.0,
+            fallback_energy_fn=lambda: rohm_device.eon_mJ(abs(stress.i_turn_on_A), stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) / 1000.0,
+        )
+        p_sw_off_w = _module_switching_power_from_events(
+            stress,
+            turn_on=False,
+            energy_fn=lambda current_a, voltage_v: rohm_device.eoff_mJ(abs(current_a), voltage_v, junction_temp_c, stress.rg_off_Ohm) / 1000.0,
+            fallback_energy_fn=lambda: rohm_device.eoff_mJ(abs(stress.i_turn_off_A), stress.v_block_V, junction_temp_c, stress.rg_off_Ohm) / 1000.0,
+        )
     p_rr_w = 0.0
     p_deadtime_w = _compute_deadtime_loss(device, stress, junction_temp_c, [])
     tj_est_c = rohm_device.estimate_junction_temperature_C(
@@ -899,19 +1026,19 @@ def _evaluate_mitsubishi_module_loss(
     for _ in range(8):
         switch_cond_w, diode_cond_w = _compute_module_conduction_losses(module, stress, junction_temp_c)
         p_cond_w = switch_cond_w + diode_cond_w
-        p_sw_on_w = stress.fsw_Hz * module.eon_mJ(
-            abs(stress.i_turn_on_A),
-            stress.v_block_V,
-            junction_temp_c,
-            stress.rg_on_Ohm,
-        ) / 1000.0
-        p_sw_off_w = stress.fsw_Hz * module.eoff_mJ(
-            abs(stress.i_turn_off_A),
-            stress.v_block_V,
-            junction_temp_c,
-            stress.rg_off_Ohm,
-        ) / 1000.0
-        p_rr_w = module.fwd_reverse_recovery_loss_W(
+        p_sw_on_w = _module_switching_power_from_events(
+            stress,
+            turn_on=True,
+            energy_fn=lambda current_a, voltage_v: module.eon_mJ(abs(current_a), voltage_v, junction_temp_c, stress.rg_on_Ohm) / 1000.0,
+            fallback_energy_fn=lambda: module.eon_mJ(abs(stress.i_turn_on_A), stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) / 1000.0,
+        )
+        p_sw_off_w = _module_switching_power_from_events(
+            stress,
+            turn_on=False,
+            energy_fn=lambda current_a, voltage_v: module.eoff_mJ(abs(current_a), voltage_v, junction_temp_c, stress.rg_off_Ohm) / 1000.0,
+            fallback_energy_fn=lambda: module.eoff_mJ(abs(stress.i_turn_off_A), stress.v_block_V, junction_temp_c, stress.rg_off_Ohm) / 1000.0,
+        )
+        p_rr_w = 0.0 if _is_npc_sic_diode_role(stress) else module.fwd_reverse_recovery_loss_W(
             stress.fsw_Hz,
             max(abs(stress.i_turn_on_A), abs(stress.i_turn_off_A), abs(stress.i_rms_A)),
             stress.v_block_V,

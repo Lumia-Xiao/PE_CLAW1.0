@@ -1377,6 +1377,12 @@ def scale_switch_stress_for_parallel(stress: SwitchStress, parallel_count: int) 
         i_avg_A=stress.i_avg_A / parallel_count,
         i_turn_on_A=stress.i_turn_on_A / parallel_count,
         i_turn_off_A=stress.i_turn_off_A / parallel_count,
+        turn_on_event_currents_A=tuple(
+            current / parallel_count for current in stress.turn_on_event_currents_A
+        ),
+        turn_off_event_currents_A=tuple(
+            current / parallel_count for current in stress.turn_off_event_currents_A
+        ),
     )
 
 

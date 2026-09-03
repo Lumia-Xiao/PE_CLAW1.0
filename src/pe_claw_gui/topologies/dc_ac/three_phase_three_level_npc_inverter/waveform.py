@@ -273,6 +273,9 @@ def generate_waveforms(
             "b_s1": gate_b_s1, "b_s2": gate_b_s2, "b_s3": gate_b_s3, "b_s4": gate_b_s4,
             "c_s1": gate_c_s1, "c_s2": gate_c_s2, "c_s3": gate_c_s3, "c_s4": gate_c_s4,
         },
+        upper_dc_link_voltage_v=upper_dc_link_voltage_v,
+        lower_dc_link_voltage_v=lower_dc_link_voltage_v,
+        time_window_s=line_period_s,
     )
     phase_current_total_rms_a = _mean([_rms(ia_a), _rms(ib_a), _rms(ic_a)])
     phase_switching_ripple_rms_a = _rms([*phase_ripple_a[0], *phase_ripple_a[1], *phase_ripple_a[2]])
@@ -414,6 +417,14 @@ def generate_waveforms(
             "operating_ccm_validity_basis": "predicted_max_local_phase_current_pp_below_twice_fundamental_peak",
             "three_phase_npc_device_currents": device_currents,
             "device_current_semantics": device_currents["semantics"],
+            "switching_event_semantics": (
+                "gate-edge current sampled at the actual event; event energy is summed over one line cycle "
+                "and divided by event window and physical position count"
+            ),
+            "switching_event_voltage_basis": (
+                "actual upper half-link voltage for S1/S2 and lower half-link voltage for S3/S4; "
+                "worst-case blocking voltage remains separate for rating checks"
+            ),
             "dc_link_series_equivalent_capacitance_f": cdc_series_equivalent_f,
             "dc_link_upper_capacitance_f": cdc_upper_f,
             "dc_link_lower_capacitance_f": cdc_lower_f,
@@ -563,6 +574,9 @@ def _npc_device_current_metrics(
     phase_currents_a: tuple[list[float], list[float], list[float]],
     phase_states: tuple[list[float], list[float], list[float]],
     gates: dict[str, list[float]],
+    upper_dc_link_voltage_v: list[float],
+    lower_dc_link_voltage_v: list[float],
+    time_window_s: float,
 ) -> dict[str, object]:
     """Return per-position and role-aggregate NPC branch-current metrics."""
 
@@ -577,7 +591,29 @@ def _npc_device_current_metrics(
                 current if command >= 0.5 else 0.0
                 for current, command in zip(phase_current, gate, strict=True)
             ]
-            branches[branch_name] = _current_metrics(branch_current)
+            branch_metrics = _current_metrics(branch_current)
+            on_currents: list[float] = []
+            off_currents: list[float] = []
+            on_voltages: list[float] = []
+            off_voltages: list[float] = []
+            for index in range(1, len(gate)):
+                if gate[index - 1] < 0.5 <= gate[index]:
+                    on_currents.append(phase_current[index])
+                    on_voltages.append(_npc_switching_voltage(
+                        switch_index, upper_dc_link_voltage_v[index], lower_dc_link_voltage_v[index]
+                    ))
+                elif gate[index - 1] >= 0.5 > gate[index]:
+                    off_currents.append(phase_current[index])
+                    off_voltages.append(_npc_switching_voltage(
+                        switch_index, upper_dc_link_voltage_v[index], lower_dc_link_voltage_v[index]
+                    ))
+            branch_metrics.update({
+                "turn_on_event_currents_a": on_currents,
+                "turn_off_event_currents_a": off_currents,
+                "turn_on_event_voltages_v": on_voltages,
+                "turn_off_event_voltages_v": off_voltages,
+            })
+            branches[branch_name] = branch_metrics
 
         phase_state = phase_states[phase_index]
         upper_clamp = [
@@ -588,8 +624,18 @@ def _npc_device_current_metrics(
             current if state == 0.0 and current < 0.0 else 0.0
             for current, state in zip(phase_current, phase_state, strict=True)
         ]
-        branches[f"{phase_name}_clamp_upper"] = _current_metrics(upper_clamp)
-        branches[f"{phase_name}_clamp_lower"] = _current_metrics(lower_clamp)
+        for clamp_name, clamp_current in (
+            (f"{phase_name}_clamp_upper", upper_clamp),
+            (f"{phase_name}_clamp_lower", lower_clamp),
+        ):
+            clamp_metrics = _current_metrics(clamp_current)
+            clamp_metrics.update({
+                "turn_on_event_currents_a": [],
+                "turn_off_event_currents_a": [],
+                "turn_on_event_voltages_v": [],
+                "turn_off_event_voltages_v": [],
+            })
+            branches[clamp_name] = clamp_metrics
 
     role_members = {
         "outer_switch": [f"{phase}_s{index}" for phase in phase_names for index in (1, 4)],
@@ -606,6 +652,20 @@ def _npc_device_current_metrics(
             "rms_current_a": _mean([item["rms_current_a"] for item in member_metrics]),
             "peak_absolute_current_a": max(item["peak_absolute_current_a"] for item in member_metrics),
             "conduction_duty": _mean([item["conduction_duty"] for item in member_metrics]),
+            "turn_on_event_currents_a": [
+                current for item in member_metrics for current in item["turn_on_event_currents_a"]
+            ],
+            "turn_off_event_currents_a": [
+                current for item in member_metrics for current in item["turn_off_event_currents_a"]
+            ],
+            "turn_on_event_voltages_v": [
+                voltage for item in member_metrics for voltage in item["turn_on_event_voltages_v"]
+            ],
+            "turn_off_event_voltages_v": [
+                voltage for item in member_metrics for voltage in item["turn_off_event_voltages_v"]
+            ],
+            "event_window_s": time_window_s,
+            "event_position_count": len(member_names),
         }
     return {
         "semantics": "complete_active_switch_branch_including_antiparallel_diode; clamp_diodes_resolved_by_zero_state_current_direction",
@@ -613,6 +673,12 @@ def _npc_device_current_metrics(
         "branches": branches,
         "roles": roles,
     }
+
+
+def _npc_switching_voltage(switch_index: int, upper_voltage_v: float, lower_voltage_v: float) -> float:
+    """Return the local half-link voltage seen by an NPC switch event."""
+
+    return max(0.0, upper_voltage_v if switch_index in (1, 2) else lower_voltage_v)
 
 
 def _current_metrics(values: list[float]) -> dict[str, float]:

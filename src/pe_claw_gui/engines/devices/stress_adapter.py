@@ -409,6 +409,21 @@ def _build_three_phase_npc_inverter_stresses(report: DesignReport) -> tuple[Swit
         role_values = roles.get(role) if isinstance(roles, dict) else None
         return _metadata_float(role_values, key, fallback=fallback) if isinstance(role_values, dict) else fallback
 
+    def role_events(role: str, key: str) -> tuple[float, ...]:
+        role_values = roles.get(role) if isinstance(roles, dict) else None
+        if not isinstance(role_values, dict):
+            return ()
+        values = role_values.get(key, ())
+        if not isinstance(values, (list, tuple)):
+            return ()
+        return tuple(float(value) for value in values)
+
+    def role_event_window(role: str) -> float:
+        return role_metric(role, "event_window_s", 0.0)
+
+    def role_event_positions(role: str) -> int:
+        return max(1, int(role_metric(role, "event_position_count", 1.0)))
+
     common = {
         "mode": "three_phase_three_level_npc_pd_spwm_waveform_backed_design_point",
         "fsw_Hz": candidate.fs_hz,
@@ -436,6 +451,12 @@ def _build_three_phase_npc_inverter_stresses(report: DesignReport) -> tuple[Swit
         i_turn_off_A=role_metric("outer_switch", "peak_absolute_current_a", stress.switch.current_peak_a),
         duty=outer_duty,
         conduction_time_s=outer_duty * switching_period_s,
+        turn_on_event_currents_A=role_events("outer_switch", "turn_on_event_currents_a"),
+        turn_off_event_currents_A=role_events("outer_switch", "turn_off_event_currents_a"),
+        turn_on_event_voltages_V=role_events("outer_switch", "turn_on_event_voltages_v"),
+        turn_off_event_voltages_V=role_events("outer_switch", "turn_off_event_voltages_v"),
+        event_window_s=role_event_window("outer_switch"),
+        event_position_count=role_event_positions("outer_switch"),
         **common,
     )
     inner_peak_a = role_metric("inner_switch", "peak_absolute_current_a", stress.switch.current_peak_a)
@@ -448,6 +469,12 @@ def _build_three_phase_npc_inverter_stresses(report: DesignReport) -> tuple[Swit
         i_turn_off_A=inner_peak_a,
         duty=inner_duty,
         conduction_time_s=inner_duty * switching_period_s,
+        turn_on_event_currents_A=role_events("inner_switch", "turn_on_event_currents_a"),
+        turn_off_event_currents_A=role_events("inner_switch", "turn_off_event_currents_a"),
+        turn_on_event_voltages_V=role_events("inner_switch", "turn_on_event_voltages_v"),
+        turn_off_event_voltages_V=role_events("inner_switch", "turn_off_event_voltages_v"),
+        event_window_s=role_event_window("inner_switch"),
+        event_position_count=role_event_positions("inner_switch"),
         **common,
     )
     clamp_peak_a = role_metric("clamp_diode", "peak_absolute_current_a", stress.rectifier.current_peak_a)
@@ -942,7 +969,7 @@ def _build_case(report: DesignReport, waveform: WaveformSet, operating_point: Op
             *(
                 [
                     "Three-phase NPC inverter Step1 stress maps 12 active switch positions and 6 clamp diode positions.",
-                    "NPC stress uses Vdc/2 blocking voltage and first-pass PD-SPWM current approximations.",
+                    "NPC switching loss uses signed gate-edge currents and actual half-link event voltages; negative turn-on current is treated as soft switching.",
                 ]
                 if topology_id == "three_phase_three_level_npc_inverter"
                 else []

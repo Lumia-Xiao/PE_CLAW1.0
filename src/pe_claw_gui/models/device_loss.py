@@ -19,6 +19,12 @@ class SwitchStress:
     fsw_Hz: float
     duty: float
     conduction_time_s: float
+    turn_on_event_currents_A: tuple[float, ...] = ()
+    turn_off_event_currents_A: tuple[float, ...] = ()
+    turn_on_event_voltages_V: tuple[float, ...] = ()
+    turn_off_event_voltages_V: tuple[float, ...] = ()
+    event_window_s: float = 0.0
+    event_position_count: int = 1
     dead_time_s: float = 0.0
     body_diode_conduction_time_s: float = 0.0
     rg_on_Ohm: float = 10.0
