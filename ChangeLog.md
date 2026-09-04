@@ -25,6 +25,15 @@
 - 验证：NPC 契约测试 `12 passed`；受影响 DC-AC 回归 `21 passed`；`compileall` 和 `git diff --check` 通过。
 - Git：本步骤 commit `0334142b64030c9e472c12cadff6713e7161d6e5` 已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对一致。
 
+## 2026-09-04 NPC 事件级器件开关能量入口
+
+- 在 `src/pe_claw_gui/engines/devices/loss_evaluator.py` 增加 NPC 单事件和事件列表能量计算入口。
+- 负电流开通事件按软开关处理并令 `Eon=0`；正电流开通和关断使用事件实际电流、阻断电压及现有器件模型。
+- SiC 器件反向恢复事件能量置零；其他拓扑的既有损耗入口保持不变。
+- 增加 NPC 事件级极性、电流和 SiC 反向恢复测试。
+- 验证：相关专项与器件回归 `27 passed`；受影响 DC-AC/器件回归 `38 passed`；`compileall` 和 `git diff --check` 通过。
+- Git：本步骤 commit 和 push 待完成，完成后回填本计划记录。
+
 This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.

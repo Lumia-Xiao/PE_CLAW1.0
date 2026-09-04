@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping, Sequence
 from typing import cast
 
 from ...libraries.semiconductors.mitsubishi.igbt_modules import MitsubishiIGBTModule
@@ -78,6 +79,152 @@ def _compute_switching_energy(
     ratings = device.static
     transition_ns = (ratings.td_on_ns + ratings.tr_ns) if turn_on else (ratings.td_off_ns + ratings.tf_ns)
     return 0.5 * stress.v_block_V * event_current_a * transition_ns * 1e-9
+
+
+def evaluate_npc_switching_event_energy(
+    device: PowerDevice,
+    event: Mapping[str, object],
+    *,
+    junction_temp_c: float = 75.0,
+    method: str = "accurate",
+    parallel_count: int = 1,
+) -> dict[str, float | int | str | bool]:
+    """Evaluate one NPC switching event using its sampled operating values.
+
+    The event current is signed because a negative turn-on current means that
+    the antiparallel/body diode was carrying current before the gate command.
+    Such a turn-on is treated as soft switching.  Energy values are returned
+    in joules, while the existing vendor APIs are normalized from mJ here.
+    """
+
+    event_type = str(event.get("event_type", "")).strip().casefold()
+    if event_type not in {"turn_on", "turn_off"}:
+        raise ValueError(f"Unsupported NPC switching event type: {event_type!r}")
+    signed_current_a = float(event.get("signed_current_A", 0.0))
+    blocking_voltage_v = abs(float(event.get("blocking_voltage_V", 0.0)))
+    if parallel_count < 1:
+        raise ValueError("parallel_count must be at least one")
+    device_current_a = abs(signed_current_a) / parallel_count
+    stress = SwitchStress(
+        role="npc_event",
+        mode="npc_event_level",
+        v_block_V=blocking_voltage_v,
+        i_rms_A=device_current_a,
+        i_avg_A=device_current_a,
+        i_turn_on_A=device_current_a,
+        i_turn_off_A=device_current_a,
+        fsw_Hz=0.0,
+        duty=0.0,
+        conduction_time_s=0.0,
+    )
+    warnings: list[str] = []
+    eon_j = 0.0
+    eoff_j = 0.0
+    if event_type == "turn_on" and signed_current_a >= 0.0:
+        eon_j = _npc_device_switching_energy_j(
+            device,
+            stress,
+            turn_on=True,
+            junction_temp_c=junction_temp_c,
+            method=method,
+            warnings=warnings,
+        )
+    elif event_type == "turn_off":
+        eoff_j = _npc_device_switching_energy_j(
+            device,
+            stress,
+            turn_on=False,
+            junction_temp_c=junction_temp_c,
+            method=method,
+            warnings=warnings,
+        )
+    reverse_recovery_j = 0.0 if _is_sic_device(device) else max(device.static.qrr_typ_uC, 0.0) * 1e-6 * blocking_voltage_v
+    return {
+        "event_type": event_type,
+        "signed_current_A": signed_current_a,
+        "device_current_A": device_current_a,
+        "blocking_voltage_V": blocking_voltage_v,
+        "eon_J": max(eon_j, 0.0),
+        "eoff_J": max(eoff_j, 0.0),
+        "reverse_recovery_J": max(reverse_recovery_j, 0.0),
+        "soft_turn_on": event_type == "turn_on" and signed_current_a < 0.0,
+        "warning_count": len(warnings),
+    }
+
+
+def evaluate_npc_switching_events(
+    device: PowerDevice,
+    events: Sequence[Mapping[str, object]],
+    *,
+    junction_temp_c: float = 75.0,
+    method: str = "accurate",
+    parallel_count: int = 1,
+) -> list[dict[str, float | int | str | bool]]:
+    """Evaluate NPC event energies without collapsing them to a peak-current case."""
+
+    return [
+        evaluate_npc_switching_event_energy(
+            device,
+            event,
+            junction_temp_c=junction_temp_c,
+            method=method,
+            parallel_count=parallel_count,
+        )
+        for event in events
+    ]
+
+
+def _npc_device_switching_energy_j(
+    device: PowerDevice,
+    stress: SwitchStress,
+    *,
+    turn_on: bool,
+    junction_temp_c: float,
+    method: str,
+    warnings: list[str],
+) -> float:
+    """Dispatch one event to the same vendor energy models used by normal loss evaluation."""
+
+    payload = device.payload
+    current_a = abs(stress.i_turn_on_A if turn_on else stress.i_turn_off_A)
+    if isinstance(payload, RohmSiCModule):
+        energy_mj = payload.eon_mJ(current_a, stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) if turn_on else payload.eoff_mJ(current_a, stress.v_block_V, junction_temp_c, stress.rg_off_Ohm)
+        return max(energy_mj, 0.0) / 1000.0
+    if isinstance(payload, WolfspeedSiCModule):
+        energy_mj = payload.eon_mJ(current_a, stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) if turn_on else payload.eoff_mJ(current_a, stress.v_block_V, junction_temp_c, stress.rg_off_Ohm)
+        return max(energy_mj, 0.0) / 1000.0
+    if isinstance(payload, MitsubishiIGBTModule):
+        energy_mj = payload.eon_mJ(current_a, stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) if turn_on else payload.eoff_mJ(current_a, stress.v_block_V, junction_temp_c, stress.rg_off_Ohm)
+        return max(energy_mj, 0.0) / 1000.0
+    if isinstance(payload, RohmRGIGBTDevice):
+        energy_mj = payload.eon_mJ(current_a, stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) if turn_on else payload.eoff_mJ(current_a, stress.v_block_V, junction_temp_c, stress.rg_off_Ohm)
+        return max(energy_mj, 0.0) / 1000.0
+    if isinstance(payload, RohmSCDevice):
+        if payload.is_diode:
+            return 0.0
+        energy_mj = payload.eon_mJ(current_a, stress.v_block_V, junction_temp_c, stress.rg_on_Ohm) if turn_on else payload.eoff_mJ(current_a, stress.v_block_V, junction_temp_c, stress.rg_off_Ohm)
+        return max(energy_mj, 0.0) / 1000.0
+    return _compute_switching_energy(
+        device,
+        stress,
+        turn_on=turn_on,
+        junction_temp_c=junction_temp_c,
+        method=method,
+        warnings=warnings,
+    )
+
+
+def _is_sic_device(device: PowerDevice) -> bool:
+    """Identify SiC switches and diodes without changing library selection rules."""
+
+    if isinstance(device.payload, (RohmSiCModule, WolfspeedSiCModule)):
+        return True
+    text = " ".join(
+        str(value)
+        for value in (device.device_type, device.family, device.static.diode_subtype, device.vendor)
+        if value is not None
+    ).casefold()
+    return "sic" in text or "silicon carbide" in text
 
 
 def _compute_reverse_recovery_loss(device: PowerDevice, stress: SwitchStress, junction_temp_c: float, warnings: list[str]) -> float:

@@ -16,6 +16,8 @@ from pe_claw_gui.models.operating_point import OperatingPoint
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
+from pe_claw_gui.engines.devices.loss_evaluator import evaluate_npc_switching_event_energy
+from pe_claw_gui.libraries.semiconductors.registry import build_default_semiconductor_registry
 from pe_claw_gui.topologies.base.registry import build_default_registry
 from pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter.waveform import (
     _integrate_phase_current_by_cycle,
@@ -108,6 +110,63 @@ def test_npc_waveform_extracts_interpolated_events_for_all_switch_positions() ->
     assert all(event["absolute_current_A"] == pytest.approx(abs(event["signed_current_A"])) for event in events)
     assert all(event["blocking_voltage_V"] > 0.0 for event in events)
     assert len({round(event["signed_current_A"], 9) for event in events}) > 10
+
+
+def test_npc_event_energy_uses_polarity_and_actual_current() -> None:
+    device = build_default_semiconductor_registry().get_device("IPZA60R037CM8")
+    soft_on = evaluate_npc_switching_event_energy(
+        device,
+        {
+            "event_type": "turn_on",
+            "signed_current_A": -8.0,
+            "blocking_voltage_V": 350.0,
+        },
+    )
+    low_current_on = evaluate_npc_switching_event_energy(
+        device,
+        {
+            "event_type": "turn_on",
+            "signed_current_A": 2.0,
+            "blocking_voltage_V": 350.0,
+        },
+    )
+    high_current_on = evaluate_npc_switching_event_energy(
+        device,
+        {
+            "event_type": "turn_on",
+            "signed_current_A": 8.0,
+            "blocking_voltage_V": 350.0,
+        },
+    )
+    turn_off = evaluate_npc_switching_event_energy(
+        device,
+        {
+            "event_type": "turn_off",
+            "signed_current_A": 8.0,
+            "blocking_voltage_V": 350.0,
+        },
+    )
+
+    assert soft_on["soft_turn_on"] is True
+    assert soft_on["eon_J"] == pytest.approx(0.0)
+    assert low_current_on["soft_turn_on"] is False
+    assert low_current_on["eon_J"] >= 0.0
+    assert high_current_on["eon_J"] != pytest.approx(low_current_on["eon_J"])
+    assert turn_off["eoff_J"] >= 0.0
+
+
+def test_npc_event_energy_sets_sic_reverse_recovery_to_zero() -> None:
+    device = build_default_semiconductor_registry().get_device("SCS304AG")
+    result = evaluate_npc_switching_event_energy(
+        device,
+        {
+            "event_type": "turn_off",
+            "signed_current_A": 12.0,
+            "blocking_voltage_V": 350.0,
+        },
+    )
+
+    assert result["reverse_recovery_J"] == pytest.approx(0.0)
 
 
 def test_npc_phase_current_integrates_continuously_across_pwm_boundaries() -> None:
