@@ -14,7 +14,7 @@
 - 第五步：已完成
 - 第五步 commit/push：`fa01342`，已推送至 `origin/codex/npc-output-run-isolation-step1`
 - 第六步：已完成
-- 第六步 commit/push：待本步骤提交后补记
+- 第六步 commit/push：`eca4bcd`，已推送至 `origin/codex/npc-output-run-isolation-step1`
 
 ## 1. 任务目标
 
