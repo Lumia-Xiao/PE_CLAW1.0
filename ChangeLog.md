@@ -23,7 +23,7 @@
 - 对事件时间、三相有符号电感电流和上下分裂母线阻断电压进行线性插值，写入现有 waveform metadata。
 - 保持 GUI 用户输入不变，未新增字段。
 - 验证：NPC 契约测试 `12 passed`；受影响 DC-AC 回归 `21 passed`；`compileall` 和 `git diff --check` 通过。
-- Git：本步骤 commit 和 push 待完成，完成后回填本计划记录。
+- Git：本步骤 commit `0334142b64030c9e472c12cadff6713e7161d6e5` 已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对一致。
 
 This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
