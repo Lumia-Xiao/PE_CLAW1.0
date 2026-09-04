@@ -178,6 +178,23 @@ def generate_waveforms(
         ib_fundamental_a.append(ib)
         ic_fundamental_a.append(ic)
 
+    phase_current_reference_average_time_s = _switching_period_midpoints(
+        time_s,
+        SAMPLES_PER_SWITCHING_PERIOD,
+    )
+    phase_current_reference_average_a = {
+        phase: _time_average_by_switching_period(
+            time_s,
+            reference,
+            SAMPLES_PER_SWITCHING_PERIOD,
+        )
+        for phase, reference in (
+            ("a", ia_fundamental_a),
+            ("b", ib_fundamental_a),
+            ("c", ic_fundamental_a),
+        )
+    }
+
     phase_current_periodic_corrections_a: list[float] = []
     phase_current_a = [
         _integrate_phase_current_by_cycle(
@@ -328,6 +345,13 @@ def generate_waveforms(
         "va_phase_neutral_pwm_v": va_phase_neutral_pwm_v,
         "vb_phase_neutral_pwm_v": vb_phase_neutral_pwm_v,
         "vc_phase_neutral_pwm_v": vc_phase_neutral_pwm_v,
+        "ia_reference_a": ia_fundamental_a,
+        "ib_reference_a": ib_fundamental_a,
+        "ic_reference_a": ic_fundamental_a,
+        "switching_period_reference_time_s": phase_current_reference_average_time_s,
+        "ia_reference_average_a": phase_current_reference_average_a["a"],
+        "ib_reference_average_a": phase_current_reference_average_a["b"],
+        "ic_reference_average_a": phase_current_reference_average_a["c"],
         "ia_a": ia_a,
         "ib_a": ib_a,
         "ic_a": ic_a,
@@ -403,6 +427,15 @@ def generate_waveforms(
             "current_lag_angle_deg": pf_angle_deg,
             "line_line_voltage_phase_shift_deg": 30.0,
             "phase_current_reference": "ia aligned to va_phase at PF=1",
+            "phase_current_reference_definition": (
+                "three_phase_sinusoidal_reference_with_operating_pf_and_active_power_sign"
+            ),
+            "phase_current_reference_average_method": (
+                "time_weighted_trapezoidal_average_per_switching_period"
+            ),
+            "phase_current_reference_average_time_s": phase_current_reference_average_time_s,
+            "phase_current_reference_average_a": phase_current_reference_average_a,
+            "phase_current_reference_average_count": len(phase_current_reference_average_time_s),
             "operating_power_factor": operating_power_factor,
             "operating_active_power_w": pout_w,
             "operating_i_phase_rms_a": i_phase_rms_a,
@@ -536,6 +569,48 @@ def _extract_npc_switching_events(
 
 def _interpolate(previous: float, current: float, fraction: float) -> float:
     return float(previous) + (float(current) - float(previous)) * float(fraction)
+
+
+def _switching_period_midpoints(time_s: list[float], samples_per_switching_period: int) -> list[float]:
+    """Return the midpoint time of each complete sampled switching period."""
+
+    if len(time_s) < 2 or samples_per_switching_period <= 1:
+        return []
+    cycle_count = (len(time_s) - 1) // samples_per_switching_period
+    return [
+        0.5 * (time_s[cycle * samples_per_switching_period] + time_s[(cycle + 1) * samples_per_switching_period])
+        for cycle in range(cycle_count)
+    ]
+
+
+def _time_average_by_switching_period(
+    time_s: list[float],
+    values: list[float],
+    samples_per_switching_period: int,
+) -> list[float]:
+    """Return time-weighted averages over complete sampled switching periods."""
+
+    if (
+        len(time_s) != len(values)
+        or len(time_s) < 2
+        or samples_per_switching_period <= 1
+    ):
+        return []
+    cycle_count = (len(time_s) - 1) // samples_per_switching_period
+    averages: list[float] = []
+    for cycle in range(cycle_count):
+        start = cycle * samples_per_switching_period
+        end = (cycle + 1) * samples_per_switching_period
+        duration_s = time_s[end] - time_s[start]
+        if duration_s <= 0.0:
+            averages.append(0.0)
+            continue
+        area = sum(
+            0.5 * (values[index - 1] + values[index]) * (time_s[index] - time_s[index - 1])
+            for index in range(start + 1, end + 1)
+        )
+        averages.append(area / duration_s)
+    return averages
 
 
 def _npc_operating_contract(

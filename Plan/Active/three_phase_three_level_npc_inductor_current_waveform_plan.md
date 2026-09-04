@@ -5,6 +5,8 @@
 - 第一步：已完成
 - 当前实现：仅建立基线，未修改 NPC 电流计算逻辑
 - 第一步 commit/push：`4d100f5`，已推送至 `origin/codex/npc-output-run-isolation-step1`
+- 第二步：已完成
+- 第二步 commit/push：待本步骤提交后回填
 
 ## 1. 任务目标
 
@@ -121,7 +123,7 @@ i_c* = Ipk sin(theta + 120deg - phi)
 
 #### 版本控制
 
-完成测试后单独 commit 并 push。
+完成测试后单独 commit 并 push。执行回执：专项测试 `22 passed`；commit/push 回执待本步骤提交后回填。
 
 ### 第三步：按电感方程计算每个开关周期的目标平均电压
 
