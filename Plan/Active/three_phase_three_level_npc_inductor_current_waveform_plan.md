@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 第一步：执行中，待本步骤 commit/push 回执
+- 第一步：已完成
 - 当前实现：仅建立基线，未修改 NPC 电流计算逻辑
-- 第一步 commit/push：`待完成，执行后回填`
+- 第一步 commit/push：`4d100f5`，已推送至 `origin/codex/npc-output-run-isolation-step1`
 
 ## 1. 任务目标
 
@@ -93,7 +93,7 @@ L di_phase/dt = v_inv,phase - v_grid,phase
 
 #### 版本控制
 
-完成测试后单独 commit 并 push。执行回执：待本步骤完成后回填 commit ID、远端分支和测试结果。
+完成测试后单独 commit 并 push。执行回执：`4d100f5`；专项测试 `18 passed`；基线输出为 `pytest_temp/npc_step1_baseline.json`。
 
 ### 第二步：建立三相正弦电流给定和周期平均目标
 

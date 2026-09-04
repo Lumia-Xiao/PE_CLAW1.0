@@ -6,7 +6,8 @@
 - 新增 `tests/test_npc_step1_baseline.py`，验证基线可重复、NPC 波形字段完整且 JSON 可序列化。
 - 测试临时输出约束为工程根目录 `pytest_temp`；设计结果目录 `outputs/` 不写入基线工具。
 - 未修改 NPC 电流计算、GUI 输入或损耗公式。
-- 验证和 Git 回执：待第一步测试、commit、push 完成后回填。
+- 验证：NPC 基线和合同专项 `18 passed`；`compileall`、`git diff --check` 通过。
+- Git：步骤 1 commit `4d100f5` (`test: establish NPC current waveform baseline`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`。
 
 ## 2026-09-04 NPC 计划全量回归与收口
 
