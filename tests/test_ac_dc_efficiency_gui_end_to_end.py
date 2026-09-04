@@ -78,17 +78,20 @@ try:
     assert len(app.workspace.active_page._topology_buttons) == 5
 
     evidence_root = os.environ["PE_CLAW_STEP12_GUI_OUTPUT_ROOT"]
-    try:
-        output_root = Path(evidence_root)
-        output_root.mkdir(parents=True, exist_ok=True)
-        with patch(
-            "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline.DEFAULT_LOAD_POINTS",
-            (0.5, 1.0),
-        ), patch(
-            "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline._project_root",
-        ) as project_root:
+    output_root = Path(evidence_root)
+    output_root.mkdir(parents=True, exist_ok=True)
+    with patch(
+        "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline.DEFAULT_LOAD_POINTS",
+        (0.5, 1.0),
+    ), patch(
+        "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline._project_root",
+    ) as project_root, patch(
+        "pe_claw_gui.models.design_run_context._default_output_root",
+    ) as default_output_root:
             for topology_id in TOPOLOGY_IDS:
-                project_root.return_value = output_root / topology_id
+                run_root = output_root / topology_id
+                project_root.return_value = run_root
+                default_output_root.return_value = run_root
                 app._on_topology_selected(topology_id)
                 form = app.workspace.active_form
                 assert form is not None
@@ -194,7 +197,7 @@ try:
                     for path in sweep.artifact_paths.values()
                 )
                 assert all(
-                    topology_id in Path(path).parts
+                    Path(path).is_relative_to(output_root / topology_id)
                     for path in sweep.artifact_paths.values()
                 )
 
@@ -237,7 +240,7 @@ finally:
     app.destroy()
 '''
     )
-    assert result.returncode == 0, result.stderr or result.stdout
+    assert result.returncode == 0, f"{result.stderr}\n{result.stdout}"
 
 
 def test_efficiency_sweep_controller_writes_result_and_timing_to_state() -> None:

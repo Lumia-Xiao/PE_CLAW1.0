@@ -4,6 +4,18 @@ This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
 
+## 2026-09-04 Pytest Temporary Output Verification
+
+- Fixed the GUI end-to-end test's isolated subprocess cleanup and updated its
+  assertions for date/alias/short-ID run directories under `pytest_temp`.
+- Fixed hardware-overview hotspot extraction when efficiency is run before
+  thermal design has produced a recommended estimate.
+- Updated the LLC efficiency artifact test to use the current run-scoped CSV
+  location.
+- Validation: the two previously failing tests passed; syntax and diff checks
+  passed; focused regression passed (`36 passed`); full regression passed
+  (`489 passed, 1 skipped`).
+
 ## 2026-09-03 All-Topology Design Output Isolation
 
 - Added an active `DesignRunContext` resolver so topology internals, operating-point refresh, device stress refresh, capacitor refresh, efficiency sweep, loss refresh, and full-pipeline execution share one isolated run directory.

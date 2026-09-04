@@ -24,18 +24,23 @@
 执行约束：上述五项按顺序完成；每项完成后更新本计划、`ChangeLog.md`，并
 单独执行 `git commit` 和 `git push`。
 
-执行状态：第 1、2、3 项已完成；第 4、5 项待完成。
+执行状态：第 1、2、3、4、5 项已完成。
 
 - [x] 第 1 项：pytest 基础临时目录和缓存目录配置
 - [x] 第 2 项：`pytest_temp/` Git 忽略规则
 - [x] 第 3 项：整改直接写入工程根目录的测试临时路径
 - [x] 第 4 项：扫描测试代码和 Git 状态，确认临时产物边界
-- [ ] 第 5 项：使用 `pytest_temp` 执行专项与回归验证
+- [x] 第 5 项：使用 `pytest_temp` 执行专项与回归验证
 
 第 4 项检查结论：测试中用于写入文件的临时路径均已转为 pytest
 `tmp_path`/`tmp_path_factory` 或由 pytest 管理的 `pytest_temp`；历史
 `migration`/`outputs` 路径仅作为只读证据引用。GUI 端到端测试通过
 `PE_CLAW_STEP12_GUI_OUTPUT_ROOT` 指向 pytest 临时目录。
+
+第 5 项执行结论：语法检查和 `git diff --check` 通过；修正了 GUI
+端到端测试的隔离输出目录断言、子进程清理结构，以及效率扫描后硬件总览
+在热设计尚未完成时读取空热估算的边界条件。目标测试通过：2 passed；
+专项回归通过：36 passed；全量回归通过：489 passed, 1 skipped。
 
 ## 2. 当前结果基线
 
