@@ -9,6 +9,7 @@
 - 第二步 commit/push：`d3c8310`，已推送至 `origin/codex/npc-output-run-isolation-step1`
 - 第三步：已完成
 - 第三步 commit/push：`d75b3aa`，已推送至 `origin/codex/npc-output-run-isolation-step1`
+- 第四步：执行中，待本步骤 commit/push 回执
 
 ## 1. 任务目标
 
@@ -189,7 +190,7 @@ D_plus + D_zero + D_minus = 1
 
 #### 版本控制
 
-完成测试后单独 commit 并 push。
+完成测试后单独 commit 并 push。执行回执：待本步骤测试、commit 和 push 完成后回填。
 
 ### 第五步：建立统一三相事件时间轴并逐段积分实际电流
 

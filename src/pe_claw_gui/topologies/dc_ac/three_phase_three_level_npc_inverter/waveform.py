@@ -229,6 +229,20 @@ def generate_waveforms(
             ("c", vc_phase_v, ic_a),
         )
     }
+    phase_npc_level_duties = {
+        phase: [
+            _npc_level_duty_cycles(value, half_bus_v)
+            for value in values
+        ]
+        for phase, values in phase_inverter_average_voltage_targets_v.items()
+    }
+    phase_npc_candidate_sequences = {
+        phase: [
+            _center_aligned_npc_sequence(d_plus, d_zero, d_minus)
+            for d_plus, d_zero, d_minus in duties
+        ]
+        for phase, duties in phase_npc_level_duties.items()
+    }
     phase_ripple_a = [
         [current - fundamental for current, fundamental in zip(phase_current, fundamental_current, strict=True)]
         for phase_current, fundamental_current in zip(
@@ -371,6 +385,8 @@ def generate_waveforms(
         "va_inverter_average_target_v": phase_inverter_average_voltage_targets_v["a"],
         "vb_inverter_average_target_v": phase_inverter_average_voltage_targets_v["b"],
         "vc_inverter_average_target_v": phase_inverter_average_voltage_targets_v["c"],
+        "npc_level_duties": phase_npc_level_duties,
+        "npc_candidate_switching_sequences": phase_npc_candidate_sequences,
         "ia_a": ia_a,
         "ib_a": ib_a,
         "ic_a": ic_a,
@@ -467,6 +483,10 @@ def generate_waveforms(
                 ]
                 for phase, values in phase_inverter_average_voltage_targets_v.items()
             },
+            "npc_level_duty_method": "nearest_zero_level_three_level_average_voltage_mapping",
+            "npc_switching_sequence_method": "center_aligned_zero_to_active_to_zero",
+            "npc_level_duties": phase_npc_level_duties,
+            "npc_candidate_switching_sequences": phase_npc_candidate_sequences,
             "operating_power_factor": operating_power_factor,
             "operating_active_power_w": pout_w,
             "operating_i_phase_rms_a": i_phase_rms_a,
@@ -693,6 +713,39 @@ def _required_average_inverter_voltage_by_switching_period(
         ) / duration_s
         targets.append(min(max(required_v, -voltage_limit_v), voltage_limit_v))
     return targets
+
+
+def _npc_level_duty_cycles(
+    average_voltage_v: float,
+    half_bus_voltage_v: float,
+) -> tuple[float, float, float]:
+    """Map a bounded average phase voltage to NPC level duties."""
+
+    if half_bus_voltage_v <= 0.0:
+        return 0.0, 1.0, 0.0
+    normalized = min(max(float(average_voltage_v) / half_bus_voltage_v, -1.0), 1.0)
+    if normalized >= 0.0:
+        return normalized, 1.0 - normalized, 0.0
+    return 0.0, 1.0 + normalized, -normalized
+
+
+def _center_aligned_npc_sequence(
+    d_plus: float,
+    d_zero: float,
+    d_minus: float,
+) -> list[dict[str, float]]:
+    """Return a zero-centered legal NPC state sequence for one switching period."""
+
+    active_state = 1.0 if d_plus >= d_minus else -1.0
+    active_duty = max(d_plus, d_minus)
+    half_zero_duty = max(d_zero, 0.0) / 2.0
+    if active_duty <= 1e-15:
+        return [{"state": 0.0, "duty": 1.0}]
+    return [
+        {"state": 0.0, "duty": half_zero_duty},
+        {"state": active_state, "duty": active_duty},
+        {"state": 0.0, "duty": half_zero_duty},
+    ]
 
 
 def _npc_operating_contract(
