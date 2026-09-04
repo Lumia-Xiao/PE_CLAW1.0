@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-04 NPC 电感电流波形修正计划第一步基线
+
+- 新增 `scripts/record_npc_step1_baseline.py`，采集当前三相三电平 NPC 默认输入下的接口、波形、周期修正和开关事件基线。
+- 新增 `tests/test_npc_step1_baseline.py`，验证基线可重复、NPC 波形字段完整且 JSON 可序列化。
+- 测试临时输出约束为工程根目录 `pytest_temp`；设计结果目录 `outputs/` 不写入基线工具。
+- 未修改 NPC 电流计算、GUI 输入或损耗公式。
+- 验证和 Git 回执：待第一步测试、commit、push 完成后回填。
+
 ## 2026-09-04 NPC 计划全量回归与收口
 
 - 更新 NPC 目标集成测试，使连续工频电流波形的角色最大应力成为测试依据，不再使用连续积分修复前的历史开关峰值。
