@@ -256,6 +256,17 @@ def generate_waveforms(
     )
     upper_dc_link_voltage_v = [half_bus_v + value for value in upper_dc_link_ripple_v]
     lower_dc_link_voltage_v = [half_bus_v + value for value in lower_dc_link_ripple_v]
+    npc_switching_events = _extract_npc_switching_events(
+        time_s=time_s,
+        phase_currents_a=(ia_a, ib_a, ic_a),
+        gates={
+            "a_s1": gate_a_s1, "a_s2": gate_a_s2, "a_s3": gate_a_s3, "a_s4": gate_a_s4,
+            "b_s1": gate_b_s1, "b_s2": gate_b_s2, "b_s3": gate_b_s3, "b_s4": gate_b_s4,
+            "c_s1": gate_c_s1, "c_s2": gate_c_s2, "c_s3": gate_c_s3, "c_s4": gate_c_s4,
+        },
+        upper_dc_link_voltage_v=upper_dc_link_voltage_v,
+        lower_dc_link_voltage_v=lower_dc_link_voltage_v,
+    )
     all_phase_currents = [*ia_a, *ib_a, *ic_a]
     local_phase_current_pp_a = [
         value
@@ -414,6 +425,8 @@ def generate_waveforms(
             "phase_current_integration_method": "continuous_trapezoidal_voltage_integration_over_one_line_cycle",
             "phase_current_periodic_correction_applied": True,
             "phase_current_periodic_correction_a": phase_current_periodic_corrections_a,
+            "three_phase_npc_switching_events": npc_switching_events,
+            "three_phase_npc_switching_event_count": len(npc_switching_events),
             "operating_ccm_valid": operating_ccm_valid,
             "operating_ccm_validity_basis": "predicted_max_local_phase_current_pp_below_twice_fundamental_peak",
             "three_phase_npc_device_currents": device_currents,
@@ -472,6 +485,57 @@ def _npc_gate_state(state: float) -> tuple[float, float, float, float]:
     if state < -0.5:
         return 0.0, 0.0, 1.0, 1.0
     return 0.0, 1.0, 1.0, 0.0
+
+
+def _extract_npc_switching_events(
+    *,
+    time_s: list[float],
+    phase_currents_a: tuple[list[float], list[float], list[float]],
+    gates: dict[str, list[float]],
+    upper_dc_link_voltage_v: list[float],
+    lower_dc_link_voltage_v: list[float],
+) -> list[dict[str, float | int | str]]:
+    """Extract interpolated switching events from the sampled NPC waveforms."""
+
+    phase_names = ("a", "b", "c")
+    phase_indices = {name: index for index, name in enumerate(phase_names)}
+    events: list[dict[str, float | int | str]] = []
+    for branch_name, gate in gates.items():
+        phase_name, switch_text = branch_name.split("_s", maxsplit=1)
+        switch_index = int(switch_text)
+        phase_current = phase_currents_a[phase_indices[phase_name]]
+        for index in range(1, min(len(time_s), len(gate), len(phase_current), len(upper_dc_link_voltage_v), len(lower_dc_link_voltage_v))):
+            previous_gate = float(gate[index - 1])
+            current_gate = float(gate[index])
+            if previous_gate == current_gate:
+                continue
+            delta_gate = current_gate - previous_gate
+            interpolation = (0.5 - previous_gate) / delta_gate
+            interpolation = min(max(interpolation, 0.0), 1.0)
+            event_time_s = _interpolate(time_s[index - 1], time_s[index], interpolation)
+            signed_current_a = _interpolate(phase_current[index - 1], phase_current[index], interpolation)
+            blocking_waveform = upper_dc_link_voltage_v if switch_index in (1, 2) else lower_dc_link_voltage_v
+            blocking_voltage_v = abs(
+                _interpolate(blocking_waveform[index - 1], blocking_waveform[index], interpolation)
+            )
+            events.append(
+                {
+                    "phase": phase_name,
+                    "switch_index": switch_index,
+                    "role": "outer_switch" if switch_index in (1, 4) else "inner_switch",
+                    "event_type": "turn_on" if delta_gate > 0.0 else "turn_off",
+                    "event_time_s": event_time_s,
+                    "signed_current_A": signed_current_a,
+                    "absolute_current_A": abs(signed_current_a),
+                    "blocking_voltage_V": blocking_voltage_v,
+                }
+            )
+    events.sort(key=lambda event: (float(event["event_time_s"]), str(event["phase"]), int(event["switch_index"])))
+    return events
+
+
+def _interpolate(previous: float, current: float, fraction: float) -> float:
+    return float(previous) + (float(current) - float(previous)) * float(fraction)
 
 
 def _npc_operating_contract(

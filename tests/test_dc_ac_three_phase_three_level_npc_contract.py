@@ -92,6 +92,24 @@ def test_npc_waveform_contains_pd_spwm_three_level_signals_and_split_link_data()
     assert len(waveform.metadata["phase_current_periodic_correction_a"]) == 3
 
 
+def test_npc_waveform_extracts_interpolated_events_for_all_switch_positions() -> None:
+    plugin = _plugin()
+    candidate = plugin.synthesize(plugin.build_spec(MODULE.build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    events = waveform.metadata["three_phase_npc_switching_events"]
+
+    assert events
+    assert waveform.metadata["three_phase_npc_switching_event_count"] == len(events)
+    assert {(event["phase"], event["switch_index"]) for event in events} == {
+        (phase, switch_index) for phase in ("a", "b", "c") for switch_index in range(1, 5)
+    }
+    assert {event["event_type"] for event in events} == {"turn_on", "turn_off"}
+    assert all(0.0 <= event["event_time_s"] <= waveform.time_span_s for event in events)
+    assert all(event["absolute_current_A"] == pytest.approx(abs(event["signed_current_A"])) for event in events)
+    assert all(event["blocking_voltage_V"] > 0.0 for event in events)
+    assert len({round(event["signed_current_A"], 9) for event in events}) > 10
+
+
 def test_npc_phase_current_integrates_continuously_across_pwm_boundaries() -> None:
     time_s = [index * 0.1 for index in range(9)]
     voltage_v = [1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0]

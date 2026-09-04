@@ -66,7 +66,7 @@ NPC 现有输入字段保持为：
 
 ### 步骤 2：提取实际的 NPC 开关事件
 
-状态：待执行
+状态：已完成
 
 修改文件：
 
@@ -216,7 +216,7 @@ NPC 现有输入字段保持为：
 | 步骤 | 状态 | 验证 | commit | push |
 |---|---|---|---|---|
 | 1 | 已完成 | NPC 契约 11 passed；受影响 DC-AC 回归 20 passed；compileall 和 `git diff --check` 通过 | `12f1180` (`fix: integrate NPC phase current continuously`) | 已成功推送，远端 HEAD：`12f1180da9bde5193ad8a944bc0f8fc00497a314` |
-| 2 | 待执行 | 待执行 | 待记录 | 待记录 |
+| 2 | 已完成 | NPC 契约 12 passed；受影响 DC-AC 回归 21 passed；compileall 和 `git diff --check` 通过 | 待记录 | 待记录 |
 | 3 | 待执行 | 待执行 | 待记录 | 待记录 |
 | 4 | 待执行 | 待执行 | 待记录 | 待记录 |
 | 5 | 待执行 | 待执行 | 待记录 | 待记录 |

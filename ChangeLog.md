@@ -17,6 +17,14 @@
 - 验证：NPC 契约测试 `11 passed`；受影响 DC-AC 回归 `20 passed`；`compileall` 和 `git diff --check` 通过。
 - Git：本步骤 commit `12f1180da9bde5193ad8a944bc0f8fc00497a314` 已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对一致。
 
+## 2026-09-04 NPC 实际开关事件提取
+
+- 在 `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_npc_inverter/waveform.py` 增加 12 路有源开关的门极边沿提取。
+- 对事件时间、三相有符号电感电流和上下分裂母线阻断电压进行线性插值，写入现有 waveform metadata。
+- 保持 GUI 用户输入不变，未新增字段。
+- 验证：NPC 契约测试 `12 passed`；受影响 DC-AC 回归 `21 passed`；`compileall` 和 `git diff --check` 通过。
+- Git：本步骤 commit 和 push 待完成，完成后回填本计划记录。
+
 This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
