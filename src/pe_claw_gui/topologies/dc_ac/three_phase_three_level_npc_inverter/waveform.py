@@ -213,6 +213,22 @@ def generate_waveforms(
         )
     ]
     ia_a, ib_a, ic_a = phase_current_a
+    phase_inverter_average_voltage_targets_v = {
+        phase: _required_average_inverter_voltage_by_switching_period(
+            time_s=time_s,
+            grid_phase_voltage_v=grid_phase_voltage_v,
+            actual_current_a=actual_current_a,
+            reference_average_a=phase_current_reference_average_a[phase],
+            inductance_h=float(candidate.inductance_h),
+            samples_per_switching_period=SAMPLES_PER_SWITCHING_PERIOD,
+            voltage_limit_v=half_bus_v,
+        )
+        for phase, grid_phase_voltage_v, actual_current_a in (
+            ("a", va_phase_v, ia_a),
+            ("b", vb_phase_v, ib_a),
+            ("c", vc_phase_v, ic_a),
+        )
+    }
     phase_ripple_a = [
         [current - fundamental for current, fundamental in zip(phase_current, fundamental_current, strict=True)]
         for phase_current, fundamental_current in zip(
@@ -352,6 +368,9 @@ def generate_waveforms(
         "ia_reference_average_a": phase_current_reference_average_a["a"],
         "ib_reference_average_a": phase_current_reference_average_a["b"],
         "ic_reference_average_a": phase_current_reference_average_a["c"],
+        "va_inverter_average_target_v": phase_inverter_average_voltage_targets_v["a"],
+        "vb_inverter_average_target_v": phase_inverter_average_voltage_targets_v["b"],
+        "vc_inverter_average_target_v": phase_inverter_average_voltage_targets_v["c"],
         "ia_a": ia_a,
         "ib_a": ib_a,
         "ic_a": ic_a,
@@ -436,6 +455,18 @@ def generate_waveforms(
             "phase_current_reference_average_time_s": phase_current_reference_average_time_s,
             "phase_current_reference_average_a": phase_current_reference_average_a,
             "phase_current_reference_average_count": len(phase_current_reference_average_time_s),
+            "phase_inverter_average_voltage_target_method": (
+                "time_average_grid_voltage_plus_2L_over_Tsw_average_current_error"
+            ),
+            "phase_inverter_average_voltage_target_v": phase_inverter_average_voltage_targets_v,
+            "phase_inverter_average_voltage_target_limit_v": half_bus_v,
+            "phase_inverter_average_voltage_target_saturated": {
+                phase: [
+                    abs(value) >= half_bus_v - 1e-12
+                    for value in values
+                ]
+                for phase, values in phase_inverter_average_voltage_targets_v.items()
+            },
             "operating_power_factor": operating_power_factor,
             "operating_active_power_w": pout_w,
             "operating_i_phase_rms_a": i_phase_rms_a,
@@ -611,6 +642,57 @@ def _time_average_by_switching_period(
         )
         averages.append(area / duration_s)
     return averages
+
+
+def _required_average_inverter_voltage_by_switching_period(
+    *,
+    time_s: list[float],
+    grid_phase_voltage_v: list[float],
+    actual_current_a: list[float],
+    reference_average_a: list[float],
+    inductance_h: float,
+    samples_per_switching_period: int,
+    voltage_limit_v: float,
+) -> list[float]:
+    """Estimate the bounded average inverter voltage needed per switching period.
+
+    With an ideal inductor and an approximately constant inverter voltage over
+    one switching period, the period-average current is
+    ``i_start + (v_inv_avg - v_grid_avg) * Tsw / (2 * L)``.
+    """
+
+    if (
+        len(time_s) != len(grid_phase_voltage_v)
+        or len(time_s) != len(actual_current_a)
+        or inductance_h <= 0.0
+        or samples_per_switching_period <= 1
+        or voltage_limit_v <= 0.0
+    ):
+        return []
+    cycle_count = min(
+        (len(time_s) - 1) // samples_per_switching_period,
+        len(reference_average_a),
+    )
+    targets: list[float] = []
+    for cycle in range(cycle_count):
+        start = cycle * samples_per_switching_period
+        end = (cycle + 1) * samples_per_switching_period
+        duration_s = time_s[end] - time_s[start]
+        if duration_s <= 0.0:
+            targets.append(0.0)
+            continue
+        grid_area_v_s = sum(
+            0.5
+            * (grid_phase_voltage_v[index - 1] + grid_phase_voltage_v[index])
+            * (time_s[index] - time_s[index - 1])
+            for index in range(start + 1, end + 1)
+        )
+        grid_average_v = grid_area_v_s / duration_s
+        required_v = grid_average_v + 2.0 * inductance_h * (
+            reference_average_a[cycle] - actual_current_a[start]
+        ) / duration_s
+        targets.append(min(max(required_v, -voltage_limit_v), voltage_limit_v))
+    return targets
 
 
 def _npc_operating_contract(
