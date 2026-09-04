@@ -204,18 +204,18 @@ NPC 现有输入字段保持为：
 
 ### 计划切换
 
-- 状态：进行中
+- 状态：已完成
 - 旧计划：`Plan/Active/three_phase_three_level_npc_revision_plan.md`
 - 新计划：`Plan/Active/three_phase_three_level_npc_switching_loss_plan.md`
 - 说明：旧的九步综合整改计划由本最小实现计划替代；不删除任何输出结果。
-- commit：待记录
-- push：待记录
+- commit：`efd7bcd` (`docs: define NPC switching loss minimum plan`)
+- push：已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对为 `efd7bcdca909933dc902311ef4c109993bde9b6f`
 
 ### 步骤 1 至步骤 6
 
 | 步骤 | 状态 | 验证 | commit | push |
 |---|---|---|---|---|
-| 1 | 待执行 | 待执行 | 待记录 | 待记录 |
+| 1 | 已完成 | NPC 契约 11 passed；受影响 DC-AC 回归 20 passed；compileall 和 `git diff --check` 通过 | 待记录 | 待记录 |
 | 2 | 待执行 | 待执行 | 待记录 | 待记录 |
 | 3 | 待执行 | 待执行 | 待记录 | 待记录 |
 | 4 | 待执行 | 待执行 | 待记录 | 待记录 |

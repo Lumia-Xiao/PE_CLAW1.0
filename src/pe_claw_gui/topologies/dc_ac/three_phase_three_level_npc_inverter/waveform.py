@@ -178,6 +178,7 @@ def generate_waveforms(
         ib_fundamental_a.append(ib)
         ic_fundamental_a.append(ic)
 
+    phase_current_periodic_corrections_a: list[float] = []
     phase_current_a = [
         _integrate_phase_current_by_cycle(
             time_s,
@@ -186,6 +187,7 @@ def generate_waveforms(
             fundamental_current_a,
             float(candidate.inductance_h),
             SAMPLES_PER_SWITCHING_PERIOD,
+            correction_report=phase_current_periodic_corrections_a,
         )
         for phase_neutral_pwm_v, grid_phase_voltage_v, fundamental_current_a in (
             (va_phase_neutral_pwm_v, va_phase_v, ia_fundamental_a),
@@ -409,6 +411,9 @@ def generate_waveforms(
             "phase_inductor_voltage_reference": "npc_pole_minus_three_phase_pole_average_to_grid_phase_neutral",
             "phase_inductor_ripple_measurement_window": "one_fundamental_period_all_three_phases",
             "phase_inductor_ripple_bin_semantics": "[k*Tsw,(k+1)*Tsw), matching the reviewed runner",
+            "phase_current_integration_method": "continuous_trapezoidal_voltage_integration_over_one_line_cycle",
+            "phase_current_periodic_correction_applied": True,
+            "phase_current_periodic_correction_a": phase_current_periodic_corrections_a,
             "operating_ccm_valid": operating_ccm_valid,
             "operating_ccm_validity_basis": "predicted_max_local_phase_current_pp_below_twice_fundamental_peak",
             "three_phase_npc_device_currents": device_currents,
@@ -515,8 +520,17 @@ def _integrate_phase_current_by_cycle(
     fundamental_current_a: list[float],
     inductance_h: float,
     samples_per_switching_period: int,
+    *,
+    correction_report: list[float] | None = None,
 ) -> list[float]:
-    """Integrate the three-wire phase-inductor equation within each PWM period."""
+    """Integrate the phase-inductor equation continuously over one line cycle.
+
+    The historical implementation re-anchored the current to the fundamental
+    value at every PWM boundary.  That made the current at switching events a
+    fundamental-only proxy.  Integrate the full sampled voltage waveform once,
+    then apply a linear end-point correction so the preview remains periodic
+    without removing the switching ripple.
+    """
 
     if (
         len(time_s) != len(phase_neutral_pwm_v)
@@ -526,20 +540,27 @@ def _integrate_phase_current_by_cycle(
         or inductance_h <= 0.0
         or samples_per_switching_period <= 1
     ):
+        if correction_report is not None:
+            correction_report.append(0.0)
         return [0.0 for _ in time_s]
-    current = list(fundamental_current_a)
-    cycle_count = math.ceil((len(time_s) - 1) / samples_per_switching_period)
-    for cycle in range(cycle_count):
-        start = cycle * samples_per_switching_period
-        end = min(start + samples_per_switching_period, len(time_s) - 1)
-        current[start] = fundamental_current_a[start]
-        for index in range(start + 1, end + 1):
-            dt_s = time_s[index] - time_s[index - 1]
-            slope_previous = (
-                phase_neutral_pwm_v[index - 1] - grid_phase_voltage_v[index - 1]
-            ) / inductance_h
-            slope_now = (phase_neutral_pwm_v[index] - grid_phase_voltage_v[index]) / inductance_h
-            current[index] = current[index - 1] + 0.5 * (slope_previous + slope_now) * dt_s
+    current = [0.0 for _ in time_s]
+    current[0] = fundamental_current_a[0]
+    for index in range(1, len(time_s)):
+        dt_s = time_s[index] - time_s[index - 1]
+        slope_previous = (
+            phase_neutral_pwm_v[index - 1] - grid_phase_voltage_v[index - 1]
+        ) / inductance_h
+        slope_now = (phase_neutral_pwm_v[index] - grid_phase_voltage_v[index]) / inductance_h
+        current[index] = current[index - 1] + 0.5 * (slope_previous + slope_now) * dt_s
+
+    line_span_s = time_s[-1] - time_s[0]
+    periodic_correction_a = 0.0
+    if line_span_s > 0.0:
+        periodic_correction_a = current[-1] - fundamental_current_a[-1]
+        for index, t_s in enumerate(time_s):
+            current[index] -= periodic_correction_a * ((t_s - time_s[0]) / line_span_s)
+    if correction_report is not None:
+        correction_report.append(periodic_correction_a)
     return current
 
 

@@ -9,6 +9,14 @@
 - 本次仅变更计划文档，未修改计算代码，未删除 `outputs/` 或其他用户生成结果。
 - 验证：计划文件切换和工作区边界检查通过；待本计划切换提交后记录 commit/push 回执。
 
+## 2026-09-04 NPC 连续工频电流波形
+
+- 修正 `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_npc_inverter/waveform.py`，使 NPC 相电感电流在整个工频周期连续积分，不再在每个 PWM 周期重新锚定基波电流。
+- 增加周期稳态线性修正及其 metadata 审计字段，保留开关纹波和原有用户输入契约。
+- 增加 NPC 连续积分边界测试。
+- 验证：NPC 契约测试 `11 passed`；受影响 DC-AC 回归 `20 passed`；`compileall` 和 `git diff --check` 通过。
+- Git：本步骤 commit 和 push 待完成，完成后回填本计划记录。
+
 This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.

@@ -17,6 +17,9 @@ from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
 from pe_claw_gui.topologies.base.registry import build_default_registry
+from pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter.waveform import (
+    _integrate_phase_current_by_cycle,
+)
 
 
 TOPOLOGY_ID = "three_phase_three_level_npc_inverter"
@@ -84,6 +87,30 @@ def test_npc_waveform_contains_pd_spwm_three_level_signals_and_split_link_data()
     assert waveform.metadata["lower_dc_link_capacitor_current_rms_pwm_a"] > 0.0
     assert waveform.metadata["npc_neutral_point_current_rms_a"] > 0.0
     assert waveform.metadata["line_line_voltage_phase_shift_deg"] == pytest.approx(30.0)
+    assert waveform.metadata["phase_current_integration_method"].startswith("continuous_")
+    assert waveform.metadata["phase_current_periodic_correction_applied"] is True
+    assert len(waveform.metadata["phase_current_periodic_correction_a"]) == 3
+
+
+def test_npc_phase_current_integrates_continuously_across_pwm_boundaries() -> None:
+    time_s = [index * 0.1 for index in range(9)]
+    voltage_v = [1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0]
+    grid_v = [0.0] * len(time_s)
+    fundamental_a = [0.0] * len(time_s)
+
+    current_a = _integrate_phase_current_by_cycle(
+        time_s,
+        voltage_v,
+        grid_v,
+        fundamental_a,
+        inductance_h=1.0,
+        samples_per_switching_period=2,
+    )
+
+    assert current_a[2] != pytest.approx(fundamental_a[2])
+    assert current_a[2] == pytest.approx(current_a[1])
+    assert current_a[-1] == pytest.approx(fundamental_a[-1])
+    assert max(current_a) - min(current_a) > 0.0
 
 
 def test_npc_stress_preserves_outer_inner_and_clamp_roles() -> None:
