@@ -215,7 +215,7 @@ NPC 现有输入字段保持为：
 
 | 步骤 | 状态 | 验证 | commit | push |
 |---|---|---|---|---|
-| 1 | 已完成 | NPC 契约 11 passed；受影响 DC-AC 回归 20 passed；compileall 和 `git diff --check` 通过 | 待记录 | 待记录 |
+| 1 | 已完成 | NPC 契约 11 passed；受影响 DC-AC 回归 20 passed；compileall 和 `git diff --check` 通过 | `12f1180` (`fix: integrate NPC phase current continuously`) | 已成功推送，远端 HEAD：`12f1180da9bde5193ad8a944bc0f8fc00497a314` |
 | 2 | 待执行 | 待执行 | 待记录 | 待记录 |
 | 3 | 待执行 | 待执行 | 待记录 | 待记录 |
 | 4 | 待执行 | 待执行 | 待记录 | 待记录 |
