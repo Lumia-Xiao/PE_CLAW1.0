@@ -195,54 +195,32 @@ def generate_waveforms(
         )
     }
 
-    phase_current_periodic_corrections_a: list[float] = []
-    phase_current_a = [
-        _integrate_phase_current_by_cycle(
-            time_s,
-            phase_neutral_pwm_v,
-            grid_phase_voltage_v,
-            fundamental_current_a,
-            float(candidate.inductance_h),
-            SAMPLES_PER_SWITCHING_PERIOD,
-            correction_report=phase_current_periodic_corrections_a,
-        )
-        for phase_neutral_pwm_v, grid_phase_voltage_v, fundamental_current_a in (
-            (va_phase_neutral_pwm_v, va_phase_v, ia_fundamental_a),
-            (vb_phase_neutral_pwm_v, vb_phase_v, ib_fundamental_a),
-            (vc_phase_neutral_pwm_v, vc_phase_v, ic_fundamental_a),
-        )
-    ]
+    event_simulation = _simulate_npc_event_segmented_currents(
+        time_s=time_s,
+        phase_grid_voltage_v=(va_phase_v, vb_phase_v, vc_phase_v),
+        phase_current_reference_a=(ia_fundamental_a, ib_fundamental_a, ic_fundamental_a),
+        phase_current_reference_average_a=phase_current_reference_average_a,
+        inductance_h=float(candidate.inductance_h),
+        grid_voltage_peak_v=vac_phase_peak_v,
+        line_frequency_hz=f_line_hz,
+        half_bus_voltage_v=half_bus_v,
+        samples_per_switching_period=SAMPLES_PER_SWITCHING_PERIOD,
+    )
+    phase_current_periodic_corrections_a = [0.0, 0.0, 0.0]
+    phase_current_a = event_simulation["phase_currents_a"]
     ia_a, ib_a, ic_a = phase_current_a
-    phase_inverter_average_voltage_targets_v = {
-        phase: _required_average_inverter_voltage_by_switching_period(
-            time_s=time_s,
-            grid_phase_voltage_v=grid_phase_voltage_v,
-            actual_current_a=actual_current_a,
-            reference_average_a=phase_current_reference_average_a[phase],
-            inductance_h=float(candidate.inductance_h),
-            samples_per_switching_period=SAMPLES_PER_SWITCHING_PERIOD,
-            voltage_limit_v=half_bus_v,
-        )
-        for phase, grid_phase_voltage_v, actual_current_a in (
-            ("a", va_phase_v, ia_a),
-            ("b", vb_phase_v, ib_a),
-            ("c", vc_phase_v, ic_a),
-        )
-    }
-    phase_npc_level_duties = {
-        phase: [
-            _npc_level_duty_cycles(value, half_bus_v)
-            for value in values
-        ]
-        for phase, values in phase_inverter_average_voltage_targets_v.items()
-    }
-    phase_npc_candidate_sequences = {
-        phase: [
-            _center_aligned_npc_sequence(d_plus, d_zero, d_minus)
-            for d_plus, d_zero, d_minus in duties
-        ]
-        for phase, duties in phase_npc_level_duties.items()
-    }
+    phase_state_a, phase_state_b, phase_state_c = event_simulation["phase_states"]
+    gate_a_s1, gate_a_s2, gate_a_s3, gate_a_s4 = event_simulation["gates"]["a"]
+    gate_b_s1, gate_b_s2, gate_b_s3, gate_b_s4 = event_simulation["gates"]["b"]
+    gate_c_s1, gate_c_s2, gate_c_s3, gate_c_s4 = event_simulation["gates"]["c"]
+    va_pole_v, vb_pole_v, vc_pole_v = event_simulation["pole_voltages_v"]
+    vab_pwm_v, vbc_pwm_v, vca_pwm_v = event_simulation["line_line_pwm_v"]
+    va_phase_neutral_pwm_v, vb_phase_neutral_pwm_v, vc_phase_neutral_pwm_v = event_simulation[
+        "phase_neutral_pwm_v"
+    ]
+    phase_inverter_average_voltage_targets_v = event_simulation["average_voltage_targets_v"]
+    phase_npc_level_duties = event_simulation["level_duties"]
+    phase_npc_candidate_sequences = event_simulation["candidate_sequences"]
     phase_ripple_a = [
         [current - fundamental for current, fundamental in zip(phase_current, fundamental_current, strict=True)]
         for phase_current, fundamental_current in zip(
@@ -487,6 +465,12 @@ def generate_waveforms(
             "npc_switching_sequence_method": "center_aligned_zero_to_active_to_zero",
             "npc_level_duties": phase_npc_level_duties,
             "npc_candidate_switching_sequences": phase_npc_candidate_sequences,
+            "npc_unified_event_timeline": event_simulation["event_timeline"],
+            "npc_unified_event_count": len(event_simulation["event_timeline"]),
+            "npc_event_segment_count": event_simulation["segment_count"],
+            "npc_event_current_integration_method": (
+                "piecewise_constant_npc_state_with_exact_sinusoidal_grid_voltage_integral"
+            ),
             "operating_power_factor": operating_power_factor,
             "operating_active_power_w": pout_w,
             "operating_i_phase_rms_a": i_phase_rms_a,
@@ -506,8 +490,10 @@ def generate_waveforms(
             "phase_inductor_voltage_reference": "npc_pole_minus_three_phase_pole_average_to_grid_phase_neutral",
             "phase_inductor_ripple_measurement_window": "one_fundamental_period_all_three_phases",
             "phase_inductor_ripple_bin_semantics": "[k*Tsw,(k+1)*Tsw), matching the reviewed runner",
-            "phase_current_integration_method": "continuous_trapezoidal_voltage_integration_over_one_line_cycle",
-            "phase_current_periodic_correction_applied": True,
+            "phase_current_integration_method": (
+                "continuous_event_segmented_exact_grid_integral_over_one_line_cycle"
+            ),
+            "phase_current_periodic_correction_applied": False,
             "phase_current_periodic_correction_a": phase_current_periodic_corrections_a,
             "three_phase_npc_switching_events": npc_switching_events,
             "three_phase_npc_switching_event_count": len(npc_switching_events),
@@ -713,6 +699,311 @@ def _required_average_inverter_voltage_by_switching_period(
         ) / duration_s
         targets.append(min(max(required_v, -voltage_limit_v), voltage_limit_v))
     return targets
+
+
+def _simulate_npc_event_segmented_currents(
+    *,
+    time_s: list[float],
+    phase_grid_voltage_v: tuple[list[float], list[float], list[float]],
+    phase_current_reference_a: tuple[list[float], list[float], list[float]],
+    phase_current_reference_average_a: dict[str, list[float]],
+    inductance_h: float,
+    grid_voltage_peak_v: float,
+    line_frequency_hz: float,
+    half_bus_voltage_v: float,
+    samples_per_switching_period: int,
+) -> dict[str, object]:
+    """Simulate three-phase NPC currents on one unified switching-event timeline."""
+
+    phase_names = ("a", "b", "c")
+    phase_angles = (0.0, -2.0 * math.pi / 3.0, 2.0 * math.pi / 3.0)
+    empty = {
+        "phase_currents_a": ([], [], []),
+        "phase_states": ([], [], []),
+        "gates": {phase: ([], [], [], []) for phase in phase_names},
+        "pole_voltages_v": ([], [], []),
+        "line_line_pwm_v": ([], [], []),
+        "phase_neutral_pwm_v": ([], [], []),
+        "average_voltage_targets_v": {phase: [] for phase in phase_names},
+        "level_duties": {phase: [] for phase in phase_names},
+        "candidate_sequences": {phase: [] for phase in phase_names},
+        "event_timeline": [],
+        "segment_count": 0,
+    }
+    if (
+        len(time_s) < 2
+        or inductance_h <= 0.0
+        or grid_voltage_peak_v <= 0.0
+        or line_frequency_hz <= 0.0
+        or half_bus_voltage_v <= 0.0
+        or samples_per_switching_period <= 1
+    ):
+        return empty
+    cycle_count = min(
+        (len(time_s) - 1) // samples_per_switching_period,
+        *(len(values) for values in phase_current_reference_average_a.values()),
+    )
+    if cycle_count <= 0:
+        return empty
+
+    phase_current_at_cycle_start = [
+        phase_current_reference_a[index][0]
+        for index in range(3)
+    ]
+    segments: list[dict[str, object]] = []
+    target_voltages = {phase: [] for phase in phase_names}
+    level_duties = {phase: [] for phase in phase_names}
+    candidate_sequences = {phase: [] for phase in phase_names}
+    for cycle in range(cycle_count):
+        start_index = cycle * samples_per_switching_period
+        end_index = (cycle + 1) * samples_per_switching_period
+        cycle_start_s = time_s[start_index]
+        cycle_end_s = time_s[end_index]
+        switching_period_s = cycle_end_s - cycle_start_s
+        if switching_period_s <= 0.0:
+            continue
+        cycle_sequences: dict[str, list[dict[str, float]]] = {}
+        for phase_index, phase in enumerate(phase_names):
+            grid_average_v = _sinusoidal_voltage_average(
+                grid_voltage_peak_v,
+                line_frequency_hz,
+                phase_angles[phase_index],
+                cycle_start_s,
+                cycle_end_s,
+            )
+            target_v = grid_average_v + 2.0 * inductance_h * (
+                phase_current_reference_average_a[phase][cycle] - phase_current_at_cycle_start[phase_index]
+            ) / switching_period_s
+            target_v = min(max(target_v, -half_bus_voltage_v), half_bus_voltage_v)
+            duties = _npc_level_duty_cycles(target_v, half_bus_voltage_v)
+            sequence = _center_aligned_npc_sequence(*duties)
+            target_voltages[phase].append(target_v)
+            level_duties[phase].append(duties)
+            candidate_sequences[phase].append(sequence)
+            cycle_sequences[phase] = sequence
+
+        boundaries = {cycle_start_s, cycle_end_s}
+        for sequence in cycle_sequences.values():
+            cursor = cycle_start_s
+            for segment in sequence[:-1]:
+                cursor += float(segment["duty"]) * switching_period_s
+                boundaries.add(cursor)
+        ordered_boundaries = sorted(boundaries)
+        for left_s, right_s in zip(ordered_boundaries, ordered_boundaries[1:]):
+            if right_s - left_s <= 1e-15:
+                continue
+            midpoint_s = 0.5 * (left_s + right_s)
+            states = tuple(
+                _sequence_state_at_time(sequence, cycle_start_s, switching_period_s, midpoint_s)
+                for sequence in (cycle_sequences[phase] for phase in phase_names)
+            )
+            pole_voltages = tuple(state * half_bus_voltage_v for state in states)
+            common_mode_v = sum(pole_voltages) / 3.0
+            phase_neutral = tuple(value - common_mode_v for value in pole_voltages)
+            start_currents = tuple(phase_current_at_cycle_start)
+            end_currents = tuple(
+                start_current
+                + (
+                    phase_neutral[phase_index] * (right_s - left_s)
+                    - _sinusoidal_voltage_integral(
+                        grid_voltage_peak_v,
+                        line_frequency_hz,
+                        phase_angles[phase_index],
+                        left_s,
+                        right_s,
+                    )
+                )
+                / inductance_h
+                for phase_index, start_current in enumerate(start_currents)
+            )
+            segments.append(
+                {
+                    "start_time_s": left_s,
+                    "end_time_s": right_s,
+                    "states": states,
+                    "pole_voltages_v": pole_voltages,
+                    "phase_neutral_voltages_v": phase_neutral,
+                    "start_currents_a": start_currents,
+                    "end_currents_a": end_currents,
+                }
+            )
+            phase_current_at_cycle_start = list(end_currents)
+
+        # The loop above advances through several segments, so the final
+        # segment end is the initial condition for the next switching period.
+        if segments:
+            phase_current_at_cycle_start = list(segments[-1]["end_currents_a"])
+
+    if not segments:
+        return empty
+    event_times = sorted({float(value) for segment in segments for value in (
+        segment["start_time_s"], segment["end_time_s"]
+    )})
+    phase_currents = tuple(
+        [_current_at_event_time(segments, phase_index, event_time, inductance_h, grid_voltage_peak_v, line_frequency_hz, phase_angles[phase_index]) for event_time in event_times]
+        for phase_index in range(3)
+    )
+    sampled = _sample_npc_event_segments(
+        time_s=time_s,
+        segments=segments,
+        inductance_h=inductance_h,
+        grid_voltage_peak_v=grid_voltage_peak_v,
+        line_frequency_hz=line_frequency_hz,
+        phase_angles=phase_angles,
+        half_bus_voltage_v=half_bus_voltage_v,
+    )
+    timeline = [
+        {
+            "time_s": float(event_time),
+            "states": list(_states_at_event_time(segments, event_time)),
+        }
+        for event_time in event_times
+    ]
+    return {
+        "phase_currents_a": sampled["phase_currents_a"],
+        "phase_states": sampled["phase_states"],
+        "gates": sampled["gates"],
+        "pole_voltages_v": sampled["pole_voltages_v"],
+        "line_line_pwm_v": sampled["line_line_pwm_v"],
+        "phase_neutral_pwm_v": sampled["phase_neutral_pwm_v"],
+        "average_voltage_targets_v": target_voltages,
+        "level_duties": level_duties,
+        "candidate_sequences": candidate_sequences,
+        "event_timeline": timeline,
+        "segment_count": len(segments),
+    }
+
+
+def _sequence_state_at_time(
+    sequence: list[dict[str, float]],
+    cycle_start_s: float,
+    switching_period_s: float,
+    time_s: float,
+) -> float:
+    elapsed_s = min(max(time_s - cycle_start_s, 0.0), switching_period_s)
+    cursor_s = 0.0
+    for segment in sequence:
+        cursor_s += float(segment["duty"]) * switching_period_s
+        if elapsed_s <= cursor_s + 1e-15:
+            return float(segment["state"])
+    return float(sequence[-1]["state"])
+
+
+def _sinusoidal_voltage_integral(
+    peak_v: float,
+    frequency_hz: float,
+    phase_rad: float,
+    start_s: float,
+    end_s: float,
+) -> float:
+    omega = 2.0 * math.pi * frequency_hz
+    return peak_v * (math.cos(omega * start_s + phase_rad) - math.cos(omega * end_s + phase_rad)) / omega
+
+
+def _sinusoidal_voltage_average(
+    peak_v: float,
+    frequency_hz: float,
+    phase_rad: float,
+    start_s: float,
+    end_s: float,
+) -> float:
+    duration_s = end_s - start_s
+    if duration_s <= 0.0:
+        return 0.0
+    return _sinusoidal_voltage_integral(peak_v, frequency_hz, phase_rad, start_s, end_s) / duration_s
+
+
+def _current_at_event_time(
+    segments: list[dict[str, object]],
+    phase_index: int,
+    time_s: float,
+    inductance_h: float,
+    grid_voltage_peak_v: float,
+    line_frequency_hz: float,
+    phase_angle_rad: float,
+) -> float:
+    for segment in segments:
+        start_s = float(segment["start_time_s"])
+        end_s = float(segment["end_time_s"])
+        if start_s - 1e-15 <= time_s <= end_s + 1e-15:
+            start_current = float(segment["start_currents_a"][phase_index])
+            elapsed_s = max(min(time_s, end_s) - start_s, 0.0)
+            state = float(segment["phase_neutral_voltages_v"][phase_index])
+            grid_area = _sinusoidal_voltage_integral(
+                grid_voltage_peak_v, line_frequency_hz, phase_angle_rad, start_s, start_s + elapsed_s
+            )
+            return start_current + (state * elapsed_s - grid_area) / inductance_h
+    return float(segments[-1]["end_currents_a"][phase_index])
+
+
+def _states_at_event_time(segments: list[dict[str, object]], time_s: float) -> tuple[float, float, float]:
+    for segment in segments:
+        if float(segment["start_time_s"]) - 1e-15 <= time_s < float(segment["end_time_s"]) - 1e-15:
+            return tuple(float(value) for value in segment["states"])
+    return tuple(float(value) for value in segments[-1]["states"])
+
+
+def _sample_npc_event_segments(
+    *,
+    time_s: list[float],
+    segments: list[dict[str, object]],
+    inductance_h: float,
+    grid_voltage_peak_v: float,
+    line_frequency_hz: float,
+    phase_angles: tuple[float, float, float],
+    half_bus_voltage_v: float,
+) -> dict[str, object]:
+    phase_currents = [[], [], []]
+    phase_states = [[], [], []]
+    pole_voltages = [[], [], []]
+    phase_neutral_voltages = [[], [], []]
+    for event_time in time_s:
+        states = _states_at_event_time(segments, event_time)
+        poles = tuple(state * half_bus_voltage_v for state in states)
+        common_mode_v = sum(poles) / 3.0
+        neutral = tuple(value - common_mode_v for value in poles)
+        for phase_index in range(3):
+            phase_states[phase_index].append(states[phase_index])
+            pole_voltages[phase_index].append(poles[phase_index])
+            phase_neutral_voltages[phase_index].append(neutral[phase_index])
+            phase_currents[phase_index].append(
+                _current_at_event_time(
+                    segments,
+                    phase_index,
+                    event_time,
+                    inductance_h,
+                    grid_voltage_peak_v,
+                    line_frequency_hz,
+                    phase_angles[phase_index],
+                )
+            )
+    line_line_pwm = (
+        [a - b for a, b in zip(pole_voltages[0], pole_voltages[1], strict=True)],
+        [b - c for b, c in zip(pole_voltages[1], pole_voltages[2], strict=True)],
+        [c - a for c, a in zip(pole_voltages[2], pole_voltages[0], strict=True)],
+    )
+    gates = {
+        phase: tuple(
+            [value for state in phase_states[index] for value in ()]
+            for _ in range(4)
+        )
+        for index, phase in enumerate(("a", "b", "c"))
+    }
+    gates = {
+        phase: tuple(
+            list(values)
+            for values in zip(*[_npc_gate_state(state) for state in phase_states[index]], strict=True)
+        )
+        for index, phase in enumerate(("a", "b", "c"))
+    }
+    return {
+        "phase_currents_a": tuple(phase_currents),
+        "phase_states": tuple(phase_states),
+        "gates": gates,
+        "pole_voltages_v": tuple(pole_voltages),
+        "line_line_pwm_v": line_line_pwm,
+        "phase_neutral_pwm_v": tuple(phase_neutral_voltages),
+    }
 
 
 def _npc_level_duty_cycles(

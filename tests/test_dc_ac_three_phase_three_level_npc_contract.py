@@ -96,7 +96,7 @@ def test_npc_waveform_contains_pd_spwm_three_level_signals_and_split_link_data()
     assert waveform.metadata["npc_neutral_point_current_rms_a"] > 0.0
     assert waveform.metadata["line_line_voltage_phase_shift_deg"] == pytest.approx(30.0)
     assert waveform.metadata["phase_current_integration_method"].startswith("continuous_")
-    assert waveform.metadata["phase_current_periodic_correction_applied"] is True
+    assert waveform.metadata["phase_current_periodic_correction_applied"] is False
     assert len(waveform.metadata["phase_current_periodic_correction_a"]) == 3
 
 

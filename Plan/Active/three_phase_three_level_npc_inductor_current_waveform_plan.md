@@ -11,6 +11,8 @@
 - 第三步 commit/push：`d75b3aa`，已推送至 `origin/codex/npc-output-run-isolation-step1`
 - 第四步：已完成
 - 第四步 commit/push：`9c49fbb`，已推送至 `origin/codex/npc-output-run-isolation-step1`
+- 第五步：已完成
+- 第五步 commit/push：待本步骤提交后回填
 
 ## 1. 任务目标
 
@@ -226,7 +228,7 @@ i_end = i_start + (1/L) * integral(v_inv - v_grid) dt
 
 #### 版本控制
 
-完成测试后单独 commit 并 push。
+完成测试后单独 commit 并 push。执行回执：专项测试 `35 passed`；统一事件时间轴 `2801` 个边界、`2800` 个区间；commit/push 回执待本步骤提交后回填。
 
 ### 第六步：实现周期平均电流误差校正
 
