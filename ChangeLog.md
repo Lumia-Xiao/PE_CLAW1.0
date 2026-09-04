@@ -1,5 +1,14 @@
 # Change Log
 
+## 2026-09-04 NPC 精确开关损耗最小实现计划
+
+- 新建 `Plan/Active/three_phase_three_level_npc_switching_loss_plan.md`，将三相三电平 NPC 精确开关损耗收敛为 6 个实施步骤。
+- 删除已被替代的 `Plan/Active/three_phase_three_level_npc_revision_plan.md`。
+- 明确保持原有 GUI 用户输入，不新增字段；开关频率继续使用既有 `fsw_hz`。
+- 明确每个步骤必须验证、更新计划和 ChangeLog、独立 commit 并 push 后才可完成。
+- 本次仅变更计划文档，未修改计算代码，未删除 `outputs/` 或其他用户生成结果。
+- 验证：计划文件切换和工作区边界检查通过；待本计划切换提交后记录 commit/push 回执。
+
 This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
