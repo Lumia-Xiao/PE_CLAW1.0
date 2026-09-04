@@ -5,7 +5,7 @@
 - 更新 NPC 目标集成测试，使连续工频电流波形的角色最大应力成为测试依据，不再使用连续积分修复前的历史开关峰值。
 - 完成三相三电平 NPC 精确开关损耗六步计划的全量验收：`495 passed, 1 skipped`；步骤 6 DC-AC/NPC 回归 `28 passed`。
 - `compileall`、`git diff --check` 和生成文件边界检查通过；未提交 `outputs/`、`pytest_temp/` 或缓存文件。
-- Git：步骤 6 commit 和 push 回执待本次收口提交后补充。
+- Git：步骤 6 主 commit `2d91bb0` (`test: close NPC switching loss plan`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`；本条最终回执随后的记录提交完成。
 
 ## 2026-09-04 NPC 运行点、效率扫描和报告审计
 

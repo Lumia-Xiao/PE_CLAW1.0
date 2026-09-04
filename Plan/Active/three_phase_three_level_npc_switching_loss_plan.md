@@ -216,9 +216,9 @@ push：已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端
 - 全量回归使用 `PYTHONPATH=.;src` 执行，结果为 `495 passed, 1 skipped`；步骤 6 相关 DC-AC/NPC 回归为 `28 passed`。
 - `compileall` 和 `git diff --check` 通过；`outputs/`、`pytest_temp/`、`__pycache__/` 和 `*.pyc` 均未纳入 Git。
 
-commit：待记录
+commit：`2d91bb0` (`test: close NPC switching loss plan`)
 
-push：待记录
+push：已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对为 `2d91bb0`
 
 ## 5. 完成定义
 
@@ -248,5 +248,5 @@ push：待记录
 
 ### 最终状态
 
-- 状态：待本步骤收口提交后完成
+- 状态：已完成
 - 说明：六个实施步骤均已执行，NPC 开关损耗已基于一个工频周期内的实际开关事件电流和阻断电压计算；负载/PF 扫描和结构化报告复用同一事件级链路；GUI 输入未增加。
