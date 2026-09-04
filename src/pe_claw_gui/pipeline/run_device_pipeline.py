@@ -6,7 +6,11 @@ from dataclasses import replace
 import math
 from typing import NamedTuple
 
-from ..engines.devices.loss_evaluator import evaluate_switch_loss
+from ..engines.devices.loss_evaluator import (
+    _is_sic_device,
+    evaluate_npc_switching_events,
+    evaluate_switch_loss,
+)
 from ..engines.devices.inverter_segmented_loss import evaluate_inverter_segmented_switch_loss
 from ..engines.devices.selector import merge_switch_stresses, select_switch_device_with_audit
 from ..engines.devices.filters import allowed_device_types_for_role, is_structure_compatible_with_role, matches_semiconductor_category
@@ -1568,7 +1572,13 @@ def _evaluate_parallel_scheme(
                 if stress.role != role:
                     continue
                 scaled_stress = scale_switch_stress_for_parallel(stress, parallel_count)
-                loss_result = _evaluate_role_loss(evaluated_device, report, scaled_stress, case.operating_point)
+                loss_result = _evaluate_role_loss(
+                    evaluated_device,
+                    report,
+                    scaled_stress,
+                    case.operating_point,
+                    parallel_count=parallel_count,
+                )
                 key = f"{case.case_id}:{role}"
                 per_device_design_point_losses[key] = loss_result
                 total_context = _build_scheme_selection_context(
@@ -2272,7 +2282,13 @@ def run_device_operating_point_refresh(
         if device is None:
             continue
         scaled_stress = scale_switch_stress_for_parallel(stress, active_parallel_count)
-        current_loss = _evaluate_role_loss(device, report, scaled_stress, current_case.operating_point)
+        current_loss = _evaluate_role_loss(
+            device,
+            report,
+            scaled_stress,
+            current_case.operating_point,
+            parallel_count=active_parallel_count,
+        )
         design_reference = design_point_loss_by_role.get(stress.role)
         if design_reference is not None:
             current_loss = _apply_design_sink_reference(current_loss, design_reference)
@@ -2293,7 +2309,14 @@ def run_device_operating_point_refresh(
     return replace(report, device=refreshed_device_result)
 
 
-def _evaluate_role_loss(device, report: DesignReport, stress: SwitchStress, operating_point=None) -> DeviceLossResult:
+def _evaluate_role_loss(
+    device,
+    report: DesignReport,
+    stress: SwitchStress,
+    operating_point=None,
+    *,
+    parallel_count: int = 1,
+) -> DeviceLossResult:
     if report.spec.topology_id == "single_phase_full_bridge_inverter" and stress.role == "main_switch":
         segmented = evaluate_inverter_segmented_switch_loss(
             device,
@@ -2306,7 +2329,104 @@ def _evaluate_role_loss(device, report: DesignReport, stress: SwitchStress, oper
         return _evaluate_llc_sr_secondary_sync_switch_loss(device, stress)
     if report.spec.topology_id == _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID and stress.role == "totem_pole_lf_switch":
         return _evaluate_totem_pole_lf_switch_loss(device, stress)
-    return _evaluate_switch_loss_for_context(device, stress, report=report, method="accurate")
+    loss_result = _evaluate_switch_loss_for_context(device, stress, report=report, method="accurate")
+    if report.spec.topology_id == "three_phase_three_level_npc_inverter":
+        return _apply_npc_event_switching_loss(
+            loss_result,
+            device,
+            report,
+            stress,
+            parallel_count=max(int(parallel_count), 1),
+        )
+    return loss_result
+
+
+def _apply_npc_event_switching_loss(
+    loss_result: DeviceLossResult,
+    device,
+    report: DesignReport,
+    stress: SwitchStress,
+    *,
+    parallel_count: int,
+) -> DeviceLossResult:
+    """Replace NPC representative switching loss with line-cycle event loss."""
+
+    waveform_metadata = report.waveform.metadata if report.waveform is not None else {}
+    events = waveform_metadata.get("three_phase_npc_switching_events") if isinstance(waveform_metadata, dict) else None
+    if not isinstance(events, list) or stress.role not in {"npc_outer_switch", "npc_inner_switch", "npc_clamp_diode"}:
+        return loss_result
+    role_events = [
+        event
+        for event in events
+        if isinstance(event, dict) and event.get("role") == stress.role.removeprefix("npc_")
+    ]
+    line_frequency_hz = 0.0
+    for source in (
+        report.spec.metadata,
+        report.candidate.metadata if report.candidate is not None else {},
+    ):
+        try:
+            line_frequency_hz = float(source.get("f_line_hz", 0.0))
+        except (TypeError, ValueError):
+            line_frequency_hz = 0.0
+        if line_frequency_hz > 0.0:
+            break
+    if not role_events or line_frequency_hz <= 0.0:
+        if stress.role == "npc_clamp_diode" and _is_sic_device(device):
+            return replace(
+                loss_result,
+                p_rr_W=0.0,
+                p_total_W=max(loss_result.p_total_W - loss_result.p_rr_W, 0.0),
+                thermal_design_notes=_append_unique_list([
+                    *loss_result.thermal_design_notes,
+                    "NPC SiC clamp diode reverse-recovery loss is set to zero; forward-conduction loss is retained.",
+                ]),
+            )
+        return loss_result
+
+    event_results = evaluate_npc_switching_events(
+        device,
+        role_events,
+        junction_temp_c=loss_result.tj_est_C,
+        method="accurate",
+        parallel_count=parallel_count,
+    )
+    position_count = 6.0
+    line_period_s = 1.0 / line_frequency_hz
+    per_position_p_sw_on_w = sum(float(item["eon_J"]) for item in event_results) / position_count / line_period_s
+    per_position_p_sw_off_w = sum(float(item["eoff_J"]) for item in event_results) / position_count / line_period_s
+    if _is_sic_device(device):
+        per_position_p_rr_w = 0.0
+    else:
+        per_position_p_rr_w = loss_result.p_rr_W
+    p_total_w = max(
+        loss_result.p_total_W
+        - loss_result.p_sw_on_W
+        - loss_result.p_sw_off_W
+        - loss_result.p_rr_W,
+        0.0,
+    ) + per_position_p_sw_on_w + per_position_p_sw_off_w + per_position_p_rr_w
+    notes = _append_unique_list([
+        *loss_result.thermal_design_notes,
+        (
+            "NPC event-level switching loss: "
+            f"{len(role_events)} events across 6 physical positions, "
+            f"Tline={line_period_s:.6g} s; Psw=sum(Eevent)/(6*Tline)."
+        ),
+        *(
+            ["NPC SiC reverse-recovery loss is set to zero; forward-conduction loss is retained."]
+            if _is_sic_device(device)
+            else []
+        ),
+    ])
+    return replace(
+        loss_result,
+        p_sw_on_W=per_position_p_sw_on_w,
+        p_sw_off_W=per_position_p_sw_off_w,
+        p_rr_W=per_position_p_rr_w,
+        p_total_W=p_total_w,
+        thermal_design_notes=notes,
+    )
 
 
 def _evaluate_conduction_only_switch_loss(

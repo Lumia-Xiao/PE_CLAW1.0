@@ -404,6 +404,19 @@ def _build_three_phase_npc_inverter_stresses(report: DesignReport) -> tuple[Swit
     waveform_metadata = report.waveform.metadata if report.waveform is not None else {}
     device_currents = waveform_metadata.get("three_phase_npc_device_currents") if isinstance(waveform_metadata, dict) else None
     roles = device_currents.get("roles") if isinstance(device_currents, dict) else None
+    switching_events = waveform_metadata.get("three_phase_npc_switching_events") if isinstance(waveform_metadata, dict) else None
+
+    def event_current(role: str, event_type: str, fallback: float) -> float:
+        if not isinstance(switching_events, list):
+            return fallback
+        values = [
+            abs(float(event.get("signed_current_A", 0.0)))
+            for event in switching_events
+            if isinstance(event, dict)
+            and event.get("role") == role
+            and event.get("event_type") == event_type
+        ]
+        return sum(values) / len(values) if values else fallback
 
     def role_metric(role: str, key: str, fallback: float) -> float:
         role_values = roles.get(role) if isinstance(roles, dict) else None
@@ -423,8 +436,8 @@ def _build_three_phase_npc_inverter_stresses(report: DesignReport) -> tuple[Swit
         v_block_V=stress.switch.voltage_max_v,
         i_rms_A=role_metric("outer_switch", "rms_current_a", stress.switch.current_rms_a or 0.0),
         i_avg_A=role_metric("outer_switch", "average_absolute_current_a", stress.switch.current_avg_a or 0.0),
-        i_turn_on_A=role_metric("outer_switch", "peak_absolute_current_a", stress.switch.current_peak_a),
-        i_turn_off_A=role_metric("outer_switch", "peak_absolute_current_a", stress.switch.current_peak_a),
+        i_turn_on_A=event_current("outer_switch", "turn_on", role_metric("outer_switch", "peak_absolute_current_a", stress.switch.current_peak_a)),
+        i_turn_off_A=event_current("outer_switch", "turn_off", role_metric("outer_switch", "peak_absolute_current_a", stress.switch.current_peak_a)),
         duty=outer_duty,
         conduction_time_s=outer_duty * switching_period_s,
         **common,
@@ -435,8 +448,8 @@ def _build_three_phase_npc_inverter_stresses(report: DesignReport) -> tuple[Swit
         v_block_V=stress.switch.voltage_max_v,
         i_rms_A=role_metric("inner_switch", "rms_current_a", stress.switch.current_rms_a or 0.0),
         i_avg_A=role_metric("inner_switch", "average_absolute_current_a", stress.switch.current_avg_a or 0.0),
-        i_turn_on_A=inner_peak_a,
-        i_turn_off_A=inner_peak_a,
+        i_turn_on_A=event_current("inner_switch", "turn_on", inner_peak_a),
+        i_turn_off_A=event_current("inner_switch", "turn_off", inner_peak_a),
         duty=inner_duty,
         conduction_time_s=inner_duty * switching_period_s,
         **common,

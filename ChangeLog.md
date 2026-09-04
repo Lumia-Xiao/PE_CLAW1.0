@@ -34,6 +34,15 @@
 - 验证：相关专项与器件回归 `27 passed`；受影响 DC-AC/器件回归 `38 passed`；`compileall` 和 `git diff --check` 通过。
 - Git：本步骤 commit `0a63c2187133b6177be27941fbb1ce11f7e4c54e` 已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对一致。
 
+## 2026-09-04 NPC 工频事件损耗汇总接入
+
+- 在 `src/pe_claw_gui/engines/devices/stress_adapter.py` 中使用 NPC 事件电流更新开通/关断代表值。
+- 在 `src/pe_claw_gui/pipeline/run_device_pipeline.py` 中将 NPC 事件 Eon/Eoff 按 6 个物理位置和工频周期汇总到每位置损耗；并联方案先分摊事件电流，SiC 反向恢复损耗置零并保留正向导通损耗。
+- 增加公式级测试，核对报告损耗与事件能量汇总一致且没有额外乘 6。
+- 保持 GUI 用户输入和其他拓扑损耗逻辑不变。
+- 验证：NPC 契约 `15 passed`；其余受影响 DC-AC/器件回归 `24 passed`；此前完整效率扫描回归 `55 passed`；公式级事件汇总断言通过；`compileall` 和 `git diff --check` 通过。
+- Git：本步骤 commit 和 push 待完成，完成后回填本计划记录。
+
 This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.

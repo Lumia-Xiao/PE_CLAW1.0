@@ -16,7 +16,10 @@ from pe_claw_gui.models.operating_point import OperatingPoint
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
-from pe_claw_gui.engines.devices.loss_evaluator import evaluate_npc_switching_event_energy
+from pe_claw_gui.engines.devices.loss_evaluator import (
+    evaluate_npc_switching_event_energy,
+    evaluate_npc_switching_events,
+)
 from pe_claw_gui.libraries.semiconductors.registry import build_default_semiconductor_registry
 from pe_claw_gui.topologies.base.registry import build_default_registry
 from pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter.waveform import (
@@ -224,10 +227,42 @@ def test_full_pipeline_returns_npc_specific_report_and_device_roles() -> None:
     assert report.topology_result is not None
     assert report.device is not None
     assert set(report.device.selected_devices) >= {"npc_outer_switch", "npc_inner_switch", "npc_clamp_diode"}
+    for loss in report.device.design_point_losses.values():
+        if loss.role in {"npc_outer_switch", "npc_inner_switch"}:
+            assert any("NPC event-level switching loss" in note for note in loss.thermal_design_notes)
     assert any("NPC PD level-shifted SPWM" in line for line in report.topology_result.summary_lines)
     assert any("split DC-link capacitor" in line for line in report.topology_result.summary_lines)
     assert all("buck" not in line.lower() and "boost" not in line.lower() for line in report.topology_result.summary_lines)
     assert any("neutral-point balancing" in note.lower() for note in report.notes)
+
+
+def test_npc_report_switching_loss_matches_event_energy_per_physical_position() -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+
+    assert report.waveform is not None
+    assert report.device is not None
+    line_frequency_hz = float(report.spec.metadata["f_line_hz"])
+    line_period_s = 1.0 / line_frequency_hz
+    events = report.waveform.metadata["three_phase_npc_switching_events"]
+    registry = build_default_semiconductor_registry()
+    for role in ("npc_outer_switch", "npc_inner_switch"):
+        device = registry.get_device(report.device.selected_devices[role])
+        role_events = [event for event in events if event["role"] == role.removeprefix("npc_")]
+        loss = next(item for item in report.device.design_point_losses.values() if item.role == role)
+        event_losses = evaluate_npc_switching_events(device, role_events, junction_temp_c=loss.tj_est_C)
+
+        assert loss.p_sw_on_W == pytest.approx(
+            sum(float(item["eon_J"]) for item in event_losses) / 6.0 / line_period_s
+        )
+        assert loss.p_sw_off_W == pytest.approx(
+            sum(float(item["eoff_J"]) for item in event_losses) / 6.0 / line_period_s
+        )
 
 
 def test_operating_refresh_updates_npc_load_and_pf_without_redesigning_hardware() -> None:
