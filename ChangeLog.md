@@ -7,7 +7,7 @@
 - 保持当前实际 PWM 状态、电流积分逻辑、GUI 输入和损耗逻辑不变。
 - 新增目标电压公式、时间平均电网电压、NPC 电压限幅及无新增输入测试。
 - 验证：第三步及前两步、NPC 合同专项 `26 passed`；`compileall`、`git diff --check` 通过。
-- Git：步骤 3 commit/push 回执待本步骤提交后回填。
+- Git：步骤 3 commit `d75b3aa` (`feat: calculate NPC average inverter voltage targets`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`。
 
 ## 2026-09-04 NPC 电感电流波形修正计划第二步
 

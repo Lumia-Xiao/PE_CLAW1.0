@@ -8,7 +8,7 @@
 - 第二步：已完成
 - 第二步 commit/push：`d3c8310`，已推送至 `origin/codex/npc-output-run-isolation-step1`
 - 第三步：已完成
-- 第三步 commit/push：待本步骤提交后回填
+- 第三步 commit/push：`d75b3aa`，已推送至 `origin/codex/npc-output-run-isolation-step1`
 
 ## 1. 任务目标
 
@@ -150,7 +150,7 @@ v_inv,req = v_grid + L di_ref/dt
 
 #### 版本控制
 
-完成测试后单独 commit 并 push。执行回执：专项测试 `26 passed`；commit/push 回执待本步骤提交后回填。
+完成测试后单独 commit 并 push。执行回执：专项测试 `26 passed`；commit `d75b3aa` 已推送至 `origin/codex/npc-output-run-isolation-step1`。
 
 ### 第四步：实现 NPC 三电平作用时间和开关序列
 
