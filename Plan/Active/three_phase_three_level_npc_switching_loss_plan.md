@@ -184,7 +184,7 @@ push：已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端
 
 ### 步骤 6：回归验证并完成计划收口
 
-状态：待执行
+状态：已完成
 
 修改文件：
 
@@ -208,6 +208,17 @@ push：已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端
 - 六个步骤均有独立 commit 和 push 记录。
 - 计算结果、报告和 GUI 行为满足本计划边界。
 - 计划与 `ChangeLog.md` 状态一致。
+
+执行结果：
+
+- 更新 NPC 目标集成测试，使其校验连续工频波形产生的当前角色最大应力，不再锁定连续积分修复前的历史峰值夹具。
+- 保持原有 GUI 输入字段、`fsw_hz` 来源和所有用户设计输出不变。
+- 全量回归使用 `PYTHONPATH=.;src` 执行，结果为 `495 passed, 1 skipped`；步骤 6 相关 DC-AC/NPC 回归为 `28 passed`。
+- `compileall` 和 `git diff --check` 通过；`outputs/`、`pytest_temp/`、`__pycache__/` 和 `*.pyc` 均未纳入 Git。
+
+commit：待记录
+
+push：待记录
 
 ## 5. 完成定义
 
@@ -233,4 +244,9 @@ push：已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端
 | 3 | 已完成 | 相关专项与器件回归 27 passed；受影响 DC-AC/器件回归 38 passed；compileall 和 `git diff --check` 通过 | `0a63c21` (`feat: add NPC event switching energy model`) | 已成功推送，远端 HEAD：`0a63c2187133b6177be27941fbb1ce11f7e4c54e` |
 | 4 | 已完成 | NPC 契约 15 passed；其余受影响 DC-AC/器件回归 24 passed；此前完整效率扫描回归 55 passed；公式级事件汇总断言通过；compileall 和 `git diff --check` 通过 | `8002624` (`fix: aggregate NPC switching loss by line cycle`) | 已成功推送，远端 HEAD：`80026241d31fe5a3129fdfab9fad5200428fe324` |
 | 5 | 已完成 | NPC 扫描/报告专项 16 passed；结构化输出和 GUI 效率回归 6 passed；运行级负载 2 点、PF 20 点均生成事件审计；compileall 和 `git diff --check` 通过 | `bb76778` (`feat: audit NPC switching loss across sweeps`) | 已成功推送，远端 HEAD：`bb76778` |
-| 6 | 待执行 | 待执行 | 待记录 | 待记录 |
+| 6 | 已完成 | 全量回归 `495 passed, 1 skipped`；步骤 6 DC-AC/NPC 回归 `28 passed`；`compileall` 和 `git diff --check` 通过；生成文件边界检查通过 | 待记录 | 待记录 |
+
+### 最终状态
+
+- 状态：待本步骤收口提交后完成
+- 说明：六个实施步骤均已执行，NPC 开关损耗已基于一个工频周期内的实际开关事件电流和阻断电压计算；负载/PF 扫描和结构化报告复用同一事件级链路；GUI 输入未增加。

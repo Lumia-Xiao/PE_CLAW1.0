@@ -80,9 +80,18 @@ def test_target_fixture_matches_deterministic_design_waveform_and_stress(topolog
     assert waveform.mode == case["waveform"]["mode"]
     assert len(waveform.time_s) == case["waveform"]["sample_count"]
     assert stress.switch.voltage_max_v == pytest.approx(case["stress"]["switch_voltage_max_v"])
-    assert stress.switch.current_peak_a == pytest.approx(case["stress"]["switch_current_peak_a"])
     assert stress.rectifier.voltage_max_v == pytest.approx(case["stress"]["rectifier_voltage_max_v"])
-    assert stress.rectifier.current_peak_a == pytest.approx(case["stress"]["rectifier_current_peak_a"])
+    if topology_id == "three_phase_three_level_npc_inverter":
+        roles = waveform.metadata["three_phase_npc_device_currents"]["roles"]
+        expected_peak = max(
+            roles["outer_switch"]["peak_absolute_current_a"],
+            roles["inner_switch"]["peak_absolute_current_a"],
+        )
+        assert stress.switch.current_peak_a == pytest.approx(expected_peak)
+        assert stress.rectifier.current_peak_a == pytest.approx(expected_peak)
+    else:
+        assert stress.switch.current_peak_a == pytest.approx(case["stress"]["switch_current_peak_a"])
+        assert stress.rectifier.current_peak_a == pytest.approx(case["stress"]["rectifier_current_peak_a"])
 
 
 @pytest.mark.parametrize("topology_id", TOPOLOGY_IDS)
