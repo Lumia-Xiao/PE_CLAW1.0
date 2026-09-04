@@ -7,7 +7,7 @@
 - 删除旧的 legacy 事件仿真副本和 `_integrate_phase_current_by_cycle()` 人工端点修正函数，避免旧路径重新被调用。
 - 新增周期稳态求解 metadata 和专项测试；默认工况最大首尾残差约 `2.95e-9 A`，重复运行初值一致；低 `Vdc` 工况明确报告迭代未收敛及调制饱和。
 - 验证：第七步专项 `7 passed`；NPC 专项与合同回归 `22 passed`；`py_compile`、`git diff --check` 通过。
-- Git：第七步功能与文档 commit/push 回执待本次提交完成后补充。
+- Git：第七步功能提交 `c0325a8` (`feat: solve NPC periodic steady-state current`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`；本条计划与日志回执随后单独提交。
 
 ## 2026-09-04 NPC 电感电流波形修正计划第六步
 

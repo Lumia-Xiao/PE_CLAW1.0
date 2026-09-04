@@ -16,7 +16,7 @@
 - 第六步：已完成
 - 第六步 commit/push：`eca4bcd`，已推送至 `origin/codex/npc-output-run-isolation-step1`
 - 第七步：已完成
-- 第七步 commit/push：待本次提交完成后补充
+- 第七步 commit/push：`c0325a8`，已推送至 `origin/codex/npc-output-run-isolation-step1`
 
 ## 1. 任务目标
 
@@ -274,7 +274,8 @@ actual_current_average - reference_current_average
 - 第七步专项测试：`7 passed`；第七步专项与 NPC 合同回归：`22 passed`。
 - 语法检查和 `git diff --check` 通过；测试临时目录使用工程根目录下的
   `pytest_temp`，未提交 `outputs/`、`__pycache__/` 等生成文件。
-- 本步骤 commit/push 回执将在本次功能与文档提交完成后补充。
+- 功能提交：`c0325a8`，已推送至 `origin/codex/npc-output-run-isolation-step1`。
+- 本计划回执更新在功能提交后单独提交并推送。
 
 - 已在统一三相事件时间轴上对每个开关周期执行实际电流时间积分，并用实际周期平均值反馈修正目标平均电压。
 - 每周期最多执行 4 次内部电压候选迭代，电压始终限制在 `+/-Vdc/2`，不增加用户输入。
