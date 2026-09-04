@@ -88,6 +88,44 @@ def test_npc_waveform_uses_segmented_current_path_without_end_point_correction()
     assert len(details["ia_a"]) == len(details["ib_a"]) == len(details["ic_a"]) == len(waveform.time_s)
 
 
+def test_npc_step7_solves_periodic_initial_current_without_endpoint_correction() -> None:
+    plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
+    candidate = plugin.synthesize(plugin.build_spec(build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    metadata = waveform.metadata
+    details = metadata["three_phase_npc_pd_spwm_waveforms"]
+
+    assert metadata["phase_current_periodic_correction_applied"] is False
+    assert metadata["phase_current_periodic_steady_state_solver_method"] == (
+        "periodic_shooting_with_projected_fixed_point_iteration"
+    )
+    assert metadata["phase_current_periodic_steady_state_converged"] is True
+    initial = metadata["phase_current_periodic_steady_state_initial_current_a"]
+    period_end = metadata["phase_current_periodic_steady_state_period_end_current_a"]
+    residual = metadata["phase_current_periodic_steady_state_residual_a"]
+    assert sum(initial) == pytest.approx(0.0, abs=1e-10)
+    assert max(abs(value) for value in residual) <= 1e-8
+    assert details["ia_a"][0] == pytest.approx(initial[0])
+    assert details["ib_a"][0] == pytest.approx(initial[1])
+    assert details["ic_a"][0] == pytest.approx(initial[2])
+    assert details["ia_a"][-1] == pytest.approx(period_end[0], abs=1e-8)
+    assert details["ib_a"][-1] == pytest.approx(period_end[1], abs=1e-8)
+    assert details["ic_a"][-1] == pytest.approx(period_end[2], abs=1e-8)
+
+
+def test_npc_step7_reports_saturation_when_periodic_condition_is_unreachable() -> None:
+    plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
+    raw = build_default_inputs()
+    raw["vdc_nom"] = "100"
+    candidate = plugin.synthesize(plugin.build_spec(raw))
+    waveform = plugin.generate_waveforms(candidate)
+    metadata = waveform.metadata
+
+    assert metadata["phase_current_periodic_steady_state_modulation_saturated"] is True
+    assert metadata["phase_current_periodic_steady_state_solver_status"] == "max_iterations_reached"
+    assert metadata["phase_current_periodic_steady_state_converged"] is False
+
+
 def test_npc_step6_tracks_reference_with_segmented_period_average_feedback() -> None:
     plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
     candidate = plugin.synthesize(plugin.build_spec(build_default_inputs()))

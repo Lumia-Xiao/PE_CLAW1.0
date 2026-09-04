@@ -15,6 +15,8 @@
 - 第五步 commit/push：`fa01342`，已推送至 `origin/codex/npc-output-run-isolation-step1`
 - 第六步：已完成
 - 第六步 commit/push：`eca4bcd`，已推送至 `origin/codex/npc-output-run-isolation-step1`
+- 第七步：已完成
+- 第七步 commit/push：待本次提交完成后补充
 
 ## 1. 任务目标
 
@@ -258,6 +260,21 @@ actual_current_average - reference_current_average
 完成测试后单独 commit 并 push。
 
 #### 执行回执
+
+- 删除旧的 `_simulate_npc_event_segmented_currents_legacy()` 和
+  `_integrate_phase_current_by_cycle()`，不再保留工频末端人工线性修正路径。
+- 新增基于周期射击的初始电流求解：每次完整运行一个工频周期，计算
+  `i(Tline)-i(0)`，以阻尼固定点迭代更新初值，并将初值投影到
+  `ia + ib + ic = 0` 的三相三线制子空间。
+- 求解结束后使用最终初值重新执行完整事件分段仿真；metadata 同时记录求解状态、迭代次数、初值、周期末值、首尾残差和调制饱和状态。
+- 默认工况：周期稳态状态为 `converged`，迭代 `1` 次，首尾残差最大约
+  `2.95e-9 A`，周期平均电流最大误差约 `4.03e-11 A`，无调制饱和。
+- 重复运行初始电流完全一致；低 `Vdc` 不可达工况报告
+  `max_iterations_reached` 和调制饱和，不伪装为收敛。
+- 第七步专项测试：`7 passed`；第七步专项与 NPC 合同回归：`22 passed`。
+- 语法检查和 `git diff --check` 通过；测试临时目录使用工程根目录下的
+  `pytest_temp`，未提交 `outputs/`、`__pycache__/` 等生成文件。
+- 本步骤 commit/push 回执将在本次功能与文档提交完成后补充。
 
 - 已在统一三相事件时间轴上对每个开关周期执行实际电流时间积分，并用实际周期平均值反馈修正目标平均电压。
 - 每周期最多执行 4 次内部电压候选迭代，电压始终限制在 `+/-Vdc/2`，不增加用户输入。

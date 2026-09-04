@@ -25,9 +25,6 @@ from pe_claw_gui.engines.devices.loss_evaluator import (
 )
 from pe_claw_gui.libraries.semiconductors.registry import build_default_semiconductor_registry
 from pe_claw_gui.topologies.base.registry import build_default_registry
-from pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter.waveform import (
-    _integrate_phase_current_by_cycle,
-)
 
 
 TOPOLOGY_ID = "three_phase_three_level_npc_inverter"
@@ -173,27 +170,6 @@ def test_npc_event_energy_sets_sic_reverse_recovery_to_zero() -> None:
     )
 
     assert result["reverse_recovery_J"] == pytest.approx(0.0)
-
-
-def test_npc_phase_current_integrates_continuously_across_pwm_boundaries() -> None:
-    time_s = [index * 0.1 for index in range(9)]
-    voltage_v = [1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0]
-    grid_v = [0.0] * len(time_s)
-    fundamental_a = [0.0] * len(time_s)
-
-    current_a = _integrate_phase_current_by_cycle(
-        time_s,
-        voltage_v,
-        grid_v,
-        fundamental_a,
-        inductance_h=1.0,
-        samples_per_switching_period=2,
-    )
-
-    assert current_a[2] != pytest.approx(fundamental_a[2])
-    assert current_a[2] == pytest.approx(current_a[1])
-    assert current_a[-1] == pytest.approx(fundamental_a[-1])
-    assert max(current_a) - min(current_a) > 0.0
 
 
 def test_npc_stress_preserves_outer_inner_and_clamp_roles() -> None:
