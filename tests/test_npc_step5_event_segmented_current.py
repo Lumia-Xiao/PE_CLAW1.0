@@ -86,3 +86,51 @@ def test_npc_waveform_uses_segmented_current_path_without_end_point_correction()
     assert waveform.metadata["npc_unified_event_count"] > 0
     assert waveform.metadata["npc_event_segment_count"] >= waveform.metadata["npc_unified_event_count"] - 1
     assert len(details["ia_a"]) == len(details["ib_a"]) == len(details["ic_a"]) == len(waveform.time_s)
+
+
+def test_npc_step6_tracks_reference_with_segmented_period_average_feedback() -> None:
+    plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
+    candidate = plugin.synthesize(plugin.build_spec(build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    metadata = waveform.metadata
+    details = metadata["three_phase_npc_pd_spwm_waveforms"]
+
+    reference = metadata["phase_current_reference_average_a"]
+    actual = metadata["phase_current_actual_average_a"]
+    errors = metadata["phase_current_average_error_a"]
+    assert metadata["phase_current_average_correction_method"] == (
+        "event_segmented_current_average_with_bounded_voltage_feedback_iteration"
+    )
+    assert len(actual["a"]) == len(reference["a"])
+    assert len(actual["b"]) == len(reference["b"])
+    assert len(actual["c"]) == len(reference["c"])
+    assert all(
+        actual[phase][index] + errors[phase][index] == pytest.approx(reference[phase][index], abs=1e-8)
+        for phase in ("a", "b", "c")
+        for index in range(len(reference[phase]))
+    )
+    assert metadata["phase_current_average_error_max_a"] <= 1e-6
+    assert all(
+        not any(values)
+        for values in metadata["phase_current_average_correction_saturated"].values()
+    )
+    assert details["ia_actual_average_a"] == pytest.approx(actual["a"])
+
+
+def test_npc_step6_reports_average_current_saturation_for_unreachable_voltage() -> None:
+    time_s = [index * 0.25 for index in range(5)]
+    zero = [0.0] * len(time_s)
+    result = _simulate_npc_event_segmented_currents(
+        time_s=time_s,
+        phase_grid_voltage_v=(zero, zero, zero),
+        phase_current_reference_a=(zero, zero, zero),
+        phase_current_reference_average_a={"a": [100.0, 100.0], "b": [0.0, 0.0], "c": [0.0, 0.0]},
+        inductance_h=1.0,
+        grid_voltage_peak_v=100.0,
+        line_frequency_hz=1.0,
+        half_bus_voltage_v=1.0,
+        samples_per_switching_period=2,
+    )
+
+    assert result["average_current_correction_saturated"]["a"] == [True, True]
+    assert max(result["current_average_error_a"]["a"]) > 1.0

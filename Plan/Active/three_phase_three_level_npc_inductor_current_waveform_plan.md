@@ -13,6 +13,8 @@
 - 第四步 commit/push：`9c49fbb`，已推送至 `origin/codex/npc-output-run-isolation-step1`
 - 第五步：已完成
 - 第五步 commit/push：`fa01342`，已推送至 `origin/codex/npc-output-run-isolation-step1`
+- 第六步：已完成
+- 第六步 commit/push：待本步骤提交后补记
 
 ## 1. 任务目标
 
@@ -254,6 +256,14 @@ actual_current_average - reference_current_average
 #### 版本控制
 
 完成测试后单独 commit 并 push。
+
+#### 执行回执
+
+- 已在统一三相事件时间轴上对每个开关周期执行实际电流时间积分，并用实际周期平均值反馈修正目标平均电压。
+- 每周期最多执行 4 次内部电压候选迭代，电压始终限制在 `+/-Vdc/2`，不增加用户输入。
+- 已记录实际周期平均电流、平均误差、迭代次数、误差容差和饱和状态；饱和状态按整个迭代过程累计，不会被最后一次候选覆盖。
+- 默认工况最大周期平均电流误差约 `4.04e-11 A`，无调制饱和。
+- 第六步专项测试：`5 passed`。
 
 ### 第七步：通过周期稳态条件求解初始电流
 

@@ -219,6 +219,8 @@ def generate_waveforms(
         "phase_neutral_pwm_v"
     ]
     phase_inverter_average_voltage_targets_v = event_simulation["average_voltage_targets_v"]
+    phase_current_actual_average_a = event_simulation["actual_current_average_a"]
+    phase_current_average_error_a = event_simulation["current_average_error_a"]
     phase_npc_level_duties = event_simulation["level_duties"]
     phase_npc_candidate_sequences = event_simulation["candidate_sequences"]
     phase_ripple_a = [
@@ -360,6 +362,9 @@ def generate_waveforms(
         "ia_reference_average_a": phase_current_reference_average_a["a"],
         "ib_reference_average_a": phase_current_reference_average_a["b"],
         "ic_reference_average_a": phase_current_reference_average_a["c"],
+        "ia_actual_average_a": phase_current_actual_average_a["a"],
+        "ib_actual_average_a": phase_current_actual_average_a["b"],
+        "ic_actual_average_a": phase_current_actual_average_a["c"],
         "va_inverter_average_target_v": phase_inverter_average_voltage_targets_v["a"],
         "vb_inverter_average_target_v": phase_inverter_average_voltage_targets_v["b"],
         "vc_inverter_average_target_v": phase_inverter_average_voltage_targets_v["c"],
@@ -495,6 +500,18 @@ def generate_waveforms(
             ),
             "phase_current_periodic_correction_applied": False,
             "phase_current_periodic_correction_a": phase_current_periodic_corrections_a,
+            "phase_current_actual_average_a": phase_current_actual_average_a,
+            "phase_current_average_error_a": phase_current_average_error_a,
+            "phase_current_average_error_max_a": max(
+                (abs(value) for values in phase_current_average_error_a.values() for value in values),
+                default=0.0,
+            ),
+            "phase_current_average_correction_method": (
+                "event_segmented_current_average_with_bounded_voltage_feedback_iteration"
+            ),
+            "phase_current_average_correction_iterations": event_simulation["average_current_correction_iterations"],
+            "phase_current_average_correction_tolerance_a": event_simulation["average_current_correction_tolerance_a"],
+            "phase_current_average_correction_saturated": event_simulation["average_current_correction_saturated"],
             "three_phase_npc_switching_events": npc_switching_events,
             "three_phase_npc_switching_event_count": len(npc_switching_events),
             "operating_ccm_valid": operating_ccm_valid,
@@ -702,6 +719,291 @@ def _required_average_inverter_voltage_by_switching_period(
 
 
 def _simulate_npc_event_segmented_currents(
+    *,
+    time_s: list[float],
+    phase_grid_voltage_v: tuple[list[float], list[float], list[float]],
+    phase_current_reference_a: tuple[list[float], list[float], list[float]],
+    phase_current_reference_average_a: dict[str, list[float]],
+    inductance_h: float,
+    grid_voltage_peak_v: float,
+    line_frequency_hz: float,
+    half_bus_voltage_v: float,
+    samples_per_switching_period: int,
+) -> dict[str, object]:
+    """Simulate NPC currents with per-cycle average-current feedback."""
+
+    phase_names = ("a", "b", "c")
+    phase_angles = (0.0, -2.0 * math.pi / 3.0, 2.0 * math.pi / 3.0)
+    empty = {
+        "phase_currents_a": ([], [], []),
+        "phase_states": ([], [], []),
+        "gates": {phase: ([], [], [], []) for phase in phase_names},
+        "pole_voltages_v": ([], [], []),
+        "line_line_pwm_v": ([], [], []),
+        "phase_neutral_pwm_v": ([], [], []),
+        "average_voltage_targets_v": {phase: [] for phase in phase_names},
+        "level_duties": {phase: [] for phase in phase_names},
+        "candidate_sequences": {phase: [] for phase in phase_names},
+        "actual_current_average_a": {phase: [] for phase in phase_names},
+        "current_average_error_a": {phase: [] for phase in phase_names},
+        "average_current_correction_iterations": {phase: [] for phase in phase_names},
+        "average_current_correction_tolerance_a": 1e-6,
+        "average_current_correction_saturated": {phase: [] for phase in phase_names},
+        "event_timeline": [],
+        "segment_count": 0,
+    }
+    if (
+        len(time_s) < 2
+        or inductance_h <= 0.0
+        or grid_voltage_peak_v <= 0.0
+        or line_frequency_hz <= 0.0
+        or half_bus_voltage_v <= 0.0
+        or samples_per_switching_period <= 1
+    ):
+        return empty
+    cycle_count = min(
+        (len(time_s) - 1) // samples_per_switching_period,
+        *(len(values) for values in phase_current_reference_average_a.values()),
+    )
+    if cycle_count <= 0:
+        return empty
+
+    phase_current_at_cycle_start = [phase_current_reference_a[index][0] for index in range(3)]
+    segments: list[dict[str, object]] = []
+    target_voltages = {phase: [] for phase in phase_names}
+    level_duties = {phase: [] for phase in phase_names}
+    candidate_sequences = {phase: [] for phase in phase_names}
+    actual_current_average = {phase: [] for phase in phase_names}
+    current_average_error = {phase: [] for phase in phase_names}
+    correction_iterations = {phase: [] for phase in phase_names}
+    correction_saturated = {phase: [] for phase in phase_names}
+
+    for cycle in range(cycle_count):
+        start = cycle * samples_per_switching_period
+        end = (cycle + 1) * samples_per_switching_period
+        cycle_start_s = time_s[start]
+        cycle_end_s = time_s[end]
+        period_s = cycle_end_s - cycle_start_s
+        if period_s <= 0.0:
+            continue
+        reference_average = [
+            phase_current_reference_average_a[phase][cycle] for phase in phase_names
+        ]
+        grid_average = [
+            _sinusoidal_voltage_average(
+                grid_voltage_peak_v, line_frequency_hz, phase_angles[index], cycle_start_s, cycle_end_s
+            )
+            for index in range(3)
+        ]
+        target_voltage = [
+            grid_average[index]
+            + 2.0 * inductance_h * (reference_average[index] - phase_current_at_cycle_start[index]) / period_s
+            for index in range(3)
+        ]
+        cycle_result: dict[str, object] | None = None
+        iteration = 0
+        saturated_history = [False, False, False]
+        for iteration in range(1, 5):
+            cycle_result = _simulate_npc_cycle_segments(
+                cycle_start_s=cycle_start_s,
+                cycle_end_s=cycle_end_s,
+                phase_current_at_cycle_start=phase_current_at_cycle_start,
+                reference_average_a=reference_average,
+                target_voltage_v=target_voltage,
+                inductance_h=inductance_h,
+                grid_voltage_peak_v=grid_voltage_peak_v,
+                line_frequency_hz=line_frequency_hz,
+                half_bus_voltage_v=half_bus_voltage_v,
+                phase_angles=phase_angles,
+            )
+            saturated_history = [
+                previous or current
+                for previous, current in zip(saturated_history, cycle_result["saturated"], strict=True)
+            ]
+            errors = cycle_result["current_average_error_a"]
+            if max(abs(value) for value in errors) <= 1e-6:
+                break
+            target_voltage = [
+                min(
+                    max(target_voltage[index] + 2.0 * inductance_h * errors[index] / period_s, -half_bus_voltage_v),
+                    half_bus_voltage_v,
+                )
+                for index in range(3)
+            ]
+        if cycle_result is None:
+            continue
+        segments.extend(cycle_result["segments"])
+        phase_current_at_cycle_start = list(cycle_result["end_currents_a"])
+        for index, phase in enumerate(phase_names):
+            target_voltages[phase].append(cycle_result["target_voltage_v"][index])
+            level_duties[phase].append(cycle_result["level_duties"][index])
+            candidate_sequences[phase].append(cycle_result["candidate_sequences"][index])
+            actual_current_average[phase].append(cycle_result["actual_current_average_a"][index])
+            current_average_error[phase].append(cycle_result["current_average_error_a"][index])
+            correction_iterations[phase].append(iteration)
+            correction_saturated[phase].append(saturated_history[index])
+
+    if not segments:
+        return empty
+    event_times = sorted({
+        float(value)
+        for segment in segments
+        for value in (segment["start_time_s"], segment["end_time_s"])
+    })
+    sampled = _sample_npc_event_segments(
+        time_s=time_s,
+        segments=segments,
+        inductance_h=inductance_h,
+        grid_voltage_peak_v=grid_voltage_peak_v,
+        line_frequency_hz=line_frequency_hz,
+        phase_angles=phase_angles,
+        half_bus_voltage_v=half_bus_voltage_v,
+    )
+    timeline = [
+        {"time_s": float(event_time), "states": list(_states_at_event_time(segments, event_time))}
+        for event_time in event_times
+    ]
+    return {
+        "phase_currents_a": sampled["phase_currents_a"],
+        "phase_states": sampled["phase_states"],
+        "gates": sampled["gates"],
+        "pole_voltages_v": sampled["pole_voltages_v"],
+        "line_line_pwm_v": sampled["line_line_pwm_v"],
+        "phase_neutral_pwm_v": sampled["phase_neutral_pwm_v"],
+        "average_voltage_targets_v": target_voltages,
+        "level_duties": level_duties,
+        "candidate_sequences": candidate_sequences,
+        "actual_current_average_a": actual_current_average,
+        "current_average_error_a": current_average_error,
+        "average_current_correction_iterations": correction_iterations,
+        "average_current_correction_tolerance_a": 1e-6,
+        "average_current_correction_saturated": correction_saturated,
+        "event_timeline": timeline,
+        "segment_count": len(segments),
+    }
+
+
+def _simulate_npc_cycle_segments(
+    *,
+    cycle_start_s: float,
+    cycle_end_s: float,
+    phase_current_at_cycle_start: list[float],
+    reference_average_a: list[float],
+    target_voltage_v: list[float],
+    inductance_h: float,
+    grid_voltage_peak_v: float,
+    line_frequency_hz: float,
+    half_bus_voltage_v: float,
+    phase_angles: tuple[float, float, float],
+) -> dict[str, object]:
+    """Integrate one shared PWM cycle and return its actual current average."""
+
+    period_s = cycle_end_s - cycle_start_s
+    level_duties = []
+    candidate_sequences = []
+    saturated = []
+    for target_v in target_voltage_v:
+        bounded_v = min(max(float(target_v), -half_bus_voltage_v), half_bus_voltage_v)
+        saturated.append(abs(bounded_v - float(target_v)) > 1e-12)
+        duties = _npc_level_duty_cycles(bounded_v, half_bus_voltage_v)
+        level_duties.append(duties)
+        candidate_sequences.append(_center_aligned_npc_sequence(*duties))
+
+    boundaries = {cycle_start_s, cycle_end_s}
+    for sequence in candidate_sequences:
+        cursor_s = cycle_start_s
+        for item in sequence[:-1]:
+            cursor_s += float(item["duty"]) * period_s
+            boundaries.add(cursor_s)
+    ordered_boundaries = sorted(boundaries)
+    current = list(phase_current_at_cycle_start)
+    current_area = [0.0, 0.0, 0.0]
+    segments: list[dict[str, object]] = []
+    for left_s, right_s in zip(ordered_boundaries, ordered_boundaries[1:]):
+        duration_s = right_s - left_s
+        if duration_s <= 1e-15:
+            continue
+        midpoint_s = 0.5 * (left_s + right_s)
+        states = tuple(
+            _sequence_state_at_time(sequence, cycle_start_s, period_s, midpoint_s)
+            for sequence in candidate_sequences
+        )
+        poles = tuple(state * half_bus_voltage_v for state in states)
+        common_mode_v = sum(poles) / 3.0
+        phase_neutral = tuple(value - common_mode_v for value in poles)
+        start_currents = tuple(current)
+        end_currents = tuple(
+            start_current + (
+                phase_neutral[index] * duration_s
+                - _sinusoidal_voltage_integral(
+                    grid_voltage_peak_v,
+                    line_frequency_hz,
+                    phase_angles[index],
+                    left_s,
+                    right_s,
+                )
+            ) / inductance_h
+            for index, start_current in enumerate(start_currents)
+        )
+        for index in range(3):
+            current_area[index] += start_currents[index] * duration_s + (
+                phase_neutral[index] * duration_s * duration_s / 2.0
+                - _sinusoidal_voltage_weighted_integral(
+                    grid_voltage_peak_v,
+                    line_frequency_hz,
+                    phase_angles[index],
+                    left_s,
+                    right_s,
+                )
+            ) / inductance_h
+        segments.append({
+            "start_time_s": left_s,
+            "end_time_s": right_s,
+            "states": states,
+            "pole_voltages_v": poles,
+            "phase_neutral_voltages_v": phase_neutral,
+            "start_currents_a": start_currents,
+            "end_currents_a": end_currents,
+        })
+        current = list(end_currents)
+    actual_average = [value / period_s for value in current_area] if period_s > 0.0 else [0.0] * 3
+    return {
+        "segments": segments,
+        "end_currents_a": current,
+        "actual_current_average_a": actual_average,
+        "current_average_error_a": [
+            float(reference_average_a[index]) - actual_average[index] for index in range(3)
+        ],
+        "target_voltage_v": [
+            min(max(float(value), -half_bus_voltage_v), half_bus_voltage_v)
+            for value in target_voltage_v
+        ],
+        "level_duties": level_duties,
+        "candidate_sequences": candidate_sequences,
+        "saturated": saturated,
+    }
+
+
+def _sinusoidal_voltage_weighted_integral(
+    peak_v: float,
+    frequency_hz: float,
+    phase_rad: float,
+    start_s: float,
+    end_s: float,
+) -> float:
+    """Return integral((end-t) * v_grid(t)) analytically."""
+
+    omega = 2.0 * math.pi * frequency_hz
+    duration_s = end_s - start_s
+    start_angle = omega * start_s + phase_rad
+    end_angle = omega * end_s + phase_rad
+    return peak_v * (
+        duration_s * math.cos(start_angle) / omega
+        + (math.sin(start_angle) - math.sin(end_angle)) / (omega * omega)
+    )
+
+
+def _simulate_npc_event_segmented_currents_legacy(
     *,
     time_s: list[float],
     phase_grid_voltage_v: tuple[list[float], list[float], list[float]],
