@@ -8,7 +8,7 @@
 - 新增正弦积分、统一事件时间轴、实际电流数组和无末端修正测试；更新旧合同测试以匹配第五步语义。
 - 数值验收：默认输入下三相电流均值接近 `0 A`，三相电流和最大误差约 `2.61e-12 A`，周期首尾误差约 `1.18e-11 A`，默认工况无调制饱和。
 - 验证：第五步及前四步、NPC 合同专项 `35 passed`；`compileall`、`git diff --check` 通过。
-- Git：步骤 5 commit/push 回执待本步骤提交后回填。
+- Git：步骤 5 commit `fa01342` (`feat: integrate NPC current on unified event timeline`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`。
 
 ## 2026-09-04 NPC 电感电流波形修正计划第四步
 
