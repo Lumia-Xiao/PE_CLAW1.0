@@ -178,9 +178,9 @@ NPC 现有输入字段保持为：
 
 验证：NPC 专项运行点与扫描测试 `16 passed`；结构化输出和 GUI 效率回归 `6 passed`；运行级验证确认 2 个负载点和 20 个 PF 点均重新生成 4800 个事件并随 PF 改变事件电流范围；`compileall` 和 `git diff --check` 通过。
 
-commit：待记录
+commit：`bb76778` (`feat: audit NPC switching loss across sweeps`)
 
-push：待记录
+push：已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对为 `bb76778`
 
 ### 步骤 6：回归验证并完成计划收口
 
@@ -232,5 +232,5 @@ push：待记录
 | 2 | 已完成 | NPC 契约 12 passed；受影响 DC-AC 回归 21 passed；compileall 和 `git diff --check` 通过 | `0334142` (`feat: extract NPC switching events`) | 已成功推送，远端 HEAD：`0334142b64030c9e472c12cadff6713e7161d6e5` |
 | 3 | 已完成 | 相关专项与器件回归 27 passed；受影响 DC-AC/器件回归 38 passed；compileall 和 `git diff --check` 通过 | `0a63c21` (`feat: add NPC event switching energy model`) | 已成功推送，远端 HEAD：`0a63c2187133b6177be27941fbb1ce11f7e4c54e` |
 | 4 | 已完成 | NPC 契约 15 passed；其余受影响 DC-AC/器件回归 24 passed；此前完整效率扫描回归 55 passed；公式级事件汇总断言通过；compileall 和 `git diff --check` 通过 | `8002624` (`fix: aggregate NPC switching loss by line cycle`) | 已成功推送，远端 HEAD：`80026241d31fe5a3129fdfab9fad5200428fe324` |
-| 5 | 已完成 | NPC 扫描/报告专项 16 passed；结构化输出和 GUI 效率回归 6 passed；运行级负载 2 点、PF 20 点均生成事件审计；compileall 和 `git diff --check` 通过 | 待记录 | 待记录 |
+| 5 | 已完成 | NPC 扫描/报告专项 16 passed；结构化输出和 GUI 效率回归 6 passed；运行级负载 2 点、PF 20 点均生成事件审计；compileall 和 `git diff --check` 通过 | `bb76778` (`feat: audit NPC switching loss across sweeps`) | 已成功推送，远端 HEAD：`bb76778` |
 | 6 | 待执行 | 待执行 | 待记录 | 待记录 |

@@ -7,7 +7,7 @@
 - 更新 GUI 损耗视图，显示实际事件电流、阻断电压、负电流软开通、`Psw=sum(Eon+Eoff)/Tline` 以及 SiC 反向恢复为零的计算依据。
 - 保持原有 GUI 输入字段不变，开关频率仍来自 `fsw_hz`。
 - 验证：NPC 扫描/报告专项 `16 passed`；结构化输出和 GUI 效率回归 `6 passed`；`compileall` 和 `git diff --check` 通过。
-- Git：步骤 5 commit 和 push 回执待本次提交后补充。
+- Git：步骤 5 主 commit `bb76778` (`feat: audit NPC switching loss across sweeps`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执随后的记录提交待完成。
 
 ## 2026-09-04 NPC 精确开关损耗最小实现计划
 
