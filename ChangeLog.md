@@ -6,7 +6,8 @@
 - 新增以零电平为起止的中心对称候选序列：正电压为 `0 -> +1 -> 0`，负电压为 `0 -> -1 -> 0`。
 - 保持现有实际 PWM 波形和电流积分路径不变，候选序列通过 waveform metadata 提供给后续统一事件时间轴实现。
 - 新增电平占空比、序列合法性、周期作用时间和无新增输入测试。
-- 验证和 Git 回执：待第四步测试、commit、push 完成后回填。
+- 验证：第四步专项测试 `6 passed`；`compileall`、`git diff --check` 通过。
+- Git：步骤 4 commit `9c49fbb` (`feat: add NPC three-level duty sequences`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`。
 
 ## 2026-09-04 NPC 电感电流波形修正计划第三步
 
