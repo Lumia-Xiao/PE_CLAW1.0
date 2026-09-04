@@ -218,6 +218,6 @@ NPC 现有输入字段保持为：
 | 1 | 已完成 | NPC 契约 11 passed；受影响 DC-AC 回归 20 passed；compileall 和 `git diff --check` 通过 | `12f1180` (`fix: integrate NPC phase current continuously`) | 已成功推送，远端 HEAD：`12f1180da9bde5193ad8a944bc0f8fc00497a314` |
 | 2 | 已完成 | NPC 契约 12 passed；受影响 DC-AC 回归 21 passed；compileall 和 `git diff --check` 通过 | `0334142` (`feat: extract NPC switching events`) | 已成功推送，远端 HEAD：`0334142b64030c9e472c12cadff6713e7161d6e5` |
 | 3 | 已完成 | 相关专项与器件回归 27 passed；受影响 DC-AC/器件回归 38 passed；compileall 和 `git diff --check` 通过 | `0a63c21` (`feat: add NPC event switching energy model`) | 已成功推送，远端 HEAD：`0a63c2187133b6177be27941fbb1ce11f7e4c54e` |
-| 4 | 已完成 | NPC 契约 15 passed；其余受影响 DC-AC/器件回归 24 passed；此前完整效率扫描回归 55 passed；公式级事件汇总断言通过；compileall 和 `git diff --check` 通过 | 待记录 | 待记录 |
+| 4 | 已完成 | NPC 契约 15 passed；其余受影响 DC-AC/器件回归 24 passed；此前完整效率扫描回归 55 passed；公式级事件汇总断言通过；compileall 和 `git diff --check` 通过 | `8002624` (`fix: aggregate NPC switching loss by line cycle`) | 已成功推送，远端 HEAD：`80026241d31fe5a3129fdfab9fad5200428fe324` |
 | 5 | 待执行 | 待执行 | 待记录 | 待记录 |
 | 6 | 待执行 | 待执行 | 待记录 | 待记录 |

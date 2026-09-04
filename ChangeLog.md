@@ -41,7 +41,7 @@
 - 增加公式级测试，核对报告损耗与事件能量汇总一致且没有额外乘 6。
 - 保持 GUI 用户输入和其他拓扑损耗逻辑不变。
 - 验证：NPC 契约 `15 passed`；其余受影响 DC-AC/器件回归 `24 passed`；此前完整效率扫描回归 `55 passed`；公式级事件汇总断言通过；`compileall` 和 `git diff --check` 通过。
-- Git：本步骤 commit 和 push 待完成，完成后回填本计划记录。
+- Git：本步骤 commit `80026241d31fe5a3129fdfab9fad5200428fe324` 已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对一致。
 
 This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
