@@ -104,7 +104,9 @@ def build_semiconductor_loss_summary(report: DesignReport) -> list[str]:
     if npc_topology:
         lines.extend(
             [
-                "  loss basis: first-pass NPC PD-SPWM operating stress over 12 active switch positions and 6 clamp diode positions.",
+                "  loss basis: one-line-cycle NPC event average; each turn-on/turn-off uses its sampled signed current and blocking voltage.",
+                "  turn-on rule: negative event current is soft turn-on (Eon=0); non-negative current uses the device Eon model.",
+                "  average rule: Psw=sum(Eon+Eoff)/Tline; SiC clamp-diode reverse-recovery loss=0.",
                 "  limitation: no dead-time/Coss/commutation-overlap/parasitic transient model is included.",
             ]
         )

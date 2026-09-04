@@ -42,7 +42,7 @@ NPC 现有输入字段保持为：
 
 ### 步骤 1：建立连续的工频周期电流波形
 
-状态：待执行
+状态：已完成
 
 修改文件：
 
@@ -119,7 +119,7 @@ NPC 现有输入字段保持为：
 
 ### 步骤 4：按工频周期汇总 NPC 开关损耗
 
-状态：待执行
+状态：已完成
 
 修改文件：
 
@@ -145,7 +145,7 @@ NPC 现有输入字段保持为：
 
 ### 步骤 5：接入运行点、效率扫描和报告
 
-状态：待执行
+状态：已完成
 
 修改文件：
 
@@ -168,6 +168,19 @@ NPC 现有输入字段保持为：
 - GUI、效率 CSV 和器件损耗明细中的 NPC 开关损耗一致。
 - 报告能追溯事件数、事件电流范围、阻断电压和工频平均公式。
 - 不出现新增用户输入字段或第二套开关频率来源。
+
+执行结果：
+
+- `EfficiencySweepPoint` 增加可选的 `switching_loss_audit` 字段，负载扫描和 PF 扫描的每个 NPC 运行点均从当前波形事件生成摘要。
+- 效率 CSV 增加 `switching_loss_audit` 列；结构化报告增加 `loss.npc_switching` 以及 `efficiency_sweep.points/pf_points` 中的事件审计摘要。
+- GUI 损耗视图更新为工频事件平均依据，明确负电流开通 `Eon=0`、实际事件电流/阻断电压和 SiC 反向恢复为零。
+- 未增加任何 GUI 输入字段，`fsw_hz` 仍来自原有用户输入。
+
+验证：NPC 专项运行点与扫描测试 `16 passed`；结构化输出和 GUI 效率回归 `6 passed`；运行级验证确认 2 个负载点和 20 个 PF 点均重新生成 4800 个事件并随 PF 改变事件电流范围；`compileall` 和 `git diff --check` 通过。
+
+commit：待记录
+
+push：待记录
 
 ### 步骤 6：回归验证并完成计划收口
 
@@ -219,5 +232,5 @@ NPC 现有输入字段保持为：
 | 2 | 已完成 | NPC 契约 12 passed；受影响 DC-AC 回归 21 passed；compileall 和 `git diff --check` 通过 | `0334142` (`feat: extract NPC switching events`) | 已成功推送，远端 HEAD：`0334142b64030c9e472c12cadff6713e7161d6e5` |
 | 3 | 已完成 | 相关专项与器件回归 27 passed；受影响 DC-AC/器件回归 38 passed；compileall 和 `git diff --check` 通过 | `0a63c21` (`feat: add NPC event switching energy model`) | 已成功推送，远端 HEAD：`0a63c2187133b6177be27941fbb1ce11f7e4c54e` |
 | 4 | 已完成 | NPC 契约 15 passed；其余受影响 DC-AC/器件回归 24 passed；此前完整效率扫描回归 55 passed；公式级事件汇总断言通过；compileall 和 `git diff --check` 通过 | `8002624` (`fix: aggregate NPC switching loss by line cycle`) | 已成功推送，远端 HEAD：`80026241d31fe5a3129fdfab9fad5200428fe324` |
-| 5 | 待执行 | 待执行 | 待记录 | 待记录 |
+| 5 | 已完成 | NPC 扫描/报告专项 16 passed；结构化输出和 GUI 效率回归 6 passed；运行级负载 2 点、PF 20 点均生成事件审计；compileall 和 `git diff --check` 通过 | 待记录 | 待记录 |
 | 6 | 待执行 | 待执行 | 待记录 | 待记录 |

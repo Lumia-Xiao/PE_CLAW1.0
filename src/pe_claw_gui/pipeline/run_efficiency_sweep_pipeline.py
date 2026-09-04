@@ -364,6 +364,7 @@ def _evaluate_load_point(
                 capacitor=capacitor_loss_w,
             ),
             warnings=tuple(point_warnings),
+            switching_loss_audit=_npc_switching_loss_audit(refreshed),
         ),
         point_warnings,
     )
@@ -861,6 +862,76 @@ def _loss_breakdown(**components: float | None) -> dict[str, float | None]:
     return {name: value for name, value in components.items() if value is not None}
 
 
+def _npc_switching_loss_audit(report: DesignReport) -> dict[str, object]:
+    """Summarize the event data used for one NPC operating point."""
+
+    if not _is_three_phase_npc_inverter_topology(report) or report.waveform is None:
+        return {}
+    metadata = report.waveform.metadata if isinstance(report.waveform.metadata, dict) else {}
+    raw_events = metadata.get("three_phase_npc_switching_events")
+    if not isinstance(raw_events, list):
+        return {}
+    events = [event for event in raw_events if isinstance(event, dict)]
+    if not events:
+        return {"event_count": 0, "formula": "sum(Eevent) / Tline", "status": "no_events"}
+    currents = [float(event.get("signed_current_A", 0.0)) for event in events]
+    blocking_voltages = [abs(float(event.get("blocking_voltage_V", 0.0))) for event in events]
+    turn_on = [event for event in events if event.get("event_type") == "turn_on"]
+    turn_off = [event for event in events if event.get("event_type") == "turn_off"]
+    soft_turn_on_count = sum(1 for event in turn_on if float(event.get("signed_current_A", 0.0)) < 0.0)
+    line_frequency_hz = _npc_line_frequency_hz(report)
+    role_summary: dict[str, dict[str, object]] = {}
+    losses = report.device.current_operating_losses if report.device is not None else {}
+    if not losses and report.device is not None:
+        losses = report.device.design_point_losses
+    for role in ("outer_switch", "inner_switch"):
+        role_events = [event for event in events if event.get("role") == role]
+        role_loss = next(
+            (loss for loss in losses.values() if getattr(loss, "role", "") == f"npc_{role}"),
+            None,
+        )
+        role_summary[role] = {
+            "event_count": len(role_events),
+            "turn_on_count": sum(1 for event in role_events if event.get("event_type") == "turn_on"),
+            "turn_off_count": sum(1 for event in role_events if event.get("event_type") == "turn_off"),
+            "p_sw_on_W_per_position": getattr(role_loss, "p_sw_on_W", None),
+            "p_sw_off_W_per_position": getattr(role_loss, "p_sw_off_W", None),
+        }
+    return {
+        "status": "available",
+        "event_count": len(events),
+        "turn_on_count": len(turn_on),
+        "turn_off_count": len(turn_off),
+        "soft_turn_on_count": soft_turn_on_count,
+        "hard_turn_on_count": len(turn_on) - soft_turn_on_count,
+        "signed_current_min_A": min(currents),
+        "signed_current_max_A": max(currents),
+        "absolute_current_max_A": max(abs(value) for value in currents),
+        "blocking_voltage_min_V": min(blocking_voltages),
+        "blocking_voltage_max_V": max(blocking_voltages),
+        "line_frequency_Hz": line_frequency_hz,
+        "line_period_s": 1.0 / line_frequency_hz if line_frequency_hz > 0.0 else None,
+        "switching_frequency_Hz": metadata.get("fsw_hz"),
+        "formula": "Psw = sum(Eon + Eoff) / Tline; event energy uses actual signed current and blocking voltage",
+        "sic_reverse_recovery_loss_W": 0.0,
+        "roles": role_summary,
+    }
+
+
+def _npc_line_frequency_hz(report: DesignReport) -> float:
+    for source in (
+        report.spec.metadata,
+        report.candidate.metadata if report.candidate is not None else {},
+    ):
+        try:
+            value = float(source.get("f_line_hz", 0.0))
+        except (TypeError, ValueError):
+            continue
+        if value > 0.0:
+            return value
+    return 0.0
+
+
 def _build_result(
     points: list[EfficiencySweepPoint],
     load_grid: tuple[float, ...],
@@ -1029,6 +1100,7 @@ def _write_sweep_csv(result: EfficiencySweepResult, path: Path) -> None:
         "other_loss_w",
         "bridge_rectifier_loss_w",
         "loss_breakdown_w",
+        "switching_loss_audit",
         "warnings",
     )
     with path.open("w", encoding="utf-8", newline="") as handle:
@@ -1047,6 +1119,7 @@ def _write_sweep_csv(result: EfficiencySweepResult, path: Path) -> None:
                     "other_loss_w": point.other_loss_w,
                     "bridge_rectifier_loss_w": point.bridge_rectifier_loss_w,
                     "loss_breakdown_w": json.dumps(point.loss_breakdown_w, sort_keys=True),
+                    "switching_loss_audit": json.dumps(point.switching_loss_audit, sort_keys=True),
                     "warnings": " | ".join(point.warnings),
                 }
             )
@@ -1104,6 +1177,7 @@ def _build_inverter_pf_sweep(
                     if low_slope_segment_count is not None and segments
                     else None
                 ),
+                "switching_loss_audit": point.switching_loss_audit,
             }
         )
     artifacts = _write_pf_sweep_artifacts(points, output_dir, zvs_mode=zvs_mode) if points else {}

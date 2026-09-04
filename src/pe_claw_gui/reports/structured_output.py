@@ -377,7 +377,11 @@ def _thermal_payload(report: DesignReport) -> dict[str, Any]:
 def _loss_payload(report: DesignReport) -> dict[str, Any]:
     loss = report.loss
     if loss is None:
-        return {"available": False, "recommended_design_id": None, "metrics": {}, "metadata": {}}
+        payload = {"available": False, "recommended_design_id": None, "metrics": {}, "metadata": {}}
+        npc_audit = _npc_switching_audit_payload(report)
+        if npc_audit:
+            payload["npc_switching"] = npc_audit
+        return payload
     payload: dict[str, Any] = {
         "available": True,
         "recommended_design_id": loss.recommended_design_id,
@@ -391,6 +395,9 @@ def _loss_payload(report: DesignReport) -> dict[str, Any]:
         },
         "metadata": {"core_loss_status": getattr(loss, "core_loss_status", "not_evaluated")},
     }
+    npc_audit = _npc_switching_audit_payload(report)
+    if npc_audit:
+        payload["npc_switching"] = npc_audit
     if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
         breakdown = loss.breakdown_w
         volumes = getattr(loss, "component_volumes_m3", {}) or {}
@@ -421,6 +428,81 @@ def _loss_payload(report: DesignReport) -> dict[str, Any]:
         if contract is not None:
             payload["llc"]["magnetic_contract"] = contract.to_dict()
     return payload
+
+
+def _npc_switching_audit_payload(report: DesignReport) -> dict[str, Any]:
+    """Expose the event-level NPC loss basis without duplicating raw events."""
+
+    if report.spec.topology_id != "three_phase_three_level_npc_inverter" or report.waveform is None:
+        return {}
+    metadata = report.waveform.metadata if isinstance(report.waveform.metadata, Mapping) else {}
+    raw_events = metadata.get("three_phase_npc_switching_events")
+    events = [event for event in raw_events if isinstance(event, Mapping)] if isinstance(raw_events, list) else []
+    if not events:
+        return {"status": "not_available", "event_count": _metric(0, "count", "npc.waveform.events")}
+
+    def numeric_values(key: str) -> list[float]:
+        values = []
+        for event in events:
+            try:
+                values.append(float(event[key]))
+            except (KeyError, TypeError, ValueError):
+                continue
+        return values
+
+    currents = numeric_values("signed_current_A")
+    voltages = [abs(value) for value in numeric_values("blocking_voltage_V")]
+    turn_on = [event for event in events if event.get("event_type") == "turn_on"]
+    turn_off = [event for event in events if event.get("event_type") == "turn_off"]
+    line_frequency = _npc_report_frequency(metadata, report)
+    device = report.device
+    losses = {}
+    if device is not None:
+        losses = device.current_operating_losses or device.design_point_losses or device.evaluated_losses
+
+    def role_payload(role: str) -> dict[str, Any]:
+        role_events = [event for event in events if event.get("role") == role]
+        loss_result = next(
+            (item for item in losses.values() if getattr(item, "role", "") == f"npc_{role}"),
+            None,
+        )
+        return {
+            "event_count": _metric(len(role_events), "count", "npc.waveform.events"),
+            "turn_on_count": _metric(sum(event.get("event_type") == "turn_on" for event in role_events), "count", "npc.waveform.events"),
+            "turn_off_count": _metric(sum(event.get("event_type") == "turn_off" for event in role_events), "count", "npc.waveform.events"),
+            "switching_loss_on": _metric(getattr(loss_result, "p_sw_on_W", None), "W", "npc.loss.event_average"),
+            "switching_loss_off": _metric(getattr(loss_result, "p_sw_off_W", None), "W", "npc.loss.event_average"),
+        }
+
+    return {
+        "status": "available",
+        "event_count": _metric(len(events), "count", "npc.waveform.events"),
+        "turn_on_count": _metric(len(turn_on), "count", "npc.waveform.events"),
+        "turn_off_count": _metric(len(turn_off), "count", "npc.waveform.events"),
+        "soft_turn_on_count": _metric(sum(float(event.get("signed_current_A", 0.0)) < 0.0 for event in turn_on), "count", "npc.loss.event_model"),
+        "hard_turn_on_count": _metric(sum(float(event.get("signed_current_A", 0.0)) >= 0.0 for event in turn_on), "count", "npc.loss.event_model"),
+        "signed_current_min": _metric(min(currents) if currents else None, "A", "npc.waveform.events"),
+        "signed_current_max": _metric(max(currents) if currents else None, "A", "npc.waveform.events"),
+        "blocking_voltage_min": _metric(min(voltages) if voltages else None, "V", "npc.waveform.events"),
+        "blocking_voltage_max": _metric(max(voltages) if voltages else None, "V", "npc.waveform.events"),
+        "line_frequency": _metric(line_frequency, "Hz", "npc.waveform.metadata"),
+        "line_period": _metric(1.0 / line_frequency if line_frequency > 0.0 else None, "s", "npc.loss.event_average"),
+        "switching_frequency": _metric(metadata.get("fsw_hz"), "Hz", "npc.waveform.metadata"),
+        "reverse_recovery_loss": _metric(0.0, "W", "npc.loss.event_model"),
+        "formula": "Psw = sum(Eon + Eoff) / Tline; Eon/Eoff use each event's signed current and blocking voltage",
+        "roles": {role: role_payload(role) for role in ("outer_switch", "inner_switch", "clamp_diode")},
+    }
+
+
+def _npc_report_frequency(metadata: Mapping[str, Any], report: DesignReport) -> float:
+    for source in (metadata, report.spec.metadata, report.candidate.metadata if report.candidate is not None else {}):
+        try:
+            value = float(source.get("f_line_hz", 0.0))
+        except (TypeError, ValueError):
+            continue
+        if value > 0.0:
+            return value
+    return 0.0
 
 
 def _geometry_payload(report: DesignReport) -> dict[str, Any]:
@@ -592,6 +674,7 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
         },
         "magnetic": _magnetic_payload(report),
         "loss": _loss_payload(report),
+        "efficiency_sweep": _efficiency_sweep_payload(report),
         "geometry": _geometry_payload(report),
         "capacitor": _capacitor_payload(report),
         "thermal": _thermal_payload(report),
@@ -620,6 +703,46 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
     if llc_requirements is not None:
         payload["llc_design_requirements"] = llc_requirements
     return payload
+
+
+def _efficiency_sweep_payload(report: DesignReport) -> dict[str, Any]:
+    sweep = report.efficiency_sweep
+    if sweep is None:
+        return {"available": False, "points": [], "pf_points": [], "metadata": {}}
+    return {
+        "available": True,
+        "status": sweep.status,
+        "metrics": {
+            "peak_efficiency": _metric(sweep.peak_efficiency, "ratio", "efficiency_sweep.summary"),
+            "full_load_efficiency": _metric(sweep.full_load_efficiency, "ratio", "efficiency_sweep.summary"),
+            "light_load_efficiency": _metric(sweep.light_load_efficiency, "ratio", "efficiency_sweep.summary"),
+        },
+        "points": [
+            {
+                "load_ratio": _metric(point.load_pu, "p.u.", "efficiency_sweep.input"),
+                "output_power": _metric(point.output_power_w, "W", "efficiency_sweep.result"),
+                "total_loss": _metric(point.total_loss_w, "W", "efficiency_sweep.result"),
+                "semiconductor_loss": _metric(point.semiconductor_loss_w, "W", "efficiency_sweep.result"),
+                "efficiency": _metric(point.efficiency, "ratio", "efficiency_sweep.result"),
+                "switching_loss_audit": dict(point.switching_loss_audit),
+            }
+            for point in sweep.points
+        ],
+        "pf_points": [
+            {
+                "power_factor": _metric(point.get("power_factor"), "ratio", "efficiency_sweep.pf_input"),
+                "semiconductor_loss": _metric(point.get("semiconductor_loss_w"), "W", "efficiency_sweep.pf_result"),
+                "efficiency": _metric(point.get("efficiency"), "ratio", "efficiency_sweep.pf_result"),
+                "switching_loss_audit": dict(point.get("switching_loss_audit") or {}),
+            }
+            for point in sweep.pf_sweep_points
+        ],
+        "metadata": {
+            "sweep_basis": dict(sweep.sweep_basis),
+            "artifact_paths": {**sweep.artifact_paths, **sweep.pf_sweep_artifact_paths},
+            "warnings": list(sweep.warnings),
+        },
+    }
 
 
 def _stress_metric(metric: Any) -> dict[str, Any]:

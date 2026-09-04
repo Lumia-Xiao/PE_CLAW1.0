@@ -20,6 +20,7 @@ class EfficiencySweepPoint:
     bridge_rectifier_loss_w: float | None = None
     loss_breakdown_w: dict[str, float | None] = field(default_factory=dict)
     warnings: tuple[str, ...] = ()
+    switching_loss_audit: dict[str, object] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, object]:
         """Return a serializable representation."""

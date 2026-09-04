@@ -1,5 +1,14 @@
 # Change Log
 
+## 2026-09-04 NPC 运行点、效率扫描和报告审计
+
+- 为 `EfficiencySweepPoint` 增加可选的 `switching_loss_audit`，NPC 负载扫描和 PF 扫描的每个运行点都保存当前波形事件数、事件电流/阻断电压范围、软硬开通计数及工频平均公式。
+- 将 NPC 事件审计摘要写入效率 CSV 和结构化报告；结构化报告同时保留负载点和 PF 点的同源摘要。
+- 更新 GUI 损耗视图，显示实际事件电流、阻断电压、负电流软开通、`Psw=sum(Eon+Eoff)/Tline` 以及 SiC 反向恢复为零的计算依据。
+- 保持原有 GUI 输入字段不变，开关频率仍来自 `fsw_hz`。
+- 验证：NPC 扫描/报告专项 `16 passed`；结构化输出和 GUI 效率回归 `6 passed`；`compileall` 和 `git diff --check` 通过。
+- Git：步骤 5 commit 和 push 回执待本次提交后补充。
+
 ## 2026-09-04 NPC 精确开关损耗最小实现计划
 
 - 新建 `Plan/Active/three_phase_three_level_npc_switching_loss_plan.md`，将三相三电平 NPC 精确开关损耗收敛为 6 个实施步骤。

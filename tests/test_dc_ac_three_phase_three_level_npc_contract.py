@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from importlib import import_module
 import inspect
 import sys
@@ -16,6 +17,8 @@ from pe_claw_gui.models.operating_point import OperatingPoint
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
+from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import run_efficiency_sweep
+from pe_claw_gui.reports.structured_output import build_structured_report
 from pe_claw_gui.engines.devices.loss_evaluator import (
     evaluate_npc_switching_event_energy,
     evaluate_npc_switching_events,
@@ -291,6 +294,45 @@ def test_operating_refresh_updates_npc_load_and_pf_without_redesigning_hardware(
     assert refreshed.candidate is report.candidate
     assert refreshed.device is not None
     assert refreshed.device.selected_devices == selected_devices
+
+
+def test_npc_efficiency_load_and_pf_sweeps_rebuild_event_audit(tmp_path: Path) -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+
+    result = run_efficiency_sweep(
+        report,
+        plugin=plugin,
+        load_points=(0.5, 1.0),
+        output_dir=tmp_path,
+    )
+
+    assert len(result.points) == 2
+    assert all(point.switching_loss_audit["event_count"] > 0 for point in result.points)
+    assert all(point.switching_loss_audit["soft_turn_on_count"] > 0 for point in result.points)
+    assert len(result.pf_sweep_points) == 20
+    assert all(point["switching_loss_audit"]["event_count"] > 0 for point in result.pf_sweep_points)
+    first_pf = result.pf_sweep_points[0]["switching_loss_audit"]
+    last_pf = result.pf_sweep_points[-1]["switching_loss_audit"]
+    assert (
+        first_pf["signed_current_min_A"],
+        first_pf["signed_current_max_A"],
+    ) != (
+        last_pf["signed_current_min_A"],
+        last_pf["signed_current_max_A"],
+    )
+
+    structured = build_structured_report(replace(report, efficiency_sweep=result))
+    assert structured["loss"]["npc_switching"]["formula"].startswith("Psw = sum")
+    assert len(structured["efficiency_sweep"]["points"]) == 2
+    assert len(structured["efficiency_sweep"]["pf_points"]) == 20
+    csv_text = (tmp_path / "efficiency_sweep.csv").read_text(encoding="utf-8")
+    assert "switching_loss_audit" in csv_text.splitlines()[0]
 
 
 def test_npc_form_exposes_design_and_operating_point_controls() -> None:
