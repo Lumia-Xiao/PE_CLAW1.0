@@ -32,7 +32,7 @@
 - SiC 器件反向恢复事件能量置零；其他拓扑的既有损耗入口保持不变。
 - 增加 NPC 事件级极性、电流和 SiC 反向恢复测试。
 - 验证：相关专项与器件回归 `27 passed`；受影响 DC-AC/器件回归 `38 passed`；`compileall` 和 `git diff --check` 通过。
-- Git：本步骤 commit 和 push 待完成，完成后回填本计划记录。
+- Git：本步骤 commit `0a63c2187133b6177be27941fbb1ce11f7e4c54e` 已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对一致。
 
 This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
