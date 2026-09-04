@@ -244,7 +244,7 @@ push：已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端
 | 3 | 已完成 | 相关专项与器件回归 27 passed；受影响 DC-AC/器件回归 38 passed；compileall 和 `git diff --check` 通过 | `0a63c21` (`feat: add NPC event switching energy model`) | 已成功推送，远端 HEAD：`0a63c2187133b6177be27941fbb1ce11f7e4c54e` |
 | 4 | 已完成 | NPC 契约 15 passed；其余受影响 DC-AC/器件回归 24 passed；此前完整效率扫描回归 55 passed；公式级事件汇总断言通过；compileall 和 `git diff --check` 通过 | `8002624` (`fix: aggregate NPC switching loss by line cycle`) | 已成功推送，远端 HEAD：`80026241d31fe5a3129fdfab9fad5200428fe324` |
 | 5 | 已完成 | NPC 扫描/报告专项 16 passed；结构化输出和 GUI 效率回归 6 passed；运行级负载 2 点、PF 20 点均生成事件审计；compileall 和 `git diff --check` 通过 | `bb76778` (`feat: audit NPC switching loss across sweeps`) | 已成功推送，远端 HEAD：`bb76778` |
-| 6 | 已完成 | 全量回归 `495 passed, 1 skipped`；步骤 6 DC-AC/NPC 回归 `28 passed`；`compileall` 和 `git diff --check` 通过；生成文件边界检查通过 | 待记录 | 待记录 |
+| 6 | 已完成 | 全量回归 `495 passed, 1 skipped`；步骤 6 DC-AC/NPC 回归 `28 passed`；`compileall` 和 `git diff --check` 通过；生成文件边界检查通过 | `2d91bb0` (`test: close NPC switching loss plan`) | 已成功推送，远端 HEAD：`2d91bb0` |
 
 ### 最终状态
 
