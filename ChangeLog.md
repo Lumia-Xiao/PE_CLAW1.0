@@ -7,7 +7,7 @@
 - 保持原有 GUI 输入、PF 正负方向约定和实际 PWM 电流积分行为不变。
 - 新增正负 PF、三相参考和为零及时间加权平均测试。
 - 验证：第二步、NPC 合同和第一步基线专项 `22 passed`；`compileall`、`git diff --check` 通过。
-- Git：步骤 2 commit/push 回执待本步骤提交后回填。
+- Git：步骤 2 commit `d3c8310` (`feat: add NPC switching-period current references`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`。
 
 ## 2026-09-04 NPC 电感电流波形修正计划第一步基线
 
