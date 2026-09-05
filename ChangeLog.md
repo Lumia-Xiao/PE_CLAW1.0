@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-05 单相全桥逆变器精确开关损耗计划
+
+- 新建 `Plan/Active/single_phase_full_bridge_switching_loss_plan.md`，将单相全桥开关损耗从 20 段准静态代表电流改造为 NPC 兼容的逐开关事件、连续电感电流和工频周期能量汇总方案，细化为 7 个步骤。
+- 明确保持现有用户输入、单极性 SPWM、器件模型和 NPC 已完成逻辑不变；负实际电流开通为软开通并令 `Eon=0`，正/非负实际电流开通按实际事件电流计算，SiC 反向恢复为 0。
+- 明确每一步必须专项验证、更新 plan 和 ChangeLog、独立 commit、push 并核对远端 HEAD；本次只新增计划和日志，未修改生产代码或测试代码。
+
 ## 2026-09-05 NPC Efficiency Sweep 性能优化计划第六步
 
 - 锁定 GUI Efficiency Sweep 控制器复用当前 NPC 设计报告、运行上下文和已选硬件，不重新触发设计、器件选型或磁性搜索。
