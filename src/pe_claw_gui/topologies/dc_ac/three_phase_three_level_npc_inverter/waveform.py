@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from bisect import bisect_right
+from bisect import bisect_left, bisect_right
 
 from ....models.operating_point import OperatingPoint
 from ....models.waveform import WaveformSet
@@ -619,34 +619,15 @@ def _extract_npc_switching_events_from_segments(
         return []
     phase_names = ("a", "b", "c")
     events: list[dict[str, float | int | str]] = []
-    event_times = sorted({
-        float(value)
-        for segment in segments
-        for value in (segment["start_time_s"], segment["end_time_s"])
-    })
+    _, segment_end_times = _build_segment_time_index(segments)
     start_time_s = float(time_s[0])
     end_time_s = float(time_s[-1])
     tolerance_s = max((end_time_s - start_time_s) * 1e-12, 1e-15)
-    for event_time_s in event_times:
+    for before, after in zip(segments, segments[1:]):
+        event_time_s = float(before["end_time_s"])
         if event_time_s <= start_time_s + tolerance_s or event_time_s >= end_time_s - tolerance_s:
             continue
-        before = next(
-            (
-                segment
-                for segment in reversed(segments)
-                if abs(float(segment["end_time_s"]) - event_time_s) <= tolerance_s
-            ),
-            None,
-        )
-        after = next(
-            (
-                segment
-                for segment in segments
-                if abs(float(segment["start_time_s"]) - event_time_s) <= tolerance_s
-            ),
-            None,
-        )
-        if before is None or after is None:
+        if abs(float(after["start_time_s"]) - event_time_s) > tolerance_s:
             continue
         before_states = tuple(float(value) for value in before["states"])
         after_states = tuple(float(value) for value in after["states"])
@@ -659,6 +640,7 @@ def _extract_npc_switching_events_from_segments(
                 grid_voltage_peak_v,
                 line_frequency_hz,
                 phase_angles[phase_index],
+                segment_end_times=segment_end_times,
             )
             for phase_index in range(3)
         )
@@ -1089,8 +1071,18 @@ def _simulate_npc_event_segmented_currents(
         phase_angles=phase_angles,
         half_bus_voltage_v=half_bus_voltage_v,
     )
+    segment_start_times, _ = _build_segment_time_index(segments)
     timeline = [
-        {"time_s": float(event_time), "states": list(_states_at_event_time(segments, event_time))}
+        {
+            "time_s": float(event_time),
+            "states": list(
+                _states_at_event_time(
+                    segments,
+                    event_time,
+                    segment_start_times=segment_start_times,
+                )
+            ),
+        }
         for event_time in event_times
     ]
     return {
@@ -1282,26 +1274,57 @@ def _current_at_event_time(
     grid_voltage_peak_v: float,
     line_frequency_hz: float,
     phase_angle_rad: float,
+    *,
+    segment_end_times: list[float] | None = None,
 ) -> float:
-    for segment in segments:
-        start_s = float(segment["start_time_s"])
-        end_s = float(segment["end_time_s"])
-        if start_s - 1e-15 <= time_s <= end_s + 1e-15:
-            start_current = float(segment["start_currents_a"][phase_index])
-            elapsed_s = max(min(time_s, end_s) - start_s, 0.0)
-            state = float(segment["phase_neutral_voltages_v"][phase_index])
-            grid_area = _sinusoidal_voltage_integral(
-                grid_voltage_peak_v, line_frequency_hz, phase_angle_rad, start_s, start_s + elapsed_s
-            )
-            return start_current + (state * elapsed_s - grid_area) / inductance_h
-    return float(segments[-1]["end_currents_a"][phase_index])
+    if not segments:
+        return 0.0
+    end_times = segment_end_times or [float(segment["end_time_s"]) for segment in segments]
+    segment_index = _segment_index_for_current(end_times, time_s)
+    segment = segments[segment_index]
+    start_s = float(segment["start_time_s"])
+    end_s = float(segment["end_time_s"])
+    start_current = float(segment["start_currents_a"][phase_index])
+    elapsed_s = max(min(time_s, end_s) - start_s, 0.0)
+    state = float(segment["phase_neutral_voltages_v"][phase_index])
+    grid_area = _sinusoidal_voltage_integral(
+        grid_voltage_peak_v, line_frequency_hz, phase_angle_rad, start_s, start_s + elapsed_s
+    )
+    return start_current + (state * elapsed_s - grid_area) / inductance_h
 
 
-def _states_at_event_time(segments: list[dict[str, object]], time_s: float) -> tuple[float, float, float]:
-    for segment in segments:
-        if float(segment["start_time_s"]) - 1e-15 <= time_s < float(segment["end_time_s"]) - 1e-15:
-            return tuple(float(value) for value in segment["states"])
-    return tuple(float(value) for value in segments[-1]["states"])
+def _states_at_event_time(
+    segments: list[dict[str, object]],
+    time_s: float,
+    *,
+    segment_start_times: list[float] | None = None,
+) -> tuple[float, float, float]:
+    if not segments:
+        return (0.0, 0.0, 0.0)
+    start_times = segment_start_times or [float(segment["start_time_s"]) for segment in segments]
+    segment_index = _segment_index_for_state(start_times, time_s)
+    return tuple(float(value) for value in segments[segment_index]["states"])
+
+
+def _build_segment_time_index(
+    segments: list[dict[str, object]],
+) -> tuple[list[float], list[float]]:
+    return (
+        [float(segment["start_time_s"]) for segment in segments],
+        [float(segment["end_time_s"]) for segment in segments],
+    )
+
+
+def _segment_index_for_current(end_times: list[float], time_s: float) -> int:
+    """Locate the segment ending at or after an event time."""
+
+    return min(max(bisect_left(end_times, time_s - 1e-15), 0), len(end_times) - 1)
+
+
+def _segment_index_for_state(start_times: list[float], time_s: float) -> int:
+    """Locate the segment active after a state transition boundary."""
+
+    return min(max(bisect_right(start_times, time_s + 1e-15) - 1, 0), len(start_times) - 1)
 
 
 def _sample_npc_event_segments(
@@ -1318,8 +1341,13 @@ def _sample_npc_event_segments(
     phase_states = [[], [], []]
     pole_voltages = [[], [], []]
     phase_neutral_voltages = [[], [], []]
+    segment_start_times, segment_end_times = _build_segment_time_index(segments)
     for event_time in time_s:
-        states = _states_at_event_time(segments, event_time)
+        states = _states_at_event_time(
+            segments,
+            event_time,
+            segment_start_times=segment_start_times,
+        )
         poles = tuple(state * half_bus_voltage_v for state in states)
         common_mode_v = sum(poles) / 3.0
         neutral = tuple(value - common_mode_v for value in poles)
@@ -1336,6 +1364,7 @@ def _sample_npc_event_segments(
                     grid_voltage_peak_v,
                     line_frequency_hz,
                     phase_angles[phase_index],
+                    segment_end_times=segment_end_times,
                 )
             )
     line_line_pwm = (
