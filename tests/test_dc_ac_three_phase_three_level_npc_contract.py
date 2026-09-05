@@ -297,8 +297,16 @@ def test_npc_efficiency_load_and_pf_sweeps_rebuild_event_audit(tmp_path: Path) -
     assert len(result.points) == 2
     assert all(point.switching_loss_audit["event_count"] > 0 for point in result.points)
     assert all(point.switching_loss_audit["soft_turn_on_count"] > 0 for point in result.points)
+    assert result.points[0].switching_loss_audit["warm_start_used"] is False
+    assert result.points[1].switching_loss_audit["warm_start_used"] is True
+    assert result.points[1].switching_loss_audit["periodic_solver_converged"] is True
     assert len(result.pf_sweep_points) == 20
     assert all(point["switching_loss_audit"]["event_count"] > 0 for point in result.pf_sweep_points)
+    assert result.pf_sweep_points[0]["switching_loss_audit"]["warm_start_used"] is False
+    assert any(
+        point["switching_loss_audit"]["warm_start_used"] is True
+        for point in result.pf_sweep_points[1:10]
+    )
     first_pf = result.pf_sweep_points[0]["switching_loss_audit"]
     last_pf = result.pf_sweep_points[-1]["switching_loss_audit"]
     assert (

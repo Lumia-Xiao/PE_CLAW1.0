@@ -39,8 +39,14 @@ class ThreePhaseThreeLevelNPCInverterPlugin(TopologyPlugin):
         self,
         candidate: TopologyCandidate,
         operating_point: OperatingPoint | None = None,
+        *,
+        _periodic_initial_current_a: list[float] | None = None,
     ) -> WaveformSet | None:
-        return generate_waveforms(candidate, operating_point=operating_point)
+        return generate_waveforms(
+            candidate,
+            operating_point=operating_point,
+            _periodic_initial_current_a=_periodic_initial_current_a,
+        )
 
     def extract_stress(
         self,

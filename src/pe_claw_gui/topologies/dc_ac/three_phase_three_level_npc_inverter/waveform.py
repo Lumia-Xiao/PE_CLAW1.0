@@ -15,6 +15,8 @@ SAMPLES_PER_SWITCHING_PERIOD = 8
 def generate_waveforms(
     candidate: TopologyCandidate,
     operating_point: OperatingPoint | None = None,
+    *,
+    _periodic_initial_current_a: list[float] | None = None,
 ) -> WaveformSet:
     """Generate one line cycle of NPC PD level-shifted SPWM preview waveforms."""
 
@@ -206,6 +208,7 @@ def generate_waveforms(
         line_frequency_hz=f_line_hz,
         half_bus_voltage_v=half_bus_v,
         samples_per_switching_period=SAMPLES_PER_SWITCHING_PERIOD,
+        periodic_initial_current_a=_periodic_initial_current_a,
     )
     phase_current_periodic_corrections_a = [0.0, 0.0, 0.0]
     periodic_solver = event_simulation["periodic_solver"]
@@ -517,6 +520,10 @@ def generate_waveforms(
             "phase_current_periodic_steady_state_iterations": periodic_solver["iterations"],
             "phase_current_periodic_steady_state_tolerance_a": periodic_solver["tolerance_a"],
             "phase_current_periodic_steady_state_modulation_saturated": periodic_solver["modulation_saturated"],
+            "phase_current_periodic_steady_state_warm_start_used": periodic_solver["warm_start_used"],
+            "phase_current_periodic_steady_state_warm_start_fallback_used": periodic_solver[
+                "warm_start_fallback_used"
+            ],
             "phase_current_periodic_steady_state_selection_criterion": (
                 "projected_three_phase_periodic_fixed_point_with_reference_initialization"
             ),
@@ -798,6 +805,8 @@ def _empty_periodic_solver_result() -> dict[str, object]:
         "iterations": 0,
         "tolerance_a": 1e-8,
         "modulation_saturated": False,
+        "warm_start_used": False,
+        "warm_start_fallback_used": False,
     }
 
 
@@ -806,6 +815,12 @@ def _project_three_phase_current(values: list[float]) -> list[float]:
         return [0.0, 0.0, 0.0]
     mean = sum(values) / 3.0
     return [float(value) - mean for value in values]
+
+
+def _valid_three_phase_current(values: list[float] | None) -> bool:
+    if values is None or len(values) != 3:
+        return False
+    return all(math.isfinite(float(value)) for value in values)
 
 
 def _solve_periodic_initial_current(
@@ -819,15 +834,21 @@ def _solve_periodic_initial_current(
     half_bus_voltage_v: float,
     samples_per_switching_period: int,
     reference_initial_current: list[float],
+    warm_start_current: list[float] | None = None,
 ) -> tuple[list[float], dict[str, object]]:
     """Solve the periodic current fixed point without endpoint correction."""
 
     tolerance_a = 1e-8
     max_iterations = 8
-    initial = _project_three_phase_current(reference_initial_current)
+    warm_start_used = _valid_three_phase_current(warm_start_current)
+    warm_start_fallback_used = False
+    iteration_limit = 1 if warm_start_used else max_iterations
+    initial = _project_three_phase_current(
+        warm_start_current if warm_start_used else reference_initial_current
+    )
     saturated = False
     result: dict[str, object] | None = None
-    for iteration in range(1, max_iterations + 1):
+    for iteration in range(1, iteration_limit + 1):
         result = _simulate_npc_event_segmented_currents(
             time_s=time_s,
             phase_grid_voltage_v=([], [], []),
@@ -858,6 +879,8 @@ def _solve_periodic_initial_current(
                 "iterations": iteration,
                 "tolerance_a": tolerance_a,
                 "modulation_saturated": saturated,
+                "warm_start_used": warm_start_used,
+                "warm_start_fallback_used": warm_start_fallback_used,
             }
         initial = _project_three_phase_current(
             [value - 0.75 * error for value, error in zip(initial, residual, strict=True)]
@@ -879,6 +902,21 @@ def _solve_periodic_initial_current(
     )
     end_current = list(result["period_end_current_a"])
     residual = [end - start for end, start in zip(end_current, initial, strict=True)]
+    if warm_start_used:
+        fallback_initial, fallback_solver = _solve_periodic_initial_current(
+            time_s=time_s,
+            phase_current_reference_a=phase_current_reference_a,
+            phase_current_reference_average_a=phase_current_reference_average_a,
+            inductance_h=inductance_h,
+            grid_voltage_peak_v=grid_voltage_peak_v,
+            line_frequency_hz=line_frequency_hz,
+            half_bus_voltage_v=half_bus_voltage_v,
+            samples_per_switching_period=samples_per_switching_period,
+            reference_initial_current=reference_initial_current,
+        )
+        fallback_solver["warm_start_used"] = True
+        fallback_solver["warm_start_fallback_used"] = True
+        return fallback_initial, fallback_solver
     return initial, {
         "method": "periodic_shooting_with_projected_fixed_point_iteration",
         "status": "max_iterations_reached",
@@ -889,6 +927,8 @@ def _solve_periodic_initial_current(
         "iterations": max_iterations,
         "tolerance_a": tolerance_a,
         "modulation_saturated": saturated,
+        "warm_start_used": warm_start_used,
+        "warm_start_fallback_used": warm_start_fallback_used,
     }
 
 
@@ -903,6 +943,7 @@ def _simulate_npc_event_segmented_currents(
     line_frequency_hz: float,
     half_bus_voltage_v: float,
     samples_per_switching_period: int,
+    periodic_initial_current_a: list[float] | None = None,
     _initial_current_a: list[float] | None = None,
     _solve_periodic: bool = True,
 ) -> dict[str, object]:
@@ -959,6 +1000,7 @@ def _simulate_npc_event_segmented_currents(
             half_bus_voltage_v=half_bus_voltage_v,
             samples_per_switching_period=samples_per_switching_period,
             reference_initial_current=reference_initial,
+            warm_start_current=periodic_initial_current_a,
         )
         result = _simulate_npc_event_segmented_currents(
             time_s=time_s,

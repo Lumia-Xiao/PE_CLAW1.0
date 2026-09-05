@@ -92,10 +92,17 @@ def run_efficiency_sweep(
         warnings.append("Magnetic design has not been run; magnetic loss is omitted.")
 
     points: list[EfficiencySweepPoint] = []
+    npc_periodic_initial_current_a: list[float] | None = None
     for load_pu in load_grid:
-        point, point_warnings = _evaluate_sweep_load_point(report, plugin, load_pu)
+        point, point_warnings = _evaluate_sweep_load_point(
+            report,
+            plugin,
+            load_pu,
+            npc_periodic_initial_current_a=npc_periodic_initial_current_a,
+        )
         points.append(point)
         warnings.extend(point_warnings)
+        npc_periodic_initial_current_a = _next_npc_periodic_initial_current(report, point)
 
     result = _build_result(points, load_grid, warnings, signature, report)
     if is_llc_topology(report.spec.topology_id) and not _all_points_complete(points):
@@ -249,6 +256,8 @@ def _evaluate_sweep_load_point(
     report: DesignReport,
     plugin: TopologyPlugin,
     load_pu: float,
+    *,
+    npc_periodic_initial_current_a: list[float] | None = None,
 ) -> tuple[EfficiencySweepPoint, list[str]]:
     """Isolate one failed operating point so the remaining sweep can finish."""
 
@@ -259,7 +268,12 @@ def _evaluate_sweep_load_point(
             return _evaluate_single_phase_totem_pole_pfc_load_point(report, plugin, load_pu)
         if _is_ac_dc_bridge_topology(report):
             return _evaluate_ac_dc_load_point(report, plugin, load_pu)
-        return _evaluate_load_point(report, plugin, load_pu)
+        return _evaluate_load_point(
+            report,
+            plugin,
+            load_pu,
+            npc_periodic_initial_current_a=npc_periodic_initial_current_a,
+        )
     except Exception as exc:
         warning = (
             f"Efficiency sweep failed at {load_pu:.1f} p.u.: "
@@ -285,11 +299,16 @@ def _evaluate_load_point(
     base_report: DesignReport,
     plugin: TopologyPlugin,
     load_pu: float,
+    *,
+    npc_periodic_initial_current_a: list[float] | None = None,
 ) -> tuple[EfficiencySweepPoint, list[str]]:
     point_warnings: list[str] = []
     operating_point = _sweep_operating_point(base_report, load_pu)
+    waveform_kwargs = {"operating_point": operating_point}
+    if _is_three_phase_npc_inverter_topology(base_report):
+        waveform_kwargs["_periodic_initial_current_a"] = npc_periodic_initial_current_a
     waveform_set = call_with_report_run(
-        base_report, plugin.generate_waveforms, base_report.candidate, operating_point=operating_point
+        base_report, plugin.generate_waveforms, base_report.candidate, **waveform_kwargs
     )
     if waveform_set is None:
         warning = f"Waveform generation returned no data at {load_pu:.1f} p.u.; point omitted."
@@ -912,10 +931,52 @@ def _npc_switching_loss_audit(report: DesignReport) -> dict[str, object]:
         "line_frequency_Hz": line_frequency_hz,
         "line_period_s": 1.0 / line_frequency_hz if line_frequency_hz > 0.0 else None,
         "switching_frequency_Hz": metadata.get("fsw_hz"),
+        "periodic_solver_converged": metadata.get(
+            "phase_current_periodic_steady_state_converged"
+        ),
+        "periodic_solver_iterations": metadata.get(
+            "phase_current_periodic_steady_state_iterations"
+        ),
+        "periodic_initial_current_a": metadata.get(
+            "phase_current_periodic_steady_state_initial_current_a"
+        ),
+        "periodic_residual_max_a": max(
+            (abs(float(value)) for value in metadata.get(
+                "phase_current_periodic_steady_state_residual_a", []
+            )),
+            default=None,
+        ),
+        "warm_start_used": metadata.get(
+            "phase_current_periodic_steady_state_warm_start_used"
+        ),
+        "warm_start_fallback_used": metadata.get(
+            "phase_current_periodic_steady_state_warm_start_fallback_used"
+        ),
         "formula": "Psw = sum(Eon + Eoff) / Tline; event energy uses actual signed current and blocking voltage",
         "sic_reverse_recovery_loss_W": 0.0,
         "roles": role_summary,
     }
+
+
+def _next_npc_periodic_initial_current(
+    report: DesignReport,
+    point: EfficiencySweepPoint,
+) -> list[float] | None:
+    """Return a converged NPC fixed point for the next sweep operating point."""
+
+    if not _is_three_phase_npc_inverter_topology(report):
+        return None
+    audit = point.switching_loss_audit
+    if not audit or audit.get("periodic_solver_converged") is not True:
+        return None
+    values = audit.get("periodic_initial_current_a")
+    if not isinstance(values, list) or len(values) != 3:
+        return None
+    try:
+        normalized = [float(value) for value in values]
+    except (TypeError, ValueError):
+        return None
+    return normalized if all(math.isfinite(value) for value in normalized) else None
 
 
 def _npc_line_frequency_hz(report: DesignReport) -> float:
@@ -1137,11 +1198,24 @@ def _build_inverter_pf_sweep(
     fixed_load = _pf_sweep_load_pu(report)
     points: list[dict[str, object]] = []
     warnings: list[str] = []
+    npc_periodic_initial_current_by_sign: dict[int, list[float] | None] = {1: None, -1: None}
     for pf in DEFAULT_INVERTER_PF_POINTS:
         operating_point = OperatingPoint(vin_v=_operating_vin_v(report), load_ratio=fixed_load, power_factor=pf)
         pf_report = replace(report, operating_point=operating_point)
-        point, point_warnings = _evaluate_load_point(pf_report, plugin, fixed_load)
+        power_factor_sign = -1 if pf < 0.0 else 1
+        point, point_warnings = _evaluate_load_point(
+            pf_report,
+            plugin,
+            fixed_load,
+            npc_periodic_initial_current_a=npc_periodic_initial_current_by_sign[power_factor_sign]
+            if _is_three_phase_npc_inverter_topology(report)
+            else None,
+        )
         warnings.extend(point_warnings)
+        if _is_three_phase_npc_inverter_topology(report):
+            npc_periodic_initial_current_by_sign[power_factor_sign] = _next_npc_periodic_initial_current(
+                pf_report, point
+            )
         if zvs_mode == "diagnostic":
             try:
                 segments = build_inverter_line_cycle_segments(report, operating_point=operating_point)
