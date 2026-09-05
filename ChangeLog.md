@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-05 NPC Efficiency Sweep 性能优化计划第四步
+
+- NPC efficiency sweep 复用相邻运行点的周期稳态初值；负载扫描顺序传递，PF 扫描按正负功率方向隔离缓存，单独设计和 GUI 调用保持冷启动。
+- warm-start 先做一次周期残差校验，失败立即回退原有冷启动；审计字段记录 warm-start、回退、迭代次数和残差，未改变实际事件电流、阻断电压和开关损耗语义。
+- 验证：warm-start/NPC 合同 `25 passed`，性能基线 `3 passed`；代表性 sweep 负载点 `[False, True, True]`，PF 点 17 次复用、17 次快速回退，收敛残差最大 `2.96e-9 A`。
+- Git 提交和推送随后完成，测试生成物均留在 `pytest_temp`，未提交。
+
 ## 2026-09-05 NPC Efficiency Sweep 性能优化计划第三步
 
 - 为 NPC 统一事件分段建立有序时间索引，使用 `bisect` 定位采样状态和事件电流所在分段；事件提取直接遍历相邻分段，消除每个事件的全量线性搜索。

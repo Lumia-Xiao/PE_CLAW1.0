@@ -175,6 +175,8 @@ SAMPLES_PER_SWITCHING_PERIOD = 24
 
 ### 第四步：复用周期稳态初值
 
+状态：已完成
+
 #### 修改内容
 
 - 为 NPC efficiency sweep 增加内部 warm-start 机制。
@@ -194,6 +196,15 @@ SAMPLES_PER_SWITCHING_PERIOD = 24
 #### 版本控制
 
 测试完成后更新计划和日志，独立 commit 并 push。
+
+#### 执行回执
+
+- NPC 波形生成增加仅供内部 sweep 使用的周期稳态初值参数；单独设计和 GUI 原有调用仍使用正弦参考冷启动，不增加用户输入。
+- 负载扫描按顺序传递上一个已收敛运行点的三相周期稳态初值；PF 扫描按正、负功率方向分别维护缓存，避免跨方向复用不适用状态。
+- warm-start 点先进行一次周期残差校验；校验失败立即回退到原有冷启动求解，避免无效的多次迭代。warm-start、回退、周期迭代次数和残差均写入既有 NPC 开关损耗审计字段。
+- 验证：warm-start 专项及 NPC 合同测试 `25 passed`；性能基线 `3 passed`；`py_compile`、`git diff --check` 通过。
+- 代表性 sweep 验证：3 个负载点均完成，负载点 warm-start 标记为 `[False, True, True]`、均无回退；PF 扫描按正负方向隔离缓存，17 个点使用 warm-start，17 个不适用点快速回退；收敛点最大周期残差 `2.96e-9 A`，事件数保持 `4800`（低 PF 不可达工况仍按原有逻辑报告 `4110` 事件）。
+- 代表性 3 负载点加 20 个 PF 点 sweep 耗时约 `15.20 s`；测试和性能输出写入 `pytest_temp/npc-efficiency-step4*`，未提交生成物。
 
 ### 第五步：减少扫描点中的固定硬件重复刷新
 
