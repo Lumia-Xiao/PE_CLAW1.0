@@ -18,10 +18,10 @@ def test_npc_step1_baseline_is_repeatable_and_preserves_contract() -> None:
     assert first == second
     assert first["topology_id"] == "three_phase_three_level_npc_inverter"
     assert first["interface"]["waveform_set_fields"] == {
-        "time_s": 9601,
-        "inductor_current_a": 9601,
-        "switch_node_voltage_v": 9601,
-        "gate_s1": 9601,
+        "time_s": 3201,
+        "inductor_current_a": 3201,
+        "switch_node_voltage_v": 3201,
+        "gate_s1": 3201,
     }
     assert all(first["interface"]["required_npc_waveform_keys_present"].values())
     assert first["switching_events"]["count"] > 0

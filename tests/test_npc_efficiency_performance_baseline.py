@@ -17,8 +17,8 @@ def test_npc_efficiency_performance_baseline_records_representative_costs(tmp_pa
 
     assert baseline["topology_id"] == "three_phase_three_level_npc_inverter"
     assert baseline["sampling"] == {
-        "samples_per_switching_period": 24,
-        "waveform_sample_count": 9601,
+        "samples_per_switching_period": 8,
+        "waveform_sample_count": 3201,
         "waveform_time_span_s": pytest.approx(1.0 / 50.0),
     }
     assert baseline["default_sweep_grid"] == {

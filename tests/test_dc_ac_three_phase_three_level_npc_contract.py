@@ -79,7 +79,7 @@ def test_npc_waveform_contains_pd_spwm_three_level_signals_and_split_link_data()
     details = waveform.metadata["three_phase_npc_pd_spwm_waveforms"]
 
     assert waveform.mode == "three-phase three-level NPC PD-SPWM first-pass preview"
-    assert len(waveform.time_s) == 9_601
+    assert len(waveform.time_s) == 3_201
     assert len(details["time_s"]) == len(details["vab_pwm_v"])
     assert all(details[key] for key in ("carrier_lower", "carrier_upper", "mod_a", "mod_b", "mod_c"))
     assert all(details[key] for key in ("phase_state_a", "phase_state_b", "phase_state_c"))

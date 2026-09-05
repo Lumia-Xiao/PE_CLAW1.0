@@ -9,7 +9,7 @@ from ....models.operating_point import OperatingPoint
 from ....models.waveform import WaveformSet
 from ...base.candidate import TopologyCandidate
 
-SAMPLES_PER_SWITCHING_PERIOD = 24
+SAMPLES_PER_SWITCHING_PERIOD = 8
 
 
 def generate_waveforms(

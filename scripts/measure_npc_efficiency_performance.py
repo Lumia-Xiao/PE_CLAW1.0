@@ -116,7 +116,7 @@ def measure_baseline(*, output_root: str | Path) -> dict[str, Any]:
         "measurement_scope": "NPC only; representative points are measured and the full sweep is estimated",
         "sampling": {
             "samples_per_switching_period": int(
-                candidate.metadata.get("samples_per_switching_period", 24)
+                waveform.metadata["npc_pd_spwm_preview_samples_per_switching_period"]
             ),
             "waveform_sample_count": len(waveform.time_s),
             "waveform_time_span_s": float(waveform.time_span_s),
