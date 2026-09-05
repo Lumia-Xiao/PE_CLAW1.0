@@ -347,8 +347,10 @@ def _evaluate_load_point(
             preserve_selected_design_id=True,
             refresh_plot_artifact=False,
             pipeline_options=magnetic_options,
+            evaluate_selected_design_only=_is_three_phase_npc_inverter_topology(base_report),
         )
-        refreshed = run_thermal_pipeline(refreshed, pipeline_options=magnetic_options)
+        if not _is_three_phase_npc_inverter_topology(base_report):
+            refreshed = run_thermal_pipeline(refreshed, pipeline_options=magnetic_options)
     refreshed = run_capacitor_operating_point_refresh(refreshed)
 
     semiconductor_loss_w = _semiconductor_loss_w(refreshed)

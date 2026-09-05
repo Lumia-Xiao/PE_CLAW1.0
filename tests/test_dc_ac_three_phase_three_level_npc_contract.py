@@ -325,6 +325,44 @@ def test_npc_efficiency_load_and_pf_sweeps_rebuild_event_audit(tmp_path: Path) -
     assert "switching_loss_audit" in csv_text.splitlines()[0]
 
 
+def test_npc_efficiency_refresh_reuses_fixed_magnetic_selection(monkeypatch: pytest.MonkeyPatch) -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=PipelineOptions(enable_magnetic_design=True, enable_capacitor_design=False),
+    )
+    assert report.magnetic is not None
+    assert report.magnetic.chosen_designs
+    selected_id = report.magnetic.selected_design_id
+    chosen_ids = tuple(design.candidate_id for design in report.magnetic.chosen_designs)
+
+    efficiency_module = import_module("pe_claw_gui.pipeline.run_efficiency_sweep_pipeline")
+    loss_module = import_module("pe_claw_gui.pipeline.run_loss_pipeline")
+    evaluated_ids: list[tuple[str, ...]] = []
+    original_evaluate = loss_module.evaluate_selected_designs
+
+    def record_selected_designs(designs, operating_request):
+        evaluated_ids.append(tuple(design.candidate_id for design in designs))
+        return original_evaluate(designs, operating_request)
+
+    monkeypatch.setattr(loss_module, "evaluate_selected_designs", record_selected_designs)
+    monkeypatch.setattr(
+        efficiency_module,
+        "run_thermal_pipeline",
+        lambda *args, **kwargs: pytest.fail("NPC efficiency refresh must not rerun the thermal pipeline"),
+    )
+
+    result, warnings = efficiency_module._evaluate_load_point(report, plugin, 0.5)
+
+    assert not warnings
+    assert result.efficiency is not None
+    assert evaluated_ids == [(selected_id,)]
+    assert report.magnetic.selected_design_id == selected_id
+    assert tuple(design.candidate_id for design in report.magnetic.chosen_designs) == chosen_ids
+
+
 def test_npc_structured_report_exposes_current_validation_and_exact_event_sources() -> None:
     plugin = _plugin()
     report = run_full_pipeline(

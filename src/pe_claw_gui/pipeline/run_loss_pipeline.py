@@ -24,8 +24,14 @@ def run_loss_pipeline(
     preserve_selected_design_id: bool = False,
     refresh_plot_artifact: bool = True,
     pipeline_options: PipelineOptions | None = None,
+    evaluate_selected_design_only: bool = False,
 ) -> DesignReport:
-    """Attach loss results and refresh the selected-hardware excitation audit."""
+    """Attach loss results and refresh the selected-hardware excitation audit.
+
+    ``evaluate_selected_design_only`` is an internal fixed-hardware refresh
+    mode used by NPC efficiency sweep.  It keeps the existing selection and
+    refreshes only the selected inductor's operating-point loss.
+    """
 
     from ..engines.magnetics.core_loss_excitation_integration import (
         attach_core_loss_excitation_audit,
@@ -36,6 +42,7 @@ def run_loss_pipeline(
         preserve_selected_design_id=preserve_selected_design_id,
         refresh_plot_artifact=refresh_plot_artifact,
         pipeline_options=pipeline_options,
+        evaluate_selected_design_only=evaluate_selected_design_only,
     )
     completed = attach_core_loss_excitation_audit(
         completed,
@@ -68,6 +75,7 @@ def _run_loss_pipeline_without_excitation_audit(
     preserve_selected_design_id: bool = False,
     refresh_plot_artifact: bool = True,
     pipeline_options: PipelineOptions | None = None,
+    evaluate_selected_design_only: bool = False,
 ) -> DesignReport:
     """Attach fixed-inductor loss evaluation results to a design report."""
     options = resolve_pipeline_options(pipeline_options)
@@ -344,21 +352,38 @@ def _run_loss_pipeline_without_excitation_audit(
 
     try:
         operating_request = build_inductor_operating_point_request(report)
-        evaluations = evaluate_selected_designs(report.magnetic.chosen_designs, operating_request)
+        designs_to_evaluate = report.magnetic.chosen_designs
+        if evaluate_selected_design_only:
+            selected_design = _selected_magnetic_design(report)
+            designs_to_evaluate = [selected_design] if selected_design is not None else []
+        evaluations = evaluate_selected_designs(designs_to_evaluate, operating_request)
         recommended_design_id = _choose_recommended_design_id(
             report.magnetic.chosen_designs,
             evaluations,
             preferred_design_id=_resolve_preferred_design_id(report) if preserve_selected_design_id else None,
         )
-        evaluation_by_id = {evaluation.design_id: evaluation for evaluation in evaluations}
+        evaluation_by_id = {
+            evaluation.design_id: evaluation
+            for evaluation in (report.magnetic.evaluations if evaluate_selected_design_only else evaluations)
+        }
+        evaluation_by_id.update({evaluation.design_id: evaluation for evaluation in evaluations})
         design_by_id = {design.candidate_id: design for design in report.magnetic.chosen_designs}
         recommended_evaluation = evaluation_by_id.get(recommended_design_id or "")
         recommended_design = design_by_id.get(recommended_design_id or "")
 
-        top_design_losses = {
-            evaluation.design_id: _loss_values_for_evaluation(report, evaluation, operating_request)
-            for evaluation in evaluations
-        }
+        if evaluate_selected_design_only:
+            top_design_losses = dict(report.loss.top_design_losses) if report.loss is not None else {}
+            top_design_losses.update(
+                {
+                    evaluation.design_id: _loss_values_for_evaluation(report, evaluation, operating_request)
+                    for evaluation in evaluations
+                }
+            )
+        else:
+            top_design_losses = {
+                evaluation.design_id: _loss_values_for_evaluation(report, evaluation, operating_request)
+                for evaluation in evaluations
+            }
         recommended_loss_values = (
             top_design_losses.get(recommended_design_id or "")
             if recommended_design_id
@@ -375,6 +400,10 @@ def _run_loss_pipeline_without_excitation_audit(
         }
 
         loss_notes = list(operating_request.notes) + ["Loss stage currently evaluates fixed inductor copper and core losses only."]
+        if evaluate_selected_design_only:
+            loss_notes.append(
+                "Fixed-hardware operating-point refresh evaluated only the selected magnetic design; selection and other candidate records were reused."
+            )
         if _is_three_phase_per_phase_inverter_report(report):
             topology_label = "NPC" if _is_three_phase_npc_inverter_report(report) else "Three-phase"
             loss_notes.extend(
@@ -462,9 +491,22 @@ def _run_loss_pipeline_without_excitation_audit(
         elif preserve_selected_design_id and "Operating-point refresh reused the existing fixed magnetic design set without regenerating artifacts." not in plot_notes:
             plot_notes.append("Operating-point refresh reused the existing fixed magnetic design set without regenerating artifacts.")
 
+        if evaluate_selected_design_only:
+            merged_evaluations = list(report.magnetic.evaluations)
+            existing_ids = {evaluation.design_id for evaluation in merged_evaluations}
+            for evaluation in evaluations:
+                if evaluation.design_id in existing_ids:
+                    merged_evaluations = [
+                        evaluation if item.design_id == evaluation.design_id else item
+                        for item in merged_evaluations
+                    ]
+                else:
+                    merged_evaluations.append(evaluation)
+        else:
+            merged_evaluations = evaluations
         magnetic_result = replace(
             report.magnetic,
-            evaluations=evaluations,
+            evaluations=merged_evaluations,
             search_selected_design_id=report.magnetic.search_selected_design_id or report.magnetic.selected_design_id,
             selected_design_id=recommended_design_id,
             artifact_paths=artifact_paths,
