@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-05 NPC 精确开关损耗最小实现计划第九步
+
+- 增加结构化报告中的 NPC 电流验证信息，包括三相参考/实际平均电流、平均误差、开关纹波、周期稳态残差、三相电流和及精确开关事件来源。
+- 增加 GUI 打包运行时回归，确认 NPC 曲线显示实际 `ia_a`、`ib_a`、`ic_a`，保持原有输入窗口和字段不变。
+- 验证：NPC 效率扫描 `1 passed`；NPC 结构化报告 `1 passed`；GUI 打包运行时 `3 passed`；NPC/DC-AC 相关回归 `47 passed`；流程和输出隔离 `10 passed`；`py_compile`、`git diff --check` 通过。
+- 全量回归按任务范围停止，不作为本步骤验收依据；测试临时文件均使用 `pytest_temp`，生成的 `outputs/` 和缓存目录未提交。
+- Git：第九步功能提交 `748e559`（`test: complete NPC waveform validation`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条计划与日志为独立回执提交。
+
 ## 2026-09-05 NPC 精确开关损耗最小实现计划第八步
 
 - 将 NPC 开关事件改为直接从统一精确事件分段边界生成，不再从粗采样门极波形反向插值事件时刻和电流。
