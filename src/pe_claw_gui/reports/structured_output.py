@@ -106,7 +106,7 @@ def _waveform_payload(report: DesignReport) -> dict[str, Any]:
         "cycles_simulated", "settling_cycles_discarded", "converged", "convergence_status",
         "power_factor", "zvs_status", "fha_status",
     }
-    return {
+    payload = {
         "available": True,
         "operating": {
             "input_voltage": _metric(waveform.operating_vin_v, "V", "topology.waveform"),
@@ -124,6 +124,88 @@ def _waveform_payload(report: DesignReport) -> dict[str, Any]:
         "mode": waveform.mode,
         "series": series,
         "metadata": {key: metadata[key] for key in sorted(metadata_keys) if key in metadata},
+    }
+    npc_validation = _npc_waveform_validation_payload(report)
+    if npc_validation:
+        payload["npc_current_validation"] = npc_validation
+    return payload
+
+
+def _npc_waveform_validation_payload(report: DesignReport) -> dict[str, Any]:
+    """Expose compact NPC current and event validation evidence in reports."""
+
+    if report.spec.topology_id != "three_phase_three_level_npc_inverter" or report.waveform is None:
+        return {}
+    metadata = report.waveform.metadata if isinstance(report.waveform.metadata, Mapping) else {}
+    details = metadata.get("three_phase_npc_pd_spwm_waveforms")
+    if not isinstance(details, Mapping):
+        return {}
+    phases = ("a", "b", "c")
+
+    def series(key: str, unit: str = "A") -> dict[str, Any]:
+        values = details.get(key, [])
+        return _series_summary(values if isinstance(values, Sequence) else [], unit, f"npc.waveform.{key}")
+
+    actual_currents = [details.get(f"i{phase}_a", []) for phase in phases]
+    current_sum = [
+        sum(float(actual_currents[phase_index][index]) for phase_index in range(3))
+        for index in range(min((len(values) for values in actual_currents), default=0))
+    ]
+    periodic_initial = metadata.get("phase_current_periodic_steady_state_initial_current_a", [])
+    periodic_end = metadata.get("phase_current_periodic_steady_state_period_end_current_a", [])
+    periodic_residual = metadata.get("phase_current_periodic_steady_state_residual_a", [])
+    average_errors = metadata.get("phase_current_average_error_a", {})
+
+    return {
+        "status": "available",
+        "phase_current_source": "three_phase_npc_pd_spwm_waveforms.ia_a_ib_a_ic_a",
+        "phases": {
+            phase: {
+                "reference_average": series(f"i{phase}_reference_average_a"),
+                "actual_average": series(f"i{phase}_actual_average_a"),
+                "average_error": _series_summary(
+                    average_errors.get(phase, []) if isinstance(average_errors, Mapping) else [],
+                    "A",
+                    f"npc.metadata.phase_current_average_error_a.{phase}",
+                ),
+                "switching_ripple": series(f"i{phase}_switching_ripple_a"),
+            }
+            for phase in phases
+        },
+        "three_phase_current_sum": _series_summary(current_sum, "A", "npc.waveform.ia_plus_ib_plus_ic"),
+        "periodic_steady_state": {
+            "solver_method": metadata.get("phase_current_periodic_steady_state_solver_method"),
+            "status": metadata.get("phase_current_periodic_steady_state_solver_status"),
+            "converged": metadata.get("phase_current_periodic_steady_state_converged"),
+            "initial_current": _field(periodic_initial, "A", "npc.periodic_steady_state.initial"),
+            "period_end_current": _field(periodic_end, "A", "npc.periodic_steady_state.period_end"),
+            "residual": _field(periodic_residual, "A", "npc.periodic_steady_state.residual"),
+            "residual_max": _metric(
+                max((abs(float(value)) for value in periodic_residual), default=0.0),
+                "A",
+                "npc.periodic_steady_state.residual",
+            ),
+            "tolerance": _metric(
+                metadata.get("phase_current_periodic_steady_state_tolerance_a"),
+                "A",
+                "npc.periodic_steady_state.tolerance",
+            ),
+            "modulation_saturated": metadata.get("phase_current_periodic_steady_state_modulation_saturated"),
+        },
+        "average_error_max": _metric(
+            metadata.get("phase_current_average_error_max_a"),
+            "A",
+            "npc.current_tracking.average_error",
+        ),
+        "event_count": _metric(
+            metadata.get("three_phase_npc_switching_event_count"),
+            "count",
+            "npc.waveform.events",
+        ),
+        "event_source": metadata.get("npc_switching_event_source"),
+        "event_current_source": metadata.get("npc_switching_event_current_source"),
+        "event_blocking_voltage_source": metadata.get("npc_switching_event_blocking_voltage_source"),
+        "endpoint_correction_applied": metadata.get("phase_current_periodic_correction_applied"),
     }
 
 
@@ -474,7 +556,7 @@ def _npc_switching_audit_payload(report: DesignReport) -> dict[str, Any]:
             "switching_loss_off": _metric(getattr(loss_result, "p_sw_off_W", None), "W", "npc.loss.event_average"),
         }
 
-    return {
+    payload = {
         "status": "available",
         "event_count": _metric(len(events), "count", "npc.waveform.events"),
         "turn_on_count": _metric(len(turn_on), "count", "npc.waveform.events"),
@@ -492,6 +574,7 @@ def _npc_switching_audit_payload(report: DesignReport) -> dict[str, Any]:
         "formula": "Psw = sum(Eon + Eoff) / Tline; Eon/Eoff use each event's signed current and blocking voltage",
         "roles": {role: role_payload(role) for role in ("outer_switch", "inner_switch", "clamp_diode")},
     }
+    return payload
 
 
 def _npc_report_frequency(metadata: Mapping[str, Any], report: DesignReport) -> float:
@@ -709,7 +792,7 @@ def _efficiency_sweep_payload(report: DesignReport) -> dict[str, Any]:
     sweep = report.efficiency_sweep
     if sweep is None:
         return {"available": False, "points": [], "pf_points": [], "metadata": {}}
-    return {
+    payload = {
         "available": True,
         "status": sweep.status,
         "metrics": {
@@ -743,6 +826,7 @@ def _efficiency_sweep_payload(report: DesignReport) -> dict[str, Any]:
             "warnings": list(sweep.warnings),
         },
     }
+    return payload
 
 
 def _stress_metric(metric: Any) -> dict[str, Any]:

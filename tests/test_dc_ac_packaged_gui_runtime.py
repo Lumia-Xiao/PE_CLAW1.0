@@ -86,6 +86,14 @@ try:
         }[topology_id]
         assert expected_title in titles
         assert any(axis.get_xlabel() == 'Time [ms]' for axis in app.workspace.waveform_view.figure.axes)
+        if topology_id == 'three_phase_three_level_npc_inverter':
+            npc_data = refreshed.waveform.metadata['three_phase_npc_pd_spwm_waveforms']
+            current_axis = app.workspace.waveform_view.figure.axes[1]
+            plotted = {line.get_label(): list(line.get_ydata()) for line in current_axis.lines}
+            assert plotted['i_a'] == npc_data['ia_a']
+            assert plotted['i_b'] == npc_data['ib_a']
+            assert plotted['i_c'] == npc_data['ic_a']
+            assert plotted['i_a'] != npc_data['ia_reference_a']
 finally:
     app.destroy()
 """

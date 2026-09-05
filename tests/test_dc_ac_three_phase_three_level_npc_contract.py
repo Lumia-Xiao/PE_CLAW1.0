@@ -317,6 +317,37 @@ def test_npc_efficiency_load_and_pf_sweeps_rebuild_event_audit(tmp_path: Path) -
     assert "switching_loss_audit" in csv_text.splitlines()[0]
 
 
+def test_npc_structured_report_exposes_current_validation_and_exact_event_sources() -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+
+    structured = build_structured_report(report)
+    validation = structured["waveform"]["npc_current_validation"]
+    periodic = validation["periodic_steady_state"]
+
+    assert validation["status"] == "available"
+    assert validation["event_count"]["value"] == 4800.0
+    assert validation["endpoint_correction_applied"] is False
+    assert validation["event_source"] == (
+        "exact_unified_event_segment_boundaries_with_segment_integrated_current"
+    )
+    assert validation["event_current_source"] == "exact_current_at_unified_event_boundary"
+    assert periodic["converged"] is True
+    assert periodic["residual_max"]["value"] <= 1e-8
+    assert validation["average_error_max"]["value"] <= 1e-6
+    assert validation["three_phase_current_sum"]["peak"]["value"] <= 1e-8
+    assert all(
+        validation["phases"][phase]["actual_average"]["average"]["source"]
+        == f"npc.waveform.i{phase}_actual_average_a"
+        for phase in ("a", "b", "c")
+    )
+
+
 def test_npc_form_exposes_design_and_operating_point_controls() -> None:
     form = ThreePhaseThreeLevelNPCInverterForm
     assert form.topology_id == TOPOLOGY_ID
