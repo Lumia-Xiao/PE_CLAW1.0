@@ -107,6 +107,8 @@ SAMPLES_PER_SWITCHING_PERIOD = 24
 
 ### 第二步：适当减少工频周期采样点
 
+状态：已完成
+
 #### 修改内容
 
 - 将 NPC 波形的 `SAMPLES_PER_SWITCHING_PERIOD` 从 `24` 调整为 `8`，作为第一版性能参数。
@@ -127,6 +129,16 @@ SAMPLES_PER_SWITCHING_PERIOD = 24
 #### 版本控制
 
 测试完成后更新计划和日志，独立 commit 并 push。
+
+#### 执行回执
+
+- 将 NPC `SAMPLES_PER_SWITCHING_PERIOD` 从 `24` 调整为 `8`，默认工频周期采样点从 `9601` 降至 `3201`。
+- 保持精确统一事件分段、逐段积分实际事件电流、事件时刻分裂直流母线阻断电压、负电流软开通和 SiC 反向恢复为零的逻辑不变；代表性运行点仍为 `4800` 个事件。
+- 修正性能测量脚本，使采样参数从实际 waveform metadata 读取，避免从不含该字段的候选元数据读取旧默认值。
+- 第二步测量结果：单次波形 `8.1643 s`，单负载点 `8.2597 s`，单 PF 点 `8.3620 s`，代表性点 `8.3109 s`，完整 40 点估算 `332.4342 s`；相较第一步约 `18.07 s`、`17.92 s`、`18.26 s`、`18.09 s`、`723.58 s`，耗时约降低 `54%`。
+- 不变量：`event_count=4800`，`turn_on_count=2400`，`turn_off_count=2400`，`soft_turn_on_count=1199`，周期稳态最大残差 `2.94e-9 A`，周期末端人工修正为 `False`。
+- 验证：NPC 步骤、性能基线和合同测试最终为 `43 passed`；`py_compile`、`git diff --check` 通过。测试输出写入 `pytest_temp/npc-efficiency-step2`，未写入设计结果 `outputs`。
+- 性能 JSON：`pytest_temp/npc-efficiency-step2/baseline.json`，未提交生成物。
 
 ### 第三步：为统一事件分段建立有序索引
 
