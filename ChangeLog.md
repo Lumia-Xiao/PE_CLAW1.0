@@ -6,7 +6,7 @@
 - 基线记录当前 20 个工频分段、选中主开关、分段正负电流、详细 PWM 预览以及 `p_sw_on=1.1432272798753493 W`、`p_sw_off=0.02562835862477436 W`、`p_rr=0 W`、`p_total=1.4005308859697716 W`；仅用于锁定改造前行为，未修改生产计算逻辑。
 - 测试输出写入 `pytest_temp/single-phase-full-bridge-step1`，未写入或提交 `outputs/`。
 - 验证：新增基线测试 `3 passed`；既有单相全桥合同测试 `11 passed`；基线 JSON 生成成功；`compileall` 和 `git diff --check` 待本步骤提交前复核。
-- Git：本步骤实现 commit 和 push 回执待完成。
+- Git：本步骤实现 commit `18b04258a7040737a048e72f4c9c2542316769a6`（`test: establish single-phase full-bridge switching-loss baseline`）已推送至 `origin/codex/npc-output-run-isolation-step1`；远端 HEAD 已核对一致。本条为独立回执更新。
 
 ## 2026-09-05 单相全桥逆变器精确开关损耗计划
 
