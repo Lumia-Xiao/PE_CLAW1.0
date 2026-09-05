@@ -376,7 +376,7 @@ git push
 
 | 步骤 | 状态 | 实现 commit | ChangeLog 回执 commit | 远端 push | 验证证据 |
 |---|---|---|---|---|---|
-| 1 | 待执行 | - | - | - | - |
+| 1 | 执行中 | - | - | - | `scripts/record_single_phase_full_bridge_step1_baseline.py`、`tests/test_single_phase_full_bridge_switching_loss.py` |
 | 2 | 待执行 | - | - | - | - |
 | 3 | 待执行 | - | - | - | - |
 | 4 | 待执行 | - | - | - | - |
@@ -394,4 +394,3 @@ git push
 - **开通极性误判**：软硬判据必须针对 `turn_on` 的有符号事件电流，不能使用绝对值或电流平均值。
 - **损耗重复叠加**：替换调用链后必须从总损耗中扣除旧开关损耗，再加上事件级开关损耗；导通、Eoss、栅极和其他现有损耗只保留一次。
 - **NPC 回归**：任何通用 helper 抽取都必须先锁定 NPC 现有测试，再切换单相全桥调用，保证 NPC 的事件语义和结果不变。
-
