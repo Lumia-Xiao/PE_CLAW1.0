@@ -208,6 +208,8 @@ SAMPLES_PER_SWITCHING_PERIOD = 24
 
 ### 第五步：减少扫描点中的固定硬件重复刷新
 
+状态：已完成
+
 #### 修改内容
 
 - 针对 NPC efficiency sweep 复用已经完成的固定硬件选择结果。
@@ -234,6 +236,16 @@ SAMPLES_PER_SWITCHING_PERIOD = 24
 #### 版本控制
 
 测试完成后更新计划和日志，独立 commit 并 push。
+
+#### 执行回执
+
+- 为 `run_loss_pipeline()` 增加内部固定硬件运行点刷新模式 `evaluate_selected_design_only`；NPC efficiency sweep 开启该模式后，只评估当前已选磁性件，复用其余候选、磁性选型结果、选中 ID 和既有损耗记录。
+- NPC efficiency sweep 不再逐点调用 `run_thermal_pipeline()`；每个点仍保留实际波形生成、实际开关事件提取、器件事件级开关/导通损耗刷新、选中磁性件当前电流下的铜损/磁芯损耗刷新，以及选中上下分裂直流链电容的当前波形损耗刷新。
+- 固定硬件刷新不会重建磁性候选集合、不会改变器件或磁性件选型、不会生成重复热汇总文件；效率点、CSV、结构化报告和 GUI 字段保持原有契约，`other` 损耗仍不参与计算。
+- 新增 NPC 契约测试，锁定单个效率点仅评估已选磁性件、禁止重复热流水线，并验证磁性候选 ID 集合及选中 ID 不变。
+- 验证：NPC 专项、合同和 GUI 打包运行时测试 `45 passed`；`py_compile`、`git diff --check` 通过。测试临时目录为 `pytest_temp/npc-efficiency-step5-*`，未写入设计结果 `outputs`。
+- 代表性带固定磁性设计的两点扫描完成，耗时约 `18.62 s`（约 `9.31 s/点`），效率约 `99.61%`、`99.60%`；固定磁性件 ID 保持为 `E_100_60_21_FT-3M_Litz_120x0.1_-_Grade_1_-_Single_Served_N39_P6`。该测量同时包含波形和当前运行点损耗刷新，不把完整 40 点扫描作为本步骤测试要求。
+- 第五步代码和测试提交、计划/日志回执提交均需独立推送到当前远端分支。
 
 ### 第六步：NPC GUI 实时刷新与最终性能回归
 
