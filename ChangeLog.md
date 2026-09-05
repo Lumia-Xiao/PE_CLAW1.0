@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-05 NPC Efficiency Sweep 性能优化计划第六步
+
+- 锁定 GUI Efficiency Sweep 控制器复用当前 NPC 设计报告、运行上下文和已选硬件，不重新触发设计、器件选型或磁性搜索。
+- 新增 GUI 控制器专项回归，验证当前运行 ID、候选和输出目录保持一致，效率结果正确回写 GUI 状态。
+- 最终验证：NPC 步骤/合同/打包 GUI 测试 `46 passed`；`py_compile`、`git diff --check` 通过。固定硬件两点扫描约 `17.19 s`，每点约 `8.60 s`，PF 点数 `20`，每个负载点 `4800` 个事件。
+- 第 1 至第 6 步全部完成，精确开关损耗语义、无 `other` 损耗和无新增 GUI 输入约束保持。
+
 ## 2026-09-05 NPC Efficiency Sweep 性能优化计划第五步
 
 - NPC efficiency sweep 增加固定硬件运行点刷新模式：每个点只评估已选磁性件，复用其余磁性候选和选型结果；不再逐点运行 NPC 热流水线。
