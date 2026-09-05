@@ -768,6 +768,18 @@ def _build_refined_unipolar_spwm_waveforms(
     dc_link_cap_current_pwm_a = [idc_avg_a - current for current in dc_link_current_a]
     dc_link_cap_current_pwm_a = _remove_average(dc_link_cap_current_pwm_a)
     dc_link_pwm_ripple_v = _integrate_periodic_capacitor_voltage(time_s, dc_link_cap_current_pwm_a, capacitance_f)
+    switching_events = _extract_full_bridge_switching_events(
+        time_s=time_s,
+        gates={
+            "S1": gate_s1,
+            "S2": gate_s2,
+            "S3": gate_s3,
+            "S4": gate_s4,
+        },
+        bridge_state=bridge_state,
+        dc_link_voltage_v=vdc_link_v,
+        line_period_s=period_s,
+    )
 
     branch_current_metrics = _branch_current_metrics(
         inductor_current_a,
@@ -797,6 +809,11 @@ def _build_refined_unipolar_spwm_waveforms(
         "dc_link_capacitor_current_pwm_a": dc_link_cap_current_pwm_a,
         "dc_link_voltage_v": vdc_link_v,
         "dc_link_voltage_pwm_ripple_v": dc_link_pwm_ripple_v,
+        "switching_events": switching_events,
+        "switching_event_count": len(switching_events),
+        "switching_event_source": "sampled_unipolar_spwm_gate_transition",
+        "switching_event_current_source": "pending_continuous_segment_integrated_current_step3",
+        "switching_event_blocking_voltage_source": "sampled_dc_link_voltage_at_gate_transition",
         "samples_per_switching_period": samples_per_switching_period,
         "switching_cycle_count": switching_cycles,
         "bridge_voltage_levels_v": [-vdc_v, 0.0, vdc_v],
@@ -813,6 +830,67 @@ def _build_refined_unipolar_spwm_waveforms(
             "DC-link PWM capacitor current is provided for waveform inspection only; capacitor bank selection still uses the low-frequency energy-balance current.",
         ],
     }
+
+
+def _extract_full_bridge_switching_events(
+    *,
+    time_s: list[float],
+    gates: dict[str, list[float]],
+    bridge_state: list[float],
+    dc_link_voltage_v: list[float],
+    line_period_s: float,
+) -> list[dict[str, object]]:
+    """Extract one stable event record for every sampled full-bridge gate transition."""
+
+    if (
+        len(time_s) < 2
+        or line_period_s <= 0.0
+        or len(bridge_state) != len(time_s)
+        or len(dc_link_voltage_v) != len(time_s)
+        or not gates
+        or any(len(values) != len(time_s) for values in gates.values())
+    ):
+        return []
+
+    events: list[dict[str, object]] = []
+    tolerance_s = max(line_period_s * 1e-12, 1e-15)
+    switch_order = ("S1", "S2", "S3", "S4")
+    leg_by_switch = {"S1": "A", "S2": "A", "S3": "B", "S4": "B"}
+    index_by_switch = {name: index for index, name in enumerate(switch_order, 1)}
+    for switch_name in switch_order:
+        gate = gates.get(switch_name)
+        if gate is None:
+            continue
+        for sample_index in range(1, len(time_s)):
+            previous_gate = float(gate[sample_index - 1])
+            current_gate = float(gate[sample_index])
+            if current_gate == previous_gate:
+                continue
+            event_time_s = float(time_s[sample_index])
+            if event_time_s < -tolerance_s or event_time_s >= line_period_s - tolerance_s:
+                continue
+            events.append(
+                {
+                    "switch_name": switch_name,
+                    "switch_index": index_by_switch[switch_name],
+                    "bridge_leg": leg_by_switch[switch_name],
+                    "event_type": "turn_on" if current_gate > previous_gate else "turn_off",
+                    "event_time_s": event_time_s,
+                    "sample_index": sample_index,
+                    "gate_before": previous_gate,
+                    "gate_after": current_gate,
+                    "bridge_state_before": float(bridge_state[sample_index - 1]),
+                    "bridge_state_after": float(bridge_state[sample_index]),
+                    "blocking_voltage_V": abs(float(dc_link_voltage_v[sample_index])),
+                    "signed_current_A": None,
+                    "absolute_current_A": None,
+                    "event_source": "sampled_unipolar_spwm_gate_transition",
+                    "current_source": "pending_continuous_segment_integrated_current_step3",
+                    "blocking_voltage_source": "sampled_dc_link_voltage_at_gate_transition",
+                }
+            )
+    events.sort(key=lambda event: (float(event["event_time_s"]), str(event["switch_name"])))
+    return events
 
 
 def _local_cycle_peak_to_peak(values: list[float], samples_per_switching_period: int) -> list[float]:
