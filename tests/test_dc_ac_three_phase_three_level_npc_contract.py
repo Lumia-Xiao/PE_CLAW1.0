@@ -113,6 +113,12 @@ def test_npc_waveform_extracts_interpolated_events_for_all_switch_positions() ->
     assert all(event["absolute_current_A"] == pytest.approx(abs(event["signed_current_A"])) for event in events)
     assert all(event["blocking_voltage_V"] > 0.0 for event in events)
     assert len({round(event["signed_current_A"], 9) for event in events}) > 10
+    assert all(event["event_source"] == "exact_unified_event_segment_boundary" for event in events)
+    assert all(event["current_source"] == "exact_segment_integrated_current" for event in events)
+    assert all(event["blocking_voltage_source"] == "split_dc_link_voltage_at_event_time" for event in events)
+    assert waveform.metadata["npc_switching_event_source"] == (
+        "exact_unified_event_segment_boundaries_with_segment_integrated_current"
+    )
 
 
 def test_npc_event_energy_uses_polarity_and_actual_current() -> None:

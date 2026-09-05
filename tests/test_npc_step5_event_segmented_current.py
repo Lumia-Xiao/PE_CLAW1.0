@@ -83,6 +83,9 @@ def test_npc_waveform_uses_segmented_current_path_without_end_point_correction()
     assert waveform.metadata["npc_event_current_integration_method"] == (
         "piecewise_constant_npc_state_with_exact_sinusoidal_grid_voltage_integral"
     )
+    assert waveform.metadata["npc_switching_event_current_source"] == (
+        "exact_current_at_unified_event_boundary"
+    )
     assert waveform.metadata["npc_unified_event_count"] > 0
     assert waveform.metadata["npc_event_segment_count"] >= waveform.metadata["npc_unified_event_count"] - 1
     assert len(details["ia_a"]) == len(details["ib_a"]) == len(details["ic_a"]) == len(waveform.time_s)
@@ -124,6 +127,25 @@ def test_npc_step7_reports_saturation_when_periodic_condition_is_unreachable() -
     assert metadata["phase_current_periodic_steady_state_modulation_saturated"] is True
     assert metadata["phase_current_periodic_steady_state_solver_status"] == "max_iterations_reached"
     assert metadata["phase_current_periodic_steady_state_converged"] is False
+
+
+def test_npc_step8_events_use_exact_segment_boundaries_and_actual_operating_values() -> None:
+    plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
+    candidate = plugin.synthesize(plugin.build_spec(build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    metadata = waveform.metadata
+    events = metadata["three_phase_npc_switching_events"]
+    timeline = metadata["npc_unified_event_timeline"]
+    timeline_times = {float(item["time_s"]) for item in timeline}
+
+    assert events
+    assert all(float(event["event_time_s"]) in timeline_times for event in events)
+    assert all(event["event_source"] == "exact_unified_event_segment_boundary" for event in events)
+    assert all(event["current_source"] == "exact_segment_integrated_current" for event in events)
+    assert all(event["blocking_voltage_source"] == "split_dc_link_voltage_at_event_time" for event in events)
+    assert min(float(event["signed_current_A"]) for event in events) < 0.0
+    assert max(float(event["signed_current_A"]) for event in events) > 0.0
+    assert len({round(float(event["blocking_voltage_V"]), 6) for event in events}) > 1
 
 
 def test_npc_step6_tracks_reference_with_segmented_period_average_feedback() -> None:

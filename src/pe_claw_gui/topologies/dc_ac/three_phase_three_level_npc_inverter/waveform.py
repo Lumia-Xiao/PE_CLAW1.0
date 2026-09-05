@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from bisect import bisect_right
 
 from ....models.operating_point import OperatingPoint
 from ....models.waveform import WaveformSet
@@ -284,14 +285,13 @@ def generate_waveforms(
     )
     upper_dc_link_voltage_v = [half_bus_v + value for value in upper_dc_link_ripple_v]
     lower_dc_link_voltage_v = [half_bus_v + value for value in lower_dc_link_ripple_v]
-    npc_switching_events = _extract_npc_switching_events(
+    npc_switching_events = _extract_npc_switching_events_from_segments(
+        segments=event_simulation["segments"],
         time_s=time_s,
-        phase_currents_a=(ia_a, ib_a, ic_a),
-        gates={
-            "a_s1": gate_a_s1, "a_s2": gate_a_s2, "a_s3": gate_a_s3, "a_s4": gate_a_s4,
-            "b_s1": gate_b_s1, "b_s2": gate_b_s2, "b_s3": gate_b_s3, "b_s4": gate_b_s4,
-            "c_s1": gate_c_s1, "c_s2": gate_c_s2, "c_s3": gate_c_s3, "c_s4": gate_c_s4,
-        },
+        inductance_h=float(candidate.inductance_h),
+        grid_voltage_peak_v=vac_phase_peak_v,
+        line_frequency_hz=f_line_hz,
+        phase_angles=(0.0, -2.0 * math.pi / 3.0, 2.0 * math.pi / 3.0),
         upper_dc_link_voltage_v=upper_dc_link_voltage_v,
         lower_dc_link_voltage_v=lower_dc_link_voltage_v,
     )
@@ -477,6 +477,13 @@ def generate_waveforms(
             "npc_event_current_integration_method": (
                 "piecewise_constant_npc_state_with_exact_sinusoidal_grid_voltage_integral"
             ),
+            "npc_switching_event_source": (
+                "exact_unified_event_segment_boundaries_with_segment_integrated_current"
+            ),
+            "npc_switching_event_current_source": "exact_current_at_unified_event_boundary",
+            "npc_switching_event_blocking_voltage_source": (
+                "split_dc_link_voltage_interpolated_at_exact_event_time"
+            ),
             "operating_power_factor": operating_power_factor,
             "operating_active_power_w": pout_w,
             "operating_i_phase_rms_a": i_phase_rms_a,
@@ -587,55 +594,122 @@ def _npc_gate_state(state: float) -> tuple[float, float, float, float]:
     return 0.0, 1.0, 1.0, 0.0
 
 
-def _extract_npc_switching_events(
+def _extract_npc_switching_events_from_segments(
     *,
+    segments: list[dict[str, object]],
     time_s: list[float],
-    phase_currents_a: tuple[list[float], list[float], list[float]],
-    gates: dict[str, list[float]],
+    inductance_h: float,
+    grid_voltage_peak_v: float,
+    line_frequency_hz: float,
+    phase_angles: tuple[float, float, float],
     upper_dc_link_voltage_v: list[float],
     lower_dc_link_voltage_v: list[float],
 ) -> list[dict[str, float | int | str]]:
-    """Extract interpolated switching events from the sampled NPC waveforms."""
+    """Extract gate events directly from exact unified NPC segment boundaries."""
 
+    if (
+        not segments
+        or len(time_s) < 2
+        or len(time_s) != len(upper_dc_link_voltage_v)
+        or len(time_s) != len(lower_dc_link_voltage_v)
+        or inductance_h <= 0.0
+        or grid_voltage_peak_v <= 0.0
+        or line_frequency_hz <= 0.0
+    ):
+        return []
     phase_names = ("a", "b", "c")
-    phase_indices = {name: index for index, name in enumerate(phase_names)}
     events: list[dict[str, float | int | str]] = []
-    for branch_name, gate in gates.items():
-        phase_name, switch_text = branch_name.split("_s", maxsplit=1)
-        switch_index = int(switch_text)
-        phase_current = phase_currents_a[phase_indices[phase_name]]
-        for index in range(1, min(len(time_s), len(gate), len(phase_current), len(upper_dc_link_voltage_v), len(lower_dc_link_voltage_v))):
-            previous_gate = float(gate[index - 1])
-            current_gate = float(gate[index])
-            if previous_gate == current_gate:
-                continue
-            delta_gate = current_gate - previous_gate
-            interpolation = (0.5 - previous_gate) / delta_gate
-            interpolation = min(max(interpolation, 0.0), 1.0)
-            event_time_s = _interpolate(time_s[index - 1], time_s[index], interpolation)
-            signed_current_a = _interpolate(phase_current[index - 1], phase_current[index], interpolation)
-            blocking_waveform = upper_dc_link_voltage_v if switch_index in (1, 2) else lower_dc_link_voltage_v
-            blocking_voltage_v = abs(
-                _interpolate(blocking_waveform[index - 1], blocking_waveform[index], interpolation)
+    event_times = sorted({
+        float(value)
+        for segment in segments
+        for value in (segment["start_time_s"], segment["end_time_s"])
+    })
+    start_time_s = float(time_s[0])
+    end_time_s = float(time_s[-1])
+    tolerance_s = max((end_time_s - start_time_s) * 1e-12, 1e-15)
+    for event_time_s in event_times:
+        if event_time_s <= start_time_s + tolerance_s or event_time_s >= end_time_s - tolerance_s:
+            continue
+        before = next(
+            (
+                segment
+                for segment in reversed(segments)
+                if abs(float(segment["end_time_s"]) - event_time_s) <= tolerance_s
+            ),
+            None,
+        )
+        after = next(
+            (
+                segment
+                for segment in segments
+                if abs(float(segment["start_time_s"]) - event_time_s) <= tolerance_s
+            ),
+            None,
+        )
+        if before is None or after is None:
+            continue
+        before_states = tuple(float(value) for value in before["states"])
+        after_states = tuple(float(value) for value in after["states"])
+        event_currents = tuple(
+            _current_at_event_time(
+                segments,
+                phase_index,
+                event_time_s,
+                inductance_h,
+                grid_voltage_peak_v,
+                line_frequency_hz,
+                phase_angles[phase_index],
             )
-            events.append(
-                {
-                    "phase": phase_name,
-                    "switch_index": switch_index,
-                    "role": "outer_switch" if switch_index in (1, 4) else "inner_switch",
-                    "event_type": "turn_on" if delta_gate > 0.0 else "turn_off",
-                    "event_time_s": event_time_s,
-                    "signed_current_A": signed_current_a,
-                    "absolute_current_A": abs(signed_current_a),
-                    "blocking_voltage_V": blocking_voltage_v,
-                }
-            )
+            for phase_index in range(3)
+        )
+        for phase_index, phase_name in enumerate(phase_names):
+            before_gates = _npc_gate_state(before_states[phase_index])
+            after_gates = _npc_gate_state(after_states[phase_index])
+            for switch_index, (previous_gate, current_gate) in enumerate(zip(before_gates, after_gates, strict=True), 1):
+                if previous_gate == current_gate:
+                    continue
+                blocking_waveform = (
+                    upper_dc_link_voltage_v if switch_index in (1, 2) else lower_dc_link_voltage_v
+                )
+                blocking_voltage_v = abs(
+                    _interpolate_series_at_time(time_s, blocking_waveform, event_time_s)
+                )
+                signed_current_a = event_currents[phase_index]
+                events.append(
+                    {
+                        "phase": phase_name,
+                        "switch_index": switch_index,
+                        "role": "outer_switch" if switch_index in (1, 4) else "inner_switch",
+                        "event_type": "turn_on" if current_gate > previous_gate else "turn_off",
+                        "event_time_s": event_time_s,
+                        "signed_current_A": signed_current_a,
+                        "absolute_current_A": abs(signed_current_a),
+                        "blocking_voltage_V": blocking_voltage_v,
+                        "event_source": "exact_unified_event_segment_boundary",
+                        "current_source": "exact_segment_integrated_current",
+                        "blocking_voltage_source": "split_dc_link_voltage_at_event_time",
+                    }
+                )
     events.sort(key=lambda event: (float(event["event_time_s"]), str(event["phase"]), int(event["switch_index"])))
     return events
 
 
 def _interpolate(previous: float, current: float, fraction: float) -> float:
     return float(previous) + (float(current) - float(previous)) * float(fraction)
+
+
+def _interpolate_series_at_time(time_s: list[float], values: list[float], target_time_s: float) -> float:
+    if not time_s or len(time_s) != len(values):
+        return 0.0
+    if target_time_s <= time_s[0]:
+        return float(values[0])
+    if target_time_s >= time_s[-1]:
+        return float(values[-1])
+    right = bisect_right(time_s, target_time_s)
+    left = right - 1
+    span_s = time_s[right] - time_s[left]
+    fraction = (target_time_s - time_s[left]) / span_s if span_s > 0.0 else 0.0
+    return _interpolate(values[left], values[right], fraction)
 
 
 def _switching_period_midpoints(time_s: list[float], samples_per_switching_period: int) -> list[float]:
@@ -871,6 +945,7 @@ def _simulate_npc_event_segmented_currents(
         "average_current_correction_saturated": {phase: [] for phase in phase_names},
         "event_timeline": [],
         "segment_count": 0,
+        "segments": [],
         "periodic_solver": _empty_periodic_solver_result(),
         "period_end_current_a": [0.0, 0.0, 0.0],
     }
@@ -1036,6 +1111,7 @@ def _simulate_npc_event_segmented_currents(
         "period_end_current_a": phase_current_at_cycle_start,
         "event_timeline": timeline,
         "segment_count": len(segments),
+        "segments": segments,
     }
 
 
