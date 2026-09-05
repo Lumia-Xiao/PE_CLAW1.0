@@ -6,7 +6,7 @@
 - 事件按半开区间 `[0, Tline)` 提取并稳定排序，记录 `S1` 至 `S4`、桥臂、开通/关断类型、采样边界、桥输出状态和阻断电压来源；默认工况生成 `3200` 个事件，四个开关各 `800` 个，均包含开通和关断。
 - 本步骤仅建立时序，事件电流字段明确标记为第三步待接入的连续分段积分电流，未接入损耗计算，也未修改用户输入、调制策略或 NPC 逻辑。
 - 验证：单相全桥专项+原有合同测试 `16 passed`；`compileall` 通过；`git diff --check` 通过。
-- Git：本步骤 commit 和 push 回执待完成。
+- Git：本步骤实现 commit `0915933750655ad56aca9490632e50eb10ac12cd`（`feat: add single-phase full-bridge switching event timeline`）已推送至 `origin/codex/npc-output-run-isolation-step1`；远端 HEAD 已核对一致。本条回执待独立提交。
 
 ## 2026-09-05 单相全桥开关损耗计划第一步
 
