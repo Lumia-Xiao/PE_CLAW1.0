@@ -376,7 +376,7 @@ git push
 
 | 步骤 | 状态 | 实现 commit | ChangeLog 回执 commit | 远端 push | 验证证据 |
 |---|---|---|---|---|---|
-| 1 | 执行中 | - | - | - | `scripts/record_single_phase_full_bridge_step1_baseline.py`、`tests/test_single_phase_full_bridge_switching_loss.py` |
+| 1 | 已完成 | `18b04258a7040737a048e72f4c9c2542316769a6` | `a7f63f65707a4e7ed5023678a314aaa597f3045c` | 已推送；回执后远端 HEAD=`a7f63f65707a4e7ed5023678a314aaa597f3045c` | 新增基线+既有合同 `14 passed`；`compileall` 通过；`git diff --check` 通过 |
 | 2 | 待执行 | - | - | - | - |
 | 3 | 待执行 | - | - | - | - |
 | 4 | 待执行 | - | - | - | - |
