@@ -4,6 +4,7 @@ from dataclasses import replace
 from importlib import import_module
 import inspect
 import sys
+from types import SimpleNamespace
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,8 @@ from pe_claw_gui.app.topology_forms.three_phase_three_level_npc_inverter_form im
     ThreePhaseThreeLevelNPCInverterForm,
 )
 from pe_claw_gui.models.operating_point import OperatingPoint
+from pe_claw_gui.app.controllers.efficiency_sweep_controller import EfficiencySweepController
+from pe_claw_gui.app.shell.state_store import AppStateStore
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
@@ -394,6 +397,61 @@ def test_npc_structured_report_exposes_current_validation_and_exact_event_source
     )
 
 
+def test_npc_gui_efficiency_controller_reuses_current_run_and_output_scope(monkeypatch: pytest.MonkeyPatch) -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+        output_root=Path("pytest_temp") / "npc-efficiency-step6-controller-run",
+    )
+    assert report.run_context is not None
+    original_run_id = report.run_context.run_id
+    original_candidate = report.candidate
+    store = AppStateStore(
+        registry=build_default_registry(),
+        selected_topology_id=TOPOLOGY_ID,
+        active_plugin=plugin,
+        design_report=report,
+    )
+    controller_module = import_module("pe_claw_gui.app.controllers.efficiency_sweep_controller")
+    captured: dict[str, object] = {}
+
+    def run_single_gui_point(sweep_report, *, plugin):
+        captured["report"] = sweep_report
+        return run_efficiency_sweep(
+            sweep_report,
+            plugin=plugin,
+            load_points=(0.5,),
+            output_dir=Path(sweep_report.run_context.output_root) / "efficiency_sweep",
+        )
+
+    monkeypatch.setattr(controller_module, "run_efficiency_sweep", run_single_gui_point)
+    monkeypatch.setattr(
+        controller_module,
+        "build_and_generate_hardware_overview",
+        lambda report: SimpleNamespace(status="available", blocked_reason=None),
+    )
+
+    updated = EfficiencySweepController(store).run_active_efficiency_sweep(
+        operating_point=OperatingPoint(vin_v=700.0, load_ratio=0.5, power_factor=0.8),
+    )
+
+    captured_report = captured["report"]
+    assert captured_report.candidate is original_candidate
+    assert captured_report.run_context is not None
+    assert captured_report.run_context.run_id == original_run_id
+    assert updated.candidate is original_candidate
+    assert updated.run_context is not None
+    assert updated.run_context.run_id == original_run_id
+    assert updated.efficiency_sweep is not None
+    assert updated.efficiency_sweep.load_grid == (0.5,)
+    assert updated.efficiency_sweep.run_id == original_run_id
+    assert updated.efficiency_sweep.topology_id == TOPOLOGY_ID
+    output_root = Path(updated.run_context.output_root).resolve()
+    assert all(Path(path).resolve().is_relative_to(output_root) for path in updated.efficiency_sweep.artifact_paths.values())
+    assert store.design_report is updated
 def test_npc_form_exposes_design_and_operating_point_controls() -> None:
     form = ThreePhaseThreeLevelNPCInverterForm
     assert form.topology_id == TOPOLOGY_ID
