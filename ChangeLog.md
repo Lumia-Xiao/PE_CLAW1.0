@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-05 NPC Efficiency Sweep 性能优化计划第一步
+
+- 新增 NPC 专用性能基线脚本和测试，仅测量单次波形、单负载点、单 PF 点，并按固定 20+20 网格估算完整 sweep，避免基线测试重复执行长时间全扫描。
+- 基线：`SAMPLES_PER_SWITCHING_PERIOD=24`，`9601` 个工频采样点，`4800` 个开关事件；单次波形约 `18.07 s`，单负载点约 `17.92 s`，单 PF 点约 `18.26 s`，完整 40 点估算约 `723.58 s`。
+- 结果不变量保持：周期稳态最大首尾残差约 `2.95e-9 A`，事件使用精确统一分段边界、精确分段积分电流和事件时刻阻断电压，存在负电流软开通事件。
+- 验证：NPC 基线测试 `3 passed`；`py_compile`、`git diff --check` 通过。基线 JSON 写入 `pytest_temp`，未提交生成物。
+- Git：第一步代码提交 `628e420`（`test: add NPC efficiency performance baseline`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条计划与日志为独立回执提交。
+
 ## 2026-09-05 NPC 精确开关损耗最小实现计划第九步
 
 - 增加结构化报告中的 NPC 电流验证信息，包括三相参考/实际平均电流、平均误差、开关纹波、周期稳态残差、三相电流和及精确开关事件来源。

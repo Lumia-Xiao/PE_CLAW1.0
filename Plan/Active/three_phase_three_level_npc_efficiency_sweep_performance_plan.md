@@ -65,6 +65,8 @@ SAMPLES_PER_SWITCHING_PERIOD = 24
 
 ### 第一步：建立 NPC Efficiency Sweep 性能基线
 
+状态：已完成
+
 #### 修改内容
 
 - 增加或整理只供测试使用的性能测量入口，不改变计算结果。
@@ -89,6 +91,19 @@ SAMPLES_PER_SWITCHING_PERIOD = 24
 #### 版本控制
 
 测试完成后更新计划和日志，独立 commit 并 push。
+
+#### 执行回执
+
+- 新增 `scripts/measure_npc_efficiency_performance.py` 和
+  `tests/test_npc_efficiency_performance_baseline.py`，仅用于 NPC 性能测量和结果不变量验证，不改变生产计算逻辑。
+- 测量范围仅覆盖 NPC 代表性单点：单次波形、一个满载点和一个 `PF=0.8` 点；完整 sweep 按当前 20 个负载点加 20 个 PF 点的固定网格估算，不重复执行长时间全扫描。
+- 基线参数：`SAMPLES_PER_SWITCHING_PERIOD=24`，单工频周期 `9601` 个采样点，`4800` 个开关事件。
+- 实测：单次波形约 `18.07 s`，单负载点约 `17.92 s`，单 PF 点约 `18.26 s`，代表性单点平均约 `18.09 s`，完整 40 点 sweep 估算约 `723.58 s`。
+- 结果不变量：周期稳态已收敛，最大首尾残差约 `2.95e-9 A`；事件来源为精确统一事件分段边界，电流来源为精确分段积分，阻断电压来源为事件时刻分裂直流链路电压；负电流软开通事件存在。
+- 测试：`tests/test_npc_efficiency_performance_baseline.py` 为 `3 passed`；`py_compile` 和 `git diff --check` 通过。
+- 基线 JSON：`pytest_temp/npc-efficiency-step1-baseline-run/baseline.json`，未写入 `outputs`，未提交生成物。
+- 第一步代码提交：`628e420`（`test: add NPC efficiency performance baseline`），已推送至 `origin/codex/npc-output-run-isolation-step1`。
+- 本步骤计划和日志回执将在代码提交后单独提交并推送。
 
 ### 第二步：适当减少工频周期采样点
 
