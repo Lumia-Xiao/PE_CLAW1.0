@@ -7,7 +7,7 @@
 - 新增 `summarize_switching_event_energy()`，将工频周期事件总能量按 `Tline` 和物理位置数换算为 `p_sw_on_W`、`p_sw_off_W`、`p_rr_W`。
 - 保留 `evaluate_npc_switching_event_energy()` 和 `evaluate_npc_switching_events()` 作为兼容入口，NPC 调用行为不变；尚未替换单相全桥生产调用链，留给第六步。
 - 验证：单相全桥专项 + NPC 事件合同测试 `26 passed`；`git diff --check` 通过。
-- Git：第五步实现与回执提交、push 和远端 HEAD 核对待本次操作完成后补录。
+- Git：第五步实现 commit `84546ccb3763b50bf828e92185f1d3a6c12ef044`（`feat: evaluate full-bridge switching loss per event`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执提交随后单独生成并推送，远端 HEAD 已核对为 `84546ccb3763b50bf828e92185f1d3a6c12ef044`。
 
 ## 2026-09-06 单相全桥开关损耗计划第四步
 
