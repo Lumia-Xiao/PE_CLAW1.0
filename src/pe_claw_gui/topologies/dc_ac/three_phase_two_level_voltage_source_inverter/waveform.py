@@ -346,6 +346,10 @@ def generate_waveforms(
             "phase_inductor_ripple_formula_id": "three_phase_floating_neutral_spwm_volt_second_integration_v1",
             "three_phase_vsi_branch_currents": branch_currents,
             "branch_current_semantics": branch_currents["semantics"],
+            "three_phase_vsi_switching_events": [],
+            "three_phase_vsi_switching_event_count": 0,
+            "three_phase_vsi_switching_event_audit": _vsi_switching_event_audit([]),
+            "three_phase_vsi_switching_event_schema": _vsi_switching_event_schema(),
             "dc_link_voltage_ripple_pp_v": max(dc_link_ripple_v) - min(dc_link_ripple_v) if dc_link_ripple_v else 0.0,
             "dc_link_bus_current_pwm_a": dc_link_bus_current_pwm_a,
             "dc_link_bus_current_rms_pwm_a": _rms(_remove_average(dc_link_bus_current_pwm_a)),
@@ -490,6 +494,69 @@ def _branch_current_metrics(
             "peak_absolute_current_a": max((abs(value) for value in branch), default=0.0),
         }
     return metrics
+
+
+def _vsi_switching_event_schema() -> dict[str, object]:
+    """Describe the six-switch event contract before event extraction is wired."""
+
+    return {
+        "topology": "three_phase_two_level_vsi",
+        "switch_names": ["S1", "S2", "S3", "S4", "S5", "S6"],
+        "field_names": [
+            "phase",
+            "switch_name",
+            "switch_index",
+            "bridge_leg",
+            "event_type",
+            "event_time_s",
+            "signed_current_A",
+            "absolute_current_A",
+            "blocking_voltage_V",
+            "gate_before",
+            "gate_after",
+            "event_source",
+            "current_source",
+            "blocking_voltage_source",
+        ],
+        "event_types": ["turn_on", "turn_off"],
+        "time_interval": "[0, Tline)",
+        "signed_current_convention": "positive current from inverter bridge into AC phase",
+        "blocking_voltage_convention": "absolute device blocking voltage in volts",
+        "extraction_status": "schema_only_until_vsi_gate_edge_extraction_step3",
+    }
+
+
+def _vsi_switching_event_audit(events: list[dict[str, object]]) -> dict[str, object]:
+    """Summarize the VSI event container without inferring missing events."""
+
+    turn_on = [event for event in events if event.get("event_type") == "turn_on"]
+    turn_off = [event for event in events if event.get("event_type") == "turn_off"]
+    currents = [float(event.get("signed_current_A", 0.0)) for event in events]
+    voltages = [float(event.get("blocking_voltage_V", 0.0)) for event in events]
+    switch_counts = {
+        switch_name: sum(1 for event in events if event.get("switch_name") == switch_name)
+        for switch_name in ("S1", "S2", "S3", "S4", "S5", "S6")
+    }
+    return {
+        "status": "populated" if events else "schema_only",
+        "event_count": len(events),
+        "turn_on_count": len(turn_on),
+        "turn_off_count": len(turn_off),
+        "hard_turn_on_count": sum(
+            1 for event in turn_on if float(event.get("signed_current_A", 0.0)) >= 0.0
+        ),
+        "soft_turn_on_count": sum(
+            1 for event in turn_on if float(event.get("signed_current_A", 0.0)) < 0.0
+        ),
+        "switch_event_counts": switch_counts,
+        "event_current_min_A": min(currents) if currents else 0.0,
+        "event_current_max_A": max(currents) if currents else 0.0,
+        "event_blocking_voltage_min_V": min(voltages) if voltages else 0.0,
+        "event_blocking_voltage_max_V": max(voltages) if voltages else 0.0,
+        "event_source": "pending_actual_vsi_gate_edges",
+        "current_source": "pending_actual_vsi_event_current",
+        "blocking_voltage_source": "pending_dc_link_voltage_at_event_time",
+    }
 
 
 def _dc_bus_current_from_switch_states(

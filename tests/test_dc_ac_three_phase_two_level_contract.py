@@ -96,6 +96,67 @@ def test_stress_uses_waveform_backed_phase_current_and_six_switch_branch_contrac
     assert set(waveform.metadata["three_phase_vsi_branch_currents"]) >= {"q1", "q2", "q3", "q4", "q5", "q6"}
 
 
+def test_vsi_switching_event_container_exposes_six_switch_schema() -> None:
+    plugin = _plugin()
+    candidate = plugin.synthesize(plugin.build_spec(MODULE.build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    metadata = waveform.metadata
+
+    events = metadata["three_phase_vsi_switching_events"]
+    schema = metadata["three_phase_vsi_switching_event_schema"]
+    audit = metadata["three_phase_vsi_switching_event_audit"]
+
+    assert events == []
+    assert metadata["three_phase_vsi_switching_event_count"] == 0
+    assert schema["topology"] == "three_phase_two_level_vsi"
+    assert schema["switch_names"] == ["S1", "S2", "S3", "S4", "S5", "S6"]
+    assert set(schema["field_names"]) == {
+        "phase",
+        "switch_name",
+        "switch_index",
+        "bridge_leg",
+        "event_type",
+        "event_time_s",
+        "signed_current_A",
+        "absolute_current_A",
+        "blocking_voltage_V",
+        "gate_before",
+        "gate_after",
+        "event_source",
+        "current_source",
+        "blocking_voltage_source",
+    }
+    assert schema["event_types"] == ["turn_on", "turn_off"]
+    assert schema["time_interval"] == "[0, Tline)"
+    assert audit == {
+        "status": "schema_only",
+        "event_count": 0,
+        "turn_on_count": 0,
+        "turn_off_count": 0,
+        "hard_turn_on_count": 0,
+        "soft_turn_on_count": 0,
+        "switch_event_counts": {name: 0 for name in ("S1", "S2", "S3", "S4", "S5", "S6")},
+        "event_current_min_A": 0.0,
+        "event_current_max_A": 0.0,
+        "event_blocking_voltage_min_V": 0.0,
+        "event_blocking_voltage_max_V": 0.0,
+        "event_source": "pending_actual_vsi_gate_edges",
+        "current_source": "pending_actual_vsi_event_current",
+        "blocking_voltage_source": "pending_dc_link_voltage_at_event_time",
+    }
+
+
+def test_vsi_event_schema_documents_signed_current_and_voltage_contract() -> None:
+    plugin = _plugin()
+    candidate = plugin.synthesize(plugin.build_spec(MODULE.build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    schema = waveform.metadata["three_phase_vsi_switching_event_schema"]
+
+    assert schema["signed_current_convention"] == "positive current from inverter bridge into AC phase"
+    assert schema["blocking_voltage_convention"] == "absolute device blocking voltage in volts"
+    assert schema["extraction_status"] == "schema_only_until_vsi_gate_edge_extraction_step3"
+
+
 def test_full_pipeline_returns_three_phase_specific_report() -> None:
     plugin = _plugin()
     report = run_full_pipeline(
