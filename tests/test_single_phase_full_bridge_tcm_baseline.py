@@ -101,7 +101,13 @@ def test_tcm_event_audit_exposes_missing_event_level_switching_source() -> None:
     tcm = metadata["single_phase_inverter_tcm_envelope"]
 
     assert "single_phase_inverter_refined_waveforms" not in metadata
-    assert "switching_events" not in tcm
+    assert len(tcm["switching_events"]) == 4 * tcm["detail_cycle_count"]
+    audit = tcm["switching_event_audit"]
+    assert audit["event_count"] == len(tcm["switching_events"])
+    assert audit["turn_on_count"] == 2 * tcm["detail_cycle_count"]
+    assert audit["turn_off_count"] == 2 * tcm["detail_cycle_count"]
+    assert audit["soft_turn_on_count"] > 0
+    assert audit["hard_turn_on_count"] > 0
     assert tcm["detail_cycle_count"] > 0
     assert len(tcm["detail_cycle_fsw_hz"]) == tcm["detail_cycle_count"]
     assert min(tcm["detail_cycle_fsw_hz"]) < max(tcm["detail_cycle_fsw_hz"])

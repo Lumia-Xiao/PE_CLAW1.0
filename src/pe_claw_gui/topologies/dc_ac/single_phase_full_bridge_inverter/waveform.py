@@ -254,6 +254,11 @@ def _generate_tcm_envelope_waveforms(
     )
     ripple_v = _integrate_periodic_capacitor_voltage(time_s, dc_cap_current_a, cdc_f)
     vdc_link_v = [vdc_v + value for value in ripple_v]
+    tcm_switching_events = _build_tcm_switching_events(
+        detail=detail,
+        dc_link_voltage_v=vdc_link_v,
+        line_period_s=period_s,
+    )
     notes = [
         "First-pass TCM waveform with triangular current reconstruction; switching transitions and gate states are not modeled.",
         "Detailed TCM current is a triangular reconstruction for visualization; switching transitions and parasitics are not modeled.",
@@ -321,6 +326,8 @@ def _generate_tcm_envelope_waveforms(
                 "detail_mixed_mode_cycle_count": detail["mixed_mode_cycle_count"],
                 "detail_downsampled": detail["downsampled"],
                 "samples_per_tcm_cycle": detail["samples_per_tcm_cycle"],
+                "switching_events": tcm_switching_events,
+                "switching_event_audit": _tcm_switching_event_audit(tcm_switching_events),
                 "low_slope_diagnostic": low_slope,
                 "dc_link_voltage_v": vdc_link_v,
                 "dc_link_capacitor_current_a": dc_cap_current_a,
@@ -384,8 +391,111 @@ def _generate_tcm_envelope_waveforms(
             "tcm_mixed_mode_fallback_active": low_slope["mixed_mode_fallback_active"],
             "tcm_mixed_mode_cycle_count": low_slope["violation_count"],
             "tcm_mixed_mode_cycle_fraction": low_slope["violation_fraction"],
+            "tcm_switching_events": tcm_switching_events,
+            "tcm_switching_event_audit": _tcm_switching_event_audit(tcm_switching_events),
         },
     )
+
+
+def _build_tcm_switching_events(
+    *,
+    detail: dict[str, object],
+    dc_link_voltage_v: list[float],
+    line_period_s: float,
+) -> list[dict[str, object]]:
+    """Build minimal TCM events from each actual reconstructed switching cycle."""
+
+    cycle_times = [float(value) for value in detail.get("cycle_start_time_s", [])]
+    cycle_fsw = [float(value) for value in detail.get("cycle_fsw_hz", [])]
+    cycle_iavg = [float(value) for value in detail.get("cycle_iavg_a", [])]
+    cycle_peak = [float(value) for value in detail.get("cycle_ipeak_envelope_a", [])]
+    cycle_valley = [float(value) for value in detail.get("cycle_ivalley_envelope_a", [])]
+    cycle_t_up = [float(value) for value in detail.get("cycle_t_up_s", [])]
+    if not cycle_times or line_period_s <= 0.0:
+        return []
+
+    events: list[dict[str, object]] = []
+    switch_names = ("S1", "S2", "S3", "S4")
+    for cycle_index, start_time_s in enumerate(cycle_times):
+        if start_time_s < 0.0 or start_time_s >= line_period_s:
+            continue
+        fsw_hz = cycle_fsw[cycle_index] if cycle_index < len(cycle_fsw) else 0.0
+        switching_period_s = 1.0 / fsw_hz if fsw_hz > 0.0 else 0.0
+        current_average = cycle_iavg[cycle_index] if cycle_index < len(cycle_iavg) else 0.0
+        peak_current = cycle_peak[cycle_index] if cycle_index < len(cycle_peak) else current_average
+        valley_current = cycle_valley[cycle_index] if cycle_index < len(cycle_valley) else current_average
+        voltage_index = min(
+            max(int(round(start_time_s / line_period_s * max(len(dc_link_voltage_v) - 1, 1))), 0),
+            max(len(dc_link_voltage_v) - 1, 0),
+        )
+        blocking_voltage = abs(float(dc_link_voltage_v[voltage_index])) if dc_link_voltage_v else 0.0
+        t_up_s = cycle_t_up[cycle_index] if cycle_index < len(cycle_t_up) else 0.5 * switching_period_s
+        turn_off_time_s = min(start_time_s + t_up_s, line_period_s - 1e-15)
+        # A TCM triangular cycle commutates one active bridge leg.  The
+        # complementary device changes state at the same idealized boundary;
+        # the opposite leg is static during this minimal event model.
+        active_leg = "A" if current_average >= 0.0 else "B"
+        if active_leg == "A":
+            active_switch = ("S1", 1)
+            complementary_switch = ("S2", 2)
+        else:
+            active_switch = ("S3", 3)
+            complementary_switch = ("S4", 4)
+        cycle_events = (
+            (active_switch, "turn_on", start_time_s, valley_current, "tcm_cycle_valley_current"),
+            (complementary_switch, "turn_off", start_time_s, valley_current, "tcm_cycle_valley_current"),
+            (active_switch, "turn_off", turn_off_time_s, peak_current, "tcm_cycle_peak_current"),
+            (complementary_switch, "turn_on", turn_off_time_s, peak_current, "tcm_cycle_peak_current"),
+        )
+        for (switch_name, switch_index), event_type, event_time_s, event_current, current_source in cycle_events:
+            events.append(
+                {
+                    "switch_name": switch_name,
+                    "switch_index": switch_index,
+                    "bridge_leg": active_leg,
+                    "event_type": event_type,
+                    "event_time_s": event_time_s,
+                    "blocking_voltage_V": blocking_voltage,
+                    "signed_current_A": event_current,
+                    "absolute_current_A": abs(event_current),
+                    "soft_turn_on": event_type == "turn_on" and event_current < 0.0,
+                    "hard_turn_on": event_type == "turn_on" and event_current >= 0.0,
+                    "event_source": "tcm_reconstructed_cycle_boundary",
+                    "current_source": current_source,
+                    "blocking_voltage_source": "dc_link_voltage_at_tcm_cycle_start",
+                    "current_signed_convention": "signed_output_inductor_current",
+                    "cycle_index": cycle_index,
+                    "cycle_start_time_s": start_time_s,
+                    "cycle_switching_frequency_hz": fsw_hz,
+                    "cycle_average_current_A": current_average,
+                    "cycle_peak_current_A": peak_current,
+                    "cycle_valley_current_A": valley_current,
+                }
+            )
+    events.sort(key=lambda event: (float(event["event_time_s"]), str(event["switch_name"]), str(event["event_type"])))
+    return events
+
+
+def _tcm_switching_event_audit(events: list[dict[str, object]]) -> dict[str, object]:
+    turn_on = [event for event in events if event.get("event_type") == "turn_on"]
+    turn_off = [event for event in events if event.get("event_type") == "turn_off"]
+    hard = [event for event in turn_on if bool(event.get("hard_turn_on"))]
+    soft = [event for event in turn_on if bool(event.get("soft_turn_on"))]
+    currents = [float(event.get("signed_current_A", 0.0)) for event in events]
+    voltages = [float(event.get("blocking_voltage_V", 0.0)) for event in events]
+    return {
+        "event_count": len(events),
+        "turn_on_count": len(turn_on),
+        "turn_off_count": len(turn_off),
+        "hard_turn_on_count": len(hard),
+        "soft_turn_on_count": len(soft),
+        "event_current_min_A": min(currents) if currents else 0.0,
+        "event_current_max_A": max(currents) if currents else 0.0,
+        "event_blocking_voltage_min_V": min(voltages) if voltages else 0.0,
+        "event_blocking_voltage_max_V": max(voltages) if voltages else 0.0,
+        "event_current_source": "tcm_cycle_valley_and_peak_current",
+        "event_voltage_source": "dc_link_voltage_at_tcm_cycle_start",
+    }
 
 
 def _build_tcm_detail_current_waveform(
@@ -416,6 +526,10 @@ def _build_tcm_detail_current_waveform(
     cycle_fsw_hz: list[float] = []
     cycle_natural_fsw_hz: list[float] = []
     cycle_mixed_mode_clamped: list[bool] = []
+    cycle_iavg_a: list[float] = []
+    cycle_ipeak_envelope_a: list[float] = []
+    cycle_ivalley_envelope_a: list[float] = []
+    cycle_t_up_s: list[float] = []
     t_s = 0.0
     cycle_count = 0
     samples_per_cycle = max(int(samples_per_cycle), 4)
@@ -449,6 +563,10 @@ def _build_tcm_detail_current_waveform(
         cycle_fsw_hz.append(cycle_fsw)
         cycle_natural_fsw_hz.append(cycle_natural_fsw)
         cycle_mixed_mode_clamped.append(clamped)
+        cycle_iavg_a.append(avg)
+        cycle_ipeak_envelope_a.append(peak_signed)
+        cycle_ivalley_envelope_a.append(valley_signed)
+        cycle_t_up_s.append(t_up_s)
 
         for point in range(up_points):
             fraction = point / max(up_points - 1, 1)
@@ -561,6 +679,10 @@ def _build_tcm_detail_current_waveform(
         "cycle_fsw_hz": cycle_fsw_hz,
         "cycle_natural_fsw_hz": cycle_natural_fsw_hz,
         "cycle_mixed_mode_clamped": cycle_mixed_mode_clamped,
+        "cycle_iavg_a": cycle_iavg_a,
+        "cycle_ipeak_envelope_a": cycle_ipeak_envelope_a,
+        "cycle_ivalley_envelope_a": cycle_ivalley_envelope_a,
+        "cycle_t_up_s": cycle_t_up_s,
         "sample_count": len(time_s),
         "cycle_count": cycle_count,
         "mixed_mode_cycle_count": sum(1 for value in cycle_mixed_mode_clamped if value),

@@ -2357,6 +2357,11 @@ def _apply_full_bridge_event_switching_loss(
     waveform_metadata = report.waveform.metadata if report.waveform is not None else {}
     refined = waveform_metadata.get("single_phase_inverter_refined_waveforms") if isinstance(waveform_metadata, dict) else None
     events = refined.get("switching_events") if isinstance(refined, dict) else None
+    tcm = waveform_metadata.get("single_phase_inverter_tcm_envelope") if isinstance(waveform_metadata, dict) else None
+    if not isinstance(events, list) or not events:
+        events = tcm.get("switching_events") if isinstance(tcm, dict) else None
+        if isinstance(events, list) and events:
+            refined = tcm
     if not isinstance(events, list) or not events:
         return loss_result
 
