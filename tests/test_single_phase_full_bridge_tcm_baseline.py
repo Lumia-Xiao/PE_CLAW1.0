@@ -146,3 +146,31 @@ def test_tcm_magnetic_and_capacitor_inputs_use_complete_detail_period() -> None:
     assert capacitor_time == detail_time
     assert len(capacitor_time) == len(capacitor_current)
     assert capacitor_time[-1] == pytest.approx(1.0 / 50.0)
+
+
+def test_tcm_selection_only_pipeline_closes_non_applicable_run_stages(tmp_path: Path) -> None:
+    import json
+
+    from pe_claw_gui.pipeline.options import PipelineOptions
+    from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
+
+    raw = build_default_inputs()
+    raw.update({"conduction_mode": "TCM", "fsw_min_hz": "5000", "fsw_max_hz": "100000", "tcm_valley_current_target_a": "-1"})
+    plugin = build_default_registry().get_plugin("single_phase_full_bridge_inverter")
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=raw,
+        include_waveforms=True,
+        pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+        output_root=tmp_path / "tcm-run",
+    )
+
+    assert report.run_context is not None
+    statuses = report.run_context.stage_status
+    assert statuses["design"] == "succeeded"
+    assert statuses["semiconductor_design"] == "succeeded"
+    assert statuses["validation"] == "not_applicable"
+    assert report.run_context.output_root.endswith("tcm-run")
+    manifest = json.loads(Path(report.run_context.manifest_path).read_text(encoding="utf-8"))
+    assert manifest["status"] == "succeeded"
+    assert manifest["stage_status"] == statuses

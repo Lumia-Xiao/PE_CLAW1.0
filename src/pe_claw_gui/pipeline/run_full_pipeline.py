@@ -6,7 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from ..models.design_report import DesignReport
-from ..models.design_run_context import activate_report_run, get_run_output_root
+from ..models.design_run_context import activate_report_run, get_run_output_root, update_design_run
 from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
@@ -92,6 +92,21 @@ def _run_full_pipeline_in_context(
     if report.spec.topology_id in SELECTION_ONLY_TOPOLOGIES and (
         report.spec.topology_id != "flyback_diode_rectified_isolated" or not options.enable_magnetic_design
     ):
+        if report.spec.topology_id == "single_phase_full_bridge_inverter":
+            report = update_design_run(
+                report,
+                {
+                    "semiconductor_design": "succeeded" if report.device is not None else "blocked",
+                    "capacitor_design": "not_applicable",
+                    "inductor_design": "not_applicable",
+                    "loss": "not_applicable",
+                    "thermal": "not_applicable",
+                    "efficiency_sweep": "not_applicable",
+                    "hardware_overview": "not_applicable",
+                    "validation": "not_applicable",
+                },
+                reason=("Semiconductor selection did not produce a device result." if report.device is None else None),
+            )
         return report
     if (
         options.enable_bridge_rectifier_selection

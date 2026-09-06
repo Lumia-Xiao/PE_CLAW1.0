@@ -35,7 +35,7 @@ DESIGN_RUN_SUBDIRECTORIES = (
     "validation",
     "logs",
 )
-DESIGN_RUN_STATUSES = frozenset({"not_started", "running", "succeeded", "failed", "blocked"})
+DESIGN_RUN_STATUSES = frozenset({"not_started", "running", "succeeded", "failed", "blocked", "not_applicable"})
 
 # Keep current directory names readable while retaining a deterministic fallback
 # for topology plugins added later without requiring a central registry change.
@@ -245,7 +245,8 @@ def write_design_run_manifest(context: DesignRunContext) -> Path:
 def _overall_run_status(context: DesignRunContext) -> str:
     if context.failure_stage is not None:
         return "failed" if context.stage_status.get(context.failure_stage) == "failed" else "blocked"
-    if context.stage_status.get("validation") == "succeeded":
+    terminal_statuses = {"succeeded", "failed", "blocked", "not_applicable"}
+    if context.stage_status and all(status in terminal_statuses for status in context.stage_status.values()):
         return "succeeded"
     return "running"
 
