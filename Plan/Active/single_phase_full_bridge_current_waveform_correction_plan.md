@@ -522,7 +522,13 @@ PWM 纹波处于合理范围
 - 验证包括默认、半载 PF=0.8、轻载、反向有功运行点；独立复核分段电感方程、周期平均电流、RMS 积分、不可达电流限幅和非整数载波比末周期。
 - 早期测试暴露低 PF 下负载电感重复计入的问题，已修正生产模型并保持收敛阈值；一次测试目录缺失导致的 setup 错误已通过创建步骤目录解决。
 - 硬件饱和状态明确为 `not_evaluated_no_selected_inductor_saturation_rating`：波形阶段没有实际磁件饱和电流，不能宣称硬件验收通过。
-- 第 7 步尚未实施：精确分段电流已保存，事件电流仍沿用前一预览采样点，元数据标明 `switching_event_exact_current_sampling_pending=True`。
+- 第 7 步已完成：事件提取改为直接比较连续积分段的门极状态；事件电流取切换前积分段的精确终点状态，直流母线电压取积分段边界端点，不再依赖预览采样点或比较器交点。
+- 每个事件记录前后积分段索引、区间起止时间、实际电流评估时间、周期首尾回绕标志及电流符号约定；同一边界的互补开关事件允许共享时间戳，周期边界只记录一次且不生成 `Tline` 事件。
+- 审计新增 `per_switch`，分别统计 S1-S4 的事件数、开通/关断数、硬/软开通数和事件电流范围；公共事件能量模型接口未改变，负电流开通仍判为软开通。
+- 第 7 步验证：`python -B -m pytest tests/test_single_phase_full_bridge_switching_loss.py tests/test_single_phase_full_bridge_periodic_current.py --basetemp=pytest_temp/single-phase-full-bridge-current-step7/run3 -q` -> `20 passed`；`git diff --check` 通过。
+- 第 7 步未新增用户输入，未修改 NPC 或其他拓扑；测试输出保留在 `pytest_temp/single-phase-full-bridge-current-step7/`，未将输出、缓存加入提交。
+- 实现提交：`8ed7f63` (`feat: attach integrated current to full-bridge events`)，已推送至 `origin/codex/npc-output-run-isolation-step1`。
+- 文档回执提交将在本次计划记录更新后单独生成；其 SHA 通过提交标题查询，避免把提交自身的 SHA 写入自身内容。
 - 未新增用户输入，未修改 NPC，未运行其他拓扑全量回归；不暂存历史 NPC 计划移动、outputs 或缓存。
 
 ## 9. 风险和控制
