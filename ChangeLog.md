@@ -8,7 +8,7 @@
 - 增加单相全桥报告审计 notes，包含事件数、硬/软开通次数、电流/阻断电压范围和事件级计算来源。
 - 更新第一步基线测试，使其明确区分旧模型基线与当前生产报告。
 - 验证：单相全桥专项+原有合同测试 `20 passed`；`compileall` 和 `git diff --check` 通过。
-- Git：第六步实现与回执提交、push 和远端 HEAD 核对待本次操作完成后补录。
+- Git：第六步实现 commit `ad9dcbcb6f26c1a496ed12f1d811b9dc137e9082`（`feat: route full-bridge device loss through event model`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执提交随后单独生成并推送，远端 HEAD 已核对为 `ad9dcbcb6f26c1a496ed12f1d811b9dc137e9082`。
 
 ## 2026-09-06 单相全桥开关损耗计划第五步
 
