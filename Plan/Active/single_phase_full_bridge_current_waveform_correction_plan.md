@@ -440,7 +440,7 @@ PWM 纹波处于合理范围
 |---|---|---|---|---|---|
 | 1 | 已完成 | `4247065` | `de6f78e` | 已推送 | `pytest_temp/single-phase-full-bridge-current-step1/baseline.json`; `13 passed`; `git diff --check` |
 | 2 | 已完成 | `02c8a90` | `065f1d7` | 已推送 | `10 passed`; `14 passed`; `git diff --check`; `switching_event_time_quantized_to_waveform_grid=False` |
-| 3 | 实施中 | - | - | - | `period_average_voltage_targets_v`; `period_average_voltage_target_saturated` |
+| 3 | 已完成 | `f55e145` | 待生成 | 已推送 | `25 passed`; `git diff --check`; per-cycle formula and clamp diagnostics |
 | 4 | 待执行 | - | - | - | - |
 | 5 | 待执行 | - | - | - | - |
 | 6 | 待执行 | - | - | - | - |
@@ -470,6 +470,17 @@ PWM 纹波处于合理范围
 - 关键验收：四个开关事件完整；互补门极保持；事件不再量化到波形采样网格；周期边界为 `[0, Tline]`
 - 回执提交：`065f1d7` (`docs: record full-bridge event axis receipt`)
 - 远端 HEAD：`065f1d7accb512e4c2010de1a00fe95449d7d112`
+
+### 第三步执行回执
+
+- 实现提交：`f55e145` (`feat: calculate full-bridge period-average voltage target`)
+- 变更：按统一开关周期计算 `Vac_avg + 2L * (Iref_avg - Istart) / Tsw`，并执行 `[-Vdc, +Vdc]` 限幅
+- 记录：未限幅目标、限幅后目标、参考电流平均值、周期起始实际电流、周期平均 AC 电压、周期时长和饱和标志
+- 验证：`python -m pytest -q tests/test_single_phase_full_bridge_switching_loss.py tests/test_single_phase_full_bridge_current_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py` -> `25 passed`
+- 验证：`git diff --check` -> passed
+- 用户输入：未新增
+- 实际 PWM 开关序列：本步骤未替换，留待第 4 步
+- 回执提交：待生成
 
 ## 9. 风险和控制
 

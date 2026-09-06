@@ -692,3 +692,4 @@ listed here.
 
 - Added per-switching-period average bridge-voltage target calculation from average AC voltage, reference current, actual period-start current, and inductance.
 - Added bounded/unclamped target and saturation diagnostics without changing user inputs or the existing PWM sequence.
+- Implementation commit: `f55e145`; receipt commit will record final plan status and push verification.
