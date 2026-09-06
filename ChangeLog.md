@@ -818,3 +818,4 @@ listed here.
 - 定向测试：`tests/test_dc_ac_three_phase_two_level_contract.py` 与 `tests/test_dc_ac_operating_refresh_gui_chain.py` 共 `15 passed`。
 - 证据写入 `pytest_temp/three-phase-two-level-vsi-step1/`，未提交 `outputs/`、缓存或临时生成物。
 - 本步骤实现提交和计划回执提交将在验证后分别完成并推送。
+- Git：第 1 步提交 `e63152d`（`test: establish three-phase VSI switching-loss baseline`）已推送至 `origin/codex/npc-output-run-isolation-step1`；计划状态表已记录该回执。

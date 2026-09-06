@@ -352,7 +352,7 @@ git diff --check
 
 | 步骤 | 状态 | 实现 commit | 回执 commit | 远端 push | 证据 |
 |---|---|---|---|---|---|
-| 1 | 已完成 | 待提交 | 待提交 | 待推送 | `pytest_temp/three-phase-two-level-vsi-step1/` |
+| 1 | 已完成 | `e63152d` | `e63152d` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step1/` |
 | 2 | 待执行 | - | - | - | - |
 | 3 | 待执行 | - | - | - | - |
 | 4 | 待执行 | - | - | - | - |
