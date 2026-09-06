@@ -134,6 +134,27 @@ def generate_waveforms(
             "refined_dc_link_capacitor_current_pwm_rms_a": refined["dc_link_capacitor_current_pwm_rms_a"],
             "refined_dc_link_voltage_pwm_ripple_pp_v": refined["dc_link_voltage_pwm_ripple_pp_v"],
             "single_phase_inverter_branch_currents": refined["branch_current_metrics"],
+            "single_phase_inverter_current_integration_method": refined["current_integration_method"],
+            "single_phase_inverter_current_periodic_solver": refined["current_periodic_solver"],
+            "single_phase_inverter_current_periodic_correction_applied": refined[
+                "current_periodic_correction_applied"
+            ],
+            "single_phase_inverter_current_periodic_endpoint_correction_applied": refined[
+                "current_periodic_endpoint_correction_applied"
+            ],
+            "single_phase_inverter_current_periodic_initial_current_a": refined[
+                "current_periodic_initial_current_a"
+            ],
+            "single_phase_inverter_current_periodic_period_end_current_a": refined[
+                "current_periodic_period_end_current_a"
+            ],
+            "single_phase_inverter_current_periodic_residual_a": refined["current_periodic_residual_a"],
+            "single_phase_inverter_current_periodic_solver_converged": refined[
+                "current_periodic_solver_converged"
+            ],
+            "single_phase_inverter_current_periodic_solver_iterations": refined[
+                "current_periodic_solver_iterations"
+            ],
             **operating_contract,
         },
     )
@@ -755,15 +776,19 @@ def _build_refined_unipolar_spwm_waveforms(
         i_ac_fundamental_a.append(active_power_sign * iac_peak_a * math.sin(theta - phi_rad))
         vdc_link_v.append(vdc_inst_v)
 
-    inductor_ripple_a = _integrate_pwm_inductor_ripple_by_cycle(
+    periodic_current, periodic_solver = _solve_periodic_full_bridge_current(
         time_s,
         v_ab_pwm_v,
         vac_fundamental_v,
         inductance_h,
-        samples_per_switching_period,
+        i_ac_fundamental_a,
     )
-    inductor_current_a = [fundamental + ripple for fundamental, ripple in zip(i_ac_fundamental_a, inductor_ripple_a, strict=True)]
-    local_ripple_pp_a = _local_cycle_peak_to_peak(inductor_ripple_a, samples_per_switching_period)
+    inductor_current_a = periodic_current
+    inductor_ripple_a = [
+        actual - reference
+        for actual, reference in zip(inductor_current_a, i_ac_fundamental_a, strict=True)
+    ]
+    local_ripple_pp_a = _local_cycle_peak_to_peak(inductor_current_a, samples_per_switching_period)
     dc_link_current_a = [state * current for state, current in zip(bridge_state, inductor_current_a, strict=True)]
     dc_link_cap_current_pwm_a = [idc_avg_a - current for current in dc_link_current_a]
     dc_link_cap_current_pwm_a = _remove_average(dc_link_cap_current_pwm_a)
@@ -805,6 +830,15 @@ def _build_refined_unipolar_spwm_waveforms(
         "i_ac_fundamental_a": i_ac_fundamental_a,
         "inductor_ripple_a": inductor_ripple_a,
         "inductor_current_a": inductor_current_a,
+        "current_integration_method": "continuous_pwm_state_integral_over_one_line_cycle",
+        "current_periodic_solver": periodic_solver,
+        "current_periodic_correction_applied": False,
+        "current_periodic_endpoint_correction_applied": False,
+        "current_periodic_initial_current_a": periodic_solver["initial_current_a"],
+        "current_periodic_period_end_current_a": periodic_solver["period_end_current_a"],
+        "current_periodic_residual_a": periodic_solver["residual_a"],
+        "current_periodic_solver_converged": periodic_solver["converged"],
+        "current_periodic_solver_iterations": periodic_solver["iterations"],
         "dc_link_current_a": dc_link_current_a,
         "dc_link_capacitor_current_pwm_a": dc_link_cap_current_pwm_a,
         "dc_link_voltage_v": vdc_link_v,
@@ -812,7 +846,7 @@ def _build_refined_unipolar_spwm_waveforms(
         "switching_events": switching_events,
         "switching_event_count": len(switching_events),
         "switching_event_source": "sampled_unipolar_spwm_gate_transition",
-        "switching_event_current_source": "pending_continuous_segment_integrated_current_step3",
+        "switching_event_current_source": "continuous_segment_integrated_current_step3",
         "switching_event_blocking_voltage_source": "sampled_dc_link_voltage_at_gate_transition",
         "samples_per_switching_period": samples_per_switching_period,
         "switching_cycle_count": switching_cycles,
@@ -830,6 +864,81 @@ def _build_refined_unipolar_spwm_waveforms(
             "DC-link PWM capacitor current is provided for waveform inspection only; capacitor bank selection still uses the low-frequency energy-balance current.",
         ],
     }
+
+
+def _solve_periodic_full_bridge_current(
+    time_s: list[float],
+    bridge_voltage_v: list[float],
+    ac_voltage_v: list[float],
+    inductance_h: float,
+    reference_current_a: list[float],
+) -> tuple[list[float], dict[str, object]]:
+    """Solve the periodic full-bridge current from one continuous line-cycle pass.
+
+    The sinusoidal current reference only fixes the free DC offset; event
+    currents come from this continuously integrated state.
+    """
+
+    empty = {
+        "method": "periodic_shooting_with_reference_mean_current_gauge",
+        "status": "not_run",
+        "converged": False,
+        "initial_current_a": 0.0,
+        "period_end_current_a": 0.0,
+        "residual_a": 0.0,
+        "reference_mean_error_a": 0.0,
+        "iterations": 0,
+        "tolerance_a": 1e-8,
+        "endpoint_correction_applied": False,
+        "modulation_saturated": False,
+    }
+    if (
+        len(time_s) < 2
+        or len(time_s) != len(bridge_voltage_v)
+        or len(time_s) != len(ac_voltage_v)
+        or len(time_s) != len(reference_current_a)
+        or inductance_h <= 0.0
+    ):
+        return [0.0 for _ in time_s], empty
+
+    integral = [0.0]
+    for index in range(1, len(time_s)):
+        dt_s = float(time_s[index]) - float(time_s[index - 1])
+        if dt_s <= 0.0:
+            return [0.0 for _ in time_s], {**empty, "status": "invalid_time_axis"}
+        v_l_prev = float(bridge_voltage_v[index - 1]) - float(ac_voltage_v[index - 1])
+        v_l_now = float(bridge_voltage_v[index]) - float(ac_voltage_v[index])
+        integral.append(integral[-1] + 0.5 * (v_l_prev + v_l_now) * dt_s / inductance_h)
+
+    # The ideal-inductor state transition has unit sensitivity to the initial
+    # current, so one shooting pass gives the periodic state exactly.
+    drift_a = integral[-1] - integral[0]
+    periodic_initial_current_a = -drift_a
+    reference_mean_a = _mean([float(value) for value in reference_current_a])
+    periodic_current = [periodic_initial_current_a + value for value in integral]
+    initial_current_a = periodic_initial_current_a + (reference_mean_a - _mean(periodic_current))
+    current = [initial_current_a + value for value in integral]
+    period_end_current_a = current[-1]
+    residual_a = period_end_current_a - current[0]
+    reference_mean_error_a = _mean(current) - reference_mean_a
+    tolerance_a = 1e-8
+    converged = abs(residual_a) <= tolerance_a
+    result = {
+        "method": "periodic_shooting_with_reference_mean_current_gauge",
+        "status": "converged" if converged else "max_iterations_reached",
+        "converged": converged,
+        "initial_current_a": float(current[0]),
+        "period_end_current_a": float(period_end_current_a),
+        "residual_a": float(residual_a),
+        "reference_mean_error_a": float(reference_mean_error_a),
+        "iterations": 1,
+        "drift_before_initialization_a": float(drift_a),
+        "periodic_initial_current_a": float(periodic_initial_current_a),
+        "tolerance_a": tolerance_a,
+        "endpoint_correction_applied": False,
+        "modulation_saturated": False,
+    }
+    return current, result
 
 
 def _extract_full_bridge_switching_events(
@@ -885,7 +994,7 @@ def _extract_full_bridge_switching_events(
                     "signed_current_A": None,
                     "absolute_current_A": None,
                     "event_source": "sampled_unipolar_spwm_gate_transition",
-                    "current_source": "pending_continuous_segment_integrated_current_step3",
+                "current_source": "continuous_segment_integrated_current_step3",
                     "blocking_voltage_source": "sampled_dc_link_voltage_at_gate_transition",
                 }
             )

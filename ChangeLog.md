@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-06 单相全桥开关损耗计划第三步
+
+- 在 `src/pe_claw_gui/topologies/dc_ac/single_phase_full_bridge_inverter/waveform.py` 中将单相全桥 PWM 电感电流改为跨完整工频周期连续积分：`di/dt=(v_ab-v_ac)/L`，状态跨越所有开关周期传递。
+- 使用理想电感周期状态的一次 shooting 求解首始电流，并以既有正弦电流参考均值固定自由 DC 偏置；记录周期残差、初始/末端电流、迭代次数和收敛状态，不执行工频末端人工修正。
+- 将开关事件的电流来源标记更新为连续分段积分结果；未修改事件电流提取、器件开关损耗调用、用户输入、调制策略或 NPC 逻辑。
+- 验证：单相全桥专项+原有合同测试 `17 passed`；`git diff --check` 通过。
+- Git：第三步实现与回执提交、push 和远端 HEAD 核对待本次操作完成后补录。
+
 ## 2026-09-05 单相全桥开关损耗计划第二步
 
 - 在 `src/pe_claw_gui/topologies/dc_ac/single_phase_full_bridge_inverter/waveform.py` 中新增基于现有单极性 SPWM 门极状态的统一开关事件时间轴。

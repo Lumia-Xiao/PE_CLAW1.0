@@ -68,7 +68,7 @@ def test_step2_event_timeline_contains_all_four_switch_transitions() -> None:
     events = refined["switching_events"]
 
     assert refined["switching_event_source"] == "sampled_unipolar_spwm_gate_transition"
-    assert refined["switching_event_current_source"] == "pending_continuous_segment_integrated_current_step3"
+    assert refined["switching_event_current_source"] == "continuous_segment_integrated_current_step3"
     assert refined["switching_event_blocking_voltage_source"] == "sampled_dc_link_voltage_at_gate_transition"
     assert len(events) == 3200
     assert len({event["switch_name"] for event in events}) == 4
@@ -84,6 +84,32 @@ def test_step2_event_timeline_contains_all_four_switch_transitions() -> None:
     assert all(0.0 <= float(event["event_time_s"]) < waveform.time_span_s for event in events)
     assert [event["event_time_s"] for event in events] == sorted(event["event_time_s"] for event in events)
     assert len({(event["event_time_s"], event["switch_name"], event["event_type"]) for event in events}) == len(events)
+
+
+def test_step3_uses_continuous_periodic_inductor_current() -> None:
+    from pe_claw_gui.topologies.base.registry import build_default_registry
+    from pe_claw_gui.topologies.dc_ac.single_phase_full_bridge_inverter.input_schema import build_default_inputs
+
+    plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
+    candidate = plugin.synthesize(plugin.build_spec(build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    refined = waveform.metadata["single_phase_inverter_refined_waveforms"]
+    solver = refined["current_periodic_solver"]
+    current = refined["inductor_current_a"]
+    reference = refined["i_ac_fundamental_a"]
+
+    assert refined["current_integration_method"] == "continuous_pwm_state_integral_over_one_line_cycle"
+    assert solver["method"] == "periodic_shooting_with_reference_mean_current_gauge"
+    assert solver["converged"] is True
+    assert solver["iterations"] == 1
+    assert solver["endpoint_correction_applied"] is False
+    assert abs(float(solver["residual_a"])) <= float(solver["tolerance_a"])
+    assert float(solver["initial_current_a"]) == pytest.approx(float(current[0]))
+    assert float(solver["period_end_current_a"]) == pytest.approx(float(current[-1]))
+    assert len(current) == len(refined["time_s"]) == len(refined["v_ab_pwm_v"])
+    assert max(abs(float(actual) - float(ref)) for actual, ref in zip(current, reference, strict=True)) > 1e-6
+    assert max(current) > 0.0
+    assert min(current) < 0.0
 
 
 def test_step2_event_timeline_preserves_complementary_gate_contract() -> None:
