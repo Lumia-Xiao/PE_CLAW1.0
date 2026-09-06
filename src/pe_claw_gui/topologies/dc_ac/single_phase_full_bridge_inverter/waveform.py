@@ -808,22 +808,7 @@ def _build_refined_unipolar_spwm_waveforms(
     dc_link_cap_current_pwm_a = _remove_average(dc_link_cap_current_pwm_a)
     dc_link_pwm_ripple_v = _integrate_periodic_capacitor_voltage(time_s, dc_link_cap_current_pwm_a, capacitance_f)
     switching_events = _extract_full_bridge_switching_events(
-        time_s=time_s,
-        gates={
-            "S1": gate_s1,
-            "S2": gate_s2,
-            "S3": gate_s3,
-            "S4": gate_s4,
-        },
-        bridge_state=bridge_state,
-        inductor_current_a=inductor_current_a,
-        dc_link_voltage_v=vdc_link_v,
-        transition_metrics={
-            "S1": [mod_a[index] - carrier[index] for index in range(len(time_s))],
-            "S2": [carrier[index] - mod_a[index] for index in range(len(time_s))],
-            "S3": [mod_b[index] - carrier[index] for index in range(len(time_s))],
-            "S4": [carrier[index] - mod_b[index] for index in range(len(time_s))],
-        },
+        segments=feedback["segments"],
         line_period_s=period_s,
     )
     cycle_boundaries_s = feedback["cycle_boundaries_s"]
@@ -861,7 +846,7 @@ def _build_refined_unipolar_spwm_waveforms(
             "actual_rms_current_a": feedback["current_rms_a"],
             "saturation_current_a": None,
         },
-        "switching_event_exact_current_sampling_pending": True,
+        "switching_event_exact_current_sampling_pending": False,
         "current_periodic_solver": periodic_solver,
         "current_periodic_correction_applied": False,
         "current_periodic_endpoint_correction_applied": False,
@@ -910,9 +895,10 @@ def _build_refined_unipolar_spwm_waveforms(
         "dc_link_voltage_pwm_ripple_v": dc_link_pwm_ripple_v,
         "switching_events": switching_events,
         "switching_event_count": len(switching_events),
-        "switching_event_source": "interpolated_unipolar_spwm_comparator_crossing",
-        "switching_event_current_source": "continuous_segment_integrated_current_step3",
-        "switching_event_blocking_voltage_source": "sampled_dc_link_voltage_at_gate_transition",
+        "switching_event_source": "integrated_segment_gate_transition",
+        "switching_event_current_source": "exact_integrated_segment_endpoint",
+        "switching_event_blocking_voltage_source": "dc_link_voltage_at_integrated_segment_boundary",
+        "switching_event_signed_current_convention": "existing_signed_output_inductor_current",
         "switching_event_current_selection": "event_pre_transition_continuous_state",
         "switching_event_boundary_contract": "current_before_transition_gate_after_transition",
         "switching_event_audit": _full_bridge_switching_event_audit(
@@ -938,7 +924,7 @@ def _build_refined_unipolar_spwm_waveforms(
             "Unipolar SPWM preview uses ideal complementary gates without dead-time.",
             "Period-average current feedback sets center-aligned unipolar SPWM duties.",
             "Current is continuously integrated on gate intervals; preview sampling does not quantize integration.",
-            "Switching-event current still uses the preceding preview sample until the event-current migration.",
+            "Switching-event current is the integrated state immediately before each segment gate transition.",
             "DC-link PWM capacitor current is provided for waveform inspection only; capacitor bank selection still uses the low-frequency energy-balance current.",
         ],
     }
@@ -1373,26 +1359,12 @@ def _time_average_between(
 
 def _extract_full_bridge_switching_events(
     *,
-    time_s: list[float],
-    gates: dict[str, list[float]],
-    bridge_state: list[float],
-    inductor_current_a: list[float],
-    dc_link_voltage_v: list[float],
-    transition_metrics: dict[str, list[float]],
+    segments: list[dict[str, object]],
     line_period_s: float,
 ) -> list[dict[str, object]]:
-    """Extract one stable event record for every sampled full-bridge gate transition."""
+    """Extract gate transitions from the exact continuously integrated segments."""
 
-    if (
-        len(time_s) < 2
-        or line_period_s <= 0.0
-        or len(bridge_state) != len(time_s)
-        or len(inductor_current_a) != len(time_s)
-        or len(dc_link_voltage_v) != len(time_s)
-        or any(len(values) != len(time_s) for values in transition_metrics.values())
-        or not gates
-        or any(len(values) != len(time_s) for values in gates.values())
-    ):
+    if len(segments) < 2 or line_period_s <= 0.0:
         return []
 
     events: list[dict[str, object]] = []
@@ -1400,64 +1372,83 @@ def _extract_full_bridge_switching_events(
     switch_order = ("S1", "S2", "S3", "S4")
     leg_by_switch = {"S1": "A", "S2": "A", "S3": "B", "S4": "B"}
     index_by_switch = {name: index for index, name in enumerate(switch_order, 1)}
-    for switch_name in switch_order:
-        gate = gates.get(switch_name)
-        if gate is None:
+    def add_transition(
+        *,
+        switch_name: str,
+        previous_segment: dict[str, object],
+        current_segment: dict[str, object],
+        event_time_s: float,
+        wrapped: bool,
+    ) -> None:
+        previous_gate = float(previous_segment.get(f"gate_{switch_name.lower()}", 0.0))
+        current_gate = float(current_segment.get(f"gate_{switch_name.lower()}", 0.0))
+        if current_gate == previous_gate:
+            return
+        signed_current = float(previous_segment.get("end_current_a", 0.0))
+        blocking_voltage = abs(
+            float(
+                previous_segment.get(
+                    "dc_voltage_end_v",
+                    current_segment.get("dc_voltage_start_v", 0.0),
+                )
+            )
+        )
+        events.append(
+            {
+                "switch_name": switch_name,
+                "switch_index": index_by_switch[switch_name],
+                "bridge_leg": leg_by_switch[switch_name],
+                "event_type": "turn_on" if current_gate > previous_gate else "turn_off",
+                "event_time_s": 0.0 if wrapped else event_time_s,
+                "gate_before": previous_gate,
+                "gate_after": current_gate,
+                "bridge_state_before": float(previous_segment.get("bridge_state", 0.0)),
+                "bridge_state_after": float(current_segment.get("bridge_state", 0.0)),
+                "blocking_voltage_V": blocking_voltage,
+                "signed_current_A": signed_current,
+                "absolute_current_A": abs(signed_current),
+                "soft_turn_on": bool(current_gate > previous_gate and signed_current < 0.0),
+                "hard_turn_on": bool(current_gate > previous_gate and signed_current >= 0.0),
+                "event_source": "integrated_segment_gate_transition",
+                "current_source": "exact_integrated_segment_endpoint",
+                "blocking_voltage_source": "dc_link_voltage_at_integrated_segment_boundary",
+                "current_signed_convention": "signed_output_inductor_current",
+                "pre_event_segment_index": segments.index(previous_segment),
+                "post_event_segment_index": segments.index(current_segment),
+                "pre_event_segment_start_time_s": float(previous_segment.get("start_time_s", 0.0)),
+                "pre_event_segment_end_time_s": float(previous_segment.get("end_time_s", 0.0)),
+                "post_event_segment_start_time_s": float(current_segment.get("start_time_s", 0.0)),
+                "post_event_segment_end_time_s": float(current_segment.get("end_time_s", 0.0)),
+                "current_evaluation_time_s": float(previous_segment.get("end_time_s", 0.0)),
+                "wrapped_at_period_boundary": wrapped,
+            }
+        )
+
+    for segment_index in range(1, len(segments)):
+        previous_segment = segments[segment_index - 1]
+        current_segment = segments[segment_index]
+        event_time_s = float(current_segment.get("start_time_s", 0.0))
+        if event_time_s < -tolerance_s or event_time_s >= line_period_s - tolerance_s:
             continue
-        for sample_index in range(1, len(time_s)):
-            previous_gate = float(gate[sample_index - 1])
-            current_gate = float(gate[sample_index])
-            if current_gate == previous_gate:
-                continue
-            metric = transition_metrics.get(switch_name, [])
-            event_time_s = _interpolate_comparator_crossing_time(
-                time_s[sample_index - 1],
-                time_s[sample_index],
-                float(metric[sample_index - 1]),
-                float(metric[sample_index]),
-                float(time_s[sample_index]),
+        for switch_name in switch_order:
+            add_transition(
+                switch_name=switch_name,
+                previous_segment=previous_segment,
+                current_segment=current_segment,
+                event_time_s=event_time_s,
+                wrapped=False,
             )
-            if event_time_s < -tolerance_s or event_time_s >= line_period_s - tolerance_s:
-                continue
-            events.append(
-                {
-                    "switch_name": switch_name,
-                    "switch_index": index_by_switch[switch_name],
-                    "bridge_leg": leg_by_switch[switch_name],
-                    "event_type": "turn_on" if current_gate > previous_gate else "turn_off",
-                    "event_time_s": event_time_s,
-                    "sample_index": sample_index,
-                    "gate_before": previous_gate,
-                    "gate_after": current_gate,
-                    "bridge_state_before": float(bridge_state[sample_index - 1]),
-                    "bridge_state_after": float(bridge_state[sample_index]),
-                    "blocking_voltage_V": abs(
-                        _interpolate_linear(
-                            time_s[sample_index - 1],
-                            time_s[sample_index],
-                            float(dc_link_voltage_v[sample_index - 1]),
-                            float(dc_link_voltage_v[sample_index]),
-                            event_time_s,
-                        )
-                    ),
-                    "signed_current_A": float(inductor_current_a[sample_index - 1]),
-                    "absolute_current_A": abs(float(inductor_current_a[sample_index - 1])),
-                    "soft_turn_on": bool(
-                        current_gate > previous_gate
-                        and float(inductor_current_a[sample_index - 1]) < 0.0
-                    ),
-                    "hard_turn_on": bool(
-                        current_gate > previous_gate
-                        and float(inductor_current_a[sample_index - 1]) >= 0.0
-                    ),
-                    "current_sample_index": sample_index - 1,
-                    "current_interval_start_index": sample_index - 1,
-                    "current_interval_end_index": sample_index,
-                    "event_source": "interpolated_unipolar_spwm_comparator_crossing",
-                    "current_source": "exact_continuous_current_before_gate_transition",
-                    "blocking_voltage_source": "actual_dc_link_voltage_at_gate_transition",
-                }
-            )
+
+    first_segment = segments[0]
+    last_segment = segments[-1]
+    for switch_name in switch_order:
+        add_transition(
+            switch_name=switch_name,
+            previous_segment=last_segment,
+            current_segment=first_segment,
+            event_time_s=0.0,
+            wrapped=True,
+        )
     events.sort(key=lambda event: (float(event["event_time_s"]), str(event["switch_name"])))
     return events
 
@@ -1476,20 +1467,6 @@ def _interpolate_linear(
     return float(start_value) + fraction * (float(end_value) - float(start_value))
 
 
-def _interpolate_comparator_crossing_time(
-    start_time_s: float,
-    end_time_s: float,
-    start_metric: float,
-    end_metric: float,
-    fallback_time_s: float,
-) -> float:
-    metric_span = end_metric - start_metric
-    if abs(metric_span) <= 1e-15:
-        return float(fallback_time_s)
-    fraction = min(max(-start_metric / metric_span, 0.0), 1.0)
-    return float(start_time_s) + fraction * (float(end_time_s) - float(start_time_s))
-
-
 def _full_bridge_switching_event_audit(
     events: list[dict[str, object]],
     *,
@@ -1501,6 +1478,22 @@ def _full_bridge_switching_event_audit(
     soft = [event for event in turn_on if bool(event.get("soft_turn_on"))]
     currents = [float(event["signed_current_A"]) for event in events if event.get("signed_current_A") is not None]
     voltages = [float(event["blocking_voltage_V"]) for event in events]
+    per_switch: dict[str, dict[str, object]] = {}
+    for switch_name in ("S1", "S2", "S3", "S4"):
+        switch_events = [event for event in events if event.get("switch_name") == switch_name]
+        switch_turn_on = [event for event in switch_events if event.get("event_type") == "turn_on"]
+        switch_hard = [event for event in switch_turn_on if bool(event.get("hard_turn_on"))]
+        switch_soft = [event for event in switch_turn_on if bool(event.get("soft_turn_on"))]
+        switch_currents = [float(event["signed_current_A"]) for event in switch_events]
+        per_switch[switch_name] = {
+            "event_count": len(switch_events),
+            "turn_on_count": len(switch_turn_on),
+            "turn_off_count": len(switch_events) - len(switch_turn_on),
+            "hard_turn_on_count": len(switch_hard),
+            "soft_turn_on_count": len(switch_soft),
+            "event_current_min_A": min(switch_currents) if switch_currents else 0.0,
+            "event_current_max_A": max(switch_currents) if switch_currents else 0.0,
+        }
     return {
         "event_count": len(events),
         "turn_on_count": len(turn_on),
@@ -1513,8 +1506,9 @@ def _full_bridge_switching_event_audit(
         "event_blocking_voltage_max_V": max(voltages) if voltages else 0.0,
         "periodic_current_residual_A": float(periodic_solver.get("residual_a", 0.0)),
         "periodic_solver_converged": bool(periodic_solver.get("converged", False)),
-        "event_current_source": "exact_continuous_current_before_gate_transition",
-        "event_voltage_source": "actual_dc_link_voltage_at_gate_transition",
+        "event_current_source": "exact_integrated_segment_endpoint",
+        "event_voltage_source": "dc_link_voltage_at_integrated_segment_boundary",
+        "per_switch": per_switch,
     }
 
 

@@ -68,9 +68,9 @@ def test_step2_event_timeline_contains_all_four_switch_transitions() -> None:
     refined = waveform.metadata["single_phase_inverter_refined_waveforms"]
     events = refined["switching_events"]
 
-    assert refined["switching_event_source"] == "interpolated_unipolar_spwm_comparator_crossing"
-    assert refined["switching_event_current_source"] == "continuous_segment_integrated_current_step3"
-    assert refined["switching_event_blocking_voltage_source"] == "sampled_dc_link_voltage_at_gate_transition"
+    assert refined["switching_event_source"] == "integrated_segment_gate_transition"
+    assert refined["switching_event_current_source"] == "exact_integrated_segment_endpoint"
+    assert refined["switching_event_blocking_voltage_source"] == "dc_link_voltage_at_integrated_segment_boundary"
     assert len(events) > 0
     assert len({event["switch_name"] for event in events}) == 4
     assert {(event["event_type"], event["switch_name"]) for event in events} == {
@@ -81,12 +81,14 @@ def test_step2_event_timeline_contains_all_four_switch_transitions() -> None:
     counts = Counter(event["switch_name"] for event in events)
     assert set(counts) == {"S1", "S2", "S3", "S4"}
     assert all(count > 0 for count in counts.values())
-    assert all(event["current_source"] == "exact_continuous_current_before_gate_transition" for event in events)
-    assert all(event["blocking_voltage_source"] == "actual_dc_link_voltage_at_gate_transition" for event in events)
+    assert all(event["current_source"] == "exact_integrated_segment_endpoint" for event in events)
+    assert all(event["blocking_voltage_source"] == "dc_link_voltage_at_integrated_segment_boundary" for event in events)
+    assert all(event["current_signed_convention"] == "signed_output_inductor_current" for event in events)
     assert all(event["absolute_current_A"] == pytest.approx(abs(event["signed_current_A"])) for event in events)
     assert any(float(event["signed_current_A"]) < 0.0 for event in events)
     assert any(float(event["signed_current_A"]) >= 0.0 for event in events)
-    assert all(event["current_sample_index"] == event["sample_index"] - 1 for event in events)
+    assert all(event["pre_event_segment_end_time_s"] == pytest.approx(event["current_evaluation_time_s"]) for event in events)
+    assert all(event["post_event_segment_start_time_s"] == pytest.approx(event["event_time_s"]) for event in events if not event["wrapped_at_period_boundary"])
     assert all(event["soft_turn_on"] == (event["event_type"] == "turn_on" and float(event["signed_current_A"]) < 0.0) for event in events)
     assert all(event["hard_turn_on"] == (event["event_type"] == "turn_on" and float(event["signed_current_A"]) >= 0.0) for event in events)
     assert all(0.0 <= float(event["event_time_s"]) < waveform.time_span_s for event in events)
@@ -103,6 +105,8 @@ def test_step2_event_timeline_contains_all_four_switch_transitions() -> None:
     assert audit["turn_on_count"] + audit["turn_off_count"] == len(events)
     assert audit["hard_turn_on_count"] + audit["soft_turn_on_count"] == audit["turn_on_count"]
     assert audit["periodic_solver_converged"] is True
+    assert set(audit["per_switch"]) == {"S1", "S2", "S3", "S4"}
+    assert sum(item["event_count"] for item in audit["per_switch"].values()) == audit["event_count"]
 
 
 def test_step3_uses_continuous_periodic_inductor_current() -> None:
