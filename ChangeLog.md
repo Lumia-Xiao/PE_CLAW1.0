@@ -6,7 +6,7 @@
 - 使用理想电感周期状态的一次 shooting 求解首始电流，并以既有正弦电流参考均值固定自由 DC 偏置；记录周期残差、初始/末端电流、迭代次数和收敛状态，不执行工频末端人工修正。
 - 将开关事件的电流来源标记更新为连续分段积分结果；未修改事件电流提取、器件开关损耗调用、用户输入、调制策略或 NPC 逻辑。
 - 验证：单相全桥专项+原有合同测试 `17 passed`；`git diff --check` 通过。
-- Git：第三步实现与回执提交、push 和远端 HEAD 核对待本次操作完成后补录。
+- Git：第三步实现 commit `36a4aad0164c3535f9235ba8f248f971e5d4cc6e`（`feat: simulate continuous full-bridge inductor current`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执提交随后单独生成并推送，远端 HEAD 已核对为 `36a4aad0164c3535f9235ba8f248f971e5d4cc6e`。
 
 ## 2026-09-05 单相全桥开关损耗计划第二步
 
