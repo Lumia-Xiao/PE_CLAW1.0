@@ -835,3 +835,12 @@ listed here.
 - 默认工况得到 `4800` 个事件，S1-S6 各 `800` 个，开通/关断各 `2400` 个；事件电流范围约 `-20.5821 A` 至 `20.5874 A`。
 - 定向测试共 `13 passed`；`compileall` 和 `git diff --check` 通过；证据位于 `pytest_temp/three-phase-two-level-vsi-step3-rerun/`。
 - Git：第 3 步实现提交 `c23123d`（`feat: extract three-phase VSI switching events`）已推送至 `origin/codex/npc-output-run-isolation-step1`；计划状态和第 2 步文档回执在本次提交中补齐。
+
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 4 步
+
+- 将 VSI 实际事件列表接入公共逐事件开关损耗模型，新增 VSI 专用损耗替换入口，不影响 NPC 和其他拓扑。
+- 开通按事件电流极性区分硬/软开通，关断使用实际事件电流，阻断电压使用实际事件电压；SiC 反向恢复为零。
+- 先扣除代表性开关损耗后按 `6*Tline` 重算，保持导通损耗、Eoss、栅极损耗和器件选择不变，避免重复计数。
+- 默认验证结果：`Psw_on=3.1644 W`、`Psw_off=1.1443 W`、`Prr=0 W`、半导体总损耗 `6.2728 W`。
+- 定向测试共 `20 passed`；`compileall` 和 `git diff --check` 通过；证据位于 `pytest_temp/three-phase-two-level-vsi-step4/`。
+- Git：第 4 步实现提交 `c8cc644`（`fix: calculate three-phase VSI switching loss per event`）已推送至 `origin/codex/npc-output-run-isolation-step1`。

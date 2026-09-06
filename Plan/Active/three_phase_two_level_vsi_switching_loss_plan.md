@@ -355,7 +355,7 @@ git diff --check
 | 1 | 已完成 | `e63152d` | `e63152d` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step1/` |
 | 2 | 已完成 | `1e307cd` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step2/` |
 | 3 | 已完成 | `c23123d` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step3-rerun/` |
-| 4 | 待执行 | - | - | - | - |
+| 4 | 已完成 | `c8cc644` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step4/` |
 | 5 | 待执行 | - | - | - | - |
 | 6 | 待执行 | - | - | - | - |
 
@@ -388,6 +388,17 @@ git diff --check
 - 专项验证：VSI 合同与运行点刷新测试共 `13 passed`；`compileall` 和 `git diff --check` 通过。
 - 证据见 `pytest_temp/three-phase-two-level-vsi-step3-rerun/step3-tests-final.xml` 和 `event-extraction-report.json`。
 - 实现提交：`c23123d`（`feat: extract three-phase VSI switching events`），已推送。
+
+### 第四步执行回执
+
+- 在 `run_device_pipeline.py` 中新增 VSI 专用事件损耗入口，仅作用于三相两电平 VSI 的 `main_switch`。
+- 使用公共 `evaluate_switching_events()` 和 `summarize_switching_event_energy()`，按实际事件电流/电压计算开关能量。
+- 负电流开通的 `Eon=0`，非负电流开通计算实际 `Eon`，关断计算实际 `Eoff`；SiC 反向恢复损耗为零。
+- 事件总能量按 `6*Tline` 归一化，并先扣除代表性开关损耗，避免新旧模型重复计数；导通、Eoss、栅极损耗和器件选择保持不变。
+- 默认工况 `Psw_on=3.1644 W`、`Psw_off=1.1443 W`、`Prr=0 W`、半导体总损耗 `6.2728 W`，损耗分解闭合。
+- 专项验证：VSI 合同与运行点刷新测试共 `20 passed`；`compileall` 和 `git diff --check` 通过。
+- 证据见 `pytest_temp/three-phase-two-level-vsi-step4/step4-tests.xml` 和 `loss-event-report.json`。
+- 实现提交：`c8cc644`（`fix: calculate three-phase VSI switching loss per event`），已推送。
 
 ## 9. 完成和归档规则
 
