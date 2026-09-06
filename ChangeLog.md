@@ -686,4 +686,4 @@ listed here.
 - Replaced sampled gate-transition timestamps with deterministic linear interpolation of unipolar-SPWM comparator crossings.
 - Added the unified switching-cycle boundary axis and event-time axis while preserving GUI waveform samples.
 - Production current integration and loss formulas were not changed in this step.
-- Implementation commit: `02c8a90`; receipt commit will record final plan status and push verification.
+- Implementation commit: `02c8a90`; receipt commit: `065f1d7`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.

@@ -439,7 +439,7 @@ PWM 纹波处于合理范围
 | 步骤 | 状态 | 实现 commit | 回执 commit | 远端 push | 验证证据 |
 |---|---|---|---|---|---|
 | 1 | 已完成 | `4247065` | `de6f78e` | 已推送 | `pytest_temp/single-phase-full-bridge-current-step1/baseline.json`; `13 passed`; `git diff --check` |
-| 2 | 已完成 | `02c8a90` | 待生成 | 已推送 | `10 passed`; `14 passed`; `git diff --check`; `switching_event_time_quantized_to_waveform_grid=False` |
+| 2 | 已完成 | `02c8a90` | `065f1d7` | 已推送 | `10 passed`; `14 passed`; `git diff --check`; `switching_event_time_quantized_to_waveform_grid=False` |
 | 3 | 待执行 | - | - | - | - |
 | 4 | 待执行 | - | - | - | - |
 | 5 | 待执行 | - | - | - | - |
@@ -468,7 +468,8 @@ PWM 纹波处于合理范围
 - 验证：`python -m pytest -q tests/test_single_phase_full_bridge_current_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py` -> `14 passed`
 - 验证：`git diff --check` -> passed
 - 关键验收：四个开关事件完整；互补门极保持；事件不再量化到波形采样网格；周期边界为 `[0, Tline]`
-- 回执提交：待生成
+- 回执提交：`065f1d7` (`docs: record full-bridge event axis receipt`)
+- 远端 HEAD：`065f1d7accb512e4c2010de1a00fe95449d7d112`
 
 ## 9. 风险和控制
 
