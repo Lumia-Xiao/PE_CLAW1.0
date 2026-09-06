@@ -809,3 +809,12 @@ listed here.
 - Evidence: `pytest_temp/single-phase-full-bridge-current-step6/`. Branch: `codex/npc-output-run-isolation-step1`. No NPC or other-topology changes.
 - Validation: 34 focused tests passed in 56.98s; `git diff --check` passed. Default peak/RMS: 6.52305/4.35638 A, periodic residual 2.51e-12 A, mean-current error below 1e-6 A, zero voltage-saturated cycles.
 - Implementation `aab6c68041de3b64c305eb19dd848d43b480f933` pushed and remote HEAD verified; independent receipt: `docs: record full-bridge periodic current step6 receipt` (this commit).
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 1 步
+
+- 建立三相两电平 VSI 当前开关损耗基线和代码边界；未修改生产计算逻辑、NPC 逻辑或公共损耗模型。
+- 确认默认波形覆盖一个工频周期 `0.02 s`，采样点 `38401`，`fsw=20 kHz`、`fline=50 Hz`。
+- 确认当前应力使用波形支持的相电流峰值/RMS，而非逐开关事件电流；当前尚无 VSI 专用逐事件列表和损耗入口。
+- 基线设计点默认六个主开关位置，器件 `SCT4018KR`，半导体总损耗 `87.3178 W`。
+- 定向测试：`tests/test_dc_ac_three_phase_two_level_contract.py` 与 `tests/test_dc_ac_operating_refresh_gui_chain.py` 共 `15 passed`。
+- 证据写入 `pytest_temp/three-phase-two-level-vsi-step1/`，未提交 `outputs/`、缓存或临时生成物。
+- 本步骤实现提交和计划回执提交将在验证后分别完成并推送。

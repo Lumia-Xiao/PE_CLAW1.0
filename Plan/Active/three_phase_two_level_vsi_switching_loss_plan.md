@@ -352,12 +352,22 @@ git diff --check
 
 | 步骤 | 状态 | 实现 commit | 回执 commit | 远端 push | 证据 |
 |---|---|---|---|---|---|
-| 1 | 待执行 | - | - | - | - |
+| 1 | 已完成 | 待提交 | 待提交 | 待推送 | `pytest_temp/three-phase-two-level-vsi-step1/` |
 | 2 | 待执行 | - | - | - | - |
 | 3 | 待执行 | - | - | - | - |
 | 4 | 待执行 | - | - | - | - |
 | 5 | 待执行 | - | - | - | - |
 | 6 | 待执行 | - | - | - | - |
+
+## 第一步执行回执
+
+- 已确认当前 VSI 入口：`three_phase_two_level_voltage_source_inverter/waveform.py`、`stress.py`、`run_device_pipeline.py`。
+- 当前波形覆盖一个工频周期：默认 `0.02 s`，`38401` 个采样点，`fsw=20 kHz`，`fline=50 Hz`。
+- 当前应力使用波形支持的相电流峰值/RMS：默认峰值 `22.4133 A`、RMS `14.4578 A`；尚未使用逐开关事件电流。
+- 当前器件基线：六个主开关位置，默认选中 `SCT4018KR`，设计点半导体总损耗 `87.3178 W`。
+- 当前波形已保存 Q1-Q6 分支电流统计，但尚无 VSI 专用逐事件列表和事件级损耗入口。
+- 定向验证：`15 passed`；证据见 `pytest_temp/three-phase-two-level-vsi-step1/baseline-tests.xml` 和 `baseline-report.json`。
+- `compileall`、`git diff --check` 在本步提交前复核。
 
 ## 9. 完成和归档规则
 
