@@ -1,5 +1,14 @@
 # Change Log
 
+## 2026-09-06 单相全桥开关损耗计划第五步
+
+- 在 `loss_evaluator.py` 中新增拓扑中立的 `evaluate_switching_event_energy()` 和 `evaluate_switching_events()`，复用现有厂商 Eon/Eoff 模型、结温、栅极参数及并联器件电流分配。
+- 统一执行实际有符号事件电流判据：负电流开通 `Eon=0`，非负电流开通按实际绝对电流计算，关断按实际绝对电流计算；SiC 反向恢复能量保持为 `0`。
+- 新增 `summarize_switching_event_energy()`，将工频周期事件总能量按 `Tline` 和物理位置数换算为 `p_sw_on_W`、`p_sw_off_W`、`p_rr_W`。
+- 保留 `evaluate_npc_switching_event_energy()` 和 `evaluate_npc_switching_events()` 作为兼容入口，NPC 调用行为不变；尚未替换单相全桥生产调用链，留给第六步。
+- 验证：单相全桥专项 + NPC 事件合同测试 `26 passed`；`git diff --check` 通过。
+- Git：第五步实现与回执提交、push 和远端 HEAD 核对待本次操作完成后补录。
+
 ## 2026-09-06 单相全桥开关损耗计划第四步
 
 - 为单相全桥每个门极事件接入连续积分电流：电流取门极变化前的积分状态，门极状态取变化后的状态，明确边界合同为 `current_before_transition_gate_after_transition`。

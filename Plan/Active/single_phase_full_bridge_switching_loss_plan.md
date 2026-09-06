@@ -380,7 +380,7 @@ git push
 | 2 | 已完成 | `0915933750655ad56aca9490632e50eb10ac12cd` | `dd6ef4a27ad27ff0bcdb3baa1cef4bad483e7900` | 已推送；回执后远端 HEAD=`dd6ef4a27ad27ff0bcdb3baa1cef4bad483e7900` | 单相全桥专项+原有合同 `16 passed`；`compileall` 通过；`git diff --check` 通过 |
 | 3 | 已完成 | `36a4aad0164c3535f9235ba8f248f971e5d4cc6e` | `待生成` | 已推送；实现提交后远端 HEAD=`36a4aad0164c3535f9235ba8f248f971e5d4cc6e` | 单相全桥专项+原有合同 `17 passed`；`git diff --check` 通过 |
 | 4 | 已完成 | `9449588d6742969cf195e6c02499359af19e7dff` | `待生成` | 已推送；实现提交后远端 HEAD=`9449588d6742969cf195e6c02499359af19e7dff` | 单相全桥专项+原有合同 `17 passed`；`git diff --check` 通过 |
-| 5 | 待执行 | - | - | - | - |
+| 5 | 已完成 | 待提交 | 待提交 | 待推送 | 单相全桥专项 + NPC 事件合同 `26 passed`；`git diff --check` 通过 |
 | 6 | 待执行 | - | - | - | - |
 | 7 | 待执行 | - | - | - | - |
 

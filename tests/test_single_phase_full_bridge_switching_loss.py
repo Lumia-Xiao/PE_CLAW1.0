@@ -124,6 +124,38 @@ def test_step3_uses_continuous_periodic_inductor_current() -> None:
     assert min(current) < 0.0
 
 
+def test_step5_shared_event_energy_model_uses_actual_polarity_and_current() -> None:
+    from pe_claw_gui.engines.devices.loss_evaluator import (
+        evaluate_switching_event_energy,
+        evaluate_switching_events,
+        summarize_switching_event_energy,
+    )
+    from pe_claw_gui.libraries.semiconductors.registry import build_default_semiconductor_registry
+
+    device = build_default_semiconductor_registry().get_device("IPZA60R037CM8")
+    soft_on = evaluate_switching_event_energy(device, {"event_type": "turn_on", "signed_current_A": -8.0, "blocking_voltage_V": 350.0})
+    low_on = evaluate_switching_event_energy(device, {"event_type": "turn_on", "signed_current_A": 2.0, "blocking_voltage_V": 350.0})
+    high_on = evaluate_switching_event_energy(device, {"event_type": "turn_on", "signed_current_A": 8.0, "blocking_voltage_V": 350.0})
+    off = evaluate_switching_event_energy(device, {"event_type": "turn_off", "signed_current_A": -8.0, "blocking_voltage_V": 350.0})
+
+    assert soft_on["soft_turn_on"] is True
+    assert soft_on["eon_J"] == pytest.approx(0.0)
+    assert low_on["eon_J"] != pytest.approx(high_on["eon_J"])
+    assert off["eoff_J"] >= 0.0
+    summary = summarize_switching_event_energy(evaluate_switching_events(device, [soft_on, low_on, high_on, off]), line_period_s=0.02)
+    assert summary["p_sw_on_W"] == pytest.approx((low_on["eon_J"] + high_on["eon_J"]) / 0.02)
+    assert summary["p_sw_off_W"] == pytest.approx(off["eoff_J"] / 0.02)
+
+
+def test_step5_shared_event_energy_model_keeps_sic_reverse_recovery_zero() -> None:
+    from pe_claw_gui.engines.devices.loss_evaluator import evaluate_switching_event_energy
+    from pe_claw_gui.libraries.semiconductors.registry import build_default_semiconductor_registry
+
+    device = build_default_semiconductor_registry().get_device("SCS304AG")
+    result = evaluate_switching_event_energy(device, {"event_type": "turn_off", "signed_current_A": 12.0, "blocking_voltage_V": 350.0})
+    assert result["reverse_recovery_J"] == pytest.approx(0.0)
+
+
 def test_step2_event_timeline_preserves_complementary_gate_contract() -> None:
     from pe_claw_gui.topologies.base.registry import build_default_registry
     from pe_claw_gui.topologies.dc_ac.single_phase_full_bridge_inverter.input_schema import build_default_inputs

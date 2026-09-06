@@ -81,7 +81,7 @@ def _compute_switching_energy(
     return 0.5 * stress.v_block_V * event_current_a * transition_ns * 1e-9
 
 
-def evaluate_npc_switching_event_energy(
+def evaluate_switching_event_energy(
     device: PowerDevice,
     event: Mapping[str, object],
     *,
@@ -89,7 +89,7 @@ def evaluate_npc_switching_event_energy(
     method: str = "accurate",
     parallel_count: int = 1,
 ) -> dict[str, float | int | str | bool]:
-    """Evaluate one NPC switching event using its sampled operating values.
+    """Evaluate one topology-neutral switching event using sampled values.
 
     The event current is signed because a negative turn-on current means that
     the antiparallel/body diode was carrying current before the gate command.
@@ -99,15 +99,15 @@ def evaluate_npc_switching_event_energy(
 
     event_type = str(event.get("event_type", "")).strip().casefold()
     if event_type not in {"turn_on", "turn_off"}:
-        raise ValueError(f"Unsupported NPC switching event type: {event_type!r}")
+        raise ValueError(f"Unsupported switching event type: {event_type!r}")
     signed_current_a = float(event.get("signed_current_A", 0.0))
     blocking_voltage_v = abs(float(event.get("blocking_voltage_V", 0.0)))
     if parallel_count < 1:
         raise ValueError("parallel_count must be at least one")
     device_current_a = abs(signed_current_a) / parallel_count
     stress = SwitchStress(
-        role="npc_event",
-        mode="npc_event_level",
+        role="switching_event",
+        mode="topology_neutral_event_level",
         v_block_V=blocking_voltage_v,
         i_rms_A=device_current_a,
         i_avg_A=device_current_a,
@@ -152,6 +152,25 @@ def evaluate_npc_switching_event_energy(
     }
 
 
+def evaluate_npc_switching_event_energy(
+    device: PowerDevice,
+    event: Mapping[str, object],
+    *,
+    junction_temp_c: float = 75.0,
+    method: str = "accurate",
+    parallel_count: int = 1,
+) -> dict[str, float | int | str | bool]:
+    """Backward-compatible NPC entry point for the shared event model."""
+
+    return evaluate_switching_event_energy(
+        device,
+        event,
+        junction_temp_c=junction_temp_c,
+        method=method,
+        parallel_count=parallel_count,
+    )
+
+
 def evaluate_npc_switching_events(
     device: PowerDevice,
     events: Sequence[Mapping[str, object]],
@@ -163,7 +182,7 @@ def evaluate_npc_switching_events(
     """Evaluate NPC event energies without collapsing them to a peak-current case."""
 
     return [
-        evaluate_npc_switching_event_energy(
+        evaluate_switching_event_energy(
             device,
             event,
             junction_temp_c=junction_temp_c,
@@ -172,6 +191,55 @@ def evaluate_npc_switching_events(
         )
         for event in events
     ]
+
+
+def evaluate_switching_events(
+    device: PowerDevice,
+    events: Sequence[Mapping[str, object]],
+    *,
+    junction_temp_c: float = 75.0,
+    method: str = "accurate",
+    parallel_count: int = 1,
+) -> list[dict[str, float | int | str | bool]]:
+    """Evaluate all event energies while preserving event polarity."""
+
+    return [
+        evaluate_switching_event_energy(
+            device,
+            event,
+            junction_temp_c=junction_temp_c,
+            method=method,
+            parallel_count=parallel_count,
+        )
+        for event in events
+    ]
+
+
+def summarize_switching_event_energy(
+    event_results: Sequence[Mapping[str, object]],
+    *,
+    line_period_s: float,
+    physical_position_count: int = 1,
+) -> dict[str, float | int]:
+    """Convert line-cycle event energies to average power."""
+
+    if line_period_s <= 0.0:
+        raise ValueError("line_period_s must be positive")
+    if physical_position_count < 1:
+        raise ValueError("physical_position_count must be at least one")
+    divisor = float(physical_position_count) * line_period_s
+    eon_j = sum(max(float(item.get("eon_J", 0.0)), 0.0) for item in event_results)
+    eoff_j = sum(max(float(item.get("eoff_J", 0.0)), 0.0) for item in event_results)
+    err_j = sum(max(float(item.get("reverse_recovery_J", 0.0)), 0.0) for item in event_results)
+    return {
+        "event_count": len(event_results),
+        "eon_total_J": eon_j,
+        "eoff_total_J": eoff_j,
+        "reverse_recovery_total_J": err_j,
+        "p_sw_on_W": eon_j / divisor,
+        "p_sw_off_W": eoff_j / divisor,
+        "p_rr_W": err_j / divisor,
+    }
 
 
 def _npc_device_switching_energy_j(
