@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-06 新建三相两电平 VSI 逐事件开关损耗修正计划
+
+- 新增 `Plan/Active/three_phase_two_level_vsi_switching_loss_plan.md`。
+- 计划将三相两电平 VSI 的开关损耗修正为基于完整工频周期实际门极事件、实际事件电流和实际 DC-link 电压的逐事件计算。
+- 计划包含 6 个步骤：基线、事件数据结构、门极边沿提取、公共损耗模型接入、运行点/效率扫描验证和最终专项验收。
+- 明确保持用户输入、公共损耗模型接口、器件选择和 NPC 逻辑不变；每一步必须测试、commit 和 push。
+
 ## 2026-09-06 单相全桥 TCM 第七步状态问题修复（阶段性）
 
 - 定位并修复单相全桥设计 manifest 一直为 `running` 的原因：总状态错误依赖 `validation = succeeded`，且 selection-only 提前返回未收尾阶段状态。
