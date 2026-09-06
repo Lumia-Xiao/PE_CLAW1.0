@@ -5,7 +5,14 @@
 - 定位并修复单相全桥设计 manifest 一直为 `running` 的原因：总状态错误依赖 `validation = succeeded`，且 selection-only 提前返回未收尾阶段状态。
 - 增加 `not_applicable` 终态；单相全桥器件选择完成后标记半导体阶段成功，未执行的后续阶段明确标记为不适用，validation 不伪造成功。
 - 增加状态闭合合同测试；验证 `25 passed`，并通过 `compileall` 与 `git diff --check`。
-- 状态修复实现提交：`9a41075`（`fix: close full-bridge TCM design run status`）已推送到 `origin/codex/npc-output-run-isolation-step1`；本阶段文档回执提交将在本次更新后生成。第七步诊断 JSON仍待后续完成。
+- 状态修复实现提交：`9a41075`（`fix: close full-bridge TCM design run status`）已推送到 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-06 单相全桥 TCM 核实计划第七步完成
+
+- 在当前设计 run 的 `validation/tcm_diagnostic.json` 写入 TCM 可审计诊断证据，包含输入快照、工频时间范围、开关频率范围、事件统计、损耗摘要、Other loss、warning 和 failure 信息。
+- 诊断文件与 manifest 使用同一 run 根目录，避免跨设计结果混淆；未新增用户输入。
+- 验证：`25 passed`；`compileall` 和 `git diff --check` 通过。
+- 诊断实现提交：`aaf9f44`（`fix: finalize full-bridge TCM output status and evidence`）已推送到 `origin/codex/npc-output-run-isolation-step1`；计划回执提交将在本次文档更新后生成。
 
 ## 2026-09-06 单相全桥 TCM 核实计划第六步
 
