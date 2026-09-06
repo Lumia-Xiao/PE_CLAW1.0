@@ -6,7 +6,7 @@
 - 完成单相全桥专项、单相全桥合同、DC-AC运行点刷新链路和 NPC 事件级合同定向回归；未执行无关拓扑全量回归。
 - 验证：指定测试集合 `44 passed`；`python -m compileall -q src tests` 通过；`git diff --check` 通过；未将 `outputs/`、`pytest_temp/` 或缓存加入提交。
 - 第 1 至第 7 步的实现和回执均已按计划独立提交并推送；本计划内容保持在 `Plan/Active`，待后续按计划单独归档。
-- Git：第七步实现与回执提交、push 和远端 HEAD 核对待本次操作完成后补录。
+- Git：第七步实现 commit `d05c6f32d6bcb82e6dd7c85db4e593fca0a3cf68`（`test: close single-phase full-bridge switching-loss plan`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执提交随后单独生成并推送，远端 HEAD 已核对为 `d05c6f32d6bcb82e6dd7c85db4e593fca0a3cf68`。
 
 ## 2026-09-06 单相全桥开关损耗计划第六步
 
