@@ -4,6 +4,8 @@ import math
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from pe_claw_gui.topologies.base.registry import build_default_registry
@@ -111,3 +113,36 @@ def test_tcm_event_audit_exposes_missing_event_level_switching_source() -> None:
     assert tcm["detail_cycle_count"] > 0
     assert len(tcm["detail_cycle_fsw_hz"]) == tcm["detail_cycle_count"]
     assert min(tcm["detail_cycle_fsw_hz"]) < max(tcm["detail_cycle_fsw_hz"])
+
+
+def test_tcm_magnetic_and_capacitor_inputs_use_complete_detail_period() -> None:
+    from pe_claw_gui.engines.magnetics.inductor_adapter import build_inductor_design_request
+    from pe_claw_gui.pipeline.run_capacitor_pipeline import _resolve_output_capacitor_waveform
+    from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
+    from pe_claw_gui.pipeline.options import PipelineOptions
+
+    raw = build_default_inputs()
+    raw.update({"conduction_mode": "TCM", "fsw_min_hz": "5000", "fsw_max_hz": "100000", "tcm_valley_current_target_a": "-1"})
+    plugin = build_default_registry().get_plugin("single_phase_full_bridge_inverter")
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=raw,
+        include_waveforms=True,
+        pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+    )
+    tcm = report.waveform.metadata["single_phase_inverter_tcm_envelope"]
+    detail_time = tcm["detail_time_s"]
+    detail_current = tcm["detail_inductor_current_a"]
+    assert detail_time[0] == 0.0
+    assert detail_time[-1] == pytest.approx(1.0 / 50.0)
+    assert len(detail_time) == len(detail_current)
+
+    request = build_inductor_design_request(report)
+    assert request.metadata["tcm_current_stats_basis"] == "detailed_tcm_current_one_line_period"
+    assert request.i_rms_a > 0.0
+    assert request.i_peak_a >= request.i_rms_a
+
+    capacitor_time, capacitor_current, _ = _resolve_output_capacitor_waveform(report)
+    assert capacitor_time == detail_time
+    assert len(capacitor_time) == len(capacitor_current)
+    assert capacitor_time[-1] == pytest.approx(1.0 / 50.0)
