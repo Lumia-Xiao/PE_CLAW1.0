@@ -416,7 +416,7 @@ git diff --check
 | 3 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `19 passed`; 5%/50%/100% TCM operating-point refresh checks |
 | 4 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `19 passed`; TCM event-source audit; fixed-loss root cause recorded |
 | 5 | 已完成 | `e320ce4` | 待本次提交 | 已推送 | `28 passed`; TCM 逐周期事件损耗；每周期 4 个换相事件；compileall; diff-check |
-| 6 | 待执行 | - | - | - | - |
+| 6 | 已完成 | `535a4d9` | 待本次提交 | 已推送 | `29 passed`; detailed TCM current period contract; compileall; diff-check |
 | 7 | 待执行 | - | - | - | - |
 | 8 | 待执行 | - | - | - | - |
 
@@ -475,6 +475,15 @@ git diff --check
 - 在 `run_device_pipeline.py` 中让 TCM 事件列表优先进入现有全桥公共事件损耗入口，避免回退到固定设计点代表性开关损耗；导通损耗、Eoss、栅极损耗及其他公共接口保持不变。
 - 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_tcm_baseline.py tests/test_single_phase_full_bridge_switching_loss.py tests/test_dc_ac_single_phase_full_bridge_contract.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step5/tests` -> `28 passed in 77.49s`；`python -B -m compileall -q src tests` 通过；`git diff --check` 通过。
 - 实现提交：`e320ce4`（`fix: calculate full-bridge TCM switching loss per event`）已推送到 `origin/codex/npc-output-run-isolation-step1`；本步骤回执提交将在本次文档更新后生成。
+
+### 第六步执行回执
+
+- 修正 TCM 电感磁件请求：优先从 `single_phase_inverter_tcm_envelope.detail_time_s` 和 `detail_inductor_current_a` 对完整一个工频周期进行梯形积分，得到实际详细电流 RMS 和峰值，不再优先使用候选元数据中的 20 段包络 RMS/峰值。
+- 保留候选元数据作为详细波形不可用时的兼容回退，并记录 `tcm_current_stats_basis`，不改变器件或磁件选择算法的其他部分。
+- 核实电容请求继续使用 TCM 详细 DC-link 电流 `tcm_dc_link_capacitor_current_detail_time_s/detail_a`；时间轴与电流数组严格等长，覆盖 `0–1/f_line`，并由公共电容选择器执行时间积分 RMS、充电量和 ESR 纹波计算。
+- 增加 TCM 合同测试，验证详细电感 RMS/峰值来源、电容电流时间轴长度和完整工频周期覆盖。
+- 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_tcm_baseline.py tests/test_single_phase_full_bridge_switching_loss.py tests/test_dc_ac_single_phase_full_bridge_contract.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step6/tests` -> `29 passed in 80.10s`；`python -B -m compileall -q src tests` 通过；`git diff --check` 通过。
+- 实现提交：`535a4d9`（`fix: align TCM magnetic and capacitor loss waveforms`）已推送到 `origin/codex/npc-output-run-isolation-step1`；本步骤文档回执提交将在本次更新后生成。
 
 ## 7. 风险和控制
 

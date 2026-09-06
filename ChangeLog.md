@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-06 单相全桥 TCM 核实计划第六步
+
+- TCM 电感磁件请求现在优先使用完整工频周期的详细三角电流时间轴，通过梯形积分计算 RMS 和峰值，并保留候选包络数据作为兼容回退。
+- TCM 电容选择继续使用详细 DC-link 电流时间轴；新增合同测试确认时间轴、电流数组等长并覆盖完整工频周期。
+- 未新增用户输入，未修改器件/磁件选择算法的无关部分，也未扩大到 NPC 或其他拓扑。
+- 验证：专项测试 `29 passed`；`compileall` 和 `git diff --check` 通过。
+- 实现提交：`535a4d9`（`fix: align TCM magnetic and capacitor loss waveforms`）已推送到 `origin/codex/npc-output-run-isolation-step1`；计划回执提交将在本次文档更新后生成。
+
 ## 2026-09-06 单相全桥 TCM 核实计划第五步
 
 - 为 TCM 每个实际重构周期建立逐事件开关损耗输入，开通使用谷值电流、关断使用峰值电流，阻断电压使用周期起点 DC-link 实际值。
