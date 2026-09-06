@@ -169,38 +169,40 @@ class WaveformView(ttk.Frame):
 
     def _render_single_phase_tcm_waveforms(self, report: DesignReport, data: dict[str, object]) -> None:
         """Render TCM detail over one complete line-frequency period."""
-        time_s = _series(data, "detail_time_s")
+        detail_time_s = _series(data, "detail_time_s")
         current_a = _series(data, "detail_inductor_current_a")
-        if len(time_s) < 2 or len(time_s) != len(current_a):
-            time_s = _series(data, "time_s")
+        envelope_time_s = _series(data, "time_s")
+        if len(detail_time_s) < 2 or len(detail_time_s) != len(current_a):
+            detail_time_s = envelope_time_s
             current_a = _series(data, "iavg_a")
-        if len(time_s) < 2:
+        if len(detail_time_s) < 2:
             return
-        time_ms = [value * 1e3 for value in time_s]
+        detail_time_ms = [value * 1e3 for value in detail_time_s]
+        envelope_time_ms = [value * 1e3 for value in envelope_time_s]
         axes = [self.figure.add_subplot(4, 1, index + 1) for index in range(4)]
-        axes[0].plot(time_ms, current_a, linewidth=0.8, label="i_L TCM detail")
-        axes[0].plot(time_ms, _series(data, "detail_iavg_a"), linewidth=1.0, label="i_L average")
-        axes[0].plot(time_ms, _series(data, "detail_ipeak_envelope_a"), linewidth=0.7, alpha=0.75, label="peak envelope")
-        axes[0].plot(time_ms, _series(data, "detail_ivalley_envelope_a"), linewidth=0.7, alpha=0.75, label="valley envelope")
+        axes[0].plot(detail_time_ms, current_a, linewidth=0.8, label="i_L TCM detail")
+        axes[0].plot(detail_time_ms, _series(data, "detail_iavg_a"), linewidth=1.0, label="i_L average")
+        axes[0].plot(detail_time_ms, _series(data, "detail_ipeak_envelope_a"), linewidth=0.7, alpha=0.75, label="peak envelope")
+        axes[0].plot(detail_time_ms, _series(data, "detail_ivalley_envelope_a"), linewidth=0.7, alpha=0.75, label="valley envelope")
         axes[0].set_title("TCM output inductor current over one line cycle", fontsize=9)
         axes[0].set_ylabel("Current [A]")
         axes[0].legend(fontsize=7, ncol=4)
         axes[0].grid(True, alpha=0.35)
 
-        axes[1].plot(time_ms, _series(data, "vac_fundamental_v"), label="v_ac fundamental")
+        axes[1].plot(envelope_time_ms, _series(data, "vac_fundamental_v"), label="v_ac fundamental")
         axes[1].set_title("Output voltage reference", fontsize=9)
         axes[1].set_ylabel("Voltage [V]")
         axes[1].legend(fontsize=7)
         axes[1].grid(True, alpha=0.35)
 
-        axes[2].plot(time_ms, _series(data, "fsw_hz"), label="f_sw")
+        axes[2].plot(detail_time_ms, _series(data, "detail_fsw_hz"), label="f_sw")
         axes[2].set_title("TCM switching frequency", fontsize=9)
         axes[2].set_ylabel("Frequency [Hz]")
         axes[2].legend(fontsize=7)
         axes[2].grid(True, alpha=0.35)
 
-        axes[3].plot(time_ms, _series(data, "dc_link_voltage_v"), label="v_dc")
-        axes[3].plot(time_ms, _series(data, "dc_link_capacitor_current_a"), label="i_Cdc")
+        axes[3].plot(envelope_time_ms, _series(data, "dc_link_voltage_v"), label="v_dc")
+        axes[3].plot(envelope_time_ms, _series(data, "dc_link_capacitor_current_a"), label="i_Cdc")
         axes[3].set_title("DC-link voltage and capacitor current", fontsize=9)
         axes[3].set_xlabel("Time [ms]")
         axes[3].legend(fontsize=7)
