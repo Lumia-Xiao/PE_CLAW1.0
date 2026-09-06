@@ -356,7 +356,7 @@ git diff --check
 | 2 | 已完成 | `1e307cd` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step2/` |
 | 3 | 已完成 | `c23123d` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step3-rerun/` |
 | 4 | 已完成 | `c8cc644` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step4/` |
-| 5 | 待执行 | - | - | - | - |
+| 5 | 已完成 | `9c2f71d` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step5/` |
 | 6 | 待执行 | - | - | - | - |
 
 ## 第一步执行回执
@@ -399,6 +399,17 @@ git diff --check
 - 专项验证：VSI 合同与运行点刷新测试共 `20 passed`；`compileall` 和 `git diff --check` 通过。
 - 证据见 `pytest_temp/three-phase-two-level-vsi-step4/step4-tests.xml` 和 `loss-event-report.json`。
 - 实现提交：`c8cc644`（`fix: calculate three-phase VSI switching loss per event`），已推送。
+
+### 第五步执行回执
+
+- 确认效率扫描各负载点通过 `_sweep_operating_point()` 重新生成 VSI 波形和 S1-S6 事件，并通过 VSI 专用审计函数写入结果。
+- 负载扫描 `0.5/1.0 p.u.` 的事件数均为 `4800`，S1-S6 各 `800`；事件电流峰值约由 `10.38 A` 变化到 `20.59 A`。
+- 半导体损耗随负载变化：约由 `16.08 W` 变化到 `37.64 W`；`Other loss=0`。
+- PF 扫描 `20` 个点全部生成事件审计，事件电流和半导体损耗随 PF 变化；器件选择保持不变。
+- 运行点刷新 `load_ratio=0.5、PF=0.8` 重新生成 `4800` 个事件，固定硬件保持一致。
+- 专项验证：VSI 合同与运行点刷新测试共 `21 passed`；`compileall` 和 `git diff --check` 通过。
+- 证据见 `pytest_temp/three-phase-two-level-vsi-step5/step5-tests.xml` 和 `scan-report.json`。
+- 实现提交：`9c2f71d`（`test: verify three-phase VSI operating-point event-loss refresh`），已推送。
 
 ## 9. 完成和归档规则
 

@@ -844,3 +844,11 @@ listed here.
 - 默认验证结果：`Psw_on=3.1644 W`、`Psw_off=1.1443 W`、`Prr=0 W`、半导体总损耗 `6.2728 W`。
 - 定向测试共 `20 passed`；`compileall` 和 `git diff --check` 通过；证据位于 `pytest_temp/three-phase-two-level-vsi-step4/`。
 - Git：第 4 步实现提交 `c8cc644`（`fix: calculate three-phase VSI switching loss per event`）已推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 5 步
+
+- 增加 VSI 专用效率扫描事件审计，确保负载/PF 扫描点使用重新生成的事件列表，而不是设计点缓存。
+- 负载 `0.5/1.0 p.u.` 的事件电流峰值约为 `10.38/20.59 A`，半导体损耗约为 `16.08/37.64 W`，`Other loss=0`。
+- PF 扫描 `20` 个点均有事件审计，事件电流和半导体损耗随 PF 变化；固定器件选择不变。
+- 定向测试共 `21 passed`；`compileall` 和 `git diff --check` 通过；证据位于 `pytest_temp/three-phase-two-level-vsi-step5/`。
+- Git：第 5 步实现提交 `9c2f71d`（`test: verify three-phase VSI operating-point event-loss refresh`）已推送至 `origin/codex/npc-output-run-isolation-step1`。
