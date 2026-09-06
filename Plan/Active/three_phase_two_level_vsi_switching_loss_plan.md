@@ -353,8 +353,8 @@ git diff --check
 | 步骤 | 状态 | 实现 commit | 回执 commit | 远端 push | 证据 |
 |---|---|---|---|---|---|
 | 1 | 已完成 | `e63152d` | `e63152d` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step1/` |
-| 2 | 待执行 | - | - | - | - |
-| 3 | 待执行 | - | - | - | - |
+| 2 | 已完成 | `1e307cd` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step2/` |
+| 3 | 已完成 | `c23123d` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step3-rerun/` |
 | 4 | 待执行 | - | - | - | - |
 | 5 | 待执行 | - | - | - | - |
 | 6 | 待执行 | - | - | - | - |
@@ -368,6 +368,26 @@ git diff --check
 - 当前波形已保存 Q1-Q6 分支电流统计，但尚无 VSI 专用逐事件列表和事件级损耗入口。
 - 定向验证：`15 passed`；证据见 `pytest_temp/three-phase-two-level-vsi-step1/baseline-tests.xml` 和 `baseline-report.json`。
 - `compileall`、`git diff --check` 在本步提交前复核。
+
+### 第二步执行回执
+
+- 在 VSI waveform metadata 中新增 `three_phase_vsi_switching_events`、事件数量、事件审计和事件 schema。
+- 统一定义 S1-S6、事件类型、事件时间、电流/电压字段、门极前后状态和来源字段。
+- 当前事件列表明确保持为空，审计状态为 `schema_only`；实际门极边沿提取留待第 3 步。
+- 专项验证：VSI 合同与运行点刷新测试共 `17 passed`；`compileall` 和 `git diff --check` 通过。
+- 证据见 `pytest_temp/three-phase-two-level-vsi-step2/step2-tests.xml`。
+- 实现提交：`1e307cd`（`feat: add three-phase VSI switching event contract`），已推送。
+
+### 第三步执行回执
+
+- 新增 VSI 专用门极边沿提取函数，按 A/B/C 桥臂映射到 S1/S2、S3/S4、S5/S6。
+- 每个实际上管门极边沿同步生成互补下管事件，记录 `gate_before`/`gate_after` 和 `turn_on`/`turn_off`。
+- 事件电流来自对应相实际电感电流数组的边沿采样点，阻断电压来自同一采样点的实际 DC-link 电压。
+- 默认工况事件总数 `4800`，开通 `2400`、关断 `2400`，S1-S6 各 `800`；事件电流范围约 `-20.5821 A` 至 `20.5874 A`，不同电流值 `2400` 个。
+- 事件时间范围为 `[0, Tline)`，首个事件约 `2.60417 us`，末个事件约 `19.9979 ms`，未重复计入工频末端。
+- 专项验证：VSI 合同与运行点刷新测试共 `13 passed`；`compileall` 和 `git diff --check` 通过。
+- 证据见 `pytest_temp/three-phase-two-level-vsi-step3-rerun/step3-tests-final.xml` 和 `event-extraction-report.json`。
+- 实现提交：`c23123d`（`feat: extract three-phase VSI switching events`），已推送。
 
 ## 9. 完成和归档规则
 

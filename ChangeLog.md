@@ -819,3 +819,19 @@ listed here.
 - 证据写入 `pytest_temp/three-phase-two-level-vsi-step1/`，未提交 `outputs/`、缓存或临时生成物。
 - 本步骤实现提交和计划回执提交将在验证后分别完成并推送。
 - Git：第 1 步提交 `e63152d`（`test: establish three-phase VSI switching-loss baseline`）已推送至 `origin/codex/npc-output-run-isolation-step1`；计划状态表已记录该回执。
+
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 2 步
+
+- 建立 VSI 六开关逐事件数据结构、字段 schema 和审计字段；未接入门极边沿提取或损耗计算。
+- 事件字段覆盖相别、开关名/编号、桥臂、事件类型、事件时间、带符号电流、绝对电流、阻断电压、门极前后状态及三个来源字段。
+- 当前列表保持 `schema_only` 空列表，实际事件生成安排在第 3 步。
+- 定向测试共 `17 passed`；`compileall` 和 `git diff --check` 通过；证据位于 `pytest_temp/three-phase-two-level-vsi-step2/`。
+- Git：第 2 步实现提交 `1e307cd`（`feat: add three-phase VSI switching event contract`）已推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 3 步
+
+- 从三相两电平 VSI 实际采样门极边沿提取 S1-S6 开关事件，并同步生成互补下管事件。
+- 事件电流取对应相实际电感电流边沿采样值，阻断电压取同一时刻实际 DC-link 电压；事件范围采用 `[0, Tline)`。
+- 默认工况得到 `4800` 个事件，S1-S6 各 `800` 个，开通/关断各 `2400` 个；事件电流范围约 `-20.5821 A` 至 `20.5874 A`。
+- 定向测试共 `13 passed`；`compileall` 和 `git diff --check` 通过；证据位于 `pytest_temp/three-phase-two-level-vsi-step3-rerun/`。
+- Git：第 3 步实现提交 `c23123d`（`feat: extract three-phase VSI switching events`）已推送至 `origin/codex/npc-output-run-isolation-step1`；计划状态和第 2 步文档回执在本次提交中补齐。
