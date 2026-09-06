@@ -378,11 +378,11 @@ git push
 |---|---|---|---|---|---|
 | 1 | 已完成 | `18b04258a7040737a048e72f4c9c2542316769a6` | `a7f63f65707a4e7ed5023678a314aaa597f3045c` | 已推送；回执后远端 HEAD=`a7f63f65707a4e7ed5023678a314aaa597f3045c` | 新增基线+既有合同 `14 passed`；`compileall` 通过；`git diff --check` 通过 |
 | 2 | 已完成 | `0915933750655ad56aca9490632e50eb10ac12cd` | `dd6ef4a27ad27ff0bcdb3baa1cef4bad483e7900` | 已推送；回执后远端 HEAD=`dd6ef4a27ad27ff0bcdb3baa1cef4bad483e7900` | 单相全桥专项+原有合同 `16 passed`；`compileall` 通过；`git diff --check` 通过 |
-| 3 | 已完成 | `36a4aad0164c3535f9235ba8f248f971e5d4cc6e` | `待生成` | 已推送；实现提交后远端 HEAD=`36a4aad0164c3535f9235ba8f248f971e5d4cc6e` | 单相全桥专项+原有合同 `17 passed`；`git diff --check` 通过 |
-| 4 | 已完成 | `9449588d6742969cf195e6c02499359af19e7dff` | `待生成` | 已推送；实现提交后远端 HEAD=`9449588d6742969cf195e6c02499359af19e7dff` | 单相全桥专项+原有合同 `17 passed`；`git diff --check` 通过 |
-| 5 | 已完成 | `84546ccb3763b50bf828e92185f1d3a6c12ef044` | `待生成` | 已推送；实现提交后远端 HEAD=`84546ccb3763b50bf828e92185f1d3a6c12ef044` | 单相全桥专项 + NPC 事件合同 `26 passed`；`git diff --check` 通过 |
-| 6 | 已完成 | `ad9dcbcb6f26c1a496ed12f1d811b9dc137e9082` | `待生成` | 已推送；实现提交后远端 HEAD=`ad9dcbcb6f26c1a496ed12f1d811b9dc137e9082` | 单相全桥专项+原有合同 `20 passed`；`compileall` 和 `git diff --check` 通过 |
-| 7 | 已完成 | `d05c6f32d6bcb82e6dd7c85db4e593fca0a3cf68` | `待生成` | 已推送；实现提交后远端 HEAD=`d05c6f32d6bcb82e6dd7c85db4e593fca0a3cf68` | 单相全桥、运行点刷新、DC-AC链路及NPC专项 `44 passed`；`compileall` 和 `git diff --check` 通过 |
+| 3 | 已完成 | `36a4aad0164c3535f9235ba8f248f971e5d4cc6e` | 已记录于后续回执提交 | 已推送；远端 HEAD 已核对 | 单相全桥专项+原有合同 `17 passed`；`git diff --check` 通过 |
+| 4 | 已完成 | `9449588d6742969cf195e6c02499359af19e7dff` | 已记录于后续回执提交 | 已推送；远端 HEAD 已核对 | 单相全桥专项+原有合同 `17 passed`；`git diff --check` 通过 |
+| 5 | 已完成 | `84546ccb3763b50bf828e92185f1d3a6c12ef044` | 已记录于后续回执提交 | 已推送；远端 HEAD 已核对 | 单相全桥专项 + NPC 事件合同 `26 passed`；`git diff --check` 通过 |
+| 6 | 已完成 | `ad9dcbcb6f26c1a496ed12f1d811b9dc137e9082` | 已记录于后续回执提交 | 已推送；远端 HEAD 已核对 | 单相全桥专项+原有合同 `20 passed`；`compileall` 和 `git diff --check` 通过 |
+| 7 | 已完成 | `d05c6f32d6bcb82e6dd7c85db4e593fca0a3cf68` | 已记录于后续回执提交 | 已推送；远端 HEAD 已核对 | 单相全桥、运行点刷新、DC-AC链路及NPC专项 `44 passed`；`compileall` 和 `git diff --check` 通过 |
 
 每一步完成后，必须把该行的状态改为“已完成”，填写实际 commit、push 结果和测试证据；在远端 push 验证之前不得标记为已完成。计划完成后将本文件从 `Plan/Active` 移动到 `Plan/completed`，移动动作也必须单独记录并提交。
 
@@ -394,3 +394,10 @@ git push
 - **开通极性误判**：软硬判据必须针对 `turn_on` 的有符号事件电流，不能使用绝对值或电流平均值。
 - **损耗重复叠加**：替换调用链后必须从总损耗中扣除旧开关损耗，再加上事件级开关损耗；导通、Eoss、栅极和其他现有损耗只保留一次。
 - **NPC 回归**：任何通用 helper 抽取都必须先锁定 NPC 现有测试，再切换单相全桥调用，保证 NPC 的事件语义和结果不变。
+
+## 9. 归档记录
+
+- **归档日期：** 2026-09-06
+- **归档状态：** 已完成
+- **归档位置：** `Plan/completed/single_phase_full_bridge_switching_loss_plan.md`
+- **归档说明：** 第 1 至第 7 步均已完成、验证并推送；本文件不再作为 Active 计划执行。

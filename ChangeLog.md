@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-06 单相全桥开关损耗计划归档
+
+- 确认第 1 至第 7 步均已完成，并已完成专项验证、独立 commit 和远端 push。
+- 将 `Plan/Active/single_phase_full_bridge_switching_loss_plan.md` 归档到 `Plan/completed/`。
+- 归档动作不修改生产代码；保留现有未跟踪输出、缓存和其他历史计划变更不纳入本次提交。
+- 本次归档提交和远端 HEAD 核对待本次操作完成后补录。
+
 ## 2026-09-06 单相全桥开关损耗计划第七步
 
 - 新增单相全桥运行点刷新验收：确认固定 `main_switch` 硬件不变，刷新后的损耗仍使用 `full_bridge_unipolar_spwm_event_line_cycle_average`，事件数保持 `3200`，总损耗字段闭合。
