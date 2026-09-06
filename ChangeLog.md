@@ -700,3 +700,9 @@ listed here.
 - Added actual period-average bridge-voltage, target-error, state-interval, and three-level voltage diagnostics.
 - Preserved the existing user-input contract and DC-link voltage ripple in bridge voltage generation.
 - Implementation commit: `996a595`; receipt commit: `906e374`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.
+
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 5
+
+- Added bounded per-switching-period average-current feedback with up to three correction iterations.
+- Recorded reference and actual current averages, errors, iteration counts, saturation flags, and voltage targets before and after correction.
+- Non-converged or voltage-saturated default periods remain explicitly diagnosed for Step 6 periodic-state refinement.

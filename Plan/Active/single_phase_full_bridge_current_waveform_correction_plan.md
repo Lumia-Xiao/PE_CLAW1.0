@@ -442,7 +442,7 @@ PWM 纹波处于合理范围
 | 2 | 已完成 | `02c8a90` | `065f1d7` | 已推送 | `10 passed`; `14 passed`; `git diff --check`; `switching_event_time_quantized_to_waveform_grid=False` |
 | 3 | 已完成 | `f55e145` | `4368196` | 已推送 | `25 passed`; `git diff --check`; per-cycle formula and clamp diagnostics |
 | 4 | 已完成 | `996a595` | `906e374` | 已推送 | `26 passed`; `git diff --check`; valid complementary three-level sequence |
-| 5 | 待执行 | - | - | - | - |
+| 5 | 实施中 | - | - | - | `reference_current_average_A`; `current_average_error_A`; feedback diagnostics |
 | 6 | 待执行 | - | - | - | - |
 | 7 | 待执行 | - | - | - | - |
 | 8 | 待执行 | - | - | - | - |

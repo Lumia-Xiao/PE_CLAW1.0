@@ -793,13 +793,21 @@ def _build_refined_unipolar_spwm_waveforms(
         samples_per_switching_period=samples_per_switching_period,
         voltage_limit_v=vdc_v,
     )
-    sequence = _build_target_voltage_full_bridge_sequence(
+    feedback = _apply_full_bridge_average_current_feedback(
         time_s=time_s,
         carrier=carrier,
-        target_voltage_v=average_voltage_targets["target_voltage_v"],
         dc_link_voltage_v=vdc_link_v,
-        switching_cycles=switching_cycles,
+        ac_voltage_v=vac_fundamental_v,
+        reference_current_a=i_ac_fundamental_a,
+        inductance_h=inductance_h,
+        voltage_limit_v=vdc_v,
+        initial_current_a=float(inductor_current_a[0]),
+        samples_per_switching_period=samples_per_switching_period,
+        initial_targets=average_voltage_targets["target_voltage_v"],
     )
+    sequence = feedback["sequence"]
+    inductor_current_a = feedback["inductor_current_a"]
+    average_voltage_targets = feedback["target_diagnostics"]
     mod_a = sequence["mod_a"]
     mod_b = sequence["mod_b"]
     gate_s1 = sequence["gate_s1"]
@@ -900,6 +908,16 @@ def _build_refined_unipolar_spwm_waveforms(
         ],
         "period_average_bridge_voltage_sequence_method": sequence["method"],
         "period_average_bridge_voltage_sequence_interval_count": sequence["interval_count"],
+        "reference_current_average_A": feedback["reference_current_average_a"],
+        "actual_current_average_A": feedback["actual_current_average_a"],
+        "current_average_error_A": feedback["current_average_error_a"],
+        "average_current_correction_iterations": feedback["correction_iterations"],
+        "average_current_correction_saturated": feedback["correction_saturated"],
+        "target_voltage_before_correction_V": feedback["target_voltage_before_correction_v"],
+        "target_voltage_after_correction_V": feedback["target_voltage_after_correction_v"],
+        "average_current_feedback_method": feedback["method"],
+        "average_current_feedback_converged": feedback["converged"],
+        "average_current_feedback_max_error_A": feedback["max_error_a"],
         "dc_link_current_a": dc_link_current_a,
         "dc_link_capacitor_current_pwm_a": dc_link_cap_current_pwm_a,
         "dc_link_voltage_v": vdc_link_v,
@@ -1142,6 +1160,131 @@ def _build_target_voltage_full_bridge_sequence(
         "interval_count": sum(
             1 for index in range(1, len(bridge_state)) if bridge_state[index] != bridge_state[index - 1]
         ),
+    }
+
+
+def _apply_full_bridge_average_current_feedback(
+    *,
+    time_s: list[float],
+    carrier: list[float],
+    dc_link_voltage_v: list[float],
+    ac_voltage_v: list[float],
+    reference_current_a: list[float],
+    inductance_h: float,
+    voltage_limit_v: float,
+    initial_current_a: float,
+    samples_per_switching_period: int,
+    initial_targets: list[float],
+) -> dict[str, object]:
+    """Track the reference current average one switching period at a time."""
+
+    cycle_count = (len(time_s) - 1) // max(samples_per_switching_period, 1)
+    current_start = float(initial_current_a)
+    all_current: list[float] = []
+    arrays = {name: [] for name in ("mod_a", "mod_b", "gate_s1", "gate_s2", "gate_s3", "gate_s4", "bridge_state", "bridge_voltage_v")}
+    reference_averages: list[float] = []
+    actual_averages: list[float] = []
+    errors: list[float] = []
+    iterations: list[int] = []
+    saturated: list[bool] = []
+    before_values: list[float] = []
+    after_values: list[float] = []
+    final_targets: list[float] = []
+    current_starts: list[float] = []
+    grid_averages: list[float] = []
+    max_error = 0.0
+    converged = True
+
+    for cycle in range(cycle_count):
+        start = cycle * samples_per_switching_period
+        end = (cycle + 1) * samples_per_switching_period
+        local_time = time_s[start : end + 1]
+        local_carrier = carrier[start : end + 1]
+        local_dc = dc_link_voltage_v[start : end + 1]
+        local_ac = ac_voltage_v[start : end + 1]
+        local_reference = reference_current_a[start : end + 1]
+        reference_average = _time_average_between(local_time, local_reference, 0, len(local_time) - 1)
+        target = float(initial_targets[cycle]) if cycle < len(initial_targets) else 0.0
+        before = target
+        current_starts.append(float(current_start))
+        grid_averages.append(_time_average_between(local_time, local_ac, 0, len(local_time) - 1))
+        local_sequence: dict[str, object] | None = None
+        local_current: list[float] = []
+        actual_average = 0.0
+        error = 0.0
+        saturated_cycle = False
+        iteration_count = 0
+        for iteration_count in range(1, 4):
+            local_sequence = _build_target_voltage_full_bridge_sequence(
+                time_s=local_time,
+                carrier=local_carrier,
+                target_voltage_v=[target],
+                dc_link_voltage_v=local_dc,
+                switching_cycles=1,
+            )
+            local_current = [current_start]
+            for index in range(1, len(local_time)):
+                dt_s = float(local_time[index]) - float(local_time[index - 1])
+                v_l_prev = float(local_sequence["bridge_voltage_v"][index - 1]) - float(local_ac[index - 1])
+                v_l_now = float(local_sequence["bridge_voltage_v"][index]) - float(local_ac[index])
+                local_current.append(local_current[-1] + 0.5 * (v_l_prev + v_l_now) * dt_s / inductance_h)
+            actual_average = _time_average_between(local_time, local_current, 0, len(local_time) - 1)
+            error = actual_average - reference_average
+            saturated_cycle = saturated_cycle or abs(target) >= voltage_limit_v - 1e-12
+            if abs(error) <= 1e-6:
+                break
+            next_target = target - 2.0 * inductance_h * error / max(local_time[-1] - local_time[0], 1e-12)
+            bounded_target = min(max(next_target, -voltage_limit_v), voltage_limit_v)
+            saturated_cycle = saturated_cycle or abs(bounded_target - next_target) > 1e-12
+            target = bounded_target
+        if local_sequence is None:
+            converged = False
+            continue
+        if abs(error) > 1e-6:
+            converged = False
+        max_error = max(max_error, abs(error))
+        reference_averages.append(float(reference_average))
+        actual_averages.append(float(actual_average))
+        errors.append(float(error))
+        iterations.append(iteration_count)
+        saturated.append(saturated_cycle)
+        before_values.append(float(before))
+        after_values.append(float(target))
+        final_targets.append(float(target))
+        current_start = float(local_current[-1])
+        for name in arrays:
+            values = [float(value) for value in local_sequence[name]]
+            arrays[name].extend(values if cycle == 0 else values[1:])
+        all_current.extend(local_current if cycle == 0 else local_current[1:])
+
+    sequence = {
+        "method": "target_average_voltage_unipolar_spwm_sequence_with_average_current_feedback",
+        **arrays,
+        "interval_count": sum(1 for index in range(1, len(arrays["bridge_state"])) if arrays["bridge_state"][index] != arrays["bridge_state"][index - 1]),
+    }
+    return {
+        "method": "per_switching_period_average_current_voltage_feedback",
+        "sequence": sequence,
+        "inductor_current_a": all_current,
+        "target_diagnostics": {
+            "method": "period_average_grid_voltage_plus_2L_over_Tsw_current_tracking_feedback",
+            "target_voltage_v": final_targets,
+            "unclamped_target_voltage_v": final_targets,
+            "target_voltage_saturated": saturated,
+            "reference_current_average_a": reference_averages,
+            "actual_current_start_a": current_starts,
+            "grid_voltage_average_v": grid_averages,
+            "period_s": [time_s[(cycle + 1) * samples_per_switching_period] - time_s[cycle * samples_per_switching_period] for cycle in range(cycle_count)],
+        },
+        "reference_current_average_a": reference_averages,
+        "actual_current_average_a": actual_averages,
+        "current_average_error_a": errors,
+        "correction_iterations": iterations,
+        "correction_saturated": saturated,
+        "target_voltage_before_correction_v": before_values,
+        "target_voltage_after_correction_v": after_values,
+        "converged": converged,
+        "max_error_a": max_error,
     }
 
 
