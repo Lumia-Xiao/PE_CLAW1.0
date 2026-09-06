@@ -242,6 +242,22 @@ def test_vsi_sic_event_reverse_recovery_is_zero() -> None:
         assert all(item["reverse_recovery_J"] == 0.0 for item in event_losses)
 
 
+def test_vsi_event_blocking_voltage_tracks_dc_link_input() -> None:
+    raw = MODULE.build_default_inputs()
+    raw["vdc_nom"] = "800"
+    plugin = _plugin()
+    candidate = plugin.synthesize(plugin.build_spec(raw))
+    waveform = plugin.generate_waveforms(candidate)
+    events = waveform.metadata["three_phase_vsi_switching_events"]
+
+    assert events
+    assert min(event["blocking_voltage_V"] for event in events) > 780.0
+    assert max(event["blocking_voltage_V"] for event in events) < 820.0
+    assert waveform.metadata["three_phase_vsi_switching_event_audit"]["blocking_voltage_source"] == (
+        "actual_dc_link_voltage_at_gate_edge"
+    )
+
+
 def test_vsi_efficiency_sweep_refreshes_event_loss_audit_for_load_and_pf(tmp_path: Path) -> None:
     plugin = _plugin()
     report = run_full_pipeline(
