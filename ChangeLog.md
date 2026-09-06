@@ -673,3 +673,9 @@ listed here.
   - Subject push passed and the remote branch containment check succeeded; this
     metadata update is the independent push receipt.
   - Merge, tag, release, and `master` push are outside this step.
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 1
+
+- Added a reproducible pre-change baseline for the single-phase full-bridge inductor-current waveform.
+- Recorded reference/current RMS and peak values, correlation, PWM ripple, bridge-voltage fundamental error, periodic residual, and output power.
+- Baseline artifacts are generated under `pytest_temp/single-phase-full-bridge-current-step1/`.
+- Production waveform logic was not changed.
