@@ -2333,6 +2333,14 @@ def _evaluate_role_loss(
     if report.spec.topology_id == _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID and stress.role == "totem_pole_lf_switch":
         return _evaluate_totem_pole_lf_switch_loss(device, stress)
     loss_result = _evaluate_switch_loss_for_context(device, stress, report=report, method="accurate")
+    if report.spec.topology_id == "three_phase_two_level_voltage_source_inverter" and stress.role == "main_switch":
+        return _apply_vsi_event_switching_loss(
+            loss_result,
+            device,
+            report,
+            stress,
+            parallel_count=max(int(parallel_count), 1),
+        )
     if report.spec.topology_id == "three_phase_three_level_npc_inverter":
         return _apply_npc_event_switching_loss(
             loss_result,
@@ -2342,6 +2350,95 @@ def _evaluate_role_loss(
             parallel_count=max(int(parallel_count), 1),
         )
     return loss_result
+
+
+def _apply_vsi_event_switching_loss(
+    loss_result: DeviceLossResult,
+    device,
+    report: DesignReport,
+    stress: SwitchStress,
+    *,
+    parallel_count: int,
+) -> DeviceLossResult:
+    """Replace VSI representative switching loss with six-position line-cycle events."""
+
+    waveform_metadata = report.waveform.metadata if report.waveform is not None else {}
+    events = (
+        waveform_metadata.get("three_phase_vsi_switching_events")
+        if isinstance(waveform_metadata, dict)
+        else None
+    )
+    if not isinstance(events, list) or not events:
+        return loss_result
+
+    line_frequency_hz = 0.0
+    for source in (
+        report.spec.metadata,
+        report.candidate.metadata if report.candidate is not None else {},
+    ):
+        try:
+            line_frequency_hz = float(source.get("f_line_hz", 0.0))
+        except (TypeError, ValueError):
+            line_frequency_hz = 0.0
+        if line_frequency_hz > 0.0:
+            break
+    if line_frequency_hz <= 0.0:
+        return loss_result
+
+    event_results = evaluate_switching_events(
+        device,
+        [event for event in events if isinstance(event, dict)],
+        junction_temp_c=loss_result.tj_est_C,
+        method="accurate",
+        parallel_count=parallel_count,
+    )
+    line_period_s = 1.0 / line_frequency_hz
+    summary = summarize_switching_event_energy(
+        event_results,
+        line_period_s=line_period_s,
+        physical_position_count=6,
+    )
+    p_sw_on_w = float(summary["p_sw_on_W"])
+    p_sw_off_w = float(summary["p_sw_off_W"])
+    p_rr_w = 0.0 if _is_sic_device(device) else float(summary["p_rr_W"])
+    p_total_w = max(
+        loss_result.p_total_W
+        - loss_result.p_sw_on_W
+        - loss_result.p_sw_off_W
+        - loss_result.p_rr_W,
+        0.0,
+    ) + p_sw_on_w + p_sw_off_w + p_rr_w
+    audit = waveform_metadata.get("three_phase_vsi_switching_event_audit", {})
+    audit_event_count = int(audit.get("event_count", len(events))) if isinstance(audit, dict) else len(events)
+    notes = _append_unique_list([
+        *loss_result.thermal_design_notes,
+        (
+            "Three-phase VSI event-level switching loss: "
+            f"{audit_event_count} events across 6 physical positions, "
+            f"Tline={line_period_s:.6g} s; Psw=sum(Eevent)/(6*Tline)."
+        ),
+        (
+            f"Three-phase VSI switching audit: hard_on={audit.get('hard_turn_on_count', 0)}, "
+            f"soft_on={audit.get('soft_turn_on_count', 0)}, "
+            f"Ievent=[{audit.get('event_current_min_A', 0.0):.6g}, {audit.get('event_current_max_A', 0.0):.6g}] A, "
+            f"Vblock=[{audit.get('event_blocking_voltage_min_V', 0.0):.6g}, "
+            f"{audit.get('event_blocking_voltage_max_V', 0.0):.6g}] V."
+        ),
+        *(
+            ["Three-phase VSI SiC reverse-recovery loss is set to zero."]
+            if _is_sic_device(device)
+            else []
+        ),
+    ])
+    return replace(
+        loss_result,
+        mode="three_phase_two_level_vsi_spwm_event_line_cycle_average",
+        p_sw_on_W=p_sw_on_w,
+        p_sw_off_W=p_sw_off_w,
+        p_rr_W=p_rr_w,
+        p_total_W=p_total_w,
+        thermal_design_notes=notes,
+    )
 
 
 def _apply_full_bridge_event_switching_loss(

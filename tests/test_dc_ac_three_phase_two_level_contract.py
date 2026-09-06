@@ -16,6 +16,9 @@ from pe_claw_gui.models.operating_point import OperatingPoint
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
+from pe_claw_gui.engines.devices.loss_evaluator import evaluate_switching_events
+from pe_claw_gui.engines.devices.loss_evaluator import summarize_switching_event_energy
+from pe_claw_gui.libraries.semiconductors.registry import build_default_semiconductor_registry
 from pe_claw_gui.topologies.base.registry import build_default_registry
 
 
@@ -179,6 +182,63 @@ def test_vsi_events_use_complementary_six_switch_mapping_at_each_gate_edge() -> 
             assert paired[0]["event_type"] != event["event_type"]
             assert paired[0]["gate_before"] == pytest.approx(1.0 - event["gate_before"])
             assert paired[0]["gate_after"] == pytest.approx(1.0 - event["gate_after"])
+
+
+def test_vsi_report_uses_event_energy_once_and_closes_loss_breakdown() -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+
+    assert report.waveform is not None
+    assert report.device is not None
+    loss = report.device.design_point_losses["design_point:main_switch"]
+    events = report.waveform.metadata["three_phase_vsi_switching_events"]
+    device = build_default_semiconductor_registry().get_device(report.device.selected_devices["main_switch"])
+    line_period_s = 1.0 / float(report.spec.metadata["f_line_hz"])
+    event_losses = evaluate_switching_events(device, events, junction_temp_c=loss.tj_est_C)
+    summary = summarize_switching_event_energy(
+        event_losses,
+        line_period_s=line_period_s,
+        physical_position_count=6,
+    )
+
+    assert loss.mode == "three_phase_two_level_vsi_spwm_event_line_cycle_average"
+    assert loss.p_sw_on_W == pytest.approx(summary["p_sw_on_W"])
+    assert loss.p_sw_off_W == pytest.approx(summary["p_sw_off_W"])
+    assert loss.p_rr_W == pytest.approx(summary["p_rr_W"])
+    assert loss.p_total_W == pytest.approx(
+        loss.p_cond_W + loss.p_sw_on_W + loss.p_sw_off_W + loss.p_rr_W + loss.p_eoss_W + loss.p_gate_W
+    )
+    assert any(
+        "Three-phase VSI event-level switching loss" in note
+        for note in loss.thermal_design_notes
+    )
+    assert any(item["soft_turn_on"] and item["eon_J"] == 0.0 for item in event_losses)
+    assert any(item["event_type"] == "turn_on" and not item["soft_turn_on"] and item["eon_J"] > 0.0 for item in event_losses)
+
+
+def test_vsi_sic_event_reverse_recovery_is_zero() -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+
+    assert report.waveform is not None
+    assert report.device is not None
+    device = build_default_semiconductor_registry().get_device(report.device.selected_devices["main_switch"])
+    event_losses = evaluate_switching_events(
+        device,
+        report.waveform.metadata["three_phase_vsi_switching_events"],
+    )
+    if "sic" in device.selection_device_type.casefold() or "sic" in device.part_number.casefold():
+        assert all(item["reverse_recovery_J"] == 0.0 for item in event_losses)
 
 
 def test_full_pipeline_returns_three_phase_specific_report() -> None:
