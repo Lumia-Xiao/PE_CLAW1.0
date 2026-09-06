@@ -208,6 +208,12 @@ def generate_waveforms(
             "q6": [1.0 - value for value in gate_c_high],
         },
     )
+    vsi_switching_events = _extract_vsi_switching_events(
+        time_s=time_s,
+        phase_currents_a=(ia_a, ib_a, ic_a),
+        phase_gates=(gate_a_high, gate_b_high, gate_c_high),
+        dc_link_voltage_v=dc_link_voltage_v,
+    )
     phase_current_total_rms_a = _mean([_rms(ia_a), _rms(ib_a), _rms(ic_a)])
     phase_switching_ripple_rms_a = _rms([*phase_ripple_a[0], *phase_ripple_a[1], *phase_ripple_a[2]])
     predicted_active_power_w = _mean(
@@ -346,9 +352,9 @@ def generate_waveforms(
             "phase_inductor_ripple_formula_id": "three_phase_floating_neutral_spwm_volt_second_integration_v1",
             "three_phase_vsi_branch_currents": branch_currents,
             "branch_current_semantics": branch_currents["semantics"],
-            "three_phase_vsi_switching_events": [],
-            "three_phase_vsi_switching_event_count": 0,
-            "three_phase_vsi_switching_event_audit": _vsi_switching_event_audit([]),
+            "three_phase_vsi_switching_events": vsi_switching_events,
+            "three_phase_vsi_switching_event_count": len(vsi_switching_events),
+            "three_phase_vsi_switching_event_audit": _vsi_switching_event_audit(vsi_switching_events),
             "three_phase_vsi_switching_event_schema": _vsi_switching_event_schema(),
             "dc_link_voltage_ripple_pp_v": max(dc_link_ripple_v) - min(dc_link_ripple_v) if dc_link_ripple_v else 0.0,
             "dc_link_bus_current_pwm_a": dc_link_bus_current_pwm_a,
@@ -522,7 +528,7 @@ def _vsi_switching_event_schema() -> dict[str, object]:
         "time_interval": "[0, Tline)",
         "signed_current_convention": "positive current from inverter bridge into AC phase",
         "blocking_voltage_convention": "absolute device blocking voltage in volts",
-        "extraction_status": "schema_only_until_vsi_gate_edge_extraction_step3",
+        "extraction_status": "actual_vsi_gate_edge_extraction_v1",
     }
 
 
@@ -537,6 +543,9 @@ def _vsi_switching_event_audit(events: list[dict[str, object]]) -> dict[str, obj
         switch_name: sum(1 for event in events if event.get("switch_name") == switch_name)
         for switch_name in ("S1", "S2", "S3", "S4", "S5", "S6")
     }
+    event_sources = {str(event.get("event_source", "")) for event in events}
+    current_sources = {str(event.get("current_source", "")) for event in events}
+    voltage_sources = {str(event.get("blocking_voltage_source", "")) for event in events}
     return {
         "status": "populated" if events else "schema_only",
         "event_count": len(events),
@@ -553,10 +562,75 @@ def _vsi_switching_event_audit(events: list[dict[str, object]]) -> dict[str, obj
         "event_current_max_A": max(currents) if currents else 0.0,
         "event_blocking_voltage_min_V": min(voltages) if voltages else 0.0,
         "event_blocking_voltage_max_V": max(voltages) if voltages else 0.0,
-        "event_source": "pending_actual_vsi_gate_edges",
-        "current_source": "pending_actual_vsi_event_current",
-        "blocking_voltage_source": "pending_dc_link_voltage_at_event_time",
+        "event_source": next(iter(event_sources)) if len(event_sources) == 1 else "mixed_or_pending",
+        "current_source": next(iter(current_sources)) if len(current_sources) == 1 else "mixed_or_pending",
+        "blocking_voltage_source": next(iter(voltage_sources)) if len(voltage_sources) == 1 else "mixed_or_pending",
     }
+
+
+def _extract_vsi_switching_events(
+    *,
+    time_s: list[float],
+    phase_currents_a: tuple[list[float], list[float], list[float]],
+    phase_gates: tuple[list[float], list[float], list[float]],
+    dc_link_voltage_v: list[float],
+) -> list[dict[str, float | int | str]]:
+    """Extract S1-S6 events from the sampled three-phase gate waveforms."""
+
+    if len(time_s) < 2 or len(dc_link_voltage_v) != len(time_s):
+        return []
+    if any(len(values) != len(time_s) for values in (*phase_currents_a, *phase_gates)):
+        return []
+    phase_definitions = (
+        ("a", 0, "A", ("S1", "S2")),
+        ("b", 1, "B", ("S3", "S4")),
+        ("c", 2, "C", ("S5", "S6")),
+    )
+    events: list[dict[str, float | int | str]] = []
+    end_time_s = float(time_s[-1])
+    tolerance_s = max(end_time_s * 1e-12, 1e-15)
+    for phase_name, phase_index, bridge_leg, switch_names in phase_definitions:
+        gates = phase_gates[phase_index]
+        current = phase_currents_a[phase_index]
+        for sample_index in range(1, len(time_s)):
+            event_time_s = float(time_s[sample_index])
+            if event_time_s >= end_time_s - tolerance_s:
+                continue
+            gate_before = float(gates[sample_index - 1])
+            gate_after = float(gates[sample_index])
+            if gate_after == gate_before:
+                continue
+            if gate_before not in (0.0, 1.0) or gate_after not in (0.0, 1.0):
+                continue
+            signed_current_a = float(current[sample_index])
+            blocking_voltage = abs(float(dc_link_voltage_v[sample_index]))
+            upper_event_type = "turn_on" if gate_after > gate_before else "turn_off"
+            for switch_name, previous_gate, current_gate in (
+                (switch_names[0], gate_before, gate_after),
+                (switch_names[1], 1.0 - gate_before, 1.0 - gate_after),
+            ):
+                events.append(
+                    {
+                        "phase": phase_name,
+                        "switch_name": switch_name,
+                        "switch_index": int(switch_name[1:]),
+                        "bridge_leg": bridge_leg,
+                            "event_type": upper_event_type if switch_name == switch_names[0] else (
+                            "turn_on" if current_gate > previous_gate else "turn_off"
+                        ),
+                        "event_time_s": event_time_s,
+                        "signed_current_A": signed_current_a,
+                        "absolute_current_A": abs(signed_current_a),
+                        "blocking_voltage_V": blocking_voltage,
+                        "gate_before": previous_gate,
+                        "gate_after": current_gate,
+                        "event_source": "actual_sampled_vsi_gate_edge",
+                        "current_source": "actual_phase_inductor_current_at_gate_edge",
+                        "blocking_voltage_source": "actual_dc_link_voltage_at_gate_edge",
+                    }
+                )
+    events.sort(key=lambda event: (float(event["event_time_s"]), int(event["switch_index"])))
+    return events
 
 
 def _dc_bus_current_from_switch_states(

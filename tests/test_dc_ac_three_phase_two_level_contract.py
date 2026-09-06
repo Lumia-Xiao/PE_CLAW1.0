@@ -106,8 +106,8 @@ def test_vsi_switching_event_container_exposes_six_switch_schema() -> None:
     schema = metadata["three_phase_vsi_switching_event_schema"]
     audit = metadata["three_phase_vsi_switching_event_audit"]
 
-    assert events == []
-    assert metadata["three_phase_vsi_switching_event_count"] == 0
+    assert events
+    assert metadata["three_phase_vsi_switching_event_count"] == len(events)
     assert schema["topology"] == "three_phase_two_level_vsi"
     assert schema["switch_names"] == ["S1", "S2", "S3", "S4", "S5", "S6"]
     assert set(schema["field_names"]) == {
@@ -128,22 +128,22 @@ def test_vsi_switching_event_container_exposes_six_switch_schema() -> None:
     }
     assert schema["event_types"] == ["turn_on", "turn_off"]
     assert schema["time_interval"] == "[0, Tline)"
-    assert audit == {
-        "status": "schema_only",
-        "event_count": 0,
-        "turn_on_count": 0,
-        "turn_off_count": 0,
-        "hard_turn_on_count": 0,
-        "soft_turn_on_count": 0,
-        "switch_event_counts": {name: 0 for name in ("S1", "S2", "S3", "S4", "S5", "S6")},
-        "event_current_min_A": 0.0,
-        "event_current_max_A": 0.0,
-        "event_blocking_voltage_min_V": 0.0,
-        "event_blocking_voltage_max_V": 0.0,
-        "event_source": "pending_actual_vsi_gate_edges",
-        "current_source": "pending_actual_vsi_event_current",
-        "blocking_voltage_source": "pending_dc_link_voltage_at_event_time",
-    }
+    assert audit["status"] == "populated"
+    assert audit["event_count"] == len(events)
+    assert audit["turn_on_count"] + audit["turn_off_count"] == len(events)
+    assert audit["hard_turn_on_count"] + audit["soft_turn_on_count"] == audit["turn_on_count"]
+    assert set(audit["switch_event_counts"]) == {"S1", "S2", "S3", "S4", "S5", "S6"}
+    assert all(audit["switch_event_counts"][name] > 0 for name in ("S1", "S2", "S3", "S4", "S5", "S6"))
+    assert audit["event_current_min_A"] < audit["event_current_max_A"]
+    assert audit["event_blocking_voltage_min_V"] > 0.0
+    assert audit["event_source"] == "actual_sampled_vsi_gate_edge"
+    assert audit["current_source"] == "actual_phase_inductor_current_at_gate_edge"
+    assert audit["blocking_voltage_source"] == "actual_dc_link_voltage_at_gate_edge"
+
+    required_fields = set(schema["field_names"])
+    assert all(required_fields <= set(event) for event in events)
+    assert all(0.0 <= event["event_time_s"] < waveform.time_span_s for event in events)
+    assert all(event["absolute_current_A"] == pytest.approx(abs(event["signed_current_A"])) for event in events)
 
 
 def test_vsi_event_schema_documents_signed_current_and_voltage_contract() -> None:
@@ -154,7 +154,31 @@ def test_vsi_event_schema_documents_signed_current_and_voltage_contract() -> Non
 
     assert schema["signed_current_convention"] == "positive current from inverter bridge into AC phase"
     assert schema["blocking_voltage_convention"] == "absolute device blocking voltage in volts"
-    assert schema["extraction_status"] == "schema_only_until_vsi_gate_edge_extraction_step3"
+    assert schema["extraction_status"] == "actual_vsi_gate_edge_extraction_v1"
+
+
+def test_vsi_events_use_complementary_six_switch_mapping_at_each_gate_edge() -> None:
+    plugin = _plugin()
+    candidate = plugin.synthesize(plugin.build_spec(MODULE.build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    events = waveform.metadata["three_phase_vsi_switching_events"]
+
+    assert {event["switch_name"] for event in events} == {"S1", "S2", "S3", "S4", "S5", "S6"}
+    for phase, upper_name, lower_name in (("a", "S1", "S2"), ("b", "S3", "S4"), ("c", "S5", "S6")):
+        phase_events = [event for event in events if event["phase"] == phase]
+        assert phase_events
+        for event in phase_events:
+            assert event["bridge_leg"] == phase.upper()
+            paired = [
+                other for other in phase_events
+                if other["event_time_s"] == event["event_time_s"]
+                and other["switch_name"] in {upper_name, lower_name}
+                and other["switch_name"] != event["switch_name"]
+            ]
+            assert len(paired) == 1
+            assert paired[0]["event_type"] != event["event_type"]
+            assert paired[0]["gate_before"] == pytest.approx(1.0 - event["gate_before"])
+            assert paired[0]["gate_after"] == pytest.approx(1.0 - event["gate_after"])
 
 
 def test_full_pipeline_returns_three_phase_specific_report() -> None:
