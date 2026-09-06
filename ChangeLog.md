@@ -679,4 +679,4 @@ listed here.
 - Recorded reference/current RMS and peak values, correlation, PWM ripple, bridge-voltage fundamental error, periodic residual, and output power.
 - Baseline artifacts are generated under `pytest_temp/single-phase-full-bridge-current-step1/`.
 - Production waveform logic was not changed.
-- Implementation commit: `4247065`; receipt commit will record the final plan status and push verification.
+- Implementation commit: `4247065`; receipt commit: `de6f78e`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.

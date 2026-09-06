@@ -438,7 +438,7 @@ PWM 纹波处于合理范围
 
 | 步骤 | 状态 | 实现 commit | 回执 commit | 远端 push | 验证证据 |
 |---|---|---|---|---|---|
-| 1 | 已完成 | `4247065` | 待生成 | 已推送 | `pytest_temp/single-phase-full-bridge-current-step1/baseline.json`; `13 passed`; `git diff --check` |
+| 1 | 已完成 | `4247065` | `de6f78e` | 已推送 | `pytest_temp/single-phase-full-bridge-current-step1/baseline.json`; `13 passed`; `git diff --check` |
 | 2 | 待执行 | - | - | - | - |
 | 3 | 待执行 | - | - | - | - |
 | 4 | 待执行 | - | - | - | - |
@@ -457,7 +457,8 @@ PWM 纹波处于合理范围
 - 基线文件：`pytest_temp/single-phase-full-bridge-current-step1/baseline.json`
 - 关键结果：参考峰值 `6.1483 A`，实际峰值 `31.1782 A`，相关性 `0.3093`，PWM 纹波 RMS `13.8982 A`，周期首尾残差 `1.61e-12 A`
 - 生产波形逻辑：未修改
-- 回执提交：待生成
+- 回执提交：`de6f78e` (`docs: record full-bridge current baseline receipt`)
+- 远端 HEAD：`de6f78ed245708cf609401ec17e261caaeba80b2`
 
 ## 9. 风险和控制
 
