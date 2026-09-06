@@ -443,7 +443,7 @@ PWM 纹波处于合理范围
 | 3 | 已完成 | `f55e145` | `4368196` | 已推送 | `25 passed`; `git diff --check`; per-cycle formula and clamp diagnostics |
 | 4 | 已完成 | `996a595` | `906e374` | 已推送 | `26 passed`; `git diff --check`; valid complementary three-level sequence |
 | 5 | 已完成 | `da0c64a` | `f1d034c` | 已推送 | `27 passed`; `git diff --check`; feedback diagnostics including saturation/non-convergence |
-| 6 | 验证完成，待提交推送 | - | - | - | `pytest_temp/single-phase-full-bridge-current-step6/` |
+| 6 | 已完成（硬件饱和额定值缺失已明确诊断） | `aab6c68` | 本记录提交，见下方 Git 查询 | 实现已推送并核对 | `34 passed`; `pytest_temp/single-phase-full-bridge-current-step6/final-tests.xml` |
 | 7 | 待执行 | - | - | - | - |
 | 8 | 待执行 | - | - | - | - |
 
@@ -511,6 +511,8 @@ PWM 纹波处于合理范围
 
 ### 第六步执行记录
 
+- 实现提交：`aab6c68041de3b64c305eb19dd848d43b480f933`；推送后 `git ls-remote --heads origin codex/npc-output-run-isolation-step1` 与本地 HEAD 一致。
+- 独立回执提交标题：`docs: record full-bridge periodic current step6 receipt`。回执自身 SHA 不写入自身内容，使用 `git log -1 --format=%H --grep="^docs: record full-bridge periodic current step6 receipt$"` 查询。
 - 最终验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_periodic_current.py tests/test_single_phase_full_bridge_switching_loss.py tests/test_single_phase_full_bridge_current_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py --basetemp=pytest_temp/single-phase-full-bridge-current-step6/final-tests --junitxml=pytest_temp/single-phase-full-bridge-current-step6/final-tests.xml` -> `34 passed in 56.98s`；`git diff --check` 通过。
 - 使用 SciPy secant shooting 求解闭环整周期映射，每次试探初始电流均重新运行逐周期反馈，禁止平移已积分波形来伪造周期闭合。
 - 补齐第 4/5 步必要前提：解析中心对齐单极性 PWM 边界；在门极区间及电压插值节点之间连续积分；末次电压修正必须经过仿真才输出；修正前后目标与实际电流取自同一轮计算。

@@ -717,3 +717,4 @@ listed here.
 - Added independent segment, average-current, RMS, load/PF, saturation and fractional-cycle checks in `tests/test_single_phase_full_bridge_periodic_current.py`; strengthened waveform and switching-loss tests.
 - Evidence: `pytest_temp/single-phase-full-bridge-current-step6/`. Branch: `codex/npc-output-run-isolation-step1`. No NPC or other-topology changes.
 - Validation: 34 focused tests passed in 56.98s; `git diff --check` passed. Default peak/RMS: 6.52305/4.35638 A, periodic residual 2.51e-12 A, mean-current error below 1e-6 A, zero voltage-saturated cycles.
+- Implementation `aab6c68041de3b64c305eb19dd848d43b480f933` pushed and remote HEAD verified; independent receipt: `docs: record full-bridge periodic current step6 receipt` (this commit).
