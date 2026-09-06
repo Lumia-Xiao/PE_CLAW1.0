@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-06 单相全桥开关损耗计划第七步
+
+- 新增单相全桥运行点刷新验收：确认固定 `main_switch` 硬件不变，刷新后的损耗仍使用 `full_bridge_unipolar_spwm_event_line_cycle_average`，事件数保持 `3200`，总损耗字段闭合。
+- 完成单相全桥专项、单相全桥合同、DC-AC运行点刷新链路和 NPC 事件级合同定向回归；未执行无关拓扑全量回归。
+- 验证：指定测试集合 `44 passed`；`python -m compileall -q src tests` 通过；`git diff --check` 通过；未将 `outputs/`、`pytest_temp/` 或缓存加入提交。
+- 第 1 至第 7 步的实现和回执均已按计划独立提交并推送；本计划内容保持在 `Plan/Active`，待后续按计划单独归档。
+- Git：第七步实现与回执提交、push 和远端 HEAD 核对待本次操作完成后补录。
+
 ## 2026-09-06 单相全桥开关损耗计划第六步
 
 - 在 `run_device_pipeline.py` 中将单相全桥 `main_switch` 从旧 20 段准静态模型切换到工频周期逐事件开关损耗模型。

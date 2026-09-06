@@ -185,6 +185,44 @@ def test_step6_pipeline_uses_line_cycle_event_loss_once() -> None:
     assert all("20 midpoint line-cycle segments" not in note for note in loss.thermal_design_notes)
 
 
+def test_step7_operating_refresh_keeps_hardware_and_event_loss_path() -> None:
+    from pe_claw_gui.pipeline.options import PipelineOptions
+    from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
+    from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
+    from pe_claw_gui.topologies.base.registry import build_default_registry
+    from pe_claw_gui.topologies.dc_ac.single_phase_full_bridge_inverter.input_schema import build_default_inputs
+    from pe_claw_gui.models.operating_point import OperatingPoint
+
+    plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+    )
+    original_part = report.device.selected_devices["main_switch"]
+    refreshed = run_operating_point_refresh(
+        report,
+        plugin=plugin,
+        operating_point=OperatingPoint(vin_v=400.0, load_ratio=0.5, power_factor=0.9),
+        pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+    )
+
+    refreshed_loss = refreshed.device.current_operating_losses["current:main_switch"]
+    refreshed_waveform = refreshed.waveform.metadata["single_phase_inverter_refined_waveforms"]
+    assert refreshed.device.selected_devices["main_switch"] == original_part
+    assert refreshed_loss.mode == "full_bridge_unipolar_spwm_event_line_cycle_average"
+    assert refreshed_waveform["switching_event_audit"]["event_count"] == 3200
+    assert refreshed_loss.p_total_W == pytest.approx(
+        refreshed_loss.p_cond_W
+        + refreshed_loss.p_sw_on_W
+        + refreshed_loss.p_sw_off_W
+        + refreshed_loss.p_rr_W
+        + refreshed_loss.p_eoss_W
+        + refreshed_loss.p_gate_W
+    )
+
+
 def test_step2_event_timeline_preserves_complementary_gate_contract() -> None:
     from pe_claw_gui.topologies.base.registry import build_default_registry
     from pe_claw_gui.topologies.dc_ac.single_phase_full_bridge_inverter.input_schema import build_default_inputs
