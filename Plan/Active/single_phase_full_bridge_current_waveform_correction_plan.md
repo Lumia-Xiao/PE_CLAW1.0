@@ -441,7 +441,7 @@ PWM 纹波处于合理范围
 | 1 | 已完成 | `4247065` | `de6f78e` | 已推送 | `pytest_temp/single-phase-full-bridge-current-step1/baseline.json`; `13 passed`; `git diff --check` |
 | 2 | 已完成 | `02c8a90` | `065f1d7` | 已推送 | `10 passed`; `14 passed`; `git diff --check`; `switching_event_time_quantized_to_waveform_grid=False` |
 | 3 | 已完成 | `f55e145` | `4368196` | 已推送 | `25 passed`; `git diff --check`; per-cycle formula and clamp diagnostics |
-| 4 | 已完成 | `996a595` | 待生成 | 已推送 | `26 passed`; `git diff --check`; valid complementary three-level sequence |
+| 4 | 已完成 | `996a595` | `906e374` | 已推送 | `26 passed`; `git diff --check`; valid complementary three-level sequence |
 | 5 | 待执行 | - | - | - | - |
 | 6 | 待执行 | - | - | - | - |
 | 7 | 待执行 | - | - | - | - |
@@ -493,7 +493,8 @@ PWM 纹波处于合理范围
 - 事件数量：不再固定为旧采样序列的 `3200`，测试改为验证四个开关均有开关事件且审计数量一致
 - 用户输入：未新增
 - 第五步平均电流反馈：尚未实施
-- 回执提交：待生成
+- 回执提交：`906e374` (`docs: record corrected full-bridge sequence receipt`)
+- 远端 HEAD：`906e3746c386586cddd5cff068eade9f8c7a05dc`
 
 ## 9. 风险和控制
 

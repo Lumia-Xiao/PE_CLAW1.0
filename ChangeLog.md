@@ -699,4 +699,4 @@ listed here.
 - Rebuilt the single-phase bridge gate sequence from the bounded per-period voltage targets using complementary unipolar SPWM.
 - Added actual period-average bridge-voltage, target-error, state-interval, and three-level voltage diagnostics.
 - Preserved the existing user-input contract and DC-link voltage ripple in bridge voltage generation.
-- Implementation commit: `996a595`; receipt commit will record final plan status and push verification.
+- Implementation commit: `996a595`; receipt commit: `906e374`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.
