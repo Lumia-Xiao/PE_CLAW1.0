@@ -438,7 +438,7 @@ PWM 纹波处于合理范围
 
 | 步骤 | 状态 | 实现 commit | 回执 commit | 远端 push | 验证证据 |
 |---|---|---|---|---|---|
-| 1 | 实施中 | - | - | - | `pytest_temp/single-phase-full-bridge-current-step1/` |
+| 1 | 已完成 | `4247065` | 待生成 | 已推送 | `pytest_temp/single-phase-full-bridge-current-step1/baseline.json`; `13 passed`; `git diff --check` |
 | 2 | 待执行 | - | - | - | - |
 | 3 | 待执行 | - | - | - | - |
 | 4 | 待执行 | - | - | - | - |
@@ -448,6 +448,16 @@ PWM 纹波处于合理范围
 | 8 | 待执行 | - | - | - | - |
 
 每一步完成后必须填写实际 commit、回执 commit、远端 HEAD 和测试证据。只有 commit 和 push 均完成后，才能将该步骤标记为已完成。
+
+### 第一步执行回执
+
+- 实现提交：`4247065` (`test: establish full-bridge current waveform baseline`)
+- 验证：`python -m pytest -q tests/test_single_phase_full_bridge_current_baseline.py tests/test_single_phase_full_bridge_switching_loss.py` -> `13 passed`
+- 基线生成：`python scripts/record_single_phase_full_bridge_current_step1_baseline.py`
+- 基线文件：`pytest_temp/single-phase-full-bridge-current-step1/baseline.json`
+- 关键结果：参考峰值 `6.1483 A`，实际峰值 `31.1782 A`，相关性 `0.3093`，PWM 纹波 RMS `13.8982 A`，周期首尾残差 `1.61e-12 A`
+- 生产波形逻辑：未修改
+- 回执提交：待生成
 
 ## 9. 风险和控制
 
