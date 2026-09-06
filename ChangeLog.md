@@ -707,3 +707,13 @@ listed here.
 - Recorded reference and actual current averages, errors, iteration counts, saturation flags, and voltage targets before and after correction.
 - Non-converged or voltage-saturated default periods remain explicitly diagnosed for Step 6 periodic-state refinement.
 - Implementation commit: `da0c64a`; receipt commit: `f1d034c`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.
+
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 6
+
+- Replaced the stale open-loop residual with closed-loop periodic shooting over continuous event-segmented current integration.
+- Resolved prerequisites missed by Steps 4/5: quantized PWM integration, stale period voltage targets, and an unevaluated last feedback update. Kept true unclamped targets and final-state diagnostics.
+- Used the candidate output filter inductance in (Vbridge - Vac) / Lout; the previous validation load inductance double-counted the reactive load at low PF.
+- Recorded exact segment peak/RMS, periodic and period-average errors, voltage saturation, and missing physical inductor saturation rating. Precise event-current lookup remains Step 7.
+- Added independent segment, average-current, RMS, load/PF, saturation and fractional-cycle checks in `tests/test_single_phase_full_bridge_periodic_current.py`; strengthened waveform and switching-loss tests.
+- Evidence: `pytest_temp/single-phase-full-bridge-current-step6/`. Branch: `codex/npc-output-run-isolation-step1`. No NPC or other-topology changes.
+- Validation: 34 focused tests passed in 56.98s; `git diff --check` passed. Default peak/RMS: 6.52305/4.35638 A, periodic residual 2.51e-12 A, mean-current error below 1e-6 A, zero voltage-saturated cycles.

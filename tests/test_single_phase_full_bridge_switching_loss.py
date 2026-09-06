@@ -117,14 +117,16 @@ def test_step3_uses_continuous_periodic_inductor_current() -> None:
     current = refined["inductor_current_a"]
     reference = refined["i_ac_fundamental_a"]
 
-    assert refined["current_integration_method"] == "continuous_pwm_state_integral_over_one_line_cycle"
-    assert solver["method"] == "periodic_shooting_with_reference_mean_current_gauge"
+    assert refined["current_integration_method"] == "event_segmented_linear_voltage_exact_current_integral"
+    assert solver["method"] == "closed_loop_event_segmented_periodic_shooting"
     assert solver["converged"] is True
-    assert solver["iterations"] == 1
+    assert 1 <= solver["iterations"] <= 25
     assert solver["endpoint_correction_applied"] is False
     assert abs(float(solver["residual_a"])) <= float(solver["tolerance_a"])
     assert float(solver["initial_current_a"]) == pytest.approx(float(current[0]))
-    assert len(current) == len(refined["time_s"])
+    assert solver["period_end_current_a"] == pytest.approx(current[-1], abs=1e-10)
+    assert solver["residual_a"] == pytest.approx(current[-1] - current[0], abs=1e-10)
+    assert max(map(abs, refined["current_average_error_A"])) <= 1e-6
     assert len(current) == len(refined["time_s"]) == len(refined["v_ab_pwm_v"])
     assert max(abs(float(actual) - float(ref)) for actual, ref in zip(current, reference, strict=True)) > 1e-6
     assert max(current) > 0.0
@@ -156,8 +158,7 @@ def test_step3_records_bounded_period_average_voltage_targets() -> None:
     assert len(targets) == len(reference_average) == len(current_start) == len(grid_average) == len(periods)
     assert all(-400.0 <= float(value) <= 400.0 for value in targets)
     assert all(float(period) > 0.0 for period in periods)
-    assert all(bool(flag) or abs(float(target)) < 400.0 + 1e-12 for target, flag in zip(targets, saturated, strict=True))
-    for target, raw, grid, reference, start, period, is_saturated in zip(
+    for target, raw, grid, reference, start, period, is_saturated, before in zip(
         targets,
         unclamped,
         grid_average,
@@ -165,12 +166,14 @@ def test_step3_records_bounded_period_average_voltage_targets() -> None:
         current_start,
         periods,
         saturated,
+        refined["target_voltage_before_correction_V"],
         strict=True,
     ):
         expected_raw = float(grid) + 2.0 * inductance_h * (float(reference) - float(start)) / float(period)
+        assert before == pytest.approx(expected_raw)
+        assert is_saturated == (target != raw)
         if not is_saturated:
-            assert abs(float(raw)) <= 400.0 + 1e-12
-        assert abs(float(raw)) <= 400.0 + 1e-12
+            assert target == raw
 
 
 def test_step4_generates_valid_target_voltage_bridge_sequence() -> None:
@@ -203,7 +206,7 @@ def test_step4_generates_valid_target_voltage_bridge_sequence() -> None:
         abs(float(value)) <= abs(float(vdc)) + 1e-9
         for value, vdc in zip(refined["v_ab_pwm_v"], refined["dc_link_voltage_v"], strict=True)
     )
-    assert max(abs(float(value)) for value in error) <= 400.0
+    assert max(abs(float(value)) for value in error) < 0.01
 
 
 def test_step5_records_average_current_feedback_diagnostics() -> None:
@@ -229,15 +232,14 @@ def test_step5_records_average_current_feedback_diagnostics() -> None:
     assert refined["average_current_feedback_method"] == (
         "per_switching_period_average_current_voltage_feedback"
     )
-    assert all(1 <= int(value) <= 3 for value in refined["average_current_correction_iterations"])
+    assert all(1 <= int(value) <= 5 for value in refined["average_current_correction_iterations"])
     assert all(
         -400.0 <= float(value) <= 400.0
         for value in refined["target_voltage_after_correction_V"]
     )
-    assert isinstance(refined["average_current_feedback_converged"], bool)
-    assert float(refined["average_current_feedback_max_error_A"]) >= 0.0
-    if not refined["average_current_feedback_converged"]:
-        assert any(refined["average_current_correction_saturated"])
+    assert refined["average_current_feedback_converged"] is True
+    assert float(refined["average_current_feedback_max_error_A"]) <= 1e-6
+    assert not any(refined["average_current_correction_saturated"])
 
 
 def test_step5_shared_event_energy_model_uses_actual_polarity_and_current() -> None:

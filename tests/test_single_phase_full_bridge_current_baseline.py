@@ -31,12 +31,15 @@ def test_step1_current_waveform_baseline_is_repeatable_and_complete() -> None:
     assert first["solver"]["switching_cycle_count"] > 0
 
 
-def test_step1_current_waveform_baseline_records_current_anomaly() -> None:
+def test_current_waveform_improves_over_recorded_step1_anomaly() -> None:
     baseline = build_baseline()
     metrics = baseline["metrics"]
 
-    assert metrics["actual_current_peak_a"] > 3.0 * metrics["reference_current_peak_a"]
-    assert metrics["pwm_ripple_rms_a"] >= 0.0
+    # Historical Step 1: peak 31.1782 A, ripple RMS 13.8982 A, correlation 0.3093.
+    assert metrics["actual_current_peak_a"] < 1.2 * metrics["reference_current_peak_a"]
+    assert metrics["actual_current_peak_a"] < 31.1782
+    assert 0.0 < metrics["pwm_ripple_rms_a"] < 0.5
+    assert metrics["actual_reference_correlation"] > 0.99
     assert abs(metrics["periodic_endpoint_residual_a"]) <= 1e-8
     assert baseline["saturation_comparison"]["candidate_saturation_current_a"] is None
 

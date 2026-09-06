@@ -443,7 +443,7 @@ PWM 纹波处于合理范围
 | 3 | 已完成 | `f55e145` | `4368196` | 已推送 | `25 passed`; `git diff --check`; per-cycle formula and clamp diagnostics |
 | 4 | 已完成 | `996a595` | `906e374` | 已推送 | `26 passed`; `git diff --check`; valid complementary three-level sequence |
 | 5 | 已完成 | `da0c64a` | `f1d034c` | 已推送 | `27 passed`; `git diff --check`; feedback diagnostics including saturation/non-convergence |
-| 6 | 待执行 | - | - | - | - |
+| 6 | 验证完成，待提交推送 | - | - | - | `pytest_temp/single-phase-full-bridge-current-step6/` |
 | 7 | 待执行 | - | - | - | - |
 | 8 | 待执行 | - | - | - | - |
 
@@ -508,6 +508,20 @@ PWM 纹波处于合理范围
 - 工频末端人工修正：未使用
 - 回执提交：`f1d034c` (`docs: record full-bridge average-current feedback receipt`)
 - 远端 HEAD：`f1d034c4d8cbdf2892bcd3c1ad09b1968cd25277`
+
+### 第六步执行记录
+
+- 最终验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_periodic_current.py tests/test_single_phase_full_bridge_switching_loss.py tests/test_single_phase_full_bridge_current_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py --basetemp=pytest_temp/single-phase-full-bridge-current-step6/final-tests --junitxml=pytest_temp/single-phase-full-bridge-current-step6/final-tests.xml` -> `34 passed in 56.98s`；`git diff --check` 通过。
+- 使用 SciPy secant shooting 求解闭环整周期映射，每次试探初始电流均重新运行逐周期反馈，禁止平移已积分波形来伪造周期闭合。
+- 补齐第 4/5 步必要前提：解析中心对齐单极性 PWM 边界；在门极区间及电压插值节点之间连续积分；末次电压修正必须经过仿真才输出；修正前后目标与实际电流取自同一轮计算。
+- 电感方程使用候选输出电感 `Lout`，不再将负载等效电感与完整 AC 端电压重复计入。现有低频输出合同与器件选择保持不变。
+- 每周期反馈上限由 3 次改为计划允许的 5 次；同时检查平均电流误差 `1e-6 A` 和周期首尾误差 `1e-8 A`，未收敛明确返回失败诊断。
+- 默认工况：精确分段峰值 `6.52305 A`，RMS `4.35638 A`；周期残差约 `2.51e-12 A`，平均电流最大误差约 `9.95e-7 A`，电压饱和周期 `0`。
+- 验证包括默认、半载 PF=0.8、轻载、反向有功运行点；独立复核分段电感方程、周期平均电流、RMS 积分、不可达电流限幅和非整数载波比末周期。
+- 早期测试暴露低 PF 下负载电感重复计入的问题，已修正生产模型并保持收敛阈值；一次测试目录缺失导致的 setup 错误已通过创建步骤目录解决。
+- 硬件饱和状态明确为 `not_evaluated_no_selected_inductor_saturation_rating`：波形阶段没有实际磁件饱和电流，不能宣称硬件验收通过。
+- 第 7 步尚未实施：精确分段电流已保存，事件电流仍沿用前一预览采样点，元数据标明 `switching_event_exact_current_sampling_pending=True`。
+- 未新增用户输入，未修改 NPC，未运行其他拓扑全量回归；不暂存历史 NPC 计划移动、outputs 或缓存。
 
 ## 9. 风险和控制
 
