@@ -693,3 +693,9 @@ listed here.
 - Added per-switching-period average bridge-voltage target calculation from average AC voltage, reference current, actual period-start current, and inductance.
 - Added bounded/unclamped target and saturation diagnostics without changing user inputs or the existing PWM sequence.
 - Implementation commit: `f55e145`; receipt commit: `4368196`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.
+
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 4
+
+- Rebuilt the single-phase bridge gate sequence from the bounded per-period voltage targets using complementary unipolar SPWM.
+- Added actual period-average bridge-voltage, target-error, state-interval, and three-level voltage diagnostics.
+- Preserved the existing user-input contract and DC-link voltage ripple in bridge voltage generation.

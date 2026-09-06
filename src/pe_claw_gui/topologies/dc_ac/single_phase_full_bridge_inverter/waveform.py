@@ -793,6 +793,27 @@ def _build_refined_unipolar_spwm_waveforms(
         samples_per_switching_period=samples_per_switching_period,
         voltage_limit_v=vdc_v,
     )
+    sequence = _build_target_voltage_full_bridge_sequence(
+        time_s=time_s,
+        carrier=carrier,
+        target_voltage_v=average_voltage_targets["target_voltage_v"],
+        dc_link_voltage_v=vdc_link_v,
+        switching_cycles=switching_cycles,
+    )
+    mod_a = sequence["mod_a"]
+    mod_b = sequence["mod_b"]
+    gate_s1 = sequence["gate_s1"]
+    gate_s2 = sequence["gate_s2"]
+    gate_s3 = sequence["gate_s3"]
+    gate_s4 = sequence["gate_s4"]
+    bridge_state = sequence["bridge_state"]
+    v_ab_pwm_v = sequence["bridge_voltage_v"]
+    actual_average_voltage = _average_bridge_voltage_by_switching_period(
+        time_s=time_s,
+        bridge_voltage_v=v_ab_pwm_v,
+        samples_per_switching_period=samples_per_switching_period,
+    )
+    target_average_voltage = [float(value) for value in average_voltage_targets["target_voltage_v"]]
     inductor_ripple_a = [
         actual - reference
         for actual, reference in zip(inductor_current_a, i_ac_fundamental_a, strict=True)
@@ -872,6 +893,13 @@ def _build_refined_unipolar_spwm_waveforms(
         "period_average_voltage_target_period_s": average_voltage_targets["period_s"],
         "period_average_voltage_target_method": average_voltage_targets["method"],
         "period_average_voltage_target_inductance_h": float(inductance_h),
+        "period_average_bridge_voltage_v": actual_average_voltage,
+        "period_average_bridge_voltage_error_v": [
+            actual - target
+            for actual, target in zip(actual_average_voltage, target_average_voltage, strict=True)
+        ],
+        "period_average_bridge_voltage_sequence_method": sequence["method"],
+        "period_average_bridge_voltage_sequence_interval_count": sequence["interval_count"],
         "dc_link_current_a": dc_link_current_a,
         "dc_link_capacitor_current_pwm_a": dc_link_cap_current_pwm_a,
         "dc_link_voltage_v": vdc_link_v,
@@ -889,7 +917,7 @@ def _build_refined_unipolar_spwm_waveforms(
         ),
         "switching_cycle_boundaries_s": cycle_boundaries_s,
         "switching_event_axis_s": event_axis_s,
-        "switching_event_time_quantized_to_waveform_grid": any(
+        "switching_event_time_quantized_to_waveform_grid": all(
             any(abs(event_time - sample_time) <= max(period_s * 1e-12, 1e-15) for sample_time in time_s)
             for event_time in event_axis_s
         ),
@@ -1057,6 +1085,82 @@ def _required_average_full_bridge_voltage_by_switching_period(
         "grid_voltage_average_v": grid_averages,
         "period_s": periods,
     }
+
+
+def _build_target_voltage_full_bridge_sequence(
+    *,
+    time_s: list[float],
+    carrier: list[float],
+    target_voltage_v: list[float],
+    dc_link_voltage_v: list[float],
+    switching_cycles: int,
+) -> dict[str, object]:
+    """Build complementary unipolar-SPWM gates for bounded cycle targets."""
+
+    if len(time_s) != len(carrier) or len(time_s) != len(dc_link_voltage_v) or not time_s:
+        return {
+            "method": "target_average_voltage_unipolar_spwm_sequence",
+            "mod_a": [], "mod_b": [], "gate_s1": [], "gate_s2": [],
+            "gate_s3": [], "gate_s4": [], "bridge_state": [],
+            "bridge_voltage_v": [], "interval_count": 0,
+        }
+    samples_per_cycle = max((len(time_s) - 1) // max(switching_cycles, 1), 1)
+    mod_a: list[float] = []
+    mod_b: list[float] = []
+    gate_s1: list[float] = []
+    gate_s2: list[float] = []
+    gate_s3: list[float] = []
+    gate_s4: list[float] = []
+    bridge_state: list[float] = []
+    bridge_voltage_v: list[float] = []
+    for index, vdc_inst_v in enumerate(dc_link_voltage_v):
+        cycle = min(index // samples_per_cycle, len(target_voltage_v) - 1)
+        normalized = min(max(float(target_voltage_v[cycle]) / max(abs(float(vdc_inst_v)), 1e-12), -1.0), 1.0)
+        ma = normalized
+        mb = -normalized
+        s1 = 1.0 if ma >= float(carrier[index]) else 0.0
+        s3 = 1.0 if mb >= float(carrier[index]) else 0.0
+        state = s1 - s3
+        mod_a.append(ma)
+        mod_b.append(mb)
+        gate_s1.append(s1)
+        gate_s2.append(1.0 - s1)
+        gate_s3.append(s3)
+        gate_s4.append(1.0 - s3)
+        bridge_state.append(state)
+        bridge_voltage_v.append(state * float(vdc_inst_v))
+    return {
+        "method": "target_average_voltage_unipolar_spwm_sequence",
+        "mod_a": mod_a,
+        "mod_b": mod_b,
+        "gate_s1": gate_s1,
+        "gate_s2": gate_s2,
+        "gate_s3": gate_s3,
+        "gate_s4": gate_s4,
+        "bridge_state": bridge_state,
+        "bridge_voltage_v": bridge_voltage_v,
+        "interval_count": sum(
+            1 for index in range(1, len(bridge_state)) if bridge_state[index] != bridge_state[index - 1]
+        ),
+    }
+
+
+def _average_bridge_voltage_by_switching_period(
+    *,
+    time_s: list[float],
+    bridge_voltage_v: list[float],
+    samples_per_switching_period: int,
+) -> list[float]:
+    cycle_count = (len(time_s) - 1) // max(samples_per_switching_period, 1)
+    return [
+        _time_average_between(
+            time_s,
+            bridge_voltage_v,
+            cycle * samples_per_switching_period,
+            (cycle + 1) * samples_per_switching_period,
+        )
+        for cycle in range(cycle_count)
+    ]
 
 
 def _time_average_between(

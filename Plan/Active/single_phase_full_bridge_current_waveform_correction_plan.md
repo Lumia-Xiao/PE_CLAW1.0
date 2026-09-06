@@ -441,7 +441,7 @@ PWM 纹波处于合理范围
 | 1 | 已完成 | `4247065` | `de6f78e` | 已推送 | `pytest_temp/single-phase-full-bridge-current-step1/baseline.json`; `13 passed`; `git diff --check` |
 | 2 | 已完成 | `02c8a90` | `065f1d7` | 已推送 | `10 passed`; `14 passed`; `git diff --check`; `switching_event_time_quantized_to_waveform_grid=False` |
 | 3 | 已完成 | `f55e145` | `4368196` | 已推送 | `25 passed`; `git diff --check`; per-cycle formula and clamp diagnostics |
-| 4 | 待执行 | - | - | - | - |
+| 4 | 实施中 | - | - | - | `period_average_bridge_voltage_v`; `period_average_bridge_voltage_error_v` |
 | 5 | 待执行 | - | - | - | - |
 | 6 | 待执行 | - | - | - | - |
 | 7 | 待执行 | - | - | - | - |
