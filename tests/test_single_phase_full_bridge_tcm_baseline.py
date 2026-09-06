@@ -174,3 +174,11 @@ def test_tcm_selection_only_pipeline_closes_non_applicable_run_stages(tmp_path: 
     manifest = json.loads(Path(report.run_context.manifest_path).read_text(encoding="utf-8"))
     assert manifest["status"] == "succeeded"
     assert manifest["stage_status"] == statuses
+    diagnostic_path = Path(report.run_context.output_root) / "validation" / "tcm_diagnostic.json"
+    diagnostic = json.loads(diagnostic_path.read_text(encoding="utf-8"))
+    assert diagnostic["topology_id"] == "single_phase_full_bridge_inverter"
+    assert diagnostic["line_cycle"]["detail_time_start_s"] == 0.0
+    assert diagnostic["line_cycle"]["detail_time_end_s"] == pytest.approx(1.0 / 50.0)
+    assert diagnostic["switching_events"]["event_count"] > 0
+    assert diagnostic["losses"]["other_loss_w"] == 0.0
+    assert diagnostic["failure"]["stage"] is None
