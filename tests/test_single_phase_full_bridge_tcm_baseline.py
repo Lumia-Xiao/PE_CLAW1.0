@@ -82,3 +82,26 @@ def test_efficiency_sweep_operating_point_preserves_each_tcm_load_ratio() -> Non
         operating_point = _sweep_operating_point(report, load_ratio)
         assert operating_point.load_ratio == load_ratio
         assert operating_point.power_factor == 1.0
+
+
+def test_tcm_event_audit_exposes_missing_event_level_switching_source() -> None:
+    raw = build_default_inputs()
+    raw.update(
+        {
+            "conduction_mode": "TCM",
+            "fsw_min_hz": "5000",
+            "fsw_max_hz": "100000",
+            "tcm_valley_current_target_a": "-1",
+        }
+    )
+    plugin = build_default_registry().get_plugin("single_phase_full_bridge_inverter")
+    candidate = plugin.synthesize(plugin.build_spec(raw))
+    waveform = plugin.generate_waveforms(candidate)
+    metadata = waveform.metadata
+    tcm = metadata["single_phase_inverter_tcm_envelope"]
+
+    assert "single_phase_inverter_refined_waveforms" not in metadata
+    assert "switching_events" not in tcm
+    assert tcm["detail_cycle_count"] > 0
+    assert len(tcm["detail_cycle_fsw_hz"]) == tcm["detail_cycle_count"]
+    assert min(tcm["detail_cycle_fsw_hz"]) < max(tcm["detail_cycle_fsw_hz"])

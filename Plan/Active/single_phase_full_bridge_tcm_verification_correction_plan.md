@@ -414,7 +414,7 @@ git diff --check
 | 1 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `baseline.json`; `12 passed`; `compileall`; `git diff --check` |
 | 2 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `13 passed`; GUI TCM four-axis smoke; full line-cycle axis checks |
 | 3 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `19 passed`; 5%/50%/100% TCM operating-point refresh checks |
-| 4 | 待执行 | - | - | - | - |
+| 4 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `19 passed`; TCM event-source audit; fixed-loss root cause recorded |
 | 5 | 待执行 | - | - | - | - |
 | 6 | 待执行 | - | - | - | - |
 | 7 | 待执行 | - | - | - | - |
@@ -456,6 +456,16 @@ git diff --check
 - 确认 `_sweep_operating_point()` 保留 PF，并正确传递低载、半载和满载比例。
 - 本步骤未修改生产代码；半导体损耗在效率扫描中仍固定的原因留待第 4/5 步继续定位。
 - 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_tcm_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py tests/test_dc_ac_operating_refresh_gui_chain.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step3/tests` -> `19 passed in 34.46s`；`compileall` 通过；`git diff --check` 通过。
+
+### 第四步执行回执
+
+- 核实单相全桥开关损耗入口：`run_device_pipeline.py::_apply_full_bridge_event_switching_loss()` 只读取 `single_phase_inverter_refined_waveforms.switching_events`。
+- TCM waveform 使用 `single_phase_inverter_tcm_envelope`，当前只提供 `detail_time_s`、`detail_inductor_current_a`、`detail_cycle_fsw_hz` 等包络/详细周期数据，没有 `switching_events`。
+- 因此 TCM 进入 `_apply_full_bridge_event_switching_loss()` 时会因事件列表缺失直接返回设计点代表性开关损耗，不使用 TCM 实际逐周期频率或事件电流；这解释了效率扫描中半导体损耗固定为约 `19.993834 W` 的现象。
+- 公共 `evaluate_switching_event_energy()` 已确认支持负电流软开通、非负电流硬开通、实际阻断电压和 SiC 反向恢复为零；第 4 步未修改该公共接口。
+- 新增 TCM 事件源审计测试，固化当前缺口，留待第 5 步建立最小 TCM 事件记录并接入逐事件损耗。
+- 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_tcm_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py tests/test_dc_ac_operating_refresh_gui_chain.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step4/tests` -> `20 passed in 36.45s`；`compileall` 和 `git diff --check` 通过。
+- 本步骤未修改生产代码和公共损耗公式。
 
 ## 7. 风险和控制
 
