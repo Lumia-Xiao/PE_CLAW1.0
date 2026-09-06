@@ -444,8 +444,8 @@ PWM 纹波处于合理范围
 | 4 | 已完成 | `996a595` | `906e374` | 已推送 | `26 passed`; `git diff --check`; valid complementary three-level sequence |
 | 5 | 已完成 | `da0c64a` | `f1d034c` | 已推送 | `27 passed`; `git diff --check`; feedback diagnostics including saturation/non-convergence |
 | 6 | 已完成（硬件饱和额定值缺失已明确诊断） | `aab6c68` | 本记录提交，见下方 Git 查询 | 实现已推送并核对 | `34 passed`; `pytest_temp/single-phase-full-bridge-current-step6/final-tests.xml` |
-| 7 | 待执行 | - | - | - | - |
-| 8 | 待执行 | - | - | - | - |
+| 7 | 已完成 | `8ed7f63` | `dabdcf5` | 已推送 | `20 passed`; 连续积分段事件电流和直流电压审计 |
+| 8 | 已完成 | 无生产代码变更 | `3530693` 归档提交；本记录提交见下方 | 已推送 | `47 passed`; compileall; `git diff --check`; 默认工况诊断 |
 
 每一步完成后必须填写实际 commit、回执 commit、远端 HEAD 和测试证据。只有 commit 和 push 均完成后，才能将该步骤标记为已完成。
 
@@ -529,6 +529,15 @@ PWM 纹波处于合理范围
 - 第 7 步未新增用户输入，未修改 NPC 或其他拓扑；测试输出保留在 `pytest_temp/single-phase-full-bridge-current-step7/`，未将输出、缓存加入提交。
 - 实现提交：`8ed7f63` (`feat: attach integrated current to full-bridge events`)，已推送至 `origin/codex/npc-output-run-isolation-step1`。
 - 文档回执提交将在本次计划记录更新后单独生成；其 SHA 通过提交标题查询，避免把提交自身的 SHA 写入自身内容。
+
+### 第八步执行回执
+
+- 本步骤未修改生产代码，仅完成最终专项验收和计划收尾。
+- 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_switching_loss.py tests/test_dc_ac_single_phase_full_bridge_contract.py tests/test_dc_ac_operating_refresh_gui_chain.py tests/test_dc_ac_three_phase_three_level_npc_contract.py --basetemp=pytest_temp/single-phase-full-bridge-current-step8/final-tests --junitxml=pytest_temp/single-phase-full-bridge-current-step8/final-tests.xml` -> `47 passed in 183.99s`。
+- 验证：`python -B -m compileall -q src tests` 通过；`git diff --check` 通过。
+- 默认诊断：事件总数 `3200`；硬开通 `800`；软开通 `800`；事件电流范围 `-6.52305005 A` 至 `6.52305005 A`；阻断电压范围 `390.0015 V` 至 `409.9989 V`；周期残差 `2.5137e-12 A`；周期求解收敛；实际电流峰值约 `6.45579 A`。
+- 计划验收确认：实际电流不再使用峰值代替事件电流；负电流开通为软开通；SiC 反向恢复损耗为零；运行点刷新和损耗汇总合同通过；`Other loss = 0` 的既有专项断言通过；未新增用户输入，未修改 NPC 生产逻辑。
+- 测试证据保留在 `pytest_temp/single-phase-full-bridge-current-step8/`，未纳入 Git。
 - 未新增用户输入，未修改 NPC，未运行其他拓扑全量回归；不暂存历史 NPC 计划移动、outputs 或缓存。
 
 ## 9. 风险和控制

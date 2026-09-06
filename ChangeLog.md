@@ -8,6 +8,13 @@
 - 验证：单相全桥开关损耗与周期电流专项测试 `20 passed`；`git diff --check` 通过；未扩大到 NPC 或其他拓扑回归。
 - 实现提交：`8ed7f63` (`feat: attach integrated current to full-bridge events`) 已推送；本条计划回执随后单独提交。
 
+## 2026-09-06 单相全桥电流波形修正计划第八步
+
+- 完成最终单相全桥专项验收、单相全桥合同、运行点刷新链路和 NPC 定向合同测试，共 `47 passed`。
+- 完成 `compileall` 和 `git diff --check`；默认工况事件数 `3200`，硬/软开通各 `800`，周期电流残差约 `2.51e-12 A`。
+- 确认事件电流来自连续积分段边界，损耗汇总合同闭合，`Other loss = 0` 断言通过；未新增用户输入，未扩大其他拓扑修改范围。
+- 测试证据位于 `pytest_temp/single-phase-full-bridge-current-step8/`，未纳入提交。
+
 ## 2026-09-06 单相全桥开关损耗计划归档
 
 - 确认第 1 至第 7 步均已完成，并已完成专项验证、独立 commit 和远端 push。
