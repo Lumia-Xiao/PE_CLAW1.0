@@ -687,3 +687,8 @@ listed here.
 - Added the unified switching-cycle boundary axis and event-time axis while preserving GUI waveform samples.
 - Production current integration and loss formulas were not changed in this step.
 - Implementation commit: `02c8a90`; receipt commit: `065f1d7`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.
+
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 3
+
+- Added per-switching-period average bridge-voltage target calculation from average AC voltage, reference current, actual period-start current, and inductance.
+- Added bounded/unclamped target and saturation diagnostics without changing user inputs or the existing PWM sequence.

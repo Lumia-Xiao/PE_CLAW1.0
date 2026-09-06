@@ -130,6 +130,49 @@ def test_step3_uses_continuous_periodic_inductor_current() -> None:
     assert min(current) < 0.0
 
 
+def test_step3_records_bounded_period_average_voltage_targets() -> None:
+    from pe_claw_gui.topologies.base.registry import build_default_registry
+    from pe_claw_gui.topologies.dc_ac.single_phase_full_bridge_inverter.input_schema import build_default_inputs
+
+    plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
+    candidate = plugin.synthesize(plugin.build_spec(build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    refined = waveform.metadata["single_phase_inverter_refined_waveforms"]
+    targets = refined["period_average_voltage_targets_v"]
+    unclamped = refined["period_average_voltage_unclamped_targets_v"]
+    saturated = refined["period_average_voltage_target_saturated"]
+    reference_average = refined["period_average_voltage_target_reference_current_average_a"]
+    current_start = refined["period_average_voltage_target_actual_current_start_a"]
+    grid_average = refined["period_average_voltage_target_grid_voltage_average_v"]
+    periods = refined["period_average_voltage_target_period_s"]
+    inductance_h = float(refined["period_average_voltage_target_inductance_h"])
+
+    assert refined["period_average_voltage_target_method"] == (
+        "period_average_grid_voltage_plus_2L_over_Tsw_current_tracking"
+    )
+    assert len(targets) == refined["switching_cycle_count"]
+    assert len(targets) == len(unclamped) == len(saturated)
+    assert len(targets) == len(reference_average) == len(current_start) == len(grid_average) == len(periods)
+    assert all(-400.0 <= float(value) <= 400.0 for value in targets)
+    assert all(float(period) > 0.0 for period in periods)
+    assert all(bool(flag) == (abs(float(target) - float(raw)) > 1e-12) for target, raw, flag in zip(targets, unclamped, saturated, strict=True))
+    assert any(abs(float(raw)) > 400.0 for raw in unclamped) == any(saturated)
+    for target, raw, grid, reference, start, period, is_saturated in zip(
+        targets,
+        unclamped,
+        grid_average,
+        reference_average,
+        current_start,
+        periods,
+        saturated,
+        strict=True,
+    ):
+        expected_raw = float(grid) + 2.0 * inductance_h * (float(reference) - float(start)) / float(period)
+        assert float(raw) == pytest.approx(expected_raw)
+        if not is_saturated:
+            assert float(target) == pytest.approx(float(raw))
+
+
 def test_step5_shared_event_energy_model_uses_actual_polarity_and_current() -> None:
     from pe_claw_gui.engines.devices.loss_evaluator import (
         evaluate_switching_event_energy,

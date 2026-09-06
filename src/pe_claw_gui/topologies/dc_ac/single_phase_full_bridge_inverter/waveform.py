@@ -784,6 +784,15 @@ def _build_refined_unipolar_spwm_waveforms(
         i_ac_fundamental_a,
     )
     inductor_current_a = periodic_current
+    average_voltage_targets = _required_average_full_bridge_voltage_by_switching_period(
+        time_s=time_s,
+        ac_voltage_v=vac_fundamental_v,
+        actual_current_a=inductor_current_a,
+        reference_current_a=i_ac_fundamental_a,
+        inductance_h=inductance_h,
+        samples_per_switching_period=samples_per_switching_period,
+        voltage_limit_v=vdc_v,
+    )
     inductor_ripple_a = [
         actual - reference
         for actual, reference in zip(inductor_current_a, i_ac_fundamental_a, strict=True)
@@ -848,6 +857,21 @@ def _build_refined_unipolar_spwm_waveforms(
         "current_periodic_residual_a": periodic_solver["residual_a"],
         "current_periodic_solver_converged": periodic_solver["converged"],
         "current_periodic_solver_iterations": periodic_solver["iterations"],
+        "period_average_voltage_targets_v": average_voltage_targets["target_voltage_v"],
+        "period_average_voltage_unclamped_targets_v": average_voltage_targets["unclamped_target_voltage_v"],
+        "period_average_voltage_target_saturated": average_voltage_targets["target_voltage_saturated"],
+        "period_average_voltage_target_reference_current_average_a": average_voltage_targets[
+            "reference_current_average_a"
+        ],
+        "period_average_voltage_target_actual_current_start_a": average_voltage_targets[
+            "actual_current_start_a"
+        ],
+        "period_average_voltage_target_grid_voltage_average_v": average_voltage_targets[
+            "grid_voltage_average_v"
+        ],
+        "period_average_voltage_target_period_s": average_voltage_targets["period_s"],
+        "period_average_voltage_target_method": average_voltage_targets["method"],
+        "period_average_voltage_target_inductance_h": float(inductance_h),
         "dc_link_current_a": dc_link_current_a,
         "dc_link_capacitor_current_pwm_a": dc_link_cap_current_pwm_a,
         "dc_link_voltage_v": vdc_link_v,
@@ -960,6 +984,96 @@ def _solve_periodic_full_bridge_current(
         "modulation_saturated": False,
     }
     return current, result
+
+
+def _required_average_full_bridge_voltage_by_switching_period(
+    *,
+    time_s: list[float],
+    ac_voltage_v: list[float],
+    actual_current_a: list[float],
+    reference_current_a: list[float],
+    inductance_h: float,
+    samples_per_switching_period: int,
+    voltage_limit_v: float,
+) -> dict[str, object]:
+    """Calculate the bounded bridge-voltage target for each switching period."""
+
+    empty = {
+        "method": "period_average_grid_voltage_plus_2L_over_Tsw_current_tracking",
+        "target_voltage_v": [],
+        "unclamped_target_voltage_v": [],
+        "target_voltage_saturated": [],
+        "reference_current_average_a": [],
+        "actual_current_start_a": [],
+        "grid_voltage_average_v": [],
+        "period_s": [],
+    }
+    if (
+        len(time_s) != len(ac_voltage_v)
+        or len(time_s) != len(actual_current_a)
+        or len(time_s) != len(reference_current_a)
+        or len(time_s) < 2
+        or inductance_h <= 0.0
+        or samples_per_switching_period <= 1
+        or voltage_limit_v <= 0.0
+    ):
+        return empty
+
+    cycle_count = (len(time_s) - 1) // samples_per_switching_period
+    targets: list[float] = []
+    unclamped_targets: list[float] = []
+    saturated: list[bool] = []
+    reference_averages: list[float] = []
+    current_starts: list[float] = []
+    grid_averages: list[float] = []
+    periods: list[float] = []
+    for cycle in range(cycle_count):
+        start = cycle * samples_per_switching_period
+        end = (cycle + 1) * samples_per_switching_period
+        period_s = float(time_s[end]) - float(time_s[start])
+        if period_s <= 0.0:
+            continue
+        grid_average_v = _time_average_between(time_s, ac_voltage_v, start, end)
+        reference_average_a = _time_average_between(time_s, reference_current_a, start, end)
+        actual_start_a = float(actual_current_a[start])
+        required_v = grid_average_v + 2.0 * inductance_h * (
+            reference_average_a - actual_start_a
+        ) / period_s
+        bounded_v = min(max(required_v, -voltage_limit_v), voltage_limit_v)
+        targets.append(float(bounded_v))
+        unclamped_targets.append(float(required_v))
+        saturated.append(abs(bounded_v - required_v) > 1e-12)
+        reference_averages.append(float(reference_average_a))
+        current_starts.append(actual_start_a)
+        grid_averages.append(float(grid_average_v))
+        periods.append(period_s)
+    return {
+        "method": "period_average_grid_voltage_plus_2L_over_Tsw_current_tracking",
+        "target_voltage_v": targets,
+        "unclamped_target_voltage_v": unclamped_targets,
+        "target_voltage_saturated": saturated,
+        "reference_current_average_a": reference_averages,
+        "actual_current_start_a": current_starts,
+        "grid_voltage_average_v": grid_averages,
+        "period_s": periods,
+    }
+
+
+def _time_average_between(
+    time_s: list[float],
+    values: list[float],
+    start_index: int,
+    end_index: int,
+) -> float:
+    duration_s = float(time_s[end_index]) - float(time_s[start_index])
+    if duration_s <= 0.0:
+        return 0.0
+    area = sum(
+        0.5 * (float(values[index - 1]) + float(values[index]))
+        * (float(time_s[index]) - float(time_s[index - 1]))
+        for index in range(start_index + 1, end_index + 1)
+    )
+    return area / duration_s
 
 
 def _extract_full_bridge_switching_events(
