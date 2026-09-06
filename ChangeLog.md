@@ -14,6 +14,13 @@
 - 验证：`25 passed`；`compileall` 和 `git diff --check` 通过。
 - 诊断实现提交：`aaf9f44`（`fix: finalize full-bridge TCM output status and evidence`）已推送到 `origin/codex/npc-output-run-isolation-step1`；计划回执提交将在本次文档更新后生成。
 
+## 2026-09-06 单相全桥 TCM 核实计划第八步完成
+
+- 完成 TCM 最终专项验收，并执行 NPC 定向合同测试；未扩大到其他拓扑全量回归。
+- 验证：`54 passed in 197.69s`；`compileall` 和 `git diff --check` 通过。
+- 测试证据位于 `pytest_temp/single-phase-full-bridge-tcm-step8/final-tests.xml`。
+- 本计划完成后归档到 `Plan/completed/`。
+
 ## 2026-09-06 单相全桥 TCM 核实计划第六步
 
 - TCM 电感磁件请求现在优先使用完整工频周期的详细三角电流时间轴，通过梯形积分计算 RMS 和峰值，并保留候选包络数据作为兼容回退。

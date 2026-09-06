@@ -418,7 +418,7 @@ git diff --check
 | 5 | 已完成 | `e320ce4` | 待本次提交 | 已推送 | `28 passed`; TCM 逐周期事件损耗；每周期 4 个换相事件；compileall; diff-check |
 | 6 | 已完成 | `535a4d9` | 待本次提交 | 已推送 | `29 passed`; detailed TCM current period contract; compileall; diff-check |
 | 7 | 已完成 | `9a41075` + `aaf9f44` | 待本次提交 | 已推送 | 状态收尾、TCM 诊断 JSON；`25 passed`; compileall; diff-check |
-| 8 | 待执行 | - | - | - | - |
+| 8 | 已完成 | 无代码变更 | 待本次提交 | 已推送 | `54 passed`; final TCM/NPC directed acceptance; compileall; diff-check |
 
 每一步完成后必须更新：
 
@@ -497,6 +497,14 @@ git diff --check
 - 诊断文件通过当前 run manifest 的 artifact 扫描纳入本次设计目录，未写入公共 outputs 汇总目录。
 - 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_tcm_baseline.py tests/test_single_phase_full_bridge_switching_loss.py tests/test_design_run_output_isolation.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step7/tests` -> `25 passed in 65.83s`；`compileall` 和 `git diff --check` 通过。
 - 诊断实现提交：`aaf9f44`（`fix: finalize full-bridge TCM output status and evidence`）已推送到 `origin/codex/npc-output-run-isolation-step1`；本步骤文档回执提交将在本次更新后生成。
+
+### 第八步执行回执
+
+- 完成单相全桥 TCM 最终专项验收，覆盖默认 TCM、运行点刷新、完整工频周期、逐事件开关损耗、电感/电容输入、GUI 合同和 manifest 状态证据。
+- 同时运行 NPC 定向合同测试，确认本次 TCM 修改没有改变 NPC 既有合同。
+- 验证命令：`python -B -m pytest -q tests/test_dc_ac_single_phase_full_bridge_contract.py tests/test_single_phase_full_bridge_switching_loss.py tests/test_single_phase_full_bridge_periodic_current.py tests/test_dc_ac_operating_refresh_gui_chain.py tests/test_dc_ac_three_phase_three_level_npc_contract.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step8/final-tests --junitxml=pytest_temp/single-phase-full-bridge-tcm-step8/final-tests.xml` -> `54 passed in 197.69s`；`python -B -m compileall -q src tests` 通过；`git diff --check` 通过。
+- 测试证据：`pytest_temp/single-phase-full-bridge-tcm-step8/final-tests.xml`。
+- 本步骤无生产代码修改；完成后将本计划归档到 `Plan/completed/`。
 
 ## 7. 风险和控制
 
