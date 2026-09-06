@@ -1,5 +1,14 @@
 # Change Log
 
+## 2026-09-06 单相全桥开关损耗计划第四步
+
+- 为单相全桥每个门极事件接入连续积分电流：电流取门极变化前的积分状态，门极状态取变化后的状态，明确边界合同为 `current_before_transition_gate_after_transition`。
+- 事件保留有符号 `signed_current_A` 和 `absolute_current_A`，并根据实际有符号电流生成 `soft_turn_on`/`hard_turn_on` 审计标记；未调用器件开关能量模型。
+- 阻断电压取事件采样时刻的实际 DC-link 电压，并记录事件所在积分区间和来源字段。
+- 新增事件数量、硬/软开通、事件电流范围、电压范围及周期稳态残差审计 metadata。
+- 验证：单相全桥专项+原有合同测试 `17 passed`；`git diff --check` 通过。
+- Git：第四步实现与回执提交、push 和远端 HEAD 核对待本次操作完成后补录。
+
 ## 2026-09-06 单相全桥开关损耗计划第三步
 
 - 在 `src/pe_claw_gui/topologies/dc_ac/single_phase_full_bridge_inverter/waveform.py` 中将单相全桥 PWM 电感电流改为跨完整工频周期连续积分：`di/dt=(v_ab-v_ac)/L`，状态跨越所有开关周期传递。

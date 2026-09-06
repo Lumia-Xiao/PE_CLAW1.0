@@ -79,11 +79,23 @@ def test_step2_event_timeline_contains_all_four_switch_transitions() -> None:
     }
     counts = Counter(event["switch_name"] for event in events)
     assert counts == {"S1": 800, "S2": 800, "S3": 800, "S4": 800}
-    assert all(event["signed_current_A"] is None for event in events)
-    assert all(event["absolute_current_A"] is None for event in events)
+    assert all(event["current_source"] == "exact_continuous_current_before_gate_transition" for event in events)
+    assert all(event["blocking_voltage_source"] == "actual_dc_link_voltage_at_gate_transition" for event in events)
+    assert all(event["absolute_current_A"] == pytest.approx(abs(event["signed_current_A"])) for event in events)
+    assert any(float(event["signed_current_A"]) < 0.0 for event in events)
+    assert any(float(event["signed_current_A"]) >= 0.0 for event in events)
+    assert all(event["current_sample_index"] == event["sample_index"] - 1 for event in events)
+    assert all(event["soft_turn_on"] == (event["event_type"] == "turn_on" and float(event["signed_current_A"]) < 0.0) for event in events)
+    assert all(event["hard_turn_on"] == (event["event_type"] == "turn_on" and float(event["signed_current_A"]) >= 0.0) for event in events)
     assert all(0.0 <= float(event["event_time_s"]) < waveform.time_span_s for event in events)
     assert [event["event_time_s"] for event in events] == sorted(event["event_time_s"] for event in events)
     assert len({(event["event_time_s"], event["switch_name"], event["event_type"]) for event in events}) == len(events)
+
+    audit = refined["switching_event_audit"]
+    assert audit["event_count"] == len(events)
+    assert audit["turn_on_count"] + audit["turn_off_count"] == len(events)
+    assert audit["hard_turn_on_count"] + audit["soft_turn_on_count"] == audit["turn_on_count"]
+    assert audit["periodic_solver_converged"] is True
 
 
 def test_step3_uses_continuous_periodic_inductor_current() -> None:

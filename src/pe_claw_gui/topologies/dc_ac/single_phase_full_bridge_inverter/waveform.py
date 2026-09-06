@@ -802,6 +802,7 @@ def _build_refined_unipolar_spwm_waveforms(
             "S4": gate_s4,
         },
         bridge_state=bridge_state,
+        inductor_current_a=inductor_current_a,
         dc_link_voltage_v=vdc_link_v,
         line_period_s=period_s,
     )
@@ -848,6 +849,12 @@ def _build_refined_unipolar_spwm_waveforms(
         "switching_event_source": "sampled_unipolar_spwm_gate_transition",
         "switching_event_current_source": "continuous_segment_integrated_current_step3",
         "switching_event_blocking_voltage_source": "sampled_dc_link_voltage_at_gate_transition",
+        "switching_event_current_selection": "event_pre_transition_continuous_state",
+        "switching_event_boundary_contract": "current_before_transition_gate_after_transition",
+        "switching_event_audit": _full_bridge_switching_event_audit(
+            switching_events,
+            periodic_solver=periodic_solver,
+        ),
         "samples_per_switching_period": samples_per_switching_period,
         "switching_cycle_count": switching_cycles,
         "bridge_voltage_levels_v": [-vdc_v, 0.0, vdc_v],
@@ -946,6 +953,7 @@ def _extract_full_bridge_switching_events(
     time_s: list[float],
     gates: dict[str, list[float]],
     bridge_state: list[float],
+    inductor_current_a: list[float],
     dc_link_voltage_v: list[float],
     line_period_s: float,
 ) -> list[dict[str, object]]:
@@ -955,6 +963,7 @@ def _extract_full_bridge_switching_events(
         len(time_s) < 2
         or line_period_s <= 0.0
         or len(bridge_state) != len(time_s)
+        or len(inductor_current_a) != len(time_s)
         or len(dc_link_voltage_v) != len(time_s)
         or not gates
         or any(len(values) != len(time_s) for values in gates.values())
@@ -991,15 +1000,54 @@ def _extract_full_bridge_switching_events(
                     "bridge_state_before": float(bridge_state[sample_index - 1]),
                     "bridge_state_after": float(bridge_state[sample_index]),
                     "blocking_voltage_V": abs(float(dc_link_voltage_v[sample_index])),
-                    "signed_current_A": None,
-                    "absolute_current_A": None,
+                    "signed_current_A": float(inductor_current_a[sample_index - 1]),
+                    "absolute_current_A": abs(float(inductor_current_a[sample_index - 1])),
+                    "soft_turn_on": bool(
+                        current_gate > previous_gate
+                        and float(inductor_current_a[sample_index - 1]) < 0.0
+                    ),
+                    "hard_turn_on": bool(
+                        current_gate > previous_gate
+                        and float(inductor_current_a[sample_index - 1]) >= 0.0
+                    ),
+                    "current_sample_index": sample_index - 1,
+                    "current_interval_start_index": sample_index - 1,
+                    "current_interval_end_index": sample_index,
                     "event_source": "sampled_unipolar_spwm_gate_transition",
-                "current_source": "continuous_segment_integrated_current_step3",
-                    "blocking_voltage_source": "sampled_dc_link_voltage_at_gate_transition",
+                    "current_source": "exact_continuous_current_before_gate_transition",
+                    "blocking_voltage_source": "actual_dc_link_voltage_at_gate_transition",
                 }
             )
     events.sort(key=lambda event: (float(event["event_time_s"]), str(event["switch_name"])))
     return events
+
+
+def _full_bridge_switching_event_audit(
+    events: list[dict[str, object]],
+    *,
+    periodic_solver: dict[str, object],
+) -> dict[str, object]:
+    turn_on = [event for event in events if event.get("event_type") == "turn_on"]
+    turn_off = [event for event in events if event.get("event_type") == "turn_off"]
+    hard = [event for event in turn_on if bool(event.get("hard_turn_on"))]
+    soft = [event for event in turn_on if bool(event.get("soft_turn_on"))]
+    currents = [float(event["signed_current_A"]) for event in events if event.get("signed_current_A") is not None]
+    voltages = [float(event["blocking_voltage_V"]) for event in events]
+    return {
+        "event_count": len(events),
+        "turn_on_count": len(turn_on),
+        "turn_off_count": len(turn_off),
+        "hard_turn_on_count": len(hard),
+        "soft_turn_on_count": len(soft),
+        "event_current_min_A": min(currents) if currents else 0.0,
+        "event_current_max_A": max(currents) if currents else 0.0,
+        "event_blocking_voltage_min_V": min(voltages) if voltages else 0.0,
+        "event_blocking_voltage_max_V": max(voltages) if voltages else 0.0,
+        "periodic_current_residual_A": float(periodic_solver.get("residual_a", 0.0)),
+        "periodic_solver_converged": bool(periodic_solver.get("converged", False)),
+        "event_current_source": "exact_continuous_current_before_gate_transition",
+        "event_voltage_source": "actual_dc_link_voltage_at_gate_transition",
+    }
 
 
 def _local_cycle_peak_to_peak(values: list[float], samples_per_switching_period: int) -> list[float]:
