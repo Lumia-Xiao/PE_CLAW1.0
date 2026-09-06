@@ -412,7 +412,7 @@ git diff --check
 | 步骤 | 状态 | 实现 commit | 回执 commit | 远端 push | 证据 |
 |---|---|---|---|---|---|
 | 1 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `baseline.json`; `12 passed`; `compileall`; `git diff --check` |
-| 2 | 待执行 | - | - | - | - |
+| 2 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `13 passed`; GUI TCM four-axis smoke; full line-cycle axis checks |
 | 3 | 待执行 | - | - | - | - |
 | 4 | 待执行 | - | - | - | - |
 | 5 | 待执行 | - | - | - | - |
@@ -440,6 +440,14 @@ git diff --check
 - 输出状态基线：manifest `status = running`；`semiconductor_design = not_started`；`validation = not_started`，留待第 7 步核实。
 - 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_tcm_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step1/tests` -> `12 passed in 20.92s`；`python -B -m compileall -q src tests` 通过；`git diff --check` 通过。
 - 本步骤未修改生产计算逻辑；只新增基线测试和诊断证据。
+
+### 第二步执行回执
+
+- 验证 TCM GUI 使用独立时间轴：详细电感电流和详细开关频率使用 `detail_time_s`，输出电压和 DC-link 包络使用 `time_s`。
+- 验证默认 `50 Hz` 工况四个 GUI 子图均显示 `0–20 ms`，不再混用不同长度数组。
+- 验证包络轴和详细轴均从 `0` 到 `1/f_line`，详细采样数量与详细时间轴长度一致，低斜率/混合模式数据未截断工频末端。
+- 新增 GUI TCM 渲染 smoke 测试，未修改 TCM 计算和损耗逻辑。
+- 验证：`python -B -m pytest -q tests/test_dc_ac_packaged_gui_runtime.py::test_single_phase_full_bridge_tcm_waveform_renders_with_separate_time_axes tests/test_dc_ac_single_phase_full_bridge_contract.py tests/test_single_phase_full_bridge_tcm_baseline.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step2/tests` -> `13 passed in 31.24s`；`compileall` 通过；`git diff --check` 通过。
 
 ## 7. 风险和控制
 

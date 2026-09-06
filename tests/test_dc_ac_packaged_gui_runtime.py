@@ -101,6 +101,38 @@ finally:
     assert result.returncode == 0, result.stderr
 
 
+def test_single_phase_full_bridge_tcm_waveform_renders_with_separate_time_axes() -> None:
+    result = _run_isolated(
+        """
+from pe_claw_gui.app.shell.main_window import PEClawMainWindow
+
+app = PEClawMainWindow()
+app.withdraw()
+app.update_idletasks()
+try:
+    app._on_topology_selected('single_phase_full_bridge_inverter')
+    form = app.workspace.active_form
+    raw = form.get_raw_input()
+    raw['conduction_mode'] = 'TCM'
+    raw['fsw_min_hz'] = '5000'
+    raw['fsw_max_hz'] = '100000'
+    raw['tcm_valley_current_target_a'] = '-1'
+    designed = app.design_controller.run_active_topology(raw)
+    assert designed.candidate is not None
+    refreshed = app.waveform_controller.generate_waveforms(form.get_operating_point())
+    assert refreshed.waveform is not None
+    app.workspace.render_report(refreshed)
+    figure = app.workspace.waveform_view.figure
+    assert len(figure.axes) == 4
+    assert all(axis.get_xlim() == (0.0, 20.0) for axis in figure.axes)
+    assert all(axis.lines for axis in figure.axes)
+finally:
+    app.destroy()
+"""
+    )
+    assert result.returncode == 0, result.stderr
+
+
 def test_windows_launcher_startup_check_uses_target_runtime() -> None:
     env = os.environ.copy()
     env["PE_CLAW_PYTHON"] = sys.executable
