@@ -441,7 +441,7 @@ PWM 纹波处于合理范围
 | 1 | 已完成 | `4247065` | `de6f78e` | 已推送 | `pytest_temp/single-phase-full-bridge-current-step1/baseline.json`; `13 passed`; `git diff --check` |
 | 2 | 已完成 | `02c8a90` | `065f1d7` | 已推送 | `10 passed`; `14 passed`; `git diff --check`; `switching_event_time_quantized_to_waveform_grid=False` |
 | 3 | 已完成 | `f55e145` | `4368196` | 已推送 | `25 passed`; `git diff --check`; per-cycle formula and clamp diagnostics |
-| 4 | 实施中 | - | - | - | `period_average_bridge_voltage_v`; `period_average_bridge_voltage_error_v` |
+| 4 | 已完成 | `996a595` | 待生成 | 已推送 | `26 passed`; `git diff --check`; valid complementary three-level sequence |
 | 5 | 待执行 | - | - | - | - |
 | 6 | 待执行 | - | - | - | - |
 | 7 | 待执行 | - | - | - | - |
@@ -482,6 +482,18 @@ PWM 纹波处于合理范围
 - 实际 PWM 开关序列：本步骤未替换，留待第 4 步
 - 回执提交：`4368196` (`docs: record full-bridge voltage target receipt`)
 - 远端 HEAD：`4368196632025eb2ae765916cb80040a8bb6e181`
+
+### 第四步执行回执
+
+- 实现提交：`996a595` (`feat: generate corrected full-bridge switching sequence`)
+- 变更：由逐周期限幅目标电压生成单极性 SPWM 互补门极、`-Vdc/0/+Vdc` 桥状态和实际 DC-link 电压桥波形
+- 记录：实际周期平均桥电压、目标误差、状态区间数量和序列生成方法
+- 验证：`python -m pytest -q tests/test_single_phase_full_bridge_switching_loss.py tests/test_single_phase_full_bridge_current_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py` -> `26 passed`
+- 验证：`git diff --check` -> passed
+- 事件数量：不再固定为旧采样序列的 `3200`，测试改为验证四个开关均有开关事件且审计数量一致
+- 用户输入：未新增
+- 第五步平均电流反馈：尚未实施
+- 回执提交：待生成
 
 ## 9. 风险和控制
 
