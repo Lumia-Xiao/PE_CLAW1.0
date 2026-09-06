@@ -385,7 +385,7 @@ def _evaluate_load_point(
                 capacitor=capacitor_loss_w,
             ),
             warnings=tuple(point_warnings),
-            switching_loss_audit=_npc_switching_loss_audit(refreshed),
+            switching_loss_audit=_switching_loss_audit(refreshed),
         ),
         point_warnings,
     )
@@ -957,6 +957,78 @@ def _npc_switching_loss_audit(report: DesignReport) -> dict[str, object]:
         "formula": "Psw = sum(Eon + Eoff) / Tline; event energy uses actual signed current and blocking voltage",
         "sic_reverse_recovery_loss_W": 0.0,
         "roles": role_summary,
+    }
+
+
+def _switching_loss_audit(report: DesignReport) -> dict[str, object]:
+    """Return the event audit for the active inverter topology."""
+
+    if _is_three_phase_two_level_inverter_topology(report):
+        return _vsi_switching_loss_audit(report)
+    return _npc_switching_loss_audit(report)
+
+
+def _vsi_switching_loss_audit(report: DesignReport) -> dict[str, object]:
+    """Summarize VSI event data and the six-position loss contract."""
+
+    if report.waveform is None:
+        return {}
+    metadata = report.waveform.metadata if isinstance(report.waveform.metadata, dict) else {}
+    raw_events = metadata.get("three_phase_vsi_switching_events")
+    if not isinstance(raw_events, list):
+        return {}
+    events = [event for event in raw_events if isinstance(event, dict)]
+    audit = metadata.get("three_phase_vsi_switching_event_audit")
+    audit = dict(audit) if isinstance(audit, dict) else {}
+    if not events:
+        return {
+            "status": "no_events",
+            "event_count": 0,
+            "formula": "Psw = sum(Eon + Eoff) / (6*Tline)",
+        }
+    currents = [float(event.get("signed_current_A", 0.0)) for event in events]
+    voltages = [abs(float(event.get("blocking_voltage_V", 0.0))) for event in events]
+    line_frequency_hz = _npc_line_frequency_hz(report)
+    losses = report.device.current_operating_losses if report.device is not None else {}
+    if not losses and report.device is not None:
+        losses = report.device.design_point_losses
+    switch_counts = {
+        switch_name: sum(1 for event in events if event.get("switch_name") == switch_name)
+        for switch_name in ("S1", "S2", "S3", "S4", "S5", "S6")
+    }
+    loss = next((item for item in losses.values() if getattr(item, "role", "") == "main_switch"), None)
+    return {
+        "status": "available",
+        "event_count": len(events),
+        "turn_on_count": sum(1 for event in events if event.get("event_type") == "turn_on"),
+        "turn_off_count": sum(1 for event in events if event.get("event_type") == "turn_off"),
+        "soft_turn_on_count": sum(
+            1 for event in events
+            if event.get("event_type") == "turn_on" and float(event.get("signed_current_A", 0.0)) < 0.0
+        ),
+        "hard_turn_on_count": sum(
+            1 for event in events
+            if event.get("event_type") == "turn_on" and float(event.get("signed_current_A", 0.0)) >= 0.0
+        ),
+        "signed_current_min_A": min(currents),
+        "signed_current_max_A": max(currents),
+        "absolute_current_max_A": max(abs(value) for value in currents),
+        "blocking_voltage_min_V": min(voltages),
+        "blocking_voltage_max_V": max(voltages),
+        "switch_event_counts": switch_counts,
+        "line_frequency_Hz": line_frequency_hz,
+        "line_period_s": 1.0 / line_frequency_hz if line_frequency_hz > 0.0 else None,
+        "switching_frequency_Hz": metadata.get("three_phase_two_level_spwm_design", {}).get("fsw_hz"),
+        "p_sw_on_W_per_position": getattr(loss, "p_sw_on_W", None),
+        "p_sw_off_W_per_position": getattr(loss, "p_sw_off_W", None),
+        "p_rr_W_per_position": getattr(loss, "p_rr_W", None),
+        "event_source": audit.get("event_source", "actual_sampled_vsi_gate_edge"),
+        "current_source": audit.get("current_source", "actual_phase_inductor_current_at_gate_edge"),
+        "blocking_voltage_source": audit.get(
+            "blocking_voltage_source", "actual_dc_link_voltage_at_gate_edge"
+        ),
+        "formula": "Psw = sum(Eon + Eoff) / (6*Tline); event energy uses actual signed current and blocking voltage",
+        "sic_reverse_recovery_loss_W": 0.0,
     }
 
 

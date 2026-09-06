@@ -16,6 +16,7 @@ from pe_claw_gui.models.operating_point import OperatingPoint
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
+from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import run_efficiency_sweep
 from pe_claw_gui.engines.devices.loss_evaluator import evaluate_switching_events
 from pe_claw_gui.engines.devices.loss_evaluator import summarize_switching_event_energy
 from pe_claw_gui.libraries.semiconductors.registry import build_default_semiconductor_registry
@@ -239,6 +240,52 @@ def test_vsi_sic_event_reverse_recovery_is_zero() -> None:
     )
     if "sic" in device.selection_device_type.casefold() or "sic" in device.part_number.casefold():
         assert all(item["reverse_recovery_J"] == 0.0 for item in event_losses)
+
+
+def test_vsi_efficiency_sweep_refreshes_event_loss_audit_for_load_and_pf(tmp_path: Path) -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+    assert report.device is not None
+    selected_devices = dict(report.device.selected_devices)
+
+    result = run_efficiency_sweep(
+        report,
+        plugin=plugin,
+        load_points=(0.5, 1.0),
+        output_dir=tmp_path,
+    )
+
+    assert len(result.points) == 2
+    assert all(point.efficiency is not None for point in result.points)
+    assert all(point.other_loss_w == 0.0 for point in result.points)
+    assert all(point.switching_loss_audit["status"] == "available" for point in result.points)
+    assert all(point.switching_loss_audit["event_count"] > 0 for point in result.points)
+    assert all(
+        set(point.switching_loss_audit["switch_event_counts"]) == {"S1", "S2", "S3", "S4", "S5", "S6"}
+        for point in result.points
+    )
+    assert all(
+        point.switching_loss_audit["hard_turn_on_count"] > 0
+        and point.switching_loss_audit["soft_turn_on_count"] > 0
+        for point in result.points
+    )
+    assert result.points[0].switching_loss_audit["signed_current_max_A"] < result.points[1].switching_loss_audit["signed_current_max_A"]
+    assert result.points[0].semiconductor_loss_w != pytest.approx(result.points[1].semiconductor_loss_w)
+    assert result.points[0].switching_loss_audit["event_source"] == "actual_sampled_vsi_gate_edge"
+    assert result.points[0].switching_loss_audit["current_source"] == "actual_phase_inductor_current_at_gate_edge"
+    assert result.points[0].switching_loss_audit["blocking_voltage_source"] == "actual_dc_link_voltage_at_gate_edge"
+    assert len(result.pf_sweep_points) == 20
+    assert all(point["switching_loss_audit"]["status"] == "available" for point in result.pf_sweep_points)
+    assert all(point["switching_loss_audit"]["event_count"] > 0 for point in result.pf_sweep_points)
+    assert len({point["switching_loss_audit"]["signed_current_max_A"] for point in result.pf_sweep_points}) > 1
+    assert all(point["switching_loss_audit"]["sic_reverse_recovery_loss_W"] == 0.0 for point in result.pf_sweep_points)
+    assert result.pf_sweep_points[0]["switching_loss_audit"]["formula"].startswith("Psw = sum")
+    assert report.device.selected_devices == selected_devices
 
 
 def test_full_pipeline_returns_three_phase_specific_report() -> None:
