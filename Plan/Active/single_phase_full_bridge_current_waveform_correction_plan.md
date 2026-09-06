@@ -439,7 +439,7 @@ PWM 纹波处于合理范围
 | 步骤 | 状态 | 实现 commit | 回执 commit | 远端 push | 验证证据 |
 |---|---|---|---|---|---|
 | 1 | 已完成 | `4247065` | `de6f78e` | 已推送 | `pytest_temp/single-phase-full-bridge-current-step1/baseline.json`; `13 passed`; `git diff --check` |
-| 2 | 实施中 | - | - | - | `switching_cycle_boundaries_s`; `switching_event_axis_s` |
+| 2 | 已完成 | `02c8a90` | 待生成 | 已推送 | `10 passed`; `14 passed`; `git diff --check`; `switching_event_time_quantized_to_waveform_grid=False` |
 | 3 | 待执行 | - | - | - | - |
 | 4 | 待执行 | - | - | - | - |
 | 5 | 待执行 | - | - | - | - |
@@ -459,6 +459,16 @@ PWM 纹波处于合理范围
 - 生产波形逻辑：未修改
 - 回执提交：`de6f78e` (`docs: record full-bridge current baseline receipt`)
 - 远端 HEAD：`de6f78ed245708cf609401ec17e261caaeba80b2`
+
+### 第二步执行回执
+
+- 实现提交：`02c8a90` (`feat: add full-bridge switching event time axis`)
+- 变更：新增统一开关周期边界轴、事件时间轴，以及调制波/载波交点线性插值；GUI 波形采样轴保持不变
+- 验证：`python -m pytest -q tests/test_single_phase_full_bridge_switching_loss.py` -> `10 passed`
+- 验证：`python -m pytest -q tests/test_single_phase_full_bridge_current_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py` -> `14 passed`
+- 验证：`git diff --check` -> passed
+- 关键验收：四个开关事件完整；互补门极保持；事件不再量化到波形采样网格；周期边界为 `[0, Tline]`
+- 回执提交：待生成
 
 ## 9. 风险和控制
 
