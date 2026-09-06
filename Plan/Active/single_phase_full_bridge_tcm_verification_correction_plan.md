@@ -413,7 +413,7 @@ git diff --check
 |---|---|---|---|---|---|
 | 1 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `baseline.json`; `12 passed`; `compileall`; `git diff --check` |
 | 2 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `13 passed`; GUI TCM four-axis smoke; full line-cycle axis checks |
-| 3 | 待执行 | - | - | - | - |
+| 3 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `19 passed`; 5%/50%/100% TCM operating-point refresh checks |
 | 4 | 待执行 | - | - | - | - |
 | 5 | 待执行 | - | - | - | - |
 | 6 | 待执行 | - | - | - | - |
@@ -448,6 +448,14 @@ git diff --check
 - 验证包络轴和详细轴均从 `0` 到 `1/f_line`，详细采样数量与详细时间轴长度一致，低斜率/混合模式数据未截断工频末端。
 - 新增 GUI TCM 渲染 smoke 测试，未修改 TCM 计算和损耗逻辑。
 - 验证：`python -B -m pytest -q tests/test_dc_ac_packaged_gui_runtime.py::test_single_phase_full_bridge_tcm_waveform_renders_with_separate_time_axes tests/test_dc_ac_single_phase_full_bridge_contract.py tests/test_single_phase_full_bridge_tcm_baseline.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step2/tests` -> `13 passed in 31.24s`；`compileall` 通过；`git diff --check` 通过。
+
+### 第三步执行回执
+
+- 检查 `run_efficiency_sweep_pipeline.py::_evaluate_load_point()`：每个负载点通过 `_sweep_operating_point()` 创建新的 `OperatingPoint(load_ratio=load_pu)`，并传给 `plugin.generate_waveforms(..., operating_point=...)`。
+- 新增 5%、50%、100% 负载的 TCM operating-point 测试，确认 `waveform.load_ratio`、平均电流峰值和详细开关频率随负载重新计算，而不是复用固定设计点波形。
+- 确认 `_sweep_operating_point()` 保留 PF，并正确传递低载、半载和满载比例。
+- 本步骤未修改生产代码；半导体损耗在效率扫描中仍固定的原因留待第 4/5 步继续定位。
+- 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_tcm_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py tests/test_dc_ac_operating_refresh_gui_chain.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step3/tests` -> `19 passed in 34.46s`；`compileall` 通过；`git diff --check` 通过。
 
 ## 7. 风险和控制
 

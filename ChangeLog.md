@@ -13,6 +13,12 @@
 - 验证详细 TCM 电流/频率使用 `detail_time_s`，包络电压/DC-link 数据使用 `time_s`，避免数组长度不一致。
 - 验证：专项测试 `13 passed`；`compileall` 和 `git diff --check` 通过；未修改 TCM 计算、损耗或 NPC 代码。
 
+## 2026-09-06 单相全桥 TCM 核实计划第三步
+
+- 核实 efficiency sweep 为每个负载点创建并传递独立的 TCM `OperatingPoint`，未发现运行点复用问题。
+- 增加 5%、50%、100% 负载的 TCM 波形刷新合同测试，确认电流幅值和详细开关频率随负载变化。
+- 验证：专项测试 `19 passed`；`compileall` 和 `git diff --check` 通过；半导体固定损耗问题留待后续开关事件路径核实。
+
 ## 2026-09-06 修正单相全桥 TCM 波形显示时间轴
 
 - GUI 现在优先使用 TCM 详细三角电流波形，而不是回退到通用平均值波形。
