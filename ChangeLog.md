@@ -7,7 +7,7 @@
 - 阻断电压取事件采样时刻的实际 DC-link 电压，并记录事件所在积分区间和来源字段。
 - 新增事件数量、硬/软开通、事件电流范围、电压范围及周期稳态残差审计 metadata。
 - 验证：单相全桥专项+原有合同测试 `17 passed`；`git diff --check` 通过。
-- Git：第四步实现与回执提交、push 和远端 HEAD 核对待本次操作完成后补录。
+- Git：第四步实现 commit `9449588d6742969cf195e6c02499359af19e7dff`（`feat: attach actual current and voltage to full-bridge events`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执提交随后单独生成并推送，远端 HEAD 已核对为 `9449588d6742969cf195e6c02499359af19e7dff`。
 
 ## 2026-09-06 单相全桥开关损耗计划第三步
 
