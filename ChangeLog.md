@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-06 单相全桥 TCM 第七步状态问题修复（阶段性）
+
+- 定位并修复单相全桥设计 manifest 一直为 `running` 的原因：总状态错误依赖 `validation = succeeded`，且 selection-only 提前返回未收尾阶段状态。
+- 增加 `not_applicable` 终态；单相全桥器件选择完成后标记半导体阶段成功，未执行的后续阶段明确标记为不适用，validation 不伪造成功。
+- 增加状态闭合合同测试；验证 `25 passed`，并通过 `compileall` 与 `git diff --check`。
+- 状态修复实现提交：`9a41075`（`fix: close full-bridge TCM design run status`）已推送到 `origin/codex/npc-output-run-isolation-step1`；本阶段文档回执提交将在本次更新后生成。第七步诊断 JSON仍待后续完成。
+
 ## 2026-09-06 单相全桥 TCM 核实计划第六步
 
 - TCM 电感磁件请求现在优先使用完整工频周期的详细三角电流时间轴，通过梯形积分计算 RMS 和峰值，并保留候选包络数据作为兼容回退。

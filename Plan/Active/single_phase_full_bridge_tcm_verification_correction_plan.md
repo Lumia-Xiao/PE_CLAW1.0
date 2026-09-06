@@ -417,7 +417,7 @@ git diff --check
 | 4 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `19 passed`; TCM event-source audit; fixed-loss root cause recorded |
 | 5 | 已完成 | `e320ce4` | 待本次提交 | 已推送 | `28 passed`; TCM 逐周期事件损耗；每周期 4 个换相事件；compileall; diff-check |
 | 6 | 已完成 | `535a4d9` | 待本次提交 | 已推送 | `29 passed`; detailed TCM current period contract; compileall; diff-check |
-| 7 | 待执行 | - | - | - | - |
+| 7 | 进行中 | `9a41075` | 待本次提交 | 已推送 | 状态收尾问题已定位并修复；TCM 诊断 JSON 待继续完成 |
 | 8 | 待执行 | - | - | - | - |
 
 每一步完成后必须更新：
@@ -484,6 +484,15 @@ git diff --check
 - 增加 TCM 合同测试，验证详细电感 RMS/峰值来源、电容电流时间轴长度和完整工频周期覆盖。
 - 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_tcm_baseline.py tests/test_single_phase_full_bridge_switching_loss.py tests/test_dc_ac_single_phase_full_bridge_contract.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step6/tests` -> `29 passed in 80.10s`；`python -B -m compileall -q src tests` 通过；`git diff --check` 通过。
 - 实现提交：`535a4d9`（`fix: align TCM magnetic and capacitor loss waveforms`）已推送到 `origin/codex/npc-output-run-isolation-step1`；本步骤文档回执提交将在本次更新后生成。
+
+### 第七步状态问题修复回执（阶段性）
+
+- 原因 1：`DesignRunContext._overall_run_status()` 只在 `validation == succeeded` 时结束，因此未执行独立 validation 的单相全桥设计被永久显示为 `running`。
+- 原因 2：`run_full_pipeline.py` 的单相全桥 selection-only 提前返回路径没有更新 `semiconductor_design`，并且下游未执行阶段保持 `not_started`。
+- 修复：增加已有状态体系的 `not_applicable`；单相全桥在器件选择完成后标记 `semiconductor_design = succeeded`，未执行的电容、磁件、损耗、热、效率、硬件概览和验证阶段标记为 `not_applicable`；总状态仅在所有阶段进入终态后为 `succeeded`。
+- 未将未执行的 validation 标记为成功，未修改 TCM 诊断 JSON部分。
+- 验证：状态/TCM/NPC 定向测试 `25 passed in 65.55s`；`compileall` 和 `git diff --check` 通过。
+- 状态修复实现提交：`9a41075`（`fix: close full-bridge TCM design run status`）已推送到 `origin/codex/npc-output-run-isolation-step1`；本阶段文档回执提交将在本次更新后生成。第 7 步整体仍待诊断 JSON部分完成。
 
 ## 7. 风险和控制
 
