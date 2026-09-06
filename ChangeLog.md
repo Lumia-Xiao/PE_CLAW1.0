@@ -1,5 +1,15 @@
 # Change Log
 
+## 2026-09-06 单相全桥开关损耗计划第六步
+
+- 在 `run_device_pipeline.py` 中将单相全桥 `main_switch` 从旧 20 段准静态模型切换到工频周期逐事件开关损耗模型。
+- 使用四个物理开关位置汇总事件 Eon/Eoff/Err，并按 `sum(Eevent)/(4*Tline)` 换算平均功率；先扣除旧代表性开关/反向恢复损耗，再写回新值，避免重复计入。
+- 保持导通、Eoss、栅极损耗、器件选型和用户输入不变；NPC 分支继续使用原有事件级路径。
+- 增加单相全桥报告审计 notes，包含事件数、硬/软开通次数、电流/阻断电压范围和事件级计算来源。
+- 更新第一步基线测试，使其明确区分旧模型基线与当前生产报告。
+- 验证：单相全桥专项+原有合同测试 `20 passed`；`compileall` 和 `git diff --check` 通过。
+- Git：第六步实现与回执提交、push 和远端 HEAD 核对待本次操作完成后补录。
+
 ## 2026-09-06 单相全桥开关损耗计划第五步
 
 - 在 `loss_evaluator.py` 中新增拓扑中立的 `evaluate_switching_event_energy()` 和 `evaluate_switching_events()`，复用现有厂商 Eon/Eoff 模型、结温、栅极参数及并联器件电流分配。

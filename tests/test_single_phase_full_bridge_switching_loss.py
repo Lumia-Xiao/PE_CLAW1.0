@@ -42,8 +42,9 @@ def test_step1_baseline_records_current_loss_and_preview_contract() -> None:
     assert current_loss["p_sw_off_w"] == pytest.approx(0.02562835862477436)
     assert current_loss["p_rr_w"] == pytest.approx(0.0)
     assert current_loss["p_total_w"] == pytest.approx(1.4005308859697716)
-    assert report_loss["p_sw_on_w"] == pytest.approx(current_loss["p_sw_on_w"])
-    assert report_loss["p_sw_off_w"] == pytest.approx(current_loss["p_sw_off_w"])
+    assert report_loss["p_sw_on_w"] != pytest.approx(current_loss["p_sw_on_w"])
+    assert report_loss["p_sw_off_w"] != pytest.approx(current_loss["p_sw_off_w"])
+    assert report_loss["mode"] == "full_bridge_unipolar_spwm_event_line_cycle_average"
     assert preview["refined_sample_count"] == 4801
     assert preview["samples_per_switching_period"] == 12
     assert preview["bridge_voltage_levels_v"] == [-400.0, 0.0, 400.0]
@@ -154,6 +155,34 @@ def test_step5_shared_event_energy_model_keeps_sic_reverse_recovery_zero() -> No
     device = build_default_semiconductor_registry().get_device("SCS304AG")
     result = evaluate_switching_event_energy(device, {"event_type": "turn_off", "signed_current_A": 12.0, "blocking_voltage_V": 350.0})
     assert result["reverse_recovery_J"] == pytest.approx(0.0)
+
+
+def test_step6_pipeline_uses_line_cycle_event_loss_once() -> None:
+    from pe_claw_gui.pipeline.options import PipelineOptions
+    from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
+    from pe_claw_gui.topologies.base.registry import build_default_registry
+    from pe_claw_gui.topologies.dc_ac.single_phase_full_bridge_inverter.input_schema import build_default_inputs
+
+    plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+    )
+    loss = report.device.design_point_losses["design_point:main_switch"]
+    refined = report.waveform.metadata["single_phase_inverter_refined_waveforms"]
+    audit = refined["switching_event_audit"]
+
+    assert loss.mode == "full_bridge_unipolar_spwm_event_line_cycle_average"
+    assert audit["event_count"] == 3200
+    assert loss.p_sw_on_W >= 0.0
+    assert loss.p_sw_off_W >= 0.0
+    assert loss.p_total_W == pytest.approx(
+        loss.p_cond_W + loss.p_sw_on_W + loss.p_sw_off_W + loss.p_rr_W + loss.p_eoss_W + loss.p_gate_W
+    )
+    assert any("Full-bridge event-level switching loss" in note for note in loss.thermal_design_notes)
+    assert all("20 midpoint line-cycle segments" not in note for note in loss.thermal_design_notes)
 
 
 def test_step2_event_timeline_preserves_complementary_gate_contract() -> None:

@@ -8,10 +8,11 @@ from typing import NamedTuple
 
 from ..engines.devices.loss_evaluator import (
     _is_sic_device,
+    evaluate_switching_events,
     evaluate_npc_switching_events,
+    summarize_switching_event_energy,
     evaluate_switch_loss,
 )
-from ..engines.devices.inverter_segmented_loss import evaluate_inverter_segmented_switch_loss
 from ..engines.devices.selector import merge_switch_stresses, select_switch_device_with_audit
 from ..engines.devices.filters import allowed_device_types_for_role, is_structure_compatible_with_role, matches_semiconductor_category
 from ..engines.devices.stress_adapter import (
@@ -2318,11 +2319,13 @@ def _evaluate_role_loss(
     parallel_count: int = 1,
 ) -> DeviceLossResult:
     if report.spec.topology_id == "single_phase_full_bridge_inverter" and stress.role == "main_switch":
-        segmented = evaluate_inverter_segmented_switch_loss(
+        base_loss = _evaluate_switch_loss_for_context(device, stress, report=report, method="accurate")
+        return _apply_full_bridge_event_switching_loss(
+            base_loss,
             device,
             report,
             stress,
-            operating_point=operating_point,
+            parallel_count=max(int(parallel_count), 1),
         )
         return segmented.per_switch_loss
     if report.spec.topology_id == _LLC_SR_TOPOLOGY_ID and stress.role == "secondary_sync_switch":
@@ -2339,6 +2342,93 @@ def _evaluate_role_loss(
             parallel_count=max(int(parallel_count), 1),
         )
     return loss_result
+
+
+def _apply_full_bridge_event_switching_loss(
+    loss_result: DeviceLossResult,
+    device,
+    report: DesignReport,
+    stress: SwitchStress,
+    *,
+    parallel_count: int,
+) -> DeviceLossResult:
+    """Replace full-bridge representative switching loss with line-cycle events."""
+
+    waveform_metadata = report.waveform.metadata if report.waveform is not None else {}
+    refined = waveform_metadata.get("single_phase_inverter_refined_waveforms") if isinstance(waveform_metadata, dict) else None
+    events = refined.get("switching_events") if isinstance(refined, dict) else None
+    if not isinstance(events, list) or not events:
+        return loss_result
+
+    line_frequency_hz = 0.0
+    switching_frequency_hz = 0.0
+    for source in (
+        report.spec.metadata,
+        report.candidate.metadata if report.candidate is not None else {},
+    ):
+        try:
+            line_frequency_hz = float(source.get("f_line_hz", 0.0))
+            switching_frequency_hz = float(source.get("fsw_hz", 0.0))
+        except (TypeError, ValueError):
+            line_frequency_hz = 0.0
+            switching_frequency_hz = 0.0
+        if line_frequency_hz > 0.0:
+            break
+    if line_frequency_hz <= 0.0:
+        return loss_result
+
+    event_results = evaluate_switching_events(
+        device,
+        [event for event in events if isinstance(event, dict)],
+        junction_temp_c=loss_result.tj_est_C,
+        method="accurate",
+        parallel_count=parallel_count,
+    )
+    summary = summarize_switching_event_energy(
+        event_results,
+        line_period_s=1.0 / line_frequency_hz,
+        physical_position_count=4,
+    )
+    p_sw_on_w = float(summary["p_sw_on_W"])
+    p_sw_off_w = float(summary["p_sw_off_W"])
+    p_rr_w = 0.0 if _is_sic_device(device) else float(summary["p_rr_W"])
+    p_total_w = max(
+        loss_result.p_total_W
+        - loss_result.p_sw_on_W
+        - loss_result.p_sw_off_W
+        - loss_result.p_rr_W,
+        0.0,
+    ) + p_sw_on_w + p_sw_off_w + p_rr_w
+    audit = refined.get("switching_event_audit", {}) if isinstance(refined, dict) else {}
+    audit_event_count = int(audit.get("event_count", len(events))) if isinstance(audit, dict) else len(events)
+    notes = _append_unique_list([
+        *loss_result.thermal_design_notes,
+        (
+            "Full-bridge event-level switching loss: "
+            f"{audit_event_count} events across 4 physical positions, "
+            f"Tline={1.0 / line_frequency_hz:.6g} s; Psw=sum(Eevent)/(4*Tline)."
+        ),
+        (
+            f"Full-bridge switching audit: hard_on={audit.get('hard_turn_on_count', 0)}, "
+            f"soft_on={audit.get('soft_turn_on_count', 0)}, "
+            f"Ievent=[{audit.get('event_current_min_A', 0.0):.6g}, {audit.get('event_current_max_A', 0.0):.6g}] A, "
+            f"Vblock=[{audit.get('event_blocking_voltage_min_V', 0.0):.6g}, {audit.get('event_blocking_voltage_max_V', 0.0):.6g}] V."
+        ),
+        *(
+            ["Full-bridge SiC reverse-recovery loss is set to zero."]
+            if _is_sic_device(device)
+            else []
+        ),
+    ])
+    return replace(
+        loss_result,
+        mode="full_bridge_unipolar_spwm_event_line_cycle_average",
+        p_sw_on_W=p_sw_on_w,
+        p_sw_off_W=p_sw_off_w,
+        p_rr_W=p_rr_w,
+        p_total_W=p_total_w,
+        thermal_design_notes=notes,
+    )
 
 
 def _apply_npc_event_switching_loss(

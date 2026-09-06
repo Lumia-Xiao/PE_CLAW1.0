@@ -381,7 +381,7 @@ git push
 | 3 | 已完成 | `36a4aad0164c3535f9235ba8f248f971e5d4cc6e` | `待生成` | 已推送；实现提交后远端 HEAD=`36a4aad0164c3535f9235ba8f248f971e5d4cc6e` | 单相全桥专项+原有合同 `17 passed`；`git diff --check` 通过 |
 | 4 | 已完成 | `9449588d6742969cf195e6c02499359af19e7dff` | `待生成` | 已推送；实现提交后远端 HEAD=`9449588d6742969cf195e6c02499359af19e7dff` | 单相全桥专项+原有合同 `17 passed`；`git diff --check` 通过 |
 | 5 | 已完成 | `84546ccb3763b50bf828e92185f1d3a6c12ef044` | `待生成` | 已推送；实现提交后远端 HEAD=`84546ccb3763b50bf828e92185f1d3a6c12ef044` | 单相全桥专项 + NPC 事件合同 `26 passed`；`git diff --check` 通过 |
-| 6 | 待执行 | - | - | - | - |
+| 6 | 已完成 | 待提交 | 待提交 | 待推送 | 单相全桥专项+原有合同 `20 passed`；`compileall` 和 `git diff --check` 通过 |
 | 7 | 待执行 | - | - | - | - |
 
 每一步完成后，必须把该行的状态改为“已完成”，填写实际 commit、push 结果和测试证据；在远端 push 验证之前不得标记为已完成。计划完成后将本文件从 `Plan/Active` 移动到 `Plan/completed`，移动动作也必须单独记录并提交。
