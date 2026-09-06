@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-06 单相全桥 TCM 核实计划第五步
+
+- 为 TCM 每个实际重构周期建立逐事件开关损耗输入，开通使用谷值电流、关断使用峰值电流，阻断电压使用周期起点 DC-link 实际值。
+- 负电流开通沿用公共事件模型的软开通判据，SiC 反向恢复损耗保持为零；TCM 事件接入全桥公共 `evaluate_switching_events()` 路径。
+- 每个 TCM 周期仅生成活动桥臂的 4 个换相事件，避免复制到 S1-S4 造成重复计数；平均损耗继续按四个物理位置和一个工频周期汇总。
+- 验证：TCM/全桥专项测试 `28 passed`；`compileall` 和 `git diff --check` 通过。
+- 实现提交：`e320ce4`（`fix: calculate full-bridge TCM switching loss per event`）已推送到 `origin/codex/npc-output-run-isolation-step1`；计划回执提交将在本次文档更新后生成。
+
 ## 2026-09-06 单相全桥 TCM 核实计划第一步
 
 - 固化最新 TCM 输出 `outputs/20260906_sp_fbi_b48dd62b` 的输入、manifest、效率扫描和 TCM 波形诊断。

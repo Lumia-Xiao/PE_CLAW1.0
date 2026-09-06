@@ -415,7 +415,7 @@ git diff --check
 | 2 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `13 passed`; GUI TCM four-axis smoke; full line-cycle axis checks |
 | 3 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `19 passed`; 5%/50%/100% TCM operating-point refresh checks |
 | 4 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `19 passed`; TCM event-source audit; fixed-loss root cause recorded |
-| 5 | 待执行 | - | - | - | - |
+| 5 | 已完成 | `e320ce4` | 待本次提交 | 已推送 | `28 passed`; TCM 逐周期事件损耗；每周期 4 个换相事件；compileall; diff-check |
 | 6 | 待执行 | - | - | - | - |
 | 7 | 待执行 | - | - | - | - |
 | 8 | 待执行 | - | - | - | - |
@@ -466,6 +466,15 @@ git diff --check
 - 新增 TCM 事件源审计测试，固化当前缺口，留待第 5 步建立最小 TCM 事件记录并接入逐事件损耗。
 - 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_tcm_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py tests/test_dc_ac_operating_refresh_gui_chain.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step4/tests` -> `20 passed in 36.45s`；`compileall` 和 `git diff --check` 通过。
 - 本步骤未修改生产代码和公共损耗公式。
+
+### 第五步执行回执
+
+- 在 `waveform.py` 中为每个实际重构的 TCM 周期生成逐事件记录；事件电流分别取周期谷值和峰值，阻断电压取周期起点对应的实际 DC-link 电压。
+- 依据实际电流极性标记硬/软开通：负电流开通交由公共 `evaluate_switching_events()` 产生 `Eon=0`，非负电流按实际电流计算，关断按峰值电流计算；SiC 反向恢复保持为零。
+- 修正事件映射：每个 TCM 周期只生成活动桥臂的 4 个物理换相事件，事件数为 `4 * detail_cycle_count`，避免将同一周期复制到 S1-S4 后重复计数；汇总继续按 `sum(Eevent)/(4*Tline)` 换算四个物理位置的平均损耗。
+- 在 `run_device_pipeline.py` 中让 TCM 事件列表优先进入现有全桥公共事件损耗入口，避免回退到固定设计点代表性开关损耗；导通损耗、Eoss、栅极损耗及其他公共接口保持不变。
+- 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_tcm_baseline.py tests/test_single_phase_full_bridge_switching_loss.py tests/test_dc_ac_single_phase_full_bridge_contract.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step5/tests` -> `28 passed in 77.49s`；`python -B -m compileall -q src tests` 通过；`git diff --check` 通过。
+- 实现提交：`e320ce4`（`fix: calculate full-bridge TCM switching loss per event`）已推送到 `origin/codex/npc-output-run-isolation-step1`；本步骤回执提交将在本次文档更新后生成。
 
 ## 7. 风险和控制
 
