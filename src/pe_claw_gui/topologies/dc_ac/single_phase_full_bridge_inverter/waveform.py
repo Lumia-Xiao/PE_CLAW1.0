@@ -804,8 +804,16 @@ def _build_refined_unipolar_spwm_waveforms(
         bridge_state=bridge_state,
         inductor_current_a=inductor_current_a,
         dc_link_voltage_v=vdc_link_v,
+        transition_metrics={
+            "S1": [mod_a[index] - carrier[index] for index in range(len(time_s))],
+            "S2": [carrier[index] - mod_a[index] for index in range(len(time_s))],
+            "S3": [mod_b[index] - carrier[index] for index in range(len(time_s))],
+            "S4": [carrier[index] - mod_b[index] for index in range(len(time_s))],
+        },
         line_period_s=period_s,
     )
+    cycle_boundaries_s = [period_s * index / switching_cycles for index in range(switching_cycles + 1)]
+    event_axis_s = [float(event["event_time_s"]) for event in switching_events]
 
     branch_current_metrics = _branch_current_metrics(
         inductor_current_a,
@@ -846,7 +854,7 @@ def _build_refined_unipolar_spwm_waveforms(
         "dc_link_voltage_pwm_ripple_v": dc_link_pwm_ripple_v,
         "switching_events": switching_events,
         "switching_event_count": len(switching_events),
-        "switching_event_source": "sampled_unipolar_spwm_gate_transition",
+        "switching_event_source": "interpolated_unipolar_spwm_comparator_crossing",
         "switching_event_current_source": "continuous_segment_integrated_current_step3",
         "switching_event_blocking_voltage_source": "sampled_dc_link_voltage_at_gate_transition",
         "switching_event_current_selection": "event_pre_transition_continuous_state",
@@ -854,6 +862,12 @@ def _build_refined_unipolar_spwm_waveforms(
         "switching_event_audit": _full_bridge_switching_event_audit(
             switching_events,
             periodic_solver=periodic_solver,
+        ),
+        "switching_cycle_boundaries_s": cycle_boundaries_s,
+        "switching_event_axis_s": event_axis_s,
+        "switching_event_time_quantized_to_waveform_grid": any(
+            any(abs(event_time - sample_time) <= max(period_s * 1e-12, 1e-15) for sample_time in time_s)
+            for event_time in event_axis_s
         ),
         "samples_per_switching_period": samples_per_switching_period,
         "switching_cycle_count": switching_cycles,
@@ -955,6 +969,7 @@ def _extract_full_bridge_switching_events(
     bridge_state: list[float],
     inductor_current_a: list[float],
     dc_link_voltage_v: list[float],
+    transition_metrics: dict[str, list[float]],
     line_period_s: float,
 ) -> list[dict[str, object]]:
     """Extract one stable event record for every sampled full-bridge gate transition."""
@@ -965,6 +980,7 @@ def _extract_full_bridge_switching_events(
         or len(bridge_state) != len(time_s)
         or len(inductor_current_a) != len(time_s)
         or len(dc_link_voltage_v) != len(time_s)
+        or any(len(values) != len(time_s) for values in transition_metrics.values())
         or not gates
         or any(len(values) != len(time_s) for values in gates.values())
     ):
@@ -984,7 +1000,14 @@ def _extract_full_bridge_switching_events(
             current_gate = float(gate[sample_index])
             if current_gate == previous_gate:
                 continue
-            event_time_s = float(time_s[sample_index])
+            metric = transition_metrics.get(switch_name, [])
+            event_time_s = _interpolate_comparator_crossing_time(
+                time_s[sample_index - 1],
+                time_s[sample_index],
+                float(metric[sample_index - 1]),
+                float(metric[sample_index]),
+                float(time_s[sample_index]),
+            )
             if event_time_s < -tolerance_s or event_time_s >= line_period_s - tolerance_s:
                 continue
             events.append(
@@ -999,7 +1022,15 @@ def _extract_full_bridge_switching_events(
                     "gate_after": current_gate,
                     "bridge_state_before": float(bridge_state[sample_index - 1]),
                     "bridge_state_after": float(bridge_state[sample_index]),
-                    "blocking_voltage_V": abs(float(dc_link_voltage_v[sample_index])),
+                    "blocking_voltage_V": abs(
+                        _interpolate_linear(
+                            time_s[sample_index - 1],
+                            time_s[sample_index],
+                            float(dc_link_voltage_v[sample_index - 1]),
+                            float(dc_link_voltage_v[sample_index]),
+                            event_time_s,
+                        )
+                    ),
                     "signed_current_A": float(inductor_current_a[sample_index - 1]),
                     "absolute_current_A": abs(float(inductor_current_a[sample_index - 1])),
                     "soft_turn_on": bool(
@@ -1013,13 +1044,41 @@ def _extract_full_bridge_switching_events(
                     "current_sample_index": sample_index - 1,
                     "current_interval_start_index": sample_index - 1,
                     "current_interval_end_index": sample_index,
-                    "event_source": "sampled_unipolar_spwm_gate_transition",
+                    "event_source": "interpolated_unipolar_spwm_comparator_crossing",
                     "current_source": "exact_continuous_current_before_gate_transition",
                     "blocking_voltage_source": "actual_dc_link_voltage_at_gate_transition",
                 }
             )
     events.sort(key=lambda event: (float(event["event_time_s"]), str(event["switch_name"])))
     return events
+
+
+def _interpolate_linear(
+    start_time_s: float,
+    end_time_s: float,
+    start_value: float,
+    end_value: float,
+    query_time_s: float,
+) -> float:
+    span_s = end_time_s - start_time_s
+    if span_s <= 0.0:
+        return float(start_value)
+    fraction = min(max((query_time_s - start_time_s) / span_s, 0.0), 1.0)
+    return float(start_value) + fraction * (float(end_value) - float(start_value))
+
+
+def _interpolate_comparator_crossing_time(
+    start_time_s: float,
+    end_time_s: float,
+    start_metric: float,
+    end_metric: float,
+    fallback_time_s: float,
+) -> float:
+    metric_span = end_metric - start_metric
+    if abs(metric_span) <= 1e-15:
+        return float(fallback_time_s)
+    fraction = min(max(-start_metric / metric_span, 0.0), 1.0)
+    return float(start_time_s) + fraction * (float(end_time_s) - float(start_time_s))
 
 
 def _full_bridge_switching_event_audit(

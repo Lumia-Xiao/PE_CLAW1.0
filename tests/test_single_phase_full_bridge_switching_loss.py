@@ -68,7 +68,7 @@ def test_step2_event_timeline_contains_all_four_switch_transitions() -> None:
     refined = waveform.metadata["single_phase_inverter_refined_waveforms"]
     events = refined["switching_events"]
 
-    assert refined["switching_event_source"] == "sampled_unipolar_spwm_gate_transition"
+    assert refined["switching_event_source"] == "interpolated_unipolar_spwm_comparator_crossing"
     assert refined["switching_event_current_source"] == "continuous_segment_integrated_current_step3"
     assert refined["switching_event_blocking_voltage_source"] == "sampled_dc_link_voltage_at_gate_transition"
     assert len(events) == 3200
@@ -91,6 +91,11 @@ def test_step2_event_timeline_contains_all_four_switch_transitions() -> None:
     assert all(0.0 <= float(event["event_time_s"]) < waveform.time_span_s for event in events)
     assert [event["event_time_s"] for event in events] == sorted(event["event_time_s"] for event in events)
     assert len({(event["event_time_s"], event["switch_name"], event["event_type"]) for event in events}) == len(events)
+    assert refined["switching_event_time_quantized_to_waveform_grid"] is False
+    assert len(refined["switching_cycle_boundaries_s"]) == refined["switching_cycle_count"] + 1
+    assert refined["switching_cycle_boundaries_s"][0] == pytest.approx(0.0)
+    assert refined["switching_cycle_boundaries_s"][-1] == pytest.approx(waveform.time_span_s)
+    assert len(refined["switching_event_axis_s"]) == len(events)
 
     audit = refined["switching_event_audit"]
     assert audit["event_count"] == len(events)

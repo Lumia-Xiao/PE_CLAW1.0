@@ -680,3 +680,9 @@ listed here.
 - Baseline artifacts are generated under `pytest_temp/single-phase-full-bridge-current-step1/`.
 - Production waveform logic was not changed.
 - Implementation commit: `4247065`; receipt commit: `de6f78e`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.
+
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 2
+
+- Replaced sampled gate-transition timestamps with deterministic linear interpolation of unipolar-SPWM comparator crossings.
+- Added the unified switching-cycle boundary axis and event-time axis while preserving GUI waveform samples.
+- Production current integration and loss formulas were not changed in this step.

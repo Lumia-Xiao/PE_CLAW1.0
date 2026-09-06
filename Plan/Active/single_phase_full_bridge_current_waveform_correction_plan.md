@@ -439,7 +439,7 @@ PWM 纹波处于合理范围
 | 步骤 | 状态 | 实现 commit | 回执 commit | 远端 push | 验证证据 |
 |---|---|---|---|---|---|
 | 1 | 已完成 | `4247065` | `de6f78e` | 已推送 | `pytest_temp/single-phase-full-bridge-current-step1/baseline.json`; `13 passed`; `git diff --check` |
-| 2 | 待执行 | - | - | - | - |
+| 2 | 实施中 | - | - | - | `switching_cycle_boundaries_s`; `switching_event_axis_s` |
 | 3 | 待执行 | - | - | - | - |
 | 4 | 待执行 | - | - | - | - |
 | 5 | 待执行 | - | - | - | - |
