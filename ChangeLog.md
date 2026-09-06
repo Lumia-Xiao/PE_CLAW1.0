@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-06 单相全桥 TCM 核实计划第一步
+
+- 固化最新 TCM 输出 `outputs/20260906_sp_fbi_b48dd62b` 的输入、manifest、效率扫描和 TCM 波形诊断。
+- 新增 `pytest_temp/single-phase-full-bridge-tcm-step1/baseline.json`：确认完整工频周期 `0–20 ms`、详细 TCM 周期数 `508`、开关频率范围约 `8.705–39.153 kHz`。
+- 确认当前效率扫描 20 个负载点的半导体损耗均为 `19.993834 W`，作为后续步骤的待定位基线。
+- 新增 TCM 基线合同测试；验证 `12 passed`、`compileall` 和 `git diff --check` 通过。
+
 ## 2026-09-06 修正单相全桥 TCM 波形显示时间轴
 
 - GUI 现在优先使用 TCM 详细三角电流波形，而不是回退到通用平均值波形。

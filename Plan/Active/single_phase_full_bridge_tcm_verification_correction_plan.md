@@ -411,7 +411,7 @@ git diff --check
 
 | 步骤 | 状态 | 实现 commit | 回执 commit | 远端 push | 证据 |
 |---|---|---|---|---|---|
-| 1 | 待执行 | - | - | - | - |
+| 1 | 已完成 | 待本次提交 | 待本次提交 | 待本次提交 | `baseline.json`; `12 passed`; `compileall`; `git diff --check` |
 | 2 | 待执行 | - | - | - | - |
 | 3 | 待执行 | - | - | - | - |
 | 4 | 待执行 | - | - | - | - |
@@ -428,6 +428,18 @@ git diff --check
 - 实现 commit；
 - 文档回执 commit；
 - 远端 branch 和 HEAD。
+
+### 第一步执行回执
+
+- 读取并固化最新 TCM 输出：`outputs/20260906_sp_fbi_b48dd62b`。
+- 基线文件：`pytest_temp/single-phase-full-bridge-tcm-step1/baseline.json`。
+- 输入模式：TCM；`f_line = 50 Hz`；`fsw_min = 5 kHz`；`fsw_max = 100 kHz`；谷值目标 `-1 A`。
+- 时间轴：`WaveformSet.time_span_s = 0.02 s`，包络轴和详细 TCM 轴均覆盖 `0–0.02 s`，即完整一个工频周期。
+- 详细 TCM 波形：`4061` 个采样点、`508` 个 TCM 周期；详细开关频率范围约 `8.705–39.153 kHz`，平均约 `28.887 kHz`。
+- efficiency sweep 基线：20 个负载点的半导体损耗全部为 `19.993834141874594 W`，已确认固定损耗现象，留待第 3 至第 5 步定位。
+- 输出状态基线：manifest `status = running`；`semiconductor_design = not_started`；`validation = not_started`，留待第 7 步核实。
+- 验证：`python -B -m pytest -q tests/test_single_phase_full_bridge_tcm_baseline.py tests/test_dc_ac_single_phase_full_bridge_contract.py --basetemp=pytest_temp/single-phase-full-bridge-tcm-step1/tests` -> `12 passed in 20.92s`；`python -B -m compileall -q src tests` 通过；`git diff --check` 通过。
+- 本步骤未修改生产计算逻辑；只新增基线测试和诊断证据。
 
 ## 7. 风险和控制
 
