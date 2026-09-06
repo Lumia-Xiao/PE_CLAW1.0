@@ -357,7 +357,7 @@ git diff --check
 | 3 | 已完成 | `c23123d` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step3-rerun/` |
 | 4 | 已完成 | `c8cc644` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step4/` |
 | 5 | 已完成 | `9c2f71d` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step5/` |
-| 6 | 待执行 | - | - | - | - |
+| 6 | 已完成 | `d67f861` | `本次文档回执` | 已推送 | `pytest_temp/three-phase-two-level-vsi-step6/` |
 
 ## 第一步执行回执
 
@@ -410,6 +410,21 @@ git diff --check
 - 专项验证：VSI 合同与运行点刷新测试共 `21 passed`；`compileall` 和 `git diff --check` 通过。
 - 证据见 `pytest_temp/three-phase-two-level-vsi-step5/step5-tests.xml` 和 `scan-report.json`。
 - 实现提交：`9c2f71d`（`test: verify three-phase VSI operating-point event-loss refresh`），已推送。
+
+### 第六步执行回执
+
+- 完成默认工况、负载/PF 变化、DC-link 电压变化、GUI Generate waveform、S1-S6 事件审计和 VSI 损耗闭合验收。
+- 默认波形覆盖一个工频周期：`0.02 s`、`38401` 点；事件总数 `4800`，六个开关均可审计。
+- 验证负电流开通 `Eon=0`、正电流开通和关断使用事件实际电流、事件阻断电压来自实际 DC-link 波形、SiC 反向恢复为零。
+- 验证半导体总损耗不重复计数，效率扫描和运行点刷新可反映负载/PF 变化，NPC 定向合同保持通过。
+- 最终专项验证：`31 passed`；`compileall` 和 `git diff --check` 通过。
+- 证据见 `pytest_temp/three-phase-two-level-vsi-step6-rerun/final-tests.xml` 和 `pytest_temp/three-phase-two-level-vsi-step6/final-acceptance.json`。
+- 实现提交：`d67f861`（`test: complete three-phase VSI validation`），已推送。
+
+## 最终状态
+
+- 第 1 至第 6 步全部完成，计划待归档至 `Plan/completed/`。
+- 远端分支：`origin/codex/npc-output-run-isolation-step1`。
 
 ## 9. 完成和归档规则
 

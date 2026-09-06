@@ -852,3 +852,10 @@ listed here.
 - PF 扫描 `20` 个点均有事件审计，事件电流和半导体损耗随 PF 变化；固定器件选择不变。
 - 定向测试共 `21 passed`；`compileall` 和 `git diff --check` 通过；证据位于 `pytest_temp/three-phase-two-level-vsi-step5/`。
 - Git：第 5 步实现提交 `9c2f71d`（`test: verify three-phase VSI operating-point event-loss refresh`）已推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 6 步
+
+- 完成 VSI 最终专项验收，覆盖默认工况、负载/PF、DC-link 电压、GUI 波形链路、六开关事件、损耗闭合和 NPC 防回归。
+- 最终测试 `31 passed`；`compileall` 和 `git diff --check` 通过。
+- 证据位于 `pytest_temp/three-phase-two-level-vsi-step6-rerun/final-tests.xml` 和 `pytest_temp/three-phase-two-level-vsi-step6/final-acceptance.json`。
+- Git：第 6 步实现提交 `d67f861`（`test: complete three-phase VSI validation`）已推送至 `origin/codex/npc-output-run-isolation-step1`；计划随后归档。
