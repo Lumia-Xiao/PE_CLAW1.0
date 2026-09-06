@@ -706,4 +706,4 @@ listed here.
 - Added bounded per-switching-period average-current feedback with up to three correction iterations.
 - Recorded reference and actual current averages, errors, iteration counts, saturation flags, and voltage targets before and after correction.
 - Non-converged or voltage-saturated default periods remain explicitly diagnosed for Step 6 periodic-state refinement.
-- Implementation commit: `da0c64a`; receipt commit will record final plan status and push verification.
+- Implementation commit: `da0c64a`; receipt commit: `f1d034c`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.

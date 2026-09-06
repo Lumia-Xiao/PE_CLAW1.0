@@ -442,7 +442,7 @@ PWM 纹波处于合理范围
 | 2 | 已完成 | `02c8a90` | `065f1d7` | 已推送 | `10 passed`; `14 passed`; `git diff --check`; `switching_event_time_quantized_to_waveform_grid=False` |
 | 3 | 已完成 | `f55e145` | `4368196` | 已推送 | `25 passed`; `git diff --check`; per-cycle formula and clamp diagnostics |
 | 4 | 已完成 | `996a595` | `906e374` | 已推送 | `26 passed`; `git diff --check`; valid complementary three-level sequence |
-| 5 | 已完成 | `da0c64a` | 待生成 | 已推送 | `27 passed`; `git diff --check`; feedback diagnostics including saturation/non-convergence |
+| 5 | 已完成 | `da0c64a` | `f1d034c` | 已推送 | `27 passed`; `git diff --check`; feedback diagnostics including saturation/non-convergence |
 | 6 | 待执行 | - | - | - | - |
 | 7 | 待执行 | - | - | - | - |
 | 8 | 待执行 | - | - | - | - |
@@ -506,7 +506,8 @@ PWM 纹波处于合理范围
 - 默认工况诊断：反馈未完全收敛，最大周期平均电流误差约 `17.15 A`，多个周期发生电压限幅；该结果保留给第 6 步周期稳态求解处理
 - 用户输入：未新增
 - 工频末端人工修正：未使用
-- 回执提交：待生成
+- 回执提交：`f1d034c` (`docs: record full-bridge average-current feedback receipt`)
+- 远端 HEAD：`f1d034c4d8cbdf2892bcd3c1ad09b1968cd25277`
 
 ## 9. 风险和控制
 
