@@ -417,6 +417,7 @@ def test_npc_gui_efficiency_controller_reuses_current_run_and_output_scope(monke
     )
     controller_module = import_module("pe_claw_gui.app.controllers.efficiency_sweep_controller")
     captured: dict[str, object] = {}
+    overview_reports: list[object] = []
 
     def run_single_gui_point(sweep_report, *, plugin):
         captured["report"] = sweep_report
@@ -431,7 +432,10 @@ def test_npc_gui_efficiency_controller_reuses_current_run_and_output_scope(monke
     monkeypatch.setattr(
         controller_module,
         "build_and_generate_hardware_overview",
-        lambda report: SimpleNamespace(status="available", blocked_reason=None),
+        lambda overview_report: (
+            overview_reports.append(overview_report)
+            or SimpleNamespace(status="available", blocked_reason=None)
+        ),
     )
 
     updated = EfficiencySweepController(store).run_active_efficiency_sweep(
@@ -449,6 +453,19 @@ def test_npc_gui_efficiency_controller_reuses_current_run_and_output_scope(monke
     assert updated.efficiency_sweep.load_grid == (0.5,)
     assert updated.efficiency_sweep.run_id == original_run_id
     assert updated.efficiency_sweep.topology_id == TOPOLOGY_ID
+    assert overview_reports
+    final_overview_report = overview_reports[-1]
+    assert final_overview_report.waveform is not None
+    assert final_overview_report.waveform.load_ratio == pytest.approx(0.5)
+    assert final_overview_report.device is not None
+    assert final_overview_report.device.current_operating_point_key == "current"
+    assert {loss.role for loss in final_overview_report.device.current_operating_losses.values()} == {
+        "npc_outer_switch",
+        "npc_inner_switch",
+        "npc_clamp_diode",
+    }
+    assert updated.waveform is final_overview_report.waveform
+    assert updated.device is final_overview_report.device
     output_root = Path(updated.run_context.output_root).resolve()
     assert all(Path(path).resolve().is_relative_to(output_root) for path in updated.efficiency_sweep.artifact_paths.values())
     assert store.design_report is updated

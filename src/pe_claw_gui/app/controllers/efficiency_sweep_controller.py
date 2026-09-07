@@ -12,6 +12,7 @@ from ...pipeline import run_efficiency_sweep
 from ...pipeline.run_manifest_pipeline import write_llc_manifest
 from ...engines.hardware_overview import build_and_generate_hardware_overview
 from ...models.llc_run_context import is_llc_topology
+from ...pipeline.run_operating_point_refresh import run_operating_point_refresh
 from ..shell.state_store import AppStateStore
 
 
@@ -53,9 +54,27 @@ class EfficiencySweepController:
             raise
         runtime_s = perf_counter() - started_s
         finished_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        final_report = sweep_report
+        if sweep_report.spec.topology_id == "three_phase_three_level_npc_inverter":
+            final_operating_point = sweep_report.operating_point
+            if final_operating_point is None:
+                power_factor = None
+                try:
+                    power_factor = float(sweep_report.candidate.metadata.get("power_factor"))
+                except (AttributeError, TypeError, ValueError):
+                    pass
+                final_operating_point = OperatingPoint(
+                    vin_v=float(sweep_report.candidate.vin_nom),
+                    load_ratio=1.0,
+                    power_factor=power_factor,
+                )
+            final_report = run_operating_point_refresh(
+                sweep_report,
+                plugin,
+                final_operating_point,
+            )
         updated_report = replace(
-            sweep_report,
-            operating_point=sweep_report.operating_point,
+            final_report,
             efficiency_sweep=result,
             run_efficiency_sweep_started_at=started_at,
             run_efficiency_sweep_finished_at=finished_at,
