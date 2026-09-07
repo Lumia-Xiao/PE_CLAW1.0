@@ -16,6 +16,7 @@ from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_device_pipeline import run_device_operating_point_refresh
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import _semiconductor_loss_w, run_efficiency_sweep
+from pe_claw_gui.engines.hardware_overview import build_hardware_overview_payload
 from pe_claw_gui.topologies.base.registry import build_default_registry
 from pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter.input_schema import build_default_inputs
 
@@ -139,6 +140,39 @@ def test_npc_current_refresh_requires_current_waveform_in_report() -> None:
     assert refreshed.device is not None
     assert refreshed.device.current_operating_losses == {}
     assert any("current waveform is missing from the report" in note for note in refreshed.device.notes)
+
+
+def test_npc_scheme_and_current_aggregation_have_one_quantity_multiplier(tmp_path: Path) -> None:
+    plugin, report = _report_at_load(0.5)
+    assert report.device is not None
+    refreshed = run_device_operating_point_refresh(report, plugin=plugin)
+    assert refreshed.device is not None
+
+    current_role_totals = {
+        loss.role: loss.p_total_W * next(
+            role_result.total_physical_device_count
+            for scheme in refreshed.device.scheme_results
+            if scheme.scheme_id == (refreshed.device.active_scheme_id or refreshed.device.recommended_scheme_id)
+            for role_result in scheme.role_results
+            if role_result.role == loss.role
+        )
+        for loss in refreshed.device.current_operating_losses.values()
+    }
+    assert _semiconductor_loss_w(refreshed) == pytest.approx(sum(current_role_totals.values()))
+
+    active_scheme = next(
+        scheme for scheme in refreshed.device.scheme_results
+        if scheme.scheme_id == (refreshed.device.active_scheme_id or refreshed.device.recommended_scheme_id)
+    )
+    assert active_scheme.total_scheme_loss_w == pytest.approx(
+        sum(role.total_loss_w for role in active_scheme.role_results if role.total_loss_w is not None)
+    )
+
+    payload = build_hardware_overview_payload(refreshed, tmp_path / "hardware-overview")
+    group = next(group for group in payload.component_groups if group.group_id == "semiconductor")
+    child_losses = [child.loss_w for child in group.child_entries if child.loss_w is not None]
+    assert group.loss_w == pytest.approx(sum(child_losses))
+    assert group.metadata["loss_basis_label"].startswith("current operating point")
 
 
 def test_npc_semiconductor_loss_does_not_fall_back_to_design_point() -> None:

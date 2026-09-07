@@ -67,6 +67,7 @@ except ModuleNotFoundError:  # New PSFB topology package is outside the 1.0 GUI 
     _calculate_psfb_duty = None
     _calculate_psfb_primary_current = None
 from ..models.stress_result import StressMetric, StressResult
+from ..engines.devices.loss_aggregation import npc_scheme_role_loss_totals, npc_sum_role_losses
 
 _SCHEME_VARIANTS: tuple[tuple[str, str, int], ...] = (
     ("single", "Single Device", 1),
@@ -1629,7 +1630,16 @@ def _evaluate_parallel_scheme(
     feasible = False
     switch_role_results = [role_result for role_result in role_results if _is_selectable_semiconductor_role(role_result.role)]
     if switch_role_results:
-        total_scheme_loss_w = sum(role_result.total_loss_w or 0.0 for role_result in switch_role_results if role_result.selected_part_number is not None)
+        if topology_id == "three_phase_three_level_npc_inverter":
+            total_scheme_loss_w = npc_sum_role_losses(
+                npc_scheme_role_loss_totals(switch_role_results)
+            )
+        else:
+            total_scheme_loss_w = sum(
+                role_result.total_loss_w or 0.0
+                for role_result in switch_role_results
+                if role_result.selected_part_number is not None
+            )
         selected_required_roles = {role_result.role for role_result in switch_role_results if role_result.selected_part_number is not None}
         required_roles = set(get_semiconductor_roles_for_topology(topology_id or ""))
         if required_roles:

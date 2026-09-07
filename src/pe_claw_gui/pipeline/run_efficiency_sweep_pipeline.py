@@ -25,6 +25,10 @@ from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
 from ..models.waveform import WaveformSet
 from ..libraries.semiconductors.topology_roles import get_semiconductor_roles_for_topology
+from ..engines.devices.loss_aggregation import (
+    npc_current_role_loss_totals,
+    npc_sum_role_losses,
+)
 from ..topologies.base import TopologyPlugin
 from .options import PipelineOptions
 from .run_bridge_rectifier_pipeline import (
@@ -842,11 +846,7 @@ def _semiconductor_loss_w(report: DesignReport) -> float | None:
     if _is_three_phase_npc_inverter_topology(report):
         if _npc_current_operating_loss_unavailable(report):
             return None
-        total = 0.0
-        for key, loss_result in device.current_operating_losses.items():
-            role_name = key.split(":", 1)[1] if ":" in key else loss_result.role
-            total += _role_total_device_count(device, role_name) * float(loss_result.p_total_W)
-        return total
+        return npc_sum_role_losses(npc_current_role_loss_totals(device))
     if device.current_operating_losses:
         total = 0.0
         for key, loss_result in device.current_operating_losses.items():

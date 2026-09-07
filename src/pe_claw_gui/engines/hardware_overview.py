@@ -21,6 +21,10 @@ from ..models.geometry_result import GeometryTarget, InductorGeometryLayout
 from ..models.inductor import FixedInductorDesignCandidate
 from ..models.llc_run_context import is_llc_topology
 from ..models.semiconductor_geometry_result import SemiconductorGeometryRoleLayout, SemiconductorGeometryTarget
+from .devices.loss_aggregation import (
+    npc_current_role_loss_totals,
+    npc_sum_role_losses,
+)
 from ..topology_capabilities import (
     has_dc_link_output_capacitor_only,
     has_generic_semiconductor_overview_group,
@@ -1907,6 +1911,21 @@ def _resolve_semiconductor_loss_w(report: DesignReport) -> float | None:
     device = report.device
     if device is None:
         return None
+    if _is_three_phase_npc_inverter(report):
+        if device.current_operating_losses:
+            return npc_sum_role_losses(npc_current_role_loss_totals(device))
+        scheme_id = device.active_scheme_id or device.recommended_scheme_id
+        scheme = next((item for item in device.scheme_results if item.scheme_id == scheme_id), None)
+        if scheme is not None:
+            role_totals = {
+                role_result.role: float(role_result.total_loss_w)
+                for role_result in scheme.role_results
+                if role_result.role in {"npc_outer_switch", "npc_inner_switch", "npc_clamp_diode"}
+                and role_result.selected_part_number is not None
+                and role_result.total_loss_w is not None
+            }
+            return npc_sum_role_losses(role_totals) if role_totals else None
+        return None
     if device.current_operating_losses:
         return _semiconductor_losses_total_w(report, device.current_operating_losses)
     scheme_id = device.active_scheme_id or device.recommended_scheme_id
@@ -1952,11 +1971,7 @@ def _npc_semiconductor_current_role_loss_w(report: DesignReport, role_layout: Se
     device = report.device
     if device is None or not device.current_operating_losses:
         return None
-    for key, loss in device.current_operating_losses.items():
-        if _role_name_from_loss_key(str(key)) == role_layout.role_name:
-            count = _semiconductor_role_total_count(report, role_layout.role_name)
-            return count * float(loss.p_total_W)
-    return None
+    return npc_current_role_loss_totals(device).get(role_layout.role_name)
 
 
 def _efficiency_sweep_full_load_semiconductor_loss_w(report: DesignReport) -> float | None:
