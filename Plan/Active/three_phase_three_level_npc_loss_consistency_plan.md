@@ -281,6 +281,17 @@
 - 反向恢复字段与器件类型一致，说明不误导。
 - manifest 与实际生成阶段和 artifact 一致。
 
+### 第 7 步执行回执（2026-09-07）
+
+- 状态：已完成。
+- NPC 开关频率审计按 waveform metadata、candidate metadata、candidate `fs_hz` 和 waveform switching period 依次回退；默认输入输出 `20000 Hz`，并记录实际来源。
+- 移除统一的 `sic_reverse_recovery_loss_W` 表述，改为按角色输出器件相关反向恢复状态；NPC 钳位 SiC 二极管明确为零，MOSFET 内置二极管单独标记为内部二极管模型。
+- NPC generic run manifest 补齐 `semiconductor_design`、磁件/损耗/热/电容阶段状态；未启用的下游阶段标记为 `not_applicable`，不会误报为成功。
+- Efficiency Sweep 完成且 Hardware Overview 成功后，NPC `validation` 阶段才标记为 `succeeded`。
+- NPC 定向验证：`37 passed`；`compileall` 和 `git diff --check` 通过。
+- 未修改器件选型规则、开关事件损耗模型和其他拓扑。
+- 实现提交和 push 回执：`4b802f9`，已推送至 `origin/codex/npc-output-run-isolation-step1`。
+
 ## 第 8 步：NPC 定向验证和结果验收
 
 ### 修改内容
@@ -313,3 +324,4 @@
 ## 完成判定
 
 全部 8 步完成，并且每一步都已完成 NPC 定向验证、独立 commit 和 push 后，才将本计划移动到 `Plan/completed`。
+

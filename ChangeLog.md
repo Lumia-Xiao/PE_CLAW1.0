@@ -902,3 +902,11 @@ listed here.
 - 硬件概览补充组级/角色级 `loss_scope`、损耗 basis、当前工况完整性 metadata 和 notes。
 - NPC 定向测试：`10 passed`；`compileall` 和 `git diff --check` 通过。
 - 未修改器件选型规则、开关事件损耗模型和其他拓扑；未提交 `outputs/`、`pytest_temp/` 和缓存。
+
+## 2026-09-07 三相三电平 NPC 损耗一致性计划第 7 步
+
+- 修复 NPC 开关频率审计字段的来源回退，默认结果可输出 `20000 Hz` 和实际来源。
+- 反向恢复审计按器件角色和器件类型区分 SiC 零损耗、MOSFET 内部二极管模型及独立二极管模型。
+- 补齐 NPC 设计 run manifest 的阶段状态；未启用阶段使用 `not_applicable`，效率扫描和硬件概览完成后才关闭验证阶段。
+- NPC 定向测试：`37 passed`；`compileall` 和 `git diff --check` 通过。
+- 未提交 `outputs/`、`pytest_temp/` 和缓存。
