@@ -894,3 +894,11 @@ listed here.
 - 最终测试 `31 passed`；`compileall` 和 `git diff --check` 通过。
 - 证据位于 `pytest_temp/three-phase-two-level-vsi-step6-rerun/final-tests.xml` 和 `pytest_temp/three-phase-two-level-vsi-step6/final-acceptance.json`。
 - Git：第 6 步实现提交 `d67f861`（`test: complete three-phase VSI validation`）已推送至 `origin/codex/npc-output-run-isolation-step1`；计划随后归档。
+
+## 2026-09-07 三相三电平 NPC 损耗一致性计划第 6 步
+
+- 统一器件页、损耗页和硬件概览页的 NPC 损耗来源：完整当前工况优先，缺失角色时统一回退到设计点并显示 warning。
+- 器件页明确区分单物理器件损耗、角色总损耗和半导体方案总损耗；损耗页与硬件概览复用共享 NPC 角色聚合，避免重复乘数量。
+- 硬件概览补充组级/角色级 `loss_scope`、损耗 basis、当前工况完整性 metadata 和 notes。
+- NPC 定向测试：`10 passed`；`compileall` 和 `git diff --check` 通过。
+- 未修改器件选型规则、开关事件损耗模型和其他拓扑；未提交 `outputs/`、`pytest_temp/` 和缓存。
