@@ -15,6 +15,10 @@ from typing import Any
 from ..models.design_report import DesignReport
 from ..pipeline.llc_pf_artifacts import llc_pf_artifact_payload
 from ..pipeline.llc_representatives import build_llc_representative_payload
+from ..engines.devices.loss_aggregation import (
+    npc_reverse_recovery_audit,
+    npc_switching_frequency_hz,
+)
 
 
 REPORT_SCHEMA_VERSION = "pe_claw_structured_design_report_v1"
@@ -556,6 +560,8 @@ def _npc_switching_audit_payload(report: DesignReport) -> dict[str, Any]:
             "switching_loss_off": _metric(getattr(loss_result, "p_sw_off_W", None), "W", "npc.loss.event_average"),
         }
 
+    switching_frequency_hz, switching_frequency_source = npc_switching_frequency_hz(report)
+    reverse_recovery = npc_reverse_recovery_audit(report)
     payload = {
         "status": "available",
         "event_count": _metric(len(events), "count", "npc.waveform.events"),
@@ -569,8 +575,9 @@ def _npc_switching_audit_payload(report: DesignReport) -> dict[str, Any]:
         "blocking_voltage_max": _metric(max(voltages) if voltages else None, "V", "npc.waveform.events"),
         "line_frequency": _metric(line_frequency, "Hz", "npc.waveform.metadata"),
         "line_period": _metric(1.0 / line_frequency if line_frequency > 0.0 else None, "s", "npc.loss.event_average"),
-        "switching_frequency": _metric(metadata.get("fsw_hz"), "Hz", "npc.waveform.metadata"),
-        "reverse_recovery_loss": _metric(0.0, "W", "npc.loss.event_model"),
+        "switching_frequency": _metric(switching_frequency_hz, "Hz", f"npc.{switching_frequency_source}"),
+        "switching_frequency_source": switching_frequency_source,
+        "reverse_recovery": reverse_recovery,
         "formula": "Psw = sum(Eon + Eoff) / Tline; Eon/Eoff use each event's signed current and blocking voltage",
         "roles": {role: role_payload(role) for role in ("outer_switch", "inner_switch", "clamp_diode")},
     }

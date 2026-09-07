@@ -88,6 +88,12 @@ def _run_full_pipeline_in_context(
     if uses_semiconductor_selector:
         report = run_device_pipeline(report, plugin=plugin)
         report = run_semiconductor_geometry_pipeline(report)
+        if report.spec.topology_id == "three_phase_three_level_npc_inverter":
+            report = update_design_run(
+                report,
+                {"semiconductor_design": "succeeded" if report.device is not None else "blocked"},
+                reason=("NPC semiconductor selection is unavailable." if report.device is None else None),
+            )
     if uses_semiconductor_selector and report.waveform is not None and report.operating_point is not None:
         report = run_device_operating_point_refresh(report, plugin=plugin)
     if report.spec.topology_id in SELECTION_ONLY_TOPOLOGIES and (
@@ -152,6 +158,18 @@ def _run_full_pipeline_in_context(
     report = run_geometry_pipeline(report, pipeline_options=options)
     if not is_llc_topology(report.spec.topology_id) and options.enable_capacitor_design:
         report = run_capacitor_pipeline(report, plugin=plugin, output_root=get_run_output_root(report))
+    if report.spec.topology_id == "three_phase_three_level_npc_inverter":
+        stage_updates = {
+            "inductor_design": "succeeded" if options.enable_magnetic_design and report.magnetic is not None else "not_applicable",
+            "loss": "succeeded" if options.enable_magnetic_design and report.loss is not None else "not_applicable",
+            "thermal": "succeeded" if options.enable_magnetic_design and report.thermal is not None else "not_applicable",
+            "capacitor_design": (
+                "succeeded"
+                if options.enable_capacitor_design and report.capacitor is not None
+                else "not_applicable"
+            ),
+        }
+        report = update_design_run(report, stage_updates)
     return report
 
 

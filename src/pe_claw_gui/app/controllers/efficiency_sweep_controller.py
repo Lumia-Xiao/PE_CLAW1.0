@@ -102,6 +102,12 @@ class EfficiencySweepController:
             {"hardware_overview": overview_status},
             reason=overview.blocked_reason,
         )
+        if (
+            updated_report.spec.topology_id == "three_phase_three_level_npc_inverter"
+            and sweep_status == "succeeded"
+            and overview_status == "succeeded"
+        ):
+            updated_report = update_design_run(updated_report, {"validation": "succeeded"})
         if updated_report.llc_run_context is not None and is_llc_topology(updated_report.spec.topology_id):
             updated_report = replace(
                 updated_report,

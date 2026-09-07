@@ -16,6 +16,7 @@ from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_device_pipeline import run_device_operating_point_refresh
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import _semiconductor_loss_w, run_efficiency_sweep
+from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import _npc_switching_loss_audit
 from pe_claw_gui.engines.hardware_overview import build_hardware_overview_payload
 from pe_claw_gui.app.result_views.device_view import build_device_summary_text
 from pe_claw_gui.app.result_views.loss_view import build_semiconductor_loss_summary
@@ -120,6 +121,37 @@ def test_npc_current_refresh_contains_every_selected_role_and_reuses_hardware() 
     )
 
 
+def test_npc_step7_disabled_downstream_stages_are_not_applicable() -> None:
+    plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+        output_root=Path("pytest_temp") / "npc-step7-disabled-stages",
+    )
+
+    assert report.run_context is not None
+    statuses = report.run_context.stage_status
+    assert statuses["design"] == "succeeded"
+    assert statuses["semiconductor_design"] == "succeeded"
+    assert statuses["inductor_design"] == "not_applicable"
+    assert statuses["capacitor_design"] == "not_applicable"
+    assert statuses["loss"] == "not_applicable"
+    assert statuses["thermal"] == "not_applicable"
+    assert statuses["efficiency_sweep"] == "not_started"
+    assert statuses["hardware_overview"] == "not_started"
+
+
+def test_npc_step7_manifest_status_is_running_until_efficiency_and_overview_finish(tmp_path: Path) -> None:
+    plugin, report = _report_at_load(0.5)
+    assert report.run_context is not None
+    manifest = json.loads(Path(report.run_context.manifest_path).read_text(encoding="utf-8"))
+    assert manifest["status"] == "running"
+    assert manifest["stage_status"]["efficiency_sweep"] == "not_started"
+    assert manifest["stage_status"]["hardware_overview"] == "not_started"
+
+
 def test_npc_current_refresh_failure_keeps_explicit_warning_instead_of_falling_back() -> None:
     plugin, report = _report_at_load(0.5)
     assert report.device is not None
@@ -188,6 +220,16 @@ def test_npc_semiconductor_loss_does_not_fall_back_to_design_point() -> None:
     incomplete_report = replace(report, device=cleared_device)
 
     assert _semiconductor_loss_w(incomplete_report) is None
+
+
+def test_npc_step7_audit_resolves_frequency_and_device_specific_reverse_recovery() -> None:
+    plugin, report = _report_at_load(0.5)
+    audit = _npc_switching_loss_audit(report)
+
+    assert audit["switching_frequency_Hz"] == pytest.approx(20000.0)
+    assert audit["switching_frequency_source"] == "candidate.metadata.fsw_hz"
+    assert audit["reverse_recovery"]["roles"]["npc_clamp_diode"]["status"] == "zero_by_sic_device_model"
+    assert audit["reverse_recovery"]["roles"]["npc_outer_switch"]["status"] == "internal_diode_qrr_model"
 
 
 def test_npc_result_pages_share_loss_basis_and_totals(tmp_path: Path) -> None:

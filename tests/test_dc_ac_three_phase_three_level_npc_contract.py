@@ -395,6 +395,12 @@ def test_npc_structured_report_exposes_current_validation_and_exact_event_source
         == f"npc.waveform.i{phase}_actual_average_a"
         for phase in ("a", "b", "c")
     )
+    npc_switching = structured["loss"]["npc_switching"]
+    assert npc_switching["switching_frequency"]["value"] == pytest.approx(20000.0)
+    assert npc_switching["switching_frequency"]["source"] == "npc.candidate.metadata.fsw_hz"
+    assert npc_switching["reverse_recovery"]["status"] == "available"
+    assert npc_switching["reverse_recovery"]["roles"]["npc_clamp_diode"]["status"] == "zero_by_sic_device_model"
+    assert npc_switching["reverse_recovery"]["roles"]["npc_outer_switch"]["status"] == "internal_diode_qrr_model"
 
 
 def test_npc_gui_efficiency_controller_reuses_current_run_and_output_scope(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -27,6 +27,8 @@ from ..models.waveform import WaveformSet
 from ..libraries.semiconductors.topology_roles import get_semiconductor_roles_for_topology
 from ..engines.devices.loss_aggregation import (
     npc_current_role_loss_totals,
+    npc_reverse_recovery_audit,
+    npc_switching_frequency_hz,
     npc_sum_role_losses,
 )
 from ..topologies.base import TopologyPlugin
@@ -954,6 +956,8 @@ def _npc_switching_loss_audit(report: DesignReport) -> dict[str, object]:
             "p_sw_on_W_per_position": getattr(role_loss, "p_sw_on_W", None),
             "p_sw_off_W_per_position": getattr(role_loss, "p_sw_off_W", None),
         }
+    switching_frequency_hz, switching_frequency_source = npc_switching_frequency_hz(report)
+    reverse_recovery = npc_reverse_recovery_audit(report)
     return {
         "status": "available",
         "event_count": len(events),
@@ -968,7 +972,8 @@ def _npc_switching_loss_audit(report: DesignReport) -> dict[str, object]:
         "blocking_voltage_max_V": max(blocking_voltages),
         "line_frequency_Hz": line_frequency_hz,
         "line_period_s": 1.0 / line_frequency_hz if line_frequency_hz > 0.0 else None,
-        "switching_frequency_Hz": metadata.get("fsw_hz"),
+        "switching_frequency_Hz": switching_frequency_hz,
+        "switching_frequency_source": switching_frequency_source,
         "periodic_solver_converged": metadata.get(
             "phase_current_periodic_steady_state_converged"
         ),
@@ -991,7 +996,7 @@ def _npc_switching_loss_audit(report: DesignReport) -> dict[str, object]:
             "phase_current_periodic_steady_state_warm_start_fallback_used"
         ),
         "formula": "Psw = sum(Eon + Eoff) / Tline; event energy uses actual signed current and blocking voltage",
-        "sic_reverse_recovery_loss_W": 0.0,
+        "reverse_recovery": reverse_recovery,
         "roles": role_summary,
     }
 
