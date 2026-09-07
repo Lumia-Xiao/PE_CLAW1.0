@@ -2197,9 +2197,24 @@ def run_device_operating_point_refresh(
     """Reevaluate semiconductor losses at the current operating point without reselection."""
 
     device_result = report.device
+    is_npc = report.spec.topology_id == "three_phase_three_level_npc_inverter"
     if report.candidate is None or report.stress is None:
         if device_result is None:
-            return report
+            if not is_npc:
+                return report
+            return replace(
+                report,
+                notes=_append_unique_list([
+                    *report.notes,
+                    "NPC current semiconductor operating-point refresh failed: candidate or stress result is missing.",
+                ]),
+            )
+        if is_npc:
+            return _npc_refresh_failure(
+                report,
+                device_result,
+                "candidate or stress result is missing",
+            )
         return replace(
             report,
             device=replace(
@@ -2218,10 +2233,52 @@ def run_device_operating_point_refresh(
         report = run_device_pipeline(report, plugin=plugin)
         device_result = report.device
         if device_result is None:
-            return report
+            if not is_npc:
+                return report
+            return replace(
+                report,
+                notes=_append_unique_list([
+                    *report.notes,
+                    "NPC current semiconductor operating-point refresh failed: device selection produced no result.",
+                ]),
+            )
+
+    if is_npc:
+        if report.waveform is None:
+            return _npc_refresh_failure(report, device_result, "current waveform is missing from the report")
+        waveform_load_ratio = getattr(report.waveform, "load_ratio", None)
+        operating_point = report.operating_point
+        if operating_point is None or waveform_load_ratio is None or not math.isclose(
+            float(waveform_load_ratio), float(operating_point.load_ratio), rel_tol=0.0, abs_tol=1.0e-12
+        ):
+            return _npc_refresh_failure(
+                report,
+                device_result,
+                "report operating point and waveform load ratio do not match",
+            )
+        metadata = report.waveform.metadata if isinstance(report.waveform.metadata, dict) else {}
+        events = metadata.get("three_phase_npc_switching_events")
+        if not isinstance(events, list) or not events:
+            return _npc_refresh_failure(report, device_result, "NPC switching events are missing from the current waveform")
+        active_scheme = _find_active_scheme(device_result)
+        required_roles = set(get_semiconductor_roles_for_topology(report.spec.topology_id))
+        if active_scheme is None:
+            return _npc_refresh_failure(report, device_result, "no active semiconductor scheme is available")
+        if not active_scheme.complete:
+            reason = active_scheme.incomplete_reason or "active semiconductor scheme is incomplete"
+            return _npc_refresh_failure(report, device_result, reason)
+        missing_selected_roles = sorted(required_roles - set(device_result.selected_devices))
+        if missing_selected_roles:
+            return _npc_refresh_failure(
+                report,
+                device_result,
+                f"selected device is missing for role(s): {', '.join(missing_selected_roles)}",
+            )
 
     current_case = build_current_operating_switch_stress_case(report, plugin=plugin)
     if current_case is None:
+        if is_npc:
+            return _npc_refresh_failure(report, device_result, "current stress case could not be built")
         return replace(
             report,
             device=replace(
@@ -2278,22 +2335,47 @@ def run_device_operating_point_refresh(
 
     current_operating_losses: dict[str, DeviceLossResult] = {}
     active_parallel_count = max(int(getattr(device_result, "active_parallel_count", 1) or 1), 1)
+    refresh_errors: list[str] = []
     for stress in current_case.stresses:
-        device = evaluation_devices_by_role.get(stress.role)
-        if device is None:
+        if is_npc and stress.role not in required_roles:
+            refresh_errors.append(f"unexpected stress role {stress.role}")
             continue
-        scaled_stress = scale_switch_stress_for_parallel(stress, active_parallel_count)
-        current_loss = _evaluate_role_loss(
-            device,
-            report,
-            scaled_stress,
-            current_case.operating_point,
-            parallel_count=active_parallel_count,
+        device = (
+            registry.get_device(device_result.selected_devices[stress.role])
+            if is_npc and stress.role in device_result.selected_devices
+            else evaluation_devices_by_role.get(stress.role)
         )
+        if device is None:
+            if is_npc:
+                refresh_errors.append(f"selected device could not be resolved for role {stress.role}")
+            continue
+        try:
+            scaled_stress = scale_switch_stress_for_parallel(stress, active_parallel_count)
+            current_loss = _evaluate_role_loss(
+                device,
+                report,
+                scaled_stress,
+                current_case.operating_point,
+                parallel_count=active_parallel_count,
+            )
+        except Exception as exc:
+            if is_npc:
+                refresh_errors.append(f"role {stress.role} evaluation failed: {type(exc).__name__}: {exc}")
+                continue
+            raise
         design_reference = design_point_loss_by_role.get(stress.role)
         if design_reference is not None:
             current_loss = _apply_design_sink_reference(current_loss, design_reference)
         current_operating_losses[f"{current_case.case_id}:{stress.role}"] = current_loss
+
+    if is_npc:
+        missing_loss_roles = sorted(required_roles - {loss.role for loss in current_operating_losses.values()})
+        refresh_errors.extend(
+            f"current loss is missing for role {role}"
+            for role in missing_loss_roles
+        )
+        if refresh_errors:
+            return _npc_refresh_failure(report, device_result, "; ".join(refresh_errors), current_case.case_id)
 
     notes = list(device_result.notes)
     refresh_note = "Semiconductor operating-point refresh reused the design-point device choice and sink sizing."
@@ -2308,6 +2390,27 @@ def run_device_operating_point_refresh(
         notes=notes,
     )
     return replace(report, device=refreshed_device_result)
+
+
+def _npc_refresh_failure(
+    report: DesignReport,
+    device_result: DeviceSelectionResult,
+    reason: str,
+    case_id: str | None = None,
+) -> DesignReport:
+    """Keep an NPC refresh failure auditable instead of silently using design loss."""
+
+    message = f"NPC current semiconductor operating-point refresh failed: {reason}."
+    return replace(
+        report,
+        device=replace(
+            device_result,
+            current_operating_losses={},
+            current_operating_summary=None,
+            current_operating_point_key=case_id,
+            notes=_append_unique_list([*device_result.notes, message]),
+        ),
+    )
 
 
 def _evaluate_role_loss(

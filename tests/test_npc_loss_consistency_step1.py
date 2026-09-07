@@ -5,11 +5,22 @@ import sys
 from pathlib import Path
 
 import pytest
+from dataclasses import replace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts.record_npc_loss_consistency_baseline import build_baseline
+from pe_claw_gui.models.operating_point import OperatingPoint
+from pe_claw_gui.pipeline.options import PipelineOptions
+from pe_claw_gui.pipeline.run_device_pipeline import run_device_operating_point_refresh
+from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
+from pe_claw_gui.topologies.base.registry import build_default_registry
+from pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter.input_schema import build_default_inputs
+
+
+TOPOLOGY_ID = "three_phase_three_level_npc_inverter"
+NO_DOWNSTREAM = PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False)
 
 
 def test_npc_loss_step1_baseline_records_contract_and_three_load_points(tmp_path: Path) -> None:
@@ -57,3 +68,73 @@ def test_npc_loss_step1_baseline_is_json_serializable(tmp_path: Path) -> None:
     baseline = build_baseline(output_root=tmp_path / "npc-loss-step1")
     encoded = json.dumps(baseline, ensure_ascii=True)
     assert json.loads(encoded)["schema_version"] == "npc_loss_consistency_baseline_v1"
+
+
+def _report_at_load(load_ratio: float):
+    plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+    operating_point = OperatingPoint(vin_v=report.spec.vin_min, load_ratio=load_ratio, power_factor=1.0)
+    waveform = plugin.generate_waveforms(report.candidate, operating_point=operating_point)
+    stress = plugin.extract_stress(report.candidate, waveform_set=waveform)
+    return plugin, replace(report, operating_point=operating_point, waveform=waveform, stress=stress)
+
+
+def test_npc_current_refresh_contains_every_selected_role_and_reuses_hardware() -> None:
+    plugin, report = _report_at_load(0.5)
+    assert report.device is not None
+    selected_devices = dict(report.device.selected_devices)
+
+    refreshed = run_device_operating_point_refresh(report, plugin=plugin)
+
+    assert refreshed.device is not None
+    assert refreshed.device.selected_devices == selected_devices
+    assert refreshed.device.current_operating_summary is not None
+    assert refreshed.device.current_operating_point_key == "current"
+    assert {loss.role for loss in refreshed.device.current_operating_losses.values()} == {
+        "npc_outer_switch",
+        "npc_inner_switch",
+        "npc_clamp_diode",
+    }
+    assert all(
+        any("NPC event-level switching loss" in note for note in loss.thermal_design_notes)
+        for loss in refreshed.device.current_operating_losses.values()
+        if loss.role in {"npc_outer_switch", "npc_inner_switch"}
+    )
+    design_by_role = {
+        loss.role: loss
+        for loss in report.device.design_point_losses.values()
+    }
+    assert any(
+        refreshed_loss.p_total_W != pytest.approx(design_by_role[refreshed_loss.role].p_total_W)
+        for refreshed_loss in refreshed.device.current_operating_losses.values()
+        if refreshed_loss.role in design_by_role
+    )
+
+
+def test_npc_current_refresh_failure_keeps_explicit_warning_instead_of_falling_back() -> None:
+    plugin, report = _report_at_load(0.5)
+    assert report.device is not None
+    selected_devices = dict(report.device.selected_devices)
+    selected_devices.pop("npc_inner_switch")
+    report = replace(report, device=replace(report.device, selected_devices=selected_devices))
+
+    refreshed = run_device_operating_point_refresh(report, plugin=plugin)
+
+    assert refreshed.device is not None
+    assert refreshed.device.current_operating_losses == {}
+    assert any("selected device is missing for role(s): npc_inner_switch" in note for note in refreshed.device.notes)
+
+
+def test_npc_current_refresh_requires_current_waveform_in_report() -> None:
+    plugin, report = _report_at_load(0.5)
+    assert report.device is not None
+    refreshed = run_device_operating_point_refresh(replace(report, waveform=None), plugin=plugin)
+
+    assert refreshed.device is not None
+    assert refreshed.device.current_operating_losses == {}
+    assert any("current waveform is missing from the report" in note for note in refreshed.device.notes)
