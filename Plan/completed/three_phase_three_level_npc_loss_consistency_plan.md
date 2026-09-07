@@ -321,6 +321,19 @@
 - 不存在组级与角色级损耗的数量倍增错误。
 - 结果目录、测试临时文件和 Git 提交记录符合工程规则。
 
+### 第 8 步执行回执（2026-09-07）
+
+- 状态：已完成。
+- 新增 `scripts/validate_npc_loss_consistency_step8.py`，复用现有 NPC 设计、效率扫描和硬件概览流水线，生成最终验收证据 `pytest_temp/npc-loss-consistency-step8/final-acceptance.json`。
+- 最终 run：`outputs/20260907_3p_3l_npc_i_a4c3e60d`，manifest 总状态为 `succeeded`，`validation`、`efficiency_sweep` 和 `hardware_overview` 均为 `succeeded`。
+- 5%、50%、100% 负载点半导体损耗分别为 `3.2184 W`、`12.6488 W`、`25.9931 W`，均完成总损耗闭合；`Other loss=0`，半导体损耗随负载变化。
+- 开关事件验收：共 `4800` 个事件，使用实际事件电流和实际阻断电压；硬开通 `1200` 次、软开通 `1200` 次；负电流开通 `Eon=0`，正电流开通和关断均调用实际事件值；`switching_frequency_Hz=20000`。
+- NPC 外管、内管、钳位二极管拓扑位置均为 `6`，角色损耗之和与效率扫描半导体总损耗一致，硬件概览与效率扫描满载半导体损耗一致。
+- 反向恢复总损耗为 `0 W`；器件角色说明仍按 SiC 独立二极管和 MOSFET 内部二极管模型区分。
+- 为统一 Efficiency Sweep 与硬件概览的满载周期稳态结果，最终 NPC operating-point refresh 复用效率扫描满载点的 `periodic_initial_current_a`。
+- NPC 定向回归：`31 passed`；`compileall` 和 `git diff --check` 通过。
+- 剩余限制：死区、Coss、寄生参数和中点电压动态仍未建模。
+
 ## 完成判定
 
 全部 8 步完成，并且每一步都已完成 NPC 定向验证、独立 commit 和 push 后，才将本计划移动到 `Plan/completed`。

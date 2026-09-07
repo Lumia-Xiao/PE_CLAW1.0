@@ -910,3 +910,12 @@ listed here.
 - 补齐 NPC 设计 run manifest 的阶段状态；未启用阶段使用 `not_applicable`，效率扫描和硬件概览完成后才关闭验证阶段。
 - NPC 定向测试：`37 passed`；`compileall` 和 `git diff --check` 通过。
 - 未提交 `outputs/`、`pytest_temp/` 和缓存。
+
+## 2026-09-07 三相三电平 NPC 损耗一致性计划第 8 步
+
+- 新增 NPC 最终定向验收脚本 `scripts/validate_npc_loss_consistency_step8.py`，覆盖 5%、50%、100% 负载、逐事件开关损耗、器件数量、页面/硬件概览一致性、开关频率、反向恢复损耗和 run manifest。
+- 修复 Efficiency Sweep 完成后 NPC 最终报告刷新未复用满载周期稳态初始电流的问题，消除 Efficiency 页面与 Hardware Overview 的满载半导体损耗差异。
+- 最终验收 run：`outputs/20260907_3p_3l_npc_i_a4c3e60d`；证据：`pytest_temp/npc-loss-consistency-step8/final-acceptance.json`。
+- 验收通过：5%/50%/100% 半导体损耗为 `3.2184/12.6488/25.9931 W`，`Other loss=0`；`4800` 个事件，硬开通 `1200`、软开通 `1200`，`fsw=20000 Hz`，反向恢复总损耗 `0 W`；NPC 三类角色位置均为 `6`，manifest 为 `succeeded`。
+- NPC 定向测试：`31 passed`；`compileall` 和 `git diff --check` 通过。
+- 剩余限制：死区、Coss、寄生参数和中点电压动态仍未建模。

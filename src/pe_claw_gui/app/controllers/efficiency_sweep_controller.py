@@ -68,10 +68,19 @@ class EfficiencySweepController:
                     load_ratio=1.0,
                     power_factor=power_factor,
                 )
+            periodic_initial_current_a = None
+            if result.points:
+                full_load_point = min(result.points, key=lambda point: abs(float(point.load_pu) - 1.0))
+                audit = full_load_point.switching_loss_audit
+                if isinstance(audit, dict):
+                    candidate_initial = audit.get("periodic_initial_current_a")
+                    if isinstance(candidate_initial, (list, tuple)):
+                        periodic_initial_current_a = [float(value) for value in candidate_initial]
             final_report = run_operating_point_refresh(
                 sweep_report,
                 plugin,
                 final_operating_point,
+                npc_periodic_initial_current_a=periodic_initial_current_a,
             )
         updated_report = replace(
             final_report,
