@@ -15,6 +15,7 @@ from pe_claw_gui.models.operating_point import OperatingPoint
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_device_pipeline import run_device_operating_point_refresh
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
+from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import _semiconductor_loss_w, run_efficiency_sweep
 from pe_claw_gui.topologies.base.registry import build_default_registry
 from pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter.input_schema import build_default_inputs
 
@@ -138,3 +139,49 @@ def test_npc_current_refresh_requires_current_waveform_in_report() -> None:
     assert refreshed.device is not None
     assert refreshed.device.current_operating_losses == {}
     assert any("current waveform is missing from the report" in note for note in refreshed.device.notes)
+
+
+def test_npc_semiconductor_loss_does_not_fall_back_to_design_point() -> None:
+    plugin, report = _report_at_load(0.5)
+    assert report.device is not None
+    cleared_device = replace(
+        report.device,
+        current_operating_losses={},
+        current_operating_point_key="current",
+    )
+    incomplete_report = replace(report, device=cleared_device)
+
+    assert _semiconductor_loss_w(incomplete_report) is None
+
+
+def test_npc_efficiency_point_is_incomplete_when_current_semiconductor_loss_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    plugin, report = _report_at_load(1.0)
+    efficiency_module = __import__(
+        "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline",
+        fromlist=["run_device_operating_point_refresh"],
+    )
+    original_refresh = efficiency_module.run_device_operating_point_refresh
+
+    def fail_current_refresh(refreshed_report, *, plugin=None):
+        failed = original_refresh(refreshed_report, plugin=plugin)
+        assert failed.device is not None
+        return replace(
+            failed,
+            device=replace(
+                failed.device,
+                current_operating_losses={},
+                current_operating_point_key="current",
+            ),
+        )
+
+    monkeypatch.setattr(efficiency_module, "run_device_operating_point_refresh", fail_current_refresh)
+    result = run_efficiency_sweep(report, plugin=plugin, load_points=(0.5,), output_dir=tmp_path)
+
+    point = result.points[0]
+    assert point.semiconductor_loss_w is None
+    assert point.total_loss_w is None
+    assert point.efficiency is None
+    assert any("design-point semiconductor loss is not used" in warning for warning in point.warnings)

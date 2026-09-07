@@ -24,6 +24,7 @@ from ..models.efficiency_sweep import EfficiencySweepPoint, EfficiencySweepResul
 from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
 from ..models.waveform import WaveformSet
+from ..libraries.semiconductors.topology_roles import get_semiconductor_roles_for_topology
 from ..topologies.base import TopologyPlugin
 from .options import PipelineOptions
 from .run_bridge_rectifier_pipeline import (
@@ -340,6 +341,15 @@ def _evaluate_load_point(
         topology_result=topology_result,
     )
     refreshed = run_device_operating_point_refresh(refreshed, plugin=plugin)
+    npc_semiconductor_refresh_failed = (
+        _is_three_phase_npc_inverter_topology(base_report)
+        and _npc_current_operating_loss_unavailable(refreshed)
+    )
+    if npc_semiconductor_refresh_failed:
+        point_warnings.append(
+            f"NPC semiconductor current-operating-point loss was unavailable at {load_pu:.1f} p.u.; "
+            "the efficiency point is marked incomplete and design-point semiconductor loss is not used."
+        )
     if refreshed.magnetic is not None and refreshed.magnetic.chosen_designs:
         magnetic_options = PipelineOptions(enable_magnetic_design=True, enable_capacitor_design=refreshed.capacitor is not None)
         refreshed = run_loss_pipeline(
@@ -358,7 +368,9 @@ def _evaluate_load_point(
     capacitor_loss_w = _capacitor_loss_w(refreshed)
     available_losses = [semiconductor_loss_w, magnetic_loss_w, capacitor_loss_w]
     total_loss_w = sum(loss for loss in available_losses if loss is not None)
-    if not any(loss is not None for loss in available_losses):
+    if npc_semiconductor_refresh_failed:
+        total_loss_w = None
+    elif not any(loss is not None for loss in available_losses):
         total_loss_w = None
         point_warnings.append(f"No loss components were available at {load_pu:.1f} p.u.")
 
@@ -827,6 +839,14 @@ def _semiconductor_loss_w(report: DesignReport) -> float | None:
     device = report.device
     if device is None:
         return None
+    if _is_three_phase_npc_inverter_topology(report):
+        if _npc_current_operating_loss_unavailable(report):
+            return None
+        total = 0.0
+        for key, loss_result in device.current_operating_losses.items():
+            role_name = key.split(":", 1)[1] if ":" in key else loss_result.role
+            total += _role_total_device_count(device, role_name) * float(loss_result.p_total_W)
+        return total
     if device.current_operating_losses:
         total = 0.0
         for key, loss_result in device.current_operating_losses.items():
@@ -839,6 +859,22 @@ def _semiconductor_loss_w(report: DesignReport) -> float | None:
     if device.design_point_losses:
         return sum(loss.p_total_W for loss in device.design_point_losses.values())
     return None
+
+
+def _npc_current_operating_loss_unavailable(report: DesignReport) -> bool:
+    """Return whether an NPC current-point semiconductor result is incomplete."""
+
+    device = report.device
+    if device is None or not device.current_operating_losses:
+        return True
+    if not device.current_operating_point_key:
+        return True
+    expected_roles = set(get_semiconductor_roles_for_topology(report.spec.topology_id))
+    actual_roles = {
+        loss_result.role
+        for loss_result in device.current_operating_losses.values()
+    }
+    return not expected_roles.issubset(actual_roles)
 
 
 def _active_scheme(device):
