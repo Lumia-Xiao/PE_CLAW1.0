@@ -22,7 +22,9 @@ from ..models.inductor import FixedInductorDesignCandidate
 from ..models.llc_run_context import is_llc_topology
 from ..models.semiconductor_geometry_result import SemiconductorGeometryRoleLayout, SemiconductorGeometryTarget
 from .devices.loss_aggregation import (
+    npc_current_operating_losses_complete,
     npc_current_role_loss_totals,
+    npc_scheme_role_loss_totals,
     npc_sum_role_losses,
 )
 from ..topology_capabilities import (
@@ -745,7 +747,12 @@ def _build_semiconductor_group(report: DesignReport) -> HardwareOverviewComponen
         "Semiconductor payload uses the recommended scheme geometry already attached to the design report.",
         "Heatsink volume is included when available because overview size is physical hardware size.",
         "Semiconductor package geometry is rendered as a first-pass overview visualization.",
+        f"Loss basis: {_resolve_semiconductor_loss_basis(report)}.",
     ]
+    if _is_three_phase_npc_inverter(report) and report.device.current_operating_losses and not npc_current_operating_losses_complete(report.device):
+        incomplete_basis_note = "Current NPC role losses are incomplete; semiconductor overview uses design-point role totals."
+        warnings.append(incomplete_basis_note)
+        notes.append(f"Warning: {incomplete_basis_note}")
     primary = next((child for child in child_entries if child.part_number), None)
     module_metadata = _semiconductor_module_overview_metadata(report, target)
     return HardwareOverviewComponentGroup(
@@ -778,6 +785,12 @@ def _build_semiconductor_group(report: DesignReport) -> HardwareOverviewComponen
             "heatsink_volume_cm3": heatsink_volume_cm3,
             "total_volume_cm3": total_volume_cm3,
             "loss_basis_label": _resolve_semiconductor_loss_basis(report),
+            "loss_scope": "scheme total",
+            "current_operating_losses_complete": (
+                npc_current_operating_losses_complete(report.device)
+                if _is_three_phase_npc_inverter(report)
+                else bool(report.device.current_operating_losses)
+            ),
             "efficiency_sweep_full_load_semiconductor_loss_w": _efficiency_sweep_full_load_semiconductor_loss_w(report),
             "efficiency_sweep_power_factor": _efficiency_sweep_power_factor(report),
             **module_metadata,
@@ -1738,12 +1751,12 @@ def _semiconductor_child_entry(report: DesignReport, role_layout: SemiconductorG
     loss_w = _semiconductor_child_loss_w(report, role_layout)
     current_role_loss_w = _npc_semiconductor_current_role_loss_w(report, role_layout)
     loss_basis_label = (
-        "current operating role total"
-        if _is_three_phase_npc_inverter(report) and current_role_loss_w is not None
+        "current operating point role total"
+        if _is_three_phase_npc_inverter(report) and npc_current_operating_losses_complete(report.device)
         else "design-point role total"
     )
     if loss_w is not None:
-        if loss_basis_label == "current operating role total":
+        if loss_basis_label == "current operating point role total":
             notes.append("Loss scope: current operating role total.")
         else:
             notes.append("Loss scope: design-point role total.")
@@ -1767,6 +1780,7 @@ def _semiconductor_child_entry(report: DesignReport, role_layout: SemiconductorG
             "design_role_total_loss_w": role_layout.role_total_loss_w,
             "current_operating_role_total_loss_w": current_role_loss_w,
             "loss_basis_label": loss_basis_label,
+            "loss_scope": "role total",
         },
         notes=notes,
         warnings=_bbox_warnings(bbox),
@@ -1912,18 +1926,12 @@ def _resolve_semiconductor_loss_w(report: DesignReport) -> float | None:
     if device is None:
         return None
     if _is_three_phase_npc_inverter(report):
-        if device.current_operating_losses:
+        if npc_current_operating_losses_complete(device):
             return npc_sum_role_losses(npc_current_role_loss_totals(device))
         scheme_id = device.active_scheme_id or device.recommended_scheme_id
         scheme = next((item for item in device.scheme_results if item.scheme_id == scheme_id), None)
         if scheme is not None:
-            role_totals = {
-                role_result.role: float(role_result.total_loss_w)
-                for role_result in scheme.role_results
-                if role_result.role in {"npc_outer_switch", "npc_inner_switch", "npc_clamp_diode"}
-                and role_result.selected_part_number is not None
-                and role_result.total_loss_w is not None
-            }
+            role_totals = npc_scheme_role_loss_totals(scheme)
             return npc_sum_role_losses(role_totals) if role_totals else None
         return None
     if device.current_operating_losses:
@@ -1943,8 +1951,10 @@ def _resolve_semiconductor_loss_basis(report: DesignReport) -> str:
     if device is None:
         return ""
     if _is_three_phase_npc_inverter(report):
-        if device.current_operating_losses:
+        if npc_current_operating_losses_complete(device):
             return "current operating point semiconductor loss; first-pass NPC PD-SPWM over 12 active switch positions and 6 clamp diode positions"
+        if device.current_operating_losses:
+            return "design-point active scheme total loss; current operating-point NPC role losses incomplete"
         return "design-point active scheme total loss; first-pass NPC Vdc/2 stress"
     if device.current_operating_losses:
         return "current operating point semiconductor loss"
@@ -1960,7 +1970,7 @@ def _resolve_semiconductor_loss_basis(report: DesignReport) -> str:
 def _semiconductor_child_loss_w(report: DesignReport, role_layout: SemiconductorGeometryRoleLayout) -> float | None:
     if _is_three_phase_npc_inverter(report):
         current_role_loss_w = _npc_semiconductor_current_role_loss_w(report, role_layout)
-        if current_role_loss_w is not None:
+        if npc_current_operating_losses_complete(report.device):
             return current_role_loss_w
     return role_layout.role_total_loss_w
 

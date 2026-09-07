@@ -8,6 +8,11 @@ from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from ...engines.hardware_overview import build_bridge_rectifier_overview_group, build_bridge_rectifier_top_candidate_rows
+from ...engines.devices.loss_aggregation import (
+    npc_current_operating_losses_complete,
+    npc_current_role_loss_totals,
+    npc_sum_role_losses,
+)
 from ...models.bridge_rectifier import (
     bridge_rectifier_package_confidence_label,
     bridge_rectifier_thermal_confidence_label,
@@ -217,6 +222,15 @@ def build_device_summary_text(report: DesignReport | None) -> str:
         f"({device_result.active_scheme_id or '-'}, {device_result.active_parallel_count}x)"
     )
     lines.append(f"  recommended semiconductor scheme: {device_result.recommended_scheme_id or '-'}")
+    npc_topology = report.spec.topology_id == "three_phase_three_level_npc_inverter"
+    if npc_topology:
+        current_complete = npc_current_operating_losses_complete(device_result)
+        lines.append(
+            "  displayed loss basis: "
+            + ("current operating point" if current_complete else "design point")
+        )
+        if device_result.current_operating_losses and not current_complete:
+            lines.append("  warning: current NPC role losses are incomplete; design-point loss values are shown")
     if is_llc_resonant_topology(report.spec.topology_id):
         lines.extend(_build_llc_device_filter_lines(report))
 
@@ -227,7 +241,8 @@ def build_device_summary_text(report: DesignReport | None) -> str:
             lines.append(f"  {scheme.label} ({scheme.parallel_count}x)")
             selected_parts = ", ".join(f"{role}={part_number}" for role, part_number in sorted(scheme.selected_devices.items()))
             lines.append(f"    selected: {selected_parts or 'none'}")
-            lines.append(f"    total loss: {_fmt_optional_float(scheme.total_scheme_loss_w)} W")
+            scheme_basis = "design point scheme total"
+            lines.append(f"    {scheme_basis}: {_fmt_optional_float(scheme.total_scheme_loss_w)} W")
             lines.append(f"    feasible: {'yes' if scheme.feasible else 'no'}")
             for role_result in sorted(scheme.role_results, key=lambda item: item.role):
                 if role_result.selected_part_number is None:
@@ -299,6 +314,25 @@ def build_device_summary_text(report: DesignReport | None) -> str:
         lines.append("")
         lines.append("Selected devices")
         lines.append("  none")
+
+    if npc_topology and npc_current_operating_losses_complete(device_result):
+        current_role_totals = npc_current_role_loss_totals(device_result)
+        lines.append("")
+        lines.append("Current operating-point NPC semiconductor losses")
+        for role in sorted(current_role_totals):
+            current_loss = next(
+                (item for item in device_result.current_operating_losses.values() if item.role == role),
+                None,
+            )
+            if current_loss is None:
+                continue
+            lines.append(
+                f"  {role}: per physical device={_fmt_optional_float(current_loss.p_total_W)} W, "
+                f"role total={_fmt_optional_float(current_role_totals[role])} W"
+            )
+        lines.append(
+            f"  semiconductor scheme total: {_fmt_optional_float(npc_sum_role_losses(current_role_totals))} W"
+        )
 
     if device_result.candidate_counts:
         lines.append("")

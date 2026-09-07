@@ -17,6 +17,8 @@ from pe_claw_gui.pipeline.run_device_pipeline import run_device_operating_point_
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import _semiconductor_loss_w, run_efficiency_sweep
 from pe_claw_gui.engines.hardware_overview import build_hardware_overview_payload
+from pe_claw_gui.app.result_views.device_view import build_device_summary_text
+from pe_claw_gui.app.result_views.loss_view import build_semiconductor_loss_summary
 from pe_claw_gui.topologies.base.registry import build_default_registry
 from pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter.input_schema import build_default_inputs
 
@@ -186,6 +188,51 @@ def test_npc_semiconductor_loss_does_not_fall_back_to_design_point() -> None:
     incomplete_report = replace(report, device=cleared_device)
 
     assert _semiconductor_loss_w(incomplete_report) is None
+
+
+def test_npc_result_pages_share_loss_basis_and_totals(tmp_path: Path) -> None:
+    plugin, report = _report_at_load(0.5)
+    refreshed = run_device_operating_point_refresh(report, plugin=plugin)
+    assert refreshed.device is not None
+
+    device_text = build_device_summary_text(refreshed)
+    loss_text = "\n".join(build_semiconductor_loss_summary(refreshed))
+    payload = build_hardware_overview_payload(refreshed, tmp_path / "hardware-overview")
+    group = next(group for group in payload.component_groups if group.group_id == "semiconductor")
+
+    assert "displayed loss basis: current operating point" in device_text
+    assert "Current operating-point NPC semiconductor losses" in device_text
+    assert "semiconductor loss basis: current operating point" in loss_text
+    assert group.metadata["loss_basis_label"].startswith("current operating point")
+    assert group.metadata["loss_scope"] == "group_total"
+    assert group.metadata["current_operating_losses_complete"] is True
+    assert group.loss_w == pytest.approx(sum(child.loss_w for child in group.child_entries if child.loss_w is not None))
+
+    incomplete = replace(
+        refreshed,
+        device=replace(
+            refreshed.device,
+            current_operating_losses={"current:npc_outer_switch": next(
+                loss for loss in refreshed.device.current_operating_losses.values()
+                if loss.role == "npc_outer_switch"
+            )},
+        ),
+    )
+    incomplete_device_text = build_device_summary_text(incomplete)
+    incomplete_loss_text = "\n".join(build_semiconductor_loss_summary(incomplete))
+    incomplete_payload = build_hardware_overview_payload(incomplete, tmp_path / "hardware-overview-incomplete")
+    incomplete_group = next(item for item in incomplete_payload.component_groups if item.group_id == "semiconductor")
+
+    assert "displayed loss basis: design point" in incomplete_device_text
+    assert "incomplete; design-point loss values are shown" in incomplete_device_text
+    assert "semiconductor loss basis: design point" in incomplete_loss_text
+    assert "current operating-point NPC losses are incomplete" in incomplete_loss_text
+    assert incomplete_group.metadata["loss_basis_label"].startswith("design-point")
+    assert incomplete_group.metadata["current_operating_losses_complete"] is False
+    assert (
+        any("current npc role losses are incomplete" in warning.lower() for warning in incomplete_group.warnings)
+        or any("current npc role losses are incomplete" in note.lower() for note in incomplete_group.notes)
+    )
 
 
 def test_npc_efficiency_point_is_incomplete_when_current_semiconductor_loss_fails(

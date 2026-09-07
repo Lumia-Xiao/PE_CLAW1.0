@@ -43,6 +43,22 @@ def npc_current_role_loss_totals(device_result) -> dict[str, float]:
     return totals
 
 
+def npc_current_operating_losses_complete(device_result) -> bool:
+    """Return whether all NPC roles have current operating-point losses."""
+
+    roles = {
+        str(getattr(loss_result, "role", ""))
+        for loss_result in getattr(device_result, "current_operating_losses", {}).values()
+    }
+    return set(NPC_ROLES).issubset(roles)
+
+
+def npc_loss_basis(device_result) -> str:
+    """Return the common display basis used by NPC result pages."""
+
+    return "current operating point" if npc_current_operating_losses_complete(device_result) else "design point"
+
+
 def npc_scheme_role_loss_totals(scheme_or_role_results) -> dict[str, float]:
     """Return already-aggregated design-point loss for each selected NPC role."""
 
