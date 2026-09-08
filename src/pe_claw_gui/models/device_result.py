@@ -9,7 +9,13 @@ from .device_loss import DeviceLossResult, SwitchStress
 
 @dataclass(frozen=True)
 class SemiconductorRoleSchemeResult:
-    """Comparison-ready outcome for one role under one parallel-device scheme."""
+    """Comparison-ready outcome for one role under one parallel-device scheme.
+
+    ``per_device_loss_w`` describes one physical device, ``total_loss_w``
+    describes all physical positions of this role, and
+    ``total_physical_device_count`` is the sole count used for that
+    aggregation.  A scheme total is the sum of its role totals.
+    """
 
     role: str
     parallel_count: int
@@ -46,7 +52,11 @@ class SemiconductorRoleSchemeResult:
 
 @dataclass(frozen=True)
 class SemiconductorSchemeResult:
-    """Evaluation output for one explicit semiconductor parallelization scheme."""
+    """Evaluation output for one explicit semiconductor parallelization scheme.
+
+    ``total_scheme_loss_w`` is the whole active scheme loss, formed by adding
+    the selected role totals; it is not a single-device loss.
+    """
 
     scheme_id: str
     label: str

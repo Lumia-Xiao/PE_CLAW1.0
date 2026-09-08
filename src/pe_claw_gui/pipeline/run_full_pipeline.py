@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import json
 from pathlib import Path
 
 from ..models.design_report import DesignReport
+from ..models.design_run_context import activate_report_run, get_run_output_root, update_design_run
 from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
@@ -56,6 +58,25 @@ def run_full_pipeline(
         output_root=output_root,
     )
     report = bundle.report
+    # Keep every downstream stage, including plugin internals, in this run's scope.
+    with activate_report_run(report):
+        return _run_full_pipeline_in_context(
+            report,
+            plugin=plugin,
+            options=options,
+            magnetic_backend_config=magnetic_backend_config,
+            llc_search_mode=llc_search_mode,
+        )
+
+
+def _run_full_pipeline_in_context(
+    report: DesignReport,
+    *,
+    plugin: TopologyPlugin,
+    options: PipelineOptions,
+    magnetic_backend_config: MagneticDataBackendConfig | None,
+    llc_search_mode: str,
+) -> DesignReport:
     if is_llc_topology(report.spec.topology_id) and report.llc_run_context is not None:
         report = replace(report, llc_run_context=report.llc_run_context.transition("design", "succeeded"))
     if is_first_pass_topology_only(report.spec.topology_id):
@@ -67,11 +88,33 @@ def run_full_pipeline(
     if uses_semiconductor_selector:
         report = run_device_pipeline(report, plugin=plugin)
         report = run_semiconductor_geometry_pipeline(report)
+        if report.spec.topology_id == "three_phase_three_level_npc_inverter":
+            report = update_design_run(
+                report,
+                {"semiconductor_design": "succeeded" if report.device is not None else "blocked"},
+                reason=("NPC semiconductor selection is unavailable." if report.device is None else None),
+            )
     if uses_semiconductor_selector and report.waveform is not None and report.operating_point is not None:
         report = run_device_operating_point_refresh(report, plugin=plugin)
     if report.spec.topology_id in SELECTION_ONLY_TOPOLOGIES and (
         report.spec.topology_id != "flyback_diode_rectified_isolated" or not options.enable_magnetic_design
     ):
+        if report.spec.topology_id == "single_phase_full_bridge_inverter":
+            report = update_design_run(
+                report,
+                {
+                    "semiconductor_design": "succeeded" if report.device is not None else "blocked",
+                    "capacitor_design": "not_applicable",
+                    "inductor_design": "not_applicable",
+                    "loss": "not_applicable",
+                    "thermal": "not_applicable",
+                    "efficiency_sweep": "not_applicable",
+                    "hardware_overview": "not_applicable",
+                    "validation": "not_applicable",
+                },
+                reason=("Semiconductor selection did not produce a device result." if report.device is None else None),
+            )
+            report = _write_tcm_diagnostic(report)
         return report
     if (
         options.enable_bridge_rectifier_selection
@@ -114,8 +157,103 @@ def run_full_pipeline(
     report = run_thermal_pipeline(report, pipeline_options=options)
     report = run_geometry_pipeline(report, pipeline_options=options)
     if not is_llc_topology(report.spec.topology_id) and options.enable_capacitor_design:
-        report = run_capacitor_pipeline(report, plugin=plugin)
+        report = run_capacitor_pipeline(report, plugin=plugin, output_root=get_run_output_root(report))
+    if report.spec.topology_id == "three_phase_three_level_npc_inverter":
+        stage_updates = {
+            "inductor_design": "succeeded" if options.enable_magnetic_design and report.magnetic is not None else "not_applicable",
+            "loss": "succeeded" if options.enable_magnetic_design and report.loss is not None else "not_applicable",
+            "thermal": "succeeded" if options.enable_magnetic_design and report.thermal is not None else "not_applicable",
+            "capacitor_design": (
+                "succeeded"
+                if options.enable_capacitor_design and report.capacitor is not None
+                else "not_applicable"
+            ),
+        }
+        report = update_design_run(report, stage_updates)
     return report
+
+
+def _write_tcm_diagnostic(report: DesignReport) -> DesignReport:
+    """Write a compact, run-scoped TCM evidence file after state finalization."""
+
+    if report.spec.topology_id != "single_phase_full_bridge_inverter" or report.waveform is None:
+        return report
+    metadata = report.waveform.metadata if isinstance(report.waveform.metadata, dict) else {}
+    tcm = metadata.get("single_phase_inverter_tcm_envelope")
+    if not isinstance(tcm, dict):
+        return report
+    output_root = get_run_output_root(report)
+    if output_root is None:
+        return report
+    detail_time = [float(value) for value in tcm.get("detail_time_s", [])]
+    detail_fsw = [float(value) for value in tcm.get("detail_cycle_fsw_hz", [])]
+    detail_current = [float(value) for value in tcm.get("detail_inductor_current_a", [])]
+    audit = tcm.get("switching_event_audit", {})
+    if not isinstance(audit, dict):
+        audit = {}
+    path = output_root / "validation" / "tcm_diagnostic.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "diagnostic_version": 1,
+        "topology_id": report.spec.topology_id,
+        "run_id": report.run_context.run_id if report.run_context is not None else None,
+        "input_snapshot": dict(report.run_context.raw_input_snapshot) if report.run_context is not None else {},
+        "run_status": report.run_context.stage_status if report.run_context is not None else {},
+        "line_cycle": {
+            "frequency_hz": report.spec.metadata.get("f_line_hz"),
+            "period_s": report.waveform.time_span_s,
+            "detail_time_start_s": detail_time[0] if detail_time else None,
+            "detail_time_end_s": detail_time[-1] if detail_time else None,
+            "detail_sample_count": len(detail_time),
+            "detail_cycle_count": tcm.get("detail_cycle_count"),
+        },
+        "tcm_switching_frequency_hz": {
+            "min": min(detail_fsw) if detail_fsw else None,
+            "max": max(detail_fsw) if detail_fsw else None,
+            "mean": sum(detail_fsw) / len(detail_fsw) if detail_fsw else None,
+        },
+        "inductor_current": {
+            "sample_count": len(detail_current),
+            "min_a": min(detail_current) if detail_current else None,
+            "max_a": max(detail_current) if detail_current else None,
+            "rms_a": metadata.get("tcm_i_rms_a"),
+            "basis": "detailed_tcm_current_one_line_period",
+        },
+        "switching_events": {
+            "audit": audit,
+            "event_count": len(tcm.get("switching_events", [])),
+        },
+        "losses": {
+            "semiconductor": _loss_summary(report.device),
+            "inductor": _loss_summary(report.loss),
+            "capacitor": _loss_summary(report.capacitor),
+            "thermal": _loss_summary(report.thermal),
+            "total": _loss_summary(report.loss),
+            "other_loss_w": 0.0,
+        },
+        "warnings": [*report.notes, *getattr(report.loss, "notes", []), *getattr(report.capacitor, "warnings", [])],
+        "failure": {
+            "stage": report.run_context.failure_stage if report.run_context is not None else None,
+            "reason": report.run_context.failure_reason if report.run_context is not None else None,
+        },
+    }
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True, default=str), encoding="utf-8")
+    updated = update_design_run(report, {})
+    return replace(updated, notes=[*updated.notes, f"TCM diagnostic JSON saved to {path}."])
+
+
+def _loss_summary(value) -> dict[str, object]:
+    """Extract stable numeric/status fields from a pipeline result."""
+
+    if value is None:
+        return {"status": "not_available"}
+    result: dict[str, object] = {"status": "available"}
+    for name in ("total_loss_w", "p_total_W", "copper_loss_w", "core_loss_w", "recommended_design_id", "status"):
+        if hasattr(value, name):
+            result[name] = getattr(value, name)
+    if isinstance(value, dict):
+        result.update({key: value[key] for key in ("total_loss_w", "p_total_W", "status") if key in value})
+    return result
 
 
 def _close_llc_magnetic_stage(report: DesignReport) -> DesignReport:

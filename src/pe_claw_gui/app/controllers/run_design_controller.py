@@ -15,6 +15,7 @@ from ...pipeline.options import (
     PipelineOptions,
 )
 from ...models.llc_run_context import is_llc_topology
+from ...models.design_run_context import update_design_run
 from ..shell.state_store import AppStateStore
 
 
@@ -37,8 +38,7 @@ class RunDesignController:
         if self._state_store.selected_topology_id is None:
             raise RuntimeError("Select a topology before running the design.")
         plugin = self._state_store.registry.get_plugin(self._state_store.selected_topology_id)
-        if is_llc_topology(self._state_store.selected_topology_id):
-            self._state_store.design_report = None
+        self._state_store.design_report = None
         started_at = _utc_timestamp()
         start_s = time.perf_counter()
         report = None
@@ -66,6 +66,7 @@ class RunDesignController:
                 report,
                 llc_run_context=report.llc_run_context.transition("design", "succeeded"),
             )
+        report = update_design_run(report, {"design": "succeeded"})
         self._state_store.active_plugin = plugin
         self._state_store.last_raw_input = raw_input
         self._state_store.design_report = report
@@ -92,6 +93,7 @@ class RunDesignController:
             plugin = self._state_store.registry.get_plugin(self._state_store.selected_topology_id)
         if report.llc_run_context is not None:
             report = replace(report, llc_run_context=report.llc_run_context.transition("capacitors", "running"))
+        report = update_design_run(report, {"capacitor_design": "running"})
         try:
             report = run_capacitor_pipeline(
                 report,
@@ -105,9 +107,12 @@ class RunDesignController:
                     llc_run_context=report.llc_run_context.transition("capacitors", "failed", reason=str(exc)),
                 )
                 self._state_store.design_report = report
+            report = update_design_run(report, {"capacitor_design": "failed"}, reason=str(exc))
+            self._state_store.design_report = report
             raise
         if report.llc_run_context is not None:
             report = replace(report, llc_run_context=report.llc_run_context.transition("capacitors", "succeeded"))
+        report = update_design_run(report, {"capacitor_design": "succeeded"})
         self._state_store.design_report = report
         return report
 
@@ -123,6 +128,7 @@ class RunDesignController:
         report = _remove_magnetic_disabled_notes(report)
         if report.llc_run_context is not None:
             report = replace(report, llc_run_context=report.llc_run_context.transition("magnetics", "running"))
+        report = update_design_run(report, {"inductor_design": "running"})
         try:
             report = run_magnetic_pipeline(report)
             if (
@@ -168,6 +174,8 @@ class RunDesignController:
                     llc_run_context=report.llc_run_context.transition("magnetics", "failed", reason=str(exc)),
                 )
                 self._state_store.design_report = report
+            report = update_design_run(report, {"inductor_design": "failed"}, reason=str(exc))
+            self._state_store.design_report = report
             raise
         finally:
             finished_at = _utc_timestamp()
@@ -189,6 +197,14 @@ class RunDesignController:
             )
         ):
             report = replace(report, llc_run_context=report.llc_run_context.transition("magnetics", "succeeded"))
+        report = update_design_run(
+            report,
+            {
+                "inductor_design": "succeeded",
+                "loss": "succeeded" if report.loss is not None else "not_started",
+                "thermal": "succeeded" if report.thermal is not None else "not_started",
+            },
+        )
         self._state_store.design_report = report
         return report
 

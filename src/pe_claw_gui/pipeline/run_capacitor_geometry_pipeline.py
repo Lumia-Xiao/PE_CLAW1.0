@@ -18,6 +18,7 @@ from ..models.capacitor import (
     LlcResonantCapacitorSearchResult,
 )
 from ..models.design_report import DesignReport
+from ..models.design_run_context import get_run_output_root
 from ..visualization.capacitors import (
     build_capacitor_bank_layout,
     export_capacitor_comparison_geometry_artifacts,
@@ -421,8 +422,8 @@ def _resolve_geometry_roots(
     report: DesignReport,
     output_root: str | Path | None,
 ) -> tuple[Path | None, Path | None]:
-    if output_root is not None and report.llc_run_context is not None:
-        root = Path(output_root)
+    root = Path(output_root) if output_root is not None else get_run_output_root(report)
+    if root is not None:
         return root / "capacitor_design", root / "resonant_capacitor_design"
     return None, None
 

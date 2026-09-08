@@ -1,8 +1,433 @@
 # Change Log
 
+## 2026-09-07 三相三电平 NPC 损耗一致性计划第五步
+
+- 新增统一的 NPC 半导体损耗聚合契约：单器件 `p_total_W` 只在角色聚合层乘一次物理器件数量，方案总损耗只求各角色总损耗之和。
+- Efficiency Sweep、器件方案汇总和硬件概览统一复用该聚合路径，覆盖外管、内管和钳位二极管三个角色。
+- 修复硬件概览组级与子项级损耗口径可能分叉的问题，避免出现组级损耗与角色明细相差 6 倍。
+- 新增真实硬件概览 payload 数量/损耗守恒测试；验证：NPC 定向测试 `27 passed`。
+
+## 2026-09-07 三相三电平 NPC 损耗一致性计划第四步
+
+- 修复 NPC Efficiency Sweep 完成后的报告传递：控制器现在使用固定已选硬件刷新最终用户工况报告，再将 Efficiency Sweep 结果挂接到该报告。
+- 器件页、损耗页和硬件概览使用同一份最终报告状态，不再只保存扫描前的设计点波形和器件损耗。
+- 未改变器件、磁件、电容或散热器选型；新增 GUI 控制器合同断言，验证最终报告仍复用原 run、原 candidate 和已选硬件。
+- 验证：NPC 定向测试 `26 passed`。
+
+## 2026-09-07 三相三电平 NPC 损耗一致性计划第三步
+
+- NPC Efficiency Sweep 现在只接受当前工况且三类角色完整的半导体损耗结果。
+- 当前工况刷新失败时，禁止回退到 `active_scheme.total_scheme_loss_w` 或设计点损耗；该负载点的半导体损耗、总损耗和效率均标记为不可用，并保留 warning。
+- 新增 NPC 效率扫描失败传播测试；验证：NPC 定向测试 `26 passed`，未改变其他拓扑的既有回退行为。
+
+## 2026-09-07 三相三电平 NPC 损耗一致性计划第二步
+
+- 修复 NPC 当前工况半导体损耗刷新：当前报告必须包含匹配的波形、开关事件、active scheme 和全部三类已选器件。
+- 刷新过程现在按当前报告解析已选器件，内管、外管和钳位二极管缺失或评估失败时明确记录 warning，不再静默生成部分结果或回退到设计点损耗。
+- `_apply_design_sink_reference` 继续只复用设计点热设计参数，当前工况的导通、开关和总电气损耗保持由当前 stress 计算。
+- 新增 NPC 当前工况刷新成功/失败合同测试；验证：NPC 定向测试 `24 passed`，未新增用户输入或触发器件重新选型。
+
+## 2026-09-07 三相三电平 NPC 损耗一致性计划第一步
+
+- 固化半导体损耗数据契约：`DeviceLossResult.p_total_W` 为单个物理器件损耗，角色总损耗按物理器件数汇总，方案总损耗为各角色总损耗之和。
+- 为 NPC 外管、内管和钳位二极管分别锁定 6 个拓扑位置，并记录独立钳位二极管模型不得重复计数的约束。
+- 新增 5%、50%、100% 负载基线脚本和专项测试，记录实际事件电流范围、当前工况损耗、角色损耗和半导体总损耗。
+- 当前基线结果：事件电流峰值随负载变化，半导体损耗约为 3.219 W、12.588 W、25.936 W；报告半导体损耗与按角色物理数量汇总值一致。
+- 未改变现有损耗计算、器件选型或用户输入；验证：NPC 定向测试 `23 passed`，基线文件位于 `pytest_temp/npc-loss-consistency-step1/baseline.json`。
+
+## 2026-09-06 新建三相两电平 VSI 逐事件开关损耗修正计划
+
+- 新增 `Plan/Active/three_phase_two_level_vsi_switching_loss_plan.md`。
+- 计划将三相两电平 VSI 的开关损耗修正为基于完整工频周期实际门极事件、实际事件电流和实际 DC-link 电压的逐事件计算。
+- 计划包含 6 个步骤：基线、事件数据结构、门极边沿提取、公共损耗模型接入、运行点/效率扫描验证和最终专项验收。
+- 明确保持用户输入、公共损耗模型接口、器件选择和 NPC 逻辑不变；每一步必须测试、commit 和 push。
+
+## 2026-09-06 单相全桥 TCM 第七步状态问题修复（阶段性）
+
+- 定位并修复单相全桥设计 manifest 一直为 `running` 的原因：总状态错误依赖 `validation = succeeded`，且 selection-only 提前返回未收尾阶段状态。
+- 增加 `not_applicable` 终态；单相全桥器件选择完成后标记半导体阶段成功，未执行的后续阶段明确标记为不适用，validation 不伪造成功。
+- 增加状态闭合合同测试；验证 `25 passed`，并通过 `compileall` 与 `git diff --check`。
+- 状态修复实现提交：`9a41075`（`fix: close full-bridge TCM design run status`）已推送到 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-06 单相全桥 TCM 核实计划第七步完成
+
+- 在当前设计 run 的 `validation/tcm_diagnostic.json` 写入 TCM 可审计诊断证据，包含输入快照、工频时间范围、开关频率范围、事件统计、损耗摘要、Other loss、warning 和 failure 信息。
+- 诊断文件与 manifest 使用同一 run 根目录，避免跨设计结果混淆；未新增用户输入。
+- 验证：`25 passed`；`compileall` 和 `git diff --check` 通过。
+- 诊断实现提交：`aaf9f44`（`fix: finalize full-bridge TCM output status and evidence`）已推送到 `origin/codex/npc-output-run-isolation-step1`；计划回执提交将在本次文档更新后生成。
+
+## 2026-09-06 单相全桥 TCM 核实计划第八步完成
+
+- 完成 TCM 最终专项验收，并执行 NPC 定向合同测试；未扩大到其他拓扑全量回归。
+- 验证：`54 passed in 197.69s`；`compileall` 和 `git diff --check` 通过。
+- 测试证据位于 `pytest_temp/single-phase-full-bridge-tcm-step8/final-tests.xml`。
+- 本计划完成后归档到 `Plan/completed/`。
+
+## 2026-09-06 单相全桥 TCM 核实计划第六步
+
+- TCM 电感磁件请求现在优先使用完整工频周期的详细三角电流时间轴，通过梯形积分计算 RMS 和峰值，并保留候选包络数据作为兼容回退。
+- TCM 电容选择继续使用详细 DC-link 电流时间轴；新增合同测试确认时间轴、电流数组等长并覆盖完整工频周期。
+- 未新增用户输入，未修改器件/磁件选择算法的无关部分，也未扩大到 NPC 或其他拓扑。
+- 验证：专项测试 `29 passed`；`compileall` 和 `git diff --check` 通过。
+- 实现提交：`535a4d9`（`fix: align TCM magnetic and capacitor loss waveforms`）已推送到 `origin/codex/npc-output-run-isolation-step1`；计划回执提交将在本次文档更新后生成。
+
+## 2026-09-06 单相全桥 TCM 核实计划第五步
+
+- 为 TCM 每个实际重构周期建立逐事件开关损耗输入，开通使用谷值电流、关断使用峰值电流，阻断电压使用周期起点 DC-link 实际值。
+- 负电流开通沿用公共事件模型的软开通判据，SiC 反向恢复损耗保持为零；TCM 事件接入全桥公共 `evaluate_switching_events()` 路径。
+- 每个 TCM 周期仅生成活动桥臂的 4 个换相事件，避免复制到 S1-S4 造成重复计数；平均损耗继续按四个物理位置和一个工频周期汇总。
+- 验证：TCM/全桥专项测试 `28 passed`；`compileall` 和 `git diff --check` 通过。
+- 实现提交：`e320ce4`（`fix: calculate full-bridge TCM switching loss per event`）已推送到 `origin/codex/npc-output-run-isolation-step1`；计划回执提交将在本次文档更新后生成。
+
+## 2026-09-06 单相全桥 TCM 核实计划第一步
+
+- 固化最新 TCM 输出 `outputs/20260906_sp_fbi_b48dd62b` 的输入、manifest、效率扫描和 TCM 波形诊断。
+- 新增 `pytest_temp/single-phase-full-bridge-tcm-step1/baseline.json`：确认完整工频周期 `0–20 ms`、详细 TCM 周期数 `508`、开关频率范围约 `8.705–39.153 kHz`。
+- 确认当前效率扫描 20 个负载点的半导体损耗均为 `19.993834 W`，作为后续步骤的待定位基线。
+- 新增 TCM 基线合同测试；验证 `12 passed`、`compileall` 和 `git diff --check` 通过。
+
+## 2026-09-06 单相全桥 TCM 核实计划第二步
+
+- 增加 TCM GUI 渲染 smoke 测试，确认四个子图均覆盖完整 `0–20 ms` 工频周期。
+- 验证详细 TCM 电流/频率使用 `detail_time_s`，包络电压/DC-link 数据使用 `time_s`，避免数组长度不一致。
+- 验证：专项测试 `13 passed`；`compileall` 和 `git diff --check` 通过；未修改 TCM 计算、损耗或 NPC 代码。
+
+## 2026-09-06 单相全桥 TCM 核实计划第三步
+
+- 核实 efficiency sweep 为每个负载点创建并传递独立的 TCM `OperatingPoint`，未发现运行点复用问题。
+- 增加 5%、50%、100% 负载的 TCM 波形刷新合同测试，确认电流幅值和详细开关频率随负载变化。
+- 验证：专项测试 `19 passed`；`compileall` 和 `git diff --check` 通过；半导体固定损耗问题留待后续开关事件路径核实。
+
+## 2026-09-06 单相全桥 TCM 核实计划第四步
+
+- 定位 TCM 半导体损耗固定的根因：全桥事件级损耗入口只读取 CCM 的 `single_phase_inverter_refined_waveforms.switching_events`，TCM 当前没有该事件源，因此回退到设计点代表性损耗。
+- 确认 TCM 已有逐周期 `detail_cycle_fsw_hz`，但尚未转换为事件级电流/电压记录；第 5 步将建立最小事件源并接入公共损耗模型。
+- 新增 TCM 事件源审计测试；本步骤不修改生产计算和公共损耗公式。
+
+## 2026-09-06 修正单相全桥 TCM 波形显示时间轴
+
+- GUI 现在优先使用 TCM 详细三角电流波形，而不是回退到通用平均值波形。
+- TCM 图表显示范围固定为完整工频周期 `[0, 1/f_line]`；默认 50 Hz 时为 `0–20 ms`。
+- 增加 TCM 波形首尾时间点和详细采样数量合同测试。
+- 验证：单相全桥合同与开关损耗专项测试 `24 passed`；`compileall` 和 `git diff --check` 通过。
+
+## 2026-09-06 单相全桥电流波形修正计划第七步
+
+- 将单相全桥开关事件来源切换为连续积分段的真实门极边界，不再从预览采样数组推断事件时间和事件电流。
+- 事件电流取切换前积分段的连续状态终点，直流母线电压取同一积分边界的实际端点；记录积分段索引、区间时间、评估时间和周期边界回绕信息。
+- 增加 S1-S4 分项事件审计，保留原有公共事件能量模型接口及负电流软开通判据。
+- 验证：单相全桥开关损耗与周期电流专项测试 `20 passed`；`git diff --check` 通过；未扩大到 NPC 或其他拓扑回归。
+- 实现提交：`8ed7f63` (`feat: attach integrated current to full-bridge events`) 已推送；本条计划回执随后单独提交。
+
+## 2026-09-06 单相全桥电流波形修正计划第八步
+
+- 完成最终单相全桥专项验收、单相全桥合同、运行点刷新链路和 NPC 定向合同测试，共 `47 passed`。
+- 完成 `compileall` 和 `git diff --check`；默认工况事件数 `3200`，硬/软开通各 `800`，周期电流残差约 `2.51e-12 A`。
+- 确认事件电流来自连续积分段边界，损耗汇总合同闭合，`Other loss = 0` 断言通过；未新增用户输入，未扩大其他拓扑修改范围。
+- 测试证据位于 `pytest_temp/single-phase-full-bridge-current-step8/`，未纳入提交。
+
+## 2026-09-06 单相全桥开关损耗计划归档
+
+- 确认第 1 至第 7 步均已完成，并已完成专项验证、独立 commit 和远端 push。
+- 将 `Plan/Active/single_phase_full_bridge_switching_loss_plan.md` 归档到 `Plan/completed/`。
+- 归档动作不修改生产代码；保留现有未跟踪输出、缓存和其他历史计划变更不纳入本次提交。
+- 本次归档提交和远端 HEAD 核对待本次操作完成后补录。
+
+## 2026-09-06 单相全桥开关损耗计划第七步
+
+- 新增单相全桥运行点刷新验收：确认固定 `main_switch` 硬件不变，刷新后的损耗仍使用 `full_bridge_unipolar_spwm_event_line_cycle_average`，事件数保持 `3200`，总损耗字段闭合。
+- 完成单相全桥专项、单相全桥合同、DC-AC运行点刷新链路和 NPC 事件级合同定向回归；未执行无关拓扑全量回归。
+- 验证：指定测试集合 `44 passed`；`python -m compileall -q src tests` 通过；`git diff --check` 通过；未将 `outputs/`、`pytest_temp/` 或缓存加入提交。
+- 第 1 至第 7 步的实现和回执均已按计划独立提交并推送；本计划内容保持在 `Plan/Active`，待后续按计划单独归档。
+- Git：第七步实现 commit `d05c6f32d6bcb82e6dd7c85db4e593fca0a3cf68`（`test: close single-phase full-bridge switching-loss plan`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执提交随后单独生成并推送，远端 HEAD 已核对为 `d05c6f32d6bcb82e6dd7c85db4e593fca0a3cf68`。
+
+## 2026-09-06 单相全桥开关损耗计划第六步
+
+- 在 `run_device_pipeline.py` 中将单相全桥 `main_switch` 从旧 20 段准静态模型切换到工频周期逐事件开关损耗模型。
+- 使用四个物理开关位置汇总事件 Eon/Eoff/Err，并按 `sum(Eevent)/(4*Tline)` 换算平均功率；先扣除旧代表性开关/反向恢复损耗，再写回新值，避免重复计入。
+- 保持导通、Eoss、栅极损耗、器件选型和用户输入不变；NPC 分支继续使用原有事件级路径。
+- 增加单相全桥报告审计 notes，包含事件数、硬/软开通次数、电流/阻断电压范围和事件级计算来源。
+- 更新第一步基线测试，使其明确区分旧模型基线与当前生产报告。
+- 验证：单相全桥专项+原有合同测试 `20 passed`；`compileall` 和 `git diff --check` 通过。
+- Git：第六步实现 commit `ad9dcbcb6f26c1a496ed12f1d811b9dc137e9082`（`feat: route full-bridge device loss through event model`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执提交随后单独生成并推送，远端 HEAD 已核对为 `ad9dcbcb6f26c1a496ed12f1d811b9dc137e9082`。
+
+## 2026-09-06 单相全桥开关损耗计划第五步
+
+- 在 `loss_evaluator.py` 中新增拓扑中立的 `evaluate_switching_event_energy()` 和 `evaluate_switching_events()`，复用现有厂商 Eon/Eoff 模型、结温、栅极参数及并联器件电流分配。
+- 统一执行实际有符号事件电流判据：负电流开通 `Eon=0`，非负电流开通按实际绝对电流计算，关断按实际绝对电流计算；SiC 反向恢复能量保持为 `0`。
+- 新增 `summarize_switching_event_energy()`，将工频周期事件总能量按 `Tline` 和物理位置数换算为 `p_sw_on_W`、`p_sw_off_W`、`p_rr_W`。
+- 保留 `evaluate_npc_switching_event_energy()` 和 `evaluate_npc_switching_events()` 作为兼容入口，NPC 调用行为不变；尚未替换单相全桥生产调用链，留给第六步。
+- 验证：单相全桥专项 + NPC 事件合同测试 `26 passed`；`git diff --check` 通过。
+- Git：第五步实现 commit `84546ccb3763b50bf828e92185f1d3a6c12ef044`（`feat: evaluate full-bridge switching loss per event`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执提交随后单独生成并推送，远端 HEAD 已核对为 `84546ccb3763b50bf828e92185f1d3a6c12ef044`。
+
+## 2026-09-06 单相全桥开关损耗计划第四步
+
+- 为单相全桥每个门极事件接入连续积分电流：电流取门极变化前的积分状态，门极状态取变化后的状态，明确边界合同为 `current_before_transition_gate_after_transition`。
+- 事件保留有符号 `signed_current_A` 和 `absolute_current_A`，并根据实际有符号电流生成 `soft_turn_on`/`hard_turn_on` 审计标记；未调用器件开关能量模型。
+- 阻断电压取事件采样时刻的实际 DC-link 电压，并记录事件所在积分区间和来源字段。
+- 新增事件数量、硬/软开通、事件电流范围、电压范围及周期稳态残差审计 metadata。
+- 验证：单相全桥专项+原有合同测试 `17 passed`；`git diff --check` 通过。
+- Git：第四步实现 commit `9449588d6742969cf195e6c02499359af19e7dff`（`feat: attach actual current and voltage to full-bridge events`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执提交随后单独生成并推送，远端 HEAD 已核对为 `9449588d6742969cf195e6c02499359af19e7dff`。
+
+## 2026-09-06 单相全桥开关损耗计划第三步
+
+- 在 `src/pe_claw_gui/topologies/dc_ac/single_phase_full_bridge_inverter/waveform.py` 中将单相全桥 PWM 电感电流改为跨完整工频周期连续积分：`di/dt=(v_ab-v_ac)/L`，状态跨越所有开关周期传递。
+- 使用理想电感周期状态的一次 shooting 求解首始电流，并以既有正弦电流参考均值固定自由 DC 偏置；记录周期残差、初始/末端电流、迭代次数和收敛状态，不执行工频末端人工修正。
+- 将开关事件的电流来源标记更新为连续分段积分结果；未修改事件电流提取、器件开关损耗调用、用户输入、调制策略或 NPC 逻辑。
+- 验证：单相全桥专项+原有合同测试 `17 passed`；`git diff --check` 通过。
+- Git：第三步实现 commit `36a4aad0164c3535f9235ba8f248f971e5d4cc6e`（`feat: simulate continuous full-bridge inductor current`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执提交随后单独生成并推送，远端 HEAD 已核对为 `36a4aad0164c3535f9235ba8f248f971e5d4cc6e`。
+
+## 2026-09-05 单相全桥开关损耗计划第二步
+
+- 在 `src/pe_claw_gui/topologies/dc_ac/single_phase_full_bridge_inverter/waveform.py` 中新增基于现有单极性 SPWM 门极状态的统一开关事件时间轴。
+- 事件按半开区间 `[0, Tline)` 提取并稳定排序，记录 `S1` 至 `S4`、桥臂、开通/关断类型、采样边界、桥输出状态和阻断电压来源；默认工况生成 `3200` 个事件，四个开关各 `800` 个，均包含开通和关断。
+- 本步骤仅建立时序，事件电流字段明确标记为第三步待接入的连续分段积分电流，未接入损耗计算，也未修改用户输入、调制策略或 NPC 逻辑。
+- 验证：单相全桥专项+原有合同测试 `16 passed`；`compileall` 通过；`git diff --check` 通过。
+- Git：本步骤实现 commit `0915933750655ad56aca9490632e50eb10ac12cd`（`feat: add single-phase full-bridge switching event timeline`）已推送至 `origin/codex/npc-output-run-isolation-step1`；独立回执 commit `dd6ef4a27ad27ff0bcdb3baa1cef4bad483e7900`（`docs: record full-bridge switching timeline step2 receipt`）亦已推送，远端 HEAD 已核对一致。
+
+## 2026-09-05 单相全桥开关损耗计划第一步
+
+- 新增 `scripts/record_single_phase_full_bridge_step1_baseline.py` 和 `tests/test_single_phase_full_bridge_switching_loss.py`，建立默认单相全桥 CCM/单极性 SPWM 的开关损耗基线。
+- 基线记录当前 20 个工频分段、选中主开关、分段正负电流、详细 PWM 预览以及 `p_sw_on=1.1432272798753493 W`、`p_sw_off=0.02562835862477436 W`、`p_rr=0 W`、`p_total=1.4005308859697716 W`；仅用于锁定改造前行为，未修改生产计算逻辑。
+- 测试输出写入 `pytest_temp/single-phase-full-bridge-step1`，未写入或提交 `outputs/`。
+- 验证：新增基线测试 `3 passed`；既有单相全桥合同测试 `11 passed`；基线 JSON 生成成功；`compileall` 和 `git diff --check` 待本步骤提交前复核。
+- Git：本步骤实现 commit `18b04258a7040737a048e72f4c9c2542316769a6`（`test: establish single-phase full-bridge switching-loss baseline`）已推送至 `origin/codex/npc-output-run-isolation-step1`；独立回执 commit `a7f63f65707a4e7ed5023678a314aaa597f3045c`（`docs: record full-bridge switching-loss step1 receipt`）亦已推送，远端 HEAD 已核对一致。
+
+## 2026-09-05 单相全桥逆变器精确开关损耗计划
+
+- 新建 `Plan/Active/single_phase_full_bridge_switching_loss_plan.md`，将单相全桥开关损耗从 20 段准静态代表电流改造为 NPC 兼容的逐开关事件、连续电感电流和工频周期能量汇总方案，细化为 7 个步骤。
+- 明确保持现有用户输入、单极性 SPWM、器件模型和 NPC 已完成逻辑不变；负实际电流开通为软开通并令 `Eon=0`，正/非负实际电流开通按实际事件电流计算，SiC 反向恢复为 0。
+- 明确每一步必须专项验证、更新 plan 和 ChangeLog、独立 commit、push 并核对远端 HEAD；本次只新增计划和日志，未修改生产代码或测试代码。
+
+## 2026-09-05 NPC Efficiency Sweep 性能优化计划第六步
+
+- 锁定 GUI Efficiency Sweep 控制器复用当前 NPC 设计报告、运行上下文和已选硬件，不重新触发设计、器件选型或磁性搜索。
+- 新增 GUI 控制器专项回归，验证当前运行 ID、候选和输出目录保持一致，效率结果正确回写 GUI 状态。
+- 最终验证：NPC 步骤/合同/打包 GUI 测试 `46 passed`；`py_compile`、`git diff --check` 通过。固定硬件两点扫描约 `17.19 s`，每点约 `8.60 s`，PF 点数 `20`，每个负载点 `4800` 个事件。
+- 第 1 至第 6 步全部完成，精确开关损耗语义、无 `other` 损耗和无新增 GUI 输入约束保持。
+
+## 2026-09-05 NPC Efficiency Sweep 性能优化计划第五步
+
+- NPC efficiency sweep 增加固定硬件运行点刷新模式：每个点只评估已选磁性件，复用其余磁性候选和选型结果；不再逐点运行 NPC 热流水线。
+- 保留每个点的实际 NPC 波形、开关事件、事件级器件损耗、当前磁性铜损/磁芯损耗和分裂直流链电容损耗刷新；没有恢复 `other` 损耗或增加 GUI 输入。
+- 新增契约测试，验证选中磁性件 ID、候选集合不变，且 NPC 效率点不重复调用热流水线。
+- 验证：NPC 专项/合同/GUI 测试 `45 passed`；`py_compile`、`git diff --check` 通过。代表性两点扫描约 `18.62 s`，效率约 `99.61%`、`99.60%`。
+
+## 2026-09-05 NPC Efficiency Sweep 性能优化计划第四步
+
+- NPC efficiency sweep 复用相邻运行点的周期稳态初值；负载扫描顺序传递，PF 扫描按正负功率方向隔离缓存，单独设计和 GUI 调用保持冷启动。
+- warm-start 先做一次周期残差校验，失败立即回退原有冷启动；审计字段记录 warm-start、回退、迭代次数和残差，未改变实际事件电流、阻断电压和开关损耗语义。
+- 验证：warm-start/NPC 合同 `25 passed`，性能基线 `3 passed`；代表性 sweep 负载点 `[False, True, True]`，PF 点 17 次复用、17 次快速回退，收敛残差最大 `2.96e-9 A`。
+- Git 提交和推送随后完成，测试生成物均留在 `pytest_temp`，未提交。
+
+## 2026-09-05 NPC Efficiency Sweep 性能优化计划第三步
+
+- 为 NPC 统一事件分段建立有序时间索引，使用 `bisect` 定位采样状态和事件电流所在分段；事件提取直接遍历相邻分段，消除每个事件的全量线性搜索。
+- 保持事件电流取切换前段精确积分值、状态取切换后段、阻断电压和事件审计来源不变；`4800` 个事件、`1199` 个软开通事件和周期残差 `2.94e-9 A` 均保持。
+- 性能：单次波形 `0.3383 s`，代表性扫描点 `0.4137 s`，完整 40 点估算 `16.5475 s`，相较第二步代表性点约提升 `20.1` 倍。
+- 验证：NPC 分段测试 `8 passed`，NPC 合同/性能基线/基线测试 `21 passed`；`py_compile`、`git diff --check` 通过。生成物均留在 `pytest_temp`，未提交。
+
+## 2026-09-05 NPC Efficiency Sweep 性能优化计划第二步
+
+- 将 NPC `SAMPLES_PER_SWITCHING_PERIOD` 从 `24` 调整为 `8`，默认工频周期采样点从 `9601` 降至 `3201`；同步 NPC 采样契约测试。
+- 保持精确统一事件分段、实际分段积分电流、事件时刻分裂直流母线阻断电压、负电流软开通和 SiC 反向恢复为零的逻辑不变；代表性运行点仍为 `4800` 个事件。
+- 修正性能测量脚本从 waveform metadata 读取实际采样参数。实测单次波形 `8.1643 s`、代表性扫描点 `8.3109 s`、完整 40 点估算 `332.4342 s`，较第一步约降低 `54%`。
+- 验证：NPC 步骤、性能基线和合同测试 `43 passed`；`py_compile`、`git diff --check` 通过。测试临时文件写入 `pytest_temp/npc-efficiency-step2`，未提交生成物。
+
+## 2026-09-05 NPC Efficiency Sweep 性能优化计划第一步
+
+- 新增 NPC 专用性能基线脚本和测试，仅测量单次波形、单负载点、单 PF 点，并按固定 20+20 网格估算完整 sweep，避免基线测试重复执行长时间全扫描。
+- 基线：`SAMPLES_PER_SWITCHING_PERIOD=24`，`9601` 个工频采样点，`4800` 个开关事件；单次波形约 `18.07 s`，单负载点约 `17.92 s`，单 PF 点约 `18.26 s`，完整 40 点估算约 `723.58 s`。
+- 结果不变量保持：周期稳态最大首尾残差约 `2.95e-9 A`，事件使用精确统一分段边界、精确分段积分电流和事件时刻阻断电压，存在负电流软开通事件。
+- 验证：NPC 基线测试 `3 passed`；`py_compile`、`git diff --check` 通过。基线 JSON 写入 `pytest_temp`，未提交生成物。
+- Git：第一步代码提交 `628e420`（`test: add NPC efficiency performance baseline`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条计划与日志为独立回执提交。
+
+## 2026-09-05 NPC 精确开关损耗最小实现计划第九步
+
+- 增加结构化报告中的 NPC 电流验证信息，包括三相参考/实际平均电流、平均误差、开关纹波、周期稳态残差、三相电流和及精确开关事件来源。
+- 增加 GUI 打包运行时回归，确认 NPC 曲线显示实际 `ia_a`、`ib_a`、`ic_a`，保持原有输入窗口和字段不变。
+- 验证：NPC 效率扫描 `1 passed`；NPC 结构化报告 `1 passed`；GUI 打包运行时 `3 passed`；NPC/DC-AC 相关回归 `47 passed`；流程和输出隔离 `10 passed`；`py_compile`、`git diff --check` 通过。
+- 全量回归按任务范围停止，不作为本步骤验收依据；测试临时文件均使用 `pytest_temp`，生成的 `outputs/` 和缓存目录未提交。
+- Git：第九步功能提交 `748e559`（`test: complete NPC waveform validation`）已推送至 `origin/codex/npc-output-run-isolation-step1`；本条计划与日志为独立回执提交。
+
+## 2026-09-05 NPC 精确开关损耗最小实现计划第八步
+
+- 将 NPC 开关事件改为直接从统一精确事件分段边界生成，不再从粗采样门极波形反向插值事件时刻和电流。
+- 事件级损耗继续使用实际有符号电流、绝对电流和事件时刻的分裂直流母线阻断电压；保留负电流软开通、SiC 反向恢复为零及工频周期汇总规则。
+- 增加事件来源、电流来源和阻断电压来源审计字段及边界一致性测试，保持原有 GUI 输入不变。
+- 验证：第八步专项与 NPC 合同回归 `22 passed`；默认工况 `4800` 个事件、`2801` 个统一事件边界；`py_compile`、`git diff --check` 通过。
+- Git：第八步功能提交 `bbde84e` (`feat: use exact NPC switching event currents`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`；本条计划与日志回执随后单独提交。
+
+## 2026-09-04 NPC 电感电流波形修正计划第七步
+
+- 通过周期射击法求解三相三电平 NPC 工频周期稳态初始电流，使用阻尼固定点迭代，并将初值投影到三相三线制约束 `ia + ib + ic = 0`。
+- 求解后以最终初值重新执行完整统一事件时间轴仿真，周期首尾不再依赖工频末端人工线性修正。
+- 删除旧的 legacy 事件仿真副本和 `_integrate_phase_current_by_cycle()` 人工端点修正函数，避免旧路径重新被调用。
+- 新增周期稳态求解 metadata 和专项测试；默认工况最大首尾残差约 `2.95e-9 A`，重复运行初值一致；低 `Vdc` 工况明确报告迭代未收敛及调制饱和。
+- 验证：第七步专项 `7 passed`；NPC 专项与合同回归 `22 passed`；`py_compile`、`git diff --check` 通过。
+- Git：第七步功能提交 `c0325a8` (`feat: solve NPC periodic steady-state current`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`；本条计划与日志回执随后单独提交。
+
+## 2026-09-04 NPC 电感电流波形修正计划第六步
+
+- 将 NPC 电流仿真改为逐开关周期的实际平均电流反馈校正：先生成三相电压候选序列，再在统一事件分段上积分实际电流。
+- 使用每个周期的时间积分平均电流与正弦参考平均值比较，并按理想电感灵敏度 `2L/Tsw` 修正目标平均电压，最多执行 4 次内部迭代。
+- 保持目标电压在 `+/-Vdc/2` 范围内，累计记录电压限幅、周期平均误差、迭代次数和剩余不可跟踪误差；没有增加 GUI 用户输入。
+- 新增波形字段和 metadata：实际周期平均电流、平均误差及第六步校正审计信息。
+- 验证：第六步专项测试 `5 passed`；默认工况最大周期平均电流误差约 `4.04e-11 A`，无调制饱和。
+
+## 2026-09-04 NPC 电感电流波形修正计划第五步
+
+- 将 NPC 候选三电平序列接入统一三相事件时间轴，按合并后的事件区间确定三相状态和公共模式相电压。
+- 使用理想电感模型逐段积分，并对正弦电网电压使用解析积分；显示波形仍映射到既有时间轴和字段。
+- 取消本路径的工频末端人工线性修正，新增统一事件时间轴、区间数量和分段积分方法 metadata。
+- 新增正弦积分、统一事件时间轴、实际电流数组和无末端修正测试；更新旧合同测试以匹配第五步语义。
+- 数值验收：默认输入下三相电流均值接近 `0 A`，三相电流和最大误差约 `2.61e-12 A`，周期首尾误差约 `1.18e-11 A`，默认工况无调制饱和。
+- 验证：第五步及前四步、NPC 合同专项 `35 passed`；`compileall`、`git diff --check` 通过。
+- Git：步骤 5 commit `fa01342` (`feat: integrate NPC current on unified event timeline`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-04 NPC 电感电流波形修正计划第四步
+
+- 将第三步的 NPC 平均相电压目标转换为 `D+、D0、D-` 三电平作用时间。
+- 新增以零电平为起止的中心对称候选序列：正电压为 `0 -> +1 -> 0`，负电压为 `0 -> -1 -> 0`。
+- 保持现有实际 PWM 波形和电流积分路径不变，候选序列通过 waveform metadata 提供给后续统一事件时间轴实现。
+- 新增电平占空比、序列合法性、周期作用时间和无新增输入测试。
+- 验证：第四步专项测试 `6 passed`；`compileall`、`git diff --check` 通过。
+- Git：步骤 4 commit `9c49fbb` (`feat: add NPC three-level duty sequences`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-04 NPC 电感电流波形修正计划第三步
+
+- 按无电阻电感方程新增每相每个开关周期的平均逆变器电压目标：`v_grid_avg + 2L*(i_ref_avg-i_start)/Tsw`。
+- 目标电压按 NPC `+Vdc/2` 和 `-Vdc/2` 范围限幅，并记录限幅状态、目标数组和计算方法 metadata。
+- 保持当前实际 PWM 状态、电流积分逻辑、GUI 输入和损耗逻辑不变。
+- 新增目标电压公式、时间平均电网电压、NPC 电压限幅及无新增输入测试。
+- 验证：第三步及前两步、NPC 合同专项 `26 passed`；`compileall`、`git diff --check` 通过。
+- Git：步骤 3 commit `d75b3aa` (`feat: calculate NPC average inverter voltage targets`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-04 NPC 电感电流波形修正计划第二步
+
+- 在 NPC waveform metadata 中保留三相瞬时正弦电流参考，并新增每个完整开关周期的时间加权梯形平均参考。
+- 新增参考定义、平均方法、平均时间轴和周期平均数组，供后续平均电流控制及电压计算步骤复用。
+- 保持原有 GUI 输入、PF 正负方向约定和实际 PWM 电流积分行为不变。
+- 新增正负 PF、三相参考和为零及时间加权平均测试。
+- 验证：第二步、NPC 合同和第一步基线专项 `22 passed`；`compileall`、`git diff --check` 通过。
+- Git：步骤 2 commit `d3c8310` (`feat: add NPC switching-period current references`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-04 NPC 电感电流波形修正计划第一步基线
+
+- 新增 `scripts/record_npc_step1_baseline.py`，采集当前三相三电平 NPC 默认输入下的接口、波形、周期修正和开关事件基线。
+- 新增 `tests/test_npc_step1_baseline.py`，验证基线可重复、NPC 波形字段完整且 JSON 可序列化。
+- 测试临时输出约束为工程根目录 `pytest_temp`；设计结果目录 `outputs/` 不写入基线工具。
+- 未修改 NPC 电流计算、GUI 输入或损耗公式。
+- 验证：NPC 基线和合同专项 `18 passed`；`compileall`、`git diff --check` 通过。
+- Git：步骤 1 commit `4d100f5` (`test: establish NPC current waveform baseline`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-04 NPC 计划全量回归与收口
+
+- 更新 NPC 目标集成测试，使连续工频电流波形的角色最大应力成为测试依据，不再使用连续积分修复前的历史开关峰值。
+- 完成三相三电平 NPC 精确开关损耗六步计划的全量验收：`495 passed, 1 skipped`；步骤 6 DC-AC/NPC 回归 `28 passed`。
+- `compileall`、`git diff --check` 和生成文件边界检查通过；未提交 `outputs/`、`pytest_temp/` 或缓存文件。
+- Git：步骤 6 主 commit `2d91bb0` (`test: close NPC switching loss plan`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`；本条最终回执随后的记录提交完成。
+
+## 2026-09-04 NPC 运行点、效率扫描和报告审计
+
+- 为 `EfficiencySweepPoint` 增加可选的 `switching_loss_audit`，NPC 负载扫描和 PF 扫描的每个运行点都保存当前波形事件数、事件电流/阻断电压范围、软硬开通计数及工频平均公式。
+- 将 NPC 事件审计摘要写入效率 CSV 和结构化报告；结构化报告同时保留负载点和 PF 点的同源摘要。
+- 更新 GUI 损耗视图，显示实际事件电流、阻断电压、负电流软开通、`Psw=sum(Eon+Eoff)/Tline` 以及 SiC 反向恢复为零的计算依据。
+- 保持原有 GUI 输入字段不变，开关频率仍来自 `fsw_hz`。
+- 验证：NPC 扫描/报告专项 `16 passed`；结构化输出和 GUI 效率回归 `6 passed`；`compileall` 和 `git diff --check` 通过。
+- Git：步骤 5 主 commit `bb76778` (`feat: audit NPC switching loss across sweeps`) 已成功推送至 `origin/codex/npc-output-run-isolation-step1`；本条回执随后的记录提交待完成。
+
+## 2026-09-04 NPC 精确开关损耗最小实现计划
+
+- 新建 `Plan/Active/three_phase_three_level_npc_switching_loss_plan.md`，将三相三电平 NPC 精确开关损耗收敛为 6 个实施步骤。
+- 删除已被替代的 `Plan/Active/three_phase_three_level_npc_revision_plan.md`。
+- 明确保持原有 GUI 用户输入，不新增字段；开关频率继续使用既有 `fsw_hz`。
+- 明确每个步骤必须验证、更新计划和 ChangeLog、独立 commit 并 push 后才可完成。
+- 本次仅变更计划文档，未修改计算代码，未删除 `outputs/` 或其他用户生成结果。
+- 验证：计划文件切换和工作区边界检查通过；待本计划切换提交后记录 commit/push 回执。
+
+## 2026-09-04 NPC 连续工频电流波形
+
+- 修正 `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_npc_inverter/waveform.py`，使 NPC 相电感电流在整个工频周期连续积分，不再在每个 PWM 周期重新锚定基波电流。
+- 增加周期稳态线性修正及其 metadata 审计字段，保留开关纹波和原有用户输入契约。
+- 增加 NPC 连续积分边界测试。
+- 验证：NPC 契约测试 `11 passed`；受影响 DC-AC 回归 `20 passed`；`compileall` 和 `git diff --check` 通过。
+- Git：本步骤 commit `12f1180da9bde5193ad8a944bc0f8fc00497a314` 已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对一致。
+
+## 2026-09-04 NPC 实际开关事件提取
+
+- 在 `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_npc_inverter/waveform.py` 增加 12 路有源开关的门极边沿提取。
+- 对事件时间、三相有符号电感电流和上下分裂母线阻断电压进行线性插值，写入现有 waveform metadata。
+- 保持 GUI 用户输入不变，未新增字段。
+- 验证：NPC 契约测试 `12 passed`；受影响 DC-AC 回归 `21 passed`；`compileall` 和 `git diff --check` 通过。
+- Git：本步骤 commit `0334142b64030c9e472c12cadff6713e7161d6e5` 已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对一致。
+
+## 2026-09-04 NPC 事件级器件开关能量入口
+
+- 在 `src/pe_claw_gui/engines/devices/loss_evaluator.py` 增加 NPC 单事件和事件列表能量计算入口。
+- 负电流开通事件按软开关处理并令 `Eon=0`；正电流开通和关断使用事件实际电流、阻断电压及现有器件模型。
+- SiC 器件反向恢复事件能量置零；其他拓扑的既有损耗入口保持不变。
+- 增加 NPC 事件级极性、电流和 SiC 反向恢复测试。
+- 验证：相关专项与器件回归 `27 passed`；受影响 DC-AC/器件回归 `38 passed`；`compileall` 和 `git diff --check` 通过。
+- Git：本步骤 commit `0a63c2187133b6177be27941fbb1ce11f7e4c54e` 已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对一致。
+
+## 2026-09-04 NPC 工频事件损耗汇总接入
+
+- 在 `src/pe_claw_gui/engines/devices/stress_adapter.py` 中使用 NPC 事件电流更新开通/关断代表值。
+- 在 `src/pe_claw_gui/pipeline/run_device_pipeline.py` 中将 NPC 事件 Eon/Eoff 按 6 个物理位置和工频周期汇总到每位置损耗；并联方案先分摊事件电流，SiC 反向恢复损耗置零并保留正向导通损耗。
+- 增加公式级测试，核对报告损耗与事件能量汇总一致且没有额外乘 6。
+- 保持 GUI 用户输入和其他拓扑损耗逻辑不变。
+- 验证：NPC 契约 `15 passed`；其余受影响 DC-AC/器件回归 `24 passed`；此前完整效率扫描回归 `55 passed`；公式级事件汇总断言通过；`compileall` 和 `git diff --check` 通过。
+- Git：本步骤 commit `80026241d31fe5a3129fdfab9fad5200428fe324` 已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对一致。
+
 This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
 listed here.
+
+## 2026-09-04 Pytest Temporary Output Verification
+
+- Fixed the GUI end-to-end test's isolated subprocess cleanup and updated its
+  assertions for date/alias/short-ID run directories under `pytest_temp`.
+- Fixed hardware-overview hotspot extraction when efficiency is run before
+  thermal design has produced a recommended estimate.
+- Updated the LLC efficiency artifact test to use the current run-scoped CSV
+  location.
+- Validation: the two previously failing tests passed; syntax and diff checks
+  passed; focused regression passed (`36 passed`); full regression passed
+  (`489 passed, 1 skipped`).
+
+## 2026-09-03 All-Topology Design Output Isolation
+
+- Added an active `DesignRunContext` resolver so topology internals, operating-point refresh, device stress refresh, capacitor refresh, efficiency sweep, loss refresh, and full-pipeline execution share one isolated run directory.
+- Routed AC-DC rectifier synthesis and refresh waveform artifacts into the current run's `validation` directory.
+- Prevented GUI capacitor, inductor, and hardware-overview views from loading public legacy artifacts for reports that carry a run context.
+- Added cross-topology isolation tests for single-phase and three-phase AC-DC rectifier synthesis.
+- Required future topologies to use the shared run context and documented the commit/push rule in the active NPC plan.
+- Validation: focused output-isolation, LLC context, AC-DC topology, and AC-DC efficiency tests passed; full-suite execution was affected by the host pytest temporary-directory permission conflict.
+
+## 2026-09-03 Short Run Directory Names
+
+- Changed new run directories to `YYYYMMDD_<topology_alias>_<run_id_8>`.
+- Kept the full topology ID and full run ID in the manifest and design request for traceability.
+- Added explicit aliases for registered topologies and a generic abbreviation fallback for future topology plugins.
+- Existing output directories are intentionally left unchanged.
+- Validation: output-isolation tests cover date-only naming, eight-character run IDs, and future-topology fallback naming.
+
+## 2026-09-03 Repository-Local Pytest Temporary Directory
+
+- Added `pytest_temp/` to `.gitignore` so pytest-generated files and caches are not committed.
+- Recorded the repository-local pytest temporary-directory rule in the active NPC plan.
+
+## 2026-09-03 Pytest Temporary Path Cleanup
+
+- Updated LLC and GUI tests that created temporary files directly under the repository root to use pytest `tmp_path` fixtures.
+- Kept read-only historical evidence and existing user design outputs unchanged.
+- The affected tests now place generated files below the configured `pytest_temp/` base directory.
+
+## 2026-09-03 Pytest Temporary Path Boundary Scan
+
+- Updated the AC-DC GUI end-to-end test to use its pytest `tmp_path` as the subprocess output root.
+- Scanned tests for repository-root temporary output paths; remaining `outputs` and `migration` references are read-only historical evidence.
 
 ## 2026-08-28 AC-DC Efficiency Sweep Step 12 Real GUI Delivery
 
@@ -374,3 +799,123 @@ listed here.
   - Subject push passed and the remote branch containment check succeeded; this
     metadata update is the independent push receipt.
   - Merge, tag, release, and `master` push are outside this step.
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 1
+
+- Added a reproducible pre-change baseline for the single-phase full-bridge inductor-current waveform.
+- Recorded reference/current RMS and peak values, correlation, PWM ripple, bridge-voltage fundamental error, periodic residual, and output power.
+- Baseline artifacts are generated under `pytest_temp/single-phase-full-bridge-current-step1/`.
+- Production waveform logic was not changed.
+- Implementation commit: `4247065`; receipt commit: `de6f78e`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.
+
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 2
+
+- Replaced sampled gate-transition timestamps with deterministic linear interpolation of unipolar-SPWM comparator crossings.
+- Added the unified switching-cycle boundary axis and event-time axis while preserving GUI waveform samples.
+- Production current integration and loss formulas were not changed in this step.
+- Implementation commit: `02c8a90`; receipt commit: `065f1d7`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.
+
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 3
+
+- Added per-switching-period average bridge-voltage target calculation from average AC voltage, reference current, actual period-start current, and inductance.
+- Added bounded/unclamped target and saturation diagnostics without changing user inputs or the existing PWM sequence.
+- Implementation commit: `f55e145`; receipt commit: `4368196`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.
+
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 4
+
+- Rebuilt the single-phase bridge gate sequence from the bounded per-period voltage targets using complementary unipolar SPWM.
+- Added actual period-average bridge-voltage, target-error, state-interval, and three-level voltage diagnostics.
+- Preserved the existing user-input contract and DC-link voltage ripple in bridge voltage generation.
+- Implementation commit: `996a595`; receipt commit: `906e374`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.
+
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 5
+
+- Added bounded per-switching-period average-current feedback with up to three correction iterations.
+- Recorded reference and actual current averages, errors, iteration counts, saturation flags, and voltage targets before and after correction.
+- Non-converged or voltage-saturated default periods remain explicitly diagnosed for Step 6 periodic-state refinement.
+- Implementation commit: `da0c64a`; receipt commit: `f1d034c`; remote HEAD verified on `codex/npc-output-run-isolation-step1`.
+
+## 2026-09-06 Single-Phase Full-Bridge Current Waveform Step 6
+
+- Replaced the stale open-loop residual with closed-loop periodic shooting over continuous event-segmented current integration.
+- Resolved prerequisites missed by Steps 4/5: quantized PWM integration, stale period voltage targets, and an unevaluated last feedback update. Kept true unclamped targets and final-state diagnostics.
+- Used the candidate output filter inductance in (Vbridge - Vac) / Lout; the previous validation load inductance double-counted the reactive load at low PF.
+- Recorded exact segment peak/RMS, periodic and period-average errors, voltage saturation, and missing physical inductor saturation rating. Precise event-current lookup remains Step 7.
+- Added independent segment, average-current, RMS, load/PF, saturation and fractional-cycle checks in `tests/test_single_phase_full_bridge_periodic_current.py`; strengthened waveform and switching-loss tests.
+- Evidence: `pytest_temp/single-phase-full-bridge-current-step6/`. Branch: `codex/npc-output-run-isolation-step1`. No NPC or other-topology changes.
+- Validation: 34 focused tests passed in 56.98s; `git diff --check` passed. Default peak/RMS: 6.52305/4.35638 A, periodic residual 2.51e-12 A, mean-current error below 1e-6 A, zero voltage-saturated cycles.
+- Implementation `aab6c68041de3b64c305eb19dd848d43b480f933` pushed and remote HEAD verified; independent receipt: `docs: record full-bridge periodic current step6 receipt` (this commit).
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 1 步
+
+- 建立三相两电平 VSI 当前开关损耗基线和代码边界；未修改生产计算逻辑、NPC 逻辑或公共损耗模型。
+- 确认默认波形覆盖一个工频周期 `0.02 s`，采样点 `38401`，`fsw=20 kHz`、`fline=50 Hz`。
+- 确认当前应力使用波形支持的相电流峰值/RMS，而非逐开关事件电流；当前尚无 VSI 专用逐事件列表和损耗入口。
+- 基线设计点默认六个主开关位置，器件 `SCT4018KR`，半导体总损耗 `87.3178 W`。
+- 定向测试：`tests/test_dc_ac_three_phase_two_level_contract.py` 与 `tests/test_dc_ac_operating_refresh_gui_chain.py` 共 `15 passed`。
+- 证据写入 `pytest_temp/three-phase-two-level-vsi-step1/`，未提交 `outputs/`、缓存或临时生成物。
+- 本步骤实现提交和计划回执提交将在验证后分别完成并推送。
+- Git：第 1 步提交 `e63152d`（`test: establish three-phase VSI switching-loss baseline`）已推送至 `origin/codex/npc-output-run-isolation-step1`；计划状态表已记录该回执。
+
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 2 步
+
+- 建立 VSI 六开关逐事件数据结构、字段 schema 和审计字段；未接入门极边沿提取或损耗计算。
+- 事件字段覆盖相别、开关名/编号、桥臂、事件类型、事件时间、带符号电流、绝对电流、阻断电压、门极前后状态及三个来源字段。
+- 当前列表保持 `schema_only` 空列表，实际事件生成安排在第 3 步。
+- 定向测试共 `17 passed`；`compileall` 和 `git diff --check` 通过；证据位于 `pytest_temp/three-phase-two-level-vsi-step2/`。
+- Git：第 2 步实现提交 `1e307cd`（`feat: add three-phase VSI switching event contract`）已推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 3 步
+
+- 从三相两电平 VSI 实际采样门极边沿提取 S1-S6 开关事件，并同步生成互补下管事件。
+- 事件电流取对应相实际电感电流边沿采样值，阻断电压取同一时刻实际 DC-link 电压；事件范围采用 `[0, Tline)`。
+- 默认工况得到 `4800` 个事件，S1-S6 各 `800` 个，开通/关断各 `2400` 个；事件电流范围约 `-20.5821 A` 至 `20.5874 A`。
+- 定向测试共 `13 passed`；`compileall` 和 `git diff --check` 通过；证据位于 `pytest_temp/three-phase-two-level-vsi-step3-rerun/`。
+- Git：第 3 步实现提交 `c23123d`（`feat: extract three-phase VSI switching events`）已推送至 `origin/codex/npc-output-run-isolation-step1`；计划状态和第 2 步文档回执在本次提交中补齐。
+
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 4 步
+
+- 将 VSI 实际事件列表接入公共逐事件开关损耗模型，新增 VSI 专用损耗替换入口，不影响 NPC 和其他拓扑。
+- 开通按事件电流极性区分硬/软开通，关断使用实际事件电流，阻断电压使用实际事件电压；SiC 反向恢复为零。
+- 先扣除代表性开关损耗后按 `6*Tline` 重算，保持导通损耗、Eoss、栅极损耗和器件选择不变，避免重复计数。
+- 默认验证结果：`Psw_on=3.1644 W`、`Psw_off=1.1443 W`、`Prr=0 W`、半导体总损耗 `6.2728 W`。
+- 定向测试共 `20 passed`；`compileall` 和 `git diff --check` 通过；证据位于 `pytest_temp/three-phase-two-level-vsi-step4/`。
+- Git：第 4 步实现提交 `c8cc644`（`fix: calculate three-phase VSI switching loss per event`）已推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 5 步
+
+- 增加 VSI 专用效率扫描事件审计，确保负载/PF 扫描点使用重新生成的事件列表，而不是设计点缓存。
+- 负载 `0.5/1.0 p.u.` 的事件电流峰值约为 `10.38/20.59 A`，半导体损耗约为 `16.08/37.64 W`，`Other loss=0`。
+- PF 扫描 `20` 个点均有事件审计，事件电流和半导体损耗随 PF 变化；固定器件选择不变。
+- 定向测试共 `21 passed`；`compileall` 和 `git diff --check` 通过；证据位于 `pytest_temp/three-phase-two-level-vsi-step5/`。
+- Git：第 5 步实现提交 `9c2f71d`（`test: verify three-phase VSI operating-point event-loss refresh`）已推送至 `origin/codex/npc-output-run-isolation-step1`。
+
+## 2026-09-06 三相两电平 VSI 逐事件开关损耗计划第 6 步
+
+- 完成 VSI 最终专项验收，覆盖默认工况、负载/PF、DC-link 电压、GUI 波形链路、六开关事件、损耗闭合和 NPC 防回归。
+- 最终测试 `31 passed`；`compileall` 和 `git diff --check` 通过。
+- 证据位于 `pytest_temp/three-phase-two-level-vsi-step6-rerun/final-tests.xml` 和 `pytest_temp/three-phase-two-level-vsi-step6/final-acceptance.json`。
+- Git：第 6 步实现提交 `d67f861`（`test: complete three-phase VSI validation`）已推送至 `origin/codex/npc-output-run-isolation-step1`；计划随后归档。
+
+## 2026-09-07 三相三电平 NPC 损耗一致性计划第 6 步
+
+- 统一器件页、损耗页和硬件概览页的 NPC 损耗来源：完整当前工况优先，缺失角色时统一回退到设计点并显示 warning。
+- 器件页明确区分单物理器件损耗、角色总损耗和半导体方案总损耗；损耗页与硬件概览复用共享 NPC 角色聚合，避免重复乘数量。
+- 硬件概览补充组级/角色级 `loss_scope`、损耗 basis、当前工况完整性 metadata 和 notes。
+- NPC 定向测试：`10 passed`；`compileall` 和 `git diff --check` 通过。
+- 未修改器件选型规则、开关事件损耗模型和其他拓扑；未提交 `outputs/`、`pytest_temp/` 和缓存。
+
+## 2026-09-07 三相三电平 NPC 损耗一致性计划第 7 步
+
+- 修复 NPC 开关频率审计字段的来源回退，默认结果可输出 `20000 Hz` 和实际来源。
+- 反向恢复审计按器件角色和器件类型区分 SiC 零损耗、MOSFET 内部二极管模型及独立二极管模型。
+- 补齐 NPC 设计 run manifest 的阶段状态；未启用阶段使用 `not_applicable`，效率扫描和硬件概览完成后才关闭验证阶段。
+- NPC 定向测试：`37 passed`；`compileall` 和 `git diff --check` 通过。
+- 未提交 `outputs/`、`pytest_temp/` 和缓存。
+
+## 2026-09-07 三相三电平 NPC 损耗一致性计划第 8 步
+
+- 新增 NPC 最终定向验收脚本 `scripts/validate_npc_loss_consistency_step8.py`，覆盖 5%、50%、100% 负载、逐事件开关损耗、器件数量、页面/硬件概览一致性、开关频率、反向恢复损耗和 run manifest。
+- 修复 Efficiency Sweep 完成后 NPC 最终报告刷新未复用满载周期稳态初始电流的问题，消除 Efficiency 页面与 Hardware Overview 的满载半导体损耗差异。
+- 最终验收 run：`outputs/20260907_3p_3l_npc_i_a4c3e60d`；证据：`pytest_temp/npc-loss-consistency-step8/final-acceptance.json`。
+- 验收通过：5%/50%/100% 半导体损耗为 `3.2184/12.6488/25.9931 W`，`Other loss=0`；`4800` 个事件，硬开通 `1200`、软开通 `1200`，`fsw=20000 Hz`，反向恢复总损耗 `0 W`；NPC 三类角色位置均为 `6`，manifest 为 `succeeded`。
+- NPC 定向测试：`31 passed`；`compileall` 和 `git diff --check` 通过。
+- 剩余限制：死区、Coss、寄生参数和中点电压动态仍未建模。

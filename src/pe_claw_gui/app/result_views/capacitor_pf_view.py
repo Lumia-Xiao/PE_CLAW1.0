@@ -156,7 +156,7 @@ def resolve_capacitor_pf_plot_paths(report: DesignReport | None) -> dict[str, Pa
                     paths[side] = artifact
             continue
         artifact = _find_side_artifact(report, side, suffix=f"{side}_capacitor_pareto_front.png")
-        if artifact is None:
+        if artifact is None and getattr(report, "run_context", None) is None and getattr(report, "llc_run_context", None) is None:
             fallback = _project_root() / "outputs" / "capacitor_design" / f"{side}_capacitor_pareto_front.png"
             artifact = fallback if fallback.exists() else None
         if artifact is not None:

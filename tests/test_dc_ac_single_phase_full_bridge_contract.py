@@ -82,6 +82,13 @@ def test_tcm_schema_and_candidate_preserve_first_pass_boundary() -> None:
     assert candidate.metadata["tcm_fsw_max_actual_hz"] <= 250000.0
     assert waveform.mode == "tcm triangular-current envelope"
     assert waveform.metadata["single_phase_inverter_tcm_envelope"]
+    envelope = waveform.metadata["single_phase_inverter_tcm_envelope"]
+    assert waveform.time_span_s == pytest.approx(1.0 / 50.0)
+    assert envelope["time_s"][0] == pytest.approx(0.0)
+    assert envelope["time_s"][-1] == pytest.approx(waveform.time_span_s)
+    assert envelope["detail_time_s"][0] == pytest.approx(0.0)
+    assert envelope["detail_time_s"][-1] == pytest.approx(waveform.time_span_s)
+    assert envelope["detail_sample_count"] == len(envelope["detail_time_s"])
     assert waveform.notes and any("not modeled" in note for note in waveform.notes)
 
 

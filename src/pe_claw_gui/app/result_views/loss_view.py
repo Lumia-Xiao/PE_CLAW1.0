@@ -6,6 +6,12 @@ import tkinter as tk
 from tkinter import ttk
 
 from ...models.design_report import DesignReport
+from ...engines.devices.loss_aggregation import (
+    npc_current_operating_losses_complete,
+    npc_current_role_loss_totals,
+    npc_scheme_role_loss_totals,
+    npc_sum_role_losses,
+)
 from ...models.capacitor import capacitor_order_code_note, capacitor_part_reference, capacitor_series_display_name
 from ...pipeline.options import MAGNETIC_LOSS_DISABLED_NOTE, MAGNETIC_STAGE_DISABLED_NOTE
 from ...topology_capabilities import (
@@ -79,7 +85,11 @@ def build_semiconductor_loss_summary(report: DesignReport) -> list[str]:
     inverter_topology = is_single_phase_full_bridge_inverter_topology(report.spec.topology_id)
     npc_topology = _is_three_phase_npc_inverter(report)
     current_losses = report.device.current_operating_losses
-    if current_losses:
+    current_losses_complete = (
+        bool(current_losses)
+        and (not npc_topology or npc_current_operating_losses_complete(report.device))
+    )
+    if current_losses_complete:
         lines = [_semiconductor_loss_header(report, current_operating=True)]
         lines.extend(_build_active_scheme_lines(report))
         if report.device.current_operating_summary:
@@ -102,9 +112,15 @@ def build_semiconductor_loss_summary(report: DesignReport) -> list[str]:
     if inverter_topology:
         lines.extend(_inverter_segmented_loss_summary_lines(semiconductor_losses))
     if npc_topology:
+        basis = "current operating point" if npc_current_operating_losses_complete(report.device) else "design point"
+        lines.append(f"  semiconductor loss basis: {basis}")
+        if current_losses and basis == "design point":
+            lines.append("  Warning: current operating-point NPC losses are incomplete; design-point values are shown.")
         lines.extend(
             [
-                "  loss basis: first-pass NPC PD-SPWM operating stress over 12 active switch positions and 6 clamp diode positions.",
+                "  loss basis: one-line-cycle NPC event average; each turn-on/turn-off uses its sampled signed current and blocking voltage.",
+                "  turn-on rule: negative event current is soft turn-on (Eon=0); non-negative current uses the device Eon model.",
+                "  average rule: Psw=sum(Eon+Eoff)/Tline; SiC clamp-diode reverse-recovery loss=0.",
                 "  limitation: no dead-time/Coss/commutation-overlap/parasitic transient model is included.",
             ]
         )
@@ -350,7 +366,14 @@ def _role_quantity_loss_line(report: DesignReport, role_name: str, loss_result) 
     topology_position_count = role_result.topology_position_count if role_result is not None else 1
     total_physical_device_count = _role_total_physical_device_count(report, role_name)
     per_device_loss = loss_result.p_total_W
-    role_total = total_physical_device_count * per_device_loss
+    if _is_three_phase_npc_inverter(report):
+        if npc_current_operating_losses_complete(report.device):
+            role_total = npc_current_role_loss_totals(report.device).get(role_name)
+        else:
+            role_total = npc_scheme_role_loss_totals(_active_scheme_result(report)).get(role_name)
+    else:
+        role_total = total_physical_device_count * per_device_loss
+    role_total = float(role_total) if role_total is not None else None
     if topology_position_count > 1:
         return (
             "  "
@@ -369,6 +392,8 @@ def _role_quantity_loss_line(report: DesignReport, role_name: str, loss_result) 
 
 
 def _current_total_semiconductor_loss(report: DesignReport, losses: dict) -> float:
+    if _is_three_phase_npc_inverter(report) and losses is report.device.current_operating_losses:
+        return npc_sum_role_losses(npc_current_role_loss_totals(report.device))
     total = 0.0
     for key, loss_result in losses.items():
         _, role_name = _split_case_role(key)
@@ -389,7 +414,9 @@ def _resolve_semiconductor_total_loss(report: DesignReport) -> float | None:
         return bridge_loss_w
     if report.device is None:
         return None
-    if report.device.current_operating_losses:
+    if _is_three_phase_npc_inverter(report) and npc_current_operating_losses_complete(report.device):
+        return _current_total_semiconductor_loss(report, report.device.current_operating_losses)
+    if report.device.current_operating_losses and not _is_three_phase_npc_inverter(report):
         return _current_total_semiconductor_loss(report, report.device.current_operating_losses)
     active_scheme = _active_scheme_result(report)
     if active_scheme is not None:

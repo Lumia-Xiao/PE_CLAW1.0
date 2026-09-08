@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from ..models.design_report import DesignReport
+from ..models.design_run_context import call_with_report_run
 from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
 from ..topology_capabilities import has_semiconductor_selection_path, is_first_pass_topology_only
@@ -24,15 +25,21 @@ def run_operating_point_refresh(
     plugin: TopologyPlugin,
     operating_point: OperatingPoint,
     pipeline_options: PipelineOptions | None = None,
+    npc_periodic_initial_current_a: list[float] | None = None,
 ) -> DesignReport:
     """Refresh waveform, stress, topology evaluation, and operating-point losses only."""
     options = resolve_pipeline_options(pipeline_options)
     if report.candidate is None:
         raise RuntimeError("Run Design first before generating waveforms.")
 
-    waveform_set = plugin.generate_waveforms(report.candidate, operating_point=operating_point)
-    stress_result = plugin.extract_stress(report.candidate, waveform_set=waveform_set)
-    topology_result = plugin.evaluate(
+    waveform_kwargs = {"operating_point": operating_point}
+    if report.spec.topology_id == "three_phase_three_level_npc_inverter" and npc_periodic_initial_current_a is not None:
+        waveform_kwargs["_periodic_initial_current_a"] = npc_periodic_initial_current_a
+    waveform_set = call_with_report_run(report, plugin.generate_waveforms, report.candidate, **waveform_kwargs)
+    stress_result = call_with_report_run(report, plugin.extract_stress, report.candidate, waveform_set=waveform_set)
+    topology_result = call_with_report_run(
+        report,
+        plugin.evaluate,
         report.candidate,
         waveform_set=waveform_set,
         stress_result=stress_result,

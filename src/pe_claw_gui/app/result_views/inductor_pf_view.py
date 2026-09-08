@@ -283,6 +283,9 @@ def resolve_pareto_front_path(report: DesignReport | None) -> Path | None:
     for path in candidates:
         if "pareto" in path.name.casefold() and path.suffix.casefold() == ".png" and path.is_file():
             return path
+    # A run-scoped report must never fall back to an artifact from another run.
+    if getattr(report, "run_context", None) is not None or getattr(report, "llc_run_context", None) is not None:
+        return None
     default_path = _project_root() / "outputs" / "inductor_design" / "pareto_front.png"
     return default_path if default_path.is_file() else None
 

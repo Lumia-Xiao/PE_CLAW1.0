@@ -15,6 +15,10 @@ from typing import Any
 from ..models.design_report import DesignReport
 from ..pipeline.llc_pf_artifacts import llc_pf_artifact_payload
 from ..pipeline.llc_representatives import build_llc_representative_payload
+from ..engines.devices.loss_aggregation import (
+    npc_reverse_recovery_audit,
+    npc_switching_frequency_hz,
+)
 
 
 REPORT_SCHEMA_VERSION = "pe_claw_structured_design_report_v1"
@@ -106,7 +110,7 @@ def _waveform_payload(report: DesignReport) -> dict[str, Any]:
         "cycles_simulated", "settling_cycles_discarded", "converged", "convergence_status",
         "power_factor", "zvs_status", "fha_status",
     }
-    return {
+    payload = {
         "available": True,
         "operating": {
             "input_voltage": _metric(waveform.operating_vin_v, "V", "topology.waveform"),
@@ -124,6 +128,88 @@ def _waveform_payload(report: DesignReport) -> dict[str, Any]:
         "mode": waveform.mode,
         "series": series,
         "metadata": {key: metadata[key] for key in sorted(metadata_keys) if key in metadata},
+    }
+    npc_validation = _npc_waveform_validation_payload(report)
+    if npc_validation:
+        payload["npc_current_validation"] = npc_validation
+    return payload
+
+
+def _npc_waveform_validation_payload(report: DesignReport) -> dict[str, Any]:
+    """Expose compact NPC current and event validation evidence in reports."""
+
+    if report.spec.topology_id != "three_phase_three_level_npc_inverter" or report.waveform is None:
+        return {}
+    metadata = report.waveform.metadata if isinstance(report.waveform.metadata, Mapping) else {}
+    details = metadata.get("three_phase_npc_pd_spwm_waveforms")
+    if not isinstance(details, Mapping):
+        return {}
+    phases = ("a", "b", "c")
+
+    def series(key: str, unit: str = "A") -> dict[str, Any]:
+        values = details.get(key, [])
+        return _series_summary(values if isinstance(values, Sequence) else [], unit, f"npc.waveform.{key}")
+
+    actual_currents = [details.get(f"i{phase}_a", []) for phase in phases]
+    current_sum = [
+        sum(float(actual_currents[phase_index][index]) for phase_index in range(3))
+        for index in range(min((len(values) for values in actual_currents), default=0))
+    ]
+    periodic_initial = metadata.get("phase_current_periodic_steady_state_initial_current_a", [])
+    periodic_end = metadata.get("phase_current_periodic_steady_state_period_end_current_a", [])
+    periodic_residual = metadata.get("phase_current_periodic_steady_state_residual_a", [])
+    average_errors = metadata.get("phase_current_average_error_a", {})
+
+    return {
+        "status": "available",
+        "phase_current_source": "three_phase_npc_pd_spwm_waveforms.ia_a_ib_a_ic_a",
+        "phases": {
+            phase: {
+                "reference_average": series(f"i{phase}_reference_average_a"),
+                "actual_average": series(f"i{phase}_actual_average_a"),
+                "average_error": _series_summary(
+                    average_errors.get(phase, []) if isinstance(average_errors, Mapping) else [],
+                    "A",
+                    f"npc.metadata.phase_current_average_error_a.{phase}",
+                ),
+                "switching_ripple": series(f"i{phase}_switching_ripple_a"),
+            }
+            for phase in phases
+        },
+        "three_phase_current_sum": _series_summary(current_sum, "A", "npc.waveform.ia_plus_ib_plus_ic"),
+        "periodic_steady_state": {
+            "solver_method": metadata.get("phase_current_periodic_steady_state_solver_method"),
+            "status": metadata.get("phase_current_periodic_steady_state_solver_status"),
+            "converged": metadata.get("phase_current_periodic_steady_state_converged"),
+            "initial_current": _field(periodic_initial, "A", "npc.periodic_steady_state.initial"),
+            "period_end_current": _field(periodic_end, "A", "npc.periodic_steady_state.period_end"),
+            "residual": _field(periodic_residual, "A", "npc.periodic_steady_state.residual"),
+            "residual_max": _metric(
+                max((abs(float(value)) for value in periodic_residual), default=0.0),
+                "A",
+                "npc.periodic_steady_state.residual",
+            ),
+            "tolerance": _metric(
+                metadata.get("phase_current_periodic_steady_state_tolerance_a"),
+                "A",
+                "npc.periodic_steady_state.tolerance",
+            ),
+            "modulation_saturated": metadata.get("phase_current_periodic_steady_state_modulation_saturated"),
+        },
+        "average_error_max": _metric(
+            metadata.get("phase_current_average_error_max_a"),
+            "A",
+            "npc.current_tracking.average_error",
+        ),
+        "event_count": _metric(
+            metadata.get("three_phase_npc_switching_event_count"),
+            "count",
+            "npc.waveform.events",
+        ),
+        "event_source": metadata.get("npc_switching_event_source"),
+        "event_current_source": metadata.get("npc_switching_event_current_source"),
+        "event_blocking_voltage_source": metadata.get("npc_switching_event_blocking_voltage_source"),
+        "endpoint_correction_applied": metadata.get("phase_current_periodic_correction_applied"),
     }
 
 
@@ -377,7 +463,11 @@ def _thermal_payload(report: DesignReport) -> dict[str, Any]:
 def _loss_payload(report: DesignReport) -> dict[str, Any]:
     loss = report.loss
     if loss is None:
-        return {"available": False, "recommended_design_id": None, "metrics": {}, "metadata": {}}
+        payload = {"available": False, "recommended_design_id": None, "metrics": {}, "metadata": {}}
+        npc_audit = _npc_switching_audit_payload(report)
+        if npc_audit:
+            payload["npc_switching"] = npc_audit
+        return payload
     payload: dict[str, Any] = {
         "available": True,
         "recommended_design_id": loss.recommended_design_id,
@@ -391,6 +481,9 @@ def _loss_payload(report: DesignReport) -> dict[str, Any]:
         },
         "metadata": {"core_loss_status": getattr(loss, "core_loss_status", "not_evaluated")},
     }
+    npc_audit = _npc_switching_audit_payload(report)
+    if npc_audit:
+        payload["npc_switching"] = npc_audit
     if report.magnetic is not None and report.magnetic.result_type == "separated_llc_transformer":
         breakdown = loss.breakdown_w
         volumes = getattr(loss, "component_volumes_m3", {}) or {}
@@ -421,6 +514,85 @@ def _loss_payload(report: DesignReport) -> dict[str, Any]:
         if contract is not None:
             payload["llc"]["magnetic_contract"] = contract.to_dict()
     return payload
+
+
+def _npc_switching_audit_payload(report: DesignReport) -> dict[str, Any]:
+    """Expose the event-level NPC loss basis without duplicating raw events."""
+
+    if report.spec.topology_id != "three_phase_three_level_npc_inverter" or report.waveform is None:
+        return {}
+    metadata = report.waveform.metadata if isinstance(report.waveform.metadata, Mapping) else {}
+    raw_events = metadata.get("three_phase_npc_switching_events")
+    events = [event for event in raw_events if isinstance(event, Mapping)] if isinstance(raw_events, list) else []
+    if not events:
+        return {"status": "not_available", "event_count": _metric(0, "count", "npc.waveform.events")}
+
+    def numeric_values(key: str) -> list[float]:
+        values = []
+        for event in events:
+            try:
+                values.append(float(event[key]))
+            except (KeyError, TypeError, ValueError):
+                continue
+        return values
+
+    currents = numeric_values("signed_current_A")
+    voltages = [abs(value) for value in numeric_values("blocking_voltage_V")]
+    turn_on = [event for event in events if event.get("event_type") == "turn_on"]
+    turn_off = [event for event in events if event.get("event_type") == "turn_off"]
+    line_frequency = _npc_report_frequency(metadata, report)
+    device = report.device
+    losses = {}
+    if device is not None:
+        losses = device.current_operating_losses or device.design_point_losses or device.evaluated_losses
+
+    def role_payload(role: str) -> dict[str, Any]:
+        role_events = [event for event in events if event.get("role") == role]
+        loss_result = next(
+            (item for item in losses.values() if getattr(item, "role", "") == f"npc_{role}"),
+            None,
+        )
+        return {
+            "event_count": _metric(len(role_events), "count", "npc.waveform.events"),
+            "turn_on_count": _metric(sum(event.get("event_type") == "turn_on" for event in role_events), "count", "npc.waveform.events"),
+            "turn_off_count": _metric(sum(event.get("event_type") == "turn_off" for event in role_events), "count", "npc.waveform.events"),
+            "switching_loss_on": _metric(getattr(loss_result, "p_sw_on_W", None), "W", "npc.loss.event_average"),
+            "switching_loss_off": _metric(getattr(loss_result, "p_sw_off_W", None), "W", "npc.loss.event_average"),
+        }
+
+    switching_frequency_hz, switching_frequency_source = npc_switching_frequency_hz(report)
+    reverse_recovery = npc_reverse_recovery_audit(report)
+    payload = {
+        "status": "available",
+        "event_count": _metric(len(events), "count", "npc.waveform.events"),
+        "turn_on_count": _metric(len(turn_on), "count", "npc.waveform.events"),
+        "turn_off_count": _metric(len(turn_off), "count", "npc.waveform.events"),
+        "soft_turn_on_count": _metric(sum(float(event.get("signed_current_A", 0.0)) < 0.0 for event in turn_on), "count", "npc.loss.event_model"),
+        "hard_turn_on_count": _metric(sum(float(event.get("signed_current_A", 0.0)) >= 0.0 for event in turn_on), "count", "npc.loss.event_model"),
+        "signed_current_min": _metric(min(currents) if currents else None, "A", "npc.waveform.events"),
+        "signed_current_max": _metric(max(currents) if currents else None, "A", "npc.waveform.events"),
+        "blocking_voltage_min": _metric(min(voltages) if voltages else None, "V", "npc.waveform.events"),
+        "blocking_voltage_max": _metric(max(voltages) if voltages else None, "V", "npc.waveform.events"),
+        "line_frequency": _metric(line_frequency, "Hz", "npc.waveform.metadata"),
+        "line_period": _metric(1.0 / line_frequency if line_frequency > 0.0 else None, "s", "npc.loss.event_average"),
+        "switching_frequency": _metric(switching_frequency_hz, "Hz", f"npc.{switching_frequency_source}"),
+        "switching_frequency_source": switching_frequency_source,
+        "reverse_recovery": reverse_recovery,
+        "formula": "Psw = sum(Eon + Eoff) / Tline; Eon/Eoff use each event's signed current and blocking voltage",
+        "roles": {role: role_payload(role) for role in ("outer_switch", "inner_switch", "clamp_diode")},
+    }
+    return payload
+
+
+def _npc_report_frequency(metadata: Mapping[str, Any], report: DesignReport) -> float:
+    for source in (metadata, report.spec.metadata, report.candidate.metadata if report.candidate is not None else {}):
+        try:
+            value = float(source.get("f_line_hz", 0.0))
+        except (TypeError, ValueError):
+            continue
+        if value > 0.0:
+            return value
+    return 0.0
 
 
 def _geometry_payload(report: DesignReport) -> dict[str, Any]:
@@ -592,6 +764,7 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
         },
         "magnetic": _magnetic_payload(report),
         "loss": _loss_payload(report),
+        "efficiency_sweep": _efficiency_sweep_payload(report),
         "geometry": _geometry_payload(report),
         "capacitor": _capacitor_payload(report),
         "thermal": _thermal_payload(report),
@@ -619,6 +792,47 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
     llc_requirements = _llc_requirements_payload(report)
     if llc_requirements is not None:
         payload["llc_design_requirements"] = llc_requirements
+    return payload
+
+
+def _efficiency_sweep_payload(report: DesignReport) -> dict[str, Any]:
+    sweep = report.efficiency_sweep
+    if sweep is None:
+        return {"available": False, "points": [], "pf_points": [], "metadata": {}}
+    payload = {
+        "available": True,
+        "status": sweep.status,
+        "metrics": {
+            "peak_efficiency": _metric(sweep.peak_efficiency, "ratio", "efficiency_sweep.summary"),
+            "full_load_efficiency": _metric(sweep.full_load_efficiency, "ratio", "efficiency_sweep.summary"),
+            "light_load_efficiency": _metric(sweep.light_load_efficiency, "ratio", "efficiency_sweep.summary"),
+        },
+        "points": [
+            {
+                "load_ratio": _metric(point.load_pu, "p.u.", "efficiency_sweep.input"),
+                "output_power": _metric(point.output_power_w, "W", "efficiency_sweep.result"),
+                "total_loss": _metric(point.total_loss_w, "W", "efficiency_sweep.result"),
+                "semiconductor_loss": _metric(point.semiconductor_loss_w, "W", "efficiency_sweep.result"),
+                "efficiency": _metric(point.efficiency, "ratio", "efficiency_sweep.result"),
+                "switching_loss_audit": dict(point.switching_loss_audit),
+            }
+            for point in sweep.points
+        ],
+        "pf_points": [
+            {
+                "power_factor": _metric(point.get("power_factor"), "ratio", "efficiency_sweep.pf_input"),
+                "semiconductor_loss": _metric(point.get("semiconductor_loss_w"), "W", "efficiency_sweep.pf_result"),
+                "efficiency": _metric(point.get("efficiency"), "ratio", "efficiency_sweep.pf_result"),
+                "switching_loss_audit": dict(point.get("switching_loss_audit") or {}),
+            }
+            for point in sweep.pf_sweep_points
+        ],
+        "metadata": {
+            "sweep_basis": dict(sweep.sweep_basis),
+            "artifact_paths": {**sweep.artifact_paths, **sweep.pf_sweep_artifact_paths},
+            "warnings": list(sweep.warnings),
+        },
+    }
     return payload
 
 

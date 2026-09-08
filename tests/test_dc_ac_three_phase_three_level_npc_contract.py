@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from importlib import import_module
 import inspect
 import sys
+from types import SimpleNamespace
 from pathlib import Path
 
 import pytest
@@ -13,9 +15,18 @@ from pe_claw_gui.app.topology_forms.three_phase_three_level_npc_inverter_form im
     ThreePhaseThreeLevelNPCInverterForm,
 )
 from pe_claw_gui.models.operating_point import OperatingPoint
+from pe_claw_gui.app.controllers.efficiency_sweep_controller import EfficiencySweepController
+from pe_claw_gui.app.shell.state_store import AppStateStore
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
+from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import run_efficiency_sweep
+from pe_claw_gui.reports.structured_output import build_structured_report
+from pe_claw_gui.engines.devices.loss_evaluator import (
+    evaluate_npc_switching_event_energy,
+    evaluate_npc_switching_events,
+)
+from pe_claw_gui.libraries.semiconductors.registry import build_default_semiconductor_registry
 from pe_claw_gui.topologies.base.registry import build_default_registry
 
 
@@ -71,7 +82,7 @@ def test_npc_waveform_contains_pd_spwm_three_level_signals_and_split_link_data()
     details = waveform.metadata["three_phase_npc_pd_spwm_waveforms"]
 
     assert waveform.mode == "three-phase three-level NPC PD-SPWM first-pass preview"
-    assert len(waveform.time_s) == 9_601
+    assert len(waveform.time_s) == 3_201
     assert len(details["time_s"]) == len(details["vab_pwm_v"])
     assert all(details[key] for key in ("carrier_lower", "carrier_upper", "mod_a", "mod_b", "mod_c"))
     assert all(details[key] for key in ("phase_state_a", "phase_state_b", "phase_state_c"))
@@ -84,6 +95,90 @@ def test_npc_waveform_contains_pd_spwm_three_level_signals_and_split_link_data()
     assert waveform.metadata["lower_dc_link_capacitor_current_rms_pwm_a"] > 0.0
     assert waveform.metadata["npc_neutral_point_current_rms_a"] > 0.0
     assert waveform.metadata["line_line_voltage_phase_shift_deg"] == pytest.approx(30.0)
+    assert waveform.metadata["phase_current_integration_method"].startswith("continuous_")
+    assert waveform.metadata["phase_current_periodic_correction_applied"] is False
+    assert len(waveform.metadata["phase_current_periodic_correction_a"]) == 3
+
+
+def test_npc_waveform_extracts_interpolated_events_for_all_switch_positions() -> None:
+    plugin = _plugin()
+    candidate = plugin.synthesize(plugin.build_spec(MODULE.build_default_inputs()))
+    waveform = plugin.generate_waveforms(candidate)
+    events = waveform.metadata["three_phase_npc_switching_events"]
+
+    assert events
+    assert waveform.metadata["three_phase_npc_switching_event_count"] == len(events)
+    assert {(event["phase"], event["switch_index"]) for event in events} == {
+        (phase, switch_index) for phase in ("a", "b", "c") for switch_index in range(1, 5)
+    }
+    assert {event["event_type"] for event in events} == {"turn_on", "turn_off"}
+    assert all(0.0 <= event["event_time_s"] <= waveform.time_span_s for event in events)
+    assert all(event["absolute_current_A"] == pytest.approx(abs(event["signed_current_A"])) for event in events)
+    assert all(event["blocking_voltage_V"] > 0.0 for event in events)
+    assert len({round(event["signed_current_A"], 9) for event in events}) > 10
+    assert all(event["event_source"] == "exact_unified_event_segment_boundary" for event in events)
+    assert all(event["current_source"] == "exact_segment_integrated_current" for event in events)
+    assert all(event["blocking_voltage_source"] == "split_dc_link_voltage_at_event_time" for event in events)
+    assert waveform.metadata["npc_switching_event_source"] == (
+        "exact_unified_event_segment_boundaries_with_segment_integrated_current"
+    )
+
+
+def test_npc_event_energy_uses_polarity_and_actual_current() -> None:
+    device = build_default_semiconductor_registry().get_device("IPZA60R037CM8")
+    soft_on = evaluate_npc_switching_event_energy(
+        device,
+        {
+            "event_type": "turn_on",
+            "signed_current_A": -8.0,
+            "blocking_voltage_V": 350.0,
+        },
+    )
+    low_current_on = evaluate_npc_switching_event_energy(
+        device,
+        {
+            "event_type": "turn_on",
+            "signed_current_A": 2.0,
+            "blocking_voltage_V": 350.0,
+        },
+    )
+    high_current_on = evaluate_npc_switching_event_energy(
+        device,
+        {
+            "event_type": "turn_on",
+            "signed_current_A": 8.0,
+            "blocking_voltage_V": 350.0,
+        },
+    )
+    turn_off = evaluate_npc_switching_event_energy(
+        device,
+        {
+            "event_type": "turn_off",
+            "signed_current_A": 8.0,
+            "blocking_voltage_V": 350.0,
+        },
+    )
+
+    assert soft_on["soft_turn_on"] is True
+    assert soft_on["eon_J"] == pytest.approx(0.0)
+    assert low_current_on["soft_turn_on"] is False
+    assert low_current_on["eon_J"] >= 0.0
+    assert high_current_on["eon_J"] != pytest.approx(low_current_on["eon_J"])
+    assert turn_off["eoff_J"] >= 0.0
+
+
+def test_npc_event_energy_sets_sic_reverse_recovery_to_zero() -> None:
+    device = build_default_semiconductor_registry().get_device("SCS304AG")
+    result = evaluate_npc_switching_event_energy(
+        device,
+        {
+            "event_type": "turn_off",
+            "signed_current_A": 12.0,
+            "blocking_voltage_V": 350.0,
+        },
+    )
+
+    assert result["reverse_recovery_J"] == pytest.approx(0.0)
 
 
 def test_npc_stress_preserves_outer_inner_and_clamp_roles() -> None:
@@ -120,10 +215,42 @@ def test_full_pipeline_returns_npc_specific_report_and_device_roles() -> None:
     assert report.topology_result is not None
     assert report.device is not None
     assert set(report.device.selected_devices) >= {"npc_outer_switch", "npc_inner_switch", "npc_clamp_diode"}
+    for loss in report.device.design_point_losses.values():
+        if loss.role in {"npc_outer_switch", "npc_inner_switch"}:
+            assert any("NPC event-level switching loss" in note for note in loss.thermal_design_notes)
     assert any("NPC PD level-shifted SPWM" in line for line in report.topology_result.summary_lines)
     assert any("split DC-link capacitor" in line for line in report.topology_result.summary_lines)
     assert all("buck" not in line.lower() and "boost" not in line.lower() for line in report.topology_result.summary_lines)
     assert any("neutral-point balancing" in note.lower() for note in report.notes)
+
+
+def test_npc_report_switching_loss_matches_event_energy_per_physical_position() -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+
+    assert report.waveform is not None
+    assert report.device is not None
+    line_frequency_hz = float(report.spec.metadata["f_line_hz"])
+    line_period_s = 1.0 / line_frequency_hz
+    events = report.waveform.metadata["three_phase_npc_switching_events"]
+    registry = build_default_semiconductor_registry()
+    for role in ("npc_outer_switch", "npc_inner_switch"):
+        device = registry.get_device(report.device.selected_devices[role])
+        role_events = [event for event in events if event["role"] == role.removeprefix("npc_")]
+        loss = next(item for item in report.device.design_point_losses.values() if item.role == role)
+        event_losses = evaluate_npc_switching_events(device, role_events, junction_temp_c=loss.tj_est_C)
+
+        assert loss.p_sw_on_W == pytest.approx(
+            sum(float(item["eon_J"]) for item in event_losses) / 6.0 / line_period_s
+        )
+        assert loss.p_sw_off_W == pytest.approx(
+            sum(float(item["eoff_J"]) for item in event_losses) / 6.0 / line_period_s
+        )
 
 
 def test_operating_refresh_updates_npc_load_and_pf_without_redesigning_hardware() -> None:
@@ -154,6 +281,200 @@ def test_operating_refresh_updates_npc_load_and_pf_without_redesigning_hardware(
     assert refreshed.device.selected_devices == selected_devices
 
 
+def test_npc_efficiency_load_and_pf_sweeps_rebuild_event_audit(tmp_path: Path) -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+
+    result = run_efficiency_sweep(
+        report,
+        plugin=plugin,
+        load_points=(0.5, 1.0),
+        output_dir=tmp_path,
+    )
+
+    assert len(result.points) == 2
+    assert all(point.switching_loss_audit["event_count"] > 0 for point in result.points)
+    assert all(point.switching_loss_audit["soft_turn_on_count"] > 0 for point in result.points)
+    assert result.points[0].switching_loss_audit["warm_start_used"] is False
+    assert result.points[1].switching_loss_audit["warm_start_used"] is True
+    assert result.points[1].switching_loss_audit["periodic_solver_converged"] is True
+    assert len(result.pf_sweep_points) == 20
+    assert all(point["switching_loss_audit"]["event_count"] > 0 for point in result.pf_sweep_points)
+    assert result.pf_sweep_points[0]["switching_loss_audit"]["warm_start_used"] is False
+    assert any(
+        point["switching_loss_audit"]["warm_start_used"] is True
+        for point in result.pf_sweep_points[1:10]
+    )
+    first_pf = result.pf_sweep_points[0]["switching_loss_audit"]
+    last_pf = result.pf_sweep_points[-1]["switching_loss_audit"]
+    assert (
+        first_pf["signed_current_min_A"],
+        first_pf["signed_current_max_A"],
+    ) != (
+        last_pf["signed_current_min_A"],
+        last_pf["signed_current_max_A"],
+    )
+
+    structured = build_structured_report(replace(report, efficiency_sweep=result))
+    assert structured["loss"]["npc_switching"]["formula"].startswith("Psw = sum")
+    assert len(structured["efficiency_sweep"]["points"]) == 2
+    assert len(structured["efficiency_sweep"]["pf_points"]) == 20
+    csv_text = (tmp_path / "efficiency_sweep.csv").read_text(encoding="utf-8")
+    assert "switching_loss_audit" in csv_text.splitlines()[0]
+
+
+def test_npc_efficiency_refresh_reuses_fixed_magnetic_selection(monkeypatch: pytest.MonkeyPatch) -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=PipelineOptions(enable_magnetic_design=True, enable_capacitor_design=False),
+    )
+    assert report.magnetic is not None
+    assert report.magnetic.chosen_designs
+    selected_id = report.magnetic.selected_design_id
+    chosen_ids = tuple(design.candidate_id for design in report.magnetic.chosen_designs)
+
+    efficiency_module = import_module("pe_claw_gui.pipeline.run_efficiency_sweep_pipeline")
+    loss_module = import_module("pe_claw_gui.pipeline.run_loss_pipeline")
+    evaluated_ids: list[tuple[str, ...]] = []
+    original_evaluate = loss_module.evaluate_selected_designs
+
+    def record_selected_designs(designs, operating_request):
+        evaluated_ids.append(tuple(design.candidate_id for design in designs))
+        return original_evaluate(designs, operating_request)
+
+    monkeypatch.setattr(loss_module, "evaluate_selected_designs", record_selected_designs)
+    monkeypatch.setattr(
+        efficiency_module,
+        "run_thermal_pipeline",
+        lambda *args, **kwargs: pytest.fail("NPC efficiency refresh must not rerun the thermal pipeline"),
+    )
+
+    result, warnings = efficiency_module._evaluate_load_point(report, plugin, 0.5)
+
+    assert not warnings
+    assert result.efficiency is not None
+    assert evaluated_ids == [(selected_id,)]
+    assert report.magnetic.selected_design_id == selected_id
+    assert tuple(design.candidate_id for design in report.magnetic.chosen_designs) == chosen_ids
+
+
+def test_npc_structured_report_exposes_current_validation_and_exact_event_sources() -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+
+    structured = build_structured_report(report)
+    validation = structured["waveform"]["npc_current_validation"]
+    periodic = validation["periodic_steady_state"]
+
+    assert validation["status"] == "available"
+    assert validation["event_count"]["value"] == 4800.0
+    assert validation["endpoint_correction_applied"] is False
+    assert validation["event_source"] == (
+        "exact_unified_event_segment_boundaries_with_segment_integrated_current"
+    )
+    assert validation["event_current_source"] == "exact_current_at_unified_event_boundary"
+    assert periodic["converged"] is True
+    assert periodic["residual_max"]["value"] <= 1e-8
+    assert validation["average_error_max"]["value"] <= 1e-6
+    assert validation["three_phase_current_sum"]["peak"]["value"] <= 1e-8
+    assert all(
+        validation["phases"][phase]["actual_average"]["average"]["source"]
+        == f"npc.waveform.i{phase}_actual_average_a"
+        for phase in ("a", "b", "c")
+    )
+    npc_switching = structured["loss"]["npc_switching"]
+    assert npc_switching["switching_frequency"]["value"] == pytest.approx(20000.0)
+    assert npc_switching["switching_frequency"]["source"] == "npc.candidate.metadata.fsw_hz"
+    assert npc_switching["reverse_recovery"]["status"] == "available"
+    assert npc_switching["reverse_recovery"]["roles"]["npc_clamp_diode"]["status"] == "zero_by_sic_device_model"
+    assert npc_switching["reverse_recovery"]["roles"]["npc_outer_switch"]["status"] == "internal_diode_qrr_model"
+
+
+def test_npc_gui_efficiency_controller_reuses_current_run_and_output_scope(monkeypatch: pytest.MonkeyPatch) -> None:
+    plugin = _plugin()
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=MODULE.build_default_inputs(),
+        include_waveforms=True,
+        pipeline_options=NO_DOWNSTREAM,
+        output_root=Path("pytest_temp") / "npc-efficiency-step6-controller-run",
+    )
+    assert report.run_context is not None
+    original_run_id = report.run_context.run_id
+    original_candidate = report.candidate
+    store = AppStateStore(
+        registry=build_default_registry(),
+        selected_topology_id=TOPOLOGY_ID,
+        active_plugin=plugin,
+        design_report=report,
+    )
+    controller_module = import_module("pe_claw_gui.app.controllers.efficiency_sweep_controller")
+    captured: dict[str, object] = {}
+    overview_reports: list[object] = []
+
+    def run_single_gui_point(sweep_report, *, plugin):
+        captured["report"] = sweep_report
+        return run_efficiency_sweep(
+            sweep_report,
+            plugin=plugin,
+            load_points=(0.5,),
+            output_dir=Path(sweep_report.run_context.output_root) / "efficiency_sweep",
+        )
+
+    monkeypatch.setattr(controller_module, "run_efficiency_sweep", run_single_gui_point)
+    monkeypatch.setattr(
+        controller_module,
+        "build_and_generate_hardware_overview",
+        lambda overview_report: (
+            overview_reports.append(overview_report)
+            or SimpleNamespace(status="available", blocked_reason=None)
+        ),
+    )
+
+    updated = EfficiencySweepController(store).run_active_efficiency_sweep(
+        operating_point=OperatingPoint(vin_v=700.0, load_ratio=0.5, power_factor=0.8),
+    )
+
+    captured_report = captured["report"]
+    assert captured_report.candidate is original_candidate
+    assert captured_report.run_context is not None
+    assert captured_report.run_context.run_id == original_run_id
+    assert updated.candidate is original_candidate
+    assert updated.run_context is not None
+    assert updated.run_context.run_id == original_run_id
+    assert updated.efficiency_sweep is not None
+    assert updated.efficiency_sweep.load_grid == (0.5,)
+    assert updated.efficiency_sweep.run_id == original_run_id
+    assert updated.efficiency_sweep.topology_id == TOPOLOGY_ID
+    assert overview_reports
+    final_overview_report = overview_reports[-1]
+    assert final_overview_report.waveform is not None
+    assert final_overview_report.waveform.load_ratio == pytest.approx(0.5)
+    assert final_overview_report.device is not None
+    assert final_overview_report.device.current_operating_point_key == "current"
+    assert {loss.role for loss in final_overview_report.device.current_operating_losses.values()} == {
+        "npc_outer_switch",
+        "npc_inner_switch",
+        "npc_clamp_diode",
+    }
+    assert updated.waveform is final_overview_report.waveform
+    assert updated.device is final_overview_report.device
+    output_root = Path(updated.run_context.output_root).resolve()
+    assert all(Path(path).resolve().is_relative_to(output_root) for path in updated.efficiency_sweep.artifact_paths.values())
+    assert store.design_report is updated
 def test_npc_form_exposes_design_and_operating_point_controls() -> None:
     form = ThreePhaseThreeLevelNPCInverterForm
     assert form.topology_id == TOPOLOGY_ID

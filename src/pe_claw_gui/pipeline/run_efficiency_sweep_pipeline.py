@@ -19,10 +19,18 @@ from ..libraries.magnetics.sendust_steinmetz import (
     get_sendust_steinmetz_material,
 )
 from ..models.design_report import DesignReport
+from ..models.design_run_context import call_with_report_run, get_run_context, get_run_output_dir
 from ..models.efficiency_sweep import EfficiencySweepPoint, EfficiencySweepResult
 from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
 from ..models.waveform import WaveformSet
+from ..libraries.semiconductors.topology_roles import get_semiconductor_roles_for_topology
+from ..engines.devices.loss_aggregation import (
+    npc_current_role_loss_totals,
+    npc_reverse_recovery_audit,
+    npc_switching_frequency_hz,
+    npc_sum_role_losses,
+)
 from ..topologies.base import TopologyPlugin
 from .options import PipelineOptions
 from .run_bridge_rectifier_pipeline import (
@@ -49,6 +57,7 @@ def run_efficiency_sweep(
     load_grid = _normalize_load_grid(load_points)
     warnings: list[str] = []
     signature = _build_signature(report, load_grid)
+    run_context = get_run_context(report)
     llc_validation = _validate_llc_efficiency_dependencies(report)
     if llc_validation is not None:
         output_root = _resolve_efficiency_output_dir(report, output_dir)
@@ -57,15 +66,19 @@ def run_efficiency_sweep(
             warnings=(llc_validation,),
             signature=signature,
             status="blocked",
-            run_id=getattr(report.llc_run_context, "run_id", None),
+            run_id=getattr(run_context, "run_id", None),
             topology_id=report.spec.topology_id,
-            input_sha256=getattr(report.llc_run_context, "input_sha256", None),
+            input_sha256=getattr(run_context, "input_sha256", None),
             source_ids=_llc_source_ids(report),
             fixed_parameters=_llc_fixed_parameters(report),
             blocked_reason=llc_validation,
         )
         return _write_blocked_llc_result(result, output_root)
-    if _can_reuse_sweep_result(report.efficiency_sweep, signature, output_dir):
+    if _can_reuse_sweep_result(
+        report.efficiency_sweep,
+        signature,
+        _resolve_efficiency_output_dir(report, output_dir),
+    ):
         return report.efficiency_sweep
 
     blocking_warning = _blocking_warning(report, plugin)
@@ -86,10 +99,17 @@ def run_efficiency_sweep(
         warnings.append("Magnetic design has not been run; magnetic loss is omitted.")
 
     points: list[EfficiencySweepPoint] = []
+    npc_periodic_initial_current_a: list[float] | None = None
     for load_pu in load_grid:
-        point, point_warnings = _evaluate_sweep_load_point(report, plugin, load_pu)
+        point, point_warnings = _evaluate_sweep_load_point(
+            report,
+            plugin,
+            load_pu,
+            npc_periodic_initial_current_a=npc_periodic_initial_current_a,
+        )
         points.append(point)
         warnings.extend(point_warnings)
+        npc_periodic_initial_current_a = _next_npc_periodic_initial_current(report, point)
 
     result = _build_result(points, load_grid, warnings, signature, report)
     if is_llc_topology(report.spec.topology_id) and not _all_points_complete(points):
@@ -99,9 +119,9 @@ def run_efficiency_sweep(
             status="blocked",
             blocked_reason=reason,
             warnings=tuple(_dedupe([*result.warnings, reason])),
-            run_id=getattr(report.llc_run_context, "run_id", None),
+            run_id=getattr(run_context, "run_id", None),
             topology_id=report.spec.topology_id,
-            input_sha256=getattr(report.llc_run_context, "input_sha256", None),
+            input_sha256=getattr(run_context, "input_sha256", None),
             source_ids=_llc_source_ids(report),
             fixed_parameters=_llc_fixed_parameters(report),
         )
@@ -127,9 +147,9 @@ def run_efficiency_sweep(
         artifact_paths=artifacts,
         pf_sweep_points=pf_sweep_points,
         pf_sweep_artifact_paths=pf_sweep_artifacts,
-        run_id=getattr(report.llc_run_context, "run_id", None),
+        run_id=getattr(run_context, "run_id", None),
         topology_id=report.spec.topology_id,
-        input_sha256=getattr(report.llc_run_context, "input_sha256", None),
+        input_sha256=getattr(run_context, "input_sha256", None),
         source_ids=_llc_source_ids(report),
         fixed_parameters=_llc_fixed_parameters(report),
     )
@@ -222,9 +242,9 @@ def _llc_fixed_parameters(report: DesignReport) -> dict[str, object]:
 def _resolve_efficiency_output_dir(report: DesignReport, output_dir: str | Path | None) -> Path:
     if output_dir is not None:
         return Path(output_dir)
-    context = report.llc_run_context
-    if is_llc_topology(report.spec.topology_id) and context is not None and context.output_root:
-        return Path(context.output_root) / "efficiency_sweep"
+    run_dir = get_run_output_dir(report, "efficiency_sweep")
+    if run_dir is not None:
+        return run_dir
     return _project_root() / "outputs" / "efficiency_sweep"
 
 
@@ -243,6 +263,8 @@ def _evaluate_sweep_load_point(
     report: DesignReport,
     plugin: TopologyPlugin,
     load_pu: float,
+    *,
+    npc_periodic_initial_current_a: list[float] | None = None,
 ) -> tuple[EfficiencySweepPoint, list[str]]:
     """Isolate one failed operating point so the remaining sweep can finish."""
 
@@ -253,7 +275,12 @@ def _evaluate_sweep_load_point(
             return _evaluate_single_phase_totem_pole_pfc_load_point(report, plugin, load_pu)
         if _is_ac_dc_bridge_topology(report):
             return _evaluate_ac_dc_load_point(report, plugin, load_pu)
-        return _evaluate_load_point(report, plugin, load_pu)
+        return _evaluate_load_point(
+            report,
+            plugin,
+            load_pu,
+            npc_periodic_initial_current_a=npc_periodic_initial_current_a,
+        )
     except Exception as exc:
         warning = (
             f"Efficiency sweep failed at {load_pu:.1f} p.u.: "
@@ -279,10 +306,17 @@ def _evaluate_load_point(
     base_report: DesignReport,
     plugin: TopologyPlugin,
     load_pu: float,
+    *,
+    npc_periodic_initial_current_a: list[float] | None = None,
 ) -> tuple[EfficiencySweepPoint, list[str]]:
     point_warnings: list[str] = []
     operating_point = _sweep_operating_point(base_report, load_pu)
-    waveform_set = plugin.generate_waveforms(base_report.candidate, operating_point=operating_point)
+    waveform_kwargs = {"operating_point": operating_point}
+    if _is_three_phase_npc_inverter_topology(base_report):
+        waveform_kwargs["_periodic_initial_current_a"] = npc_periodic_initial_current_a
+    waveform_set = call_with_report_run(
+        base_report, plugin.generate_waveforms, base_report.candidate, **waveform_kwargs
+    )
     if waveform_set is None:
         warning = f"Waveform generation returned no data at {load_pu:.1f} p.u.; point omitted."
         return (
@@ -313,6 +347,15 @@ def _evaluate_load_point(
         topology_result=topology_result,
     )
     refreshed = run_device_operating_point_refresh(refreshed, plugin=plugin)
+    npc_semiconductor_refresh_failed = (
+        _is_three_phase_npc_inverter_topology(base_report)
+        and _npc_current_operating_loss_unavailable(refreshed)
+    )
+    if npc_semiconductor_refresh_failed:
+        point_warnings.append(
+            f"NPC semiconductor current-operating-point loss was unavailable at {load_pu:.1f} p.u.; "
+            "the efficiency point is marked incomplete and design-point semiconductor loss is not used."
+        )
     if refreshed.magnetic is not None and refreshed.magnetic.chosen_designs:
         magnetic_options = PipelineOptions(enable_magnetic_design=True, enable_capacitor_design=refreshed.capacitor is not None)
         refreshed = run_loss_pipeline(
@@ -320,8 +363,10 @@ def _evaluate_load_point(
             preserve_selected_design_id=True,
             refresh_plot_artifact=False,
             pipeline_options=magnetic_options,
+            evaluate_selected_design_only=_is_three_phase_npc_inverter_topology(base_report),
         )
-        refreshed = run_thermal_pipeline(refreshed, pipeline_options=magnetic_options)
+        if not _is_three_phase_npc_inverter_topology(base_report):
+            refreshed = run_thermal_pipeline(refreshed, pipeline_options=magnetic_options)
     refreshed = run_capacitor_operating_point_refresh(refreshed)
 
     semiconductor_loss_w = _semiconductor_loss_w(refreshed)
@@ -329,7 +374,9 @@ def _evaluate_load_point(
     capacitor_loss_w = _capacitor_loss_w(refreshed)
     available_losses = [semiconductor_loss_w, magnetic_loss_w, capacitor_loss_w]
     total_loss_w = sum(loss for loss in available_losses if loss is not None)
-    if not any(loss is not None for loss in available_losses):
+    if npc_semiconductor_refresh_failed:
+        total_loss_w = None
+    elif not any(loss is not None for loss in available_losses):
         total_loss_w = None
         point_warnings.append(f"No loss components were available at {load_pu:.1f} p.u.")
 
@@ -356,6 +403,7 @@ def _evaluate_load_point(
                 capacitor=capacitor_loss_w,
             ),
             warnings=tuple(point_warnings),
+            switching_loss_audit=_switching_loss_audit(refreshed),
         ),
         point_warnings,
     )
@@ -425,7 +473,9 @@ def _evaluate_single_phase_boost_pfc_load_point(
 ) -> tuple[EfficiencySweepPoint, list[str]]:
     point_warnings: list[str] = []
     operating_point = _sweep_operating_point(base_report, load_pu)
-    waveform_set = plugin.generate_waveforms(base_report.candidate, operating_point=operating_point)
+    waveform_set = call_with_report_run(
+        base_report, plugin.generate_waveforms, base_report.candidate, operating_point=operating_point
+    )
     if waveform_set is None:
         warning = f"Boost PFC waveform generation returned no data at {load_pu:.1f} p.u.; point omitted."
         return (
@@ -536,7 +586,9 @@ def _evaluate_ac_dc_load_point(
 ) -> tuple[EfficiencySweepPoint, list[str]]:
     point_warnings: list[str] = []
     operating_point = _sweep_operating_point(base_report, load_pu)
-    waveform_set = plugin.generate_waveforms(base_report.candidate, operating_point=operating_point)
+    waveform_set = call_with_report_run(
+        base_report, plugin.generate_waveforms, base_report.candidate, operating_point=operating_point
+    )
     if waveform_set is None:
         warning = f"AC-DC waveform generation returned no data at {load_pu:.1f} p.u.; point omitted."
         return (
@@ -793,6 +845,10 @@ def _semiconductor_loss_w(report: DesignReport) -> float | None:
     device = report.device
     if device is None:
         return None
+    if _is_three_phase_npc_inverter_topology(report):
+        if _npc_current_operating_loss_unavailable(report):
+            return None
+        return npc_sum_role_losses(npc_current_role_loss_totals(device))
     if device.current_operating_losses:
         total = 0.0
         for key, loss_result in device.current_operating_losses.items():
@@ -805,6 +861,22 @@ def _semiconductor_loss_w(report: DesignReport) -> float | None:
     if device.design_point_losses:
         return sum(loss.p_total_W for loss in device.design_point_losses.values())
     return None
+
+
+def _npc_current_operating_loss_unavailable(report: DesignReport) -> bool:
+    """Return whether an NPC current-point semiconductor result is incomplete."""
+
+    device = report.device
+    if device is None or not device.current_operating_losses:
+        return True
+    if not device.current_operating_point_key:
+        return True
+    expected_roles = set(get_semiconductor_roles_for_topology(report.spec.topology_id))
+    actual_roles = {
+        loss_result.role
+        for loss_result in device.current_operating_losses.values()
+    }
+    return not expected_roles.issubset(actual_roles)
 
 
 def _active_scheme(device):
@@ -847,6 +919,193 @@ def _loss_breakdown(**components: float | None) -> dict[str, float | None]:
     """Return named loss components while omitting unavailable values."""
 
     return {name: value for name, value in components.items() if value is not None}
+
+
+def _npc_switching_loss_audit(report: DesignReport) -> dict[str, object]:
+    """Summarize the event data used for one NPC operating point."""
+
+    if not _is_three_phase_npc_inverter_topology(report) or report.waveform is None:
+        return {}
+    metadata = report.waveform.metadata if isinstance(report.waveform.metadata, dict) else {}
+    raw_events = metadata.get("three_phase_npc_switching_events")
+    if not isinstance(raw_events, list):
+        return {}
+    events = [event for event in raw_events if isinstance(event, dict)]
+    if not events:
+        return {"event_count": 0, "formula": "sum(Eevent) / Tline", "status": "no_events"}
+    currents = [float(event.get("signed_current_A", 0.0)) for event in events]
+    blocking_voltages = [abs(float(event.get("blocking_voltage_V", 0.0))) for event in events]
+    turn_on = [event for event in events if event.get("event_type") == "turn_on"]
+    turn_off = [event for event in events if event.get("event_type") == "turn_off"]
+    soft_turn_on_count = sum(1 for event in turn_on if float(event.get("signed_current_A", 0.0)) < 0.0)
+    line_frequency_hz = _npc_line_frequency_hz(report)
+    role_summary: dict[str, dict[str, object]] = {}
+    losses = report.device.current_operating_losses if report.device is not None else {}
+    if not losses and report.device is not None:
+        losses = report.device.design_point_losses
+    for role in ("outer_switch", "inner_switch"):
+        role_events = [event for event in events if event.get("role") == role]
+        role_loss = next(
+            (loss for loss in losses.values() if getattr(loss, "role", "") == f"npc_{role}"),
+            None,
+        )
+        role_summary[role] = {
+            "event_count": len(role_events),
+            "turn_on_count": sum(1 for event in role_events if event.get("event_type") == "turn_on"),
+            "turn_off_count": sum(1 for event in role_events if event.get("event_type") == "turn_off"),
+            "p_sw_on_W_per_position": getattr(role_loss, "p_sw_on_W", None),
+            "p_sw_off_W_per_position": getattr(role_loss, "p_sw_off_W", None),
+        }
+    switching_frequency_hz, switching_frequency_source = npc_switching_frequency_hz(report)
+    reverse_recovery = npc_reverse_recovery_audit(report)
+    return {
+        "status": "available",
+        "event_count": len(events),
+        "turn_on_count": len(turn_on),
+        "turn_off_count": len(turn_off),
+        "soft_turn_on_count": soft_turn_on_count,
+        "hard_turn_on_count": len(turn_on) - soft_turn_on_count,
+        "signed_current_min_A": min(currents),
+        "signed_current_max_A": max(currents),
+        "absolute_current_max_A": max(abs(value) for value in currents),
+        "blocking_voltage_min_V": min(blocking_voltages),
+        "blocking_voltage_max_V": max(blocking_voltages),
+        "line_frequency_Hz": line_frequency_hz,
+        "line_period_s": 1.0 / line_frequency_hz if line_frequency_hz > 0.0 else None,
+        "switching_frequency_Hz": switching_frequency_hz,
+        "switching_frequency_source": switching_frequency_source,
+        "periodic_solver_converged": metadata.get(
+            "phase_current_periodic_steady_state_converged"
+        ),
+        "periodic_solver_iterations": metadata.get(
+            "phase_current_periodic_steady_state_iterations"
+        ),
+        "periodic_initial_current_a": metadata.get(
+            "phase_current_periodic_steady_state_initial_current_a"
+        ),
+        "periodic_residual_max_a": max(
+            (abs(float(value)) for value in metadata.get(
+                "phase_current_periodic_steady_state_residual_a", []
+            )),
+            default=None,
+        ),
+        "warm_start_used": metadata.get(
+            "phase_current_periodic_steady_state_warm_start_used"
+        ),
+        "warm_start_fallback_used": metadata.get(
+            "phase_current_periodic_steady_state_warm_start_fallback_used"
+        ),
+        "formula": "Psw = sum(Eon + Eoff) / Tline; event energy uses actual signed current and blocking voltage",
+        "reverse_recovery": reverse_recovery,
+        "roles": role_summary,
+    }
+
+
+def _switching_loss_audit(report: DesignReport) -> dict[str, object]:
+    """Return the event audit for the active inverter topology."""
+
+    if _is_three_phase_two_level_inverter_topology(report):
+        return _vsi_switching_loss_audit(report)
+    return _npc_switching_loss_audit(report)
+
+
+def _vsi_switching_loss_audit(report: DesignReport) -> dict[str, object]:
+    """Summarize VSI event data and the six-position loss contract."""
+
+    if report.waveform is None:
+        return {}
+    metadata = report.waveform.metadata if isinstance(report.waveform.metadata, dict) else {}
+    raw_events = metadata.get("three_phase_vsi_switching_events")
+    if not isinstance(raw_events, list):
+        return {}
+    events = [event for event in raw_events if isinstance(event, dict)]
+    audit = metadata.get("three_phase_vsi_switching_event_audit")
+    audit = dict(audit) if isinstance(audit, dict) else {}
+    if not events:
+        return {
+            "status": "no_events",
+            "event_count": 0,
+            "formula": "Psw = sum(Eon + Eoff) / (6*Tline)",
+        }
+    currents = [float(event.get("signed_current_A", 0.0)) for event in events]
+    voltages = [abs(float(event.get("blocking_voltage_V", 0.0))) for event in events]
+    line_frequency_hz = _npc_line_frequency_hz(report)
+    losses = report.device.current_operating_losses if report.device is not None else {}
+    if not losses and report.device is not None:
+        losses = report.device.design_point_losses
+    switch_counts = {
+        switch_name: sum(1 for event in events if event.get("switch_name") == switch_name)
+        for switch_name in ("S1", "S2", "S3", "S4", "S5", "S6")
+    }
+    loss = next((item for item in losses.values() if getattr(item, "role", "") == "main_switch"), None)
+    return {
+        "status": "available",
+        "event_count": len(events),
+        "turn_on_count": sum(1 for event in events if event.get("event_type") == "turn_on"),
+        "turn_off_count": sum(1 for event in events if event.get("event_type") == "turn_off"),
+        "soft_turn_on_count": sum(
+            1 for event in events
+            if event.get("event_type") == "turn_on" and float(event.get("signed_current_A", 0.0)) < 0.0
+        ),
+        "hard_turn_on_count": sum(
+            1 for event in events
+            if event.get("event_type") == "turn_on" and float(event.get("signed_current_A", 0.0)) >= 0.0
+        ),
+        "signed_current_min_A": min(currents),
+        "signed_current_max_A": max(currents),
+        "absolute_current_max_A": max(abs(value) for value in currents),
+        "blocking_voltage_min_V": min(voltages),
+        "blocking_voltage_max_V": max(voltages),
+        "switch_event_counts": switch_counts,
+        "line_frequency_Hz": line_frequency_hz,
+        "line_period_s": 1.0 / line_frequency_hz if line_frequency_hz > 0.0 else None,
+        "switching_frequency_Hz": metadata.get("three_phase_two_level_spwm_design", {}).get("fsw_hz"),
+        "p_sw_on_W_per_position": getattr(loss, "p_sw_on_W", None),
+        "p_sw_off_W_per_position": getattr(loss, "p_sw_off_W", None),
+        "p_rr_W_per_position": getattr(loss, "p_rr_W", None),
+        "event_source": audit.get("event_source", "actual_sampled_vsi_gate_edge"),
+        "current_source": audit.get("current_source", "actual_phase_inductor_current_at_gate_edge"),
+        "blocking_voltage_source": audit.get(
+            "blocking_voltage_source", "actual_dc_link_voltage_at_gate_edge"
+        ),
+        "formula": "Psw = sum(Eon + Eoff) / (6*Tline); event energy uses actual signed current and blocking voltage",
+        "sic_reverse_recovery_loss_W": 0.0,
+    }
+
+
+def _next_npc_periodic_initial_current(
+    report: DesignReport,
+    point: EfficiencySweepPoint,
+) -> list[float] | None:
+    """Return a converged NPC fixed point for the next sweep operating point."""
+
+    if not _is_three_phase_npc_inverter_topology(report):
+        return None
+    audit = point.switching_loss_audit
+    if not audit or audit.get("periodic_solver_converged") is not True:
+        return None
+    values = audit.get("periodic_initial_current_a")
+    if not isinstance(values, list) or len(values) != 3:
+        return None
+    try:
+        normalized = [float(value) for value in values]
+    except (TypeError, ValueError):
+        return None
+    return normalized if all(math.isfinite(value) for value in normalized) else None
+
+
+def _npc_line_frequency_hz(report: DesignReport) -> float:
+    for source in (
+        report.spec.metadata,
+        report.candidate.metadata if report.candidate is not None else {},
+    ):
+        try:
+            value = float(source.get("f_line_hz", 0.0))
+        except (TypeError, ValueError):
+            continue
+        if value > 0.0:
+            return value
+    return 0.0
 
 
 def _build_result(
@@ -995,8 +1254,9 @@ def _write_artifacts(result: EfficiencySweepResult, output_dir: str | Path | Non
     _write_sweep_csv(result, csv_path)
     _write_efficiency_curve(result, efficiency_path)
     _write_loss_breakdown(result, loss_path)
+    # Keep the public artifact contract stable: CSV remains an on-disk audit
+    # artifact, while the result view exposes the two plotted artifacts.
     return {
-        "csv": str(csv_path),
         "efficiency_curve": str(efficiency_path),
         "loss_breakdown_stacked": str(loss_path),
     }
@@ -1016,6 +1276,7 @@ def _write_sweep_csv(result: EfficiencySweepResult, path: Path) -> None:
         "other_loss_w",
         "bridge_rectifier_loss_w",
         "loss_breakdown_w",
+        "switching_loss_audit",
         "warnings",
     )
     with path.open("w", encoding="utf-8", newline="") as handle:
@@ -1034,6 +1295,7 @@ def _write_sweep_csv(result: EfficiencySweepResult, path: Path) -> None:
                     "other_loss_w": point.other_loss_w,
                     "bridge_rectifier_loss_w": point.bridge_rectifier_loss_w,
                     "loss_breakdown_w": json.dumps(point.loss_breakdown_w, sort_keys=True),
+                    "switching_loss_audit": json.dumps(point.switching_loss_audit, sort_keys=True),
                     "warnings": " | ".join(point.warnings),
                 }
             )
@@ -1051,11 +1313,24 @@ def _build_inverter_pf_sweep(
     fixed_load = _pf_sweep_load_pu(report)
     points: list[dict[str, object]] = []
     warnings: list[str] = []
+    npc_periodic_initial_current_by_sign: dict[int, list[float] | None] = {1: None, -1: None}
     for pf in DEFAULT_INVERTER_PF_POINTS:
         operating_point = OperatingPoint(vin_v=_operating_vin_v(report), load_ratio=fixed_load, power_factor=pf)
         pf_report = replace(report, operating_point=operating_point)
-        point, point_warnings = _evaluate_load_point(pf_report, plugin, fixed_load)
+        power_factor_sign = -1 if pf < 0.0 else 1
+        point, point_warnings = _evaluate_load_point(
+            pf_report,
+            plugin,
+            fixed_load,
+            npc_periodic_initial_current_a=npc_periodic_initial_current_by_sign[power_factor_sign]
+            if _is_three_phase_npc_inverter_topology(report)
+            else None,
+        )
         warnings.extend(point_warnings)
+        if _is_three_phase_npc_inverter_topology(report):
+            npc_periodic_initial_current_by_sign[power_factor_sign] = _next_npc_periodic_initial_current(
+                pf_report, point
+            )
         if zvs_mode == "diagnostic":
             try:
                 segments = build_inverter_line_cycle_segments(report, operating_point=operating_point)
@@ -1091,6 +1366,7 @@ def _build_inverter_pf_sweep(
                     if low_slope_segment_count is not None and segments
                     else None
                 ),
+                "switching_loss_audit": point.switching_loss_audit,
             }
         )
     artifacts = _write_pf_sweep_artifacts(points, output_dir, zvs_mode=zvs_mode) if points else {}

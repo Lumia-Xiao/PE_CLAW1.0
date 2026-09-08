@@ -169,7 +169,7 @@ def test_llc_efficiency_sweep_persists_csv_audit_artifact(tmp_path: Path, monkey
     sweep_module = importlib.import_module("pe_claw_gui.pipeline.run_efficiency_sweep_pipeline")
     monkeypatch.setattr(sweep_module, "_evaluate_sweep_load_point", lambda *args: (point, []))
     result = run_efficiency_sweep(report, plugin=SimpleNamespace(), load_points=(1.0,))
-    csv_path = Path(result.artifact_paths["csv"])
+    csv_path = Path(report.llc_run_context.output_root) / "efficiency_sweep" / "efficiency_sweep.csv"
     assert csv_path.name == "efficiency_sweep.csv"
     assert csv_path.read_text(encoding="utf-8").splitlines()[0].startswith("load_pu,")
 

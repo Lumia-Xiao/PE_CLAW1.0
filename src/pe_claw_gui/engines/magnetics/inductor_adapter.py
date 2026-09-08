@@ -932,8 +932,9 @@ def _build_single_phase_full_bridge_inverter_design_request(report: DesignReport
         iac_rms_a = _positive_float(metadata.get("iac_rms_a"), abs(candidate.iout))
         iac_peak_a = _positive_float(metadata.get("iac_peak_a"), abs(candidate.iout) * math.sqrt(2.0))
         delta_i_pp_a = _positive_float(metadata.get("tcm_delta_i_max_a"), abs(candidate.delta_il))
-        i_rms_a = _positive_float(metadata.get("tcm_i_rms_a"), iac_rms_a)
-        i_peak_a = _positive_float(metadata.get("tcm_i_peak_max_a"), abs(candidate.il_peak))
+        detail_stats = _tcm_waveform_current_stats(report)
+        i_rms_a = detail_stats["rms_a"] if detail_stats is not None else _positive_float(metadata.get("tcm_i_rms_a"), iac_rms_a)
+        i_peak_a = detail_stats["peak_a"] if detail_stats is not None else _positive_float(metadata.get("tcm_i_peak_max_a"), abs(candidate.il_peak))
         i_valley_a = float(metadata.get("tcm_valley_current_target_a", candidate.il_valley))
         v_l_design_v = 0.5 * abs(candidate.vin_nom)
         return InductorDesignRequest(
@@ -957,7 +958,7 @@ def _build_single_phase_full_bridge_inverter_design_request(report: DesignReport
             mode_capable=candidate.mode_capable,
             notes=[
                 "Derived from the synthesized single-phase full-bridge inverter TCM output inductor.",
-                "Current RMS is estimated from the 20-segment triangular-current envelope.",
+                "Current RMS and peak are integrated from the detailed TCM current over one complete line cycle.",
                 "Flux-density screening uses a first-pass half-DC-bus inductor-voltage proxy; TCM variable-frequency details are retained in metadata.",
                 "This is a rough magnetic realization request only; detailed inverter magnetic loss and thermal validation are pending.",
             ],
@@ -967,6 +968,7 @@ def _build_single_phase_full_bridge_inverter_design_request(report: DesignReport
                 "iac_rms_a": iac_rms_a,
                 "iac_peak_a": iac_peak_a,
                 "tcm_i_rms_a": i_rms_a,
+                "tcm_current_stats_basis": "detailed_tcm_current_one_line_period" if detail_stats is not None else "candidate_tcm_envelope_fallback",
                 "tcm_i_peak_max_a": i_peak_a,
                 "tcm_delta_i_max_a": delta_i_pp_a,
                 "tcm_valley_current_target_a": i_valley_a,
@@ -1087,10 +1089,11 @@ def _build_single_phase_full_bridge_inverter_operating_request(report: DesignRep
     metadata = candidate.metadata if isinstance(candidate.metadata, dict) else {}
     if str(candidate.mode_capable).startswith("tcm_"):
         iac_rms_a = _positive_float(metadata.get("iac_rms_a"), abs(candidate.iout))
-        i_peak_a = _positive_float(metadata.get("tcm_i_peak_max_a"), abs(candidate.il_peak))
+        detail_stats = _tcm_waveform_current_stats(report)
+        i_peak_a = detail_stats["peak_a"] if detail_stats is not None else _positive_float(metadata.get("tcm_i_peak_max_a"), abs(candidate.il_peak))
         i_valley_a = float(metadata.get("tcm_valley_current_target_a", candidate.il_valley))
         delta_i_pp_a = _positive_float(metadata.get("tcm_delta_i_max_a"), abs(candidate.delta_il))
-        i_rms_a = _positive_float(metadata.get("tcm_i_rms_a"), iac_rms_a)
+        i_rms_a = detail_stats["rms_a"] if detail_stats is not None else _positive_float(metadata.get("tcm_i_rms_a"), iac_rms_a)
         v_l_design_v = 0.5 * abs(candidate.vin_nom)
         return InductorOperatingPointRequest(
             topology_id=candidate.topology_id,
@@ -1112,7 +1115,7 @@ def _build_single_phase_full_bridge_inverter_operating_request(report: DesignRep
             load_ratio=1.0,
             notes=[
                 "TCM output-inductor operating loss uses segment-resolved variable-frequency magnetic loss, time-averaged.",
-                "Current RMS is estimated from the 20-segment triangular-current envelope.",
+                "Current RMS and peak are integrated from the detailed TCM current over one complete line cycle.",
             ],
             metadata={
                 "candidate_display_name": candidate.display_name,
@@ -1122,6 +1125,7 @@ def _build_single_phase_full_bridge_inverter_operating_request(report: DesignRep
                 "tcm_fsw_min_actual_hz": metadata.get("tcm_fsw_min_actual_hz"),
                 "tcm_fsw_max_actual_hz": metadata.get("tcm_fsw_max_actual_hz"),
                 "tcm_i_rms_a": i_rms_a,
+                "tcm_current_stats_basis": "detailed_tcm_current_one_line_period" if detail_stats is not None else "candidate_tcm_envelope_fallback",
                 "tcm_i_peak_max_a": i_peak_a,
                 "tcm_delta_i_max_a": delta_i_pp_a,
             },
@@ -1382,6 +1386,34 @@ def _positive_float(value: object, fallback: float) -> float:
     except (TypeError, ValueError):
         return fallback
     return result if result > 0.0 else fallback
+
+
+def _tcm_waveform_current_stats(report: DesignReport) -> dict[str, float] | None:
+    """Return detailed one-line-period TCM inductor current statistics."""
+
+    waveform = report.waveform
+    if waveform is None or not isinstance(waveform.metadata, dict):
+        return None
+    tcm = waveform.metadata.get("single_phase_inverter_tcm_envelope")
+    if not isinstance(tcm, dict):
+        return None
+    time_s = [float(value) for value in tcm.get("detail_time_s", [])]
+    current_a = [float(value) for value in tcm.get("detail_inductor_current_a", [])]
+    if len(time_s) != len(current_a) or len(time_s) < 2:
+        return None
+    duration_s = time_s[-1] - time_s[0]
+    if duration_s <= 0.0:
+        return None
+    square_area = 0.0
+    for index in range(1, len(time_s)):
+        dt_s = max(time_s[index] - time_s[index - 1], 0.0)
+        square_area += 0.5 * (current_a[index - 1] ** 2 + current_a[index] ** 2) * dt_s
+    return {
+        "rms_a": math.sqrt(max(square_area / duration_s, 0.0)),
+        "peak_a": max((abs(value) for value in current_a), default=0.0),
+        "valley_a": min(current_a),
+        "duration_s": duration_s,
+    }
 
 
 def _operating_load_ratio(report: DesignReport) -> float:

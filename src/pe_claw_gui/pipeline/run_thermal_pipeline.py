@@ -10,6 +10,7 @@ from ..engines.thermal.thermal_estimator import (
     resolve_ambient_temperature_c,
 )
 from ..models.design_report import DesignReport
+from ..models.design_run_context import get_run_output_dir
 from ..models.thermal_result import ThermalComparisonEntry, ThermalEstimate, ThermalResult
 from .options import MAGNETIC_STAGE_DISABLED_NOTE, MAGNETIC_THERMAL_DISABLED_NOTE, PipelineOptions, resolve_pipeline_options
 from ..engines.magnetics.core_loss_audit import core_loss_is_comparable
@@ -310,14 +311,9 @@ def _llc_thermal_entries(report, transformer, external, components):
 
 
 def _llc_thermal_output_dir(report: DesignReport):
-    """Keep LLC thermal artifacts inside the current run when one exists."""
+    """Keep thermal artifacts inside the current run when one exists."""
 
-    context = report.llc_run_context
-    if context is not None and context.output_root:
-        from pathlib import Path
-
-        return Path(context.output_root) / "thermal"
-    return None
+    return get_run_output_dir(report, "inductor_design")
 
 
 def _resolve_recommended_design_id(report: DesignReport) -> str | None:

@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 
 from ..models.design_report import DesignReport
+from ..models.design_run_context import get_run_output_dir
 from ..models.geometry_result import GeometryResult, GeometryTarget
 from ..models.inductor import FixedInductorDesignCandidate
 from ..visualization.geometry import build_inductor_geometry_layout, export_geometry_3d_artifacts, export_geometry_artifacts
@@ -61,7 +62,7 @@ def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOption
     targets: list[GeometryTarget] = []
     unique_targets_by_design_id: dict[str, GeometryTarget] = {}
     unique_artifact_paths: list[str] = []
-    output_dir = _project_output_dir()
+    output_dir = _project_output_dir(report)
 
     for target_spec in target_specs:
         role = target_spec["role"]
@@ -174,7 +175,7 @@ def _run_ac_dc_reactor_geometry_pipeline(report: DesignReport) -> DesignReport:
         )
         return replace(report, geometry=geometry_result)
 
-    output_dir = _project_root() / "outputs" / "ac_dc_reactor_geometry"
+    output_dir = get_run_output_dir(report, "inductor_design") or _project_root() / "outputs" / "ac_dc_reactor_geometry"
     min_volume = min(
         feasible,
         key=lambda candidate: (_metric_or_inf(candidate.estimated_volume_cm3), candidate.candidate_id),
@@ -880,7 +881,11 @@ def _project_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
-def _project_output_dir() -> Path:
+def _project_output_dir(report: DesignReport | None = None) -> Path:
+    if report is not None:
+        run_dir = get_run_output_dir(report, "inductor_design")
+        if run_dir is not None:
+            return run_dir
     return _project_root() / "outputs" / "inductor_design"
 
 

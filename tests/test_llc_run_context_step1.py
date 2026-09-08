@@ -12,8 +12,8 @@ from pe_claw_gui.topologies.base.registry import build_default_registry
 from pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier.input_schema import build_default_inputs
 
 
-def test_llc_context_has_fresh_identity_and_isolated_output_root() -> None:
-    output_root = Path(".test-llc-run-context")
+def test_llc_context_has_fresh_identity_and_isolated_output_root(tmp_path: Path) -> None:
+    output_root = tmp_path / "llc-run-context"
     first = LlcRunContext.create(
         "llc_resonant_converter_diode_rectifier",
         {"vin": 400, "pout": 1000},
@@ -35,8 +35,10 @@ def test_llc_context_has_fresh_identity_and_isolated_output_root() -> None:
     assert first.external_lr_design_id is None
 
 
-def test_llc_context_transition_records_failure_reason() -> None:
-    context = LlcRunContext.create("llc_resonant_converter_diode_rectifier", {})
+def test_llc_context_transition_records_failure_reason(tmp_path: Path) -> None:
+    context = LlcRunContext.create(
+        "llc_resonant_converter_diode_rectifier", {}, output_root=tmp_path / "transition"
+    )
     failed = context.transition("magnetics", "failed", reason="transformer search failed")
 
     assert failed.stage_status["magnetics"] == "failed"
@@ -45,8 +47,10 @@ def test_llc_context_transition_records_failure_reason() -> None:
     assert context.stage_status["magnetics"] == "not_started"
 
 
-def test_llc_context_result_ids_accumulate_and_serialize() -> None:
-    context = LlcRunContext.create("llc_resonant_converter_diode_rectifier", {})
+def test_llc_context_result_ids_accumulate_and_serialize(tmp_path: Path) -> None:
+    context = LlcRunContext.create(
+        "llc_resonant_converter_diode_rectifier", {}, output_root=tmp_path / "ids"
+    )
     updated = context.with_result_ids(transformer_design_id="transformer-a")
     updated = updated.with_result_ids(external_lr_design_id="inductor-a")
 
@@ -61,9 +65,9 @@ def test_llc_topology_scope_is_explicit() -> None:
     assert not is_llc_topology("buck_diode_rectified_unidirectional")
 
 
-def test_topology_pipeline_attaches_a_new_llc_context() -> None:
+def test_topology_pipeline_attaches_a_new_llc_context(tmp_path: Path) -> None:
     plugin = build_default_registry().get_plugin("llc_resonant_converter_diode_rectifier")
-    bundle = run_topology_pipeline(plugin, build_default_inputs())
+    bundle = run_topology_pipeline(plugin, build_default_inputs(), output_root=tmp_path / "pipeline-run")
 
     assert bundle.report.llc_run_context is not None
     assert bundle.report.llc_run_context.topology_id == "llc_resonant_converter_diode_rectifier"

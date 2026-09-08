@@ -43,12 +43,12 @@ def _run_isolated(code: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_ac_dc_gui_forms_and_efficiency_result_view_end_to_end() -> None:
+def test_ac_dc_gui_forms_and_efficiency_result_view_end_to_end(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("PE_CLAW_STEP12_GUI_OUTPUT_ROOT", str(tmp_path / "gui-output"))
     result = _run_isolated(
         r'''
 from pathlib import Path
 import os
-from tempfile import TemporaryDirectory
 from unittest.mock import patch
 import importlib
 
@@ -77,19 +77,21 @@ try:
     assert app.state_store.selected_category_id == "ac_dc"
     assert len(app.workspace.active_page._topology_buttons) == 5
 
-    evidence_root = os.environ.get("PE_CLAW_STEP12_GUI_OUTPUT_ROOT")
-    temporary_directory = None if evidence_root else TemporaryDirectory()
-    try:
-        output_root = Path(evidence_root or temporary_directory.name)
-        output_root.mkdir(parents=True, exist_ok=True)
-        with patch(
-            "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline.DEFAULT_LOAD_POINTS",
-            (0.5, 1.0),
-        ), patch(
-            "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline._project_root",
-        ) as project_root:
+    evidence_root = os.environ["PE_CLAW_STEP12_GUI_OUTPUT_ROOT"]
+    output_root = Path(evidence_root)
+    output_root.mkdir(parents=True, exist_ok=True)
+    with patch(
+        "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline.DEFAULT_LOAD_POINTS",
+        (0.5, 1.0),
+    ), patch(
+        "pe_claw_gui.pipeline.run_efficiency_sweep_pipeline._project_root",
+    ) as project_root, patch(
+        "pe_claw_gui.models.design_run_context._default_output_root",
+    ) as default_output_root:
             for topology_id in TOPOLOGY_IDS:
-                project_root.return_value = output_root / topology_id
+                run_root = output_root / topology_id
+                project_root.return_value = run_root
+                default_output_root.return_value = run_root
                 app._on_topology_selected(topology_id)
                 form = app.workspace.active_form
                 assert form is not None
@@ -195,7 +197,7 @@ try:
                     for path in sweep.artifact_paths.values()
                 )
                 assert all(
-                    topology_id in Path(path).parts
+                    Path(path).is_relative_to(output_root / topology_id)
                     for path in sweep.artifact_paths.values()
                 )
 
@@ -234,14 +236,11 @@ try:
                 assert "efficiency curve: generated" in summary
                 assert "loss breakdown: generated" in summary
                 assert len(app.workspace.efficiency_view._canvases) == 2
-    finally:
-        if temporary_directory is not None:
-            temporary_directory.cleanup()
 finally:
     app.destroy()
 '''
     )
-    assert result.returncode == 0, result.stderr or result.stdout
+    assert result.returncode == 0, f"{result.stderr}\n{result.stdout}"
 
 
 def test_efficiency_sweep_controller_writes_result_and_timing_to_state() -> None:

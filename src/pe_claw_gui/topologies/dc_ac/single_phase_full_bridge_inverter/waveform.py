@@ -84,7 +84,7 @@ def generate_waveforms(
         power_factor=operating_power_factor,
         f_line_hz=f_line_hz,
         fsw_hz=fsw_hz,
-        inductance_h=float(operating_contract["validation_effective_series_inductance_h"]),
+        inductance_h=float(candidate.inductance_h),
         capacitance_f=cdc_f,
         idc_avg_a=idc_avg_a,
         low_frequency_time_s=time_s,
@@ -134,6 +134,27 @@ def generate_waveforms(
             "refined_dc_link_capacitor_current_pwm_rms_a": refined["dc_link_capacitor_current_pwm_rms_a"],
             "refined_dc_link_voltage_pwm_ripple_pp_v": refined["dc_link_voltage_pwm_ripple_pp_v"],
             "single_phase_inverter_branch_currents": refined["branch_current_metrics"],
+            "single_phase_inverter_current_integration_method": refined["current_integration_method"],
+            "single_phase_inverter_current_periodic_solver": refined["current_periodic_solver"],
+            "single_phase_inverter_current_periodic_correction_applied": refined[
+                "current_periodic_correction_applied"
+            ],
+            "single_phase_inverter_current_periodic_endpoint_correction_applied": refined[
+                "current_periodic_endpoint_correction_applied"
+            ],
+            "single_phase_inverter_current_periodic_initial_current_a": refined[
+                "current_periodic_initial_current_a"
+            ],
+            "single_phase_inverter_current_periodic_period_end_current_a": refined[
+                "current_periodic_period_end_current_a"
+            ],
+            "single_phase_inverter_current_periodic_residual_a": refined["current_periodic_residual_a"],
+            "single_phase_inverter_current_periodic_solver_converged": refined[
+                "current_periodic_solver_converged"
+            ],
+            "single_phase_inverter_current_periodic_solver_iterations": refined[
+                "current_periodic_solver_iterations"
+            ],
             **operating_contract,
         },
     )
@@ -233,6 +254,11 @@ def _generate_tcm_envelope_waveforms(
     )
     ripple_v = _integrate_periodic_capacitor_voltage(time_s, dc_cap_current_a, cdc_f)
     vdc_link_v = [vdc_v + value for value in ripple_v]
+    tcm_switching_events = _build_tcm_switching_events(
+        detail=detail,
+        dc_link_voltage_v=vdc_link_v,
+        line_period_s=period_s,
+    )
     notes = [
         "First-pass TCM waveform with triangular current reconstruction; switching transitions and gate states are not modeled.",
         "Detailed TCM current is a triangular reconstruction for visualization; switching transitions and parasitics are not modeled.",
@@ -300,6 +326,8 @@ def _generate_tcm_envelope_waveforms(
                 "detail_mixed_mode_cycle_count": detail["mixed_mode_cycle_count"],
                 "detail_downsampled": detail["downsampled"],
                 "samples_per_tcm_cycle": detail["samples_per_tcm_cycle"],
+                "switching_events": tcm_switching_events,
+                "switching_event_audit": _tcm_switching_event_audit(tcm_switching_events),
                 "low_slope_diagnostic": low_slope,
                 "dc_link_voltage_v": vdc_link_v,
                 "dc_link_capacitor_current_a": dc_cap_current_a,
@@ -363,8 +391,111 @@ def _generate_tcm_envelope_waveforms(
             "tcm_mixed_mode_fallback_active": low_slope["mixed_mode_fallback_active"],
             "tcm_mixed_mode_cycle_count": low_slope["violation_count"],
             "tcm_mixed_mode_cycle_fraction": low_slope["violation_fraction"],
+            "tcm_switching_events": tcm_switching_events,
+            "tcm_switching_event_audit": _tcm_switching_event_audit(tcm_switching_events),
         },
     )
+
+
+def _build_tcm_switching_events(
+    *,
+    detail: dict[str, object],
+    dc_link_voltage_v: list[float],
+    line_period_s: float,
+) -> list[dict[str, object]]:
+    """Build minimal TCM events from each actual reconstructed switching cycle."""
+
+    cycle_times = [float(value) for value in detail.get("cycle_start_time_s", [])]
+    cycle_fsw = [float(value) for value in detail.get("cycle_fsw_hz", [])]
+    cycle_iavg = [float(value) for value in detail.get("cycle_iavg_a", [])]
+    cycle_peak = [float(value) for value in detail.get("cycle_ipeak_envelope_a", [])]
+    cycle_valley = [float(value) for value in detail.get("cycle_ivalley_envelope_a", [])]
+    cycle_t_up = [float(value) for value in detail.get("cycle_t_up_s", [])]
+    if not cycle_times or line_period_s <= 0.0:
+        return []
+
+    events: list[dict[str, object]] = []
+    switch_names = ("S1", "S2", "S3", "S4")
+    for cycle_index, start_time_s in enumerate(cycle_times):
+        if start_time_s < 0.0 or start_time_s >= line_period_s:
+            continue
+        fsw_hz = cycle_fsw[cycle_index] if cycle_index < len(cycle_fsw) else 0.0
+        switching_period_s = 1.0 / fsw_hz if fsw_hz > 0.0 else 0.0
+        current_average = cycle_iavg[cycle_index] if cycle_index < len(cycle_iavg) else 0.0
+        peak_current = cycle_peak[cycle_index] if cycle_index < len(cycle_peak) else current_average
+        valley_current = cycle_valley[cycle_index] if cycle_index < len(cycle_valley) else current_average
+        voltage_index = min(
+            max(int(round(start_time_s / line_period_s * max(len(dc_link_voltage_v) - 1, 1))), 0),
+            max(len(dc_link_voltage_v) - 1, 0),
+        )
+        blocking_voltage = abs(float(dc_link_voltage_v[voltage_index])) if dc_link_voltage_v else 0.0
+        t_up_s = cycle_t_up[cycle_index] if cycle_index < len(cycle_t_up) else 0.5 * switching_period_s
+        turn_off_time_s = min(start_time_s + t_up_s, line_period_s - 1e-15)
+        # A TCM triangular cycle commutates one active bridge leg.  The
+        # complementary device changes state at the same idealized boundary;
+        # the opposite leg is static during this minimal event model.
+        active_leg = "A" if current_average >= 0.0 else "B"
+        if active_leg == "A":
+            active_switch = ("S1", 1)
+            complementary_switch = ("S2", 2)
+        else:
+            active_switch = ("S3", 3)
+            complementary_switch = ("S4", 4)
+        cycle_events = (
+            (active_switch, "turn_on", start_time_s, valley_current, "tcm_cycle_valley_current"),
+            (complementary_switch, "turn_off", start_time_s, valley_current, "tcm_cycle_valley_current"),
+            (active_switch, "turn_off", turn_off_time_s, peak_current, "tcm_cycle_peak_current"),
+            (complementary_switch, "turn_on", turn_off_time_s, peak_current, "tcm_cycle_peak_current"),
+        )
+        for (switch_name, switch_index), event_type, event_time_s, event_current, current_source in cycle_events:
+            events.append(
+                {
+                    "switch_name": switch_name,
+                    "switch_index": switch_index,
+                    "bridge_leg": active_leg,
+                    "event_type": event_type,
+                    "event_time_s": event_time_s,
+                    "blocking_voltage_V": blocking_voltage,
+                    "signed_current_A": event_current,
+                    "absolute_current_A": abs(event_current),
+                    "soft_turn_on": event_type == "turn_on" and event_current < 0.0,
+                    "hard_turn_on": event_type == "turn_on" and event_current >= 0.0,
+                    "event_source": "tcm_reconstructed_cycle_boundary",
+                    "current_source": current_source,
+                    "blocking_voltage_source": "dc_link_voltage_at_tcm_cycle_start",
+                    "current_signed_convention": "signed_output_inductor_current",
+                    "cycle_index": cycle_index,
+                    "cycle_start_time_s": start_time_s,
+                    "cycle_switching_frequency_hz": fsw_hz,
+                    "cycle_average_current_A": current_average,
+                    "cycle_peak_current_A": peak_current,
+                    "cycle_valley_current_A": valley_current,
+                }
+            )
+    events.sort(key=lambda event: (float(event["event_time_s"]), str(event["switch_name"]), str(event["event_type"])))
+    return events
+
+
+def _tcm_switching_event_audit(events: list[dict[str, object]]) -> dict[str, object]:
+    turn_on = [event for event in events if event.get("event_type") == "turn_on"]
+    turn_off = [event for event in events if event.get("event_type") == "turn_off"]
+    hard = [event for event in turn_on if bool(event.get("hard_turn_on"))]
+    soft = [event for event in turn_on if bool(event.get("soft_turn_on"))]
+    currents = [float(event.get("signed_current_A", 0.0)) for event in events]
+    voltages = [float(event.get("blocking_voltage_V", 0.0)) for event in events]
+    return {
+        "event_count": len(events),
+        "turn_on_count": len(turn_on),
+        "turn_off_count": len(turn_off),
+        "hard_turn_on_count": len(hard),
+        "soft_turn_on_count": len(soft),
+        "event_current_min_A": min(currents) if currents else 0.0,
+        "event_current_max_A": max(currents) if currents else 0.0,
+        "event_blocking_voltage_min_V": min(voltages) if voltages else 0.0,
+        "event_blocking_voltage_max_V": max(voltages) if voltages else 0.0,
+        "event_current_source": "tcm_cycle_valley_and_peak_current",
+        "event_voltage_source": "dc_link_voltage_at_tcm_cycle_start",
+    }
 
 
 def _build_tcm_detail_current_waveform(
@@ -395,6 +526,10 @@ def _build_tcm_detail_current_waveform(
     cycle_fsw_hz: list[float] = []
     cycle_natural_fsw_hz: list[float] = []
     cycle_mixed_mode_clamped: list[bool] = []
+    cycle_iavg_a: list[float] = []
+    cycle_ipeak_envelope_a: list[float] = []
+    cycle_ivalley_envelope_a: list[float] = []
+    cycle_t_up_s: list[float] = []
     t_s = 0.0
     cycle_count = 0
     samples_per_cycle = max(int(samples_per_cycle), 4)
@@ -428,6 +563,10 @@ def _build_tcm_detail_current_waveform(
         cycle_fsw_hz.append(cycle_fsw)
         cycle_natural_fsw_hz.append(cycle_natural_fsw)
         cycle_mixed_mode_clamped.append(clamped)
+        cycle_iavg_a.append(avg)
+        cycle_ipeak_envelope_a.append(peak_signed)
+        cycle_ivalley_envelope_a.append(valley_signed)
+        cycle_t_up_s.append(t_up_s)
 
         for point in range(up_points):
             fraction = point / max(up_points - 1, 1)
@@ -540,6 +679,10 @@ def _build_tcm_detail_current_waveform(
         "cycle_fsw_hz": cycle_fsw_hz,
         "cycle_natural_fsw_hz": cycle_natural_fsw_hz,
         "cycle_mixed_mode_clamped": cycle_mixed_mode_clamped,
+        "cycle_iavg_a": cycle_iavg_a,
+        "cycle_ipeak_envelope_a": cycle_ipeak_envelope_a,
+        "cycle_ivalley_envelope_a": cycle_ivalley_envelope_a,
+        "cycle_t_up_s": cycle_t_up_s,
         "sample_count": len(time_s),
         "cycle_count": cycle_count,
         "mixed_mode_cycle_count": sum(1 for value in cycle_mixed_mode_clamped if value),
@@ -755,19 +898,43 @@ def _build_refined_unipolar_spwm_waveforms(
         i_ac_fundamental_a.append(active_power_sign * iac_peak_a * math.sin(theta - phi_rad))
         vdc_link_v.append(vdc_inst_v)
 
-    inductor_ripple_a = _integrate_pwm_inductor_ripple_by_cycle(
-        time_s,
-        v_ab_pwm_v,
-        vac_fundamental_v,
-        inductance_h,
-        samples_per_switching_period,
+    feedback, periodic_solver = _solve_periodic_full_bridge_current(
+        time_s=time_s,
+        dc_link_voltage_v=vdc_link_v,
+        ac_voltage_v=vac_fundamental_v,
+        reference_current_a=i_ac_fundamental_a,
+        inductance_h=inductance_h,
+        voltage_limit_v=vdc_v,
+        cycle_boundaries_s=[
+            min(index / fsw_hz, period_s)
+            for index in range(math.ceil(period_s * fsw_hz))
+        ] + [period_s],
     )
-    inductor_current_a = [fundamental + ripple for fundamental, ripple in zip(i_ac_fundamental_a, inductor_ripple_a, strict=True)]
-    local_ripple_pp_a = _local_cycle_peak_to_peak(inductor_ripple_a, samples_per_switching_period)
+    sequence = feedback["sequence"]
+    inductor_current_a = feedback["inductor_current_a"]
+    average_voltage_targets = feedback["target_diagnostics"]
+    mod_a, mod_b = sequence["mod_a"], sequence["mod_b"]
+    gate_s1, gate_s2 = sequence["gate_s1"], sequence["gate_s2"]
+    gate_s3, gate_s4 = sequence["gate_s3"], sequence["gate_s4"]
+    bridge_state = sequence["bridge_state"]
+    v_ab_pwm_v = sequence["bridge_voltage_v"]
+    actual_average_voltage = feedback["bridge_voltage_average_v"]
+    target_average_voltage = average_voltage_targets["target_voltage_v"]
+    inductor_ripple_a = [
+        actual - reference
+        for actual, reference in zip(inductor_current_a, i_ac_fundamental_a, strict=True)
+    ]
+    local_ripple_pp_a = _local_cycle_peak_to_peak(inductor_current_a, samples_per_switching_period)
     dc_link_current_a = [state * current for state, current in zip(bridge_state, inductor_current_a, strict=True)]
     dc_link_cap_current_pwm_a = [idc_avg_a - current for current in dc_link_current_a]
     dc_link_cap_current_pwm_a = _remove_average(dc_link_cap_current_pwm_a)
     dc_link_pwm_ripple_v = _integrate_periodic_capacitor_voltage(time_s, dc_link_cap_current_pwm_a, capacitance_f)
+    switching_events = _extract_full_bridge_switching_events(
+        segments=feedback["segments"],
+        line_period_s=period_s,
+    )
+    cycle_boundaries_s = feedback["cycle_boundaries_s"]
+    event_axis_s = [float(event["event_time_s"]) for event in switching_events]
 
     branch_current_metrics = _branch_current_metrics(
         inductor_current_a,
@@ -793,12 +960,81 @@ def _build_refined_unipolar_spwm_waveforms(
         "i_ac_fundamental_a": i_ac_fundamental_a,
         "inductor_ripple_a": inductor_ripple_a,
         "inductor_current_a": inductor_current_a,
+        "current_integration_method": "event_segmented_linear_voltage_exact_current_integral",
+        "current_integration_segments": feedback["segments"],
+        "current_saturation_assessment": {
+            "status": "not_evaluated_no_selected_inductor_saturation_rating",
+            "actual_peak_current_a": feedback["current_peak_a"],
+            "actual_rms_current_a": feedback["current_rms_a"],
+            "saturation_current_a": None,
+        },
+        "switching_event_exact_current_sampling_pending": False,
+        "current_periodic_solver": periodic_solver,
+        "current_periodic_correction_applied": False,
+        "current_periodic_endpoint_correction_applied": False,
+        "current_periodic_initial_current_a": periodic_solver["initial_current_a"],
+        "current_periodic_period_end_current_a": periodic_solver["period_end_current_a"],
+        "current_periodic_residual_a": periodic_solver["residual_a"],
+        "current_periodic_solver_converged": periodic_solver["converged"],
+        "current_periodic_solver_iterations": periodic_solver["iterations"],
+        "period_average_voltage_targets_v": average_voltage_targets["target_voltage_v"],
+        "period_average_voltage_unclamped_targets_v": average_voltage_targets["unclamped_target_voltage_v"],
+        "period_average_voltage_target_saturated": average_voltage_targets["target_voltage_saturated"],
+        "period_average_voltage_target_reference_current_average_a": average_voltage_targets[
+            "reference_current_average_a"
+        ],
+        "period_average_voltage_target_actual_current_start_a": average_voltage_targets[
+            "actual_current_start_a"
+        ],
+        "period_average_voltage_target_grid_voltage_average_v": average_voltage_targets[
+            "grid_voltage_average_v"
+        ],
+        "period_average_voltage_target_period_s": average_voltage_targets["period_s"],
+        "period_average_voltage_target_method": average_voltage_targets["method"],
+        "period_average_voltage_target_inductance_h": float(inductance_h),
+        "period_average_voltage_target_inductance_basis": "candidate_output_filter_inductance",
+        "period_average_bridge_voltage_v": actual_average_voltage,
+        "period_average_bridge_voltage_error_v": [
+            actual - target
+            for actual, target in zip(actual_average_voltage, target_average_voltage, strict=True)
+        ],
+        "period_average_bridge_voltage_sequence_method": sequence["method"],
+        "period_average_bridge_voltage_sequence_interval_count": sequence["interval_count"],
+        "reference_current_average_A": feedback["reference_current_average_a"],
+        "actual_current_average_A": feedback["actual_current_average_a"],
+        "current_average_error_A": feedback["current_average_error_a"],
+        "average_current_correction_iterations": feedback["correction_iterations"],
+        "average_current_correction_saturated": feedback["correction_saturated"],
+        "target_voltage_before_correction_V": feedback["target_voltage_before_correction_v"],
+        "target_voltage_after_correction_V": feedback["target_voltage_after_correction_v"],
+        "average_current_feedback_method": feedback["method"],
+        "average_current_feedback_converged": feedback["converged"],
+        "average_current_feedback_max_error_A": feedback["max_error_a"],
+        "final_period_average_current_error_A": feedback["current_average_error_a"],
         "dc_link_current_a": dc_link_current_a,
         "dc_link_capacitor_current_pwm_a": dc_link_cap_current_pwm_a,
         "dc_link_voltage_v": vdc_link_v,
         "dc_link_voltage_pwm_ripple_v": dc_link_pwm_ripple_v,
+        "switching_events": switching_events,
+        "switching_event_count": len(switching_events),
+        "switching_event_source": "integrated_segment_gate_transition",
+        "switching_event_current_source": "exact_integrated_segment_endpoint",
+        "switching_event_blocking_voltage_source": "dc_link_voltage_at_integrated_segment_boundary",
+        "switching_event_signed_current_convention": "existing_signed_output_inductor_current",
+        "switching_event_current_selection": "event_pre_transition_continuous_state",
+        "switching_event_boundary_contract": "current_before_transition_gate_after_transition",
+        "switching_event_audit": _full_bridge_switching_event_audit(
+            switching_events,
+            periodic_solver=periodic_solver,
+        ),
+        "switching_cycle_boundaries_s": cycle_boundaries_s,
+        "switching_event_axis_s": event_axis_s,
+        "switching_event_time_quantized_to_waveform_grid": all(
+            any(abs(event_time - sample_time) <= max(period_s * 1e-12, 1e-15) for sample_time in time_s)
+            for event_time in event_axis_s
+        ),
         "samples_per_switching_period": samples_per_switching_period,
-        "switching_cycle_count": switching_cycles,
+        "switching_cycle_count": len(cycle_boundaries_s) - 1,
         "bridge_voltage_levels_v": [-vdc_v, 0.0, vdc_v],
         "inductor_pwm_ripple_pp_a": max(local_ripple_pp_a) if local_ripple_pp_a else 0.0,
         "inductor_pwm_ripple_mean_local_pp_a": _mean(local_ripple_pp_a),
@@ -808,10 +1044,593 @@ def _build_refined_unipolar_spwm_waveforms(
         "dc_link_voltage_pwm_ripple_pp_v": max(dc_link_pwm_ripple_v) - min(dc_link_pwm_ripple_v) if dc_link_pwm_ripple_v else 0.0,
         "notes": [
             "Unipolar SPWM preview uses ideal complementary gates without dead-time.",
-            "Bridge voltage is generated from two sinusoidal references compared with a triangular carrier.",
-            "Inductor PWM ripple is integrated from v_L = v_ab_pwm - v_ac,fundamental.",
+            "Period-average current feedback sets center-aligned unipolar SPWM duties.",
+            "Current is continuously integrated on gate intervals; preview sampling does not quantize integration.",
+            "Switching-event current is the integrated state immediately before each segment gate transition.",
             "DC-link PWM capacitor current is provided for waveform inspection only; capacitor bank selection still uses the low-frequency energy-balance current.",
         ],
+    }
+
+
+def _solve_periodic_full_bridge_current(
+    *,
+    time_s: list[float],
+    dc_link_voltage_v: list[float],
+    ac_voltage_v: list[float],
+    reference_current_a: list[float],
+    inductance_h: float,
+    voltage_limit_v: float,
+    cycle_boundaries_s: list[float],
+) -> tuple[dict[str, object], dict[str, object]]:
+    """Shoot the closed-loop state map, never shift an already integrated trace."""
+    from scipy.optimize import root_scalar
+
+    kwargs = dict(
+        time_s=time_s, dc_link_voltage_v=dc_link_voltage_v,
+        ac_voltage_v=ac_voltage_v, reference_current_a=reference_current_a,
+        inductance_h=inductance_h, voltage_limit_v=voltage_limit_v,
+        cycle_boundaries_s=cycle_boundaries_s,
+    )
+    history: list[dict[str, float]] = []
+    last_result = None
+
+    def residual(initial: float) -> float:
+        nonlocal last_result
+        last_result = _apply_full_bridge_average_current_feedback(
+            **kwargs, initial_current_a=float(initial),
+        )
+        value = last_result["end_current_a"] - initial
+        history.append({"initial_current_a": float(initial), "residual_a": float(value)})
+        return float(value)
+
+    seed = float(reference_current_a[0])
+    first_residual = residual(seed)
+    if abs(first_residual) > 1e-8:
+        root = root_scalar(
+            residual, method="secant", x0=seed,
+            x1=seed + max(0.01, max(abs(v) for v in reference_current_a) * 0.01),
+            xtol=1e-8, maxiter=20,
+        )
+        if math.isfinite(root.root):
+            residual(float(root.root))
+    result = last_result
+    initial = history[-1]["initial_current_a"]
+    final_residual = result["end_current_a"] - initial
+    converged = abs(final_residual) <= 1e-8 and result["converged"]
+    solver = {
+        "method": "closed_loop_event_segmented_periodic_shooting",
+        "status": "converged" if converged else "periodic_or_average_current_not_converged",
+        "converged": converged,
+        "initial_current_a": initial,
+        "period_end_current_a": result["end_current_a"],
+        "residual_a": final_residual,
+        "iterations": len(history),
+        "tolerance_a": 1e-8,
+        "average_current_tolerance_a": 1e-6,
+        "average_current_max_error_a": result["max_error_a"],
+        "endpoint_correction_applied": False,
+        "modulation_saturated": any(result["correction_saturated"]),
+        "saturated_cycle_count": sum(result["correction_saturated"]),
+        "history": history,
+    }
+    return result, solver
+
+
+def _required_average_full_bridge_voltage_by_switching_period(
+    *,
+    time_s: list[float],
+    ac_voltage_v: list[float],
+    actual_current_a: list[float],
+    reference_current_a: list[float],
+    inductance_h: float,
+    samples_per_switching_period: int,
+    voltage_limit_v: float,
+) -> dict[str, object]:
+    """Calculate the bounded bridge-voltage target for each switching period."""
+
+    empty = {
+        "method": "period_average_grid_voltage_plus_2L_over_Tsw_current_tracking",
+        "target_voltage_v": [],
+        "unclamped_target_voltage_v": [],
+        "target_voltage_saturated": [],
+        "reference_current_average_a": [],
+        "actual_current_start_a": [],
+        "grid_voltage_average_v": [],
+        "period_s": [],
+    }
+    if (
+        len(time_s) != len(ac_voltage_v)
+        or len(time_s) != len(actual_current_a)
+        or len(time_s) != len(reference_current_a)
+        or len(time_s) < 2
+        or inductance_h <= 0.0
+        or samples_per_switching_period <= 1
+        or voltage_limit_v <= 0.0
+    ):
+        return empty
+
+    cycle_count = (len(time_s) - 1) // samples_per_switching_period
+    targets: list[float] = []
+    unclamped_targets: list[float] = []
+    saturated: list[bool] = []
+    reference_averages: list[float] = []
+    current_starts: list[float] = []
+    grid_averages: list[float] = []
+    periods: list[float] = []
+    for cycle in range(cycle_count):
+        start = cycle * samples_per_switching_period
+        end = (cycle + 1) * samples_per_switching_period
+        period_s = float(time_s[end]) - float(time_s[start])
+        if period_s <= 0.0:
+            continue
+        grid_average_v = _time_average_between(time_s, ac_voltage_v, start, end)
+        reference_average_a = _time_average_between(time_s, reference_current_a, start, end)
+        actual_start_a = float(actual_current_a[start])
+        required_v = grid_average_v + 2.0 * inductance_h * (
+            reference_average_a - actual_start_a
+        ) / period_s
+        bounded_v = min(max(required_v, -voltage_limit_v), voltage_limit_v)
+        targets.append(float(bounded_v))
+        unclamped_targets.append(float(required_v))
+        saturated.append(abs(bounded_v - required_v) > 1e-12)
+        reference_averages.append(float(reference_average_a))
+        current_starts.append(actual_start_a)
+        grid_averages.append(float(grid_average_v))
+        periods.append(period_s)
+    return {
+        "method": "period_average_grid_voltage_plus_2L_over_Tsw_current_tracking",
+        "target_voltage_v": targets,
+        "unclamped_target_voltage_v": unclamped_targets,
+        "target_voltage_saturated": saturated,
+        "reference_current_average_a": reference_averages,
+        "actual_current_start_a": current_starts,
+        "grid_voltage_average_v": grid_averages,
+        "period_s": periods,
+    }
+
+
+def _build_target_voltage_full_bridge_sequence(
+    *,
+    time_s: list[float],
+    carrier: list[float],
+    target_voltage_v: list[float],
+    dc_link_voltage_v: list[float],
+    switching_cycles: int,
+) -> dict[str, object]:
+    """Build complementary unipolar-SPWM gates for bounded cycle targets."""
+
+    if len(time_s) != len(carrier) or len(time_s) != len(dc_link_voltage_v) or not time_s:
+        return {
+            "method": "target_average_voltage_unipolar_spwm_sequence",
+            "mod_a": [], "mod_b": [], "gate_s1": [], "gate_s2": [],
+            "gate_s3": [], "gate_s4": [], "bridge_state": [],
+            "bridge_voltage_v": [], "interval_count": 0,
+        }
+    samples_per_cycle = max((len(time_s) - 1) // max(switching_cycles, 1), 1)
+    mod_a: list[float] = []
+    mod_b: list[float] = []
+    gate_s1: list[float] = []
+    gate_s2: list[float] = []
+    gate_s3: list[float] = []
+    gate_s4: list[float] = []
+    bridge_state: list[float] = []
+    bridge_voltage_v: list[float] = []
+    for index, vdc_inst_v in enumerate(dc_link_voltage_v):
+        cycle = min(index // samples_per_cycle, len(target_voltage_v) - 1)
+        normalized = min(max(float(target_voltage_v[cycle]) / max(abs(float(vdc_inst_v)), 1e-12), -1.0), 1.0)
+        ma = normalized
+        mb = -normalized
+        s1 = 1.0 if ma >= float(carrier[index]) else 0.0
+        s3 = 1.0 if mb >= float(carrier[index]) else 0.0
+        state = s1 - s3
+        mod_a.append(ma)
+        mod_b.append(mb)
+        gate_s1.append(s1)
+        gate_s2.append(1.0 - s1)
+        gate_s3.append(s3)
+        gate_s4.append(1.0 - s3)
+        bridge_state.append(state)
+        bridge_voltage_v.append(state * float(vdc_inst_v))
+    return {
+        "method": "target_average_voltage_unipolar_spwm_sequence",
+        "mod_a": mod_a,
+        "mod_b": mod_b,
+        "gate_s1": gate_s1,
+        "gate_s2": gate_s2,
+        "gate_s3": gate_s3,
+        "gate_s4": gate_s4,
+        "bridge_state": bridge_state,
+        "bridge_voltage_v": bridge_voltage_v,
+        "interval_count": sum(
+            1 for index in range(1, len(bridge_state)) if bridge_state[index] != bridge_state[index - 1]
+        ),
+    }
+
+
+def _full_bridge_cycle_integral(
+    *, time_s: list[float], dc_voltage_v: list[float], ac_voltage_v: list[float],
+    initial_current_a: float, inductance_h: float, target_voltage_v: float,
+) -> dict[str, object]:
+    """Integrate linear voltage on exact unipolar gate intervals."""
+    from bisect import bisect_right
+
+    start, end = time_s[0], time_s[-1]
+    duration = end - start
+    bus_average = _time_average_between(time_s, dc_voltage_v, 0, len(time_s) - 1)
+    modulation = min(max(target_voltage_v / bus_average, -1.0), 1.0)
+    # Each leg switches against the same center-aligned triangular carrier.
+    edges = [
+        start + duration * fraction
+        for m in (modulation, -modulation)
+        for fraction in ((1.0 + m) / 4.0, (3.0 - m) / 4.0)
+    ]
+    knots = sorted(set([*time_s, *edges]))
+    current = initial_current_a
+    current_area = 0.0
+    voltage_area = 0.0
+    segments = []
+    for left, right in zip(knots[:-1], knots[1:], strict=True):
+        if right <= left:
+            continue
+        index = min(max(bisect_right(time_s, left) - 1, 0), len(time_s) - 2)
+        dc0 = _interpolate_linear(time_s[index], time_s[index + 1],
+                                  dc_voltage_v[index], dc_voltage_v[index + 1], left)
+        dc1 = _interpolate_linear(time_s[index], time_s[index + 1],
+                                  dc_voltage_v[index], dc_voltage_v[index + 1], right)
+        ac0 = _interpolate_linear(time_s[index], time_s[index + 1],
+                                  ac_voltage_v[index], ac_voltage_v[index + 1], left)
+        ac1 = _interpolate_linear(time_s[index], time_s[index + 1],
+                                  ac_voltage_v[index], ac_voltage_v[index + 1], right)
+        carrier = _triangular_carrier(((left + right) * 0.5 - start) / duration)
+        s1, s3 = float(modulation >= carrier), float(-modulation >= carrier)
+        state = s1 - s3
+        dt = right - left
+        slope = (state * dc0 - ac0) / inductance_h
+        slope_rate = (state * (dc1 - dc0) - (ac1 - ac0)) / (dt * inductance_h)
+        end_current = current + slope * dt + 0.5 * slope_rate * dt**2
+        area = current * dt + 0.5 * slope * dt**2 + slope_rate * dt**3 / 6.0
+        segments.append({
+            "start_time_s": left, "end_time_s": right,
+            "start_current_a": current, "end_current_a": end_current,
+            "current_slope_a_per_s": slope, "current_slope_rate_a_per_s2": slope_rate,
+            "current_integral_a_s": area,
+            "bridge_state": state, "gate_s1": s1, "gate_s2": 1.0 - s1,
+            "gate_s3": s3, "gate_s4": 1.0 - s3,
+            "dc_voltage_start_v": dc0, "dc_voltage_end_v": dc1,
+            "ac_voltage_start_v": ac0, "ac_voltage_end_v": ac1,
+            "mod_a": modulation, "mod_b": -modulation,
+        })
+        current_area += area
+        voltage_area += state * (dc0 + dc1) * 0.5 * dt
+        current = end_current
+    return {
+        "segments": segments, "end_current_a": current,
+        "average_current_a": current_area / duration,
+        "average_voltage_v": voltage_area / duration,
+    }
+
+
+def _apply_full_bridge_average_current_feedback(
+    *,
+    time_s: list[float],
+    dc_link_voltage_v: list[float],
+    ac_voltage_v: list[float],
+    reference_current_a: list[float],
+    inductance_h: float,
+    voltage_limit_v: float,
+    initial_current_a: float,
+    cycle_boundaries_s: list[float],
+) -> dict[str, object]:
+    """Propagate the actual end current, re-simulating each voltage correction."""
+    from bisect import bisect_left, bisect_right
+    import numpy as np
+
+    if (
+        len(time_s) < 2 or not all(len(v) == len(time_s) for v in
+                                  (dc_link_voltage_v, ac_voltage_v, reference_current_a))
+        or inductance_h <= 0.0 or voltage_limit_v <= 0.0
+        or any(b <= a for a, b in zip(time_s[:-1], time_s[1:]))
+        or any(v <= 0.0 or not math.isfinite(v) for v in dc_link_voltage_v)
+        or len(cycle_boundaries_s) < 2
+        or any(b <= a for a, b in zip(cycle_boundaries_s[:-1], cycle_boundaries_s[1:]))
+        or cycle_boundaries_s[0] != time_s[0] or cycle_boundaries_s[-1] != time_s[-1]
+    ):
+        raise ValueError("Invalid full-bridge current integration inputs.")
+
+    current_start = float(initial_current_a)
+    records = []
+    segments = []
+    source_time = np.asarray(time_s)
+    source_dc = np.asarray(dc_link_voltage_v)
+    source_ac = np.asarray(ac_voltage_v)
+    source_reference = np.asarray(reference_current_a)
+    for start, end in zip(cycle_boundaries_s[:-1], cycle_boundaries_s[1:], strict=True):
+        local_time = [start, *time_s[bisect_right(time_s, start):bisect_left(time_s, end)], end]
+        local_dc = np.interp(local_time, source_time, source_dc).tolist()
+        local_ac = np.interp(local_time, source_time, source_ac).tolist()
+        local_reference = np.interp(local_time, source_time, source_reference).tolist()
+        duration = end - start
+        reference_average = _time_average_between(local_time, local_reference, 0, len(local_time) - 1)
+        grid_average = _time_average_between(local_time, local_ac, 0, len(local_time) - 1)
+        bus_average = _time_average_between(local_time, local_dc, 0, len(local_time) - 1)
+        limit = min(voltage_limit_v, bus_average)
+        initial_target = grid_average + 2.0 * inductance_h * (reference_average - current_start) / duration
+        raw_target = initial_target
+        saturated_history = False
+        for iteration in range(1, 6):
+            target = min(max(raw_target, -limit), limit)
+            saturated_history |= target != raw_target
+            cycle = _full_bridge_cycle_integral(
+                time_s=local_time, dc_voltage_v=local_dc, ac_voltage_v=local_ac,
+                initial_current_a=current_start, inductance_h=inductance_h,
+                target_voltage_v=target,
+            )
+            error = cycle["average_current_a"] - reference_average
+            if abs(error) <= 1e-6 or iteration == 5:
+                break
+            raw_target = target - 2.0 * inductance_h * error / duration
+        records.append({
+            "reference_current_average_a": reference_average,
+            "actual_current_average_a": cycle["average_current_a"],
+            "current_average_error_a": error,
+            "actual_current_start_a": current_start,
+            "grid_voltage_average_v": grid_average,
+            "period_s": duration, "correction_iterations": iteration,
+            "correction_saturated": saturated_history,
+            "target_voltage_saturated": target != raw_target,
+            "target_voltage_before_correction_v": initial_target,
+            "target_voltage_after_correction_v": target,
+            "unclamped_target_voltage_v": raw_target,
+            "bridge_voltage_average_v": cycle["average_voltage_v"],
+        })
+        segments.extend(cycle["segments"])
+        current_start = cycle["end_current_a"]
+
+    # Preview samples are evaluations of the integrated state, never its time base.
+    starts = [segment["start_time_s"] for segment in segments]
+    current = []
+    arrays = {key: [] for key in ("mod_a", "mod_b", "gate_s1", "gate_s2", "gate_s3",
+                                  "gate_s4", "bridge_state", "bridge_voltage_v")}
+    for t in time_s:
+        segment = segments[min(max(bisect_right(starts, t) - 1, 0), len(segments) - 1)]
+        dt = t - segment["start_time_s"]
+        current.append(segment["start_current_a"] + segment["current_slope_a_per_s"] * dt
+                       + 0.5 * segment["current_slope_rate_a_per_s2"] * dt**2)
+        for name in arrays:
+            if name == "bridge_voltage_v":
+                value = segment["bridge_state"] * _interpolate_linear(
+                    segment["start_time_s"], segment["end_time_s"],
+                    segment["dc_voltage_start_v"], segment["dc_voltage_end_v"], t)
+            else:
+                value = segment[name]
+            arrays[name].append(value)
+    columns = {key: [record[key] for record in records] for key in records[0]}
+    peak_current = 0.0
+    square_area = 0.0
+    for segment in segments:
+        dt = segment["end_time_s"] - segment["start_time_s"]
+        a = segment["start_current_a"]
+        b = segment["current_slope_a_per_s"]
+        c = 0.5 * segment["current_slope_rate_a_per_s2"]
+        peak_current = max(peak_current, abs(a), abs(segment["end_current_a"]))
+        if c and 0.0 < -b / (2.0 * c) < dt:
+            vertex = -b / (2.0 * c)
+            peak_current = max(peak_current, abs(a + b * vertex + c * vertex**2))
+        square_area += (a*a*dt + a*b*dt**2 + (b*b + 2*a*c)*dt**3/3.0
+                        + b*c*dt**4/2.0 + c*c*dt**5/5.0)
+    diagnostics = {
+        "method": "period_average_grid_voltage_plus_2L_over_Tsw_current_tracking_feedback",
+        "target_voltage_v": columns["target_voltage_after_correction_v"],
+        **{key: columns[key] for key in (
+            "unclamped_target_voltage_v", "target_voltage_saturated",
+            "reference_current_average_a", "actual_current_start_a",
+            "grid_voltage_average_v", "period_s",
+        )},
+    }
+    return {
+        "method": "per_switching_period_average_current_voltage_feedback",
+        "sequence": {
+            "method": "target_average_voltage_unipolar_spwm_sequence_event_integrated",
+            **arrays, "interval_count": len(segments),
+        },
+        "inductor_current_a": current, "end_current_a": current_start,
+        "current_peak_a": peak_current,
+        "current_rms_a": math.sqrt(max(square_area / (time_s[-1] - time_s[0]), 0.0)),
+        "target_diagnostics": diagnostics, "segments": segments,
+        "cycle_boundaries_s": cycle_boundaries_s,
+        **columns,
+        "converged": all(abs(error) <= 1e-6 for error in columns["current_average_error_a"]),
+        "max_error_a": max(abs(error) for error in columns["current_average_error_a"]),
+    }
+
+
+def _average_bridge_voltage_by_switching_period(
+    *,
+    time_s: list[float],
+    bridge_voltage_v: list[float],
+    samples_per_switching_period: int,
+) -> list[float]:
+    cycle_count = (len(time_s) - 1) // max(samples_per_switching_period, 1)
+    return [
+        _time_average_between(
+            time_s,
+            bridge_voltage_v,
+            cycle * samples_per_switching_period,
+            (cycle + 1) * samples_per_switching_period,
+        )
+        for cycle in range(cycle_count)
+    ]
+
+
+def _time_average_between(
+    time_s: list[float],
+    values: list[float],
+    start_index: int,
+    end_index: int,
+) -> float:
+    duration_s = float(time_s[end_index]) - float(time_s[start_index])
+    if duration_s <= 0.0:
+        return 0.0
+    area = sum(
+        0.5 * (float(values[index - 1]) + float(values[index]))
+        * (float(time_s[index]) - float(time_s[index - 1]))
+        for index in range(start_index + 1, end_index + 1)
+    )
+    return area / duration_s
+
+
+def _extract_full_bridge_switching_events(
+    *,
+    segments: list[dict[str, object]],
+    line_period_s: float,
+) -> list[dict[str, object]]:
+    """Extract gate transitions from the exact continuously integrated segments."""
+
+    if len(segments) < 2 or line_period_s <= 0.0:
+        return []
+
+    events: list[dict[str, object]] = []
+    tolerance_s = max(line_period_s * 1e-12, 1e-15)
+    switch_order = ("S1", "S2", "S3", "S4")
+    leg_by_switch = {"S1": "A", "S2": "A", "S3": "B", "S4": "B"}
+    index_by_switch = {name: index for index, name in enumerate(switch_order, 1)}
+    def add_transition(
+        *,
+        switch_name: str,
+        previous_segment: dict[str, object],
+        current_segment: dict[str, object],
+        event_time_s: float,
+        wrapped: bool,
+    ) -> None:
+        previous_gate = float(previous_segment.get(f"gate_{switch_name.lower()}", 0.0))
+        current_gate = float(current_segment.get(f"gate_{switch_name.lower()}", 0.0))
+        if current_gate == previous_gate:
+            return
+        signed_current = float(previous_segment.get("end_current_a", 0.0))
+        blocking_voltage = abs(
+            float(
+                previous_segment.get(
+                    "dc_voltage_end_v",
+                    current_segment.get("dc_voltage_start_v", 0.0),
+                )
+            )
+        )
+        events.append(
+            {
+                "switch_name": switch_name,
+                "switch_index": index_by_switch[switch_name],
+                "bridge_leg": leg_by_switch[switch_name],
+                "event_type": "turn_on" if current_gate > previous_gate else "turn_off",
+                "event_time_s": 0.0 if wrapped else event_time_s,
+                "gate_before": previous_gate,
+                "gate_after": current_gate,
+                "bridge_state_before": float(previous_segment.get("bridge_state", 0.0)),
+                "bridge_state_after": float(current_segment.get("bridge_state", 0.0)),
+                "blocking_voltage_V": blocking_voltage,
+                "signed_current_A": signed_current,
+                "absolute_current_A": abs(signed_current),
+                "soft_turn_on": bool(current_gate > previous_gate and signed_current < 0.0),
+                "hard_turn_on": bool(current_gate > previous_gate and signed_current >= 0.0),
+                "event_source": "integrated_segment_gate_transition",
+                "current_source": "exact_integrated_segment_endpoint",
+                "blocking_voltage_source": "dc_link_voltage_at_integrated_segment_boundary",
+                "current_signed_convention": "signed_output_inductor_current",
+                "pre_event_segment_index": segments.index(previous_segment),
+                "post_event_segment_index": segments.index(current_segment),
+                "pre_event_segment_start_time_s": float(previous_segment.get("start_time_s", 0.0)),
+                "pre_event_segment_end_time_s": float(previous_segment.get("end_time_s", 0.0)),
+                "post_event_segment_start_time_s": float(current_segment.get("start_time_s", 0.0)),
+                "post_event_segment_end_time_s": float(current_segment.get("end_time_s", 0.0)),
+                "current_evaluation_time_s": float(previous_segment.get("end_time_s", 0.0)),
+                "wrapped_at_period_boundary": wrapped,
+            }
+        )
+
+    for segment_index in range(1, len(segments)):
+        previous_segment = segments[segment_index - 1]
+        current_segment = segments[segment_index]
+        event_time_s = float(current_segment.get("start_time_s", 0.0))
+        if event_time_s < -tolerance_s or event_time_s >= line_period_s - tolerance_s:
+            continue
+        for switch_name in switch_order:
+            add_transition(
+                switch_name=switch_name,
+                previous_segment=previous_segment,
+                current_segment=current_segment,
+                event_time_s=event_time_s,
+                wrapped=False,
+            )
+
+    first_segment = segments[0]
+    last_segment = segments[-1]
+    for switch_name in switch_order:
+        add_transition(
+            switch_name=switch_name,
+            previous_segment=last_segment,
+            current_segment=first_segment,
+            event_time_s=0.0,
+            wrapped=True,
+        )
+    events.sort(key=lambda event: (float(event["event_time_s"]), str(event["switch_name"])))
+    return events
+
+
+def _interpolate_linear(
+    start_time_s: float,
+    end_time_s: float,
+    start_value: float,
+    end_value: float,
+    query_time_s: float,
+) -> float:
+    span_s = end_time_s - start_time_s
+    if span_s <= 0.0:
+        return float(start_value)
+    fraction = min(max((query_time_s - start_time_s) / span_s, 0.0), 1.0)
+    return float(start_value) + fraction * (float(end_value) - float(start_value))
+
+
+def _full_bridge_switching_event_audit(
+    events: list[dict[str, object]],
+    *,
+    periodic_solver: dict[str, object],
+) -> dict[str, object]:
+    turn_on = [event for event in events if event.get("event_type") == "turn_on"]
+    turn_off = [event for event in events if event.get("event_type") == "turn_off"]
+    hard = [event for event in turn_on if bool(event.get("hard_turn_on"))]
+    soft = [event for event in turn_on if bool(event.get("soft_turn_on"))]
+    currents = [float(event["signed_current_A"]) for event in events if event.get("signed_current_A") is not None]
+    voltages = [float(event["blocking_voltage_V"]) for event in events]
+    per_switch: dict[str, dict[str, object]] = {}
+    for switch_name in ("S1", "S2", "S3", "S4"):
+        switch_events = [event for event in events if event.get("switch_name") == switch_name]
+        switch_turn_on = [event for event in switch_events if event.get("event_type") == "turn_on"]
+        switch_hard = [event for event in switch_turn_on if bool(event.get("hard_turn_on"))]
+        switch_soft = [event for event in switch_turn_on if bool(event.get("soft_turn_on"))]
+        switch_currents = [float(event["signed_current_A"]) for event in switch_events]
+        per_switch[switch_name] = {
+            "event_count": len(switch_events),
+            "turn_on_count": len(switch_turn_on),
+            "turn_off_count": len(switch_events) - len(switch_turn_on),
+            "hard_turn_on_count": len(switch_hard),
+            "soft_turn_on_count": len(switch_soft),
+            "event_current_min_A": min(switch_currents) if switch_currents else 0.0,
+            "event_current_max_A": max(switch_currents) if switch_currents else 0.0,
+        }
+    return {
+        "event_count": len(events),
+        "turn_on_count": len(turn_on),
+        "turn_off_count": len(turn_off),
+        "hard_turn_on_count": len(hard),
+        "soft_turn_on_count": len(soft),
+        "event_current_min_A": min(currents) if currents else 0.0,
+        "event_current_max_A": max(currents) if currents else 0.0,
+        "event_blocking_voltage_min_V": min(voltages) if voltages else 0.0,
+        "event_blocking_voltage_max_V": max(voltages) if voltages else 0.0,
+        "periodic_current_residual_A": float(periodic_solver.get("residual_a", 0.0)),
+        "periodic_solver_converged": bool(periodic_solver.get("converged", False)),
+        "event_current_source": "exact_integrated_segment_endpoint",
+        "event_voltage_source": "dc_link_voltage_at_integrated_segment_boundary",
+        "per_switch": per_switch,
     }
 
 

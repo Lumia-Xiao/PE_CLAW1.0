@@ -33,7 +33,12 @@ class SwitchStress:
 
 @dataclass(frozen=True)
 class DeviceLossResult:
-    """Loss breakdown for one selected power device in one operating case."""
+    """Loss breakdown for one selected physical device in one operating case.
+
+    ``p_total_W`` is intentionally a per-physical-device quantity.  Topology
+    positions and parallel-device counts are applied exactly once by the
+    semiconductor role/scheme aggregation layer.
+    """
 
     part_number: str
     role: str

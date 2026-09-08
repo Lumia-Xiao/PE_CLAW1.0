@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import csv
 import json
-import shutil
-from uuid import uuid4
 from pathlib import Path
 
 from scripts.freeze_llc_pf_representatives_step1_baseline import (
@@ -102,34 +100,25 @@ def test_current_run_baseline_is_complete_and_role_complete() -> None:
         assert set(stage["chosen"]["roles"]) == set(REQUIRED_ROLES)
 
 
-def test_complete_fixture_is_available() -> None:
-    root = ROOT / f".pytest-tmp-llc-step1-{uuid4().hex}"
-    try:
-        result = freeze_baseline(_write_fixture(root / "complete"), ROOT)
-        assert result["baseline_status"] == "available"
-        assert result["diagnostics"]["missing_or_invalid"] == []
-    finally:
-        shutil.rmtree(root, ignore_errors=True)
+def test_complete_fixture_is_available(tmp_path: Path) -> None:
+    root = tmp_path / "llc-step1-complete"
+    result = freeze_baseline(_write_fixture(root / "complete"), ROOT)
+    assert result["baseline_status"] == "available"
+    assert result["diagnostics"]["missing_or_invalid"] == []
 
 
-def test_missing_external_pf_is_blocked_without_cross_role_fallback() -> None:
-    root = ROOT / f".pytest-tmp-llc-step1-{uuid4().hex}"
-    try:
-        result = freeze_baseline(_write_fixture(root / "missing-pf", include_external_pf=False), ROOT)
-        assert result["baseline_status"] == "blocked"
-        assert "external_lr.pareto_png" in result["diagnostics"]["missing_or_invalid"]
-    finally:
-        shutil.rmtree(root, ignore_errors=True)
+def test_missing_external_pf_is_blocked_without_cross_role_fallback(tmp_path: Path) -> None:
+    root = tmp_path / "llc-step1-missing-pf"
+    result = freeze_baseline(_write_fixture(root / "missing-pf", include_external_pf=False), ROOT)
+    assert result["baseline_status"] == "blocked"
+    assert "external_lr.pareto_png" in result["diagnostics"]["missing_or_invalid"]
 
 
-def test_missing_representative_role_is_blocked() -> None:
-    root = ROOT / f".pytest-tmp-llc-step1-{uuid4().hex}"
-    try:
-        result = freeze_baseline(_write_fixture(root / "missing-role", include_min_loss=False), ROOT)
-        assert result["baseline_status"] == "blocked"
-        assert "transformer.chosen.min-loss" in result["diagnostics"]["missing_or_invalid"]
-    finally:
-        shutil.rmtree(root, ignore_errors=True)
+def test_missing_representative_role_is_blocked(tmp_path: Path) -> None:
+    root = tmp_path / "llc-step1-missing-role"
+    result = freeze_baseline(_write_fixture(root / "missing-role", include_min_loss=False), ROOT)
+    assert result["baseline_status"] == "blocked"
+    assert "transformer.chosen.min-loss" in result["diagnostics"]["missing_or_invalid"]
 
 
 def test_non_llc_display_baseline_has_no_llc_role_tabs() -> None:
