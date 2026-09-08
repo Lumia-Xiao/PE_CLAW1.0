@@ -2,6 +2,8 @@
 
 ## 当前状态
 
+- 总体状态：已完成（Completed）
+- 归档原因：第 1 至第 9 步均已完成，并已完成 NPC 范围内验证、独立 commit 和 push。
 - 第一步：已完成
 - 当前实现：仅建立基线，未修改 NPC 电流计算逻辑
 - 第一步 commit/push：`4d100f5`，已推送至 `origin/codex/npc-output-run-isolation-step1`

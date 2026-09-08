@@ -1,5 +1,10 @@
 # 三相三电平 NPC Efficiency Sweep 实时性优化计划
 
+## 归档状态
+
+- 状态：已完成（Completed）
+- 归档原因：第 1 至第 6 步均已完成，并已完成专项验证、独立 commit 和 push。
+
 ## 1. 任务背景
 
 目标拓扑：`three_phase_three_level_npc_inverter`
