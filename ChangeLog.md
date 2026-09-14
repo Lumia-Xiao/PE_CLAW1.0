@@ -927,3 +927,14 @@ listed here.
 - Validation: reviewed against AGENTS.md, PROJECT_ARCHITECTURE.md, existing pipeline layout, and current Tkinter entry points.
 - Branch/commit: working tree; not committed.
 
+
+## 2026-09-14 - React Buck workspace and frontend/API contract validation
+
+- Purpose: implement phase D's Buck web workflow against the existing Tkinter navigation, form and structured-result contracts.
+- Files: web/frontend; src/pe_claw_web/api/catalog.py, main.py, runner.py; workers/tasks.py and celery_app.py; pyproject.toml; scripts/export_web_test_fixtures.py; tests/test_web_frontend_contract.py; .gitignore; Plan/Active/plan.md.
+- Behavior: registry-driven category/topology selection, schema-bound Buck form, asynchronous submission/polling, task and draft recovery, field/unit/source tables, conditional efficiency chart, explicit unavailable-stage states and artifact download. Other topologies remain disabled pending phase E.
+- Integration fixes: inherit GUI defaults, isolate job Pipeline output, use real job ID in downloaded result JSON, check successful job before file download, report queue outage as HTTP 503 and include Worker tasks at startup. Add missing Pydantic/Uvicorn and HTTP test dependencies.
+- Validation: frontend TypeScript/production build passed; Playwright 9 passed, including downloaded file content and mobile layout; Python Web tests 10 passed, including a real Buck synchronous HTTP computation and fixture parity. Desktop/mobile screenshots inspected. Live Vite-to-FastAPI catalog proxy checked.
+- Limits: browser task lifecycle is mocked; backend tests use temporary SQLite and invoke the Worker function. External Redis (localhost:6379 currently times out), PostgreSQL and separate Worker delivery are not claimed verified. No formulas, selection policy or existing GUI changed.
+- Git: codex/react-buck-workspace; implementation and this record committed together; no push requested/performed. No master changes in this phase. Existing caches, database, node_modules and build/test outputs excluded from staging.
+- Backup: no backup or result-cleanup operation performed in this phase.

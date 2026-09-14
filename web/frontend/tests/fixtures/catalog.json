@@ -1,0 +1,209 @@
+{
+  "categories": [
+    {
+      "id": "dc_dc",
+      "name": "DC-DC",
+      "description": "Direct current to direct current conversion topologies."
+    },
+    {
+      "id": "dc_ac",
+      "name": "DC-AC",
+      "description": "Direct current to alternating current conversion topologies."
+    },
+    {
+      "id": "ac_dc",
+      "name": "AC-DC",
+      "description": "Alternating current to direct current conversion topologies."
+    },
+    {
+      "id": "ac_ac",
+      "name": "AC-AC",
+      "description": "Alternating current to alternating current conversion topologies."
+    }
+  ],
+  "topologies": [
+    {
+      "id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "name": "Single-Phase Diode Bridge Rectifier Capacitor Filter",
+      "category_id": "ac_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "name": "Single-Phase Diode Bridge Rectifier with DC-Side Inductor",
+      "category_id": "ac_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "name": "Three-Phase Diode Bridge Rectifier Capacitor Filter",
+      "category_id": "ac_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "single_phase_boost_pfc_diode_bridge",
+      "name": "Single-Phase Boost PFC Diode Bridge",
+      "category_id": "ac_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "single_phase_totem_pole_bridgeless_pfc",
+      "name": "Single-Phase Totem-Pole Bridgeless PFC",
+      "category_id": "ac_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "single_phase_full_bridge_inverter",
+      "name": "Single-Phase Full-Bridge Inverter",
+      "category_id": "dc_ac",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "three_phase_two_level_voltage_source_inverter",
+      "name": "Three-Phase Two-Level Voltage-Source Inverter",
+      "category_id": "dc_ac",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "three_phase_three_level_npc_inverter",
+      "name": "Three-Phase Three-Level NPC Inverter",
+      "category_id": "dc_ac",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "buck_diode_rectified_unidirectional",
+      "name": "Buck Diode Rectified Unidirectional",
+      "category_id": "dc_dc",
+      "web_enabled": true,
+      "fields": [
+        {
+          "key": "vin_min",
+          "label": "Vin min",
+          "unit": "V",
+          "default": "36",
+          "exclusive_minimum": 0
+        },
+        {
+          "key": "vin_max",
+          "label": "Vin max",
+          "unit": "V",
+          "default": "60",
+          "exclusive_minimum": 0
+        },
+        {
+          "key": "vout",
+          "label": "Vout",
+          "unit": "V",
+          "default": "12",
+          "exclusive_minimum": 0
+        },
+        {
+          "key": "pout",
+          "label": "Pout",
+          "unit": "W",
+          "default": "120",
+          "exclusive_minimum": 0
+        },
+        {
+          "key": "fs_khz",
+          "label": "Switching frequency",
+          "unit": "kHz",
+          "default": "100",
+          "exclusive_minimum": 0
+        },
+        {
+          "key": "ripple_current_ratio",
+          "label": "Inductor ripple ratio ΔiL/Iout",
+          "unit": "ratio",
+          "default": "0.30",
+          "exclusive_minimum": 0
+        },
+        {
+          "key": "ripple_voltage_ratio_percent",
+          "label": "Voltage ripple ratio",
+          "unit": "%",
+          "default": "1.0",
+          "exclusive_minimum": 0
+        }
+      ]
+    },
+    {
+      "id": "buck_synchronous_rectified_unidirectional",
+      "name": "Buck Synchronous Rectified Unidirectional",
+      "category_id": "dc_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "buck_boost_diode_rectified_unidirectional",
+      "name": "Buck-Boost Diode Rectified Unidirectional",
+      "category_id": "dc_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "four_switch_buck_boost_simplified_four_mode",
+      "name": "Four-Switch Buck-Boost Simplified Four-Mode",
+      "category_id": "dc_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "three_level_tzcm_fixed_frequency",
+      "name": "Three-Level DC-DC TZCM Fixed Frequency",
+      "category_id": "dc_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "boost_diode_rectified_unidirectional",
+      "name": "Boost Diode Rectified Unidirectional",
+      "category_id": "dc_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "boost_synchronous_rectified_unidirectional",
+      "name": "Boost Synchronous Rectified Unidirectional",
+      "category_id": "dc_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "llc_resonant_converter_diode_rectifier",
+      "name": "LLC Resonant Converter Diode Rectifier",
+      "category_id": "dc_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "llc_resonant_converter_synchronous_rectifier",
+      "name": "LLC Resonant Converter Synchronous Rectifier",
+      "category_id": "dc_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "flyback_diode_rectified_isolated",
+      "name": "Flyback Diode Rectified Isolated",
+      "category_id": "dc_dc",
+      "web_enabled": false,
+      "fields": []
+    },
+    {
+      "id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "name": "Phase-Shifted Full-Bridge Diode Rectifier Isolated",
+      "category_id": "dc_dc",
+      "web_enabled": false,
+      "fields": []
+    }
+  ]
+}

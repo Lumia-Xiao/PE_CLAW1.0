@@ -198,3 +198,15 @@ Per-job artifact directory / object storage
 - 前端与 GUI 不一致：以固定输入 fixture 和 parity checklist 驱动验收。
 - 数据或代码泄露：默认后端不返回路径/traceback，持续执行越权和容器扫描。
 - 任一阶段失败时保留旧 `.bat` GUI 和同步 runner；异步 API 通过 feature flag 禁用，不影响原有本地工作流。
+
+## 14. 阶段 D 本地实施记录（2026-09-14）
+
+- 分支：`codex/react-buck-workspace`；状态：Buck 工作区本地实现并验证，尚未推送，不标记远端交付完成。
+- 新增 `web/frontend`（React、TypeScript、Vite）：顶部分类导航、注册拓扑目录、左侧 Buck 参数、右侧结果标签页、任务提交/状态轮询、刷新恢复、错误重试、下载和手机宽度布局。
+- 参数元数据来自新增 `/api/v1/topologies`，默认输入复用现有 Buck 定义。未接入拓扑禁用；没有波形/效率数据时明确显示未提供。
+- Summary、Stress、Devices、Capacitor、Magnetics、Loss、Thermal、Geometry、Efficiency、Files 对接现有结构化报告分区。效率图只在确有扫描点时绘制；波形报告只有统计量时不构造时域曲线。
+- 联调修复：API 合并桌面默认参数；补齐 Pydantic/Uvicorn 依赖；Worker 自动发现任务；队列不可用返回 503；按任务隔离 Pipeline 输出；下载 JSON 使用真实 job ID，且仅成功任务可下载。
+- 验证：`npm run build` 通过；Playwright `9 passed`（包括真实 HTTP 文件流内容校验）；Python Web 相关测试 `10 passed`（含真实 Buck 同步 HTTP 计算、GUI 参数/数值对照、跨存储实例任务读取、Worker 函数、下载及失败隔离）。桌面和 390px 窄屏截图已检查。
+- 启动文档和具体验证边界：`web/frontend/README.md`。前端测试响应由真实拓扑 fixture 驱动，但任务排队状态由测试拦截；外部 PostgreSQL/Redis/独立 Celery 进程尚未完成联合验收。
+- 当前本机 Redis 6379 连接超时，前端和 API 可启动浏览，实际异步设计须先启动 Redis/Worker。
+- 剩余范围：其他拓扑属于阶段 E；独立运行点/波形/效率扫描、任务取消和 PDF/CSV 等仍需后端接口；现有迁移和清理策略的生产完整性需另外验收。当前页面不模拟这些操作。
