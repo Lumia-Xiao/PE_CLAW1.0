@@ -11,6 +11,8 @@ requires-python = ">=3.10"
 dependencies = [
   "matplotlib>=3.8",
   "fastapi>=0.115,<1",
+  "celery>=5.4,<6",
+  "redis>=5,<6",
   
   "numpy>=1.24",
   "pandas>=2.0",
@@ -59,6 +61,7 @@ pe_claw_gui = [
 testpaths = ["tests"]
 addopts = "--basetemp=pytest_temp"
 cache_dir = "pytest_temp/.pytest_cache"
+
 
 
 
