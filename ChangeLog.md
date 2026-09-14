@@ -919,3 +919,11 @@ listed here.
 - 验收通过：5%/50%/100% 半导体损耗为 `3.2184/12.6488/25.9931 W`，`Other loss=0`；`4800` 个事件，硬开通 `1200`、软开通 `1200`，`fsw=20000 Hz`，反向恢复总损耗 `0 W`；NPC 三类角色位置均为 `6`，manifest 为 `succeeded`。
 - NPC 定向测试：`31 passed`；`compileall` 和 `git diff --check` 通过。
 - 剩余限制：死区、Coss、寄生参数和中点电压动态仍未建模。
+
+## 2026-09-14 - Add Web migration implementation plan
+
+- Purpose: define the staged FastAPI/Celery/Redis/React web migration for PE-Claw 1.0.
+- Files: Plan/Active/plan.md.
+- Validation: reviewed against AGENTS.md, PROJECT_ARCHITECTURE.md, existing pipeline layout, and current Tkinter entry points.
+- Branch/commit: working tree; not committed.
+
