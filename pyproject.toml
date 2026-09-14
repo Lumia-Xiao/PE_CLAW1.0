@@ -14,6 +14,7 @@ dependencies = [
   "celery>=5.4,<6",
   "redis>=5,<6",
   "sqlalchemy>=2.0,<3",
+  "alembic>=1.13,<2",
   
   "numpy>=1.24",
   "pandas>=2.0",
@@ -62,6 +63,7 @@ pe_claw_gui = [
 testpaths = ["tests"]
 addopts = "--basetemp=pytest_temp"
 cache_dir = "pytest_temp/.pytest_cache"
+
 
 
 
