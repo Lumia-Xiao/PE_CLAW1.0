@@ -10,7 +10,7 @@ class JobRow(Base):
     job_id: Mapped[str]=mapped_column(String(64),primary_key=True); topology: Mapped[str]=mapped_column(String(128)); request_json: Mapped[dict]=mapped_column(JSON); status: Mapped[str]=mapped_column(String(20)); progress: Mapped[int]=mapped_column(); stage: Mapped[str|None]=mapped_column(String(64),nullable=True); created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True)); started_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True),nullable=True); finished_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True),nullable=True); error_json: Mapped[dict|None]=mapped_column(JSON,nullable=True); result_json: Mapped[dict|None]=mapped_column(JSON,nullable=True)
 class ActionRow(Base):
     __tablename__='design_actions'
-    action_id: Mapped[str]=mapped_column(String(64),primary_key=True); job_id: Mapped[str]=mapped_column(String(64),index=True); action: Mapped[str]=mapped_column(String(32)); request_json: Mapped[dict]=mapped_column(JSON); status: Mapped[str]=mapped_column(String(20)); progress: Mapped[int]=mapped_column(); stage: Mapped[str|None]=mapped_column(String(64),nullable=True); created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True)); started_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True),nullable=True); finished_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True),nullable=True); error_json: Mapped[dict|None]=mapped_column(JSON,nullable=True); result_json: Mapped[dict|None]=mapped_column(JSON,nullable=True)
+    action_id: Mapped[str]=mapped_column(String(64),primary_key=True); job_id: Mapped[str]=mapped_column(String(64),index=True); action: Mapped[str]=mapped_column(String(32)); idempotency_key: Mapped[str]=mapped_column(String(128),index=True); request_json: Mapped[dict]=mapped_column(JSON); status: Mapped[str]=mapped_column(String(20)); progress: Mapped[int]=mapped_column(); stage: Mapped[str|None]=mapped_column(String(64),nullable=True); created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True)); started_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True),nullable=True); finished_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True),nullable=True); error_json: Mapped[dict|None]=mapped_column(JSON,nullable=True); result_json: Mapped[dict|None]=mapped_column(JSON,nullable=True)
 class JobStore:
     def __init__(self):
         self.engine=create_engine(os.getenv('PE_CLAW_DATABASE_URL','sqlite:///pe_claw_jobs.db')); Base.metadata.create_all(self.engine); self.Session=sessionmaker(self.engine,expire_on_commit=False)
@@ -30,8 +30,11 @@ class JobStore:
             return self._response(row)
     def action_response(self,row):
         return DesignActionResponse(action_id=row.action_id,job_id=row.job_id,action=row.action,status=row.status,progress=row.progress,stage=row.stage,created_at=row.created_at,started_at=row.started_at,finished_at=row.finished_at,error=row.error_json,result_url=f'/api/v1/design-jobs/{row.job_id}/actions/{row.action_id}/result' if row.result_json else None,artifacts_url=None)
-    def create_action(self, request):
-        row=ActionRow(action_id=str(uuid.uuid4()),job_id=request.job_id,action=request.action.value,request_json=request.model_dump(mode='json'),status='queued',progress=0,stage='queued',created_at=datetime.now(timezone.utc))
+    def create_action(self, request, idempotency_key):
+        with self.Session() as s:
+            existing=s.query(ActionRow).filter_by(job_id=request.job_id, action=request.action.value, idempotency_key=idempotency_key).first()
+            if existing is not None: return self.action_response(existing)
+        row=ActionRow(action_id=str(uuid.uuid4()),job_id=request.job_id,action=request.action.value,idempotency_key=idempotency_key,request_json=request.model_dump(mode='json'),status='queued',progress=0,stage='queued',created_at=datetime.now(timezone.utc))
         with self.Session.begin() as s: s.add(row)
         return self.action_response(row)
     def get_action(self, action_id):

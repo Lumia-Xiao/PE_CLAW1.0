@@ -65,12 +65,14 @@ export default function App() {
   );
   const [recoverId, setRecoverId] = useState("");
   const [actionMessage, setActionMessage] = useState("");
+  const [actionResult, setActionResult] = useState<any>(null);
   async function runCapacitor() {
     if (!jobId || job?.status !== "succeeded") return;
     setActionMessage("正在提交电容分析…");
     try {
-      await request(`/api/v1/design-jobs/${encodeURIComponent(jobId)}/actions/capacitor`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ schema_version: "1.0", job_id: jobId, action: "capacitor", options: {} }) });
+      const action = await request<any>(`/api/v1/design-jobs/${encodeURIComponent(jobId)}/actions/capacitor`, { method: "POST", headers: { "Content-Type": "application/json", "Idempotency-Key": `${jobId}:capacitor` }, body: JSON.stringify({ schema_version: "1.0", job_id: jobId, action: "capacitor", options: {} }) });
       setActionMessage("电容分析已提交，请稍候查看结果。");
+      const poll = async () => { const next = await request<any>(`/api/v1/design-jobs/${jobId}/actions/${action.action_id}`); if (next.status === "succeeded") { setActionResult(await request<any>(`${next.result_url}`)); setActionMessage("电容分析已完成。"); } else if (next.status === "queued" || next.status === "running") setTimeout(() => void poll(), 1200); }; void poll();
     } catch (e) { setActionMessage(errorText(e)); }
   }
 
@@ -407,6 +409,7 @@ export default function App() {
                   <p>基础设计完成后可运行独立电容分析。</p>
                   <button type="button" disabled={job?.status !== "succeeded"} onClick={() => void runCapacitor()}>Run Capacitor · 运行电容分析</button>
                   {actionMessage && <p role="status">{actionMessage}</p>}
+                  {actionResult && <details><summary>查看电容分析结果</summary><pre>{JSON.stringify(actionResult, null, 2)}</pre></details>}
                 </section>
               </aside>
               <div className="output-column">
