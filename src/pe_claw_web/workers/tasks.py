@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from .celery_app import celery_app
 from pe_claw_web.jobs.store import store
 from pe_claw_web.jobs.artifacts import ARTIFACT_ROOT, save_result
-from pe_claw_web.api.runner import run_buck_design
+from pe_claw_web.api.runner import run_buck_design, run_complete_buck_design
 from pe_claw_web.schemas import DesignJobCreate
 @celery_app.task(bind=True,name='pe_claw.design_buck')
 def design_buck_task(self,job_id):
@@ -16,7 +16,8 @@ def design_buck_task(self,job_id):
         store.update(job_id,progress=40,stage='capacitor')
         store.update(job_id,progress=55,stage='magnetics')
         store.update(job_id,progress=70,stage='operating_point')
-        result=run_buck_design(request, output_root=ARTIFACT_ROOT / job_id / 'pipeline', enable_magnetic_design=True, include_waveforms=True).model_copy(update={'job_id':job_id})
+        execution = store.get_execution(job_id) or {}
+        result=run_complete_buck_design(request, output_root=ARTIFACT_ROOT / job_id / 'pipeline', operating_point=execution.get('operating_point')).model_copy(update={'job_id':job_id})
         store.update(job_id,progress=82,stage='loss')
         store.update(job_id,progress=88,stage='thermal')
         store.update(job_id,progress=94,stage='efficiency_sweep')

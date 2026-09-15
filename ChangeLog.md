@@ -1006,3 +1006,9 @@ listed here.
 - Efficiency sweep is explicitly reported unavailable when the current Buck runtime does not produce sweep data; no synthetic curve is emitted.
 - Validation: Web API/frontend/schema tests 10 passed; `git diff --check` passed.
 - Scope: operating-point refresh and fixed-hardware efficiency adapter remain follow-up work before claiming full F2 parity.
+
+## 2026-09-15 - F2 fixed-hardware operating point and efficiency adapter
+
+- Added a complete Buck adapter that runs the existing operating-point refresh against the selected report hardware, then invokes the fixed-hardware efficiency sweep pipeline.
+- The unified Worker now passes the persisted operating point (or documented default), stores efficiency results in the same report and artifact flow, and preserves unavailable/blocked statuses from the real pipeline.
+- Validation: Web API/schema tests 5 passed; `git diff --check` passed.

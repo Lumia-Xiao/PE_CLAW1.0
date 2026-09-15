@@ -34,6 +34,9 @@ class JobStore:
     def get(self,job_id):
         with self.Session() as s:
             row=s.get(JobRow,job_id); return None if row is None else (self._response(row),BuckDesignRequest.model_validate(row.request_json),row.result_json)
+    def get_execution(self, job_id):
+        with self.Session() as s:
+            row=s.get(JobRow, job_id); return row.execution_json if row is not None else None
     def update(self,job_id,**changes):
         with self.Session.begin() as s:
             row=s.get(JobRow,job_id)
