@@ -965,3 +965,10 @@ listed here.
 - Git: `codex/react-buck-workspace`; implementation and this record committed together, no push requested/performed. E0 milestone remains unmarked pending push under repository rules.
 - Backup: no backup or cleanup performed; existing `outputs/` results excluded from staging.
 
+
+## 2026-09-15 - E1 Run Capacitor initial integration
+
+- Added persisted `design_actions` storage, capacitor POST/status/result endpoints, Celery action worker, and a guarded React Run Capacitor button.
+- Validation: backend action/schema tests 63 passed; `npm run build` passed; `git diff --check` passed.
+- Scope: endpoint currently runs the existing Buck pipeline as the execution adapter and returns the capacitor report projection; dedicated capacitor snapshot restoration, artifact manifests, idempotency, and full UI result polling remain E1 follow-up work.
+- Git: `codex/react-buck-workspace`, commit `a8cad44`, local only; `outputs/` remains untracked.
