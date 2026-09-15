@@ -210,3 +210,53 @@ Per-job artifact directory / object storage
 - 启动文档和具体验证边界：`web/frontend/README.md`。前端测试响应由真实拓扑 fixture 驱动，但任务排队状态由测试拦截；外部 PostgreSQL/Redis/独立 Celery 进程尚未完成联合验收。
 - 当前本机 Redis 6379 连接超时，前端和 API 可启动浏览，实际异步设计须先启动 Redis/Worker。
 - 剩余范围：其他拓扑属于阶段 E；独立运行点/波形/效率扫描、任务取消和 PDF/CSV 等仍需后端接口；现有迁移和清理策略的生产完整性需另外验收。当前页面不模拟这些操作。
+
+## 15. 统一完整设计执行方案（替代独立动作按钮）
+
+经评估，前端不再展示 Run Capacitor、Run Magnetics、Generate Waveforms、Run Efficiency Sweep 四个独立按钮。用户确认设计输入后，由一个完整设计任务按固定顺序执行并统一输出结果。这能减少操作顺序错误、动作之间的状态不一致和“基础任务不存在”问题，同时保留每个阶段的可追踪状态。
+
+### F1：统一请求与执行配置
+
+- 在现有 `DesignJobCreate` 中增加 `execution_profile`，首期固定支持 `complete`。
+- 增加可选 `operating_point`；未填写时由后端根据设计输入生成额定 Vin、100% 负载的默认运行点，并在响应中明确记录。
+- 请求只包含 Pydantic 基础类型；禁止路径、模块名、表达式和内部对象。
+- 保留 `schema_version`、幂等键和客户端请求 ID。相同输入与执行配置复用同一任务。
+
+### F2：完整顺序 Worker
+
+完整任务固定执行：
+
+`validate → topology → devices → capacitor → magnetics → operating_point/waveform → loss → thermal → efficiency_sweep → report → finalize`
+
+- 电容和磁性选择各执行一次。
+- 波形、损耗和效率扫描必须复用已选硬件；效率扫描禁止逐点重新选型。
+- 每个阶段写入进度、阶段状态、warning 和结构化错误。
+- 阶段失败时保留已完成阶段结果，后续阶段标记 blocked/unavailable，不伪造成功结果。
+- Worker 重试通过数据库原子状态检查保证幂等。
+
+### F3：前端完整设计确认流程
+
+- 移除四个独立 action 按钮及其独立轮询入口。
+- 保留一个“确认并运行完整设计”按钮；提交前展示运行点和执行配置确认。
+- 页面显示总进度、当前阶段、任务 ID、失败阶段和重试入口。
+- 刷新页面后根据 job ID 恢复任务；提交期间防止重复点击。
+
+### F4：统一结果与 artifact
+
+- Summary、Capacitor、Magnetics、Waveforms、Efficiency、Loss、Thermal、Files 标签全部读取同一个完整任务结果。
+- 没有数据的阶段显示明确 unavailable/blocked 状态，不使用旧结果或示例数据填充。
+- artifact 使用任务独立目录和 manifest，记录类型、大小、SHA-256、schema 版本和生成阶段。
+- 输出 JSON、CSV、波形图和效率曲线（仅在 Pipeline 实际生成时提供）。
+
+### F5：恢复、迁移和集成验收
+
+- 为完整任务保存带版本的可恢复快照，至少包含规范化输入、Pipeline 版本、已选电容/磁件/半导体身份与参数；禁止通过重新选型冒充恢复。
+- 失败重试从最近安全阶段开始；运行中的任务不能被清理策略删除。
+- 为 SQLite 旧表、PostgreSQL migration、Redis 重启和 Worker 重启增加测试。
+- 端到端验证：设计提交 → 固定顺序执行 → 全部结果 → artifact 下载；覆盖队列不可用、阶段失败、重复提交和刷新恢复。
+
+### 15.1 已完成工作处理
+
+- E0 action schema、状态机和依赖契约保留为内部兼容模型，可供迁移和历史记录使用。
+- E1/E2 action API 暂时保留兼容入口，但新前端不再依赖它们；后续统一任务稳定后再评估下线。
+- 本计划取代 `button_actions_plan.md`，以后所有 Web 设计功能按 F1–F5 执行。

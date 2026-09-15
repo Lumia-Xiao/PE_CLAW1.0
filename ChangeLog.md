@@ -985,3 +985,9 @@ listed here.
 
 - Added a SQLite compatibility migration for existing E1 databases missing `design_actions.idempotency_key`, preventing action creation/status lookups from failing after the E2 schema change.
 - Validation: 63 action/schema tests passed; `git diff --check` passed.
+
+## 2026-09-15 - Consolidate Web design execution plan
+
+- Consolidated `Plan/Active/button_actions_plan.md` into `Plan/Active/plan.md`.
+- Replaced independent Capacitor/Magnetics/Waveforms/Efficiency buttons with a unified complete-design execution plan F1–F5: one confirmed request, fixed stage order, shared progress, resumable snapshots and unified artifacts.
+- Preserved E0–E2 implementation history as compatibility work; future frontend work follows the unified task flow.
