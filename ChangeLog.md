@@ -998,3 +998,11 @@ listed here.
 - Persisted execution configuration with jobs, including SQLite compatibility migration for existing databases.
 - Operating point defaults remain a Worker concern; explicit points must stay within Vin range and use non-negative load ratio.
 - Validation: 64 focused Web schema/action tests passed; `git diff --check` passed.
+
+## 2026-09-15 - F2 unified complete-design Worker
+
+- The standard design job now advances through validate, topology, devices, capacitor, magnetics, operating_point, loss, thermal, efficiency_sweep and finalize stages with persisted progress.
+- Buck execution enables magnetic selection and waveform generation in the single job pipeline, preserving one job artifact directory and report.
+- Efficiency sweep is explicitly reported unavailable when the current Buck runtime does not produce sweep data; no synthetic curve is emitted.
+- Validation: Web API/frontend/schema tests 10 passed; `git diff --check` passed.
+- Scope: operating-point refresh and fixed-hardware efficiency adapter remain follow-up work before claiming full F2 parity.
