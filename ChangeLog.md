@@ -947,3 +947,11 @@ listed here.
 - Validation: `npm run build` passed; Playwright 9 passed including downloaded bytes, mobile layout, retry/failure/reload/missing-task cases; Python Web tests 10 passed including real Buck HTTP calculation, persistence across SQLAlchemy store instances, Worker result and artifact download. Browser visual review completed at desktop and 390px widths.
 - Limits: browser task lifecycle uses route fixtures; external Redis/PostgreSQL/Celery process requires deployment environment. No authentication or additional topology algorithms changed.
 - Git: branch `codex/react-buck-workspace`; local commit only, no push performed. Generated caches, `node_modules`, `dist`, screenshots, and local databases remain untracked/excluded.
+
+## 2026-09-15 - Add follow-up button action plan
+
+- Purpose: define backend, worker, frontend, and test steps for Capacitor, Magnetics, Waveforms, and Efficiency Sweep buttons.
+- Files: Plan/Active/button_actions_plan.md.
+- Validation: reviewed against Tkinter BaseTopologyForm actions and existing PE-Claw pipeline modules.
+- Branch/commit: codex/react-buck-workspace; not committed.
+
