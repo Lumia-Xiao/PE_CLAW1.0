@@ -34,12 +34,12 @@ def wait_until(check, timeout=60):
         time.sleep(.5)
     raise TimeoutError('Recovery smoke timed out')
 
-def main():
+def main(argv=None, *, restart_database=None):
     parser=argparse.ArgumentParser()
     parser.add_argument('--redis-server', required=True)
     parser.add_argument('--database-url', help='Dedicated disposable database; never a production URL')
     parser.add_argument('--timeout', type=int, default=900)
-    args=parser.parse_args()
+    args=parser.parse_args(argv)
     project=Path(__file__).resolve().parents[1]
     root=project/'pytest_temp'/('recovery-smoke-'+uuid.uuid4().hex[:8])
     root.mkdir(parents=True)
@@ -78,20 +78,27 @@ def main():
     def worker(logfile):
         return start([sys.executable,'-m','celery','-A','pe_claw_web.workers.celery_app:celery_app','worker','--pool=solo','--loglevel=info'],logfile)
     evidence={'directory': str(root), 'database': 'postgresql' if args.database_url else 'sqlite'}
+    http=None
     try:
-        broker=redis_start('redis-first.log'); wait_until(ping)
         api=start([sys.executable,'-m','uvicorn','pe_claw_web.api.main:app','--host','127.0.0.1','--port',str(api_port)],'api.log')
         http=httpx.Client(base_url=f'http://127.0.0.1:{api_port}',timeout=30)
         def healthy():
             try: return http.get('/api/v1/health').status_code==200
             except httpx.HTTPError: return False
         wait_until(healthy)
-        first=worker('worker-first.log')
         payload=DesignJobCreate(request=BuckDesignRequest(vin_min=36,vin_max=60,vout=12,pout=120,fs_khz=100,ripple_current_ratio=.3,ripple_voltage_ratio_percent=1))
         response=http.post('/api/v1/design-jobs',json=payload.model_dump(mode='json'))
+        assert response.status_code==503, response.text
+        # The initial broker failure must still leave exactly one durable queued job.
+        response=http.post('/api/v1/design-jobs',json=payload.model_dump(mode='json'))
         assert response.status_code==202, response.text
+        assert response.json()['status']=='queued'
+        evidence['initial_queue_outage_durable']=True
         item=store.get(response.json()['job_id'])[0]; evidence['job_id']=item.job_id
         assert http.post('/api/v1/design-jobs',json=payload.model_dump(mode='json')).json()['job_id']==item.job_id
+        broker=redis_start('redis-first.log'); wait_until(ping)
+        first=worker('worker-first.log')
+        recovery=start([sys.executable,'-m','pe_claw_web.jobs.maintenance','recover','--loop'],'recovery.log')
         def saved():
             state=store.get(item.job_id)[0]
             if state.status=='failed': raise RuntimeError(state.error.message)
@@ -103,14 +110,15 @@ def main():
         evidence['checkpoint_sha256']=cp['sha256']
         evidence['selected_hardware_sha256']=hardware_signature(cp)
         broker.terminate(); broker.wait(timeout=10)
+        if restart_database is not None:
+            restart_database(store.engine)
+            evidence['postgres_stop_start']=True
         # The durable DB survives the broker restart; only the owned subprocess is stopped.
         assert store.get_checkpoint(item.job_id)['sha256']==cp['sha256']
         time.sleep(7)
         broker=redis_start('redis-restarted.log'); wait_until(ping)
-        queued=store.recover(6)
-        assert item.job_id in queued
         second=worker('worker-restarted.log')
-        design_buck_task.delay(item.job_id)
+        # The standalone recovery process, not the test, must recover and republish.
         def finished():
             state=store.get(item.job_id)[0]
             if state.status=='failed': raise RuntimeError(state.error.message)
@@ -133,12 +141,15 @@ def main():
         design_buck_task.delay(item.job_id)
         time.sleep(2)
         assert store.get(item.job_id)[0].attempt==2
-        evidence.update(status='passed',attempts=state.attempt,artifacts=len(result['artifacts']),stages=state.stages,actual_http=True,hardware_preserved=True)
-        http.close()
+        evidence.update(status='passed',attempts=state.attempt,artifacts=len(result['artifacts']),stages=state.stages,
+            actual_http=True,hardware_preserved=True,independent_recovery=True,
+            waveform_samples=len(result['summary']['waveform']['samples']['time_s']),
+            efficiency_points=len(result['summary']['efficiency_sweep']['points']))
     except Exception as exc:
         evidence.update(status='failed',error=type(exc).__name__+': '+str(exc))
         raise
     finally:
+        if http is not None: http.close()
         for proc in children:
             if proc.poll() is None:
                 proc.terminate()
@@ -147,5 +158,6 @@ def main():
         for stream in handles: stream.close()
         (root/'evidence.json').write_text(json.dumps(evidence,indent=2),encoding='utf-8')
         print(json.dumps(evidence,indent=2),flush=True)
+    return evidence
 
 if __name__=='__main__': main()

@@ -282,3 +282,20 @@ Per-job artifact directory / object storage
 - 新增根 Dockerfile、迁移 service 和独立 recovery service；本机无 Docker/PostgreSQL，官方 PostgreSQL 二进制下载探测超时，未声明镜像构建、PostgreSQL 重启或 Compose 全链路已通过。
 - 启动、升级、恢复、清理及测试命令：`docs/web-recovery.md`。检查点为完整报告，当前真实电容阶段快照约 35 MB，生产并发和存储容量需后续压测；保留完整类型与硬件信息优先于压缩优化。
 - Git：在 `codex/react-buck-workspace` 本地提交，未推送；保留用户 outputs 和测试证据，不执行生产清理或修改用户运行中的服务。
+
+### F5 PostgreSQL 部署验收补充（2026-09-15）
+
+- **PostgreSQL 本地真实验收通过；Docker 配置校验通过，但镜像构建与容器链路仍受环境阻塞。F5 不标记全部完成，亦未推送远端。** 本记录更新上一次“无 PostgreSQL 环境”的现状，保留历史记录。
+- 使用官方 EDB PostgreSQL 16.14 二进制创建独立临时集群，仅绑定 loopback 随机端口，随机 SCRAM 密码；不安装系统服务、不修改已有数据库。补装项目已声明的 psycopg 驱动。
+- 新增 `scripts/verify_web_postgres_deployment.py`：自动建库、执行真实 PostgreSQL 专项测试、停止/重启测试数据库、运行完整 HTTP 恢复验收并保存证据；结束后停止自有集群和子进程，保留测试数据。
+- PostgreSQL 专项 **4 passed**：数据库迁移/连接池重连；并发重复提交/领取/过期租约隔离/client ID 绑定；0001 旧版本升级；未纳管旧表迁移。重复迁移保留已有成功任务和结果。
+- 实测修复：PostgreSQL 连接原本缺少超时，数据库停止后会长时间等待。`JobStore` 增加 5 秒连接超时并保留 `pool_pre_ping`；故障复验约 **5.09 秒**返回错误，数据库重启后原连接池恢复。此前失败运行日志保留，不作为通过证据。
+- 完整链路：首先在 Redis 不可用时提交，确认 queued 状态已持久化；Redis 启动后由独立 recovery 服务投递。在电容检查点停止 Worker、Redis 和 PostgreSQL，重启后由同一 recovery 服务恢复任务，未由测试直接调用 recover 或手动投递恢复任务。
+- 成功任务 `1768513f-9196-4d73-b37e-8054585e1d43`：attempt=2，全部阶段 succeeded，已选半导体/电容及基础候选摘要保持一致；11 个 artifact 的 HTTP 字节/hash 校验通过，1200 波形采样、20 效率扫描点，迟到重复投递未增加 attempt。
+- 证据：`pytest_temp/postgres-deployment-65b9fe78/evidence.json`；细节 `pytest_temp/recovery-smoke-8864a620/evidence.json`。数据库测试日志及 JUnit XML 保留在前者目录。
+- 数据库超时修改后回归：Web 后端 **85 passed、1 skipped**（Windows 符号链接权限）。本次未改 React 页面，未重复前端浏览器测试；上一轮浏览器验收保持历史结论。
+- Docker：下载官方独立 Compose v5.5.1 并校验官方 SHA-256；`config --quiet` 通过，连接 `docker_engine` 命名管道失败。证据 `pytest_temp/pe-claw-f5-d3548325/evidence.json` 明确记录 `blocked`、`container_acceptance=false`。
+- 新增 `scripts/verify_web_docker_deployment.py`，供具备 Docker 引擎的主机执行独立 Compose 项目的镜像构建、真实 HTTP 设计、数据库/Redis/Worker 重启、硬件摘要、artifact 和整栈重启持久化验收。当前仅执行其前置检查，容器部分尚未验证。
+- Compose 前端端口支持 `PE_CLAW_WEB_PORT`，默认仍为 5173，验收自动使用空闲端口；补充前端 `.dockerignore`，避免 Windows node_modules 覆盖镜像内 Linux 依赖。未停止用户现有 5173 服务。
+- **下一步唯一环境门槛**：在受支持的 Windows 版本启用 WSL2 并启动 Docker Desktop，或使用已有 Linux Docker 主机，然后执行 `python scripts/verify_web_docker_deployment.py`。本机 Windows 11 Home 22H2/22621 低于当前 Docker 文档的 Windows 11 22631 要求；系统组件启用需要管理员权限。此次未升级/重启操作系统，未安装不受支持的旧 Docker。
+- 通过真正的容器验收后，再推进认证、用户资源归属、配额及 HTTPS 发布；不要把配置验证视为生产可发布证明。

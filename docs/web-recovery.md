@@ -27,7 +27,9 @@ python -m pe_claw_web.jobs.maintenance recover --loop
 
 Local SQLite initialization automatically runs the same Alembic revisions. PostgreSQL schema changes are explicit: migrate before starting API, Worker and recovery. Importing the ORM models or migration environment does not create tables. Revisions adopt pre-Alembic desktop tables, preserve existing rows and add execution/checkpoint/lease columns and indexes. The latest downgrade refuses destructive checkpoint removal; use a pre-upgrade database backup and matching code for rollback.
 
-`docker-compose.web.yml` now includes a one-shot migration service, API, Worker, independent recovery service, PostgreSQL, Redis and frontend. API/Worker/recovery wait for successful migration. The root Dockerfile and volume configuration are provided; Docker image build and PostgreSQL deployment must be validated on a Docker-capable host before production use. Authentication and user ownership are separate planned work.
+`docker-compose.web.yml` includes a one-shot migration service, API, Worker, independent recovery service, PostgreSQL, Redis and frontend. API/Worker/recovery wait for successful migration. `PE_CLAW_WEB_PORT` changes the loopback frontend port (default 5173), so acceptance can use an isolated port without stopping the existing frontend. The frontend build context excludes host `node_modules`, build output and local environment files. Authentication and user ownership are separate planned work.
+
+PostgreSQL runtime connections use `pool_pre_ping` and a five-second libpq connection timeout. Without a connection timeout, a stopped database can leave the recovery loop waiting for the operating system's much longer network timeout. This is a connection timeout, not a maximum design runtime or SQL statement timeout.
 
 ## Retention
 
@@ -44,6 +46,30 @@ python -m pytest -q tests/test_web_recovery.py tests/test_web_postgres_recovery.
 python scripts/verify_web_recovery.py --redis-server 'C:\Program Files\Redis\redis-server.exe'
 ```
 
-The smoke script starts its own Redis, API and Celery processes on isolated ports with an isolated SQLite database. It runs the real Buck pipeline, kills its Worker after the capacitor checkpoint, restarts its Redis, recovers the job, checks selected-hardware preservation, validates HTTP result/artifact bytes and tests duplicate delivery. It does not restart user services; logs and JSON evidence remain in `pytest_temp/recovery-smoke-*/`.
+The smoke script starts its own Redis, API, Celery and independent recovery processes on isolated ports with an isolated SQLite database. It first submits while Redis is unavailable and verifies the queued job is durable. It then runs the real Buck pipeline, kills its Worker after the capacitor checkpoint, restarts its Redis, waits for the independent recovery process to republish the job, checks selected-hardware preservation, validates HTTP result/artifact bytes and tests duplicate delivery. It does not restart user services; logs and JSON evidence remain in `pytest_temp/recovery-smoke-*/`.
 
 For real PostgreSQL tests, set `PE_CLAW_TEST_POSTGRES_URL` to a test server with schema-creation privileges. The test uses a unique schema, migrates it, checks task uniqueness/claiming, terminates only its own pooled connection to verify reconnect, then removes its schema. To run the full recovery smoke on PostgreSQL, pass `--database-url` naming a dedicated empty database. Do not use a production database. A skipped PostgreSQL test is not evidence of successful PostgreSQL deployment.
+
+## Isolated PostgreSQL deployment acceptance
+
+Install the project dependencies (`python -m pip install -e '.[web-test]'`) and obtain PostgreSQL binaries from the official PostgreSQL/EDB distribution. No Windows service installation is needed for this test:
+
+```powershell
+python scripts/verify_web_postgres_deployment.py --postgres-bin 'C:\path\to\pgsql\bin' --redis-server 'C:\Program Files\Redis\redis-server.exe'
+```
+
+The script creates a new cluster under `pytest_temp/postgres-deployment-<id>`, binds to loopback on an unused port, generates a temporary SCRAM password, and runs four real database tests (migration/pooled reconnect, concurrent deduplication/lease fencing, upgrade from revision 0001, adoption of unmanaged tables). It then runs the HTTP recovery smoke, stopping and starting only this owned PostgreSQL cluster after the capacitor checkpoint. The same connection pool must fail within 20 seconds during the outage and reconnect afterward. The independent recovery process must finish the job on attempt 2 without changing the hardware selected before interruption. The test cluster and child services stop at the end; logs/data/evidence are retained. Generated credentials are not printed or committed.
+
+## Isolated Docker deployment acceptance
+
+On a host with a running Linux Docker engine and Docker Compose:
+
+```powershell
+python scripts/verify_web_docker_deployment.py
+```
+
+An optional `--compose-executable 'C:\path\to\docker-compose.exe'` supports the official standalone Compose binary. The script validates Compose configuration and engine connectivity before building. If the engine is absent, it exits with code 2 and records `status: blocked` and `container_acceptance: false`; configuration validation alone does not count as container acceptance.
+
+When the engine is available, the script builds and starts a uniquely named Compose project with its own volumes, random database password and unused loopback frontend port. It checks the served React HTML and Nginx API proxy, submits a real Buck design, kills its Worker after capacitor, stops/starts PostgreSQL and Redis, and checks autonomous recovery and HTTP artifact hashes. Finally it restarts the stack and rechecks persisted results/downloads. Containers are stopped/removed afterward; named volumes are deliberately retained for diagnosis. The script never uses `down --volumes` and does not operate on existing deployment projects. Evidence is in `pytest_temp/pe-claw-f5-<id>/`.
+
+The local host checked on 2026-09-15 is Windows 11 Home 22H2, build 22621, without a Docker engine or active WSL2 virtualization platform. Current [Docker Windows installation requirements](https://docs.docker.com/desktop/setup/install/windows-install/) require Windows 11 build 22631 or newer and WSL 2.1.5 or newer for the WSL backend; Home supports Linux containers. Enabling Windows components requires administrator rights and may require restarting Windows. Upgrade Windows and prepare Docker Desktop/WSL2, or run this script on an existing Linux Docker host. This session did not install an unsupported Desktop version or reboot the machine. Container build and runtime acceptance remain pending until the script actually passes on such a host.

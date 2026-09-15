@@ -64,7 +64,7 @@ services:
     build:
       context: web/frontend
       dockerfile: Dockerfile
-    ports: ["127.0.0.1:5173:80"]
+    ports: ["127.0.0.1:${PE_CLAW_WEB_PORT:-5173}:80"]
     depends_on: [api]
 volumes:
   pe-claw-postgres:

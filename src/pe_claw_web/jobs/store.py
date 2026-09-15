@@ -9,6 +9,7 @@ from threading import Lock
 from sqlalchemy import create_engine, select, update, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.engine import make_url
 
 from pe_claw_web.schemas import BuckDesignRequest, DesignJobResponse, DesignActionResponse
 from .models import Base, JobRow, ActionRow, RequestKeyRow
@@ -25,7 +26,13 @@ class LeaseLost(RuntimeError):
 class JobStore:
     def __init__(self, url=None, *, initialize=None):
         url = url or os.getenv('PE_CLAW_DATABASE_URL', 'sqlite:///pe_claw_jobs.db')
-        self.engine = create_engine(url, pool_pre_ping=True, connect_args={'timeout': 30} if url.startswith('sqlite') else {})
+        backend = make_url(url).get_backend_name()
+        connect_args = {'timeout': 30} if backend == 'sqlite' else {}
+        if backend == 'postgresql':
+            # libpq otherwise waits for the operating system's TCP timeout during
+            # outages, blocking API requests and the independent recovery loop.
+            connect_args = {'connect_timeout': 5}
+        self.engine = create_engine(url, pool_pre_ping=True, connect_args=connect_args)
         self.Session = sessionmaker(self.engine, expire_on_commit=False)
         if initialize is True or (initialize is None and self.engine.dialect.name == 'sqlite'):
             from .migrate import upgrade
