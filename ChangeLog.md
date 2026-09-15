@@ -1057,3 +1057,9 @@ listed here.
 - Docker acceptance script prepares an isolated project/volumes/port and checks frontend/API, Worker/PostgreSQL/Redis recovery, artifact hashes and persistence across stack restart when an engine exists. Only preflight executed locally; evidence pytest_temp/pe-claw-f5-d3548325/evidence.json records blocked/container_acceptance=false. No image build or container acceptance is claimed.
 - Compose allows PE_CLAW_WEB_PORT (default 5173); frontend .dockerignore prevents host Windows node_modules and local build/env files entering its build context. Deployment instructions document exact commands and remaining host prerequisites. F5 remains pending container runtime acceptance and remote delivery.
 - Git: codex/react-buck-workspace, coherent local commit; no push requested/performed. git diff --check passed. Generated logs, downloaded tools, temporary databases, user outputs and prior test evidence excluded. No production cleanup or backup operation performed.
+
+## 2026-09-15 - Replace Docker deployment gate with F5-W Windows native acceptance plan
+
+- Updated Plan/Active/plan.md and docs/web-recovery.md for Windows-only deployment. F5-W covers native PostgreSQL, Redis/Memurai, NSSM/WinSW API/Worker/Recovery services, explicit Alembic migration, IIS URL Rewrite/ARR HTTPS proxy, permissions, backup/restore, service/machine restarts and full Buck integration evidence.
+- Docker/WSL is optional development infrastructure and cannot satisfy F5-W acceptance. Existing Docker files remain available for Docker-capable hosts.
+- F5-W is planned but not executed; it requires native Windows dependencies, IIS URL Rewrite/ARR and administrator rights for service registration and certificates.

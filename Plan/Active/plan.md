@@ -299,3 +299,14 @@ Per-job artifact directory / object storage
 - Compose 前端端口支持 `PE_CLAW_WEB_PORT`，默认仍为 5173，验收自动使用空闲端口；补充前端 `.dockerignore`，避免 Windows node_modules 覆盖镜像内 Linux 依赖。未停止用户现有 5173 服务。
 - **下一步唯一环境门槛**：在受支持的 Windows 版本启用 WSL2 并启动 Docker Desktop，或使用已有 Linux Docker 主机，然后执行 `python scripts/verify_web_docker_deployment.py`。本机 Windows 11 Home 22H2/22621 低于当前 Docker 文档的 Windows 11 22631 要求；系统组件启用需要管理员权限。此次未升级/重启操作系统，未安装不受支持的旧 Docker。
 - 通过真正的容器验收后，再推进认证、用户资源归属、配额及 HTTPS 发布；不要把配置验证视为生产可发布证明。
+
+### F5-W：Windows 原生部署验收（替代 Docker 部署验收，2026-09-15）
+
+用户决定只使用 Windows，因此 F5 的部署门槛改为 F5-W。Docker/WSL 不再是 Windows 交付前置条件；已有 Docker 文件仅保留作可选开发资产。
+
+- **W1 依赖安装**：固定 Python、Node.js、PostgreSQL、Redis/Memurai、NSSM/WinSW、IIS URL Rewrite/ARR 版本；安装原生 PostgreSQL 和 Redis 服务，创建最小权限账号、数据库、artifact 目录和服务账号 ACL。数据库与 Redis 只允许受控内网访问。
+- **W2 服务化**：使用 NSSM 或 WinSW 注册 Uvicorn API、Celery Worker（Windows 使用 `--pool=solo`）和独立 Recovery 服务。统一环境变量、代码/库版本、自动启动、失败重启、日志轮转、健康检查；先执行 `python -m alembic upgrade head`，再启动应用服务。
+- **W3 IIS 发布**：IIS 静态发布 `web/frontend/dist`，通过 URL Rewrite/ARR 将 `/api/*` 转发到 `127.0.0.1:8000`；只开放 443，启用证书、HTTP→HTTPS、CORS 白名单、请求限制和安全响应头，隐藏数据库、Redis、Worker 端口。
+- **W4 重启恢复**：真实 Windows 服务执行完整 Buck 任务，在 capacitor 检查点停止 Worker，重启 Redis，由独立 Recovery 自动重新投递；停止/启动 PostgreSQL 验证 5 秒连接超时与 `pool_pre_ping` 重连；重启 API/IIS 和整台机器后继续轮询原 job，迟到投递不能产生第三次 attempt。
+- **W5 集成验收**：验证 IIS 页面/API、迁移、备份恢复、服务权限、路径隔离、artifact hash 下载、刷新恢复和完整结果。证据记录 Windows/依赖版本、服务状态、迁移版本、job/attempt/阶段、artifact hash、重启时间线和日志目录。测试使用独立数据库与 artifact 目录，不触碰用户服务或 `outputs/`。
+- F5-W 通过后才进入认证、用户归属、配额、审计和 HTTPS 加固。Docker 配置验证不能替代 F5-W。

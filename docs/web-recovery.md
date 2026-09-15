@@ -60,7 +60,15 @@ python scripts/verify_web_postgres_deployment.py --postgres-bin 'C:\path\to\pgsq
 
 The script creates a new cluster under `pytest_temp/postgres-deployment-<id>`, binds to loopback on an unused port, generates a temporary SCRAM password, and runs four real database tests (migration/pooled reconnect, concurrent deduplication/lease fencing, upgrade from revision 0001, adoption of unmanaged tables). It then runs the HTTP recovery smoke, stopping and starting only this owned PostgreSQL cluster after the capacitor checkpoint. The same connection pool must fail within 20 seconds during the outage and reconnect afterward. The independent recovery process must finish the job on attempt 2 without changing the hardware selected before interruption. The test cluster and child services stop at the end; logs/data/evidence are retained. Generated credentials are not printed or committed.
 
-## Isolated Docker deployment acceptance
+## Windows native deployment acceptance (F5-W)
+
+The Windows-only delivery path uses native PostgreSQL and Redis/Memurai, with API, Celery Worker and the independent recovery loop registered as NSSM or WinSW services. Run `python -m alembic upgrade head` before starting services. Publish `web/frontend/dist` through IIS; URL Rewrite/ARR forwards `/api/` to `127.0.0.1:8000`, HTTP redirects to HTTPS, and only port 443 is public. Keep database/Redis/Worker ports private and store service secrets outside the repository.
+
+F5-W acceptance must use isolated Windows database/artifact directories: complete Buck submission, Worker stop after capacitor checkpoint, Redis restart and autonomous recovery, PostgreSQL stop/start with bounded connection failure and pool reconnect, API/IIS and full machine restart, original-job refresh polling, artifact SHA-256 downloads, backup/restore, permissions and path isolation. Record Windows and dependency versions, service state, migration revision, job/attempt/stages, restart timeline and logs. Do not modify existing services or `outputs/`.
+
+The Docker files and `verify_web_docker_deployment.py` remain optional assets for Docker-capable hosts; Docker preflight does not satisfy F5-W.
+
+## Optional Docker deployment acceptance (non-blocking)
 
 On a host with a running Linux Docker engine and Docker Compose:
 
