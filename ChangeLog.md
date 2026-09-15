@@ -1063,3 +1063,10 @@ listed here.
 - Updated Plan/Active/plan.md and docs/web-recovery.md for Windows-only deployment. F5-W covers native PostgreSQL, Redis/Memurai, NSSM/WinSW API/Worker/Recovery services, explicit Alembic migration, IIS URL Rewrite/ARR HTTPS proxy, permissions, backup/restore, service/machine restarts and full Buck integration evidence.
 - Docker/WSL is optional development infrastructure and cannot satisfy F5-W acceptance. Existing Docker files remain available for Docker-capable hosts.
 - F5-W is planned but not executed; it requires native Windows dependencies, IIS URL Rewrite/ARR and administrator rights for service registration and certificates.
+
+## 2026-09-15 - F5-W Windows deployment assets and preflight
+
+- Added `deployment/windows/` assets: native environment template, NSSM/WinSW service registration, IIS `web.config`, IIS setup helper, operator README and Windows acceptance preflight.
+- Native Redis is present as an Automatic/Running Windows service. Frontend production build passed. PowerShell deployment files and IIS configuration were statically checked; no existing service or user output was modified.
+- Existing isolated PostgreSQL/Redis/API/Worker recovery evidence remains valid for the runtime contract, including attempt-2 hardware-preserving recovery and artifact hashes.
+- Full F5-W service registration, IIS/HTTPS proxy and machine-restart acceptance is pending because the current session lacks Administrator rights and IIS/URL Rewrite/ARR availability was not confirmed. No system feature, service, certificate or existing Redis configuration was changed.

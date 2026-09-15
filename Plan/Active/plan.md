@@ -310,3 +310,11 @@ Per-job artifact directory / object storage
 - **W4 重启恢复**：真实 Windows 服务执行完整 Buck 任务，在 capacitor 检查点停止 Worker，重启 Redis，由独立 Recovery 自动重新投递；停止/启动 PostgreSQL 验证 5 秒连接超时与 `pool_pre_ping` 重连；重启 API/IIS 和整台机器后继续轮询原 job，迟到投递不能产生第三次 attempt。
 - **W5 集成验收**：验证 IIS 页面/API、迁移、备份恢复、服务权限、路径隔离、artifact hash 下载、刷新恢复和完整结果。证据记录 Windows/依赖版本、服务状态、迁移版本、job/attempt/阶段、artifact hash、重启时间线和日志目录。测试使用独立数据库与 artifact 目录，不触碰用户服务或 `outputs/`。
 - F5-W 通过后才进入认证、用户归属、配额、审计和 HTTPS 加固。Docker 配置验证不能替代 F5-W。
+
+### F5-W 执行记录（2026-09-15）
+
+- 已新增 `deployment/windows/`：Windows 部署说明、环境变量模板、NSSM/WinSW 服务注册脚本、IIS `web.config`、IIS 配置脚本和原生验收脚本。
+- 本机 Redis 原生服务已存在且为 Running/Automatic；React `dist` 已成功构建；PowerShell 部署脚本语法检查和 API/IIS 配置文件检查已完成。
+- PostgreSQL 原生临时集群、完整 Buck 恢复、数据库断线重连和 artifact 校验已在本机通过，证据沿用 `pytest_temp/postgres-deployment-65b9fe78/evidence.json`。
+- 尚未执行服务注册和 IIS HTTPS 验收：本机当前没有可确认的 IIS/URL Rewrite/ARR 状态，且当前会话不是管理员；不擅自安装系统组件、创建 Windows 服务或修改现有 Redis 服务。
+- 因此 F5-W 当前状态为 **W1 部署资产已准备、W2/W3/W4/W5 待管理员环境执行**，不能标记 F5-W 完成。下一步是在管理员 PowerShell 中配置 `pe-claw.env.ps1`、安装 NSSM 与 IIS 组件后运行对应脚本。
