@@ -45,6 +45,20 @@ def create_capacitor_action(job_id: str, payload: DesignActionRequest, idempoten
         store.update_action(item.action_id,status='failed',stage='queue',error_json={'code':'QUEUE_UNAVAILABLE','message':'Design queue is unavailable'})
         raise HTTPException(503,'Design queue is unavailable. Please retry later.') from exc
     return store.get_action(item.action_id)[0]
+@app.post('/api/v1/design-jobs/{job_id}/actions/magnetics',response_model=DesignActionResponse,status_code=202)
+def create_magnetics_action(job_id: str, payload: DesignActionRequest, idempotency_key: str | None = None):
+    if payload.job_id != job_id or payload.action.value != 'magnetics': raise HTTPException(422,'Action path and payload do not match')
+    job=store.get(job_id)
+    if not job: raise HTTPException(404,'Job not found')
+    if job[0].status != 'succeeded': raise HTTPException(409,'Base design must be succeeded')
+    item=store.create_action(payload, idempotency_key or payload.model_dump_json())
+    try:
+        with celery_app.connection_for_write() as connection: connection.ensure_connection(max_retries=0)
+        run_action_task.delay(item.action_id)
+    except (OperationalError, ConnectionError, TimeoutError) as exc:
+        store.update_action(item.action_id,status='failed',stage='queue',error_json={'code':'QUEUE_UNAVAILABLE','message':'Design queue is unavailable'})
+        raise HTTPException(503,'Design queue is unavailable. Please retry later.') from exc
+    return store.get_action(item.action_id)[0]
 @app.get('/api/v1/design-jobs/{job_id}/actions/{action_id}',response_model=DesignActionResponse)
 def get_action(job_id: str, action_id: str):
     pair=store.get_action(action_id)

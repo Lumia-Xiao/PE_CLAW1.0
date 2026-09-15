@@ -75,6 +75,14 @@ export default function App() {
       const poll = async () => { const next = await request<any>(`/api/v1/design-jobs/${jobId}/actions/${action.action_id}`); if (next.status === "succeeded") { setActionResult(await request<any>(`${next.result_url}`)); setActionMessage("电容分析已完成。"); } else if (next.status === "queued" || next.status === "running") setTimeout(() => void poll(), 1200); }; void poll();
     } catch (e) { setActionMessage(errorText(e)); }
   }
+  async function runMagnetics() {
+    if (!jobId || job?.status !== "succeeded") return;
+    setActionMessage("正在提交磁性器件分析…");
+    try {
+      const action = await request<any>(`/api/v1/design-jobs/${encodeURIComponent(jobId)}/actions/magnetics`, { method: "POST", headers: { "Content-Type": "application/json", "Idempotency-Key": `${jobId}:magnetics` }, body: JSON.stringify({ schema_version: "1.0", job_id: jobId, action: "magnetics", options: { llc_search_mode: "fast" } }) });
+      const poll = async () => { const next = await request<any>(`/api/v1/design-jobs/${jobId}/actions/${action.action_id}`); if (next.status === "succeeded") { setActionResult(await request<any>(next.result_url)); setActionMessage("磁性器件分析已完成。"); } else if (next.status === "queued" || next.status === "running") setTimeout(() => void poll(), 1200); }; void poll();
+    } catch (e) { setActionMessage(errorText(e)); }
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -408,6 +416,7 @@ export default function App() {
                   <h3>后续分析</h3>
                   <p>基础设计完成后可运行独立电容分析。</p>
                   <button type="button" disabled={job?.status !== "succeeded"} onClick={() => void runCapacitor()}>Run Capacitor · 运行电容分析</button>
+                  <button type="button" disabled={job?.status !== "succeeded"} onClick={() => void runMagnetics()}>Run Magnetics · 运行磁性分析</button>
                   {actionMessage && <p role="status">{actionMessage}</p>}
                   {actionResult && <details><summary>查看电容分析结果</summary><pre>{JSON.stringify(actionResult, null, 2)}</pre></details>}
                 </section>

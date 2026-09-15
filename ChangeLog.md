@@ -972,3 +972,11 @@ listed here.
 - Validation: backend action/schema tests 63 passed; `npm run build` passed; `git diff --check` passed.
 - Scope: endpoint currently runs the existing Buck pipeline as the execution adapter and returns the capacitor report projection; dedicated capacitor snapshot restoration, artifact manifests, idempotency, and full UI result polling remain E1 follow-up work.
 - Git: `codex/react-buck-workspace`, commit `a8cad44`, local only; `outputs/` remains untracked.
+
+## 2026-09-15 - E2 Run Magnetics integration
+
+- Added magnetic action routing through the action Worker with explicit magnetic pipeline enablement and `llc_search_mode` forwarding.
+- Added `POST /api/v1/design-jobs/{job_id}/actions/magnetics` with idempotency and base-design dependency checks.
+- Added React Run Magnetics submission and polling beside the Capacitor action.
+- Validation: 63 backend action/schema tests passed; `npm run build` passed; `git diff --check` passed.
+- Scope: magnetic adapter currently uses the existing report runner with magnetic stage enabled; resumable typed hardware snapshots and dedicated magnetic artifact formats remain follow-up work.
