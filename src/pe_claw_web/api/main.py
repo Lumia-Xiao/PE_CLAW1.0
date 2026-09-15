@@ -19,14 +19,35 @@ def topologies(): return topology_catalog()
 def design_buck(request: BuckDesignRequest): return run_buck_design(request)
 @app.post('/api/v1/design-jobs',response_model=DesignJobResponse,status_code=202)
 def create_job(payload: DesignJobCreate):
-    item=store.create(payload.request, {"profile": payload.execution_profile, "operating_point": payload.operating_point})
+    try:
+        item, created=store.create_complete(payload)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from None
+    if not created:
+        return item
     try:
         with celery_app.connection_for_write() as connection: connection.ensure_connection(max_retries=0)
         design_buck_task.delay(item.job_id)
     except (OperationalError, ConnectionError, TimeoutError) as exc:
-        store.update(item.job_id,status='failed',stage='queue',error_json={'code':'QUEUE_UNAVAILABLE','message':'Design queue is unavailable'})
+        store.queue_unavailable(item.job_id)
         raise HTTPException(503, 'Design queue is unavailable. Please retry later.') from exc
     return store.get(item.job_id)[0]
+@app.post('/api/v1/design-jobs/{job_id}/retry', response_model=DesignJobResponse, status_code=202)
+def retry_job(job_id: UUID, restart: bool = False):
+    job_id=str(job_id)
+    pair=store.get(job_id)
+    if pair is None:
+        raise HTTPException(404, 'Job not found')
+    if not restart and not pair[0].retryable:
+        raise HTTPException(409, 'Job cannot be resumed in its current state')
+    if not store.retry(job_id, restart=restart):
+        raise HTTPException(409, 'Only a failed job can be retried')
+    # Queue state is durable; the recovery scheduler republishes after broker outages.
+    try:
+        design_buck_task.delay(job_id)
+    except (OperationalError, ConnectionError, TimeoutError):
+        pass
+    return store.get(job_id)[0]
 @app.get('/api/v1/design-jobs/{job_id}',response_model=DesignJobResponse)
 def get_job(job_id):
     pair=store.get(job_id)
@@ -85,7 +106,7 @@ def action_artifact_download(job_id: str, action_id: str, artifact_id: str):
 @app.get('/api/v1/design-jobs/{job_id}/result',response_model=DesignResultResponse)
 def get_result(job_id):
     pair=store.get(job_id)
-    if not pair or pair[0].status != 'succeeded' or not pair[2]: raise HTTPException(404,'Result not available')
+    if not pair or pair[0].status not in {'succeeded', 'failed'} or not pair[2]: raise HTTPException(404,'Result not available')
     return pair[2]
 @app.get('/api/v1/design-jobs/{job_id}/artifacts')
 def artifacts(job_id):

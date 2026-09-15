@@ -20,6 +20,13 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+  migrate:
+    build: .
+    command: ["python", "-m", "alembic", "upgrade", "head"]
+    environment:
+      PE_CLAW_DATABASE_URL: postgresql+psycopg://pe_claw:${PE_CLAW_POSTGRES_PASSWORD}@postgres:5432/pe_claw
+    depends_on:
+      postgres: {condition: service_healthy}
   api:
     build: .
     command: ["python", "-m", "uvicorn", "pe_claw_web.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
@@ -29,7 +36,7 @@ services:
       PE_CLAW_ARTIFACT_ROOT: /data/artifacts
     volumes: ["pe-claw-artifacts:/data/artifacts"]
     depends_on:
-      postgres: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
   worker:
     build: .
@@ -40,7 +47,18 @@ services:
       PE_CLAW_ARTIFACT_ROOT: /data/artifacts
     volumes: ["pe-claw-artifacts:/data/artifacts"]
     depends_on:
-      postgres: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+  recovery:
+    build: .
+    command: ["python", "-m", "pe_claw_web.jobs.maintenance", "recover", "--loop"]
+    environment:
+      PE_CLAW_DATABASE_URL: postgresql+psycopg://pe_claw:${PE_CLAW_POSTGRES_PASSWORD}@postgres:5432/pe_claw
+      PE_CLAW_REDIS_URL: redis://redis:6379/0
+      PE_CLAW_ARTIFACT_ROOT: /data/artifacts
+    volumes: ["pe-claw-artifacts:/data/artifacts"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
   frontend:
     build:

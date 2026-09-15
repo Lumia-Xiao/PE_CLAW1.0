@@ -208,3 +208,33 @@ def test_public_waveform_uses_real_buck_samples(tmp_path):
     ids = write_exports(summary, tmp_path / 'public')
     assert 'waveform-png' in ids
     assert 'efficiency-png' not in ids
+
+
+def test_retry_http_and_partial_result(api, monkeypatch):
+    main, tasks, store = api
+    from datetime import datetime, timezone
+    item = store.create(BuckDesignRequest(**INPUT))
+    partial = DesignResultResponse(job_id=item.job_id, topology=item.topology, summary={'candidate': {'available':True}})
+    store.update(item.job_id, status='failed', finished_at=datetime.now(timezone.utc), stage='magnetics',
+                 checkpoint_json={'saved':True}, result_json=partial.model_dump(mode='json'))
+    path=f'/api/v1/design-jobs/{item.job_id}'
+    assert call(main,'GET',path+'/result').status_code == 200
+    assert call(main,'GET',path+'/artifacts').status_code == 404
+    queued=[]
+    monkeypatch.setattr(main.design_buck_task,'delay',queued.append)
+    response=call(main,'POST',path+'/retry')
+    assert response.status_code == 202 and response.json()['status']=='queued'
+    assert queued == [item.job_id]
+    assert store.get_checkpoint(item.job_id)=={'saved':True}
+    assert call(main,'POST',path+'/retry').status_code == 409
+
+
+def test_duplicate_complete_submission_publishes_once(api, monkeypatch):
+    main, tasks, store=api
+    queued=[]
+    monkeypatch.setattr(main.design_buck_task,'delay',queued.append)
+    first=call(main,'POST','/api/v1/design-jobs',json={'request':INPUT})
+    second=call(main,'POST','/api/v1/design-jobs',json={'request':INPUT,'operating_point':{'vin_v':48,'load_ratio':1}})
+    assert first.status_code==second.status_code==202
+    assert first.json()['job_id']==second.json()['job_id']
+    assert queued == [first.json()['job_id']]

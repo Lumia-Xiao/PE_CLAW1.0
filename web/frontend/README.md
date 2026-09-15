@@ -75,6 +75,10 @@ npm test
 
 F4 扩展字段仅在 Web 结果投影增加：`summary.waveform.samples` 为最终运行点真实采样；`summary.efficiency_sweep.blocked_reason` 为阻塞原因，无扫描点或非 available 状态时 available 为 false。核心报告、计算公式与选型规则保持原有契约。
 
+## F5 恢复与升级
+
+失败任务现在可显示已保存阶段结果，并通过“从已保存阶段恢复”重试同一个任务。相同完整输入复用已有任务；不兼容快照可选择从头运行。启动和迁移步骤见仓库 `docs/web-recovery.md`；本地需要额外运行 `python -m pe_claw_web.jobs.maintenance recover --loop`，才能在进程/Redis 故障后自动重新投递。PostgreSQL/Docker 部署验收尚待可用环境。
+
 ## 发布
 
 `npm run build` 生成 `dist/`，仅包含前端资源。正式部署需反向代理将同源 `/api` 转发给 FastAPI；鉴权、配额、迁移修复和生产部署验收另行实施。不要将仓库根目录或 Python 文件目录作为静态文件根目录发布。

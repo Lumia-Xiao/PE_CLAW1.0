@@ -33,6 +33,10 @@ export interface Job {
   created_at: string;
   started_at?: string | null;
   finished_at?: string | null;
+  result_url?: string | null;
+  attempt?: number;
+  stages?: Record<string, string>;
+  retryable?: boolean;
   error?: {
     code: string;
     message: string;

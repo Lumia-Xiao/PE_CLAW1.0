@@ -269,3 +269,16 @@ Per-job artifact directory / object storage
 - E0 action schema、状态机和依赖契约保留为内部兼容模型，可供迁移和历史记录使用。
 - E1/E2 action API 暂时保留兼容入口，但新前端不再依赖它们；后续统一任务稳定后再评估下线。
 - 本计划取代 `button_actions_plan.md`，以后所有 Web 设计功能按 F1–F5 执行。
+
+### F5 本地实施与验收记录（2026-09-15）
+
+- **本地实现及 SQLite/Redis 链路通过，PostgreSQL/Docker 部署验收待环境具备后完成；不标记 F5 全部验收完成。**
+- 完整 Buck 使用真实阶段回调：topology → devices → capacitor → magnetics → operating_point → efficiency_sweep → report → finalize。loss/thermal 已包含在固定硬件 operating-point refresh 中，完成时记录子阶段状态，避免重复计算和虚假进度。每个安全阶段边界保存带版本/输入摘要/校验和的内部报告 JSON 和公开部分结果。
+- 新增任务领取租约、心跳、过期租约回收、三次自动恢复上限、attempt 输出隔离及最终发布保护。停止后的旧 Worker 不得覆盖新的检查点或结果。独立 recovery 进程在 Redis 恢复后重新投递数据库中的 queued 任务。
+- 新增同一任务恢复接口、前端“从已保存阶段恢复”、失败阶段及部分结果；不兼容快照显式失败，用户可选择从头运行。相同完整请求通过数据库唯一键复用；client request ID 不允许换参数复用。
+- Alembic 增加 0002/0003 修订，兼容未纳管的旧 SQLite 表，保留旧任务；迁移与运行模型分离。SQLite 自动迁移，PostgreSQL 显式 migrate。清理只操作到期终态任务，保护运行中任务、活动兼容 action 和未知目录。
+- 后端专项：85 passed、2 skipped（无 PostgreSQL 测试连接；Windows 符号链接权限）；前端构建通过，Playwright 13 passed。SQL 数据库故障传播/恢复是故障注入测试，PostgreSQL 真实连接终止/重连测试已提供但未运行。
+- 真实隔离联调：`pytest_temp/recovery-smoke-6cf2ed84/evidence.json`；job `c683c8e0-5295-4b6d-ac7b-7a5ff0bb66ed`。真实 HTTP 提交，在 capacitor 检查点后终止独立 Celery Worker、重启隔离 Redis；第二次执行从快照继续并成功，已选硬件摘要一致，重复投递没有第三次运行。HTTP 下载校验 11 个 artifact；1200 个真实波形采样、20 个有效效率点。
+- 新增根 Dockerfile、迁移 service 和独立 recovery service；本机无 Docker/PostgreSQL，官方 PostgreSQL 二进制下载探测超时，未声明镜像构建、PostgreSQL 重启或 Compose 全链路已通过。
+- 启动、升级、恢复、清理及测试命令：`docs/web-recovery.md`。检查点为完整报告，当前真实电容阶段快照约 35 MB，生产并发和存储容量需后续压测；保留完整类型与硬件信息优先于压缩优化。
+- Git：在 `codex/react-buck-workspace` 本地提交，未推送；保留用户 outputs 和测试证据，不执行生产清理或修改用户运行中的服务。

@@ -120,6 +120,37 @@ test("unified task shows blocked reason without plotting stale efficiency", asyn
   await expect(page.getByRole("img", { name: "效率与负载曲线" })).toHaveCount(0);
 });
 
+test("failed complete job shows saved results and resumes same job", async ({ page }) => {
+  await setup(page);
+  await page.addInitScript(({ id }) => localStorage.setItem("pe-claw-web-v1", JSON.stringify({ jobId: id })), { id });
+  let resumed=false;
+  await page.route(`**${path}`, route => route.fulfill({ json: resumed ? { ...job("running"), attempt:2 } : {
+    ...job("failed"), stage:"magnetics", retryable:true, result_url:`${path}/result`, attempt:1,
+    stages:{topology:"succeeded", devices:"succeeded", magnetics:"failed"},
+    error:{code:"DESIGN_FAILED",message:"Design failed at magnetics; completed stages were saved"},
+  } }));
+  await page.route(`**${path}/retry?restart=false`, route => {
+    resumed=true;
+    return route.fulfill({ status:202, json:{...job("queued"),attempt:1} });
+  });
+  await page.goto("/");
+  await expect(page.getByRole("cell",{name:"candidate.inductance",exact:true})).toBeVisible();
+  await page.getByRole("button",{name:"从已保存阶段恢复",exact:true}).click();
+  await expect(page.getByRole("status")).toHaveText("计算中");
+  await expect(page.getByRole("cell",{name:"candidate.inductance",exact:true})).toHaveCount(0);
+});
+
+test("idempotent submission reloads results when the server reuses the job ID", async ({ page }) => {
+  await setup(page);
+  await page.route("**/api/v1/design-jobs", route => route.fulfill({status:202,json:job("succeeded")}));
+  await page.route(`**${path}`, route => route.fulfill({json:job("succeeded")}));
+  await openBuck(page);
+  for (let i=0;i<2;i++) {
+    await page.getByRole("button", {name:"Run Design · 运行设计",exact:true}).click();
+    await expect(page.getByRole("cell",{name:"candidate.inductance",exact:true})).toBeVisible();
+  }
+});
+
 test("waveform and efficiency files belong to unified task and fit mobile", async ({ page }, info) => {
   await setup(page);
   await page.setViewportSize({ width: 390, height: 844 });

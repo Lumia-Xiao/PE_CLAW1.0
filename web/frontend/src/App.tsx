@@ -104,6 +104,9 @@ export default function App() {
           if (controller.signal.aborted) return;
           setResult(data);
           setArtifacts(files);
+        } else if (next.status === "failed" && next.result_url) {
+          const data = await request<Result>(`${jobPath(jobId)}/result`, { signal: controller.signal });
+          if (!controller.signal.aborted) setResult(data);
         } else if (next.status === "queued" || next.status === "running") {
           timer = setTimeout(poll, 1800);
         }
@@ -173,6 +176,7 @@ export default function App() {
       setJob(next);
       setSubmitted({ ...values });
       setJobId(next.job_id);
+      setRetry(v => v + 1); // An idempotent submission can return the current job ID.
     } catch (e) {
       setError(errorText(e));
     } finally {
@@ -183,6 +187,19 @@ export default function App() {
     setCategory(id);
     setPage("topologies");
   };
+  async function resumeJob(restart = false) {
+    if (submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      const next = await request<Job>(`${jobPath(jobId)}/retry?restart=${restart}`, { method: "POST" });
+      setJob(next);
+      setResult(null);
+      setArtifacts([]);
+      setRetry(v => v + 1);
+    } catch (e) { setError(errorText(e)); }
+    finally { setSubmitting(false); }
+  }
   return (
     <>
       <header className="masthead">
@@ -425,6 +442,15 @@ export default function App() {
                         {job.error.message} <small>({job.error.code})</small>
                       </div>
                     )}
+                    {job?.status === "failed" && job.retryable !== undefined && <>
+                      <p>已完成阶段的结果保留在本任务中；恢复沿用原输入与已选硬件。</p>
+                      <button disabled={submitting} onClick={() => void resumeJob(!job.retryable)}>
+                        {job.retryable ? "从已保存阶段恢复" : "快照不可用，从头重新运行"}
+                      </button>
+                    </>}
+                    {job?.stages && <details><summary>阶段状态 · 第 {job.attempt || 0} 次执行</summary>
+                      <dl>{Object.entries(job.stages).map(([stage, status]) => <div key={stage}><dt>{stage}</dt><dd>{status}</dd></div>)}</dl>
+                    </details>}
                     {(job?.status === "cancelled" ||
                       job?.status === "expired") && (
                       <p>此任务已结束，可以提交新的设计。</p>
