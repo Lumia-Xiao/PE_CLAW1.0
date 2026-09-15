@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os, uuid
 from datetime import datetime, timezone
-from sqlalchemy import JSON, DateTime, String, create_engine
+from sqlalchemy import JSON, DateTime, String, create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 from pe_claw_web.schemas import BuckDesignRequest, DesignJobResponse, DesignResultResponse, DesignActionResponse
 class Base(DeclarativeBase): pass
@@ -13,7 +13,15 @@ class ActionRow(Base):
     action_id: Mapped[str]=mapped_column(String(64),primary_key=True); job_id: Mapped[str]=mapped_column(String(64),index=True); action: Mapped[str]=mapped_column(String(32)); idempotency_key: Mapped[str]=mapped_column(String(128),index=True); request_json: Mapped[dict]=mapped_column(JSON); status: Mapped[str]=mapped_column(String(20)); progress: Mapped[int]=mapped_column(); stage: Mapped[str|None]=mapped_column(String(64),nullable=True); created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True)); started_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True),nullable=True); finished_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True),nullable=True); error_json: Mapped[dict|None]=mapped_column(JSON,nullable=True); result_json: Mapped[dict|None]=mapped_column(JSON,nullable=True)
 class JobStore:
     def __init__(self):
-        self.engine=create_engine(os.getenv('PE_CLAW_DATABASE_URL','sqlite:///pe_claw_jobs.db')); Base.metadata.create_all(self.engine); self.Session=sessionmaker(self.engine,expire_on_commit=False)
+        self.engine=create_engine(os.getenv('PE_CLAW_DATABASE_URL','sqlite:///pe_claw_jobs.db')); Base.metadata.create_all(self.engine)
+        # Keep local E1 SQLite databases usable after adding action idempotency.
+        if self.engine.dialect.name == 'sqlite' and 'design_actions' in inspect(self.engine).get_table_names():
+            columns={c['name'] for c in inspect(self.engine).get_columns('design_actions')}
+            if 'idempotency_key' not in columns:
+                with self.engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE design_actions ADD COLUMN idempotency_key VARCHAR(128) NOT NULL DEFAULT ''"))
+                    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_design_actions_idempotency_key ON design_actions (idempotency_key)"))
+        self.Session=sessionmaker(self.engine,expire_on_commit=False)
     def _response(self,row): return DesignJobResponse(job_id=row.job_id,topology=row.topology,status=row.status,progress=row.progress,stage=row.stage,created_at=row.created_at,started_at=row.started_at,finished_at=row.finished_at,error=row.error_json,result_url=f'/api/v1/design-jobs/{row.job_id}/result' if row.result_json else None,artifacts_url=f'/api/v1/design-jobs/{row.job_id}/artifacts' if row.result_json else None)
     def create(self,request):
         row=JobRow(job_id=str(uuid.uuid4()),topology=request.topology,request_json=request.model_dump(mode='json'),status='queued',progress=0,stage='queued',created_at=datetime.now(timezone.utc));

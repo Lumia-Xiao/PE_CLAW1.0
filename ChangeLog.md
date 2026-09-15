@@ -980,3 +980,8 @@ listed here.
 - Added React Run Magnetics submission and polling beside the Capacitor action.
 - Validation: 63 backend action/schema tests passed; `npm run build` passed; `git diff --check` passed.
 - Scope: magnetic adapter currently uses the existing report runner with magnetic stage enabled; resumable typed hardware snapshots and dedicated magnetic artifact formats remain follow-up work.
+
+## 2026-09-15 - Fix legacy action database compatibility
+
+- Added a SQLite compatibility migration for existing E1 databases missing `design_actions.idempotency_key`, preventing action creation/status lookups from failing after the E2 schema change.
+- Validation: 63 action/schema tests passed; `git diff --check` passed.
