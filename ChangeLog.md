@@ -955,3 +955,13 @@ listed here.
 - Validation: reviewed against Tkinter BaseTopologyForm actions and existing PE-Claw pipeline modules.
 - Branch/commit: codex/react-buck-workspace; not committed.
 
+## 2026-09-15 - Implement follow-up action contracts (E0, local)
+
+- Purpose: establish versioned contracts before adding Capacitor, Magnetics, Waveforms and Efficiency Sweep endpoints.
+- Files: `src/pe_claw_web/schemas/actions.py`, schema/package exports, `tests/test_web_action_contracts.py`, `Plan/Active/button_actions_plan.md`.
+- Behavior: four post-design actions, finite operating-point validation, action-specific option allowlist, structured DesignError responses, base-design dependencies, stage names and validated lifecycle transitions. Retry creates a new action; queue failure and result expiration have explicit transitions. Runtime enforcement remains future work.
+- Plan: separate existing base-design creation from action requests; define envelope/path consistency and require a resumable hardware snapshot before E1 Pipeline integration.
+- Validation: `python -m pytest -q tests/test_web_action_contracts.py tests/test_web_schemas.py` — 63 passed; `git diff --check` passed. No API/Worker/UI integration is claimed in E0.
+- Git: `codex/react-buck-workspace`; implementation and this record committed together, no push requested/performed. E0 milestone remains unmarked pending push under repository rules.
+- Backup: no backup or cleanup performed; existing `outputs/` results excluded from staging.
+
