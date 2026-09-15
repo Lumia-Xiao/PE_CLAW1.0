@@ -11,6 +11,7 @@ from pe_claw_gui.topologies.dc_dc.buck_diode_rectified_unidirectional.input_sche
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
 from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import run_efficiency_sweep
 from pe_claw_gui.models.operating_point import OperatingPoint
+from pe_claw_web.jobs.exports import public_summary
 
 def run_buck_design(request: BuckDesignRequest, *, output_root: Path | None = None, enable_magnetic_design: bool = False, llc_search_mode: str = "fast", include_waveforms: bool = False) -> DesignResultResponse:
     registry = build_default_registry()
@@ -29,4 +30,6 @@ def run_complete_buck_design(request: BuckDesignRequest, *, output_root: Path | 
     point = operating_point or {"vin_v": (request.vin_min + request.vin_max) / 2, "load_ratio": 1.0}
     report = run_operating_point_refresh(report, plugin, OperatingPoint(vin_v=float(point["vin_v"]), load_ratio=float(point["load_ratio"])), pipeline_options=PipelineOptions(enable_magnetic_design=True))
     report = replace(report, efficiency_sweep=run_efficiency_sweep(report, plugin=plugin, output_dir=output_root))
-    return DesignResultResponse(job_id="sync", topology=request.topology, summary=build_structured_report(report), warnings=list(report.notes))
+    return DesignResultResponse(job_id="sync", topology=request.topology,
+        summary=public_summary(report, build_structured_report(report)),
+        warnings=[*report.notes, *report.efficiency_sweep.warnings])

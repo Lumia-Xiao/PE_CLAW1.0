@@ -169,7 +169,11 @@ export default function Results({
   const unavailable =
     value === undefined ||
     value === null ||
-    (object(value) && value.available === false);
+    (object(value) && (value.available === false ||
+      ["blocked", "unavailable", "not_available", "not_evaluated", "failed", "not_applicable"].includes(String(value.status))));
+  const stageWarnings = object(value) && object(value.metadata) && Array.isArray(value.metadata.warnings)
+    ? value.metadata.warnings.map(format) : [];
+  const preview = artifacts.find((a) => a.stage === key && a.media_type === "image/png");
   const candidate =
     summary && object(summary.candidate) ? summary.candidate : {};
   return (
@@ -223,6 +227,9 @@ export default function Results({
                       <strong>{a.name}</strong>
                       <small>
                         {a.media_type} · {(a.size / 1024).toFixed(1)} KB
+                        {a.stage ? ` · 阶段：${a.stage}` : ""}
+                        {a.schema_version ? ` · 格式版本：${a.schema_version}` : ""}
+                        {a.sha256 ? <><br /><code className="checksum">SHA-256: {a.sha256}</code></> : ""}
                       </small>
                     </div>
                     {safeDownload(a.download_url) ? (
@@ -247,8 +254,9 @@ export default function Results({
           </>
         ) : unavailable ? (
           <div className="empty">
-            <h3>此阶段尚未提供数据</h3>
-            <p>当前任务没有 {title} 结果。这里不会显示估算或示例数据。</p>
+            <h3>{object(value) && value.status === "blocked" ? "此阶段被阻塞" : "此阶段尚未提供数据"}</h3>
+            <p>{object(value) && value.blocked_reason ? format(value.blocked_reason) : `当前任务没有可用的 ${title} 结果。`}</p>
+            {stageWarnings.map((warning, i) => <p key={i}>{warning}</p>)}
           </div>
         ) : (
           <>
@@ -271,13 +279,15 @@ export default function Results({
                 })}
               </div>
             )}
-            {key === "waveform" && (
+            {key === "waveform" && !(object(value) && object(value.samples)) && (
               <p className="notice">
                 当前报告提供波形统计值，未包含时域采样序列。
               </p>
             )}
-            {key === "efficiency_sweep" && <EfficiencyChart data={value!} />}
-            <DataTable key={`${tab}-${result.job_id}`} value={value!} />
+            {key === "efficiency_sweep" && !preview && <EfficiencyChart data={value!} />}
+            {preview && safeDownload(preview.download_url) && <figure className="chart"><img className="artifact-preview" src={safeDownload(preview.download_url)} alt={`${title} · 当前任务计算曲线`} /></figure>}
+            {stageWarnings.map((warning, i) => <p className="notice" key={i}>{warning}</p>)}
+            <DataTable key={`${tab}-${result.job_id}`} value={object(value) ? Object.fromEntries(Object.entries(value).filter(([name]) => name !== "samples")) : value!} />
           </>
         )}
       </div>

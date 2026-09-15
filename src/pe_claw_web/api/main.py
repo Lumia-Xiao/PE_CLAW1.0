@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from kombu.exceptions import OperationalError
 from pe_claw_web.schemas import *
 from pe_claw_web.jobs.store import store
-from pe_claw_web.jobs.artifacts import ARTIFACT_ROOT
+from pe_claw_web.jobs.artifacts import ARTIFACT_ROOT, resolve_artifact
 from pe_claw_web.workers.tasks import design_buck_task
 from pe_claw_web.workers.action_tasks import run_action_task
 from .runner import run_buck_design
@@ -84,19 +85,19 @@ def action_artifact_download(job_id: str, action_id: str, artifact_id: str):
 @app.get('/api/v1/design-jobs/{job_id}/result',response_model=DesignResultResponse)
 def get_result(job_id):
     pair=store.get(job_id)
-    if not pair or not pair[2]: raise HTTPException(404,'Result not available')
+    if not pair or pair[0].status != 'succeeded' or not pair[2]: raise HTTPException(404,'Result not available')
     return pair[2]
 @app.get('/api/v1/design-jobs/{job_id}/artifacts')
 def artifacts(job_id):
     pair=store.get(job_id)
-    if not pair or not pair[2]: raise HTTPException(404,'Artifacts not available')
+    if not pair or pair[0].status != 'succeeded' or not pair[2]: raise HTTPException(404,'Artifacts not available')
     return pair[2].get('artifacts',[])
 @app.get('/api/v1/design-jobs/{job_id}/artifacts/{artifact_id}')
 def download_artifact(job_id: UUID,artifact_id: str):
     job_id = str(job_id); pair=store.get(job_id)
     if not pair or pair[0].status != 'succeeded' or not pair[2]: raise HTTPException(404,'Artifact not available')
-    if artifact_id!='result-json': raise HTTPException(404,'Artifact not found')
-    path=ARTIFACT_ROOT/job_id/'result.json'
-    if not path.is_file(): raise HTTPException(404,'Artifact not found')
-    from fastapi.responses import FileResponse
-    return FileResponse(path,media_type='application/json',filename='result.json')
+    try:
+        path, entry=resolve_artifact(ARTIFACT_ROOT,job_id,artifact_id,pair[2].get('artifacts',[]))
+    except FileNotFoundError:
+        raise HTTPException(404,'Artifact not found') from None
+    return FileResponse(path,media_type=entry['media_type'],filename=entry['name'],headers={'X-Content-Type-Options':'nosniff'})

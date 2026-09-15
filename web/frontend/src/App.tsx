@@ -80,6 +80,8 @@ export default function App() {
   }, [jobId, draft]);
   useEffect(() => {
     if (!jobId) return;
+    setResult(null);
+    setArtifacts([]);
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
     const poll = async () => {
@@ -467,7 +469,7 @@ export default function App() {
                     </ul>
                   </details>
                 )}
-                <Results result={result} artifacts={artifacts} />
+                <Results key={jobId} result={result?.job_id === jobId ? result : null} artifacts={result?.job_id === jobId ? artifacts : []} />
               </div>
             </div>
           </>

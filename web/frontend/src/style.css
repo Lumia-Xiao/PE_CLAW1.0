@@ -780,3 +780,7 @@ footer {
     margin-bottom: 5px;
   }
 }
+.artifact-preview { display: block; width: 100%; height: auto; }
+.checksum { overflow-wrap: anywhere; word-break: break-all; }
+.file-list li > div { min-width: 0; }
+.file-list .button { flex-shrink: 0; white-space: nowrap; }

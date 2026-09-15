@@ -255,6 +255,15 @@ Per-job artifact directory / object storage
 - 为 SQLite 旧表、PostgreSQL migration、Redis 重启和 Worker 重启增加测试。
 - 端到端验证：设计提交 → 固定顺序执行 → 全部结果 → artifact 下载；覆盖队列不可用、阶段失败、重复提交和刷新恢复。
 
+### F4 本地实施记录（2026-09-15）
+
+- 同一任务导出 result.json、可用阶段 CSV、真实采样波形 PNG 和真实扫描效率 PNG；不扫描或发布内部 Pipeline 文件夹。
+- API 清单包含大小、SHA-256、schema 版本及阶段；result.json 列出其他文件，自身清单由 API 返回，避免自引用校验和。
+- 下载须命中本任务 manifest 和固定 ID，校验路径归属、大小、hash 及任务成功状态；旧结果仍可下载已有文件。
+- 结果页识别 blocked/unavailable、显示原因与警告；Files 展示元数据和下载；任务切换不复用上一任务结果。
+- 验证包含真实 Buck 波形采样/导出、HTTP 文件字节/校验、跨任务文件拒绝、文件篡改和过期状态；浏览器验证含阻塞阶段、文件元数据、图像与移动端。详细计数以同次 ChangeLog 为准。
+- 本地提交，未推送，暂不标记远端里程碑完成。Redis/PostgreSQL/独立 Worker 故障恢复及用户认证不属于此次验证；按 F5/生产安全阶段继续。
+
 ### 15.1 已完成工作处理
 
 - E0 action schema、状态机和依赖契约保留为内部兼容模型，可供迁移和历史记录使用。

@@ -1019,3 +1019,15 @@ listed here.
 - Design submission now sends `execution_profile: complete` with a default midpoint Vin and full-load operating point; one task drives all result tabs.
 - Added user-facing explanation of the fixed complete-design stage sequence.
 - Validation: `npm run build` passed; `git diff --check` passed.
+
+## 2026-09-15 - F4 unified report exports and artifact downloads
+
+- Files: Web runner, jobs/exports.py and artifacts.py, download API, React results/files views, Web tests, frontend README and Plan/Active/plan.md.
+- Complete-job reports now include real final-operating-point waveform samples and explicit efficiency availability/reason. Core calculation/report contracts and selection policies are unchanged.
+- Generate public JSON, available stage CSV, waveform PNG and efficiency PNG from the same result. Only freshly produced allowlisted files enter the manifest; no recursive exposure of private Pipeline output. CSV retains units/source, waveform CSV uses unit-bearing channel names, plots require actual numeric samples/points.
+- Manifest entries include media type, size, SHA-256, schema version, stage and job-scoped download URL. The JSON report lists other artifacts; its own checksum is held externally in the API manifest. Download resolution verifies job state, manifest membership, path boundary and file bytes. Existing result-json downloads remain compatible.
+- React handles blocked/unavailable sections and warnings, previews generated plots, shows manifest metadata, and clears old job results during recovery. Mobile download buttons and checksums fit the viewport.
+- Tests: `python -m pytest -q tests/test_web_frontend_contract.py tests/test_web_api.py tests/test_web_schemas.py --basetemp pytest_temp/f4-final`: 13 passed, 1 skipped (Windows symlink creation permission). Covers real Buck waveform samples, fixture-derived efficiency exports, byte/hash checks, tampering, expiry and cross-job lookup. Old Worker tests now mock the current complete runner and isolate broker probing instead of accidentally executing full magnetic selection.
+- Frontend: `npm run build` passed; `npm test -- --workers=2`: 11 passed. Real Buck waveform export and mobile Files screenshot visually inspected. `git diff --check` passed.
+- Limits: Browser task responses and Worker computation use fixtures for transport tests; separate Redis/PostgreSQL/Worker deployment and full magnetic design are not revalidated here. Per-user authorization and recovery remain later stages; job-path isolation is not user authentication.
+- Git: codex/react-buck-workspace; implementation and documentation committed together locally, no push requested/performed. Generated outputs and validation evidence excluded. No backup or user-result cleanup performed.

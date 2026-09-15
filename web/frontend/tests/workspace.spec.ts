@@ -18,6 +18,9 @@ const file = {
   media_type: "application/json",
   size: 100,
   download_url: `${path}/artifacts/result-json`,
+  stage: "report",
+  schema_version: "1.0",
+  sha256: "a".repeat(64),
 };
 async function setup(page: Page) {
   await page.route("**/api/v1/topologies", (route) =>
@@ -87,6 +90,7 @@ test("submit, poll, render real Buck fixture, navigate tabs and download", async
     page.getByRole("heading", { name: "此阶段尚未提供数据" }),
   ).toBeVisible();
   await page.getByRole("tab", { name: "Files", exact: true }).click();
+  await expect(page.getByText(`SHA-256: ${file.sha256}`)).toBeVisible();
   const download = page.waitForEvent("download");
   await page.getByRole("link", { name: "下载", exact: true }).click();
   const downloaded = await download;
@@ -96,6 +100,46 @@ test("submit, poll, render real Buck fixture, navigate tabs and download", async
   ).toEqual(result);
   await page.reload();
   await expect(page.getByRole("status")).toHaveText("已完成");
+});
+
+test("unified task shows blocked reason without plotting stale efficiency", async ({ page }) => {
+  await setup(page);
+  await page.addInitScript(({ id }) => localStorage.setItem("pe-claw-web-v1", JSON.stringify({ jobId: id })), { id });
+  await page.route(`**${path}`, route => route.fulfill({ json: job("succeeded") }));
+  await page.route(`**${path}/result`, route => route.fulfill({ json: {
+    ...result, summary: { ...result.summary, efficiency_sweep: {
+      available: true, status: "blocked", blocked_reason: "缺少已选磁件",
+      points: [{ load_ratio: 0.1, efficiency: 0.8 }, { load_ratio: 1, efficiency: 0.9 }],
+    } },
+  } }));
+  await page.goto("/");
+  await expect(page.getByRole("status")).toHaveText("已完成");
+  await page.getByRole("tab", { name: "Efficiency", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "此阶段被阻塞" })).toBeVisible();
+  await expect(page.getByText("缺少已选磁件")).toBeVisible();
+  await expect(page.getByRole("img", { name: "效率与负载曲线" })).toHaveCount(0);
+});
+
+test("waveform and efficiency files belong to unified task and fit mobile", async ({ page }, info) => {
+  await setup(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(({ id }) => localStorage.setItem("pe-claw-web-v1", JSON.stringify({ jobId: id })), { id });
+  await page.route(`**${path}`, route => route.fulfill({ json: job("succeeded") }));
+  await page.route(`**${path}/result`, route => route.fulfill({ json: {
+    ...result, summary: { ...result.summary, waveform: { available: true, samples: { time_s: [0, 1], inductor_current_a: [1, 2] } } },
+  } }));
+  const wave = { ...file, id: "waveform-png", name: "waveform.png", stage: "waveform", media_type: "image/png", download_url: `${path}/artifacts/waveform-png` };
+  await page.route(`**${path}/artifacts`, route => route.fulfill({ json: [file, wave] }));
+  await page.route(`**${path}/artifacts/waveform-png`, route => route.fulfill({ contentType: "image/png", body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aRZkAAAAASUVORK5CYII=", "base64") }));
+  await page.goto("/");
+  await expect(page.getByRole("status")).toHaveText("已完成");
+  await page.getByRole("tab", { name: "Waveforms", exact: true }).click();
+  await expect(page.getByRole("img", { name: "Waveforms · 当前任务计算曲线" })).toHaveAttribute("src", /waveform-png$/);
+  await expect(page.getByText("当前报告提供波形统计值，未包含时域采样序列。")).toHaveCount(0);
+  await page.getByRole("tab", { name: "Files", exact: true }).click();
+  await expect(page.getByText("waveform.png", { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath("files-mobile.png"), fullPage: true });
 });
 test("invalid voltage range stays local and does not submit", async ({
   page,

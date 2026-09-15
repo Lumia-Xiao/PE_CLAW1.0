@@ -52,8 +52,10 @@ npm run dev
 - 遇到网络错误可重试查询；队列不可用、设计失败、任务不存在有不同提示。
 - 结果表保留报告字段名称、单位与来源。Summary 显示核心参数；其他标签页显示报告对应分区。
 - Waveforms 在报告缺少时域采样时只显示统计或未提供状态；不会从统计量构造波形。Efficiency 在报告确实含负载扫描点时绘制曲线。
-- 当前后端完整运行默认关闭磁性设计，且未执行波形或效率扫描；这些空状态是后端能力边界。
-- 当前下载为后端生成的 JSON 文件。PDF/CSV、独立磁性设计、运行点刷新、效率扫描、任务取消尚未提供 API，不在页面上模拟成功。
+- 完整任务在后端选择硬件后刷新运行点并执行效率扫描；某阶段 blocked/unavailable 时展示原因和警告，不绘制旧数据。
+- Files 提供同一任务的 JSON 报告、可用阶段 CSV、真实波形和效率 PNG。CSV 普通分区列为 parameter/value/unit/source；波形采样 CSV 按 time_s、inductor_current_a 等带单位列名导出，不从统计量推算采样。
+- 下载清单包含 id/name/media_type/size/sha256/schema_version/stage/download_url。结果 JSON 包含其他文件的清单，自身校验和仅保存在 API 清单中，避免自引用；GET result 与下载报告的 summary 一致。
+- 下载只解析固定 artifact ID，不使用客户端路径或递归暴露内部 Pipeline 目录。过期任务、未登记文件和校验不一致文件返回 404。旧任务仅保留已有下载，需新任务才能生成新增文件。用户归属鉴权尚待生产认证阶段。
 - 表单编辑后仍显示带任务编号的原结果，直到新的请求成功提交。结果中的 request 表格为计算时实际输入。
 
 ## 验证
@@ -70,6 +72,8 @@ npm test
 
 浏览器测试使用拦截的任务 HTTP 响应，覆盖提交/轮询/恢复/错误/下载/窄屏。fixture 由真实 Buck 拓扑流水线生成，可在仓库根目录执行 `python -B scripts/export_web_test_fixtures.py` 更新。
 后端集成测试使用临时 SQLite、临时输出目录；运行真实 Buck 同步计算，对照 fixture，并测试任务 Worker 函数与文件下载。它不等同于外部 PostgreSQL、Redis 和独立 Celery 进程的部署验收。
+
+F4 扩展字段仅在 Web 结果投影增加：`summary.waveform.samples` 为最终运行点真实采样；`summary.efficiency_sweep.blocked_reason` 为阻塞原因，无扫描点或非 available 状态时 available 为 false。核心报告、计算公式与选型规则保持原有契约。
 
 ## 发布
 

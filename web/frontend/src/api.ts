@@ -52,6 +52,9 @@ export interface Artifact {
   media_type: string;
   size: number;
   download_url: string;
+  sha256?: string;
+  schema_version?: string;
+  stage?: string;
 }
 export interface Result {
   job_id: string;
