@@ -1012,3 +1012,10 @@ listed here.
 - Added a complete Buck adapter that runs the existing operating-point refresh against the selected report hardware, then invokes the fixed-hardware efficiency sweep pipeline.
 - The unified Worker now passes the persisted operating point (or documented default), stores efficiency results in the same report and artifact flow, and preserves unavailable/blocked statuses from the real pipeline.
 - Validation: Web API/schema tests 5 passed; `git diff --check` passed.
+
+## 2026-09-15 - F3 unified frontend confirmation flow
+
+- Removed independent Capacitor and Magnetics action buttons and polling code from the React workspace.
+- Design submission now sends `execution_profile: complete` with a default midpoint Vin and full-load operating point; one task drives all result tabs.
+- Added user-facing explanation of the fixed complete-design stage sequence.
+- Validation: `npm run build` passed; `git diff --check` passed.
