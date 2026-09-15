@@ -7,3 +7,5 @@ celery_app.conf.update(
     broker_connection_timeout=3,
     task_publish_retry=False,
 )
+if os.getenv("PE_CLAW_CELERY_EAGER", "0") == "1":
+    celery_app.conf.update(task_always_eager=True, task_eager_propagates=True)

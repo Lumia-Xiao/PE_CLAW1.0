@@ -938,3 +938,12 @@ listed here.
 - Limits: browser task lifecycle is mocked; backend tests use temporary SQLite and invoke the Worker function. External Redis (localhost:6379 currently times out), PostgreSQL and separate Worker delivery are not claimed verified. No formulas, selection policy or existing GUI changed.
 - Git: codex/react-buck-workspace; implementation and this record committed together; no push requested/performed. No master changes in this phase. Existing caches, database, node_modules and build/test outputs excluded from staging.
 - Backup: no backup or result-cleanup operation performed in this phase.
+
+## 2026-09-15 - Complete React web workspace (phase D)
+
+- Purpose: deliver the browser workspace for the existing PE-Claw web API and deterministic Buck flow.
+- Files: `web/frontend/`, `src/pe_claw_web/api/catalog.py`, `tests/test_web_frontend_contract.py`, `scripts/export_web_test_fixtures.py`, API/runner/worker configuration, Docker-related dependencies, `.gitignore`.
+- Behavior: responsive category and topology navigation, registry-driven Buck form defaults/ranges, asynchronous task submit/poll/recovery, persisted draft/task identity, structured report tabs with explicit unavailable states, efficiency SVG when data exists, warnings and safe artifact download.
+- Validation: `npm run build` passed; Playwright 9 passed including downloaded bytes, mobile layout, retry/failure/reload/missing-task cases; Python Web tests 10 passed including real Buck HTTP calculation, persistence across SQLAlchemy store instances, Worker result and artifact download. Browser visual review completed at desktop and 390px widths.
+- Limits: browser task lifecycle uses route fixtures; external Redis/PostgreSQL/Celery process requires deployment environment. No authentication or additional topology algorithms changed.
+- Git: branch `codex/react-buck-workspace`; local commit only, no push performed. Generated caches, `node_modules`, `dist`, screenshots, and local databases remain untracked/excluded.
