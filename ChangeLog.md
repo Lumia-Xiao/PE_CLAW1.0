@@ -991,3 +991,10 @@ listed here.
 - Consolidated `Plan/Active/button_actions_plan.md` into `Plan/Active/plan.md`.
 - Replaced independent Capacitor/Magnetics/Waveforms/Efficiency buttons with a unified complete-design execution plan F1–F5: one confirmed request, fixed stage order, shared progress, resumable snapshots and unified artifacts.
 - Preserved E0–E2 implementation history as compatibility work; future frontend work follows the unified task flow.
+
+## 2026-09-15 - F1 unified complete-design request contract
+
+- Added `execution_profile=complete` and optional validated operating point to `DesignJobCreate`.
+- Persisted execution configuration with jobs, including SQLite compatibility migration for existing databases.
+- Operating point defaults remain a Worker concern; explicit points must stay within Vin range and use non-negative load ratio.
+- Validation: 64 focused Web schema/action tests passed; `git diff --check` passed.

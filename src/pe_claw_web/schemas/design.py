@@ -2,7 +2,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 class DesignJobStatus(StrEnum):
     queued = "queued"; running = "running"; succeeded = "succeeded"; failed = "failed"; cancelled = "cancelled"; expired = "expired"
 class BuckDesignRequest(BaseModel):
@@ -19,6 +19,22 @@ class BuckDesignRequest(BaseModel):
 class DesignJobCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     request: BuckDesignRequest; client_request_id: str | None = Field(default=None, max_length=128)
+    execution_profile: Literal["complete"] = "complete"
+    operating_point: dict[str, float] | None = None
+
+    @model_validator(mode="after")
+    def validate_operating_point(self):
+        if self.operating_point is None:
+            return self
+        if set(self.operating_point) != {"vin_v", "load_ratio"}:
+            raise ValueError("operating_point must contain only vin_v and load_ratio")
+        vin = self.operating_point["vin_v"]
+        load = self.operating_point["load_ratio"]
+        if vin <= 0 or not self.request.vin_min <= vin <= self.request.vin_max:
+            raise ValueError("operating_point.vin_v must be within the design Vin range")
+        if load < 0:
+            raise ValueError("operating_point.load_ratio must be non-negative")
+        return self
 class DesignError(BaseModel):
     model_config = ConfigDict(extra="forbid")
     code: str; message: str; correlation_id: str | None = None

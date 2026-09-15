@@ -18,7 +18,7 @@ def topologies(): return topology_catalog()
 def design_buck(request: BuckDesignRequest): return run_buck_design(request)
 @app.post('/api/v1/design-jobs',response_model=DesignJobResponse,status_code=202)
 def create_job(payload: DesignJobCreate):
-    item=store.create(payload.request)
+    item=store.create(payload.request, {"profile": payload.execution_profile, "operating_point": payload.operating_point})
     try:
         with celery_app.connection_for_write() as connection: connection.ensure_connection(max_retries=0)
         design_buck_task.delay(item.job_id)
