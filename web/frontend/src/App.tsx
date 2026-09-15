@@ -64,6 +64,15 @@ export default function App() {
     null,
   );
   const [recoverId, setRecoverId] = useState("");
+  const [actionMessage, setActionMessage] = useState("");
+  async function runCapacitor() {
+    if (!jobId || job?.status !== "succeeded") return;
+    setActionMessage("正在提交电容分析…");
+    try {
+      await request(`/api/v1/design-jobs/${encodeURIComponent(jobId)}/actions/capacitor`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ schema_version: "1.0", job_id: jobId, action: "capacitor", options: {} }) });
+      setActionMessage("电容分析已提交，请稍候查看结果。");
+    } catch (e) { setActionMessage(errorText(e)); }
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -395,9 +404,9 @@ export default function App() {
                 </form>
                 <section className="panel help">
                   <h3>后续分析</h3>
-                  <p>
-                    独立磁性器件、电容重选、运行点波形和效率扫描操作将在对应接口接入后开放。
-                  </p>
+                  <p>基础设计完成后可运行独立电容分析。</p>
+                  <button type="button" disabled={job?.status !== "succeeded"} onClick={() => void runCapacitor()}>Run Capacitor · 运行电容分析</button>
+                  {actionMessage && <p role="status">{actionMessage}</p>}
                 </section>
               </aside>
               <div className="output-column">
