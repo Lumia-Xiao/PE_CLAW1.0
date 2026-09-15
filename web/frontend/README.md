@@ -4,7 +4,7 @@
 
 ## 本地启动
 
-要求 Node.js 22.12+、Python 3.11+（现有 Web schema 使用 StrEnum）、Redis，以及与 API 使用同一数据库/文件目录的 Celery Worker。本项目当前没有登录鉴权，开发服务只绑定 localhost。
+要求 Node.js 22.12+、Python 3.11+（现有 Web schema 使用 StrEnum）、Redis 4/5 或 Redis on Windows 3.0，以及与 API 使用同一数据库/文件目录的 Celery Worker。本项目当前没有登录鉴权，开发服务只绑定 localhost。Redis on Windows 3.0 使用项目锁定的 `redis-py<5` 依赖。
 
 在仓库根目录安装 Python 依赖：
 
