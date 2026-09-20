@@ -8,7 +8,6 @@ from typing import NamedTuple
 
 from ..engines.devices.loss_evaluator import (
     _is_sic_device,
-    _compute_deadtime_loss,
     evaluate_switching_events,
     evaluate_npc_switching_events,
     summarize_switching_event_energy,
@@ -251,21 +250,6 @@ def _evaluate_switch_loss_for_context(
     method: str = "accurate",
 ) -> DeviceLossResult:
     loss_result = evaluate_switch_loss(device, stress, method=method)
-    if report.spec.topology_id == CONVENTIONAL_NPC_CONTRACT.topology_id and stress.role in {
-        "npc_outer_switch",
-        "npc_inner_switch",
-    }:
-        deadtime_loss_w = _compute_deadtime_loss(device, stress, loss_result.tj_est_C, [])
-        if deadtime_loss_w > 0.0:
-            loss_result = replace(
-                loss_result,
-                p_deadtime_W=loss_result.p_deadtime_W + deadtime_loss_w,
-                p_total_W=loss_result.p_total_W + deadtime_loss_w,
-                thermal_design_notes=[
-                    *loss_result.thermal_design_notes,
-                    "NPC dead-time loss is modeled as antiparallel-diode conduction during two dead-time intervals per switching cycle.",
-                ],
-            )
     if _is_llc_primary_switch_loss(stress.role, report.spec.topology_id, device):
         return _apply_llc_primary_zvs_correction(
             loss_result,
@@ -1384,12 +1368,6 @@ def scale_switch_stress_for_parallel(stress: SwitchStress, parallel_count: int) 
         i_avg_A=stress.i_avg_A / parallel_count,
         i_turn_on_A=stress.i_turn_on_A / parallel_count,
         i_turn_off_A=stress.i_turn_off_A / parallel_count,
-        turn_on_event_currents_A=tuple(
-            current / parallel_count for current in stress.turn_on_event_currents_A
-        ),
-        turn_off_event_currents_A=tuple(
-            current / parallel_count for current in stress.turn_off_event_currents_A
-        ),
     )
 
 
@@ -2424,22 +2402,14 @@ def run_device_operating_point_refresh(
             if is_npc:
                 refresh_errors.append(f"selected device could not be resolved for role {stress.role}")
             continue
-        role_result = next(
-            (item for item in active_scheme.role_results if item.role == stress.role),
-            None,
-        ) if active_scheme is not None else None
-        parallel_count = max(
-            int(role_result.parallel_count if role_result is not None else getattr(device_result, "active_parallel_count", 1) or 1),
-            1,
-        )
         try:
-            scaled_stress = scale_switch_stress_for_parallel(stress, parallel_count)
+            scaled_stress = scale_switch_stress_for_parallel(stress, active_parallel_count)
             current_loss = _evaluate_role_loss(
                 device,
                 report,
                 scaled_stress,
                 current_case.operating_point,
-                parallel_count=parallel_count,
+                parallel_count=active_parallel_count,
             )
         except Exception as exc:
             if is_npc:

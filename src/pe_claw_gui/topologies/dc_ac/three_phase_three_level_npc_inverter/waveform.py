@@ -21,7 +21,7 @@ def generate_waveforms(
     """Generate one line cycle of NPC PD level-shifted SPWM preview waveforms."""
 
     metadata = candidate.metadata
-    vdc_v = float(operating_point.vin_v) if operating_point is not None else float(metadata["vdc_nom_v"])
+    vdc_v = float(metadata["vdc_nom_v"])
     half_bus_v = 0.5 * vdc_v
     vac_ll_rms_v = float(metadata["vac_ll_rms_v"])
     vac_phase_rms_v = float(metadata["vac_phase_rms_v"])
@@ -317,8 +317,6 @@ def generate_waveforms(
             "b_s1": gate_b_s1, "b_s2": gate_b_s2, "b_s3": gate_b_s3, "b_s4": gate_b_s4,
             "c_s1": gate_c_s1, "c_s2": gate_c_s2, "c_s3": gate_c_s3, "c_s4": gate_c_s4,
         },
-        switching_events=npc_switching_events,
-        time_window_s=line_period_s,
     )
     phase_current_total_rms_a = _mean([_rms(ia_a), _rms(ib_a), _rms(ic_a)])
     phase_switching_ripple_rms_a = _rms([*phase_ripple_a[0], *phase_ripple_a[1], *phase_ripple_a[2]])
@@ -434,7 +432,6 @@ def generate_waveforms(
                 "modulation_index": modulation_index,
                 "uncompensated_modulation_index": float(metadata["modulation_index"]),
                 "mode_capable": candidate.mode_capable,
-                "npc_topology_contract": metadata.get("npc_topology_contract", {}),
             },
             "three_phase_npc_pd_spwm_operating": {
                 "load_ratio": load_ratio,
@@ -548,14 +545,6 @@ def generate_waveforms(
             "operating_ccm_validity_basis": "predicted_max_local_phase_current_pp_below_twice_fundamental_peak",
             "three_phase_npc_device_currents": device_currents,
             "device_current_semantics": device_currents["semantics"],
-            "switching_event_semantics": (
-                "gate-edge current sampled at the actual event; event energy is summed over one line cycle "
-                "and divided by event window and physical position count"
-            ),
-            "switching_event_voltage_basis": (
-                "actual upper half-link voltage for S1/S2 and lower half-link voltage for S3/S4; "
-                "worst-case blocking voltage remains separate for rating checks"
-            ),
             "dc_link_series_equivalent_capacitance_f": cdc_series_equivalent_f,
             "dc_link_upper_capacitance_f": cdc_upper_f,
             "dc_link_lower_capacitance_f": cdc_lower_f,
@@ -1540,16 +1529,10 @@ def _npc_device_current_metrics(
     phase_currents_a: tuple[list[float], list[float], list[float]],
     phase_states: tuple[list[float], list[float], list[float]],
     gates: dict[str, list[float]],
-    switching_events: list[dict[str, object]],
-    time_window_s: float,
 ) -> dict[str, object]:
     """Return per-position and role-aggregate NPC branch-current metrics."""
 
     phase_names = ("a", "b", "c")
-    position_events: dict[tuple[str, int], list[dict[str, object]]] = {}
-    for event in switching_events:
-        key = (str(event["phase"]), int(event["switch_index"]))
-        position_events.setdefault(key, []).append(event)
     branches: dict[str, dict[str, float]] = {}
     for phase_index, phase_name in enumerate(phase_names):
         phase_current = phase_currents_a[phase_index]
@@ -1560,25 +1543,7 @@ def _npc_device_current_metrics(
                 current if command >= 0.5 else 0.0
                 for current, command in zip(phase_current, gate, strict=True)
             ]
-            branch_metrics = _current_metrics(branch_current)
-            on_currents: list[float] = []
-            off_currents: list[float] = []
-            on_voltages: list[float] = []
-            off_voltages: list[float] = []
-            for event in position_events.get((phase_name, switch_index), []):
-                if event["event_type"] == "turn_on":
-                    on_currents.append(float(event["signed_current_A"]))
-                    on_voltages.append(float(event["blocking_voltage_V"]))
-                else:
-                    off_currents.append(float(event["signed_current_A"]))
-                    off_voltages.append(float(event["blocking_voltage_V"]))
-            branch_metrics.update({
-                "turn_on_event_currents_a": on_currents,
-                "turn_off_event_currents_a": off_currents,
-                "turn_on_event_voltages_v": on_voltages,
-                "turn_off_event_voltages_v": off_voltages,
-            })
-            branches[branch_name] = branch_metrics
+            branches[branch_name] = _current_metrics(branch_current)
 
         phase_state = phase_states[phase_index]
         upper_clamp = [
@@ -1589,18 +1554,8 @@ def _npc_device_current_metrics(
             current if state == 0.0 and current < 0.0 else 0.0
             for current, state in zip(phase_current, phase_state, strict=True)
         ]
-        for clamp_name, clamp_current in (
-            (f"{phase_name}_clamp_upper", upper_clamp),
-            (f"{phase_name}_clamp_lower", lower_clamp),
-        ):
-            clamp_metrics = _current_metrics(clamp_current)
-            clamp_metrics.update({
-                "turn_on_event_currents_a": [],
-                "turn_off_event_currents_a": [],
-                "turn_on_event_voltages_v": [],
-                "turn_off_event_voltages_v": [],
-            })
-            branches[clamp_name] = clamp_metrics
+        branches[f"{phase_name}_clamp_upper"] = _current_metrics(upper_clamp)
+        branches[f"{phase_name}_clamp_lower"] = _current_metrics(lower_clamp)
 
     role_members = {
         "outer_switch": [f"{phase}_s{index}" for phase in phase_names for index in (1, 4)],
@@ -1617,20 +1572,6 @@ def _npc_device_current_metrics(
             "rms_current_a": _mean([item["rms_current_a"] for item in member_metrics]),
             "peak_absolute_current_a": max(item["peak_absolute_current_a"] for item in member_metrics),
             "conduction_duty": _mean([item["conduction_duty"] for item in member_metrics]),
-            "turn_on_event_currents_a": [
-                current for item in member_metrics for current in item["turn_on_event_currents_a"]
-            ],
-            "turn_off_event_currents_a": [
-                current for item in member_metrics for current in item["turn_off_event_currents_a"]
-            ],
-            "turn_on_event_voltages_v": [
-                voltage for item in member_metrics for voltage in item["turn_on_event_voltages_v"]
-            ],
-            "turn_off_event_voltages_v": [
-                voltage for item in member_metrics for voltage in item["turn_off_event_voltages_v"]
-            ],
-            "event_window_s": time_window_s,
-            "event_position_count": len(member_names),
         }
     return {
         "semantics": "complete_active_switch_branch_including_antiparallel_diode; clamp_diodes_resolved_by_zero_state_current_direction",
@@ -1684,9 +1625,7 @@ def _clamp_load_ratio(value: float) -> float:
         numeric = float(value)
     except (TypeError, ValueError):
         return 1.0
-    # NPC thermal and efficiency validation includes the declared overload
-    # point; the topology input schema remains the authority for its limit.
-    return min(max(numeric, 0.0), 2.0)
+    return min(max(numeric, 0.0), 1.0)
 
 
 def _triangular_unit_carrier(phase: float) -> float:

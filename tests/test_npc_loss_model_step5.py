@@ -47,7 +47,7 @@ def test_npc_role_losses_use_physical_counts_and_sum_to_scheme_total() -> None:
     assert all(item.per_device_loss_w and item.total_loss_w == pytest.approx(item.per_device_loss_w * 6) for item in scheme.role_results)
 
 
-def test_npc_loss_components_are_complete_and_deadtime_is_explicit() -> None:
+def test_npc_loss_components_match_remote_without_added_deadtime() -> None:
     _, report = _report()
     assert report.device is not None
     for loss in report.device.design_point_losses.values():
@@ -65,16 +65,17 @@ def test_npc_loss_components_are_complete_and_deadtime_is_explicit() -> None:
             )
         )
         assert loss.p_total_W == pytest.approx(component_total)
-    assert report.device.design_point_losses["design_point:npc_outer_switch"].p_deadtime_W > 0.0
-    assert report.device.design_point_losses["design_point:npc_inner_switch"].p_deadtime_W > 0.0
+    assert report.device.design_point_losses["design_point:npc_outer_switch"].p_deadtime_W == 0.0
+    assert report.device.design_point_losses["design_point:npc_inner_switch"].p_deadtime_W == 0.0
 
 
 def test_npc_efficiency_recomputes_loss_by_load_without_auxiliary_loss(tmp_path: Path) -> None:
     plugin, report = _report()
     result = run_efficiency_sweep(report, plugin=plugin, load_points=(0.5, 1.0), output_dir=tmp_path)
     assert result.points[0].semiconductor_loss_w < result.points[1].semiconductor_loss_w
-    assert result.points[0].other_loss_w is None
-    assert result.points[1].other_loss_w is None
+    # Remote DC-AC Completed uses zero for the excluded auxiliary loss field.
+    assert result.points[0].other_loss_w == 0.0
+    assert result.points[1].other_loss_w == 0.0
     assert all("other" not in point.loss_breakdown_w for point in result.points)
     assert result.points[1].total_loss_w == pytest.approx(
         result.points[1].semiconductor_loss_w

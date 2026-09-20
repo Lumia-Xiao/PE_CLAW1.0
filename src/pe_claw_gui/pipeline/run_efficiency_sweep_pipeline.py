@@ -389,7 +389,11 @@ def _evaluate_load_point(
     semiconductor_loss_w = _semiconductor_loss_w(refreshed)
     magnetic_loss_w = _magnetic_loss_w(refreshed)
     capacitor_loss_w = _capacitor_loss_w(refreshed)
-    other_loss_w = None
+    other_loss_w = 0.0 if (
+        _is_single_phase_inverter_topology(refreshed)
+        or _is_three_phase_two_level_inverter_topology(refreshed)
+        or _is_three_phase_npc_inverter_topology(refreshed)
+    ) else None
     available_losses = [semiconductor_loss_w, magnetic_loss_w, capacitor_loss_w]
     total_loss_w = sum(loss for loss in available_losses if loss is not None)
     if npc_semiconductor_refresh_failed:
@@ -419,7 +423,6 @@ def _evaluate_load_point(
                 semiconductor=semiconductor_loss_w,
                 magnetic=magnetic_loss_w,
                 capacitor=capacitor_loss_w,
-                other=other_loss_w,
             ),
             warnings=tuple(point_warnings),
             switching_loss_audit=_switching_loss_audit(refreshed),
