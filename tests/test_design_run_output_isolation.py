@@ -60,8 +60,6 @@ def test_default_run_directories_are_unique_and_do_not_modify_prior_results(tmp_
 def test_topology_directory_aliases_cover_registered_and_future_topologies() -> None:
     assert abbreviate_topology_id(TOPOLOGY_ID) == "3p_3l_npc_i"
     assert abbreviate_topology_id("future_three_phase_custom_converter") == "f3pcc"
-
-
 def test_npc_pipeline_routes_all_formal_artifact_groups_to_one_run_root(tmp_path: Path) -> None:
     run_root = tmp_path / "npc-run"
     plugin = build_default_registry().get_plugin(TOPOLOGY_ID)

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+from dataclasses import asdict, is_dataclass
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -289,6 +290,9 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
             "performance_timing": getattr(magnetic, "performance_timing", {}),
         },
     }
+    npc_audit = getattr(magnetic, "npc_output_filter_audit", None)
+    if npc_audit is not None and hasattr(npc_audit, "to_dict"):
+        payload["npc_output_filter_audit"] = npc_audit.to_dict()
     llc_summary = getattr(magnetic, "llc_result_summary", None)
     if getattr(magnetic, "result_type", "") == "separated_llc_transformer":
         contract = getattr(magnetic, "llc_magnetic_contract", None)
@@ -412,10 +416,14 @@ def _capacitor_payload(report: DesignReport) -> dict[str, Any]:
         "warnings": list(getattr(llc_search, "warnings", []) or []),
     }
 
+    npc_design = getattr(capacitor, "npc_design", None)
+    npc_payload = asdict(npc_design) if npc_design is not None and is_dataclass(npc_design) else {}
+
     return {
         "available": True,
         "input": side_payload(getattr(capacitor, "input_selection", None), "capacitor.input_selection"),
         "output": side_payload(getattr(capacitor, "output_selection", None), "capacitor.output_selection"),
+        "npc_split_link": npc_payload,
         "llc_resonant": llc_payload,
         "metadata": {},
     }
@@ -457,7 +465,57 @@ def _thermal_payload(report: DesignReport) -> dict[str, Any]:
             for role, values in components.items()
             if isinstance(values, Mapping)
         }
+    npc_scenarios = getattr(thermal, "npc_scenarios", ()) or ()
+    if npc_scenarios:
+        payload["npc_semiconductor"] = {
+            "worst_case": _npc_scenario_payload(getattr(thermal, "npc_worst_case", None)),
+            "assumptions": dict(getattr(thermal, "npc_assumptions", {}) or {}),
+            "scenarios": [_npc_scenario_payload(item) for item in npc_scenarios],
+        }
     return payload
+
+
+def _npc_scenario_payload(scenario) -> dict[str, Any] | None:
+    if scenario is None:
+        return None
+    return {
+        "scenario_id": scenario.scenario_id,
+        "label": scenario.label,
+        "load_ratio": _metric(scenario.load_ratio, "ratio", "thermal.npc.scenario"),
+        "power_factor": _metric(scenario.power_factor, "ratio", "thermal.npc.scenario"),
+        "vdc": _metric(scenario.vdc_v, "V", "thermal.npc.scenario"),
+        "ambient_temperature": _metric(scenario.ambient_temp_c, "degC", "thermal.npc.scenario"),
+        "total_semiconductor_loss": _metric(scenario.total_semiconductor_loss_w, "W", "thermal.npc.scenario"),
+        "required_sink_rth": _metric(scenario.required_sink_rth_k_per_w, "K/W", "thermal.npc.scenario"),
+        "selected_sink_rth": _metric(scenario.selected_sink_rth_k_per_w, "K/W", "thermal.npc.scenario"),
+        "heatsink_model": scenario.heatsink_model,
+        "heatsink_volume": _metric(scenario.heatsink_volume_cm3, "cm3", "thermal.npc.scenario"),
+        "required_airflow": _metric(scenario.required_airflow_m3_h, "m3/h", "thermal.npc.scenario"),
+        "design_airflow": _metric(scenario.design_airflow_m3_h, "m3/h", "thermal.npc.scenario"),
+        "airflow_derating": scenario.airflow_derating,
+        "thermal_coupling_factor": scenario.thermal_coupling_factor,
+        "worst_role": scenario.worst_role,
+        "worst_junction_temperature": _metric(scenario.worst_junction_temp_c, "degC", "thermal.npc.scenario"),
+        "minimum_junction_margin": _metric(scenario.minimum_junction_margin_c, "degC", "thermal.npc.scenario"),
+        "passed": scenario.passed,
+        "roles": [
+            {
+                "role": role.role,
+                "part_number": role.part_number,
+                "physical_device_count": role.physical_device_count,
+                "per_device_loss": _metric(role.per_device_loss_w, "W", "thermal.npc.role"),
+                "total_loss": _metric(role.total_loss_w, "W", "thermal.npc.role"),
+                "junction_temperature": _metric(role.junction_temp_c, "degC", "thermal.npc.role"),
+                "case_temperature": _metric(role.case_temp_c, "degC", "thermal.npc.role"),
+                "interface_temperature": _metric(role.interface_temperature_c, "degC", "thermal.npc.role"),
+                "junction_margin": _metric(role.junction_margin_c, "degC", "thermal.npc.role"),
+                "thermal_passed": role.thermal_passed,
+                "interface_model": role.interface_model_name,
+                "interface_layers": role.interface_layer_summary,
+            }
+            for role in scenario.roles
+        ],
+    }
 
 
 def _loss_payload(report: DesignReport) -> dict[str, Any]:
@@ -734,6 +792,14 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
             "switching_frequency": _metric(spec.fs_khz * 1000.0, "Hz", "request.normalized"),
             "ripple_current_ratio": _metric(spec.ripple_current_ratio, "ratio", "request.normalized"),
             "ripple_voltage_ratio": _metric(spec.ripple_voltage_ratio_percent / 100.0, "ratio", "request.normalized"),
+            "design_basis": metadata.get("design_basis", {}),
+        },
+        "topology_contract": metadata.get("npc_topology_contract", {}),
+        "semiconductor_topology": {
+            "active_switch_position_count": metadata.get("switch_position_count"),
+            "clamp_diode_position_count": metadata.get("clamp_diode_count"),
+            "role_position_counts": metadata.get("npc_role_position_counts", {}),
+            "role_kinds": metadata.get("npc_role_kinds", {}),
         },
         "candidate": {
             "available": candidate is not None,
@@ -761,13 +827,23 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
             "available": report.stress is not None,
             "switch": _stress_metric(getattr(report.stress, "switch", None)),
             "rectifier": _stress_metric(getattr(report.stress, "rectifier", None)),
+            "npc_voltage_checks": {
+                role: asdict(check) if is_dataclass(check) else dict(check)
+                for role, check in (getattr(report.stress, "role_voltage_checks", {}) or {}).items()
+            },
         },
+        "semiconductor_voltage_checks": dict(getattr(report.device, "voltage_checks", {}) or {}),
         "magnetic": _magnetic_payload(report),
         "loss": _loss_payload(report),
         "efficiency_sweep": _efficiency_sweep_payload(report),
         "geometry": _geometry_payload(report),
         "capacitor": _capacitor_payload(report),
         "thermal": _thermal_payload(report),
+        "system_validation": (
+            report.system_validation.to_dict()
+            if report.system_validation is not None and hasattr(report.system_validation, "to_dict")
+            else None
+        ),
         "hardware": _hardware_payload(report),
         "ripple": {
             "output_ripple_target": _metric(output_ripple_target, "V", "request.normalized"),

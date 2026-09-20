@@ -12,6 +12,7 @@ from ...engines.devices.loss_aggregation import (
     npc_scheme_role_loss_totals,
     npc_sum_role_losses,
 )
+from ...engines.devices.loss_aggregation import semiconductor_losses_total_w
 from ...models.capacitor import capacitor_order_code_note, capacitor_part_reference, capacitor_series_display_name
 from ...pipeline.options import MAGNETIC_LOSS_DISABLED_NOTE, MAGNETIC_STAGE_DISABLED_NOTE
 from ...topology_capabilities import (
@@ -138,6 +139,8 @@ def build_semiconductor_loss_summary(report: DesignReport) -> list[str]:
             + f"Psw_on={_fmt_float(loss_result.p_sw_on_W)} W, "
             + f"Psw_off={_fmt_float(loss_result.p_sw_off_W)} W, "
             + f"Prr={_fmt_float(loss_result.p_rr_W)} W, "
+            + f"Prev={_fmt_float(loss_result.p_reverse_conduction_W)} W, "
+            + f"Pdeadtime={_fmt_float(loss_result.p_deadtime_W)} W, "
             + f"Peoss={_fmt_float(loss_result.p_eoss_W)} W, "
             + f"Pgate={_fmt_float(loss_result.p_gate_W)} W, "
             + f"Ptotal={_fmt_float(loss_result.p_total_W)} W"
@@ -394,11 +397,7 @@ def _role_quantity_loss_line(report: DesignReport, role_name: str, loss_result) 
 def _current_total_semiconductor_loss(report: DesignReport, losses: dict) -> float:
     if _is_three_phase_npc_inverter(report) and losses is report.device.current_operating_losses:
         return npc_sum_role_losses(npc_current_role_loss_totals(report.device))
-    total = 0.0
-    for key, loss_result in losses.items():
-        _, role_name = _split_case_role(key)
-        total += _role_total_physical_device_count(report, role_name) * loss_result.p_total_W
-    return total
+    return semiconductor_losses_total_w(report.device, losses)
 
 
 def _role_total_physical_device_count(report: DesignReport, role_name: str) -> int:

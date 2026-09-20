@@ -379,6 +379,35 @@
 - 保持 GUI 用户输入和其他拓扑损耗逻辑不变。
 - 验证：NPC 契约 `15 passed`；其余受影响 DC-AC/器件回归 `24 passed`；此前完整效率扫描回归 `55 passed`；公式级事件汇总断言通过；`compileall` 和 `git diff --check` 通过。
 - Git：本步骤 commit `80026241d31fe5a3129fdfab9fad5200428fe324` 已成功推送至 `origin/codex/npc-output-run-isolation-step1`，远端 HEAD 已核对一致。
+## 2026-09-03 Remove NPC Fixed Auxiliary Losses
+
+- What changed:
+  - Removed the fixed NPC gate-driver, control-power, balancing-resistor, and fan loss assumptions.
+  - NPC efficiency calculations no longer add an `Other` loss component or include those values in total loss.
+  - Kept the generic `other_loss_w` result field for compatibility; NPC values are now `None`.
+  - Updated NPC contract and efficiency regression expectations.
+- Validation:
+  - NPC contract and loss regression: `25 passed`.
+  - `python -B -m compileall -q src tests` and `git diff --check`: passed.
+
+## 2026-09-03 NPC Capacitor PF GUI Mapping
+
+- What changed:
+  - Mapped NPC PF view input/output display sides to the generated upper/lower split-link capacitor artifacts.
+  - Updated NPC tab labels and artifact summaries to use upper/lower DC-link terminology.
+  - Added regressions for NPC artifact loading and non-NPC input/output compatibility.
+- Validation:
+  - NPC PF view: `2 passed`.
+  - NPC split-link capacitor regression: `2 passed`.
+  - `python -B -m compileall -q src tests` and `git diff --check`: passed.
+
+## 2026-09-03 NPC Switching Loss Event Model
+
+- What changed:
+  - NPC switching loss now uses actual gate-edge current and actual upper/lower half-link event voltage.
+  - Negative turn-on current is treated as soft switching with `Eon=0`; positive turn-on and turn-off use the sampled event current.
+  - NPC SiC diode reverse-recovery loss is set to zero; switching frequency continues to come from the original `fsw_hz` input.
+  - Added event stress fields, parallel event-current scaling, and focused regression tests.
 
 This file records meaningful repository changes. Entries are chronological and
 append-only. Generated caches and ordinary runtime output generation are not
@@ -428,6 +457,92 @@ listed here.
 
 - Updated the AC-DC GUI end-to-end test to use its pytest `tmp_path` as the subprocess output root.
 - Scanned tests for repository-root temporary output paths; remaining `outputs` and `migration` references are read-only historical evidence.
+## 2026-09-03 NPC Restore Original Input Form
+
+- What changed:
+  - Removed the expanded NPC design-basis field block from the GUI form.
+  - Restored the original 10 user-facing NPC design inputs.
+  - Kept semiconductor filters, waveform operating-point controls, and the
+    efficiency-sweep action unchanged.
+  - Kept the expanded voltage, thermal, loss, and validation basis in the
+    backend defaults; 10-input calls use nominal Vdc for hidden minimum and
+    maximum bus values.
+  - Added a regression proving the original form contract and backend default
+    normalization.
+- Validation:
+  - NPC input contract: `20 passed`.
+  - NPC Step 5-Step 9 and output-isolation regression: `20 passed`.
+  - `python -B -m compileall -q src tests` and `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `a7f1db19e1ed07885ea1d78fa1b6fef1767ffd5a`
+    (`fix: restore NPC original input form`).
+  - Push passed; local HEAD and
+    `origin/codex/npc-output-run-isolation-step1` were identical.
+
+## 2026-09-02 NPC Step 9 System Validation and Result Regeneration
+
+- What changed:
+  - Added the complete NPC Step-9 pipeline that runs design, semiconductor,
+    capacitor, magnetic, loss, thermal, geometry, efficiency, Hardware Overview,
+    and system-validation stages in one isolated run.
+  - Added a deterministic 72-point validation matrix for minimum/nominal/maximum
+    DC bus, 5%/25%/50%/75%/100%/110% load, and PF -1/-0.8/0.8/1.
+  - Added cross-stage checks for modulation, CCM/ripple, current limit, NPC
+    voltage rating, thermal result, split-link midpoint proxy, output filter,
+    efficiency completeness, switch-state paths, dead-time, and run artifact
+    containment.
+  - Added `system_validation` to the design report and structured report output.
+  - Made Hardware Overview tolerate an NPC thermal result without a generic
+    recommended estimate.
+- Validation:
+  - Step-9 focused tests: `4 passed`.
+  - Step-9 plus NPC/topology, loss, thermal, capacitor, inductor/filter,
+    run-isolation, and structured-output regression: `42 passed`.
+  - `python -B -m compileall -q src tests` and `git diff --check`: passed.
+  - Regenerated result root:
+    `outputs/20260902_step9_npc_system_validation`.
+- Engineering conclusion:
+  - Final status is `fail` for the default design because the 650 V minimum-bus
+    modulation index is `1.0049188688`, above the declared `1.0` limit.
+  - The 72-point matrix and all other implemented hard checks are retained as
+    auditable evidence. Short-circuit protection, double-pulse/busbar
+    overvoltage, and EMI remain explicitly `unverified`.
+- Git:
+  - Implementation commit `f26b0665fc5f5cdd87eb4fbe189847314d004f4a` was pushed
+    to `origin/codex/npc-output-run-isolation-step1` and verified equal to the
+    remote branch HEAD.
+
+## 2026-09-02 NPC Step 7 Split-Link Capacitor and Midpoint Balance
+
+- What changed:
+  - Enforced the NPC split-link capacitor bank baseline as at least 2S and
+    retained `B43705A9568M600` as the reference design.
+  - Added structured equalizing/discharge resistor, high-frequency film
+    decoupling, conservative ESR, hotspot/life, ripple-current, surge-current,
+    and precharge checks.
+  - Added deterministic midpoint-balance scenarios for load, PF, modulation,
+    capacitor mismatch, and three-phase imbalance.
+  - Added run-scoped JSON and CSV artifacts under `capacitor_design` and exposed
+    the result through the structured report capacitor payload.
+- Validation:
+  - Step 7 plus NPC contract, loss, thermal, and output-isolation regression:
+    `32 passed`.
+  - Structured-output and Step 7 regression: `5 passed`.
+  - Compileall and `git diff --check`: passed.
+  - Default audit: 2S/1P split banks, 100 kOhm equalizers, 56.4 C hotspot,
+    approximately 36,263 h estimated life, 0.8% worst midpoint deviation,
+    1.86 L capacitor body volume and 1.92 L including film decoupling.
+- Engineering boundary:
+  - Midpoint results are an analytical proxy, not closed-loop or hardware
+    validation. B43705 ESRmax/endurance normalization, film pulse rating,
+    resistor pulse SOA, precharge contactor/fuse, and surge control remain
+    sample-stage validation items.
+- Git:
+  - Implementation commit `8c98962` was pushed to
+    `origin/codex/npc-output-run-isolation-step1`.
+  - Separate documentation receipt commit `dd533ca` was pushed and verified
+    equal to the remote branch HEAD.
 
 ## 2026-08-28 AC-DC Efficiency Sweep Step 12 Real GUI Delivery
 
@@ -927,3 +1042,223 @@ listed here.
 - Validation: reviewed against AGENTS.md, PROJECT_ARCHITECTURE.md, existing pipeline layout, and current Tkinter entry points.
 - Branch/commit: working tree; not committed.
 
+
+## 2026-09-02 Run-Scoped Design Output Isolation
+
+- What changed:
+  - Added a generic `DesignRunContext` for every topology with a unique
+    timestamp/topology/run-ID directory under `outputs/`.
+  - Added root-level `manifest.json` generation with input hash, raw input
+    snapshot, stage lifecycle state, software version, failure details, and a
+    run-local artifact inventory.
+  - Routed capacitor, inductor, magnetic thermal, efficiency-sweep, and
+    hardware-overview artifacts to the active run root while preserving the
+    existing LLC run contract.
+  - Added controller lifecycle updates for design, capacitor, magnetic, loss,
+    thermal, efficiency, and hardware-overview stages.
+  - Archived the existing NPC result non-destructively under
+    `outputs/20260902_151541_three_phase_three_level_npc_inverter_legacy_current_output`;
+    the four copied artifact groups match the source file counts and byte
+    totals.
+- Why:
+  - Prevent repeated converter designs from overwriting or mixing artifacts in
+    shared `outputs/<stage>` directories and make every result traceable to one
+    input snapshot and run identity.
+- Validation:
+  - New isolation plus LLC compatibility: `8 passed`.
+  - NPC, LLC hardware overview, geometry, and thermal focused regression:
+    `24 passed`.
+  - Final NPC isolation and topology regression: `18 passed`.
+  - Real NPC smoke generated efficiency CSV/plots and overview artifacts only
+    inside the selected run root, with the same run ID recorded in the result.
+  - Broader capacitor/LLC manifest/AC-DC efficiency regression: `54 passed,
+    6 failed`. All six failures are pre-existing contract drift: tests expect
+    only two efficiency artifact keys while current `HEAD` also returns the
+    generated `csv` key; no output-isolation assertion failed.
+  - `python -m compileall -q src tests` and `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `c5e748d` (`Add run-scoped design output isolation`).
+  - Implementation commit pushed to the matching origin branch.
+
+## 2026-09-02 NPC Plan Commit-and-Push Governance
+
+- What changed:
+  - Added a mandatory rule to the active NPC revision plan requiring every
+    plan step and independently testable modification batch to be validated,
+    committed, pushed, and verified against the remote branch before it can be
+    marked complete.
+  - Required each completion record to include scope, validation, branch,
+    commit hash, and push status.
+  - Explicitly kept runtime outputs, caches, bytecode, and local logs outside
+    Git commits.
+- Validation:
+  - Markdown structure and `git diff --check` verified.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Commit and push are recorded by the commit containing this entry.
+
+## 2026-09-02 NPC Design-Basis Normalization
+
+- What changed:
+  - Added explicit NPC design-basis inputs for DC-link range, AC/grid frequency,
+    PF range, modulation limit, operating range, thermal environment, cooling,
+    ripple and neutral-point targets, efficiency target, and application notes.
+  - Preserved legacy callers that provide only `vdc_nom` by normalizing a fixed
+    nominal bus range.
+  - Persisted the normalized basis as run-local JSON/Markdown design requests,
+    registered with the run manifest by relative path and SHA-256.
+  - Routed the same normalized basis into synthesis metadata and structured
+    reports so later stages have one authoritative input contract.
+- Validation:
+  - NPC contract plus run-isolation regression: `18 passed`.
+  - DC-AC topology/shared/operating-refresh regression: `12 passed`.
+  - `python -m compileall -q src tests` and `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `d91e6d4613dc9bfaa7a9230ef14c477ca0a59f36`.
+  - Implementation push and local/remote hash verification passed.
+
+## 2026-09-02 NPC Topology Contract
+
+- What changed:
+  - Added an authoritative conventional diode-clamped NPC topology contract:
+    three phases, three levels, 12 active-switch positions, and 6 independent
+    clamp-diode positions.
+  - Bound semiconductor role quantities, role kinds, position labels, state
+    levels, conduction-state notes, and blocking-voltage basis to that contract.
+  - Classified `npc_clamp_diode` as a physical clamp-diode role and kept it
+    independent from internal module-diode binding.
+  - Added cross-stage count validation for device selection and Hardware
+    Overview, plus contract data in synthesis, waveform, stress, and structured
+    report outputs.
+- Validation:
+  - NPC topology/device/overview contract: `18 passed`.
+  - DC-AC topology/shared/operating-refresh regression: `12 passed`.
+  - Device selector and semiconductor geometry regression: `14 passed`.
+  - `python -m compileall -q src tests` and `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `062bbeae2b77ff73ee1928672c44ba021e26677c`.
+  - Implementation push and local/remote hash verification passed.
+## 2026-09-02 NPC Semiconductor Voltage-Margin Redesign
+
+- What changed:
+  - Added explicit NPC voltage-stress inputs for neutral-point stress factor,
+    switching overvoltage, overvoltage source/status, and static voltage margin.
+  - Replaced the NPC `Vdc_nom / 2` blocking basis with
+    `Vdc_max / 2 * Kneutral + Vovershoot`.
+  - Added independent voltage checks for NPC outer switches, inner switches,
+    and clamp diodes, including worst-case stress, required rating, selected
+    rating, static/dynamic margin, and validation status.
+  - Applied the same required rating to the semiconductor hard filter and
+    exposed the result in structured output, Stress View, and Hardware Overview.
+  - Updated NPC regression coverage; the default 650 V-class comparison
+    candidates cannot pass the new worst-case rating gate unless their rating
+    satisfies the explicit margin requirement.
+- Why:
+  - Prevent device selection and reporting from using the nominal half-bus
+    voltage while ignoring maximum bus voltage, neutral-point imbalance, and
+    switching overshoot.
+- Validation:
+  - NPC, device-selection, structured-output, and Hardware Overview regression:
+    `29 passed`.
+  - `python -B -m compileall -q src tests`: passed.
+  - `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `c66aa20ce9cd7bc58669ec1406ae86bdb7dab211`
+    (`feat: redesign NPC semiconductor voltage margins`).
+  - Push passed; local HEAD and
+    `origin/codex/npc-output-run-isolation-step1` were identical.
+
+## 2026-09-02 NPC Semiconductor Loss and Efficiency Model
+
+- What changed:
+  - Added shared semiconductor loss aggregation using each role's topology
+    position count and parallel-device count.
+  - Split reverse conduction from reverse-recovery loss and added explicit NPC
+    dead-time loss for outer and inner switch positions.
+  - Added NPC Eoss and gate-drive loss handling where the selected device data
+    supports it, while keeping diode roles free of switch-only terms.
+  - Recomputed semiconductor loss for every load/PF operating point using
+    refreshed waveform and stress data instead of reusing a fixed design-point
+    scalar.
+  - Added explicit NPC auxiliary-loss inputs for gate drivers, control power,
+    balancing resistors, and fan power; these now contribute to efficiency.
+  - Added a `|PF| < 0.05` efficiency calculation boundary with an auditable
+    warning and no meaningless efficiency value.
+  - Aligned Hardware Overview, loss view, device scheme totals, and efficiency
+    sweep totals; exported efficiency CSV remains the raw recomputation audit
+    artifact.
+  - Wrote the verified default NPC result set to
+    `outputs/step5_npc_loss_model`.
+- Validation:
+  - Step-5 focused tests: `5 passed`.
+  - NPC loss/topology/efficiency regression: `24 passed`.
+  - Existing AC-DC efficiency regression: `17 passed`.
+  - `python -B -m compileall -q src tests` and `git diff --check`: passed.
+- Git:
+  - Branch: `codex/npc-output-run-isolation-step1`.
+  - Implementation commit: `c8eccee973341abee41c27f93a8a78e019340e56`
+    (`fix: align NPC semiconductor loss and efficiency model`).
+  - Implementation push and local/remote hash verification passed.
+# 2026-09-02
+
+## NPC Step 8: Output Inductor and Filter Audit
+
+- Added a run-scoped NPC output-filter audit for the historical E 80/38/20,
+  FT-3M, 34-turn, 6-parallel baseline and the same-core Litz 600x0.08,
+  34-turn, 2-parallel comparison.
+- Reproduced the baseline at 271.102 uH, 0.468 T, and 4.8096 W per inductor;
+  the Litz comparison is 3.9393 W per inductor with the larger winding-volume
+  tradeoff retained.
+- Added five operating cases covering rated, maximum bus, minimum PF, declared
+  overload, and maximum ambient temperature with saturation margin, Bsat(100 C),
+  hot copper resistance, skin, proximity, fringing, core-loss, copper-loss, and
+  hotspot estimates.
+- Added three-phase LC resonance, series-RC damping, control-bandwidth ratio,
+  and current-ripple checks.
+- Exported `npc_output_filter_audit.json` and
+  `npc_inductor_operating_cases.csv` under the active run's `inductor_design`
+  directory and exposed the audit through structured output.
+- Kept the result conditional because the normalized FT-3M record lacks a
+  vendor DC-bias loss map and temperature loss coefficient; filter capacitor,
+  grid impedance, and hardware thermal assumptions require later validation.
+- Validation: Step-8 focused tests `3 passed`; NPC contract, loss, thermal,
+  capacitor, and run-isolation regression `32 passed`; compileall and
+  `git diff --check` passed.
+- Git: implementation commit `f87f9da2868c8d27cf6379600f1a8b84071b2a95`
+  pushed to `origin/codex/npc-output-run-isolation-step1`.
+
+## NPC Step 6: Semiconductor Thermal Design
+
+- Added NPC-specific five-scenario semiconductor thermal screening.
+- Reused corrected Step 5 per-device losses and physical role counts for shared-sink sizing.
+- Added structured junction, case, interface, heatsink Rth/volume, airflow, coupling, and worst-case results.
+- Recorded TIM stack, installation-pressure, airflow-derating, and thermal-coupling assumptions.
+- Exported run-scoped `npc_thermal_design.json` and `npc_thermal_scenarios.csv` artifacts.
+- Added structured report and thermal-view readback for NPC scenarios.
+- Allowed declared NPC overload points to reach waveform and loss evaluation.
+
+## 2026-09-20 Merge NPC Rollback History Into Master
+
+- User explicitly requested all branches, including the retired NPC and Web
+  branches, to be merged into master. Backup pointer:
+  `backup/master-before-unify-20260920` at `bcd3fe1`.
+- Resolved NPC conflicts by retaining exact integrated switching events,
+  short run-directory names, current-point loss completeness, and lifecycle
+  handling while incorporating the historical voltage, capacitor, filter,
+  thermal, and system-validation features. Preserved both changelog histories.
+- Shared the exact event source with restored stress arrays and thermal
+  scenarios. Replaced the obsolete thermal 80 W floor with role conservation,
+  thermal-equation and current-operating-point equality checks. Updated the
+  low-bus saturation fixture to declare consistent min/nominal/max voltage.
+- Validation: Python AST parsing (733 files); NPC contract 28 passed; shared
+  selector/full-bridge tests 15 passed; initial historical feature suite 23
+  passed and one obsolete thermal assertion failed; corrected event/thermal
+  suite 6 passed; segmented-current/system-validation suite 12 passed.
+  Current-reference/loss-consistency run passed 31 tests before the low-bus
+  fixture failure, which passed in the subsequent segmented-current run.
+- Remaining branch merges and final validation are recorded separately.
+  No database, output, cache, or generated package metadata is committed.

@@ -19,6 +19,12 @@ class SwitchStress:
     fsw_Hz: float
     duty: float
     conduction_time_s: float
+    turn_on_event_currents_A: tuple[float, ...] = ()
+    turn_off_event_currents_A: tuple[float, ...] = ()
+    turn_on_event_voltages_V: tuple[float, ...] = ()
+    turn_off_event_voltages_V: tuple[float, ...] = ()
+    event_window_s: float = 0.0
+    event_position_count: int = 1
     dead_time_s: float = 0.0
     body_diode_conduction_time_s: float = 0.0
     rg_on_Ohm: float = 10.0
@@ -29,6 +35,12 @@ class SwitchStress:
     ambient_temp_C: float | None = None
     target_junction_temp_C: float | None = None
     interface_rth_cs_K_per_W: float | None = None
+    voltage_margin_ratio: float = 0.20
+    static_voltage_basis_V: float | None = None
+    neutral_point_stress_factor: float | None = None
+    dynamic_overvoltage_V: float = 0.0
+    overvoltage_source: str = "not_applicable"
+    overvoltage_validation_status: str = "not_applicable"
 
 
 @dataclass(frozen=True)
@@ -78,3 +90,5 @@ class DeviceLossResult:
     interface_warnings: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     method: str = "accurate"
+    p_reverse_conduction_W: float = 0.0
+    p_deadtime_W: float = 0.0

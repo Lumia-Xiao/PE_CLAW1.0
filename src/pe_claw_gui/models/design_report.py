@@ -46,6 +46,7 @@ class DesignReport:
     bridge_rectifier: BridgeRectifierSelectionResult | None = None
     efficiency_sweep: EfficiencySweepResult | None = None
     assessment: DesignAssessment | None = None
+    system_validation: object | None = None
     run_design_started_at: str | None = None
     run_design_finished_at: str | None = None
     run_design_runtime_seconds: float | None = None

@@ -37,7 +37,6 @@ class ThreePhaseThreeLevelNPCInverterForm(BaseTopologyForm):
         TopologyField("ambient_temp_c", "Ambient temperature [C]", "25"),
         TopologyField("target_junction_temp_c", "Target junction temperature [C]", "100"),
     )
-
     def __init__(
         self,
         parent,
@@ -61,8 +60,9 @@ class ThreePhaseThreeLevelNPCInverterForm(BaseTopologyForm):
         design_frame = ttk.LabelFrame(self, text="Design Inputs", style="Section.TLabelframe")
         design_frame.grid(row=1, column=0, sticky="ew")
         design_frame.columnconfigure(1, weight=1)
-        self.build_design_input_rows(design_frame, (*self.design_fields, *self.get_semiconductor_design_fields()))
-        self.build_design_action_buttons(design_frame, row=len(self.design_fields) + len(self.get_semiconductor_design_fields()))
+        all_design_fields = (*self.design_fields, *self.get_semiconductor_design_fields())
+        self.build_design_input_rows(design_frame, all_design_fields)
+        self.build_design_action_buttons(design_frame, row=len(all_design_fields))
         if self.run_capacitor_button is not None:
             self.run_capacitor_button.configure(state="normal")
         if self.run_magnetics_button is not None:

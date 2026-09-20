@@ -440,6 +440,7 @@ class MagneticResult:
     llc_external_resonant_inductor_search_result: LlcExternalResonantInductorSearchResult | None = None
     ac_dc_reactor_result: AcDcReactorSelectionResult | None = None
     core_loss_excitation_audit: dict[str, object] = field(default_factory=dict)
+    npc_output_filter_audit: Any | None = None
     frontier_search_audit: dict[str, object] = field(default_factory=dict)
     performance_timing: dict[str, object] = field(default_factory=dict)
     artifact_paths: list[str] = field(default_factory=list)

@@ -73,7 +73,13 @@ from .pipeline import (
     WaveformPipelineResult,
 )
 from .stress_result import StressResult
-from .thermal_result import ThermalComparisonEntry, ThermalEstimate, ThermalResult
+from .thermal_result import (
+    NpcThermalRoleResult,
+    NpcThermalScenarioResult,
+    ThermalComparisonEntry,
+    ThermalEstimate,
+    ThermalResult,
+)
 from .topology_comparison import TopologyComparison, TopologyComparisonEntry
 from .waveform import WaveformSet
 

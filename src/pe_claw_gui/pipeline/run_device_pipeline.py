@@ -8,6 +8,7 @@ from typing import NamedTuple
 
 from ..engines.devices.loss_evaluator import (
     _is_sic_device,
+    _compute_deadtime_loss,
     evaluate_switching_events,
     evaluate_npc_switching_events,
     summarize_switching_event_energy,
@@ -49,6 +50,7 @@ from ..models.device_result import (
     SemiconductorSchemeResult,
 )
 from ..topologies.base import TopologyPlugin
+from ..topologies.dc_ac.three_phase_three_level_npc_inverter.topology_contract import CONVENTIONAL_NPC_CONTRACT, validate_npc_role_positions
 try:
     from ..topologies.dc_dc.llc_resonant_converter_diode_rectifier.fha_design import (
         assess_llc_fha_input_impedance,
@@ -249,6 +251,21 @@ def _evaluate_switch_loss_for_context(
     method: str = "accurate",
 ) -> DeviceLossResult:
     loss_result = evaluate_switch_loss(device, stress, method=method)
+    if report.spec.topology_id == CONVENTIONAL_NPC_CONTRACT.topology_id and stress.role in {
+        "npc_outer_switch",
+        "npc_inner_switch",
+    }:
+        deadtime_loss_w = _compute_deadtime_loss(device, stress, loss_result.tj_est_C, [])
+        if deadtime_loss_w > 0.0:
+            loss_result = replace(
+                loss_result,
+                p_deadtime_W=loss_result.p_deadtime_W + deadtime_loss_w,
+                p_total_W=loss_result.p_total_W + deadtime_loss_w,
+                thermal_design_notes=[
+                    *loss_result.thermal_design_notes,
+                    "NPC dead-time loss is modeled as antiparallel-diode conduction during two dead-time intervals per switching cycle.",
+                ],
+            )
     if _is_llc_primary_switch_loss(stress.role, report.spec.topology_id, device):
         return _apply_llc_primary_zvs_correction(
             loss_result,
@@ -275,14 +292,14 @@ class _SchemeSelectionContext(NamedTuple):
 def _is_switch_role(role: str) -> bool:
     spec = get_semiconductor_role_spec(role)
     if spec is not None:
-        return spec.role_kind != "rectifier_diode"
+        return spec.role_kind not in {"rectifier_diode", "clamp_diode"}
     return role.endswith("switch")
 
 
 def _is_rectifier_diode_role(role: str) -> bool:
     spec = get_semiconductor_role_spec(role)
     if spec is not None:
-        return spec.role_kind == "rectifier_diode"
+        return spec.role_kind in {"rectifier_diode", "clamp_diode"}
     return role.strip().casefold() in {"rectifier_diode", "diode", "rectifier"} or role.strip().casefold().endswith("_diode")
 
 
@@ -340,7 +357,10 @@ def _declares_internal_diode_binding(device) -> bool:
 
 
 def _topology_requires_rectifier_diode(topology_id: str | None) -> bool:
-    return "rectifier_diode" in set(get_semiconductor_roles_for_topology(topology_id or ""))
+    return bool(
+        {"rectifier_diode", "npc_clamp_diode"}
+        & set(get_semiconductor_roles_for_topology(topology_id or ""))
+    )
 
 
 def _filter_unavailable_module_bound_switches(candidates, role: str, topology_id: str | None) -> tuple[list, list[str]]:
@@ -410,7 +430,7 @@ def _topology_position_count_for_role(role: str, topology_id: str | None, metada
         "npc_inner_switch",
         "npc_clamp_diode",
     }:
-        return 6
+        return CONVENTIONAL_NPC_CONTRACT.role_position_counts[role.strip().casefold()]
     if topology_id == _PSFB_DIODE_RECTIFIER_TOPOLOGY_ID and role.strip().casefold() in {
         "main_switch",
         "rectifier_diode",
@@ -463,6 +483,9 @@ def run_device_pipeline(report: DesignReport, plugin: TopologyPlugin | None = No
             notes=["Device stage skipped because the report has no candidate or stress result."],
         )
         return replace(report, device=device_result)
+
+    if report.spec.topology_id == CONVENTIONAL_NPC_CONTRACT.topology_id:
+        validate_npc_role_positions(CONVENTIONAL_NPC_CONTRACT.role_position_counts)
 
     registry = build_default_semiconductor_registry()
     design_cases = build_design_point_switch_stress_cases(report, plugin=plugin)
@@ -623,6 +646,7 @@ def run_device_pipeline(report: DesignReport, plugin: TopologyPlugin | None = No
         active_scheme_label=active_scheme_label,
         active_parallel_count=active_parallel_count,
         recommended_scheme_id=recommended_scheme_id,
+        voltage_checks=_build_npc_voltage_checks(report, active_scheme),
         notes=[
             *notes,
             *active_scheme_notes,
@@ -646,6 +670,35 @@ def run_device_pipeline(report: DesignReport, plugin: TopologyPlugin | None = No
         active_scheme=active_scheme,
         registry=registry,
     )
+
+
+def _build_npc_voltage_checks(report: DesignReport, scheme: SemiconductorSchemeResult) -> dict[str, dict[str, object]]:
+    """Serialize the shared NPC voltage checks with selected device ratings."""
+
+    if report.spec.topology_id != CONVENTIONAL_NPC_CONTRACT.topology_id or report.stress is None:
+        return {}
+    role_results = {item.role: item for item in scheme.role_results}
+    checks = {}
+    for role, check in report.stress.role_voltage_checks.items():
+        selected_rating = role_results.get(role).selected_voltage_rating_v if role_results.get(role) else None
+        static_margin = None if selected_rating is None else selected_rating / check.static_blocking_voltage_v - 1.0
+        dynamic_margin = None if selected_rating is None else selected_rating / check.worst_case_blocking_voltage_v - 1.0
+        checks[role] = {
+            "role": role,
+            "static_blocking_voltage_v": check.static_blocking_voltage_v,
+            "dynamic_overvoltage_v": check.dynamic_overvoltage_v,
+            "worst_case_blocking_voltage_v": check.worst_case_blocking_voltage_v,
+            "required_device_rating_v": check.required_device_rating_v,
+            "selected_device_rating_v": selected_rating,
+            "neutral_point_stress_factor": check.neutral_point_stress_factor,
+            "static_margin_target_ratio": check.static_margin_target_ratio,
+            "static_margin_ratio": static_margin,
+            "dynamic_margin_ratio": dynamic_margin,
+            "overvoltage_source": check.overvoltage_source,
+            "overvoltage_validation_status": check.overvoltage_validation_status,
+            "passed": None if selected_rating is None else selected_rating >= check.required_device_rating_v,
+        }
+    return checks
 
 
 def _apply_llc_sr_selected_device_readback(
@@ -1331,6 +1384,12 @@ def scale_switch_stress_for_parallel(stress: SwitchStress, parallel_count: int) 
         i_avg_A=stress.i_avg_A / parallel_count,
         i_turn_on_A=stress.i_turn_on_A / parallel_count,
         i_turn_off_A=stress.i_turn_off_A / parallel_count,
+        turn_on_event_currents_A=tuple(
+            current / parallel_count for current in stress.turn_on_event_currents_A
+        ),
+        turn_off_event_currents_A=tuple(
+            current / parallel_count for current in stress.turn_off_event_currents_A
+        ),
     )
 
 
@@ -1380,6 +1439,7 @@ def _evaluate_parallel_scheme(
                 SemiconductorRoleSchemeResult(
                     role=role,
                     parallel_count=parallel_count,
+                    selected_voltage_rating_v=None,
                     registered_candidate_count=len(registered_switch_candidates),
                     candidate_count=0,
                     passed_candidate_count=0,
@@ -1394,7 +1454,10 @@ def _evaluate_parallel_scheme(
         role_source_candidates = switch_candidates
         diode_binding_policy = str(spec_metadata.get(DIODE_BINDING_POLICY_INPUT_KEY, "auto"))
         bound_to_role: str | None = None
-        if _is_rectifier_diode_role(role) and topology_id in _INDEPENDENT_SECONDARY_DIODE_TOPOLOGY_IDS:
+        if _is_rectifier_diode_role(role) and (
+            topology_id in _INDEPENDENT_SECONDARY_DIODE_TOPOLOGY_IDS
+            or (topology_id == CONVENTIONAL_NPC_CONTRACT.topology_id and role.strip().casefold() == "npc_clamp_diode")
+        ):
             diode_binding_policy = "independent"
         elif _is_rectifier_diode_role(role) and diode_binding_policy in {"auto", "internal_module_diode"}:
             main_device = selected_device_objects.get("main_switch")
@@ -1459,6 +1522,7 @@ def _evaluate_parallel_scheme(
                 SemiconductorRoleSchemeResult(
                     role=role,
                     parallel_count=parallel_count,
+                    selected_voltage_rating_v=None,
                     registered_candidate_count=len(registered_switch_candidates),
                     candidate_count=0,
                     passed_candidate_count=0,
@@ -1901,6 +1965,7 @@ def _summarize_scheme_role(
         parallel_count=parallel_count,
         registered_candidate_count=registered_candidate_count,
         selected_part_number=device.part_number,
+        selected_voltage_rating_v=float(device.static.vdss_max_V),
         vendor=device.vendor,
         device_type=device.selection_device_type,
         device_structure_type=device.device_structure_type,
@@ -2359,14 +2424,22 @@ def run_device_operating_point_refresh(
             if is_npc:
                 refresh_errors.append(f"selected device could not be resolved for role {stress.role}")
             continue
+        role_result = next(
+            (item for item in active_scheme.role_results if item.role == stress.role),
+            None,
+        ) if active_scheme is not None else None
+        parallel_count = max(
+            int(role_result.parallel_count if role_result is not None else getattr(device_result, "active_parallel_count", 1) or 1),
+            1,
+        )
         try:
-            scaled_stress = scale_switch_stress_for_parallel(stress, active_parallel_count)
+            scaled_stress = scale_switch_stress_for_parallel(stress, parallel_count)
             current_loss = _evaluate_role_loss(
                 device,
                 report,
                 scaled_stress,
                 current_case.operating_point,
-                parallel_count=active_parallel_count,
+                parallel_count=parallel_count,
             )
         except Exception as exc:
             if is_npc:
@@ -2440,7 +2513,6 @@ def _evaluate_role_loss(
             stress,
             parallel_count=max(int(parallel_count), 1),
         )
-        return segmented.per_switch_loss
     if report.spec.topology_id == _LLC_SR_TOPOLOGY_ID and stress.role == "secondary_sync_switch":
         return _evaluate_llc_sr_secondary_sync_switch_loss(device, stress)
     if report.spec.topology_id == _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID and stress.role == "totem_pole_lf_switch":

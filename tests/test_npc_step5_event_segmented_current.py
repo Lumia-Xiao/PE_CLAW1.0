@@ -120,6 +120,8 @@ def test_npc_step7_reports_saturation_when_periodic_condition_is_unreachable() -
     plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
     raw = build_default_inputs()
     raw["vdc_nom"] = "100"
+    raw["vdc_min"] = "100"
+    raw["vdc_max"] = "100"
     candidate = plugin.synthesize(plugin.build_spec(raw))
     waveform = plugin.generate_waveforms(candidate)
     metadata = waveform.metadata
