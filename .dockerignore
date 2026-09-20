@@ -1,0 +1,9 @@
+.git
+outputs
+pytest_temp
+.pytest-*
+**/__pycache__
+**/node_modules
+**/dist
+**/test-results
+*.db

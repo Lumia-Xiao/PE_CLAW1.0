@@ -1262,3 +1262,145 @@ listed here.
   fixture failure, which passed in the subsequent segmented-current run.
 - Remaining branch merges and final validation are recorded separately.
   No database, output, cache, or generated package metadata is committed.
+## 2026-09-14 - React Buck workspace and frontend/API contract validation
+
+- Purpose: implement phase D's Buck web workflow against the existing Tkinter navigation, form and structured-result contracts.
+- Files: web/frontend; src/pe_claw_web/api/catalog.py, main.py, runner.py; workers/tasks.py and celery_app.py; pyproject.toml; scripts/export_web_test_fixtures.py; tests/test_web_frontend_contract.py; .gitignore; Plan/Active/plan.md.
+- Behavior: registry-driven category/topology selection, schema-bound Buck form, asynchronous submission/polling, task and draft recovery, field/unit/source tables, conditional efficiency chart, explicit unavailable-stage states and artifact download. Other topologies remain disabled pending phase E.
+- Integration fixes: inherit GUI defaults, isolate job Pipeline output, use real job ID in downloaded result JSON, check successful job before file download, report queue outage as HTTP 503 and include Worker tasks at startup. Add missing Pydantic/Uvicorn and HTTP test dependencies.
+- Validation: frontend TypeScript/production build passed; Playwright 9 passed, including downloaded file content and mobile layout; Python Web tests 10 passed, including a real Buck synchronous HTTP computation and fixture parity. Desktop/mobile screenshots inspected. Live Vite-to-FastAPI catalog proxy checked.
+- Limits: browser task lifecycle is mocked; backend tests use temporary SQLite and invoke the Worker function. External Redis (localhost:6379 currently times out), PostgreSQL and separate Worker delivery are not claimed verified. No formulas, selection policy or existing GUI changed.
+- Git: codex/react-buck-workspace; implementation and this record committed together; no push requested/performed. No master changes in this phase. Existing caches, database, node_modules and build/test outputs excluded from staging.
+- Backup: no backup or result-cleanup operation performed in this phase.
+
+## 2026-09-15 - Complete React web workspace (phase D)
+
+- Purpose: deliver the browser workspace for the existing PE-Claw web API and deterministic Buck flow.
+- Files: `web/frontend/`, `src/pe_claw_web/api/catalog.py`, `tests/test_web_frontend_contract.py`, `scripts/export_web_test_fixtures.py`, API/runner/worker configuration, Docker-related dependencies, `.gitignore`.
+- Behavior: responsive category and topology navigation, registry-driven Buck form defaults/ranges, asynchronous task submit/poll/recovery, persisted draft/task identity, structured report tabs with explicit unavailable states, efficiency SVG when data exists, warnings and safe artifact download.
+- Validation: `npm run build` passed; Playwright 9 passed including downloaded bytes, mobile layout, retry/failure/reload/missing-task cases; Python Web tests 10 passed including real Buck HTTP calculation, persistence across SQLAlchemy store instances, Worker result and artifact download. Browser visual review completed at desktop and 390px widths.
+- Limits: browser task lifecycle uses route fixtures; external Redis/PostgreSQL/Celery process requires deployment environment. No authentication or additional topology algorithms changed.
+- Git: branch `codex/react-buck-workspace`; local commit only, no push performed. Generated caches, `node_modules`, `dist`, screenshots, and local databases remain untracked/excluded.
+
+## 2026-09-15 - Add follow-up button action plan
+
+- Purpose: define backend, worker, frontend, and test steps for Capacitor, Magnetics, Waveforms, and Efficiency Sweep buttons.
+- Files: Plan/Active/button_actions_plan.md.
+- Validation: reviewed against Tkinter BaseTopologyForm actions and existing PE-Claw pipeline modules.
+- Branch/commit: codex/react-buck-workspace; not committed.
+
+## 2026-09-15 - Implement follow-up action contracts (E0, local)
+
+- Purpose: establish versioned contracts before adding Capacitor, Magnetics, Waveforms and Efficiency Sweep endpoints.
+- Files: `src/pe_claw_web/schemas/actions.py`, schema/package exports, `tests/test_web_action_contracts.py`, `Plan/Active/button_actions_plan.md`.
+- Behavior: four post-design actions, finite operating-point validation, action-specific option allowlist, structured DesignError responses, base-design dependencies, stage names and validated lifecycle transitions. Retry creates a new action; queue failure and result expiration have explicit transitions. Runtime enforcement remains future work.
+- Plan: separate existing base-design creation from action requests; define envelope/path consistency and require a resumable hardware snapshot before E1 Pipeline integration.
+- Validation: `python -m pytest -q tests/test_web_action_contracts.py tests/test_web_schemas.py` — 63 passed; `git diff --check` passed. No API/Worker/UI integration is claimed in E0.
+- Git: `codex/react-buck-workspace`; implementation and this record committed together, no push requested/performed. E0 milestone remains unmarked pending push under repository rules.
+- Backup: no backup or cleanup performed; existing `outputs/` results excluded from staging.
+
+
+## 2026-09-15 - E1 Run Capacitor initial integration
+
+- Added persisted `design_actions` storage, capacitor POST/status/result endpoints, Celery action worker, and a guarded React Run Capacitor button.
+- Validation: backend action/schema tests 63 passed; `npm run build` passed; `git diff --check` passed.
+- Scope: endpoint currently runs the existing Buck pipeline as the execution adapter and returns the capacitor report projection; dedicated capacitor snapshot restoration, artifact manifests, idempotency, and full UI result polling remain E1 follow-up work.
+- Git: `codex/react-buck-workspace`, commit `a8cad44`, local only; `outputs/` remains untracked.
+
+## 2026-09-15 - E2 Run Magnetics integration
+
+- Added magnetic action routing through the action Worker with explicit magnetic pipeline enablement and `llc_search_mode` forwarding.
+- Added `POST /api/v1/design-jobs/{job_id}/actions/magnetics` with idempotency and base-design dependency checks.
+- Added React Run Magnetics submission and polling beside the Capacitor action.
+- Validation: 63 backend action/schema tests passed; `npm run build` passed; `git diff --check` passed.
+- Scope: magnetic adapter currently uses the existing report runner with magnetic stage enabled; resumable typed hardware snapshots and dedicated magnetic artifact formats remain follow-up work.
+
+## 2026-09-15 - Fix legacy action database compatibility
+
+- Added a SQLite compatibility migration for existing E1 databases missing `design_actions.idempotency_key`, preventing action creation/status lookups from failing after the E2 schema change.
+- Validation: 63 action/schema tests passed; `git diff --check` passed.
+
+## 2026-09-15 - Consolidate Web design execution plan
+
+- Consolidated `Plan/Active/button_actions_plan.md` into `Plan/Active/plan.md`.
+- Replaced independent Capacitor/Magnetics/Waveforms/Efficiency buttons with a unified complete-design execution plan F1–F5: one confirmed request, fixed stage order, shared progress, resumable snapshots and unified artifacts.
+- Preserved E0–E2 implementation history as compatibility work; future frontend work follows the unified task flow.
+
+## 2026-09-15 - F1 unified complete-design request contract
+
+- Added `execution_profile=complete` and optional validated operating point to `DesignJobCreate`.
+- Persisted execution configuration with jobs, including SQLite compatibility migration for existing databases.
+- Operating point defaults remain a Worker concern; explicit points must stay within Vin range and use non-negative load ratio.
+- Validation: 64 focused Web schema/action tests passed; `git diff --check` passed.
+
+## 2026-09-15 - F2 unified complete-design Worker
+
+- The standard design job now advances through validate, topology, devices, capacitor, magnetics, operating_point, loss, thermal, efficiency_sweep and finalize stages with persisted progress.
+- Buck execution enables magnetic selection and waveform generation in the single job pipeline, preserving one job artifact directory and report.
+- Efficiency sweep is explicitly reported unavailable when the current Buck runtime does not produce sweep data; no synthetic curve is emitted.
+- Validation: Web API/frontend/schema tests 10 passed; `git diff --check` passed.
+- Scope: operating-point refresh and fixed-hardware efficiency adapter remain follow-up work before claiming full F2 parity.
+
+## 2026-09-15 - F2 fixed-hardware operating point and efficiency adapter
+
+- Added a complete Buck adapter that runs the existing operating-point refresh against the selected report hardware, then invokes the fixed-hardware efficiency sweep pipeline.
+- The unified Worker now passes the persisted operating point (or documented default), stores efficiency results in the same report and artifact flow, and preserves unavailable/blocked statuses from the real pipeline.
+- Validation: Web API/schema tests 5 passed; `git diff --check` passed.
+
+## 2026-09-15 - F3 unified frontend confirmation flow
+
+- Removed independent Capacitor and Magnetics action buttons and polling code from the React workspace.
+- Design submission now sends `execution_profile: complete` with a default midpoint Vin and full-load operating point; one task drives all result tabs.
+- Added user-facing explanation of the fixed complete-design stage sequence.
+- Validation: `npm run build` passed; `git diff --check` passed.
+
+## 2026-09-15 - F4 unified report exports and artifact downloads
+
+- Files: Web runner, jobs/exports.py and artifacts.py, download API, React results/files views, Web tests, frontend README and Plan/Active/plan.md.
+- Complete-job reports now include real final-operating-point waveform samples and explicit efficiency availability/reason. Core calculation/report contracts and selection policies are unchanged.
+- Generate public JSON, available stage CSV, waveform PNG and efficiency PNG from the same result. Only freshly produced allowlisted files enter the manifest; no recursive exposure of private Pipeline output. CSV retains units/source, waveform CSV uses unit-bearing channel names, plots require actual numeric samples/points.
+- Manifest entries include media type, size, SHA-256, schema version, stage and job-scoped download URL. The JSON report lists other artifacts; its own checksum is held externally in the API manifest. Download resolution verifies job state, manifest membership, path boundary and file bytes. Existing result-json downloads remain compatible.
+- React handles blocked/unavailable sections and warnings, previews generated plots, shows manifest metadata, and clears old job results during recovery. Mobile download buttons and checksums fit the viewport.
+- Tests: `python -m pytest -q tests/test_web_frontend_contract.py tests/test_web_api.py tests/test_web_schemas.py --basetemp pytest_temp/f4-final`: 13 passed, 1 skipped (Windows symlink creation permission). Covers real Buck waveform samples, fixture-derived efficiency exports, byte/hash checks, tampering, expiry and cross-job lookup. Old Worker tests now mock the current complete runner and isolate broker probing instead of accidentally executing full magnetic selection.
+- Frontend: `npm run build` passed; `npm test -- --workers=2`: 11 passed. Real Buck waveform export and mobile Files screenshot visually inspected. `git diff --check` passed.
+- Limits: Browser task responses and Worker computation use fixtures for transport tests; separate Redis/PostgreSQL/Worker deployment and full magnetic design are not revalidated here. Per-user authorization and recovery remain later stages; job-path isolation is not user authentication.
+- Git: codex/react-buck-workspace; implementation and documentation committed together locally, no push requested/performed. Generated outputs and validation evidence excluded. No backup or user-result cleanup performed.
+
+## 2026-09-15 - F5 durable complete-job recovery and integration validation
+
+- Purpose: make complete Buck jobs resumable across Worker/broker failure, migrate existing databases safely, and protect active results during retention cleanup.
+- Files: complete adapter, checkpoint codec, SQLAlchemy models/store, Alembic env and 0002/0003 revisions, Worker/recovery maintenance loop, retry/partial-result API, React recovery controls, cleanup, Dockerfile/Compose, recovery scripts/tests and docs/web-recovery.md; Plan/Active/plan.md records remaining environment gates.
+- Behavior: real stage callbacks replace premature progress labels. Persist typed report snapshots with input/code version and checksum after safe boundaries. Resume skips completed hardware selection; fixed-hardware refresh computes loss/thermal and the sweep. Each attempt has an isolated directory, atomic lease/heartbeat, fenced checkpoint writes/final publication and bounded automatic recovery. Failed jobs preserve partial results; manual retry resumes the original job, explicit restart clears an incompatible snapshot.
+- Persistence: lazy runtime connection avoids import-time DB mutation. SQLite auto-upgrades through the same Alembic revisions used explicitly for PostgreSQL. Legacy job/action tables are adopted without dropping records. Unique input/client keys deduplicate concurrent requests; aliases cannot be reused for different inputs. Pre-ping and durable recovery support reconnect; Redis outage leaves queued work for the independent recovery loop.
+- Cleanup: only terminal jobs past completion-based retention are expired; queued/running jobs, active compatibility actions and unknown folders remain. Row locks fence retry during deletion; expired payloads/checkpoints and dedup keys are cleared. No real user results were cleaned during this work.
+- Unit/HTTP/database tests: python -m pytest -q tests/test_web_recovery.py tests/test_web_postgres_recovery.py tests/test_web_frontend_contract.py tests/test_web_schemas.py tests/test_web_api.py tests/test_web_persistence.py tests/test_web_action_contracts.py --basetemp pytest_temp/f5-review — 85 passed, 2 skipped (PostgreSQL test URL not configured; Windows symlink privilege). Tests cover legacy migration, concurrent uniqueness/claims, stale-worker fencing, injected database failure, snapshot tampering, no-selection resume, retry, partial results, cleanup and HTTP artifacts.
+- Frontend: npm run build passed; npm test -- --workers=2 — 13 passed, including same-job checkpoint recovery and idempotent same-ID result reload.
+- Real isolated integration: scripts/verify_web_recovery.py started Redis/API/Celery on test-only ports and SQLite. Job c683c8e0-5295-4b6d-ac7b-7a5ff0bb66ed was interrupted after capacitor, Redis restarted, and attempt 2 resumed successfully with unchanged selected-hardware digest. Real HTTP result/download hashes passed for 11 files, 1200 waveform samples and 20 finite efficiency points; duplicate delivery did not create attempt 3. Evidence: pytest_temp/recovery-smoke-6cf2ed84/evidence.json. Earlier process smoke also passed at recovery-smoke-69fdcf82. Test subprocesses were stopped; user services were not restarted.
+- Limits: no Docker/PostgreSQL runtime available locally; official PostgreSQL binary endpoint probe timed out. Optional real PostgreSQL migration/pool-reconnect tests and Compose migration/recovery services are provided but not claimed executed. Full production deployment acceptance remains pending. Snapshots retain full reports (capacitor checkpoint approximately 35 MB); production storage/concurrency sizing and library-version pinning remain deployment considerations.
+- Git: codex/react-buck-workspace; implementation and docs committed together locally; no push requested/performed. git diff --check passed. Existing outputs/ and test evidence excluded. No backup or production cleanup performed.
+
+## 2026-09-15 - F5 real PostgreSQL acceptance and Docker environment gate
+
+- Purpose/files: validate the remaining deployment contracts using scripts/verify_web_postgres_deployment.py, strengthened scripts/verify_web_recovery.py, expanded tests/test_web_postgres_recovery.py, and scripts/verify_web_docker_deployment.py; update jobs/store.py, docker-compose.web.yml, web/frontend/.dockerignore, recovery docs and the active plan.
+- Real PostgreSQL 16.14 temporary cluster on a random loopback port with generated SCRAM credentials: 4 tests passed covering migration, terminated pooled connection/reconnect, concurrent deduplication/claims, stale lease fencing, client aliases and old managed/unmanaged job-table upgrades retaining successful results. No existing PostgreSQL service/database was touched. Installed the already-declared psycopg dependency locally.
+- Found an actual outage defect: runtime PostgreSQL connections had no connect timeout and could stall recovery on network retries. Added a five-second libpq connect timeout while preserving pre-ping. The final stop/start test observed an outage error in 5.09 seconds and reconnected through the existing pool. Earlier failed attempts remain in pytest_temp as diagnostic evidence, not successful acceptance.
+- Real HTTP/Redis/Celery/PostgreSQL recovery passed: initial broker outage retained a deduplicated queued job; the independent recovery process dispatched it. Worker was killed after capacitor; owned Redis and PostgreSQL were stopped/restarted; the recovery process republished and attempt 2 finished all stages with the same already-selected hardware digest. All 11 artifact downloads matched SHA-256; results contained 1200 waveform samples and 20 efficiency points. Late duplicate delivery did not create attempt 3.
+- Evidence: pytest_temp/postgres-deployment-65b9fe78/evidence.json and pytest_temp/recovery-smoke-8864a620/evidence.json; job 1768513f-9196-4d73-b37e-8054585e1d43. All test subprocesses and the owned database cluster stopped afterward. User outputs and existing local services were preserved.
+- Regression after the timeout fix: python -m pytest -q tests/test_web_recovery.py tests/test_web_frontend_contract.py tests/test_web_schemas.py tests/test_web_api.py tests/test_web_persistence.py tests/test_web_action_contracts.py --basetemp pytest_temp/f5-deployment-timeout-regression — 85 passed, 1 skipped (Windows symlink privilege). PostgreSQL's 4 tests were separately executed against the real cluster. React code did not change; browser tests were not repeated.
+- Docker preflight: official Compose v5.5.1 standalone binary checksum verified; Compose configuration passed. Engine connection failed because docker_engine named pipe is absent. Current Windows 11 Home build 22621 is below current Docker documentation's 22631 requirement, virtualization platform is not running, and enabling system components needs administrator rights. No unsupported Docker install or OS reboot was attempted.
+- Docker acceptance script prepares an isolated project/volumes/port and checks frontend/API, Worker/PostgreSQL/Redis recovery, artifact hashes and persistence across stack restart when an engine exists. Only preflight executed locally; evidence pytest_temp/pe-claw-f5-d3548325/evidence.json records blocked/container_acceptance=false. No image build or container acceptance is claimed.
+- Compose allows PE_CLAW_WEB_PORT (default 5173); frontend .dockerignore prevents host Windows node_modules and local build/env files entering its build context. Deployment instructions document exact commands and remaining host prerequisites. F5 remains pending container runtime acceptance and remote delivery.
+- Git: codex/react-buck-workspace, coherent local commit; no push requested/performed. git diff --check passed. Generated logs, downloaded tools, temporary databases, user outputs and prior test evidence excluded. No production cleanup or backup operation performed.
+
+## 2026-09-15 - Replace Docker deployment gate with F5-W Windows native acceptance plan
+
+- Updated Plan/Active/plan.md and docs/web-recovery.md for Windows-only deployment. F5-W covers native PostgreSQL, Redis/Memurai, NSSM/WinSW API/Worker/Recovery services, explicit Alembic migration, IIS URL Rewrite/ARR HTTPS proxy, permissions, backup/restore, service/machine restarts and full Buck integration evidence.
+- Docker/WSL is optional development infrastructure and cannot satisfy F5-W acceptance. Existing Docker files remain available for Docker-capable hosts.
+- F5-W is planned but not executed; it requires native Windows dependencies, IIS URL Rewrite/ARR and administrator rights for service registration and certificates.
+
+## 2026-09-15 - F5-W Windows deployment assets and preflight
+
+- Added `deployment/windows/` assets: native environment template, NSSM/WinSW service registration, IIS `web.config`, IIS setup helper, operator README and Windows acceptance preflight.
+- Native Redis is present as an Automatic/Running Windows service. Frontend production build passed. PowerShell deployment files and IIS configuration were statically checked; no existing service or user output was modified.
+- Existing isolated PostgreSQL/Redis/API/Worker recovery evidence remains valid for the runtime contract, including attempt-2 hardware-preserving recovery and artifact hashes.
+- Full F5-W service registration, IIS/HTTPS proxy and machine-restart acceptance is pending because the current session lacks Administrator rights and IIS/URL Rewrite/ARR availability was not confirmed. No system feature, service, certificate or existing Redis configuration was changed.

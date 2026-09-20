@@ -1,0 +1,357 @@
+{
+  "schema_version": "1.0",
+  "job_id": "11111111-1111-4111-8111-111111111111",
+  "topology": "buck_diode_rectified_unidirectional",
+  "summary": {
+    "schema_version": "pe_claw_structured_design_report_v1",
+    "report_kind": "design_report",
+    "topology": {
+      "id": "buck_diode_rectified_unidirectional",
+      "display_name": "Buck Diode Rectified Unidirectional"
+    },
+    "request": {
+      "raw_input": {
+        "vin_min": "36",
+        "vin_max": "60",
+        "vout": "12",
+        "pout": "120",
+        "fs_khz": "100",
+        "ripple_current_ratio": "0.30",
+        "ripple_voltage_ratio_percent": "1.0",
+        "ambient_temp_c": "25.0",
+        "target_junction_temp_c": "100.0",
+        "semiconductor_device_type": "Any",
+        "semiconductor_manufacturer": "Any",
+        "main_switch_category": "Any active switch",
+        "sync_switch_category": "Any active switch",
+        "rectifier_diode_category": "Any diode",
+        "switch_implementation_category": "Any compatible active switch",
+        "diode_binding_policy": "auto"
+      },
+      "input_voltage_min": {
+        "value": 36.0,
+        "unit": "V",
+        "source": "request.normalized"
+      },
+      "input_voltage_max": {
+        "value": 60.0,
+        "unit": "V",
+        "source": "request.normalized"
+      },
+      "output_voltage": {
+        "value": 12.0,
+        "unit": "V",
+        "source": "request.normalized"
+      },
+      "output_power": {
+        "value": 120.0,
+        "unit": "W",
+        "source": "request.normalized"
+      },
+      "switching_frequency": {
+        "value": 100000.0,
+        "unit": "Hz",
+        "source": "request.normalized"
+      },
+      "ripple_current_ratio": {
+        "value": 0.3,
+        "unit": "ratio",
+        "source": "request.normalized"
+      },
+      "ripple_voltage_ratio": {
+        "value": 0.01,
+        "unit": "ratio",
+        "source": "request.normalized"
+      }
+    },
+    "candidate": {
+      "available": true,
+      "inductance": {
+        "value": 3e-05,
+        "unit": "H",
+        "source": "candidate.synthesis"
+      },
+      "capacitance": {
+        "value": 3.125e-05,
+        "unit": "F",
+        "source": "candidate.synthesis"
+      },
+      "duty": {
+        "value": 0.25,
+        "unit": "ratio",
+        "source": "candidate.synthesis"
+      },
+      "output_current": {
+        "value": 10.0,
+        "unit": "A",
+        "source": "candidate.synthesis"
+      },
+      "switching_frequency": {
+        "value": 100000.0,
+        "unit": "Hz",
+        "source": "candidate.synthesis"
+      },
+      "inductor_ripple": {
+        "value": 3.0,
+        "unit": "A",
+        "source": "candidate.synthesis"
+      },
+      "output_ripple_estimated": {
+        "value": 0.12,
+        "unit": "V",
+        "source": "candidate.synthesis"
+      },
+      "feasible": true,
+      "ccm_valid": true,
+      "mode": "ccm_dcm"
+    },
+    "operating_point": {
+      "available": false,
+      "input_voltage": {
+        "value": null,
+        "unit": "V",
+        "source": "operating_point.input"
+      },
+      "load_ratio": {
+        "value": null,
+        "unit": "p.u.",
+        "source": "operating_point.input"
+      },
+      "output_voltage": {
+        "value": null,
+        "unit": "V",
+        "source": "operating_point.input"
+      },
+      "power_factor": {
+        "value": null,
+        "unit": "ratio",
+        "source": "operating_point.input"
+      },
+      "switching_frequency": {
+        "value": null,
+        "unit": "Hz",
+        "source": "operating_point.input"
+      }
+    },
+    "waveform": {
+      "available": false,
+      "operating": {},
+      "series": {},
+      "metadata": {}
+    },
+    "stress": {
+      "available": true,
+      "switch": {
+        "voltage_max": {
+          "value": 60.0,
+          "unit": "V",
+          "source": "stress.extraction"
+        },
+        "current_peak": {
+          "value": 11.48,
+          "unit": "A",
+          "source": "stress.extraction"
+        },
+        "current_rms": {
+          "value": 5.0137328076660275,
+          "unit": "A",
+          "source": "stress.extraction"
+        },
+        "current_average": {
+          "value": null,
+          "unit": "A",
+          "source": "stress.extraction"
+        }
+      },
+      "rectifier": {
+        "voltage_max": {
+          "value": 60.0,
+          "unit": "V",
+          "source": "stress.extraction"
+        },
+        "current_peak": {
+          "value": 11.5,
+          "unit": "A",
+          "source": "stress.extraction"
+        },
+        "current_rms": {
+          "value": 8.695545155742424,
+          "unit": "A",
+          "source": "stress.extraction"
+        },
+        "current_average": {
+          "value": 7.5025,
+          "unit": "A",
+          "source": "stress.extraction"
+        }
+      }
+    },
+    "magnetic": {
+      "available": true,
+      "selected_design_id": null,
+      "chosen_design_ids": [],
+      "metrics": {
+        "feasible_count": {
+          "value": 0.0,
+          "unit": "count",
+          "source": "magnetic.selection"
+        },
+        "pareto_count": {
+          "value": 0.0,
+          "unit": "count",
+          "source": "magnetic.selection"
+        }
+      },
+      "metadata": {
+        "result_type": "fixed_inductor",
+        "design_type": "",
+        "performance_timing": {}
+      }
+    },
+    "loss": {
+      "available": true,
+      "recommended_design_id": null,
+      "metrics": {
+        "total_loss": {
+          "value": null,
+          "unit": "W",
+          "source": "loss.total"
+        },
+        "recommended_volume": {
+          "value": null,
+          "unit": "m3",
+          "source": "loss.recommended_volume"
+        }
+      },
+      "metadata": {
+        "core_loss_status": "not_evaluated"
+      }
+    },
+    "efficiency_sweep": {
+      "available": false,
+      "points": [],
+      "pf_points": [],
+      "metadata": {}
+    },
+    "geometry": {
+      "available": true,
+      "selected_design_id": null,
+      "targets": [],
+      "metadata": {
+        "component_type": "fixed_inductor",
+        "component_roles": [],
+        "artifact_paths": [],
+        "summary": ""
+      }
+    },
+    "capacitor": {
+      "available": false,
+      "input": {},
+      "output": {},
+      "llc_resonant": {},
+      "metadata": {}
+    },
+    "thermal": {
+      "available": true,
+      "status": "not_evaluated",
+      "metrics": {
+        "ambient_temperature": {
+          "value": 25.0,
+          "unit": "degC",
+          "source": "thermal.evaluation"
+        },
+        "hotspot_temperature": {
+          "value": null,
+          "unit": "degC",
+          "source": "thermal.evaluation"
+        },
+        "total_loss": {
+          "value": null,
+          "unit": "W",
+          "source": "thermal.evaluation"
+        }
+      },
+      "metadata": {
+        "summary": ""
+      }
+    },
+    "hardware": {
+      "semiconductor": {
+        "selected_devices": {},
+        "selection_status": "not_evaluated"
+      },
+      "magnetic": {
+        "selected_design_id": null,
+        "chosen_design_ids": [],
+        "selection_status": "not_evaluated"
+      },
+      "capacitor": {
+        "input_part_number": null,
+        "output_part_number": null,
+        "selection_status": "not_evaluated"
+      }
+    },
+    "ripple": {
+      "output_ripple_target": {
+        "value": 0.12,
+        "unit": "V",
+        "source": "request.normalized"
+      },
+      "output_ripple_estimated": {
+        "value": 0.12,
+        "unit": "V",
+        "source": "candidate.synthesis"
+      },
+      "output_ripple_predicted": {
+        "value": null,
+        "unit": "V",
+        "source": "capacitor.selection"
+      },
+      "output_ripple_simulated": {
+        "value": null,
+        "unit": "V",
+        "source": "waveform.post_processing"
+      },
+      "dc_link_ripple_limit": {
+        "value": null,
+        "unit": "V",
+        "source": "request.normalized"
+      },
+      "dc_link_ripple_predicted": {
+        "value": null,
+        "unit": "V",
+        "source": "capacitor.selection"
+      }
+    },
+    "status": {
+      "feasible": true,
+      "ccm_valid": true,
+      "zvs_status": "not_evaluated",
+      "pf_status": "not_evaluated",
+      "thermal_status": "not_evaluated"
+    },
+    "audit": {
+      "notes": [
+        "Runtime report assembled by the unified Buck diode-rectified unidirectional plugin.",
+        "Design run context created with an isolated output directory.",
+        "Stress extracted from resolved CCM operating-mode waveforms.",
+        "No external waveform bundle was provided, so nominal-mode waveforms were generated internally."
+      ],
+      "source_stages": [
+        "request",
+        "candidate",
+        "waveform",
+        "stress",
+        "magnetic",
+        "capacitor",
+        "thermal",
+        "status"
+      ]
+    }
+  },
+  "warnings": [
+    "Runtime report assembled by the unified Buck diode-rectified unidirectional plugin.",
+    "Design run context created with an isolated output directory."
+  ],
+  "artifacts": []
+}

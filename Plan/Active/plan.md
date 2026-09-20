@@ -198,3 +198,123 @@ Per-job artifact directory / object storage
 - 前端与 GUI 不一致：以固定输入 fixture 和 parity checklist 驱动验收。
 - 数据或代码泄露：默认后端不返回路径/traceback，持续执行越权和容器扫描。
 - 任一阶段失败时保留旧 `.bat` GUI 和同步 runner；异步 API 通过 feature flag 禁用，不影响原有本地工作流。
+
+## 14. 阶段 D 本地实施记录（2026-09-14）
+
+- 分支：`codex/react-buck-workspace`；状态：Buck 工作区本地实现并验证，尚未推送，不标记远端交付完成。
+- 新增 `web/frontend`（React、TypeScript、Vite）：顶部分类导航、注册拓扑目录、左侧 Buck 参数、右侧结果标签页、任务提交/状态轮询、刷新恢复、错误重试、下载和手机宽度布局。
+- 参数元数据来自新增 `/api/v1/topologies`，默认输入复用现有 Buck 定义。未接入拓扑禁用；没有波形/效率数据时明确显示未提供。
+- Summary、Stress、Devices、Capacitor、Magnetics、Loss、Thermal、Geometry、Efficiency、Files 对接现有结构化报告分区。效率图只在确有扫描点时绘制；波形报告只有统计量时不构造时域曲线。
+- 联调修复：API 合并桌面默认参数；补齐 Pydantic/Uvicorn 依赖；Worker 自动发现任务；队列不可用返回 503；按任务隔离 Pipeline 输出；下载 JSON 使用真实 job ID，且仅成功任务可下载。
+- 验证：`npm run build` 通过；Playwright `9 passed`（包括真实 HTTP 文件流内容校验）；Python Web 相关测试 `10 passed`（含真实 Buck 同步 HTTP 计算、GUI 参数/数值对照、跨存储实例任务读取、Worker 函数、下载及失败隔离）。桌面和 390px 窄屏截图已检查。
+- 启动文档和具体验证边界：`web/frontend/README.md`。前端测试响应由真实拓扑 fixture 驱动，但任务排队状态由测试拦截；外部 PostgreSQL/Redis/独立 Celery 进程尚未完成联合验收。
+- 当前本机 Redis 6379 连接超时，前端和 API 可启动浏览，实际异步设计须先启动 Redis/Worker。
+- 剩余范围：其他拓扑属于阶段 E；独立运行点/波形/效率扫描、任务取消和 PDF/CSV 等仍需后端接口；现有迁移和清理策略的生产完整性需另外验收。当前页面不模拟这些操作。
+
+## 15. 统一完整设计执行方案（替代独立动作按钮）
+
+经评估，前端不再展示 Run Capacitor、Run Magnetics、Generate Waveforms、Run Efficiency Sweep 四个独立按钮。用户确认设计输入后，由一个完整设计任务按固定顺序执行并统一输出结果。这能减少操作顺序错误、动作之间的状态不一致和“基础任务不存在”问题，同时保留每个阶段的可追踪状态。
+
+### F1：统一请求与执行配置
+
+- 在现有 `DesignJobCreate` 中增加 `execution_profile`，首期固定支持 `complete`。
+- 增加可选 `operating_point`；未填写时由后端根据设计输入生成额定 Vin、100% 负载的默认运行点，并在响应中明确记录。
+- 请求只包含 Pydantic 基础类型；禁止路径、模块名、表达式和内部对象。
+- 保留 `schema_version`、幂等键和客户端请求 ID。相同输入与执行配置复用同一任务。
+
+### F2：完整顺序 Worker
+
+完整任务固定执行：
+
+`validate → topology → devices → capacitor → magnetics → operating_point/waveform → loss → thermal → efficiency_sweep → report → finalize`
+
+- 电容和磁性选择各执行一次。
+- 波形、损耗和效率扫描必须复用已选硬件；效率扫描禁止逐点重新选型。
+- 每个阶段写入进度、阶段状态、warning 和结构化错误。
+- 阶段失败时保留已完成阶段结果，后续阶段标记 blocked/unavailable，不伪造成功结果。
+- Worker 重试通过数据库原子状态检查保证幂等。
+
+### F3：前端完整设计确认流程
+
+- 移除四个独立 action 按钮及其独立轮询入口。
+- 保留一个“确认并运行完整设计”按钮；提交前展示运行点和执行配置确认。
+- 页面显示总进度、当前阶段、任务 ID、失败阶段和重试入口。
+- 刷新页面后根据 job ID 恢复任务；提交期间防止重复点击。
+
+### F4：统一结果与 artifact
+
+- Summary、Capacitor、Magnetics、Waveforms、Efficiency、Loss、Thermal、Files 标签全部读取同一个完整任务结果。
+- 没有数据的阶段显示明确 unavailable/blocked 状态，不使用旧结果或示例数据填充。
+- artifact 使用任务独立目录和 manifest，记录类型、大小、SHA-256、schema 版本和生成阶段。
+- 输出 JSON、CSV、波形图和效率曲线（仅在 Pipeline 实际生成时提供）。
+
+### F5：恢复、迁移和集成验收
+
+- 为完整任务保存带版本的可恢复快照，至少包含规范化输入、Pipeline 版本、已选电容/磁件/半导体身份与参数；禁止通过重新选型冒充恢复。
+- 失败重试从最近安全阶段开始；运行中的任务不能被清理策略删除。
+- 为 SQLite 旧表、PostgreSQL migration、Redis 重启和 Worker 重启增加测试。
+- 端到端验证：设计提交 → 固定顺序执行 → 全部结果 → artifact 下载；覆盖队列不可用、阶段失败、重复提交和刷新恢复。
+
+### F4 本地实施记录（2026-09-15）
+
+- 同一任务导出 result.json、可用阶段 CSV、真实采样波形 PNG 和真实扫描效率 PNG；不扫描或发布内部 Pipeline 文件夹。
+- API 清单包含大小、SHA-256、schema 版本及阶段；result.json 列出其他文件，自身清单由 API 返回，避免自引用校验和。
+- 下载须命中本任务 manifest 和固定 ID，校验路径归属、大小、hash 及任务成功状态；旧结果仍可下载已有文件。
+- 结果页识别 blocked/unavailable、显示原因与警告；Files 展示元数据和下载；任务切换不复用上一任务结果。
+- 验证包含真实 Buck 波形采样/导出、HTTP 文件字节/校验、跨任务文件拒绝、文件篡改和过期状态；浏览器验证含阻塞阶段、文件元数据、图像与移动端。详细计数以同次 ChangeLog 为准。
+- 本地提交，未推送，暂不标记远端里程碑完成。Redis/PostgreSQL/独立 Worker 故障恢复及用户认证不属于此次验证；按 F5/生产安全阶段继续。
+
+### 15.1 已完成工作处理
+
+- E0 action schema、状态机和依赖契约保留为内部兼容模型，可供迁移和历史记录使用。
+- E1/E2 action API 暂时保留兼容入口，但新前端不再依赖它们；后续统一任务稳定后再评估下线。
+- 本计划取代 `button_actions_plan.md`，以后所有 Web 设计功能按 F1–F5 执行。
+
+### F5 本地实施与验收记录（2026-09-15）
+
+- **本地实现及 SQLite/Redis 链路通过，PostgreSQL/Docker 部署验收待环境具备后完成；不标记 F5 全部验收完成。**
+- 完整 Buck 使用真实阶段回调：topology → devices → capacitor → magnetics → operating_point → efficiency_sweep → report → finalize。loss/thermal 已包含在固定硬件 operating-point refresh 中，完成时记录子阶段状态，避免重复计算和虚假进度。每个安全阶段边界保存带版本/输入摘要/校验和的内部报告 JSON 和公开部分结果。
+- 新增任务领取租约、心跳、过期租约回收、三次自动恢复上限、attempt 输出隔离及最终发布保护。停止后的旧 Worker 不得覆盖新的检查点或结果。独立 recovery 进程在 Redis 恢复后重新投递数据库中的 queued 任务。
+- 新增同一任务恢复接口、前端“从已保存阶段恢复”、失败阶段及部分结果；不兼容快照显式失败，用户可选择从头运行。相同完整请求通过数据库唯一键复用；client request ID 不允许换参数复用。
+- Alembic 增加 0002/0003 修订，兼容未纳管的旧 SQLite 表，保留旧任务；迁移与运行模型分离。SQLite 自动迁移，PostgreSQL 显式 migrate。清理只操作到期终态任务，保护运行中任务、活动兼容 action 和未知目录。
+- 后端专项：85 passed、2 skipped（无 PostgreSQL 测试连接；Windows 符号链接权限）；前端构建通过，Playwright 13 passed。SQL 数据库故障传播/恢复是故障注入测试，PostgreSQL 真实连接终止/重连测试已提供但未运行。
+- 真实隔离联调：`pytest_temp/recovery-smoke-6cf2ed84/evidence.json`；job `c683c8e0-5295-4b6d-ac7b-7a5ff0bb66ed`。真实 HTTP 提交，在 capacitor 检查点后终止独立 Celery Worker、重启隔离 Redis；第二次执行从快照继续并成功，已选硬件摘要一致，重复投递没有第三次运行。HTTP 下载校验 11 个 artifact；1200 个真实波形采样、20 个有效效率点。
+- 新增根 Dockerfile、迁移 service 和独立 recovery service；本机无 Docker/PostgreSQL，官方 PostgreSQL 二进制下载探测超时，未声明镜像构建、PostgreSQL 重启或 Compose 全链路已通过。
+- 启动、升级、恢复、清理及测试命令：`docs/web-recovery.md`。检查点为完整报告，当前真实电容阶段快照约 35 MB，生产并发和存储容量需后续压测；保留完整类型与硬件信息优先于压缩优化。
+- Git：在 `codex/react-buck-workspace` 本地提交，未推送；保留用户 outputs 和测试证据，不执行生产清理或修改用户运行中的服务。
+
+### F5 PostgreSQL 部署验收补充（2026-09-15）
+
+- **PostgreSQL 本地真实验收通过；Docker 配置校验通过，但镜像构建与容器链路仍受环境阻塞。F5 不标记全部完成，亦未推送远端。** 本记录更新上一次“无 PostgreSQL 环境”的现状，保留历史记录。
+- 使用官方 EDB PostgreSQL 16.14 二进制创建独立临时集群，仅绑定 loopback 随机端口，随机 SCRAM 密码；不安装系统服务、不修改已有数据库。补装项目已声明的 psycopg 驱动。
+- 新增 `scripts/verify_web_postgres_deployment.py`：自动建库、执行真实 PostgreSQL 专项测试、停止/重启测试数据库、运行完整 HTTP 恢复验收并保存证据；结束后停止自有集群和子进程，保留测试数据。
+- PostgreSQL 专项 **4 passed**：数据库迁移/连接池重连；并发重复提交/领取/过期租约隔离/client ID 绑定；0001 旧版本升级；未纳管旧表迁移。重复迁移保留已有成功任务和结果。
+- 实测修复：PostgreSQL 连接原本缺少超时，数据库停止后会长时间等待。`JobStore` 增加 5 秒连接超时并保留 `pool_pre_ping`；故障复验约 **5.09 秒**返回错误，数据库重启后原连接池恢复。此前失败运行日志保留，不作为通过证据。
+- 完整链路：首先在 Redis 不可用时提交，确认 queued 状态已持久化；Redis 启动后由独立 recovery 服务投递。在电容检查点停止 Worker、Redis 和 PostgreSQL，重启后由同一 recovery 服务恢复任务，未由测试直接调用 recover 或手动投递恢复任务。
+- 成功任务 `1768513f-9196-4d73-b37e-8054585e1d43`：attempt=2，全部阶段 succeeded，已选半导体/电容及基础候选摘要保持一致；11 个 artifact 的 HTTP 字节/hash 校验通过，1200 波形采样、20 效率扫描点，迟到重复投递未增加 attempt。
+- 证据：`pytest_temp/postgres-deployment-65b9fe78/evidence.json`；细节 `pytest_temp/recovery-smoke-8864a620/evidence.json`。数据库测试日志及 JUnit XML 保留在前者目录。
+- 数据库超时修改后回归：Web 后端 **85 passed、1 skipped**（Windows 符号链接权限）。本次未改 React 页面，未重复前端浏览器测试；上一轮浏览器验收保持历史结论。
+- Docker：下载官方独立 Compose v5.5.1 并校验官方 SHA-256；`config --quiet` 通过，连接 `docker_engine` 命名管道失败。证据 `pytest_temp/pe-claw-f5-d3548325/evidence.json` 明确记录 `blocked`、`container_acceptance=false`。
+- 新增 `scripts/verify_web_docker_deployment.py`，供具备 Docker 引擎的主机执行独立 Compose 项目的镜像构建、真实 HTTP 设计、数据库/Redis/Worker 重启、硬件摘要、artifact 和整栈重启持久化验收。当前仅执行其前置检查，容器部分尚未验证。
+- Compose 前端端口支持 `PE_CLAW_WEB_PORT`，默认仍为 5173，验收自动使用空闲端口；补充前端 `.dockerignore`，避免 Windows node_modules 覆盖镜像内 Linux 依赖。未停止用户现有 5173 服务。
+- **下一步唯一环境门槛**：在受支持的 Windows 版本启用 WSL2 并启动 Docker Desktop，或使用已有 Linux Docker 主机，然后执行 `python scripts/verify_web_docker_deployment.py`。本机 Windows 11 Home 22H2/22621 低于当前 Docker 文档的 Windows 11 22631 要求；系统组件启用需要管理员权限。此次未升级/重启操作系统，未安装不受支持的旧 Docker。
+- 通过真正的容器验收后，再推进认证、用户资源归属、配额及 HTTPS 发布；不要把配置验证视为生产可发布证明。
+
+### F5-W：Windows 原生部署验收（替代 Docker 部署验收，2026-09-15）
+
+用户决定只使用 Windows，因此 F5 的部署门槛改为 F5-W。Docker/WSL 不再是 Windows 交付前置条件；已有 Docker 文件仅保留作可选开发资产。
+
+- **W1 依赖安装**：固定 Python、Node.js、PostgreSQL、Redis/Memurai、NSSM/WinSW、IIS URL Rewrite/ARR 版本；安装原生 PostgreSQL 和 Redis 服务，创建最小权限账号、数据库、artifact 目录和服务账号 ACL。数据库与 Redis 只允许受控内网访问。
+- **W2 服务化**：使用 NSSM 或 WinSW 注册 Uvicorn API、Celery Worker（Windows 使用 `--pool=solo`）和独立 Recovery 服务。统一环境变量、代码/库版本、自动启动、失败重启、日志轮转、健康检查；先执行 `python -m alembic upgrade head`，再启动应用服务。
+- **W3 IIS 发布**：IIS 静态发布 `web/frontend/dist`，通过 URL Rewrite/ARR 将 `/api/*` 转发到 `127.0.0.1:8000`；只开放 443，启用证书、HTTP→HTTPS、CORS 白名单、请求限制和安全响应头，隐藏数据库、Redis、Worker 端口。
+- **W4 重启恢复**：真实 Windows 服务执行完整 Buck 任务，在 capacitor 检查点停止 Worker，重启 Redis，由独立 Recovery 自动重新投递；停止/启动 PostgreSQL 验证 5 秒连接超时与 `pool_pre_ping` 重连；重启 API/IIS 和整台机器后继续轮询原 job，迟到投递不能产生第三次 attempt。
+- **W5 集成验收**：验证 IIS 页面/API、迁移、备份恢复、服务权限、路径隔离、artifact hash 下载、刷新恢复和完整结果。证据记录 Windows/依赖版本、服务状态、迁移版本、job/attempt/阶段、artifact hash、重启时间线和日志目录。测试使用独立数据库与 artifact 目录，不触碰用户服务或 `outputs/`。
+- F5-W 通过后才进入认证、用户归属、配额、审计和 HTTPS 加固。Docker 配置验证不能替代 F5-W。
+
+### F5-W 执行记录（2026-09-15）
+
+- 已新增 `deployment/windows/`：Windows 部署说明、环境变量模板、NSSM/WinSW 服务注册脚本、IIS `web.config`、IIS 配置脚本和原生验收脚本。
+- 本机 Redis 原生服务已存在且为 Running/Automatic；React `dist` 已成功构建；PowerShell 部署脚本语法检查和 API/IIS 配置文件检查已完成。
+- PostgreSQL 原生临时集群、完整 Buck 恢复、数据库断线重连和 artifact 校验已在本机通过，证据沿用 `pytest_temp/postgres-deployment-65b9fe78/evidence.json`。
+- 尚未执行服务注册和 IIS HTTPS 验收：本机当前没有可确认的 IIS/URL Rewrite/ARR 状态，且当前会话不是管理员；不擅自安装系统组件、创建 Windows 服务或修改现有 Redis 服务。
+- 因此 F5-W 当前状态为 **W1 部署资产已准备、W2/W3/W4/W5 待管理员环境执行**，不能标记 F5-W 完成。下一步是在管理员 PowerShell 中配置 `pe-claw.env.ps1`、安装 NSSM 与 IIS 组件后运行对应脚本。

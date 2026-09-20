@@ -2,3 +2,6 @@ device_library/
 magnetic_library/
 capacitor_library/
 pytest_temp/
+__pycache__/
+*.egg-info/
+pe_claw_jobs.db
