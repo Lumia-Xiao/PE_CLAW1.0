@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-21 Web 计划与部署计划重组
+
+- 合并 `Plan/Active/plan.md` 与 `student_web_migration_plan.md` 为统一的 `web_migration_plan.md`，保留 Web 架构、执行阶段、学生交付规则和验收边界。
+- 新建 `Plan/Deployment/`，增加 Windows 原生部署计划，将服务注册、IIS/HTTPS、恢复和最终集成验收从 Web 功能开发计划中独立管理。
+- 不恢复已删除的 NPC 计划、Web 源码或部署资产；本次只调整计划文档结构。
+
 ## 2026-09-21 NPC MOSFET 器件选择 GUI 修复
 
 - 修复 NPC 选择通用 `MOSFET` 器件类型时，通用库预筛选误删独立钳位二极管，导致损耗摘要出现 `NoneType is not iterable` 的问题。
