@@ -149,6 +149,8 @@ def npc_scheme_role_loss_totals(scheme_or_role_results) -> dict[str, float]:
     """Return already-aggregated design-point loss for each selected NPC role."""
 
     role_results = getattr(scheme_or_role_results, "role_results", scheme_or_role_results)
+    if role_results is None:
+        return {}
     return {
         str(role_result.role): float(role_result.total_loss_w)
         for role_result in role_results

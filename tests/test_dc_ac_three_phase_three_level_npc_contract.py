@@ -24,6 +24,7 @@ from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
 from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import run_efficiency_sweep
 from pe_claw_gui.reports.structured_output import build_structured_report
+from pe_claw_gui.app.result_views.loss_view import build_system_loss_summary
 from pe_claw_gui.engines.devices.loss_evaluator import (
     evaluate_npc_switching_event_energy,
     evaluate_npc_switching_events,
@@ -374,6 +375,29 @@ def test_full_pipeline_returns_npc_specific_report_and_device_roles() -> None:
     assert any("split DC-link capacitor" in line for line in report.topology_result.summary_lines)
     assert all("buck" not in line.lower() and "boost" not in line.lower() for line in report.topology_result.summary_lines)
     assert any("neutral-point balancing" in note.lower() for note in report.notes)
+
+
+def test_npc_mosfet_filter_keeps_independent_clamp_diode_and_loss_summary() -> None:
+    plugin = _plugin()
+    raw = MODULE.build_default_inputs() | {"semiconductor_device_type": "MOSFET"}
+
+    report = run_full_pipeline(
+        plugin=plugin,
+        raw_input=raw,
+        pipeline_options=NO_DOWNSTREAM,
+    )
+
+    assert report.device is not None
+    assert set(report.device.selected_devices) >= {
+        "npc_outer_switch",
+        "npc_inner_switch",
+        "npc_clamp_diode",
+    }
+    assert report.device.selected_device_types["npc_outer_switch"] == "MOSFET"
+    assert report.device.selected_device_types["npc_inner_switch"] == "MOSFET"
+    assert report.device.selected_device_types["npc_clamp_diode"] == "Diode"
+    assert report.device.active_scheme_id == "single"
+    assert "Total semiconductor loss" in "\n".join(build_system_loss_summary(report))
 
 
 def test_npc_report_switching_loss_matches_event_energy_per_physical_position() -> None:

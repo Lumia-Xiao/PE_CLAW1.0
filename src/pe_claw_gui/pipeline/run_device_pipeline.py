@@ -1429,7 +1429,15 @@ def _evaluate_parallel_scheme(
 
         role_category = _category_for_role(role, topology_id, spec_metadata)
         topology_position_count = _topology_position_count_for_role(role, topology_id, spec_metadata)
-        role_source_candidates = switch_candidates
+        # NPC has mixed electrical roles: a generic MOSFET/IGBT library filter
+        # applies to the active switches, but must not remove the independent
+        # clamp-diode candidates required by the topology.
+        role_source_candidates = (
+            registered_switch_candidates
+            if topology_id == CONVENTIONAL_NPC_CONTRACT.topology_id
+            and role.strip().casefold() == "npc_clamp_diode"
+            else switch_candidates
+        )
         diode_binding_policy = str(spec_metadata.get(DIODE_BINDING_POLICY_INPUT_KEY, "auto"))
         bound_to_role: str | None = None
         if _is_rectifier_diode_role(role) and (
