@@ -1426,3 +1426,10 @@ listed here.
 - Validation: initial parity/event tests 18 passed. The seven-file DC-AC regression run completed with 84 passed and one VSI other_loss_w contract failure; the subsequent targeted check exposed the conflicting historical NPC None assertion. After restoring the remote field contract, the final parity/event, VSI sweep, NPC loss-model and TCM load-point suite passed all 25 tests in 108.74 s. XML evidence: pytest_temp/event-loss-regression.xml and pytest_temp/event-final.xml. No failures remain among the exercised cases after targeted reruns; the entire seven-file suite was not repeated. Python syntax checks and git diff --check passed. No Web or full-repository regression was run.
 - Scope: this aligns the event-loss implementation for the same hardware and inputs, not the entire merged repository or all design-selection defaults. Existing NPC voltage/role audits and unrelated capacitor, magnetic and Web files remain. The restored NPC waveform also retains baseline nominal-bus and load-clamping behavior; this work does not claim new operating-boundary support. Generated outputs and test artifacts are excluded from the commit and were not deleted.
 - Git: implementation, tests and this record form one commit on codex/align-dcac-event-loss-646eb44, pushed to the same origin branch. This branch descends from the existing local merges; origin/master is not updated. No backup or cleanup operation was performed.
+
+## 2026-09-22 - LLC 波形工况轻量级修正计划
+
+- 新增 Plan/Active/llc_waveform_operating_point_fix_plan.md，记录 Vout 输入被固定频率 LLC 波形计算忽略的根因，以及固定频率/目标 Vout 调频两种待确定的行为。
+- 计划限定 GUI、LLC 波形及工况结果链，包含三个实施步骤、工况验证矩阵和拟执行命令；本次没有修改运行代码，未开始实施或运行实现测试。
+- 文档验证：核对唯一目标路径 C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0、计划内容和 git diff --check。实施测试命令只列为计划，不记为通过。
+- Git：计划和本条记录在 codex/llc-waveform-operating-point-plan 分支作为同一文档提交；未请求推送目标，未推送。保留工作区已有删除及未跟踪文件。未进行备份或清理操作。
