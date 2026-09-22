@@ -1441,3 +1441,8 @@ listed here.
 - SR 初次对象身份断言失败已定位为空 device 路径触发选型并更新审计 metadata/notes；改为严格检查电气参数及 llc_fha 不变并记录元数据变化，最终脚本重跑通过。此缺省路径问题及过时提示列入后续，不在本步骤修正。
 - 验证：FHA 缓存与 LLC 既有边界定向测试 6 passed in 24.50s，无跳过；LLC 收集 141/714 项，不声称全量已运行。具体命令见主计划，JSON 保存完整数组散列及逐数组差值，XML 在本地 pytest_temp/llc-waveform-step1-tests.xml。git diff --check 通过。
 - Git：本步骤在 codex/llc-waveform-operating-point-plan 提交，按用户要求推送 origin 同名分支；推送成功后另记完成回执。未执行步骤 2/3；用户原始工况参数未提供，使用默认重建案例。保留已有工作区删除及输出，未执行备份或清理。
+
+### LLC 波形步骤 1 推送回执
+
+- 基线、证据及计划提交 ead8279 已成功推送至 origin/codex/llc-waveform-operating-point-plan，包含此前计划提交 0e59ef6；主计划据此将步骤 1 标记完成。
+- 此回执只更新计划状态和 ChangeLog，git diff --check 通过；随独立文档提交推送同一分支。步骤 2/3 未执行。
