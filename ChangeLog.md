@@ -1433,3 +1433,11 @@ listed here.
 - 计划限定 GUI、LLC 波形及工况结果链，包含三个实施步骤、工况验证矩阵和拟执行命令；本次没有修改运行代码，未开始实施或运行实现测试。
 - 文档验证：核对唯一目标路径 C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0、计划内容和 git diff --check。实施测试命令只列为计划，不记为通过。
 - Git：计划和本条记录在 codex/llc-waveform-operating-point-plan 分支作为同一文档提交；未请求推送目标，未推送。保留工作区已有删除及未跟踪文件。未进行备份或清理操作。
+
+## 2026-09-22 - LLC 波形工况修正步骤 1 基线
+
+- 新增 scripts/build_llc_waveform_operating_point_baseline.py 及 Plan/Active/llc_waveform_operating_point_evidence/ 下生成 JSON 和核查记录，更新主计划。未修改 src 运行代码。
+- 固化固定频率方向、负载电阻缩放定义、频率优先级、Vout 兼容行为及边界；6 桥型/114 直接场景/24 表单控制器绘图检查通过，完整数组证明 Vout 被忽略，而 Vin/负载/频率有效。
+- SR 初次对象身份断言失败已定位为空 device 路径触发选型并更新审计 metadata/notes；改为严格检查电气参数及 llc_fha 不变并记录元数据变化，最终脚本重跑通过。此缺省路径问题及过时提示列入后续，不在本步骤修正。
+- 验证：FHA 缓存与 LLC 既有边界定向测试 6 passed in 24.50s，无跳过；LLC 收集 141/714 项，不声称全量已运行。具体命令见主计划，JSON 保存完整数组散列及逐数组差值，XML 在本地 pytest_temp/llc-waveform-step1-tests.xml。git diff --check 通过。
+- Git：本步骤在 codex/llc-waveform-operating-point-plan 提交，按用户要求推送 origin 同名分支；推送成功后另记完成回执。未执行步骤 2/3；用户原始工况参数未提供，使用默认重建案例。保留已有工作区删除及输出，未执行备份或清理。

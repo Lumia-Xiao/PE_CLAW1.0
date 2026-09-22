@@ -1,10 +1,10 @@
 # LLC 波形工况轻量级修正计划
 
 - 创建日期：2026-09-22
-- 状态：计划已编写，修正尚未执行；工况输入语义待确定。
+- 状态：步骤 1 基线与行为约定已验证，待提交推送回执；步骤 2/3 未执行。
 - 唯一目标工程：`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0`
 - 范围：LLC 二极管整流及同步整流的 Waveform Operating Point / Generate Waveforms。
-- 本次交付仅为计划，不修改运行代码。
+- 当前阶段仅增加基线脚本与证据，不修改运行代码。
 
 ## 1. 已确认的问题
 
@@ -18,7 +18,7 @@
 
 ## 2. 首先确定输入语义
 
-实施前从以下两种行为中确定一种，并把决定及兼容规则记录在本计划中；当前不默认切换电气模型。
+步骤 1 依据当前契约选择方案 A：保持固定频率，后续取消可编辑 Waveform Vout，显示实际 Vout 和实际频率；本轮不新增 GUI 频率输入。这是基于现有契约的实施选择，并非用户已单独确认 A/B。公共 OperatingPoint.vout_v 保留，旧 LLC 调用方传入该字段不作为调频命令。详细公式、兼容行为和边界见 [步骤 1 核查记录](llc_waveform_operating_point_evidence/step1_findings.md)。
 
 | 方案 | 界面与计算行为 | 需要处理的边界 |
 | --- | --- | --- |
@@ -33,11 +33,29 @@
 
 以下路径均相对于上述唯一目标工程。
 
-### 步骤 1：固化行为与基线（待执行）
+### 步骤 1：固化行为与基线（验证通过，待提交推送）
 
 - 核实 A/B、负载率语义、频率边界及旧调用方的兼容行为。
 - 检查默认工况和用户报告的工况，比较完整波形数组、实际 Vout、频率、电流峰值与 RMS。
 - 核实注册、输入规范化、设计候选及 GUI 表单的路由，明确设计输入与波形工况输入的区别。
+
+已覆盖 6 个桥型组合、114 个直接场景、24 次表单到绘图链路检查。完整数组比较确认：只改变目标 Vout 不改变波形；Vin、负载率或频率改变会改变波形。默认全桥额定场景实际 Vout=50 V，iLr 峰值约 17.744196 A、采样 RMS 约 12.833116 A；50% 负载实际 Vout 仍为 50 V，峰值约 9.954512 A、RMS 约 7.470183 A。
+
+用户未提供原始设计参数，具体保存项目尚未复现；本步骤采用默认重建案例，不将其计为用户原始项目验收。新增发现：空 device 报告会触发器件选型；SR 补充审计元数据会替换候选对象但不改变电气参数。该边界及旧增益误差提示纳入后续核查，不在步骤 1 修正运行代码。
+
+验证命令与结果：
+
+```powershell
+python -B scripts/build_llc_waveform_operating_point_baseline.py --output Plan/Active/llc_waveform_operating_point_evidence/step1_baseline.json
+# 6 个组合全部通过，含 114 个计算场景和 24 个链路检查
+python -B -m pytest -q tests/test_llc_fha_boundary_cache.py tests/test_phase7_dc_dc_topologies.py::test_llc_first_pass_boundaries_are_preserved --basetemp pytest_temp/llc-waveform-step1 --junitxml=pytest_temp/llc-waveform-step1-tests.xml
+# 6 passed in 24.50s，无失败或跳过
+python -B -m pytest --collect-only -q tests -k llc
+# 141/714 tests collected (573 deselected)；仅收集，没有执行 141 项回归
+git diff --check
+```
+
+首次基线运行在 SR 候选对象身份断言处失败。已查明是空器件报告触发选型、补充 metadata/notes，而非电路被重新设计；脚本改为检查所有电气字段、完整 llc_fha 和后续器件选择是否保留，同时将对象变化记录进证据。最终重跑通过，未隐藏该诊断过程。
 
 ### 步骤 2：最小修正与定向回归（待执行）
 
@@ -80,3 +98,4 @@ git diff --check
 | 日期 | 内容 | 状态 |
 | --- | --- | --- |
 | 2026-09-22 | 整理已确认根因、模型决策点、最小修改范围及验证矩阵 | 计划编写完成；实现未开始 |
+| 2026-09-22 | 步骤 1：公式、注册/表单/刷新路由核查；基线脚本、JSON 证据及定向测试 | 验证通过，待 commit/push 回执；步骤 2/3 未开始 |
