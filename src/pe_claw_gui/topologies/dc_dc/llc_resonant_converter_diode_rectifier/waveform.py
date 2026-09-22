@@ -125,7 +125,7 @@ def generate_waveforms(
         "Exact LLC time-domain simulation, diode commutation overlap, and harmonic-by-harmonic capacitor loss are not implemented.",
     ]
     if not fs_solution["operating_point_feasible"]:
-        notes.append("LLC FHA operating-point frequency solve did not meet the 2% gain-error tolerance; waveform is diagnostic.")
+        notes.append("LLC FHA commanded switching frequency is outside the configured operating range; waveform is diagnostic.")
     if secondary_rectifier_type == "full_wave_center_tapped_rectifier":
         notes.append("For center-tapped rectifier, v_sec is one half-secondary winding voltage before rectification.")
     phase_i_lr_vs_vab1_rad = phase(ir_complex_a)

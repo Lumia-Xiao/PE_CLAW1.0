@@ -1,4 +1,4 @@
-"""Capture the pre-fix LLC contract, including complete-array comparisons.
+"""Capture the current LLC contract, including complete-array comparisons.
 
 This is diagnostic evidence, not an assertion that ignored Vout or permissive
 boundary handling is desired. No full design pipeline is started.
@@ -81,7 +81,7 @@ def sample(plugin, candidate, point, reference):
 def build():
     registry = build_default_registry()
     result = {"source_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
-              "scope": "Pre-fix characterization; generated default inputs, not user's unsupplied exact case; no selected hardware/loss acceptance", "variants": []}
+              "scope": "Current characterization; generated default inputs, not user's unsupplied exact case; no selected hardware/loss acceptance", "variants": []}
     root = tk.Tk()
     root.withdraw()
     try:
@@ -134,7 +134,8 @@ def build():
                     gui_rows = []
                     for vin, vout, load in ((400, 36, 1), (400, 60, 1), (360, 48, .5), (420, 48, .1)):
                         for key, value in (("vin_v", vin), ("vout_v", vout), ("load_ratio", load)):
-                            form.operating_vars[key].set(str(value))
+                            if key in form.operating_vars:
+                                form.operating_vars[key].set(str(value))
                         assert form.get_raw_input() == gui_raw
                         assert RunDesignController(state).ensure_active_topology_current(gui_raw) is state.design_report
                         op = form.get_operating_point()

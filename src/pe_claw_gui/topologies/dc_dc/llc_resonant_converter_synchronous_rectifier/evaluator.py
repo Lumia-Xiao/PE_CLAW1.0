@@ -31,7 +31,7 @@ def evaluate(
     summary_lines = [
         f"Topology = {candidate.display_name}",
         "Model = first-pass LLC FHA electrical parameter design with full-bridge synchronous rectifier readback",
-        "Control = variable-frequency with fixed 50% primary bridge drive",
+        "Design coverage = variable-frequency with fixed 50% primary bridge drive; waveform refresh = fixed commanded frequency",
         "",
         "Input specification",
         (
@@ -62,6 +62,15 @@ def evaluate(
         f"Lm = {_fmt_scaled(llc_fha.get('lm_h'), 1e6)} uH",
         f"Overall FHA coverage feasible = {bool(llc_fha.get('overall_feasible', candidate.feasible))}",
     ]
+    if waveform_set is not None:
+        summary_lines.extend([
+            "",
+            "Current waveform operating point",
+            f"Vin = {waveform_set.operating_vin_v:.6g} V",
+            f"Actual Vout = {waveform_set.operating_vout_v:.6g} V",
+            f"Load ratio = {waveform_set.load_ratio:.6g} p.u.",
+            f"Actual waveform frequency = {1.0 / waveform_set.switching_period_s:.6g} Hz",
+        ])
     if stress_result is not None:
         summary_lines.extend([
             "",
@@ -77,7 +86,7 @@ def evaluate(
     if isinstance(timing_readback, dict) and timing_readback:
         summary_lines.extend([
             "",
-            "SR timing readback",
+            "Design-point SR timing readback",
             f"SR timing mode = {timing_readback.get('timing_mode', '-')}",
             f"SR timing data status = {timing_readback.get('timing_data_status', '-')}",
             f"SR deadtime = {_fmt(timing_readback.get('deadtime_ns'))} ns",
@@ -88,7 +97,7 @@ def evaluate(
         sr_loss = role_losses.get("secondary_sync_switch", {}) if isinstance(role_losses, dict) else {}
         summary_lines.extend([
             "",
-            "SR loss readback",
+            "Design-point SR loss readback",
             f"SR loss source = {loss_readback.get('loss_source', '-')}",
             f"SR loss model = {sr_loss.get('loss_model', '-')}",
             f"SR selected switch = {sr_loss.get('part_number', '-')}",

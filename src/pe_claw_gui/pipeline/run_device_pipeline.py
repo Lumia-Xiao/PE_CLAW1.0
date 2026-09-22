@@ -2291,6 +2291,16 @@ def run_device_operating_point_refresh(
         )
 
     if device_result is None or (not device_result.selected_devices and not device_result.design_point_losses):
+        if report.spec.topology_id in {_LLC_DIODE_RECTIFIER_TOPOLOGY_ID, _LLC_SR_TOPOLOGY_ID}:
+            note = "LLC operating-point device loss refresh skipped: no fixed device selection is available."
+            if device_result is not None:
+                device_result = replace(
+                    device_result,
+                    current_operating_losses={},
+                    current_operating_summary=None,
+                    current_operating_point_key=None,
+                )
+            return replace(report, device=device_result, notes=_append_unique_list([*report.notes, note]))
         report = run_device_pipeline(report, plugin=plugin)
         device_result = report.device
         if device_result is None:

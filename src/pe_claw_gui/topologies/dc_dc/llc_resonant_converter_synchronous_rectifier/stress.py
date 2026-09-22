@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from ....models.stress_result import StressMetric, StressResult
 from ....models.waveform import WaveformSet
 from ...base.candidate import TopologyCandidate
+from ..llc_resonant_converter_diode_rectifier.stress import extract_stress as extract_diode_stress
 from .input_schema import SYNCHRONOUS_RECTIFIER_TIMING_MODE_INPUT_KEY
 from .stress_readback import build_llc_sr_stress_readback
 
@@ -18,6 +21,14 @@ def extract_stress(
     llc_fha = candidate.metadata.get("llc_fha", {})
     if not isinstance(llc_fha, dict):
         raise ValueError("LLC SR stress extraction requires llc_fha candidate metadata.")
+    if waveform_set is not None and waveform_set.metadata.get("llc_fha_waveforms"):
+        # SR waveforms reuse the same ideal branch currents as the diode model.
+        stress = extract_diode_stress(candidate, waveform_set)
+        return replace(stress, notes=[
+            "LLC SR current operating-point stress uses the supplied FHA branch currents and actual voltages.",
+            "Primary branches map to main_switch; secondary branches map to secondary_sync_switch.",
+            "SR reverse conduction, deadtime overlap, Coss/Eoss and current sharing remain first-pass limitations.",
+        ])
     timing_mode = str(
         candidate.metadata.get("llc_sr", {})
         .get("timing_readback", {})

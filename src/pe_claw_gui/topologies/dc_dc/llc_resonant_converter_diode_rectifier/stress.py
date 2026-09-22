@@ -62,9 +62,13 @@ def extract_stress(
     rectifier_diode_rms_a = _read_estimate(stress_basis, "rectifier_diode_rms_a", full_load_output_current_a)
     rectifier_diode_avg_a = _read_estimate(stress_basis, "rectifier_diode_avg_a", full_load_output_current_a / 2.0)
     if isinstance(primary_switch_rows, dict) and primary_switch_rows:
+        primary_switch_voltage_stress_v = waveform_set.operating_vin_v
         primary_switch_rms_a = max(float(row.get("rms_a", 0.0)) for row in primary_switch_rows.values())
         primary_switch_peak_a = max(float(row.get("peak_a", 0.0)) for row in primary_switch_rows.values())
     if isinstance(diode_rows, dict) and diode_rows:
+        rectifier_reverse_voltage_v = waveform_set.operating_vout_v * (
+            2.0 if secondary_rectifier_type == "full_wave_center_tapped_rectifier" else 1.0
+        )
         rectifier_diode_avg_a = max(float(row.get("avg_a", 0.0)) for row in diode_rows.values())
         rectifier_diode_rms_a = max(float(row.get("rms_a", 0.0)) for row in diode_rows.values())
         rectifier_diode_peak_a = max(float(row.get("peak_a", 0.0)) for row in diode_rows.values())
@@ -78,6 +82,10 @@ def extract_stress(
         f"Rectifier diode reverse voltage stress is approximated from secondary_rectifier_type={secondary_rectifier_type}.",
         f"Full-load output current is {full_load_output_current_a:.6g} A and is not used as primary switch current.",
     ]
+    if primary_switch_rows and diode_rows:
+        notes[1:5] = [
+            "Current operating-point stress uses the supplied FHA waveform branch peak/RMS/average currents and actual voltages.",
+        ]
     return StressResult(
         switch=StressMetric(
             voltage_max_v=primary_switch_voltage_stress_v,

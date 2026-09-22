@@ -1446,3 +1446,12 @@ listed here.
 
 - 基线、证据及计划提交 ead8279 已成功推送至 origin/codex/llc-waveform-operating-point-plan，包含此前计划提交 0e59ef6；主计划据此将步骤 1 标记完成。
 - 此回执只更新计划状态和 ChangeLog，git diff --check 通过；随独立文档提交推送同一分支。步骤 2/3 未执行。
+
+## 2026-09-22 - LLC 波形工况修正步骤 2
+
+- LLC 二极管/SR 共用表单取消无效目标 Vout，新增实际 Vout/频率标签，输入变化及空报告清空旧值；waveform_view 标题显示实际值、频率及负载。两类 evaluator 区分设计覆盖和固定频率刷新，SR 旧 timing/loss 标签明确为设计点。
+- 修复 SR stress 忽略当前波形及 LLC 损耗适配频率取候选设计值的问题。当前支路电流、电压、频率进入应力/损耗；设计选型保留原有覆盖电压和 SR 角点电流依据。LLC 空 device 报告不再隐式选型，缺少选型时明确跳过当前器件损耗。
+- 固定频率公式、公共 OperatingPoint 和报告 schema 未变；更正越界诊断文字，新增 tests/test_llc_waveform_operating_point.py、使用说明及步骤 2 JSON/核查记录。更新基线脚本兼容取消 Vout 的表单，保留步骤 1 证据。
+- 验证：新增定向测试 32 passed；最终 LLC 全量 173 passed / 573 deselected (160.99s)，无失败/跳过；共享报告/刷新/NPC/迁移定向 15 passed (104.94s)。6 桥型、114 直接场景与 24 次 GUI 数据链路检查通过，波形完整数组与原基线一致；图表预览目视检查通过，git diff --check 通过。命令/XML 本地路径见计划。
+- 初次回归暴露三个旧效率测试替身缺少 npc_periodic_initial_current_a 关键字；仅对齐签名，未改生产效率扫描或原断言。新测试报告字段名错误已纠正；一次 Tk 初始化失败通过模块共用 Tk、销毁单个表单解决，最终 GUI 测试全部运行通过。未运行全仓库测试。
+- Git：在 codex/llc-waveform-operating-point-plan 提交并按用户授权推送 origin 同名分支，成功后另记回执。步骤 3 尚未执行；保留无关工作区删除/未跟踪文件，未执行备份或清理。

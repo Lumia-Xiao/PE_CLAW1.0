@@ -1,10 +1,10 @@
 # LLC 波形工况轻量级修正计划
 
 - 创建日期：2026-09-22
-- 状态：步骤 1 已完成并推送（`ead8279`）；步骤 2/3 未执行。
+- 状态：步骤 1 已完成并推送（`ead8279`）；步骤 2 实现与验证通过，待提交推送回执；步骤 3 未执行。
 - 唯一目标工程：`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0`
 - 范围：LLC 二极管整流及同步整流的 Waveform Operating Point / Generate Waveforms。
-- 当前阶段仅增加基线脚本与证据，不修改运行代码。
+- 当前阶段执行方案 A 的最小修正与定向回归。
 
 ## 1. 已确认的问题
 
@@ -57,13 +57,38 @@ git diff --check
 
 首次基线运行在 SR 候选对象身份断言处失败。已查明是空器件报告触发选型、补充 metadata/notes，而非电路被重新设计；脚本改为检查所有电气字段、完整 llc_fha 和后续器件选择是否保留，同时将对象变化记录进证据。最终重跑通过，未隐藏该诊断过程。
 
-### 步骤 2：最小修正与定向回归（待执行）
+### 步骤 2：最小修正与定向回归（实现与验证通过，待提交推送）
 
 - GUI：`src/pe_claw_gui/app/topology_forms/llc_resonant_converter_diode_rectifier_form.py` 及同步整流继承表单。
 - 核心：`src/pe_claw_gui/topologies/dc_dc/llc_resonant_converter_diode_rectifier/waveform.py`，必要时复用 `fha_design.py` 中的增益算法；核对同步整流 `waveform.py` 的委托路径。
 - 端到端核对：`app/shell/main_window.py`、`app/controllers/waveform_controller.py`、`pipeline/run_operating_point_refresh.py`、`app/result_views/waveform_view.py`（均位于 `src/pe_claw_gui/` 下）；只修改存在实际缺陷的层。
 - 检查应力、已选器件损耗及报告是否使用本次波形；若改变共享模型或报告契约，同步更新相应校验和测试。
 - 不扩展 Web 功能，不重写 FHA 为时域仿真，不重做硬件搜索。
+
+执行结果：
+
+- 两类 LLC 表单移除可编辑波形 Vout，显示实际 Vout/频率；变更输入或清空报告时清除旧读数。图标题显示实际值与负载率。
+- 波形公式及 114 个原场景的完整数组保持不变，修正越界提示和报告中“求得频率”的误导表述。
+- SR 应力改用当前波形支路电流；LLC 当前电压和频率传递到器件损耗适配器，设计选型仍保留既有覆盖电压/SR 角点电流依据。缺少已选器件的 LLC 报告跳过损耗刷新，不再隐式选型。
+- 新增 32 项工况回归；仅对齐三个旧效率测试替身的关键字参数签名，原断言保留。初始失败及修复经过见 [步骤 2 核查记录](llc_waveform_operating_point_evidence/step2_findings.md)。
+- 新证据为 `llc_waveform_operating_point_evidence/step2_readback.json`，保留步骤 1 JSON 原样；使用说明为 `docs/llc_waveform_operating_point.md`。
+
+验证命令与最终结果：
+
+```powershell
+python -B -m pytest -q tests/test_llc_waveform_operating_point.py --basetemp pytest_temp/llc-waveform-step2-final --junitxml=pytest_temp/llc-waveform-step2-final.xml
+# 32 passed in 50.73s
+python -B -m pytest -q tests -k llc --basetemp pytest_temp/llc-waveform-step2-regression-final --junitxml=pytest_temp/llc-waveform-step2-regression-final.xml
+# 173 passed, 573 deselected in 160.99s；包括新增 32 项，无失败或跳过
+python -B -m pytest -q tests/test_phase10_structured_output.py tests/test_dc_ac_operating_refresh_gui_chain.py tests/test_npc_loss_model_step5.py tests/test_phase9_operating_point_migration.py --basetemp pytest_temp/llc-waveform-step2-shared --junitxml=pytest_temp/llc-waveform-step2-shared.xml
+# 15 passed in 104.94s
+python -B scripts/build_llc_waveform_operating_point_baseline.py --output Plan/Active/llc_waveform_operating_point_evidence/step2_readback.json
+# 6 个组合、114 个直接场景、24 次表单到绘图数据回读通过
+git diff --check
+# 通过
+```
+
+以上为步骤 2 自动化验证，未替代步骤 3 的最终交互验收。未运行全仓库测试。
 
 ### 步骤 3：验收与归档（待执行）
 
@@ -82,7 +107,7 @@ git diff --check
 | 硬件与结果一致性 | candidate 及已选硬件不变，波形、应力、损耗使用同一当前工况。 |
 | 绘图更新 | 当前报告的数据进入绘图；数值变化可从标题、刻度或曲线读回。 |
 
-计划新增定向测试 `tests/test_llc_waveform_operating_point.py`（尚未创建）。实施时先核实以下命令的收集结果并补齐已有 LLC 工况测试：
+已新增定向测试 `tests/test_llc_waveform_operating_point.py`。后续验收可复用以下命令：
 
 ```powershell
 python -B -m pytest -q tests/test_llc_waveform_operating_point.py
@@ -99,3 +124,4 @@ git diff --check
 | --- | --- | --- |
 | 2026-09-22 | 整理已确认根因、模型决策点、最小修改范围及验证矩阵 | 计划编写完成；实现未开始 |
 | 2026-09-22 | 步骤 1：公式、注册/表单/刷新路由核查；基线脚本、JSON 证据及定向测试 | `ead8279` 已推送到 `origin/codex/llc-waveform-operating-point-plan`；步骤 2/3 未开始 |
+| 2026-09-22 | 步骤 2：实际值显示、应力/损耗刷新一致性及定向回归 | 实现与验证通过，待 commit/push 回执；步骤 3 未开始 |

@@ -101,7 +101,7 @@ def test_llc_efficiency_sweep_records_current_run_and_fixed_parameters(tmp_path:
     report = _base_report(tmp_path)
     point = EfficiencySweepPoint(1.0, 1000.0, 10.0, 1000.0 / 1010.0, 2.0, 5.0, 3.0, 0.0)
     sweep_module = importlib.import_module("pe_claw_gui.pipeline.run_efficiency_sweep_pipeline")
-    monkeypatch.setattr(sweep_module, "_evaluate_sweep_load_point", lambda *args: (point, []))
+    monkeypatch.setattr(sweep_module, "_evaluate_sweep_load_point", lambda *args, npc_periodic_initial_current_a=None: (point, []))
     result = run_efficiency_sweep(report, plugin=SimpleNamespace(), load_points=(1.0,))
     assert result.status == "available"
     assert result.run_id == report.llc_run_context.run_id
@@ -113,7 +113,7 @@ def test_llc_efficiency_sweep_does_not_emit_generic_magnetic_warning_for_current
     report = _base_report(tmp_path)
     point = EfficiencySweepPoint(1.0, 1000.0, 10.0, 1000.0 / 1010.0, 2.0, 5.0, 3.0, 0.0)
     sweep_module = importlib.import_module("pe_claw_gui.pipeline.run_efficiency_sweep_pipeline")
-    monkeypatch.setattr(sweep_module, "_evaluate_sweep_load_point", lambda *args: (point, []))
+    monkeypatch.setattr(sweep_module, "_evaluate_sweep_load_point", lambda *args, npc_periodic_initial_current_a=None: (point, []))
 
     result = run_efficiency_sweep(report, plugin=SimpleNamespace(), load_points=(1.0,))
 
@@ -167,7 +167,7 @@ def test_llc_efficiency_sweep_persists_csv_audit_artifact(tmp_path: Path, monkey
     report = _base_report(tmp_path)
     point = EfficiencySweepPoint(1.0, 1000.0, 10.0, 1000.0 / 1010.0, 2.0, 5.0, 3.0, 0.0)
     sweep_module = importlib.import_module("pe_claw_gui.pipeline.run_efficiency_sweep_pipeline")
-    monkeypatch.setattr(sweep_module, "_evaluate_sweep_load_point", lambda *args: (point, []))
+    monkeypatch.setattr(sweep_module, "_evaluate_sweep_load_point", lambda *args, npc_periodic_initial_current_a=None: (point, []))
     result = run_efficiency_sweep(report, plugin=SimpleNamespace(), load_points=(1.0,))
     csv_path = Path(report.llc_run_context.output_root) / "efficiency_sweep" / "efficiency_sweep.csv"
     assert csv_path.name == "efficiency_sweep.csv"

@@ -834,7 +834,20 @@ def _build_case(report: DesignReport, waveform: WaveformSet, operating_point: Op
         fallback = _fallback_case(report, case_id=case_id, label=label, operating_point=operating_point)
         if fallback is None:
             raise ValueError("Stress result is required to build LLC switch stresses.")
-        return fallback
+        if case_id == "design_point":
+            return fallback
+        return replace(
+            fallback,
+            stresses=tuple(replace(
+                stress,
+                fsw_Hz=1.0 / waveform.switching_period_s,
+                conduction_time_s=stress.duty * waveform.switching_period_s,
+            ) for stress in fallback.stresses),
+            notes=[
+                _format_operating_point_note(label, operating_point, waveform.mode),
+                "LLC stress uses the supplied current waveform and its switching frequency; FHA first-pass limitations apply.",
+            ],
+        )
     if topology_id in {
         "buck_diode_rectified_unidirectional",
         "boost_diode_rectified_unidirectional",
@@ -955,6 +968,19 @@ def build_design_point_switch_stress_cases(report: DesignReport, plugin: Topolog
         waveform=waveform,
         stress=call_with_report_run(report, plugin.extract_stress, report.candidate, waveform_set=waveform),
     )
+    if report.spec.topology_id in {_LLC_DIODE_RECTIFIER_TOPOLOGY_ID, _LLC_SR_TOPOLOGY_ID}:
+        # Keep the existing selection basis separate from current-point losses:
+        # SR uses coverage-corner stress; diode LLC uses waveform currents with
+        # coverage-corner voltage ratings. Refresh must not lower sizing limits.
+        sizing = call_with_report_run(report, plugin.extract_stress, report.candidate)
+        if report.spec.topology_id == _LLC_SR_TOPOLOGY_ID:
+            case_report = replace(case_report, stress=sizing)
+        else:
+            case_report = replace(case_report, stress=replace(
+                case_report.stress,
+                switch=replace(case_report.stress.switch, voltage_max_v=sizing.switch.voltage_max_v),
+                rectifier=replace(case_report.stress.rectifier, voltage_max_v=sizing.rectifier.voltage_max_v),
+            ))
     return [_build_case(case_report, waveform, design_operating_point, "design_point", "Design Point")]
 
 

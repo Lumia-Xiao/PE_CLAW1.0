@@ -8,6 +8,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 from ...models.design_report import DesignReport
+from ...models.waveform import WaveformSet
+from ...topology_capabilities import is_llc_resonant_topology
 
 
 class WaveformView(ttk.Frame):
@@ -120,11 +122,7 @@ class WaveformView(ttk.Frame):
 
         axes[-1].set_xlabel("Time [us]")
         self.figure.suptitle(
-            (
-                f"{report.spec.display_name} | Vin={waveform.operating_vin_v:.3f} V | "
-                f"Vout~={waveform.operating_vout_v:.3f} V | Duty={waveform.duty:.4f} | "
-                f"Mode={waveform.mode}"
-            ),
+            _waveform_title(report, waveform),
             fontsize=11,
         )
         self.figure.tight_layout(rect=[0, 0, 1, 0.97])
@@ -296,3 +294,20 @@ def _series(data: dict[str, object], key: str) -> list[float]:
     if not isinstance(values, list):
         return []
     return [float(value) for value in values]
+
+
+def _waveform_title(report: DesignReport, waveform: WaveformSet) -> str:
+    """Use explicit actual-output wording for fixed-frequency LLC readback."""
+
+    if is_llc_resonant_topology(report.spec.topology_id):
+        frequency_hz = 1.0 / waveform.switching_period_s if waveform.switching_period_s else 0.0
+        return (
+            f"{report.spec.display_name}\nVin={waveform.operating_vin_v:.3f} V | "
+            f"Vout(actual)={waveform.operating_vout_v:.3f} V | "
+            f"f_sw={frequency_hz / 1e3:.3f} kHz | Load={waveform.load_ratio:.3f} p.u."
+        )
+    return (
+        f"{report.spec.display_name} | Vin={waveform.operating_vin_v:.3f} V | "
+        f"Vout~={waveform.operating_vout_v:.3f} V | Duty={waveform.duty:.4f} | "
+        f"Mode={waveform.mode}"
+    )
