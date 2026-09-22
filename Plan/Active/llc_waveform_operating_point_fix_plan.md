@@ -1,7 +1,7 @@
 # LLC 波形工况轻量级修正计划
 
 - 创建日期：2026-09-22
-- 状态：步骤 1 已完成并推送（`ead8279`）；步骤 2 实现与验证通过，待提交推送回执；步骤 3 未执行。
+- 状态：步骤 1 已完成并推送（`ead8279`）；步骤 2 已完成并推送（`85d1da8`）；步骤 3 未执行。
 - 唯一目标工程：`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0`
 - 范围：LLC 二极管整流及同步整流的 Waveform Operating Point / Generate Waveforms。
 - 当前阶段执行方案 A 的最小修正与定向回归。
@@ -57,7 +57,7 @@ git diff --check
 
 首次基线运行在 SR 候选对象身份断言处失败。已查明是空器件报告触发选型、补充 metadata/notes，而非电路被重新设计；脚本改为检查所有电气字段、完整 llc_fha 和后续器件选择是否保留，同时将对象变化记录进证据。最终重跑通过，未隐藏该诊断过程。
 
-### 步骤 2：最小修正与定向回归（实现与验证通过，待提交推送）
+### 步骤 2：最小修正与定向回归（已完成并推送）
 
 - GUI：`src/pe_claw_gui/app/topology_forms/llc_resonant_converter_diode_rectifier_form.py` 及同步整流继承表单。
 - 核心：`src/pe_claw_gui/topologies/dc_dc/llc_resonant_converter_diode_rectifier/waveform.py`，必要时复用 `fha_design.py` 中的增益算法；核对同步整流 `waveform.py` 的委托路径。
@@ -124,4 +124,4 @@ git diff --check
 | --- | --- | --- |
 | 2026-09-22 | 整理已确认根因、模型决策点、最小修改范围及验证矩阵 | 计划编写完成；实现未开始 |
 | 2026-09-22 | 步骤 1：公式、注册/表单/刷新路由核查；基线脚本、JSON 证据及定向测试 | `ead8279` 已推送到 `origin/codex/llc-waveform-operating-point-plan`；步骤 2/3 未开始 |
-| 2026-09-22 | 步骤 2：实际值显示、应力/损耗刷新一致性及定向回归 | 实现与验证通过，待 commit/push 回执；步骤 3 未开始 |
+| 2026-09-22 | 步骤 2：实际值显示、应力/损耗刷新一致性及定向回归 | `85d1da8` 已推送到 `origin/codex/llc-waveform-operating-point-plan`；步骤 3 未开始 |

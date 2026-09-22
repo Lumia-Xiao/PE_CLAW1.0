@@ -1455,3 +1455,8 @@ listed here.
 - 验证：新增定向测试 32 passed；最终 LLC 全量 173 passed / 573 deselected (160.99s)，无失败/跳过；共享报告/刷新/NPC/迁移定向 15 passed (104.94s)。6 桥型、114 直接场景与 24 次 GUI 数据链路检查通过，波形完整数组与原基线一致；图表预览目视检查通过，git diff --check 通过。命令/XML 本地路径见计划。
 - 初次回归暴露三个旧效率测试替身缺少 npc_periodic_initial_current_a 关键字；仅对齐签名，未改生产效率扫描或原断言。新测试报告字段名错误已纠正；一次 Tk 初始化失败通过模块共用 Tk、销毁单个表单解决，最终 GUI 测试全部运行通过。未运行全仓库测试。
 - Git：在 codex/llc-waveform-operating-point-plan 提交并按用户授权推送 origin 同名分支，成功后另记回执。步骤 3 尚未执行；保留无关工作区删除/未跟踪文件，未执行备份或清理。
+
+### LLC 波形步骤 2 推送回执
+
+- 实现、回归、说明及证据提交 85d1da8 已成功推送至 origin/codex/llc-waveform-operating-point-plan，主计划据此标记步骤 2 完成；步骤 3 未执行。
+- 本回执仅更新计划和 ChangeLog，git diff --check 通过，随独立文档提交推送同一分支。
