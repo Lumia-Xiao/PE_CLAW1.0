@@ -1,0 +1,4069 @@
+{
+  "source_revision": "d5771d27a1510d65c2759f2353811859af1c282b",
+  "method": "Real MainWindow, ttk.Entry edits, ttk.Button.invoke, FigureCanvasTkAgg; real design/device/refresh pipelines",
+  "limits": "Default reconstructed designs; no manual mouse acceptance or supplied user project. Magnetic/capacitor design stages not run here; their existing LLC tests run separately.",
+  "variants": [
+    {
+      "topology": "llc_resonant_converter_diode_rectifier",
+      "primary": "full_bridge",
+      "secondary": "full_bridge_rectifier",
+      "layout": [
+        {
+          "window": "1400x860",
+          "scroll_fraction": [
+            0.19081632653061226,
+            1.0
+          ],
+          "generate_button_reachable": true
+        },
+        {
+          "window": "1240x760",
+          "scroll_fraction": [
+            0.29285714285714287,
+            1.0
+          ],
+          "generate_button_reachable": true
+        }
+      ],
+      "selected_devices": {
+        "main_switch": "CAB530M12BM3",
+        "rectifier_diode": "CAR600M17HN6"
+      },
+      "candidate_preserved": true,
+      "design_calls": 1,
+      "waveform_button_invocations": 14,
+      "cases": [
+        {
+          "case": "nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "6c2a2118fe9414be7b486d7951f5e4e75ced9a7d6eb03981c2cdfa9a6c456932",
+          "switch_rms_a": 9.07518828931616,
+          "conduction_losses_w": {
+            "main_switch": 0.10377239353304185,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -19.518615761771738,
+              19.518615761771738
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "repeat",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "6c2a2118fe9414be7b486d7951f5e4e75ced9a7d6eb03981c2cdfa9a6c456932",
+          "switch_rms_a": 9.07518828931616,
+          "conduction_losses_w": {
+            "main_switch": 0.10377239353304185,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -19.518615761771738,
+              19.518615761771738
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_min",
+          "vin_v": 360,
+          "load_ratio_input": 1,
+          "actual_vout_v": 45.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "d30c056964582b8548d31f2b4abd34ec7e5b31f5947ec144b7838000778ecb09",
+          "switch_rms_a": 8.167669460384545,
+          "conduction_losses_w": {
+            "main_switch": 0.08405563876176395,
+            "rectifier_diode": 66.37284510949577
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=360.000 V | Vout(actual)=45.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -396.0,
+              396.0
+            ],
+            [
+              -17.56675418559456,
+              17.56675418559457
+            ],
+            [
+              -84.22162328036113,
+              50.76868605357535
+            ],
+            [
+              42.525,
+              47.475
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              42.0,
+              44.0,
+              46.0,
+              48.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_max",
+          "vin_v": 420,
+          "load_ratio_input": 1,
+          "actual_vout_v": 52.5,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "8c84666e45e64e28e0b59c093ae1819229bc03d08d882cc72eae88a64e50a0b0",
+          "switch_rms_a": 9.52894770378197,
+          "conduction_losses_w": {
+            "main_switch": 0.11440906387017871,
+            "rectifier_diode": 77.43498596107841
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=420.000 V | Vout(actual)=52.500 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -462.0,
+              462.0
+            ],
+            [
+              -20.494546549860328,
+              20.494546549860328
+            ],
+            [
+              -98.25856049375466,
+              59.23013372917124
+            ],
+            [
+              49.6125,
+              55.3875
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              48.0,
+              50.0,
+              52.0,
+              54.0,
+              56.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_50pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "abdcf207886bba0a7c6b1de6ba8b894171a2507cf0916d84537e3f418da08fc3",
+          "switch_rms_a": 5.283599577862272,
+          "conduction_losses_w": {
+            "main_switch": 0.03517469486897484,
+            "rectifier_diode": 36.87380283860876
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.500 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -10.949963678502495,
+              10.949963678502499
+            ],
+            [
+              -46.78979071131174,
+              28.204825585319636
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -60.0,
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_10pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "a3fc2ba65a8f92cd53baa1a1a6ff3953813e7cb7269395db47c175c5956a4c75",
+          "switch_rms_a": 3.2395658263466185,
+          "conduction_losses_w": {
+            "main_switch": 0.013223431296473392,
+            "rectifier_diode": 7.374760567721754
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.100 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -8.410990852945915,
+              8.410990852945915
+            ],
+            [
+              -9.35795814226235,
+              5.640965117063929
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_zero",
+          "vin_v": 400,
+          "load_ratio_input": 0,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "c27176b76dff30a331ae5d163623612505c0ef273a8944385af05b373b024802",
+          "switch_rms_a": 3.125521583682973,
+          "conduction_losses_w": {
+            "main_switch": 0.012308795314285834,
+            "rectifier_diode": 5.793590315438013e-11
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -8.410990852945915,
+              8.410990852945915
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_negative",
+          "vin_v": 400,
+          "load_ratio_input": -0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "c27176b76dff30a331ae5d163623612505c0ef273a8944385af05b373b024802",
+          "switch_rms_a": 3.125521583682973,
+          "conduction_losses_w": {
+            "main_switch": 0.012308795314285834,
+            "rectifier_diode": 5.793590315438013e-11
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -8.410990852945915,
+              8.410990852945915
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_overload",
+          "vin_v": 400,
+          "load_ratio_input": 1.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "d476208e456ab8eba0313da37b57b3808cc8aded52b0e4c215ffd50ab461d424",
+          "switch_rms_a": 13.156623394022207,
+          "conduction_losses_w": {
+            "main_switch": 0.21810189130648683,
+            "rectifier_diode": 110.62140851582627
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.500 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -28.634164700405112,
+              28.634164700405112
+            ],
+            [
+              -140.3693721339352,
+              84.6144767559589
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -200.0,
+              -100.0,
+              0.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "return_nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "6c2a2118fe9414be7b486d7951f5e4e75ced9a7d6eb03981c2cdfa9a6c456932",
+          "switch_rms_a": 9.07518828931616,
+          "conduction_losses_w": {
+            "main_switch": 0.10377239353304185,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -19.518615761771738,
+              19.518615761771738
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        }
+      ],
+      "rejected_inputs_and_recovery": [
+        {
+          "vin_input": "not-a-number",
+          "dialog": [
+            "Waveform Error",
+            "Operating Vin [V] must be a valid number."
+          ]
+        },
+        {
+          "vin_input": "0",
+          "dialog": [
+            "Waveform Error",
+            "Fixed-frequency LLC waveform inputs must be positive."
+          ]
+        }
+      ]
+    },
+    {
+      "topology": "llc_resonant_converter_diode_rectifier",
+      "primary": "full_bridge",
+      "secondary": "full_wave_center_tapped_rectifier",
+      "layout": [
+        {
+          "window": "1400x860",
+          "scroll_fraction": [
+            0.19081632653061226,
+            1.0
+          ],
+          "generate_button_reachable": true
+        },
+        {
+          "window": "1240x760",
+          "scroll_fraction": [
+            0.29285714285714287,
+            1.0
+          ],
+          "generate_button_reachable": true
+        }
+      ],
+      "selected_devices": {
+        "main_switch": "CAB530M12BM3",
+        "rectifier_diode": "CAR600M17HN6"
+      },
+      "candidate_preserved": true,
+      "design_calls": 1,
+      "waveform_button_invocations": 14,
+      "cases": [
+        {
+          "case": "nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "bf94d4d07f0a660ee2aafc23187518215e35413951a6720afea786a48cf04bd3",
+          "switch_rms_a": 9.07518828931616,
+          "conduction_losses_w": {
+            "main_switch": 0.10377239353304185,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -19.518615761771738,
+              19.518615761771738
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "repeat",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "bf94d4d07f0a660ee2aafc23187518215e35413951a6720afea786a48cf04bd3",
+          "switch_rms_a": 9.07518828931616,
+          "conduction_losses_w": {
+            "main_switch": 0.10377239353304185,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -19.518615761771738,
+              19.518615761771738
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_min",
+          "vin_v": 360,
+          "load_ratio_input": 1,
+          "actual_vout_v": 45.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "df626f16e78c9165c40e861f23f6e039129b67767491ddfe5b7b396feb5c6bd9",
+          "switch_rms_a": 8.167669460384545,
+          "conduction_losses_w": {
+            "main_switch": 0.08405563876176395,
+            "rectifier_diode": 66.37284510949577
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=360.000 V | Vout(actual)=45.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -396.0,
+              396.0
+            ],
+            [
+              -17.56675418559456,
+              17.56675418559457
+            ],
+            [
+              -84.22162328036113,
+              50.76868605357535
+            ],
+            [
+              42.525,
+              47.475
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              42.0,
+              44.0,
+              46.0,
+              48.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_max",
+          "vin_v": 420,
+          "load_ratio_input": 1,
+          "actual_vout_v": 52.5,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "fdbc54e6f2e68359a3d45c983e73d156af06f8fe9384663771ea79835189aa1a",
+          "switch_rms_a": 9.52894770378197,
+          "conduction_losses_w": {
+            "main_switch": 0.11440906387017871,
+            "rectifier_diode": 77.43498596107841
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=420.000 V | Vout(actual)=52.500 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -462.0,
+              462.0
+            ],
+            [
+              -20.494546549860328,
+              20.494546549860328
+            ],
+            [
+              -98.25856049375466,
+              59.23013372917124
+            ],
+            [
+              49.6125,
+              55.3875
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              48.0,
+              50.0,
+              52.0,
+              54.0,
+              56.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_50pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "589668c952a52e43abe99e72833d86c96d58c0e8d21f8e302cf42757be45e951",
+          "switch_rms_a": 5.283599577862272,
+          "conduction_losses_w": {
+            "main_switch": 0.03517469486897484,
+            "rectifier_diode": 36.87380283860876
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.500 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -10.949963678502495,
+              10.949963678502499
+            ],
+            [
+              -46.78979071131174,
+              28.204825585319636
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -60.0,
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_10pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "f5209517685a97665db2dd68709b6ec3fef00d1d5115efa0820c1a563614a3a3",
+          "switch_rms_a": 3.2395658263466185,
+          "conduction_losses_w": {
+            "main_switch": 0.013223431296473392,
+            "rectifier_diode": 7.374760567721754
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.100 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -8.410990852945915,
+              8.410990852945915
+            ],
+            [
+              -9.35795814226235,
+              5.640965117063929
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_zero",
+          "vin_v": 400,
+          "load_ratio_input": 0,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "c479a7365b4e065c576e5ce4f597449d0c695329ba9545e14e16560b80b2a067",
+          "switch_rms_a": 3.125521583682973,
+          "conduction_losses_w": {
+            "main_switch": 0.012308795314285834,
+            "rectifier_diode": 5.793590315438013e-11
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -8.410990852945915,
+              8.410990852945915
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_negative",
+          "vin_v": 400,
+          "load_ratio_input": -0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "c479a7365b4e065c576e5ce4f597449d0c695329ba9545e14e16560b80b2a067",
+          "switch_rms_a": 3.125521583682973,
+          "conduction_losses_w": {
+            "main_switch": 0.012308795314285834,
+            "rectifier_diode": 5.793590315438013e-11
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -8.410990852945915,
+              8.410990852945915
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_overload",
+          "vin_v": 400,
+          "load_ratio_input": 1.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "aa5b292554a712462da6e17d33e95e4e41ace10d3101f37b9a51c9f8b541538d",
+          "switch_rms_a": 13.156623394022207,
+          "conduction_losses_w": {
+            "main_switch": 0.21810189130648683,
+            "rectifier_diode": 110.62140851582627
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.500 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -28.634164700405112,
+              28.634164700405112
+            ],
+            [
+              -140.3693721339352,
+              84.6144767559589
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -200.0,
+              -100.0,
+              0.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "return_nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "bf94d4d07f0a660ee2aafc23187518215e35413951a6720afea786a48cf04bd3",
+          "switch_rms_a": 9.07518828931616,
+          "conduction_losses_w": {
+            "main_switch": 0.10377239353304185,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -19.518615761771738,
+              19.518615761771738
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        }
+      ],
+      "rejected_inputs_and_recovery": [
+        {
+          "vin_input": "not-a-number",
+          "dialog": [
+            "Waveform Error",
+            "Operating Vin [V] must be a valid number."
+          ]
+        },
+        {
+          "vin_input": "0",
+          "dialog": [
+            "Waveform Error",
+            "Fixed-frequency LLC waveform inputs must be positive."
+          ]
+        }
+      ]
+    },
+    {
+      "topology": "llc_resonant_converter_diode_rectifier",
+      "primary": "half_bridge",
+      "secondary": "full_bridge_rectifier",
+      "layout": [
+        {
+          "window": "1400x860",
+          "scroll_fraction": [
+            0.19081632653061226,
+            1.0
+          ],
+          "generate_button_reachable": true
+        },
+        {
+          "window": "1240x760",
+          "scroll_fraction": [
+            0.29285714285714287,
+            1.0
+          ],
+          "generate_button_reachable": true
+        }
+      ],
+      "selected_devices": {
+        "main_switch": "CAB760M12HM3",
+        "rectifier_diode": "CAR600M17HN6"
+      },
+      "candidate_preserved": true,
+      "design_calls": 1,
+      "waveform_button_invocations": 14,
+      "cases": [
+        {
+          "case": "nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "0cfccb94533bdd8001788184dc7a3baf941753521cfc88541b7d53c539a0c262",
+          "switch_rms_a": 18.15037657863232,
+          "conduction_losses_w": {
+            "main_switch": 0.21083914876554535,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -39.037231523543475,
+              39.037231523543475
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "repeat",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "0cfccb94533bdd8001788184dc7a3baf941753521cfc88541b7d53c539a0c262",
+          "switch_rms_a": 18.15037657863232,
+          "conduction_losses_w": {
+            "main_switch": 0.21083914876554535,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -39.037231523543475,
+              39.037231523543475
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_min",
+          "vin_v": 360,
+          "load_ratio_input": 1,
+          "actual_vout_v": 45.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "f7b77232e37f1f6e31d7ed4a57a5c0d140a9ce0ca773244d648969ad631a70be",
+          "switch_rms_a": 16.33533892076909,
+          "conduction_losses_w": {
+            "main_switch": 0.1707797105000918,
+            "rectifier_diode": 66.37284510949577
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=360.000 V | Vout(actual)=45.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -198.0,
+              198.0
+            ],
+            [
+              -35.13350837118912,
+              35.13350837118914
+            ],
+            [
+              -84.22162328036113,
+              50.76868605357535
+            ],
+            [
+              42.525,
+              47.475
+            ]
+          ],
+          "yticks": [
+            [
+              -200.0,
+              -100.0,
+              0.0,
+              100.0,
+              200.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              42.0,
+              44.0,
+              46.0,
+              48.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_max",
+          "vin_v": 420,
+          "load_ratio_input": 1,
+          "actual_vout_v": 52.5,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "d1abfa05f199acdd2ff2803a717b74ff5f75c0a3e3823f01a3d9fe66dfeefcf0",
+          "switch_rms_a": 19.05789540756394,
+          "conduction_losses_w": {
+            "main_switch": 0.2324501615140139,
+            "rectifier_diode": 77.43498596107841
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=420.000 V | Vout(actual)=52.500 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -231.0,
+              231.0
+            ],
+            [
+              -40.989093099720655,
+              40.989093099720655
+            ],
+            [
+              -98.25856049375466,
+              59.23013372917124
+            ],
+            [
+              49.6125,
+              55.3875
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -50.0,
+              -25.0,
+              0.0,
+              25.0,
+              50.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              48.0,
+              50.0,
+              52.0,
+              54.0,
+              56.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_50pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "334cdf9077eed4ecfd1d4a56c05d7b786e92705066ee23d9dffd74f92343363e",
+          "switch_rms_a": 10.567199155724545,
+          "conduction_losses_w": {
+            "main_switch": 0.07146604671791715,
+            "rectifier_diode": 36.87380283860876
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.500 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -21.89992735700499,
+              21.899927357004998
+            ],
+            [
+              -46.78979071131174,
+              28.204825585319636
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -60.0,
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_10pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "148db220cc7e9558ab490994e7273e877d9658483d30bac18b426b6eeb250537",
+          "switch_rms_a": 6.479131652693237,
+          "conduction_losses_w": {
+            "main_switch": 0.026866654062676097,
+            "rectifier_diode": 7.374760567721754
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.100 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -16.82198170589183,
+              16.82198170589183
+            ],
+            [
+              -9.35795814226235,
+              5.640965117063929
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_zero",
+          "vin_v": 400,
+          "load_ratio_input": 0,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "6e45f426bcada0aa7c1e50262200b77101076c8b786e895c40b9350cc113c8f6",
+          "switch_rms_a": 6.251043167365946,
+          "conduction_losses_w": {
+            "main_switch": 0.02500834603537439,
+            "rectifier_diode": 5.793590315438013e-11
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -16.82198170589183,
+              16.82198170589183
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_negative",
+          "vin_v": 400,
+          "load_ratio_input": -0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "6e45f426bcada0aa7c1e50262200b77101076c8b786e895c40b9350cc113c8f6",
+          "switch_rms_a": 6.251043167365946,
+          "conduction_losses_w": {
+            "main_switch": 0.02500834603537439,
+            "rectifier_diode": 5.793590315438013e-11
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -16.82198170589183,
+              16.82198170589183
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_overload",
+          "vin_v": 400,
+          "load_ratio_input": 1.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "da4b130a2115f43754047df01f6d0ec82a59d20e4bfb6e4f3410e65cf0fe2b7e",
+          "switch_rms_a": 26.313246788044413,
+          "conduction_losses_w": {
+            "main_switch": 0.44381876791480734,
+            "rectifier_diode": 110.62140851582627
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.500 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -57.268329400810224,
+              57.268329400810224
+            ],
+            [
+              -140.3693721339352,
+              84.6144767559589
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              -200.0,
+              -100.0,
+              0.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "return_nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "0cfccb94533bdd8001788184dc7a3baf941753521cfc88541b7d53c539a0c262",
+          "switch_rms_a": 18.15037657863232,
+          "conduction_losses_w": {
+            "main_switch": 0.21083914876554535,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -39.037231523543475,
+              39.037231523543475
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        }
+      ],
+      "rejected_inputs_and_recovery": [
+        {
+          "vin_input": "not-a-number",
+          "dialog": [
+            "Waveform Error",
+            "Operating Vin [V] must be a valid number."
+          ]
+        },
+        {
+          "vin_input": "0",
+          "dialog": [
+            "Waveform Error",
+            "Fixed-frequency LLC waveform inputs must be positive."
+          ]
+        }
+      ]
+    },
+    {
+      "topology": "llc_resonant_converter_diode_rectifier",
+      "primary": "half_bridge",
+      "secondary": "full_wave_center_tapped_rectifier",
+      "layout": [
+        {
+          "window": "1400x860",
+          "scroll_fraction": [
+            0.19081632653061226,
+            1.0
+          ],
+          "generate_button_reachable": true
+        },
+        {
+          "window": "1240x760",
+          "scroll_fraction": [
+            0.29285714285714287,
+            1.0
+          ],
+          "generate_button_reachable": true
+        }
+      ],
+      "selected_devices": {
+        "main_switch": "CAB760M12HM3",
+        "rectifier_diode": "CAR600M17HN6"
+      },
+      "candidate_preserved": true,
+      "design_calls": 1,
+      "waveform_button_invocations": 14,
+      "cases": [
+        {
+          "case": "nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "8d318abbf29f217a4ae4a55d12e3a9e418678f497b9b5f813501e37847582897",
+          "switch_rms_a": 18.15037657863232,
+          "conduction_losses_w": {
+            "main_switch": 0.21083914876554535,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -39.037231523543475,
+              39.037231523543475
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "repeat",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "8d318abbf29f217a4ae4a55d12e3a9e418678f497b9b5f813501e37847582897",
+          "switch_rms_a": 18.15037657863232,
+          "conduction_losses_w": {
+            "main_switch": 0.21083914876554535,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -39.037231523543475,
+              39.037231523543475
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_min",
+          "vin_v": 360,
+          "load_ratio_input": 1,
+          "actual_vout_v": 45.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "12bed615c95fded6bb5137027683446d77bdc0099fe7617ddd92a3a81f2c0bcd",
+          "switch_rms_a": 16.33533892076909,
+          "conduction_losses_w": {
+            "main_switch": 0.1707797105000918,
+            "rectifier_diode": 66.37284510949577
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=360.000 V | Vout(actual)=45.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -198.0,
+              198.0
+            ],
+            [
+              -35.13350837118912,
+              35.13350837118914
+            ],
+            [
+              -84.22162328036113,
+              50.76868605357535
+            ],
+            [
+              42.525,
+              47.475
+            ]
+          ],
+          "yticks": [
+            [
+              -200.0,
+              -100.0,
+              0.0,
+              100.0,
+              200.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              42.0,
+              44.0,
+              46.0,
+              48.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_max",
+          "vin_v": 420,
+          "load_ratio_input": 1,
+          "actual_vout_v": 52.5,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "932a1a3313145b4e55c93343d3e897f3c2f04ead641b4288b1bbf0d1f593f952",
+          "switch_rms_a": 19.05789540756394,
+          "conduction_losses_w": {
+            "main_switch": 0.2324501615140139,
+            "rectifier_diode": 77.43498596107841
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=420.000 V | Vout(actual)=52.500 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -231.0,
+              231.0
+            ],
+            [
+              -40.989093099720655,
+              40.989093099720655
+            ],
+            [
+              -98.25856049375466,
+              59.23013372917124
+            ],
+            [
+              49.6125,
+              55.3875
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -50.0,
+              -25.0,
+              0.0,
+              25.0,
+              50.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              48.0,
+              50.0,
+              52.0,
+              54.0,
+              56.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_50pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "86e335ec45cc5ac0d5828abbd35dabe4d06a478029dbbb1a6ca3dce2248f81cf",
+          "switch_rms_a": 10.567199155724545,
+          "conduction_losses_w": {
+            "main_switch": 0.07146604671791715,
+            "rectifier_diode": 36.87380283860876
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.500 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -21.89992735700499,
+              21.899927357004998
+            ],
+            [
+              -46.78979071131174,
+              28.204825585319636
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -60.0,
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_10pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "4fa5ad8e19eaccdb861b40fc88c5d96e9efb8ffb43e6acb0ea492764ffcad89e",
+          "switch_rms_a": 6.479131652693237,
+          "conduction_losses_w": {
+            "main_switch": 0.026866654062676097,
+            "rectifier_diode": 7.374760567721754
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.100 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -16.82198170589183,
+              16.82198170589183
+            ],
+            [
+              -9.35795814226235,
+              5.640965117063929
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_zero",
+          "vin_v": 400,
+          "load_ratio_input": 0,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "8ec06b723ed22067e16d6d48870fd9ce2faee8e8ffc613ace2a918bc535c00d8",
+          "switch_rms_a": 6.251043167365946,
+          "conduction_losses_w": {
+            "main_switch": 0.02500834603537439,
+            "rectifier_diode": 5.793590315438013e-11
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -16.82198170589183,
+              16.82198170589183
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_negative",
+          "vin_v": 400,
+          "load_ratio_input": -0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "8ec06b723ed22067e16d6d48870fd9ce2faee8e8ffc613ace2a918bc535c00d8",
+          "switch_rms_a": 6.251043167365946,
+          "conduction_losses_w": {
+            "main_switch": 0.02500834603537439,
+            "rectifier_diode": 5.793590315438013e-11
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -16.82198170589183,
+              16.82198170589183
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_overload",
+          "vin_v": 400,
+          "load_ratio_input": 1.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "a0b154e295bdc3a264fa416ff1a028a8cbe0b766ef4a6fb75a4f1b1f75db43b7",
+          "switch_rms_a": 26.313246788044413,
+          "conduction_losses_w": {
+            "main_switch": 0.44381876791480734,
+            "rectifier_diode": 110.62140851582627
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.500 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -57.268329400810224,
+              57.268329400810224
+            ],
+            [
+              -140.3693721339352,
+              84.6144767559589
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              -200.0,
+              -100.0,
+              0.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "return_nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "8d318abbf29f217a4ae4a55d12e3a9e418678f497b9b5f813501e37847582897",
+          "switch_rms_a": 18.15037657863232,
+          "conduction_losses_w": {
+            "main_switch": 0.21083914876554535,
+            "rectifier_diode": 73.74760567721752
+          },
+          "title": "LLC Resonant Converter Diode Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -39.037231523543475,
+              39.037231523543475
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        }
+      ],
+      "rejected_inputs_and_recovery": [
+        {
+          "vin_input": "not-a-number",
+          "dialog": [
+            "Waveform Error",
+            "Operating Vin [V] must be a valid number."
+          ]
+        },
+        {
+          "vin_input": "0",
+          "dialog": [
+            "Waveform Error",
+            "Fixed-frequency LLC waveform inputs must be positive."
+          ]
+        }
+      ]
+    },
+    {
+      "topology": "llc_resonant_converter_synchronous_rectifier",
+      "primary": "full_bridge",
+      "secondary": "full_bridge_synchronous_rectifier",
+      "layout": [
+        {
+          "window": "1400x860",
+          "scroll_fraction": [
+            0.19081632653061226,
+            1.0
+          ],
+          "generate_button_reachable": true
+        },
+        {
+          "window": "1240x760",
+          "scroll_fraction": [
+            0.29285714285714287,
+            1.0
+          ],
+          "generate_button_reachable": true
+        }
+      ],
+      "selected_devices": {
+        "main_switch": "IPDQ60R022S7A",
+        "secondary_sync_switch": "IMDQ75R004M2H"
+      },
+      "candidate_preserved": true,
+      "design_calls": 1,
+      "waveform_button_invocations": 14,
+      "cases": [
+        {
+          "case": "nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "534eef919198a5928cb4c565d7e1764382ddf2f62b84fa3f8864fb53c6473d57",
+          "switch_rms_a": 9.07518828931616,
+          "conduction_losses_w": {
+            "main_switch": 1.8935979677968358,
+            "secondary_sync_switch": 26.48088938904937
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -19.518615761771738,
+              19.518615761771738
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "repeat",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "534eef919198a5928cb4c565d7e1764382ddf2f62b84fa3f8864fb53c6473d57",
+          "switch_rms_a": 9.07518828931616,
+          "conduction_losses_w": {
+            "main_switch": 1.8935979677968358,
+            "secondary_sync_switch": 26.48088938904937
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -19.518615761771738,
+              19.518615761771738
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_min",
+          "vin_v": 360,
+          "load_ratio_input": 1,
+          "actual_vout_v": 45.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "fbd586dc40b22275f19d0ead7e8282672b8aa7eb8cd5014cfb66a36840a42e5e",
+          "switch_rms_a": 8.167669460384545,
+          "conduction_losses_w": {
+            "main_switch": 1.5335908851619549,
+            "secondary_sync_switch": 21.449520405129995
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=360.000 V | Vout(actual)=45.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -396.0,
+              396.0
+            ],
+            [
+              -17.56675418559456,
+              17.56675418559457
+            ],
+            [
+              -84.22162328036113,
+              50.76868605357535
+            ],
+            [
+              42.525,
+              47.475
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              42.0,
+              44.0,
+              46.0,
+              48.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_max",
+          "vin_v": 420,
+          "load_ratio_input": 1,
+          "actual_vout_v": 52.5,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "54623e80642e3c6e443f765333e77b2699ead20b970d7d41e1b7e81bdae7bd30",
+          "switch_rms_a": 9.52894770378197,
+          "conduction_losses_w": {
+            "main_switch": 0.9294821939596886,
+            "secondary_sync_switch": 29.195180551426944
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=420.000 V | Vout(actual)=52.500 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -462.0,
+              462.0
+            ],
+            [
+              -20.494546549860328,
+              20.494546549860328
+            ],
+            [
+              -98.25856049375466,
+              59.23013372917124
+            ],
+            [
+              49.6125,
+              55.3875
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              48.0,
+              50.0,
+              52.0,
+              54.0,
+              56.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_50pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "b3fe5e0dc9e405fa54b74d84f24cfaf5505b819ef4b3127fd030092d19be7971",
+          "switch_rms_a": 5.283599577862272,
+          "conduction_losses_w": {
+            "main_switch": 0.641413290626985,
+            "secondary_sync_switch": 6.6202223472623425
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.500 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -10.949963678502495,
+              10.949963678502499
+            ],
+            [
+              -46.78979071131174,
+              28.204825585319636
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -60.0,
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_10pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "9e29b4d01428a68cf9d8b0e9e6d814b356c3d7808b67a9e3563c569b633ace2f",
+          "switch_rms_a": 3.2395658263466185,
+          "conduction_losses_w": {
+            "main_switch": 0.24104883326809579,
+            "secondary_sync_switch": 0.16813771481029788
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.100 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -8.410990852945915,
+              8.410990852945915
+            ],
+            [
+              -9.35795814226235,
+              5.640965117063929
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_zero",
+          "vin_v": 400,
+          "load_ratio_input": 0,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "dc408967d1e7e6dbfbfe6ef6a89d90ebd8ee1c3aa9858fa4a14a09acb1fe7ad5",
+          "switch_rms_a": 3.125521583682973,
+          "conduction_losses_w": {
+            "main_switch": 0.22436885782917163,
+            "secondary_sync_switch": 1.6260195238889963e-23
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -8.410990852945915,
+              8.410990852945915
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_negative",
+          "vin_v": 400,
+          "load_ratio_input": -0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "dc408967d1e7e6dbfbfe6ef6a89d90ebd8ee1c3aa9858fa4a14a09acb1fe7ad5",
+          "switch_rms_a": 3.125521583682973,
+          "conduction_losses_w": {
+            "main_switch": 0.22436885782917163,
+            "secondary_sync_switch": 1.6260195238889963e-23
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -8.410990852945915,
+              8.410990852945915
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_overload",
+          "vin_v": 400,
+          "load_ratio_input": 1.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "0b632045463e2e65c3723393330106fb19d3e6f20aab60aca43efd402bfdd545",
+          "switch_rms_a": 13.156623394022207,
+          "conduction_losses_w": {
+            "main_switch": 1.7776769034627158,
+            "secondary_sync_switch": 37.0641823542118
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.500 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -28.634164700405112,
+              28.634164700405112
+            ],
+            [
+              -140.3693721339352,
+              84.6144767559589
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -200.0,
+              -100.0,
+              0.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "return_nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "534eef919198a5928cb4c565d7e1764382ddf2f62b84fa3f8864fb53c6473d57",
+          "switch_rms_a": 9.07518828931616,
+          "conduction_losses_w": {
+            "main_switch": 1.8935979677968358,
+            "secondary_sync_switch": 26.48088938904937
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -440.0,
+              440.0
+            ],
+            [
+              -19.518615761771738,
+              19.518615761771738
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -500.0,
+              -250.0,
+              0.0,
+              250.0,
+              500.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        }
+      ],
+      "rejected_inputs_and_recovery": [
+        {
+          "vin_input": "not-a-number",
+          "dialog": [
+            "Waveform Error",
+            "Operating Vin [V] must be a valid number."
+          ]
+        },
+        {
+          "vin_input": "0",
+          "dialog": [
+            "Waveform Error",
+            "Fixed-frequency LLC waveform inputs must be positive."
+          ]
+        }
+      ]
+    },
+    {
+      "topology": "llc_resonant_converter_synchronous_rectifier",
+      "primary": "half_bridge",
+      "secondary": "full_bridge_synchronous_rectifier",
+      "layout": [
+        {
+          "window": "1400x860",
+          "scroll_fraction": [
+            0.19081632653061226,
+            1.0
+          ],
+          "generate_button_reachable": true
+        },
+        {
+          "window": "1240x760",
+          "scroll_fraction": [
+            0.29285714285714287,
+            1.0
+          ],
+          "generate_button_reachable": true
+        }
+      ],
+      "selected_devices": {
+        "main_switch": "IPP60R037CM8",
+        "secondary_sync_switch": "IMDQ75R004M2H"
+      },
+      "candidate_preserved": true,
+      "design_calls": 1,
+      "waveform_button_invocations": 14,
+      "cases": [
+        {
+          "case": "nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "d730018c4c2e5374d67c8e07a0f7daf8c8099fc67499fd6fd5ba68a2bfd3ad68",
+          "switch_rms_a": 18.15037657863232,
+          "conduction_losses_w": {
+            "main_switch": 4.832607479584535,
+            "secondary_sync_switch": 26.48088938904937
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -39.037231523543475,
+              39.037231523543475
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "repeat",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "d730018c4c2e5374d67c8e07a0f7daf8c8099fc67499fd6fd5ba68a2bfd3ad68",
+          "switch_rms_a": 18.15037657863232,
+          "conduction_losses_w": {
+            "main_switch": 4.832607479584535,
+            "secondary_sync_switch": 26.48088938904937
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -39.037231523543475,
+              39.037231523543475
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_min",
+          "vin_v": 360,
+          "load_ratio_input": 1,
+          "actual_vout_v": 45.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "559bc68134af8c2fcdb6db63f61ae04d7d391c71f17bc1e9ce2b5f11ca34b091",
+          "switch_rms_a": 16.33533892076909,
+          "conduction_losses_w": {
+            "main_switch": 8.344288330966917,
+            "secondary_sync_switch": 21.449520405129995
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=360.000 V | Vout(actual)=45.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -198.0,
+              198.0
+            ],
+            [
+              -35.13350837118912,
+              35.13350837118914
+            ],
+            [
+              -84.22162328036113,
+              50.76868605357535
+            ],
+            [
+              42.525,
+              47.475
+            ]
+          ],
+          "yticks": [
+            [
+              -200.0,
+              -100.0,
+              0.0,
+              100.0,
+              200.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              42.0,
+              44.0,
+              46.0,
+              48.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "vin_max",
+          "vin_v": 420,
+          "load_ratio_input": 1,
+          "actual_vout_v": 52.5,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "04b6ce989bb055d9f68eb82157553a2a441e49fe071b865a0acd1ddfdbc74ec1",
+          "switch_rms_a": 19.05789540756394,
+          "conduction_losses_w": {
+            "main_switch": 5.3585061030116545,
+            "secondary_sync_switch": 29.195180551426944
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=420.000 V | Vout(actual)=52.500 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -231.0,
+              231.0
+            ],
+            [
+              -40.989093099720655,
+              40.989093099720655
+            ],
+            [
+              -98.25856049375466,
+              59.23013372917124
+            ],
+            [
+              49.6125,
+              55.3875
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -50.0,
+              -25.0,
+              0.0,
+              25.0,
+              50.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              48.0,
+              50.0,
+              52.0,
+              54.0,
+              56.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_50pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "7d5d2dc5c0997cbf67b7a4ffd37147fbfeee7ee58f9172acf5d8b59a9566ae95",
+          "switch_rms_a": 10.567199155724545,
+          "conduction_losses_w": {
+            "main_switch": 3.4819860889693968,
+            "secondary_sync_switch": 6.6202223472623425
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.500 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -21.89992735700499,
+              21.899927357004998
+            ],
+            [
+              -46.78979071131174,
+              28.204825585319636
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -60.0,
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_10pct",
+          "vin_v": 400,
+          "load_ratio_input": 0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "77b9e8fb46765424fb05fe47a6c2a37a61a38c6d9fa73cff133c39b176d9bfb9",
+          "switch_rms_a": 6.479131652693237,
+          "conduction_losses_w": {
+            "main_switch": 1.3067339107502685,
+            "secondary_sync_switch": 0.16813771481029788
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.100 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -16.82198170589183,
+              16.82198170589183
+            ],
+            [
+              -9.35795814226235,
+              5.640965117063929
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -10.0,
+              -5.0,
+              0.0,
+              5.0,
+              10.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_zero",
+          "vin_v": 400,
+          "load_ratio_input": 0,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "454cdb2d3819309d60a098bf9dd019f3814fd3843e972efaa0953b56370c4549",
+          "switch_rms_a": 6.251043167365946,
+          "conduction_losses_w": {
+            "main_switch": 1.216337702357985,
+            "secondary_sync_switch": 1.6260195238889963e-23
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -16.82198170589183,
+              16.82198170589183
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_negative",
+          "vin_v": 400,
+          "load_ratio_input": -0.1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "454cdb2d3819309d60a098bf9dd019f3814fd3843e972efaa0953b56370c4549",
+          "switch_rms_a": 6.251043167365946,
+          "conduction_losses_w": {
+            "main_switch": 1.216337702357985,
+            "secondary_sync_switch": 1.6260195238889963e-23
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=0.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -16.82198170589183,
+              16.82198170589183
+            ],
+            [
+              -9.357958142262347e-11,
+              5.640965117063928e-11
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -20.0,
+              -10.0,
+              0.0,
+              10.0,
+              20.0
+            ],
+            [
+              -9.999999999999999e-11,
+              -4.9999999999999995e-11,
+              0.0,
+              5.000000000000001e-11,
+              9.999999999999999e-11
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "load_overload",
+          "vin_v": 400,
+          "load_ratio_input": 1.5,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "6b000b4cf3ec3ceb39faf959f107b74b0265cf557c7d2a6a9d32b7aa7bd69fec",
+          "switch_rms_a": 26.313246788044413,
+          "conduction_losses_w": {
+            "main_switch": 10.482237048177206,
+            "secondary_sync_switch": 37.0641823542118
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.500 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -57.268329400810224,
+              57.268329400810224
+            ],
+            [
+              -140.3693721339352,
+              84.6144767559589
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              -200.0,
+              -100.0,
+              0.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        },
+        {
+          "case": "return_nominal",
+          "vin_v": 400,
+          "load_ratio_input": 1,
+          "actual_vout_v": 50.0,
+          "actual_frequency_hz": 120000.0,
+          "all_arrays_sha256": "d730018c4c2e5374d67c8e07a0f7daf8c8099fc67499fd6fd5ba68a2bfd3ad68",
+          "switch_rms_a": 18.15037657863232,
+          "conduction_losses_w": {
+            "main_switch": 4.832607479584535,
+            "secondary_sync_switch": 26.48088938904937
+          },
+          "title": "LLC Resonant Converter Synchronous Rectifier\nVin=400.000 V | Vout(actual)=50.000 V | f_sw=120.000 kHz | Load=1.000 p.u.",
+          "ylim": [
+            [
+              -220.0,
+              220.0
+            ],
+            [
+              -39.037231523543475,
+              39.037231523543475
+            ],
+            [
+              -93.57958142262346,
+              56.40965117063927
+            ],
+            [
+              47.25,
+              52.75
+            ]
+          ],
+          "yticks": [
+            [
+              -400.0,
+              -200.0,
+              0.0,
+              200.0,
+              400.0
+            ],
+            [
+              -40.0,
+              -20.0,
+              0.0,
+              20.0,
+              40.0
+            ],
+            [
+              -100.0,
+              -50.0,
+              0.0,
+              50.0,
+              100.0
+            ],
+            [
+              46.0,
+              48.0,
+              50.0,
+              52.0,
+              54.0
+            ]
+          ],
+          "current_report_and_plot_match": true
+        }
+      ],
+      "rejected_inputs_and_recovery": [
+        {
+          "vin_input": "not-a-number",
+          "dialog": [
+            "Waveform Error",
+            "Operating Vin [V] must be a valid number."
+          ]
+        },
+        {
+          "vin_input": "0",
+          "dialog": [
+            "Waveform Error",
+            "Fixed-frequency LLC waveform inputs must be positive."
+          ]
+        }
+      ]
+    }
+  ]
+}

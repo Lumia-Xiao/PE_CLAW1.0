@@ -23,7 +23,7 @@ from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point
 from pe_claw_gui.reports.structured_output import build_structured_report
 from pe_claw_gui.topologies.base.registry import build_default_registry
 
-BASELINE = json.loads((Path(__file__).resolve().parents[1] / "Plan/Active/llc_waveform_operating_point_evidence/step1_baseline.json").read_text(encoding="utf-8"))
+BASELINE = json.loads((Path(__file__).resolve().parents[1] / "Plan/completed/llc_waveform_operating_point_evidence/step1_baseline.json").read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="module", params=BASELINE["variants"], ids=lambda row: f"{row['topology']}-{row['primary']}-{row['secondary']}")

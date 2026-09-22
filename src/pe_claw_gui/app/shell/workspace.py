@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import tkinter as tk
 from tkinter import ttk
 
 from ...models.design_report import DesignReport
+from ...topology_capabilities import is_llc_resonant_topology
 from ..category_views import (
     ACACCategoryPage,
     ACDCCategoryPage,
@@ -58,6 +60,7 @@ class Workspace(ttk.Frame):
         self._on_topology_selected = on_topology_selected
         self._on_back_to_categories = on_back_to_categories
         self.active_form = None
+        self.form_canvas = None
         self.active_page = None
         self.results_notebook = None
         self.summary_view = None
@@ -89,6 +92,7 @@ class Workspace(ttk.Frame):
             self.active_page.destroy()
             self.active_page = None
         self.active_form = None
+        self.form_canvas = None
         for child in self.content_host.winfo_children():
             child.destroy()
         self.results_notebook = None
@@ -165,6 +169,17 @@ class Workspace(ttk.Frame):
 
         form_host = ttk.Frame(content)
         form_host.grid(row=0, column=0, sticky="nsw")
+        form_parent = form_host
+        if is_llc_resonant_topology(topology_id):
+            # LLC inputs exceed the default window height. Keep the waveform
+            # controls reachable without increasing the window's minimum size.
+            form_host.rowconfigure(0, weight=1)
+            self.form_canvas = tk.Canvas(form_host, height=1, borderwidth=0, highlightthickness=0)
+            self.form_canvas.grid(row=0, column=0, sticky="ns")
+            scroll = ttk.Scrollbar(form_host, orient="vertical", command=self.form_canvas.yview)
+            scroll.grid(row=0, column=1, sticky="ns")
+            self.form_canvas.configure(yscrollcommand=scroll.set)
+            form_parent = self.form_canvas
 
         self.results_notebook = ttk.Notebook(content)
         self.results_notebook.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
@@ -204,7 +219,7 @@ class Workspace(ttk.Frame):
 
         form_class = self._state_store.registry.get_form_class(topology_id)
         self.active_form = form_class(
-            form_host,
+            form_parent,
             on_run_design=self._on_run_design,
             on_run_capacitor=self._on_run_capacitor,
             on_run_magnetics=self._on_run_magnetics,
@@ -212,7 +227,15 @@ class Workspace(ttk.Frame):
             on_run_efficiency_sweep=self._on_run_efficiency_sweep,
         )
         self.active_form.set_design_input_change_handler(self._on_design_input_changed)
-        self.active_form.grid(row=0, column=0, sticky="nsew")
+        if self.form_canvas is None:
+            self.active_form.grid(row=0, column=0, sticky="nsew")
+        else:
+            canvas = self.form_canvas
+            form = self.active_form
+            canvas.create_window((0, 0), window=form, anchor="nw")
+            form.bind("<Configure>", lambda _event: canvas.configure(
+                width=form.winfo_reqwidth(), scrollregion=canvas.bbox("all"),
+            ))
         self.render_report(None)
 
     def _on_design_input_changed(self) -> None:

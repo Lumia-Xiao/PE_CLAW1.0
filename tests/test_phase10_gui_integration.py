@@ -74,3 +74,45 @@ def test_phase10_topology_card_assets_cover_all_registered_topologies() -> None:
         "assert all(get_topology_image_resource(d.topology_id).is_file() for d in registry.list_definitions())"
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_llc_waveform_controls_reachable_at_default_and_minimum_window_size() -> None:
+    result = _run_isolated(
+        """
+from pe_claw_gui.app.shell.main_window import PEClawMainWindow
+
+def contained(widget, parent):
+    x = widget.winfo_rootx() - parent.winfo_rootx()
+    y = widget.winfo_rooty() - parent.winfo_rooty()
+    return (0 <= x and 0 <= y
+            and x + widget.winfo_width() <= parent.winfo_width()
+            and y + widget.winfo_height() <= parent.winfo_height())
+
+app = PEClawMainWindow()
+errors = []
+app.report_callback_exception = lambda *args: errors.append(str(args[1]))
+try:
+    for kind in ('diode', 'synchronous'):
+        app._on_topology_selected(f'llc_resonant_converter_{kind}_rectifier')
+        for size in ('1400x860', '1240x760'):
+            app.geometry(size)
+            app.update()
+            canvas = app.workspace.form_canvas
+            canvas.yview_moveto(1)
+            app.update()
+            form = app.workspace.active_form
+            assert contained(canvas, app)
+            assert contained(form.generate_waveforms_button, canvas), (kind, size)
+            for widget in form.generate_waveforms_button.master.winfo_children():
+                assert contained(widget, canvas), (kind, size, widget)
+            canvas.yview_moveto(0)
+            app.update()
+            assert contained(form.design_frame.winfo_children()[0], canvas)
+    app._show_category_selection()
+    assert app.workspace.form_canvas is None
+    assert not errors, errors
+finally:
+    app.destroy()
+"""
+    )
+    assert result.returncode == 0, result.stderr

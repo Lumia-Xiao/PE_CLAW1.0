@@ -1460,3 +1460,12 @@ listed here.
 
 - 实现、回归、说明及证据提交 85d1da8 已成功推送至 origin/codex/llc-waveform-operating-point-plan，主计划据此标记步骤 2 完成；步骤 3 未执行。
 - 本回执仅更新计划和 ChangeLog，git diff --check 通过，随独立文档提交推送同一分支。
+
+## 2026-09-22 - LLC 波形工况修正步骤 3 验收与归档
+
+- 新增 scripts/verify_llc_waveform_gui.py，通过真实 MainWindow、Entry 编辑、ttk 按钮 invoke、TkAgg 及实际设计/器件/刷新管线验收。6 桥型、84 次波形回调（72 成功、12 预期非法输入拒绝）通过；完整数组、实际值、坐标、报告、应力及当前损耗一致，候选/已选器件不变，每种仅一次 Run Design。
+- 验收发现默认 1400×860 窗口中 LLC 波形按钮位于 y=984 被截断。workspace.py 为 LLC 左侧表单增加纵向滚动；新增 GUI 回归，默认和最小 1240×760 尺寸均可操作。更新 docs/llc_waveform_operating_point.md；不更改计算公式和选型策略。
+- 测试：布局定向 1 passed (5.96s)；全部 LLC 174 passed / 573 deselected (172.50s)；共享 GUI/结构化报告/DC-AC 刷新/NPC/迁移 21 passed (130.32s)，均无失败、错误或跳过。真实 Tk 图表额定/半载 PNG 已检查；完整命令、数值、边界和 JSON 见归档的 step3_findings.md、step3_gui_acceptance.json。
+- 计划和证据移至 Plan/completed/llc_waveform_operating_point_fix_plan.md 及同级 evidence 目录，测试基线路径同步更新，步骤 1/2 JSON 原样保留。未宣称人工鼠标验收或用户未提供的原始项目验收；未运行全仓库测试，按钮验收不包含 Run Magnetics/Run Capacitor，其现有 LLC 测试纳入回归。
+- Git：本步骤在 codex/llc-waveform-operating-point-plan 提交并按持续授权推送 origin 同名分支，推送成功后另记完成回执。只暂存本任务文件，保留用户已有 Web/deployment 删除及 outputs 等未跟踪内容；未执行备份或清理操作。
+- 归档后路径验证：32 项工况定向测试再次全部通过 (43.50s)，无失败或跳过；原始步骤 1/2 文件散列未变，git diff --check 通过。

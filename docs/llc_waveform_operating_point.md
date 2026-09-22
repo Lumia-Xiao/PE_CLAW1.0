@@ -6,6 +6,8 @@ LLC 二极管整流和同步整流的 Generate Waveforms 使用固定开关频�
 2. 在 Waveform Operating Point 中填写 Vin 和 load ratio，点击 Generate Waveforms。
 3. 从 Actual waveform Vout 和 Actual switching frequency 读取本次计算结果。图标题也显示实际 Vout、频率及负载率。
 
+LLC 左侧表单提供纵向滚动条；窗口较小时向下滚动即可找到 Waveform Operating Point 和 Generate Waveforms。
+
 Vout 由当前 Vin、负载、频率及已设计的谐振元件决定，波形工况中不提供目标 Vout 调节。更改波形输入时，实际读数清空，生成成功后重新显示。
 
 负载率通过 `Rload = Rnom / load_ratio` 改变负载电阻，并不代表实际输出功率一定等于额定功率乘负载率。在谐振点改变负载时，电压可能不变，但电流会变化。各图自动调整纵轴，因此曲线外形相似时应比较刻度、数值和图标题。
