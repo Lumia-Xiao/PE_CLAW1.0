@@ -3,7 +3,7 @@
 - 日期：2026-09-22
 - 工程：`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0`
 - 分支：`codex/llc-waveform-operating-point-plan`
-- 状态：实现与验收通过，等待提交推送回执。
+- 状态：已完成并归档；实现与验收提交 `54c6b99` 已推送至 `origin/codex/llc-waveform-operating-point-plan`。
 - 依据：用户明确要求按输入电压、输出电压和负载自动求频率。这替代已归档三步计划的固定频率 GUI 选择；旧计划及证据保留为历史，不作为当前产品行为。
 
 ## 本次单项修正

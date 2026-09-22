@@ -1484,3 +1484,8 @@ listed here.
 - 验收、求解公式和 JSON 归档到 Plan/completed/llc_automatic_frequency_correction.md 及 llc_automatic_frequency_evidence/。旧计划新增后续修正链接，旧 JSON 原样保留。测试独立用复阻抗模型和增益方程多项式根校验，无需改写历史证据满足新契约。
 - 限制：默认重建案例，无用户原始项目参数；程序化真实控件验收，未宣称人工鼠标验收；未运行全仓库测试或重做磁件损耗模型。求根精度不代表实物 FHA 精度或 ZVS 保证。
 - Git：在 codex/llc-waveform-operating-point-plan 提交并按用户持续授权推送 origin 同名分支，成功后记录回执。保留用户已有 Web/deployment 删除及 outputs 等未跟踪文件；未备份或清理。
+
+### LLC 自动调频推送回执
+
+- 实现、回归与验收证据提交 54c6b99 已成功推送至 origin/codex/llc-waveform-operating-point-plan；自动调频修正计划据此标记完成。
+- 本回执仅更新归档计划与 ChangeLog，git diff --check 通过，随独立文档提交推送同一分支。
