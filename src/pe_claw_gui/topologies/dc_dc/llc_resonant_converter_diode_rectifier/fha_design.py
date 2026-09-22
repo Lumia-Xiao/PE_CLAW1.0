@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from dataclasses import dataclass, field, replace
-from math import atan2, pi, sqrt
+from math import atan2, isfinite, pi, sqrt
 
 from ...base.spec import TopologySpec
 
@@ -218,6 +218,60 @@ def llc_fha_gain(fn: float, ln: float, q: float) -> float:
     if abs(denominator) <= 1e-18:
         raise ValueError("LLC FHA gain denominator is singular for the supplied values.")
     return abs(numerator / denominator)
+
+
+def matching_fha_frequencies(
+    *, fr_hz: float, ln: float, q: float, required_gain: float,
+    fs_min_hz: float, fs_max_hz: float,
+) -> tuple[float, ...]:
+    """Return all bounded FHA gain roots, ordered by frequency.
+
+    Split at the gain maximum before bisection, including tangent/endpoint
+    roots. Unlike the design-coverage grid scan, this is a voltage-regulation
+    solve, not a nearest-frequency estimate with a 2% coverage tolerance.
+    """
+    values = (fr_hz, ln, q, required_gain, fs_min_hz, fs_max_hz)
+    if any(not isfinite(v) or v <= 0 for v in values) or fs_min_hz > fs_max_hz:
+        raise ValueError("LLC frequency matching requires finite positive tank/gain values and ordered frequency limits.")
+
+    lo, hi = fs_min_hz / fr_hz, fs_max_hz / fr_hz
+    a, b = 1.0 + 1.0 / ln, 1.0 / ln
+
+    def derivative_sign(fn):
+        # d(1/M^2)/dx * x^3, x=fn^2. This cubic has exactly one
+        # positive root for Ln,Q>0 (one sign change), hence one gain peak.
+        x = fn * fn
+        return q*q*x*x*x + (2*a*b - q*q)*x - 2*b*b
+
+    split = [lo, hi]
+    if derivative_sign(lo) < 0 < derivative_sign(hi):
+        left, right = lo, hi
+        for _ in range(80):
+            mid = (left + right) / 2
+            if derivative_sign(mid) < 0:
+                left = mid
+            else:
+                right = mid
+        split.insert(1, (left + right) / 2)
+
+    def residual(fn):
+        return llc_fha_gain(fn, ln, q) - required_gain
+
+    tolerance = required_gain * 1e-10
+    roots = [fn for fn in split if abs(residual(fn)) <= tolerance]
+    for left, right in zip(split, split[1:]):
+        fl, fh = residual(left), residual(right)
+        if abs(fl) <= tolerance or abs(fh) <= tolerance or fl * fh >= 0:
+            continue
+        for _ in range(80):
+            mid = (left + right) / 2
+            fm = residual(mid)
+            if fl * fm <= 0:
+                right = mid
+            else:
+                left, fl = mid, fm
+        roots.append((left + right) / 2)
+    return tuple(sorted({min(fs_max_hz, max(fs_min_hz, fn * fr_hz)) for fn in roots}))
 
 
 def estimate_integer_turns_ratio(

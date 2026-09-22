@@ -1,4 +1,4 @@
-"""Fixed-frequency LLC refresh contracts; compare against the pre-fix arrays."""
+"""LLC target-voltage refresh and explicit fixed-frequency compatibility."""
 from dataclasses import asdict, replace
 from importlib import import_module
 import json
@@ -36,11 +36,16 @@ def design(request):
     return registry, plugin, DesignReport(spec=spec, candidate=candidate), row
 
 
-def test_all_baseline_waveform_arrays_and_boundaries_preserved(design):
+def test_explicit_fixed_frequency_preserves_all_historical_arrays_and_boundaries(design):
     _, plugin, report, row = design
     original = asdict(report.candidate)
     for name, expected in row["cases"].items():
         point = OperatingPoint(**expected["input"]) if expected["input"] is not None else None
+        # The historical target-only API now regulates voltage. Reproduce its
+        # old arrays by explicitly commanding the old frequency, without
+        # rewriting the frozen evidence or pretending the contract is unchanged.
+        if point is not None and point.switching_frequency_hz is None:
+            point = replace(point, switching_frequency_hz=report.candidate.fs_hz)
         if "error" in expected:
             with pytest.raises(ValueError):
                 plugin.generate_waveforms(report.candidate, point)
@@ -71,7 +76,7 @@ def test_form_controller_plot_and_report_show_actual_results(design, monkeypatch
     monkeypatch.setattr(module, "run_device_pipeline", unexpected_selection)
     form = registry.get_form_class(initial.spec.topology_id)(tk_root)
     try:
-        assert set(form.operating_vars) == {"vin_v", "load_ratio"}
+        assert set(form.operating_vars) == {"vin_v", "vout_v", "load_ratio"}
         raw = form.get_raw_input()
         state = AppStateStore(registry=registry, selected_topology_id=initial.spec.topology_id,
                               active_plugin=plugin, design_report=initial)
@@ -84,7 +89,7 @@ def test_form_controller_plot_and_report_show_actual_results(design, monkeypatch
             assert all(var.get() == "-" for var in form.waveform_readback_vars.values())
             assert form.get_raw_input() == raw
             point = form.get_operating_point()
-            assert point.vout_v is None and point.switching_frequency_hz is None
+            assert point.vout_v == 48 and point.switching_frequency_hz is None
             report = controller.generate_waveforms(point)
             assert report.candidate is initial.candidate
             assert report.device is None
@@ -92,7 +97,8 @@ def test_form_controller_plot_and_report_show_actual_results(design, monkeypatch
             form.update_from_report(report)
             waveform = report.waveform
             assert float(form.waveform_readback_vars["vout_v"].get()) == pytest.approx(waveform.operating_vout_v, rel=1e-3)
-            assert float(form.waveform_readback_vars["switching_frequency_hz"].get()) == pytest.approx(1e-3 / waveform.switching_period_s)
+            assert float(form.waveform_readback_vars["switching_frequency_hz"].get()) == pytest.approx(1e-3 / waveform.switching_period_s, rel=1e-5)
+            assert waveform.operating_vout_v == pytest.approx(point.vout_v, rel=1e-8)
             WaveformView.render(view, report)
             assert len(figure.axes) == 4
             expected = (waveform.switch_node_voltage_v, waveform.inductor_current_a, waveform.capacitor_current_a, waveform.output_voltage_v)
@@ -101,9 +107,10 @@ def test_form_controller_plot_and_report_show_actual_results(design, monkeypatch
                 assert list(axis.lines[0].get_ydata()) == series
             title = figure._suptitle.get_text()
             assert f"Vout(actual)={waveform.operating_vout_v:.3f}" in title
-            assert f"Load={load:.3f}" in title and "f_sw=120.000 kHz" in title
+            assert f"Load={load:.3f}" in title and f"f_sw={1e-3 / waveform.switching_period_s:.3f} kHz" in title
+            assert "Vout(target)=48.000" in title
             payload = build_structured_report(report)
-            assert payload["operating_point"]["output_voltage"]["value"] is None
+            assert payload["operating_point"]["output_voltage"]["value"] == 48
             assert payload["waveform"]["operating"]["output_voltage"]["value"] == waveform.operating_vout_v
         form.update_from_report(None)
         assert all(var.get() == "-" for var in form.waveform_readback_vars.values())
@@ -171,8 +178,8 @@ def test_selected_devices_preserved_and_losses_follow_current_load(kind, monkeyp
     selected = dict(initial.device.selected_devices)
     module = import_module("pe_claw_gui.pipeline.run_device_pipeline")
     monkeypatch.setattr(module, "run_device_pipeline", lambda *a, **k: pytest.fail("unexpected reselection"))
-    full = run_operating_point_refresh(initial, plugin, OperatingPoint(400, 1))
-    light = run_operating_point_refresh(full, plugin, OperatingPoint(400, .5))
+    full = run_operating_point_refresh(initial, plugin, OperatingPoint(400, 1, 48))
+    light = run_operating_point_refresh(full, plugin, OperatingPoint(400, .5, 48))
     assert full.candidate is light.candidate is initial.candidate
     assert full.device.selected_devices == light.device.selected_devices == selected
     full_losses = {loss.role: loss for loss in full.device.current_operating_losses.values()}

@@ -1474,3 +1474,13 @@ listed here.
 
 - 验收、滚动修正和归档提交 e955e2e 已成功推送至 origin/codex/llc-waveform-operating-point-plan；归档计划据此标记全部三步完成。
 - 本回执只更新计划状态和 ChangeLog，git diff --check 通过；随独立文档提交推送同一分支。
+
+## 2026-09-22 - 按用户要求将 LLC 波形改为目标电压自动调频
+
+- 用户明确要求以 Vin、目标 Vout 和负载求频率，取代先前三步计划的固定频率 GUI 选择。共用 LLC/SR 表单恢复目标 Vout，保留实际输出/计算频率读数；图标题显示目标、实际值和频率。默认 400 V/48 V/满载求得 132.492085 kHz，360/420 V 对应 101.077769/148.075898 kHz，半载 134.107080 kHz。
+- fha_design.py 复用原增益公式，按唯一增益峰值划分单调区间并二分求所有范围内的根，包含端点和切点；waveform.py 选择最高频率解并按求得频率生成波形。原设计覆盖扫描、谐振参数和选型依据不变。目标模式拒绝无解、非有限输入和零/负负载；主窗口错误路径清除旧结果显示，保留内部硬件供恢复。
+- 显式 switching_frequency_hz 优先及无 Vout 的旧后端调用保持固定频率兼容；GUI 总是提供目标 Vout。负载仍为 Rnom/load_ratio，未改变功率定义。电容刷新读实际波形频率，效率扫描保留目标/显式频率。报告沿用 v1 目标/实际字段及单位，更新说明、字段字典和两类 evaluator。
+- 新增 tests/test_llc_automatic_frequency.py，更新原工况测试及可复现脚本。定向 57 passed (65.53s)；全部 LLC 199 passed / 573 deselected (204.11s)；共享 GUI/报告/刷新/NPC/迁移 21 passed (139.27s)，均无失败、错误或跳过。真实 GUI 6 桥型、144 次波形回调通过（102 次成功、42 次预期拒绝与恢复）；114 个显式固定频率场景及 24 次表单链路通过。实际 Tk 图表额定/半载排版检查通过，git diff --check 通过。
+- 验收、求解公式和 JSON 归档到 Plan/completed/llc_automatic_frequency_correction.md 及 llc_automatic_frequency_evidence/。旧计划新增后续修正链接，旧 JSON 原样保留。测试独立用复阻抗模型和增益方程多项式根校验，无需改写历史证据满足新契约。
+- 限制：默认重建案例，无用户原始项目参数；程序化真实控件验收，未宣称人工鼠标验收；未运行全仓库测试或重做磁件损耗模型。求根精度不代表实物 FHA 精度或 ZVS 保证。
+- Git：在 codex/llc-waveform-operating-point-plan 提交并按用户持续授权推送 origin 同名分支，成功后记录回执。保留用户已有 Web/deployment 删除及 outputs 等未跟踪文件；未备份或清理。

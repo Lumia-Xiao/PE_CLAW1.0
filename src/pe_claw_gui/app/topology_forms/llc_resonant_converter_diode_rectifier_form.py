@@ -107,6 +107,7 @@ class LLCResonantConverterDiodeRectifierForm(LLCPlaceholderForm):
 
         self.operating_vars = {
             "vin_v": tk.StringVar(value=self.design_vars["vin_nom"].get()),
+            "vout_v": tk.StringVar(value=self.design_vars["vout_nom"].get()),
             "load_ratio": tk.StringVar(value="1.0"),
         }
         self.waveform_readback_vars = {
@@ -118,19 +119,21 @@ class LLCResonantConverterDiodeRectifierForm(LLCPlaceholderForm):
 
         ttk.Label(op_frame, text="Waveform Vin [V]").grid(row=0, column=0, sticky="w", padx=6, pady=6)
         ttk.Entry(op_frame, textvariable=self.operating_vars["vin_v"]).grid(row=0, column=1, sticky="ew", padx=6, pady=6)
-        ttk.Label(op_frame, text="Waveform load ratio [p.u.]").grid(row=1, column=0, sticky="w", padx=6, pady=6)
-        ttk.Entry(op_frame, textvariable=self.operating_vars["load_ratio"]).grid(row=1, column=1, sticky="ew", padx=6, pady=6)
-        ttk.Label(op_frame, text="Actual waveform Vout [V]").grid(row=2, column=0, sticky="w", padx=6, pady=6)
-        ttk.Label(op_frame, textvariable=self.waveform_readback_vars["vout_v"]).grid(row=2, column=1, sticky="w", padx=6, pady=6)
-        ttk.Label(op_frame, text="Actual switching frequency [kHz]").grid(row=3, column=0, sticky="w", padx=6, pady=6)
-        ttk.Label(op_frame, textvariable=self.waveform_readback_vars["switching_frequency_hz"]).grid(row=3, column=1, sticky="w", padx=6, pady=6)
+        ttk.Label(op_frame, text="Target waveform Vout [V]").grid(row=1, column=0, sticky="w", padx=6, pady=6)
+        ttk.Entry(op_frame, textvariable=self.operating_vars["vout_v"]).grid(row=1, column=1, sticky="ew", padx=6, pady=6)
+        ttk.Label(op_frame, text="Waveform load ratio [p.u.]").grid(row=2, column=0, sticky="w", padx=6, pady=6)
+        ttk.Entry(op_frame, textvariable=self.operating_vars["load_ratio"]).grid(row=2, column=1, sticky="ew", padx=6, pady=6)
+        ttk.Label(op_frame, text="Actual waveform Vout [V]").grid(row=3, column=0, sticky="w", padx=6, pady=6)
+        ttk.Label(op_frame, textvariable=self.waveform_readback_vars["vout_v"]).grid(row=3, column=1, sticky="w", padx=6, pady=6)
+        ttk.Label(op_frame, text="Calculated switching frequency [kHz]").grid(row=4, column=0, sticky="w", padx=6, pady=6)
+        ttk.Label(op_frame, textvariable=self.waveform_readback_vars["switching_frequency_hz"]).grid(row=4, column=1, sticky="w", padx=6, pady=6)
         self.generate_waveforms_button = ttk.Button(
             op_frame,
             text="Generate Waveforms",
             command=self._trigger_waveforms,
         )
         self.generate_waveforms_button.grid(
-            row=4,
+            row=5,
             column=0,
             columnspan=2,
             sticky="ew",
@@ -152,6 +155,7 @@ class LLCResonantConverterDiodeRectifierForm(LLCPlaceholderForm):
     def get_operating_point(self) -> OperatingPoint:
         return OperatingPoint(
             vin_v=self._parse_operating_float("vin_v", "Operating Vin [V]"),
+            vout_v=self._parse_operating_float("vout_v", "Target Vout [V]"),
             load_ratio=self._parse_operating_float("load_ratio", "Load ratio"),
         )
 
@@ -165,9 +169,10 @@ class LLCResonantConverterDiodeRectifierForm(LLCPlaceholderForm):
         else:
             self.waveform_readback_vars["vout_v"].set(f"{report.waveform.operating_vout_v:.4g}")
             frequency_hz = 1.0 / report.waveform.switching_period_s if report.waveform.switching_period_s else 0.0
-            self.waveform_readback_vars["switching_frequency_hz"].set(f"{frequency_hz / 1e3:.4g}")
+            self.waveform_readback_vars["switching_frequency_hz"].set(f"{frequency_hz / 1e3:.6g}")
         if report is not None and report.candidate is not None and report.waveform is None:
             self.operating_vars["vin_v"].set(f"{report.candidate.vin_nom:.4g}")
+            self.operating_vars["vout_v"].set(f"{report.candidate.vout_target:.4g}")
 
 
 __all__ = ["LLCResonantConverterDiodeRectifierForm"]

@@ -31,7 +31,7 @@ def evaluate(
     summary_lines = [
         f"Topology = {candidate.display_name}",
         "Model = first-pass LLC FHA electrical parameter design with full-bridge synchronous rectifier readback",
-        "Design coverage = variable-frequency with fixed 50% primary bridge drive; waveform refresh = fixed commanded frequency",
+        "Design coverage = variable-frequency with fixed 50% primary bridge drive; waveform target Vout is matched by frequency unless an explicit frequency is supplied",
         "",
         "Input specification",
         (
@@ -66,6 +66,7 @@ def evaluate(
         summary_lines.extend([
             "",
             "Current waveform operating point",
+            f"Target waveform Vout = {_fmt(waveform_set.metadata.get('llc_fha_waveforms', {}).get('target_vout_v'))} V",
             f"Vin = {waveform_set.operating_vin_v:.6g} V",
             f"Actual Vout = {waveform_set.operating_vout_v:.6g} V",
             f"Load ratio = {waveform_set.load_ratio:.6g} p.u.",

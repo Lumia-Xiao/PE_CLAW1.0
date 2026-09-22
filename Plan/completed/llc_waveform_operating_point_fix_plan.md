@@ -1,5 +1,7 @@
 # LLC 波形工况轻量级修正计划
 
+> 后续需求修正：2026-09-22 用户明确要求按 Vin、目标 Vout、负载自动调频。此文保留固定频率方案的历史执行记录；当前行为见 [自动调频修正](llc_automatic_frequency_correction.md)。
+
 - 创建日期：2026-09-22
 - 状态：全部完成并归档。步骤 1（`ead8279`）、步骤 2（`85d1da8`）、步骤 3（`e955e2e`）均已推送至 `origin/codex/llc-waveform-operating-point-plan`。
 - 唯一目标工程：`C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0`

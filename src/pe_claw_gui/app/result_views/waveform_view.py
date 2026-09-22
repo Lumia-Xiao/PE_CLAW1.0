@@ -297,13 +297,16 @@ def _series(data: dict[str, object], key: str) -> list[float]:
 
 
 def _waveform_title(report: DesignReport, waveform: WaveformSet) -> str:
-    """Use explicit actual-output wording for fixed-frequency LLC readback."""
+    """Show target and achieved values separately for regulated LLC readback."""
 
     if is_llc_resonant_topology(report.spec.topology_id):
         frequency_hz = 1.0 / waveform.switching_period_s if waveform.switching_period_s else 0.0
+        target = waveform.metadata.get("llc_fha_waveforms", {}).get("target_vout_v")
+        target_text = f"Vout(target)={target:.3f} V | " if target is not None else ""
+        frequency_separator = "\n" if target is not None else " | "
         return (
-            f"{report.spec.display_name}\nVin={waveform.operating_vin_v:.3f} V | "
-            f"Vout(actual)={waveform.operating_vout_v:.3f} V | "
+            f"{report.spec.display_name}\n{target_text}Vin={waveform.operating_vin_v:.3f} V | "
+            f"Vout(actual)={waveform.operating_vout_v:.3f} V{frequency_separator}"
             f"f_sw={frequency_hz / 1e3:.3f} kHz | Load={waveform.load_ratio:.3f} p.u."
         )
     return (

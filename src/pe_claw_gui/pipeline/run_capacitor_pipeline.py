@@ -692,6 +692,8 @@ def _build_input_request(report, ripple_ratio_percent: float, ambient_temp_c: fl
 
 def _operating_switching_frequency_hz(report: DesignReport) -> float:
     if report.spec.topology_id in LLC_RESONANT_CAPACITOR_TOPOLOGY_IDS:
+        if report.waveform is not None and report.waveform.switching_period_s > 0:
+            return 1.0 / report.waveform.switching_period_s
         if report.operating_point is not None and report.operating_point.switching_frequency_hz is not None:
             return float(report.operating_point.switching_frequency_hz)
         llc_fha = _llc_fha_metadata(report)

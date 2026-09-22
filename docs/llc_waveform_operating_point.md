@@ -1,19 +1,21 @@
-# LLC 波形工况
+# LLC 波形工况与自动调频
 
-LLC 二极管整流和同步整流的 Generate Waveforms 使用固定开关频率 FHA 估算。
+LLC 二极管整流和同步整流的 Generate Waveforms 根据 **Vin、目标 Vout、负载率**，在已设计的频率范围内自动求开关频率，再计算 FHA 波形。120 kHz 是默认设计的谐振参考频率，不是 GUI 工况的固定开关频率。
 
-1. 先运行设计。设计区的 Vout min/nom/max 用于设计覆盖范围检查。
-2. 在 Waveform Operating Point 中填写 Vin 和 load ratio，点击 Generate Waveforms。
-3. 从 Actual waveform Vout 和 Actual switching frequency 读取本次计算结果。图标题也显示实际 Vout、频率及负载率。
+1. 运行设计，得到固定的 Lr、Cr、Lm、变比及器件。
+2. 在 Waveform Operating Point 中填写 Vin、Target waveform Vout 和 load ratio，点击 Generate Waveforms。
+3. 读取 Actual waveform Vout 和 Calculated switching frequency；图标题显示目标与实际电压、实际频率及负载。左侧可用滚动条访问下方工况控件。
 
-LLC 左侧表单提供纵向滚动条；窗口较小时向下滚动即可找到 Waveform Operating Point 和 Generate Waveforms。
+例如默认全桥设计，目标 48 V、负载率 1：Vin=360/400/420 V 时，分别求得约 101.078/132.492/148.076 kHz；Vin=400 V、负载率 0.5 时约 134.107 kHz。频率与电流随工况变化，固定的设计参数及已选硬件不重新搜索。
 
-Vout 由当前 Vin、负载、频率及已设计的谐振元件决定，波形工况中不提供目标 Vout 调节。更改波形输入时，实际读数清空，生成成功后重新显示。
+负载率仍表示名义负载电阻的缩放：`Rload = Rnom / load_ratio`，`Rnom = Vout_nom² / Pmax`；功率约为 `Vout_target² / Rload`。因此改变目标 Vout 后，负载率不等同于额定功率百分比。本次不改变既有负载定义。
 
-负载率通过 `Rload = Rnom / load_ratio` 改变负载电阻，并不代表实际输出功率一定等于额定功率乘负载率。在谐振点改变负载时，电压可能不变，但电流会变化。各图自动调整纵轴，因此曲线外形相似时应比较刻度、数值和图标题。
+求解复用 LLC FHA 增益模型，在 fs_min/fs_max 范围内按增益峰值分段二分，包含端点和峰值切点；多解时确定性地选最高频率解。目标电压相对数值误差要求不超过 1e-8。此误差只描述 FHA 方程求解，不代表真实电路精度，也不保证 ZVS。
 
-当前界面不提供波形频率输入。后端仍支持 OperatingPoint.switching_frequency_hz；未指定时依次使用候选命令频率或候选默认频率。旧调用方的 OperatingPoint.vout_v 字段保留，但不控制 LLC 波形。
+无匹配频率时显示输入工况和频率范围，清除旧图和旧结果显示；内部保留上次设计硬件以便修改工况后重试。输入变化会先清空实际读数。Vin、目标 Vout、负载率必须为正有限数；零负载控制不在此模型内。默认设计在 400 V、满载、80–180 kHz 内不能达到 36 V 或 60 V，必须调整工况或重新设计，不能继续展示 120 kHz 的旧图。
 
-频率越界仍生成标记为诊断用途的波形，不能将其视为有效设计。零或负负载率保持旧接口的近似空载处理；波形只是 FHA 估算，不包含真实空载控制、死区、ZVS 过渡和寄生振荡。
+后端兼容接口：传入 Vout 且未指定 switching_frequency_hz 时自动调频；显式 switching_frequency_hz 优先，供固定频率诊断及既有硬件评估调用；未提供 Vout 的旧调用保留候选频率回退。显式固定频率模式不会假称达到输入目标 Vout。GUI 始终提供目标 Vout，不提供固定频率输入。
 
-工况刷新复用已选器件并重算当前损耗。若报告没有器件选型结果，只生成电气波形和应力并注明器件损耗刷新跳过，需运行设计取得器件结果。器件选型覆盖边界与当前工况损耗分别保留；SR 报告中的设计点 timing/loss 记录不会被当作当前工况数据。
+应力、器件当前工况损耗和电容工况频率使用本次波形，效率扫描保留目标 Vout。既有磁件候选损耗汇总并不等于全面重算任意工况下的磁件损耗，本次不扩展该模型。FHA 波形仍不包含真实死区、寄生振荡和开关瞬态。
+
+结构化报告沿用原字段：`operating_point.output_voltage` 为输入目标，`operating_point.switching_frequency` 为可选显式频率输入（自动模式为 null），`waveform.operating.output_voltage` 和 `waveform.operating.switching_frequency` 为实际求解值。`candidate.switching_frequency` 仍是设计参考值，不能替代实际频率。

@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from cmath import phase
-from math import pi, sin, sqrt
+from math import isfinite, pi, sin, sqrt
 
 from ....models.operating_point import OperatingPoint
 from ....models.waveform import WaveformSet
 from ...base.candidate import TopologyCandidate
-from .fha_design import llc_fha_gain
+from .fha_design import llc_fha_gain, matching_fha_frequencies
 
 
 _LLC_WAVEFORM_NOTE = (
@@ -29,7 +29,10 @@ def generate_waveforms(
         raise ValueError("Diode LLC waveform generation requires llc_fha candidate metadata.")
 
     vin_v = candidate.vin_nom if operating_point is None else float(operating_point.vin_v)
-    load_ratio = 1.0 if operating_point is None else max(float(operating_point.load_ratio), 0.0)
+    raw_load_ratio = 1.0 if operating_point is None else float(operating_point.load_ratio)
+    if not isfinite(vin_v) or not isfinite(raw_load_ratio):
+        raise ValueError("LLC waveform Vin and load ratio must be finite.")
+    load_ratio = max(raw_load_ratio, 0.0)
     rload_nominal_ohm = float(llc_fha.get("rout_nom_ohm", candidate.r_load_nom_ohm))
     rload_ohm = rload_nominal_ohm / max(load_ratio, 1e-12)
     load_ratio_source = str(
@@ -40,6 +43,31 @@ def generate_waveforms(
         if operating_point is not None and operating_point.switching_frequency_hz is not None
         else float(llc_fha.get("commanded_switching_frequency_hz", candidate.fs_hz))
     )
+    target_vout_v = (
+        float(operating_point.vout_v)
+        if operating_point is not None and operating_point.vout_v is not None
+        and operating_point.switching_frequency_hz is None else None
+    )
+    matching_frequencies = ()
+    if target_vout_v is not None:
+        if not isfinite(target_vout_v) or min(vin_v, target_vout_v, raw_load_ratio) <= 0:
+            raise ValueError("LLC automatic frequency matching requires positive finite Vin, target Vout and load ratio; zero-load regulation is not modeled.")
+        turns_ratio = float(llc_fha["turns_ratio"])
+        kpri = float(llc_fha["primary_bridge_gain_factor"])
+        q = float(llc_fha["zr_ohm"]) / ((8.0 / pi**2) * turns_ratio**2 * rload_ohm)
+        matching_frequencies = matching_fha_frequencies(
+            fr_hz=float(llc_fha["fr_hz"]), ln=float(llc_fha["ln"]), q=q,
+            required_gain=turns_ratio * target_vout_v / (kpri * vin_v),
+            fs_min_hz=float(llc_fha["fs_min_hz"]), fs_max_hz=float(llc_fha["fs_max_hz"]),
+        )
+        if not matching_frequencies:
+            raise ValueError(
+                f"No LLC switching frequency matches Vin={vin_v:g} V, target Vout={target_vout_v:g} V "
+                f"and load ratio={raw_load_ratio:g} within "
+                f"{float(llc_fha['fs_min_hz']) / 1e3:g}–{float(llc_fha['fs_max_hz']) / 1e3:g} kHz. "
+                "Change the operating point or redesign the tank/frequency range."
+            )
+        commanded_frequency_hz = matching_frequencies[-1]
     fs_solution = _solve_fixed_frequency_point(llc_fha, vin_v, rload_ohm, commanded_frequency_hz)
     fs_hz = float(fs_solution["fs_op_hz"])
     vout_v = float(fs_solution["vout_achieved_v"])
@@ -124,6 +152,12 @@ def generate_waveforms(
         "LLC output capacitor current is abs(i_secondary_winding) - Iout_achieved.",
         "Exact LLC time-domain simulation, diode commutation overlap, and harmonic-by-harmonic capacitor loss are not implemented.",
     ]
+    if target_vout_v is not None:
+        notes.append(
+            f"Automatic FHA frequency matching: target Vout={target_vout_v:g} V; "
+            f"selected {fs_hz / 1e3:.6g} kHz from {len(matching_frequencies)} bounded solution(s), "
+            "using the highest-frequency solution. This does not certify ZVS."
+        )
     if not fs_solution["operating_point_feasible"]:
         notes.append("LLC FHA commanded switching frequency is outside the configured operating range; waveform is diagnostic.")
     if secondary_rectifier_type == "full_wave_center_tapped_rectifier":
@@ -210,6 +244,15 @@ def generate_waveforms(
             "notes": notes,
         }
     }
+    if target_vout_v is not None:
+        metadata["llc_fha_waveforms"].update({
+            "frequency_control": "target_voltage",
+            "target_vout_v": target_vout_v,
+            "matching_frequencies_hz": list(matching_frequencies),
+            "frequency_selection_policy": "highest_frequency",
+            "target_voltage_relative_error": abs(vout_v - target_vout_v) / target_vout_v,
+            "accuracy_scope": "first_harmonic_target_voltage_estimate",
+        })
 
     return WaveformSet(
         time_s=list(time_s),
@@ -249,7 +292,8 @@ def _solve_fixed_frequency_point(
     fs_min_hz = float(llc_fha.get("fs_min_hz", fs_op_hz))
     fs_max_hz = float(llc_fha.get("fs_max_hz", fs_op_hz))
     fr_hz = float(llc_fha.get("fr_hz", fs_op_hz))
-    if min(turns_ratio, kpri, zr_ohm, ln, fs_min_hz, fs_max_hz, fr_hz, vin_v, rload_ohm, fs_op_hz) <= 0.0:
+    values = (turns_ratio, kpri, zr_ohm, ln, fs_min_hz, fs_max_hz, fr_hz, vin_v, rload_ohm, fs_op_hz)
+    if any(not isfinite(value) or value <= 0 for value in values):
         raise ValueError("Fixed-frequency LLC waveform inputs must be positive.")
     rac_ohm = (8.0 / pi**2) * turns_ratio**2 * rload_ohm
     q_op = zr_ohm / rac_ohm

@@ -77,7 +77,7 @@ def verify(output_root, baseline_path):
                     if key in form.design_vars:
                         form.design_vars[key].set(value)
                 app.update()
-                assert set(form.operating_vars) == {"vin_v", "load_ratio"}
+                assert set(form.operating_vars) == {"vin_v", "vout_v", "load_ratio"}
                 assert all(w.winfo_class() != "TEntry" for w in descendants(form)
                            if "textvariable" in w.keys()
                            and str(w.cget("textvariable")) in map(str, form.waveform_readback_vars.values()))
@@ -105,12 +105,13 @@ def verify(output_root, baseline_path):
                 app.workspace.form_canvas.yview_moveto(1)
                 app.update()
                 rows = []
-                points = [("nominal", 400, 1), ("repeat", 400, 1), ("vin_min", 360, 1),
-                          ("vin_max", 420, 1), ("load_50pct", 400, .5), ("load_10pct", 400, .1),
-                          ("load_zero", 400, 0), ("load_negative", 400, -.1),
-                          ("load_overload", 400, 1.5), ("return_nominal", 400, 1)]
-                for name, vin, load in points:
+                points = [("nominal", 400, 48, 1), ("repeat", 400, 48, 1), ("vin_min", 360, 48, 1),
+                          ("vin_max", 420, 48, 1), ("load_50pct", 400, 48, .5), ("load_10pct", 400, 48, .1),
+                          ("vout_low", 400, 46, 1), ("vout_high", 400, 50, 1),
+                          ("load_overload", 400, 48, 1.5), ("return_nominal", 400, 48, 1)]
+                for name, vin, target, load in points:
                     edit_operating(form, "vin_v", vin)
+                    edit_operating(form, "vout_v", target)
                     edit_operating(form, "load_ratio", load)
                     assert all(v.get() == "-" for v in form.waveform_readback_vars.values())
                     form.generate_waveforms_button.invoke()
@@ -125,11 +126,12 @@ def verify(output_root, baseline_path):
                     assert report.magnetic is initial.magnetic and report.capacitor is initial.capacitor
                     assert design_calls.call_count == index + 1
                     assert report.operating_point == form.get_operating_point()
-                    reference = variant["cases"]["nominal" if name == "return_nominal" else name]
                     array_digest = digest(arrays(asdict(waveform)))
-                    assert array_digest == reference["all_arrays_sha256"], name
+                    reference = app.state_store.active_plugin.generate_waveforms(initial.candidate, report.operating_point)
+                    assert arrays(asdict(waveform)) == arrays(asdict(reference)), name
+                    assert isclose(waveform.operating_vout_v, target, rel_tol=1e-8)
                     assert isclose(float(form.waveform_readback_vars["vout_v"].get()), waveform.operating_vout_v, rel_tol=1e-3)
-                    assert isclose(float(form.waveform_readback_vars["switching_frequency_hz"].get()), 1e-3 / waveform.switching_period_s)
+                    assert isclose(float(form.waveform_readback_vars["switching_frequency_hz"].get()), 1e-3 / waveform.switching_period_s, rel_tol=1e-5)
                     figure = app.workspace.waveform_view.figure
                     assert app.workspace.results_notebook.select() == str(app.workspace.waveform_view)
                     series = (waveform.switch_node_voltage_v, waveform.inductor_current_a,
@@ -143,7 +145,8 @@ def verify(output_root, baseline_path):
                         assert axis.get_xlim() == (waveform.time_s[0] * 1e6, waveform.time_s[-1] * 1e6)
                     title = figure._suptitle.get_text()
                     assert f"Vin={vin:.3f}" in title and f"Load={waveform.load_ratio:.3f}" in title
-                    assert f"Vout(actual)={waveform.operating_vout_v:.3f}" in title and "f_sw=120.000 kHz" in title
+                    assert f"Vout(actual)={waveform.operating_vout_v:.3f}" in title
+                    assert f"Vout(target)={target:.3f}" in title and f"f_sw={1e-3 / waveform.switching_period_s:.3f} kHz" in title
                     assert report.stress == app.state_store.active_plugin.extract_stress(report.candidate, waveform)
                     stress_text = app.workspace.stress_view.text.get("1.0", "end-1c")
                     loss_text = app.workspace.loss_view.text.get("1.0", "end-1c")
@@ -155,7 +158,7 @@ def verify(output_root, baseline_path):
                     assert payload["stress"]["switch"]["current_rms"]["value"] == report.stress.switch.current_rms_a
                     losses = {v.role: v.p_cond_W for v in report.device.current_operating_losses.values()}
                     assert set(losses) == set(selected)
-                    rows.append({"case": name, "vin_v": vin, "load_ratio_input": load,
+                    rows.append({"case": name, "vin_v": vin, "target_vout_v": target, "load_ratio_input": load,
                                  "actual_vout_v": waveform.operating_vout_v, "actual_frequency_hz": 1 / waveform.switching_period_s,
                                  "all_arrays_sha256": array_digest, "switch_rms_a": report.stress.switch.current_rms_a,
                                  "conduction_losses_w": losses, "title": title,
@@ -165,20 +168,25 @@ def verify(output_root, baseline_path):
                     if index == 0 and name in ("nominal", "load_50pct"):
                         figure.savefig(output_root / f"gui-{name}.png")
                 assert rows[0]["all_arrays_sha256"] == rows[1]["all_arrays_sha256"] == rows[-1]["all_arrays_sha256"]
+                assert all(row['actual_frequency_hz'] != rows[0]['actual_frequency_hz'] for row in rows[2:-1])
                 assert rows[0]["ylim"][1] != rows[4]["ylim"][1]
                 for role in selected:
                     assert rows[4]["conduction_losses_w"][role] < rows[0]["conduction_losses_w"][role]
                 rejected = []
-                for invalid in ("not-a-number", "0"):
+                for field, invalid in (("vin_v", "not-a-number"), ("vin_v", "0"), ("vout_v", "1000"),
+                                       ("vout_v", "0"), ("load_ratio", "0"), ("load_ratio", "-0.1"), ("vout_v", "nan")):
                     prior = app.state_store.design_report
-                    edit_operating(form, "vin_v", invalid)
+                    edit_operating(form, field, invalid)
                     form.generate_waveforms_button.invoke()
                     app.update()
                     assert len(errors) == 1 and errors[0][0] == "Waveform Error", errors
                     assert app.state_store.design_report is prior
                     assert all(v.get() == "-" for v in form.waveform_readback_vars.values())
-                    rejected.append({"vin_input": invalid, "dialog": list(errors.pop())})
+                    assert not any(axis.lines for axis in app.workspace.waveform_view.figure.axes)
+                    rejected.append({"field": field, "input": invalid, "dialog": list(errors.pop()), "old_plot_cleared": True})
                     edit_operating(form, "vin_v", 400)
+                    edit_operating(form, "vout_v", 48)
+                    edit_operating(form, "load_ratio", 1)
                     form.generate_waveforms_button.invoke()
                     app.update()
                     assert not errors
@@ -187,9 +195,9 @@ def verify(output_root, baseline_path):
                 assert design_calls.call_count == index + 1
                 result["variants"].append({"topology": variant["topology"], "primary": variant["primary"],
                     "secondary": variant["secondary"], "layout": layout, "selected_devices": selected,
-                    "candidate_preserved": True, "design_calls": 1, "waveform_button_invocations": len(points) + 4,
+                    "candidate_preserved": True, "design_calls": 1, "waveform_button_invocations": len(points) + 2 * len(rejected),
                     "cases": rows, "rejected_inputs_and_recovery": rejected})
-                print(f"PASS {variant['topology']}/{variant['primary']}/{variant['secondary']}: 14 button invocations, 2 window sizes", flush=True)
+                print(f"PASS {variant['topology']}/{variant['primary']}/{variant['secondary']}: {len(points) + 2 * len(rejected)} button invocations, 2 window sizes", flush=True)
     finally:
         app.destroy()
     return result
@@ -199,7 +207,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--baseline", type=Path, default=ROOT / "Plan/completed/llc_waveform_operating_point_evidence/step1_baseline.json")
-    parser.add_argument("--runtime-output", type=Path, default=ROOT / "pytest_temp/llc-waveform-step3-gui")
+    parser.add_argument("--runtime-output", type=Path, default=ROOT / "pytest_temp/llc-auto-frequency-gui")
     args = parser.parse_args()
     args.runtime_output.mkdir(parents=True, exist_ok=True)
     evidence = verify(args.runtime_output.resolve(), args.baseline)

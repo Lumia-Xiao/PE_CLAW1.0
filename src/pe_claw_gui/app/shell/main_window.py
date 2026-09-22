@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from ...topologies.base import build_default_registry
+from ...topology_capabilities import is_llc_resonant_topology
 from ..controllers.device_controller import DeviceController
 from ..controllers.efficiency_sweep_controller import EfficiencySweepController
 from ..controllers.export_controller import ExportController
@@ -155,6 +156,10 @@ class PEClawMainWindow(tk.Tk):
         except RuntimeError as exc:  # pragma: no cover - GUI path
             messagebox.showwarning("No Design", str(exc))
         except Exception as exc:  # pragma: no cover - GUI path
+            if is_llc_resonant_topology(self.state_store.selected_topology_id or ""):
+                # Retain fixed hardware in state for recovery, but do not show
+                # the previous successful curves as an unreachable target.
+                self.workspace.render_report(None)
             messagebox.showerror("Waveform Error", str(exc))
 
     def _on_run_efficiency_sweep(self) -> None:

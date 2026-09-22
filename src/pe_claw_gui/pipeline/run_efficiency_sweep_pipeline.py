@@ -704,6 +704,8 @@ def _sweep_operating_point(report: DesignReport, load_pu: float) -> OperatingPoi
     power_factor = None
     if report.operating_point is not None and report.operating_point.power_factor is not None:
         power_factor = report.operating_point.power_factor
+    if is_llc_topology(report.spec.topology_id) and report.operating_point is not None:
+        return replace(report.operating_point, load_ratio=load_pu)
     return OperatingPoint(vin_v=_operating_vin_v(report), load_ratio=load_pu, power_factor=power_factor)
 
 

@@ -38,3 +38,15 @@ it is never the string `-`, an empty string, or a number with a unit suffix.
 Status enums are `pass`, `fail`, `not_evaluated`, `boundary`, and `unknown`.
 Markdown and CSV are views of this structure and must not introduce alternate
 field names or recover units from display strings.
+
+## LLC operating-point clarification (2026-09-22)
+
+The schema and units remain v1. For target-voltage LLC refresh,
+`operating_point.output_voltage` is the requested target (V), while
+`waveform.operating.output_voltage` is the achieved result (V).
+`operating_point.switching_frequency` is an optional explicit input (Hz), null
+for automatic frequency matching; the solved frequency is always read from
+`waveform.operating.switching_frequency` (Hz). `candidate.switching_frequency`
+remains a design reference and is not the current regulated frequency.
+Historical snapshots retain their original operating contract. Current
+acceptance evidence belongs to the LLC automatic-frequency correction plan.

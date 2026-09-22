@@ -48,7 +48,7 @@ def evaluate(
     summary_lines = [
         f"Topology = {candidate.display_name}",
         "Model = first-pass LLC FHA electrical parameter design",
-        "Design coverage = variable-frequency with fixed 50% bridge drive; waveform refresh = fixed commanded frequency",
+        "Design coverage = variable-frequency with fixed 50% bridge drive; waveform target Vout is matched by frequency unless an explicit frequency is supplied",
         "",
         "Input specification",
         (
@@ -220,6 +220,7 @@ def evaluate(
             "",
             "Waveform",
             "Two-cycle first-pass LLC FHA waveform estimate is available.",
+            f"Target waveform Vout = {_fmt(llc_waveforms.get('target_vout_v'))} V",
             (
                 "Operating point = "
                 f"Vin {_fmt(llc_waveforms.get('vin_op_v'))} V, "

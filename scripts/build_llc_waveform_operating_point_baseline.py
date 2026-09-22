@@ -1,7 +1,9 @@
 """Capture the current LLC contract, including complete-array comparisons.
 
-This is diagnostic evidence, not an assertion that ignored Vout or permissive
-boundary handling is desired. No full design pipeline is started.
+Direct cases explicitly command frequency to replay the historical fixed-
+frequency contract; GUI cases exercise automatic target-voltage matching.
+Historical evidence must be regenerated from its source revision for byte
+identity. No full design pipeline is started.
 """
 from __future__ import annotations
 
@@ -96,7 +98,7 @@ def build():
                     spec = plugin.build_spec(raw)
                     candidate = plugin.synthesize(spec)
                     snapshot = digest(asdict(candidate))
-                    point = OperatingPoint(candidate.vin_nom, 1.0, candidate.vout_target)
+                    point = OperatingPoint(candidate.vin_nom, 1.0, candidate.vout_target, switching_frequency_hz=candidate.fs_hz)
                     fha = candidate.metadata["llc_fha"]
                     cases = {"nominal": point, "repeat": point, "legacy_none": None,
                              "vout_low": replace(point, vout_v=36), "vout_high": replace(point, vout_v=60),
@@ -132,7 +134,7 @@ def build():
                     figure = Figure(figsize=(9, 7))
                     view = SimpleNamespace(figure=figure, canvas=FigureCanvasAgg(figure))
                     gui_rows = []
-                    for vin, vout, load in ((400, 36, 1), (400, 60, 1), (360, 48, .5), (420, 48, .1)):
+                    for vin, vout, load in ((400, 48, 1), (400, 50, 1), (360, 48, .5), (420, 48, .1)):
                         for key, value in (("vin_v", vin), ("vout_v", vout), ("load_ratio", load)):
                             if key in form.operating_vars:
                                 form.operating_vars[key].set(str(value))
