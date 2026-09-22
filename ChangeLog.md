@@ -1469,3 +1469,8 @@ listed here.
 - 计划和证据移至 Plan/completed/llc_waveform_operating_point_fix_plan.md 及同级 evidence 目录，测试基线路径同步更新，步骤 1/2 JSON 原样保留。未宣称人工鼠标验收或用户未提供的原始项目验收；未运行全仓库测试，按钮验收不包含 Run Magnetics/Run Capacitor，其现有 LLC 测试纳入回归。
 - Git：本步骤在 codex/llc-waveform-operating-point-plan 提交并按持续授权推送 origin 同名分支，推送成功后另记完成回执。只暂存本任务文件，保留用户已有 Web/deployment 删除及 outputs 等未跟踪内容；未执行备份或清理操作。
 - 归档后路径验证：32 项工况定向测试再次全部通过 (43.50s)，无失败或跳过；原始步骤 1/2 文件散列未变，git diff --check 通过。
+
+### LLC 波形步骤 3 推送回执
+
+- 验收、滚动修正和归档提交 e955e2e 已成功推送至 origin/codex/llc-waveform-operating-point-plan；归档计划据此标记全部三步完成。
+- 本回执只更新计划状态和 ChangeLog，git diff --check 通过；随独立文档提交推送同一分支。
