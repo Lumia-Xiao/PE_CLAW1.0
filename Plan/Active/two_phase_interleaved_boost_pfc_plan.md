@@ -517,6 +517,16 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 
 **验收**：拓扑包可以独立完成 `build_spec()` 和 `synthesize()`；公式单元测试覆盖零点、峰值、`D=0.5` 交错抵消、低线和高线边界；未导入 GUI 或公共 pipeline。
 
+**步骤 2 执行记录（2026-09-28）**：
+
+- 新增独立包 `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/`，包含 `input_schema.py`、`line_cycle.py`、`interleaving.py`、`synthesizer.py` 和包导出文件；未修改 registry、capability、GUI 或公共 pipeline；
+- 输入复用步骤 1 冻结的 Boost PFC 字段，不读取或生成 `sizing_efficiency_assumption`、`phase_count`、`phase_shift_deg` 或相电感用户输入；
+- 总输入电流使用 `Iline_rms = Pout/(Vac_rms * PF_target)`，相电流使用固定 `Iphase = Iline/2`；低线线路周期用于每相电感最坏需求，高线峰值用于母线可行性；
+- 每相总串联电感使用 `Ltotal = Vrect*D/(DeltaI_phase*fsw)`，再拆分为 `Linput_phase + Lboost_phase`；公共 candidate 的 `inductance_h` 保持每相总串联电感语义；
+- 180 度交错总纹波使用 `DeltaIaggregate = DeltaIphase * abs(1 - 2D)`，并在 metadata 中保存总量、相量、公式、单位和边界；
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step2_core.py`，覆盖输入边界、线路周期零点/峰值、50/50 均流、`D=0.5` 抵消、低线电感设计和高线母线失败边界；
+- 验证：步骤 1 契约与步骤 2 核心测试共 `10 passed`，新增包 `compileall` 通过；步骤 0 单相 Boost PFC 基线回归 `2 passed in 183.98s`。
+
 ### 步骤 3：实现两相波形、应力和拓扑结果
 
 **目的**：把每相物理量建立完整，再映射到公共结果模型。

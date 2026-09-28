@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-28 Execute Step 2 Interleaved Boost PFC Electrical Core
+
+- Added an isolated two-phase interleaved Boost PFC input schema, line-cycle model, 180-degree ripple-cancellation helper, and first-pass electrical synthesizer.
+- The core reuses the frozen Boost PFC inputs without `sizing_efficiency_assumption` or phase-control inputs, uses ideal 50/50 sharing, sizes per-phase series inductance from the low-line envelope, checks high-line DC-bus feasibility, and records formula/unit/boundary metadata.
+- Added focused tests for input normalization, line-cycle zero/peak behavior, equal sharing, half-duty ripple cancellation, inductance decomposition, and low/high-line boundaries.
+- Validation: `10 passed` for the step-1 contract and step-2 core tests; `compileall` passed; step-0 baseline regression `2 passed in 183.98s`; no registry, GUI, or shared pipeline code changed.
+
 ## 2026-09-28 Execute Step 1 Interleaved Boost PFC Contract
 
 - Added the frozen step-1 input/result contract and contract tests for the planned two-phase interleaved Boost PFC topology.
