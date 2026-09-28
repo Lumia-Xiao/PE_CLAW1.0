@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-28 Execute Step 1 Interleaved Boost PFC Contract
+
+- Added the frozen step-1 input/result contract and contract tests for the planned two-phase interleaved Boost PFC topology.
+- The contract reuses the existing Boost PFC user inputs, excludes `sizing_efficiency_assumption` and phase-control inputs, fixes 2 phases with 180-degree interleaving and ideal 50/50 design sharing, and defines per-phase/common field semantics, roles, provenance, and first-pass boundaries.
+- Validation: step-1 contract tests passed; no runtime topology, registry, GUI, or shared pipeline code was changed.
+
 ## 2026-09-28 Execute Step 0 Boost PFC Baseline
 
 - Added the step-0 baseline recorder, frozen JSON fixture, and regression test for the existing `single_phase_boost_pfc_diode_bridge` topology across nominal, low-line, and high-line cases.

@@ -490,6 +490,16 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 
 **验收**：输入字段、输出字段、单位、状态和 provenance 可由 schema/contract 测试表达，且没有复用歧义字段。
 
+**步骤 1 执行记录（2026-09-28）**：
+
+- 冻结 topology ID、显示名、legacy key、AC-DC 类别和 `planned` 支持状态；
+- 冻结 `phase_count=2`、`phase_shift_deg=180`、理想 50/50 均流和 CCM first-pass 边界；
+- 冻结用户输入复用现有 Boost PFC 字段，不新增 `sizing_efficiency_assumption`、相数、相移、均流容差或相电感用户输入；
+- 冻结 `input_inductance_h` 为每相串联电感贡献，公共标量 candidate 字段使用每相语义，完整 phase-level 数据使用明确 metadata；
+- 冻结四个功率器件位置、两个 Boost 电感实例、共享输入桥和 DC-link 电容的报告角色；
+- 新增 `tests/fixtures/two_phase_interleaved_boost_pfc_step1_contract.json` 和 `tests/test_two_phase_interleaved_boost_pfc_step1_contract.py`；
+- 明确记录 DCM、CrM、动态均流控制、相间参数失配、零点控制动态、THD、EMI 和详细寄生模型为首版不支持边界。
+
 ### 步骤 2：实现独立 topology package 的输入和公式内核
 
 **目的**：先在拓扑包内完成可测试的电气合成，不接入公共流水线。

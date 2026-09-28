@@ -1,0 +1,222 @@
+{
+  "contract_version": "two_phase_interleaved_boost_pfc_contract_v1",
+  "identity": {
+    "topology_id": "single_phase_interleaved_boost_pfc_diode_bridge",
+    "display_name": "Single-Phase Interleaved Boost PFC Diode Bridge",
+    "legacy_key": "SinglePhase_InterleavedBoostPFC_DiodeBridge_FirstPass",
+    "category_id": "ac_dc",
+    "support_status": "planned"
+  },
+  "fixed_topology": {
+    "phase_count": 2,
+    "phase_shift_deg": 180.0,
+    "current_sharing_assumption": "ideal_equal_phase_current",
+    "phase_current_fraction": {
+      "phase_1": 0.5,
+      "phase_2": 0.5
+    },
+    "conduction_mode": "ccm_first_pass",
+    "direction": "ac_to_dc",
+    "rectifier_type": "single_phase_diode_bridge"
+  },
+  "user_input": {
+    "fields": [
+      "vac_rms",
+      "vac_rms_min",
+      "vac_rms_max",
+      "f_line_hz",
+      "vdc_target_v",
+      "pout_w",
+      "fsw_hz",
+      "dc_bus_ripple_percent",
+      "inductor_current_ripple_ratio",
+      "power_factor_target",
+      "input_inductance_h",
+      "ambient_temp_c",
+      "target_junction_temp_c"
+    ],
+    "semiconductor_filter_fields": "existing_with_default_semiconductor_filter_input",
+    "excluded_fields": [
+      "sizing_efficiency_assumption",
+      "phase_count",
+      "phase_shift_deg",
+      "phase_current_sharing_tolerance_percent",
+      "phase_inductor_current_ripple_ratio",
+      "phase_inductance_h"
+    ],
+    "units": {
+      "vac_rms": "V_rms",
+      "vac_rms_min": "V_rms",
+      "vac_rms_max": "V_rms",
+      "f_line_hz": "Hz",
+      "vdc_target_v": "V",
+      "pout_w": "W",
+      "fsw_hz": "Hz",
+      "dc_bus_ripple_percent": "%",
+      "inductor_current_ripple_ratio": "ratio",
+      "power_factor_target": "ratio",
+      "input_inductance_h": "H",
+      "ambient_temp_c": "degC",
+      "target_junction_temp_c": "degC"
+    }
+  },
+  "inductance_semantics": {
+    "input_inductance_h": {
+      "role": "per_phase_series_input_inductance",
+      "unit": "H",
+      "meaning": "The existing user input is applied as the per-phase series inductance contribution before the active Boost inductance requirement is reported.",
+      "common_bridge_side_inductor": false
+    },
+    "phase_boost_inductance_h": {
+      "role": "per_phase_active_boost_inductor",
+      "unit": "H",
+      "meaning": "The active Boost inductance selected for each phase after subtracting the per-phase input inductance contribution."
+    },
+    "phase_total_series_inductance_h": {
+      "role": "per_phase_total_series_inductance",
+      "unit": "H",
+      "meaning": "The sum of per-phase input inductance and active Boost inductance used for phase ripple calculation."
+    }
+  },
+  "candidate_contract": {
+    "public_fields": {
+      "topology_id": "topology identity",
+      "display_name": "user-facing topology name",
+      "vin_min": "minimum AC RMS input in V_rms",
+      "vin_max": "maximum AC RMS input in V_rms",
+      "vin_nom": "active AC RMS design input in V_rms",
+      "vout_target": "common DC-link target in V",
+      "pout_target": "DC output design power in W",
+      "duty_nom": "nominal Boost duty ratio",
+      "iout": "common DC output current in A",
+      "fs_hz": "per-phase switching frequency in Hz",
+      "inductance_h": "per-phase total series inductance in H",
+      "capacitance_f": "common DC-link capacitance requirement in F",
+      "delta_il": "per-phase nominal peak-to-peak inductor ripple in A",
+      "delta_vo": "common DC-link peak-to-peak ripple in V",
+      "il_peak": "per-phase design-point peak current in A",
+      "il_valley": "per-phase design-point valley current in A",
+      "ccm_valid": "per-phase CCM boundary result",
+      "feasible": "topology design feasibility",
+      "failure_reason": "stable failure reason or null"
+    },
+    "metadata_fields": {
+      "contract_version": "contract identity",
+      "phase_count": "fixed phase count",
+      "phase_shift_deg": "fixed interleaving phase shift",
+      "current_sharing_assumption": "ideal equal phase-current design assumption",
+      "phase_current_fraction": "phase 1 and phase 2 current fractions",
+      "input_inductance_role": "input inductance physical placement",
+      "phase_boost_inductance_h": "phase-keyed active Boost inductances in H",
+      "phase_total_series_inductance_h": "phase-keyed total series inductances in H",
+      "phase_line_cycle": "phase-keyed line-cycle voltage/current/duty arrays",
+      "interleaved_ripple": "phase-shifted aggregate ripple metrics",
+      "phase_device_roles": "phase-keyed semiconductor roles",
+      "phase_magnetic_roles": "phase-keyed magnetic instances",
+      "formula_basis": "formula and unit provenance"
+    }
+  },
+  "waveform_contract": {
+    "public_field_semantics": {
+      "inductor_current_a": "aggregate current of phase 1 and phase 2 Boost inductors",
+      "switch_current_a": "aggregate current of both high-frequency Boost switches",
+      "diode_current_a": "aggregate current of both Boost diodes",
+      "input_source_current_a": "signed aggregate AC input current",
+      "inductor_voltage_v": "aggregate-compatible Boost inductor voltage projection",
+      "output_voltage_v": "common DC-link voltage",
+      "output_ripple_v": "common DC-link ripple",
+      "duty": "common nominal duty projection",
+      "switching_period_s": "per-phase switching period",
+      "mode": "CCM first-pass PFC"
+    },
+    "metadata_fields": {
+      "phase_waveforms": "complete phase_1 and phase_2 waveform arrays",
+      "phase_currents_a": "phase-keyed average and ripple current arrays",
+      "phase_switch_currents_a": "phase-keyed switch current arrays",
+      "phase_diode_currents_a": "phase-keyed Boost diode current arrays",
+      "phase_inductor_voltage_v": "phase-keyed inductor voltage arrays",
+      "interleaved_ripple_pp_a": "phase-shifted aggregate ripple array and extrema",
+      "aggregate_waveform_basis": "explicit definition of every public aggregate field"
+    }
+  },
+  "stress_contract": {
+    "shared_slots": {
+      "switch": "representative per-phase main-switch stress; phase 1 and phase 2 are equal under the ideal-sharing assumption",
+      "rectifier": "representative per-phase Boost-diode stress; phase 1 and phase 2 are equal under the ideal-sharing assumption"
+    },
+    "phase_roles": [
+      "phase_1_main_switch",
+      "phase_2_main_switch",
+      "phase_1_boost_diode",
+      "phase_2_boost_diode",
+      "input_bridge_rectifier"
+    ],
+    "phase_metadata_field": "phase_stress",
+    "stress_units": {
+      "voltage_max_v": "V",
+      "current_peak_a": "A",
+      "current_rms_a": "A",
+      "current_avg_a": "A"
+    }
+  },
+  "hardware_contract": {
+    "device_roles": [
+      "phase_1_main_switch",
+      "phase_2_main_switch",
+      "phase_1_boost_diode",
+      "phase_2_boost_diode"
+    ],
+    "magnetic_instances": [
+      "phase_1_boost_inductor",
+      "phase_2_boost_inductor"
+    ],
+    "shared_hardware": [
+      "input_bridge_rectifier",
+      "dc_link_capacitor"
+    ],
+    "selection_policy": "phase positions are independently auditable; identical candidates may be reused for both phases"
+  },
+  "report_contract": {
+    "required_sections": [
+      "topology",
+      "phase_1",
+      "phase_2",
+      "aggregate_input",
+      "interleaved_ripple",
+      "devices",
+      "magnetics",
+      "capacitor",
+      "loss",
+      "thermal",
+      "geometry",
+      "provenance"
+    ],
+    "provenance_fields": [
+      "topology_id",
+      "contract_version",
+      "run_id",
+      "input_sha256",
+      "source_stage",
+      "formula_basis",
+      "unit"
+    ],
+    "status_values": [
+      "not_started",
+      "running",
+      "succeeded",
+      "failed",
+      "blocked",
+      "not_applicable"
+    ]
+  },
+  "unsupported_boundaries": [
+    "dcm",
+    "crm",
+    "dynamic_current_sharing_control",
+    "phase_parameter_mismatch",
+    "zero_crossing_control_dynamics",
+    "thd_control_validation",
+    "emi_filter_validation",
+    "detailed_parasitic_switching_model"
+  ]
+}
