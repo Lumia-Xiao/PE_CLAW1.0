@@ -1,0 +1,509 @@
+{
+  "cases": [
+    {
+      "candidate": {
+        "capacitance_f": 0.000397887358,
+        "ccm_valid": true,
+        "delta_il": 1.179963201696,
+        "delta_vo": 2.947313760961,
+        "duty_nom": 0.186827201635,
+        "failure_reason": null,
+        "feasible": true,
+        "fs_hz": 100000.0,
+        "il_peak": 7.06235488402,
+        "il_valley": 5.882391682324,
+        "inductance_h": 0.000415008597,
+        "iout": 2.5,
+        "pout_target": 1000.0,
+        "topology_id": "single_phase_boost_pfc_diode_bridge",
+        "vin_max": 265.0,
+        "vin_min": 180.0,
+        "vin_nom": 230.0,
+        "vout_target": 400.0
+      },
+      "candidate_metadata": {
+        "boost_inductor_required_h": 0.000415008597,
+        "bridge_reverse_stress_v": 374.76659402887,
+        "dc_link_capacitance_required_f": 0.000397887358,
+        "fsw_hz": 100000.0,
+        "recommended_diode_vrrm_v": 749.53318805774,
+        "sizing_input_current_rms_a": 4.576659038902,
+        "sizing_input_power_w": 1052.631578947369,
+        "total_series_inductance_required_h": 0.000515008597,
+        "vac_rms_max_v": 265.0,
+        "vac_rms_min_v": 180.0,
+        "vac_rms_v": 230.0,
+        "vdc_feasibility_passed": true,
+        "vdc_target_v": 400.0
+      },
+      "case_id": "nominal",
+      "efficiency_sweep": {
+        "artifact_names": [
+          "efficiency_curve",
+          "loss_breakdown_stacked"
+        ],
+        "load_grid": [
+          0.5,
+          1.0
+        ],
+        "points": [
+          {
+            "bridge_rectifier_loss_w": 9.039629578026,
+            "capacitor_loss_w": 0.021875,
+            "efficiency": 0.965531853407,
+            "load_pu": 0.5,
+            "magnetic_loss_w": 0.076930212541,
+            "other_loss_w": null,
+            "output_power_w": 500.0,
+            "semiconductor_loss_w": 8.710870994534,
+            "total_loss_w": 17.849305785101,
+            "warnings": []
+          },
+          {
+            "bridge_rectifier_loss_w": 9.039629578026,
+            "capacitor_loss_w": 0.0875,
+            "efficiency": 0.976165075856,
+            "load_pu": 1.0,
+            "magnetic_loss_w": 0.455829998492,
+            "other_loss_w": null,
+            "output_power_w": 1000.0,
+            "semiconductor_loss_w": 14.833939504819,
+            "total_loss_w": 24.416899081338,
+            "warnings": []
+          }
+        ],
+        "status": "available",
+        "warnings": []
+      },
+      "geometry": {
+        "component_type": "fixed_inductor",
+        "footprint_mm2": 1134.0,
+        "loss_w": null
+      },
+      "hardware": {
+        "bridge_candidate_id": "Yangzhou Yangjie Electronic Technology::KBPC5010::KBPC5010-ND",
+        "bridge_part_number": "KBPC5010",
+        "capacitor_bank_capacitance_f": 0.0027,
+        "capacitor_part_number": "B43703A6278M600",
+        "magnetic_selected_design_id": "PQ_40_40_FT-3M_Litz_30x0.1_-_Grade_2_-_Unserved_N34_P6",
+        "selected_devices": {
+          "main_switch": "CAB011M12FM3",
+          "rectifier_diode": "SCS320KN"
+        }
+      },
+      "loss": {
+        "breakdown_w": {
+          "inductor_copper_loss_w": 0.404159771682,
+          "inductor_core_loss_w": 0.05167022681,
+          "inductor_total_loss_w": 0.455829998492
+        },
+        "total_loss_w": 0.455829998492
+      },
+      "notes": [
+        "Single-phase boost PFC semiconductor preview maps boost switch, independent boost diode, and input bridge rectifier.",
+        "PFC remains a planned topology; this report is a staged handoff for device and bridge selector integration.",
+        "Design run context created with an isolated output directory.",
+        "Bridge rectifier selection completed: 2 / 3 candidates passed hard filters.",
+        "Boost PFC electrical readback refreshed using the selected DC-link capacitor bank."
+      ],
+      "presence": {
+        "bridge_rectifier": true,
+        "candidate": true,
+        "capacitor": true,
+        "device": true,
+        "geometry": true,
+        "loss": true,
+        "magnetic": true,
+        "stress": true,
+        "thermal": true,
+        "topology_result": true,
+        "waveform": true
+      },
+      "raw_input": {
+        "dc_bus_ripple_percent": "5",
+        "f_line_hz": "50",
+        "fsw_hz": "100000",
+        "inductor_current_ripple_ratio": "0.3",
+        "input_inductance_h": "0.0001",
+        "pout_w": "1000",
+        "power_factor_target": "0.99",
+        "sizing_efficiency_assumption": "0.95",
+        "vac_rms": "230",
+        "vac_rms_max": "265",
+        "vac_rms_min": "180",
+        "vdc_target_v": "400"
+      },
+      "stress": {
+        "rectifier": {
+          "current_avg_a": 2.624289254993,
+          "current_peak_a": 7.06235488402,
+          "current_rms_a": 3.810891736212,
+          "voltage_max_v": 400.0
+        },
+        "switch": {
+          "current_avg_a": 1.484633280473,
+          "current_peak_a": 7.06235488402,
+          "current_rms_a": 2.56051701102,
+          "voltage_max_v": 400.0
+        }
+      },
+      "thermal": {
+        "recommended_design_id": "PQ_40_40_FT-3M_Litz_30x0.1_-_Grade_2_-_Unserved_N34_P6",
+        "summary": "Simplified magnetic thermal estimate completed for 7 designs. Recommended design PQ_40_40_FT-3M_Litz_30x0.1_-_Grade_2_-_Unserved_N34_P6 has a hotspot proxy of 30.62 C."
+      },
+      "waveform": {
+        "duty": 0.186827201635,
+        "inductor_current_max_a": 6.738736219861,
+        "inductor_current_min_a": 0.0,
+        "load_ratio": 1.0,
+        "mode": "CCM first-pass PFC",
+        "operating_vin_v": 230.0,
+        "operating_vout_v": 400.0
+      }
+    },
+    {
+      "candidate": {
+        "capacitance_f": 0.000397887358,
+        "ccm_valid": true,
+        "delta_il": 2.296465975588,
+        "delta_vo": 2.947313760961,
+        "duty_nom": 0.363603896932,
+        "failure_reason": null,
+        "feasible": true,
+        "fs_hz": 100000.0,
+        "il_peak": 9.418487738514,
+        "il_valley": 7.122021762926,
+        "inductance_h": 0.000303047301,
+        "iout": 2.5,
+        "pout_target": 1000.0,
+        "topology_id": "single_phase_boost_pfc_diode_bridge",
+        "vin_max": 265.0,
+        "vin_min": 180.0,
+        "vin_nom": 180.0,
+        "vout_target": 400.0
+      },
+      "candidate_metadata": {
+        "boost_inductor_required_h": 0.000303047301,
+        "bridge_reverse_stress_v": 374.76659402887,
+        "dc_link_capacitance_required_f": 0.000397887358,
+        "fsw_hz": 100000.0,
+        "recommended_diode_vrrm_v": 749.53318805774,
+        "sizing_input_current_rms_a": 5.847953216374,
+        "sizing_input_power_w": 1052.631578947369,
+        "total_series_inductance_required_h": 0.000403047301,
+        "vac_rms_max_v": 265.0,
+        "vac_rms_min_v": 180.0,
+        "vac_rms_v": 180.0,
+        "vdc_feasibility_passed": true,
+        "vdc_target_v": 400.0
+      },
+      "case_id": "low_line",
+      "efficiency_sweep": {
+        "artifact_names": [
+          "efficiency_curve",
+          "loss_breakdown_stacked"
+        ],
+        "load_grid": [
+          0.5,
+          1.0
+        ],
+        "points": [
+          {
+            "bridge_rectifier_loss_w": 11.550637794145,
+            "capacitor_loss_w": 0.021875,
+            "efficiency": 0.955971225167,
+            "load_pu": 0.5,
+            "magnetic_loss_w": 0.340494470826,
+            "other_loss_w": null,
+            "output_power_w": 500.0,
+            "semiconductor_loss_w": 11.115287768571,
+            "total_loss_w": 23.028295033542,
+            "warnings": []
+          },
+          {
+            "bridge_rectifier_loss_w": 11.550637794145,
+            "capacitor_loss_w": 0.0875,
+            "efficiency": 0.970409256208,
+            "load_pu": 1.0,
+            "magnetic_loss_w": 1.662580677459,
+            "other_loss_w": null,
+            "output_power_w": 1000.0,
+            "semiconductor_loss_w": 17.192337527881,
+            "total_loss_w": 30.493055999484,
+            "warnings": []
+          }
+        ],
+        "status": "available",
+        "warnings": []
+      },
+      "geometry": {
+        "component_type": "fixed_inductor",
+        "footprint_mm2": 594.6902,
+        "loss_w": null
+      },
+      "hardware": {
+        "bridge_candidate_id": "Yangzhou Yangjie Electronic Technology::KBPC5010::KBPC5010-ND",
+        "bridge_part_number": "KBPC5010",
+        "capacitor_bank_capacitance_f": 0.0027,
+        "capacitor_part_number": "B43703A6278M600",
+        "magnetic_selected_design_id": "T_33_19.9_18.0_FT-3M_Litz_225x0.05_-_Grade_1_-_Single_Served_N52_P4",
+        "selected_devices": {
+          "main_switch": "CAB011M12FM3",
+          "rectifier_diode": "SCS320KN"
+        }
+      },
+      "loss": {
+        "breakdown_w": {
+          "inductor_copper_loss_w": 1.410225287074,
+          "inductor_core_loss_w": 0.252355390384,
+          "inductor_total_loss_w": 1.662580677459
+        },
+        "total_loss_w": 1.662580677459
+      },
+      "notes": [
+        "Single-phase boost PFC semiconductor preview maps boost switch, independent boost diode, and input bridge rectifier.",
+        "PFC remains a planned topology; this report is a staged handoff for device and bridge selector integration.",
+        "Design run context created with an isolated output directory.",
+        "Bridge rectifier selection completed: 2 / 3 candidates passed hard filters.",
+        "Boost PFC electrical readback refreshed using the selected DC-link capacitor bank."
+      ],
+      "presence": {
+        "bridge_rectifier": true,
+        "candidate": true,
+        "capacitor": true,
+        "device": true,
+        "geometry": true,
+        "loss": true,
+        "magnetic": true,
+        "stress": true,
+        "thermal": true,
+        "topology_result": true,
+        "waveform": true
+      },
+      "raw_input": {
+        "dc_bus_ripple_percent": "5",
+        "f_line_hz": "50",
+        "fsw_hz": "100000",
+        "inductor_current_ripple_ratio": "0.3",
+        "input_inductance_h": "0.0001",
+        "pout_w": "1000",
+        "power_factor_target": "0.99",
+        "sizing_efficiency_assumption": "0.95",
+        "vac_rms": "180",
+        "vac_rms_max": "265",
+        "vac_rms_min": "180",
+        "vdc_target_v": "400"
+      },
+      "stress": {
+        "rectifier": {
+          "current_avg_a": 2.624289254993,
+          "current_peak_a": 9.418487738514,
+          "current_rms_a": 4.312895349772,
+          "voltage_max_v": 400.0
+        },
+        "switch": {
+          "current_avg_a": 2.626000651436,
+          "current_peak_a": 9.418487738514,
+          "current_rms_a": 3.984091941815,
+          "voltage_max_v": 400.0
+        }
+      },
+      "thermal": {
+        "recommended_design_id": "T_33_19.9_18.0_FT-3M_Litz_225x0.05_-_Grade_1_-_Single_Served_N52_P4",
+        "summary": "Simplified magnetic thermal estimate completed for 7 designs. Recommended design T_33_19.9_18.0_FT-3M_Litz_225x0.05_-_Grade_1_-_Single_Served_N52_P4 has a hotspot proxy of 36.55 C."
+      },
+      "waveform": {
+        "duty": 0.363603896932,
+        "inductor_current_max_a": 9.004975000978,
+        "inductor_current_min_a": 0.0,
+        "load_ratio": 1.0,
+        "mode": "CCM first-pass PFC",
+        "operating_vin_v": 180.0,
+        "operating_vout_v": 400.0
+      }
+    },
+    {
+      "candidate": {
+        "capacitance_f": 0.000397887358,
+        "ccm_valid": true,
+        "delta_il": 0.398441833861,
+        "delta_vo": 2.947313760961,
+        "duty_nom": 0.063083514928,
+        "failure_reason": null,
+        "feasible": true,
+        "fs_hz": 100000.0,
+        "il_peak": 5.816752445721,
+        "il_valley": 5.41831061186,
+        "inductance_h": 0.0004933512,
+        "iout": 2.5,
+        "pout_target": 1000.0,
+        "topology_id": "single_phase_boost_pfc_diode_bridge",
+        "vin_max": 265.0,
+        "vin_min": 180.0,
+        "vin_nom": 265.0,
+        "vout_target": 400.0
+      },
+      "candidate_metadata": {
+        "boost_inductor_required_h": 0.0004933512,
+        "bridge_reverse_stress_v": 374.76659402887,
+        "dc_link_capacitance_required_f": 0.000397887358,
+        "fsw_hz": 100000.0,
+        "recommended_diode_vrrm_v": 749.53318805774,
+        "sizing_input_current_rms_a": 3.972194637537,
+        "sizing_input_power_w": 1052.631578947369,
+        "total_series_inductance_required_h": 0.0005933512,
+        "vac_rms_max_v": 265.0,
+        "vac_rms_min_v": 180.0,
+        "vac_rms_v": 265.0,
+        "vdc_feasibility_passed": true,
+        "vdc_target_v": 400.0
+      },
+      "case_id": "high_line",
+      "efficiency_sweep": {
+        "artifact_names": [
+          "efficiency_curve",
+          "loss_breakdown_stacked"
+        ],
+        "load_grid": [
+          0.5,
+          1.0
+        ],
+        "points": [
+          {
+            "bridge_rectifier_loss_w": 7.845716237532,
+            "capacitor_loss_w": 0.021875,
+            "efficiency": 0.970615178313,
+            "load_pu": 0.5,
+            "magnetic_loss_w": 0.02477233104,
+            "other_loss_w": null,
+            "output_power_w": 500.0,
+            "semiconductor_loss_w": 7.244851644958,
+            "total_loss_w": 15.13721521353,
+            "warnings": []
+          },
+          {
+            "bridge_rectifier_loss_w": 7.845716237532,
+            "capacitor_loss_w": 0.0875,
+            "efficiency": 0.978591659989,
+            "load_pu": 1.0,
+            "magnetic_loss_w": 0.312817908457,
+            "other_loss_w": null,
+            "output_power_w": 1000.0,
+            "semiconductor_loss_w": 13.630649343908,
+            "total_loss_w": 21.876683489897,
+            "warnings": []
+          }
+        ],
+        "status": "available",
+        "warnings": []
+      },
+      "geometry": {
+        "component_type": "fixed_inductor",
+        "footprint_mm2": 1134.0,
+        "loss_w": null
+      },
+      "hardware": {
+        "bridge_candidate_id": "Yangzhou Yangjie Electronic Technology::KBPC5010::KBPC5010-ND",
+        "bridge_part_number": "KBPC5010",
+        "capacitor_bank_capacitance_f": 0.0027,
+        "capacitor_part_number": "B43703A6278M600",
+        "magnetic_selected_design_id": "PQ_40_40_FT-3M_Litz_90x0.08_-_Grade_2_-_Unserved_N33_P3",
+        "selected_devices": {
+          "main_switch": "CAB011M12FM3",
+          "rectifier_diode": "SCS320KN"
+        }
+      },
+      "loss": {
+        "breakdown_w": {
+          "inductor_copper_loss_w": 0.307248615911,
+          "inductor_core_loss_w": 0.005569292546,
+          "inductor_total_loss_w": 0.312817908457
+        },
+        "total_loss_w": 0.312817908457
+      },
+      "notes": [
+        "Single-phase boost PFC semiconductor preview maps boost switch, independent boost diode, and input bridge rectifier.",
+        "PFC remains a planned topology; this report is a staged handoff for device and bridge selector integration.",
+        "Design run context created with an isolated output directory.",
+        "Bridge rectifier selection completed: 2 / 3 candidates passed hard filters.",
+        "Boost PFC electrical readback refreshed using the selected DC-link capacitor bank."
+      ],
+      "presence": {
+        "bridge_rectifier": true,
+        "candidate": true,
+        "capacitor": true,
+        "device": true,
+        "geometry": true,
+        "loss": true,
+        "magnetic": true,
+        "stress": true,
+        "thermal": true,
+        "topology_result": true,
+        "waveform": true
+      },
+      "raw_input": {
+        "dc_bus_ripple_percent": "5",
+        "f_line_hz": "50",
+        "fsw_hz": "100000",
+        "inductor_current_ripple_ratio": "0.3",
+        "input_inductance_h": "0.0001",
+        "pout_w": "1000",
+        "power_factor_target": "0.99",
+        "sizing_efficiency_assumption": "0.95",
+        "vac_rms": "265",
+        "vac_rms_max": "265",
+        "vac_rms_min": "180",
+        "vdc_target_v": "400"
+      },
+      "stress": {
+        "rectifier": {
+          "current_avg_a": 2.624289254993,
+          "current_peak_a": 5.816752445721,
+          "current_rms_a": 3.546100519282,
+          "voltage_max_v": 400.0
+        },
+        "switch": {
+          "current_avg_a": 0.94194539843,
+          "current_peak_a": 5.816752445721,
+          "current_rms_a": 1.808917044038,
+          "voltage_max_v": 400.0
+        }
+      },
+      "thermal": {
+        "recommended_design_id": "PQ_40_40_FT-3M_Litz_90x0.08_-_Grade_2_-_Unserved_N33_P3",
+        "summary": "Simplified magnetic thermal estimate completed for 7 designs. Recommended design PQ_40_40_FT-3M_Litz_90x0.08_-_Grade_2_-_Unserved_N33_P3 has a hotspot proxy of 29.34 C."
+      },
+      "waveform": {
+        "duty": 0.063083514928,
+        "inductor_current_max_a": 5.535875869282,
+        "inductor_current_min_a": 0.0,
+        "load_ratio": 1.0,
+        "mode": "CCM first-pass PFC",
+        "operating_vin_v": 265.0,
+        "operating_vout_v": 400.0
+      }
+    }
+  ],
+  "schema_version": "single_phase_boost_pfc_step0_baseline_v1",
+  "scope": {
+    "design_point": "full pipeline with magnetic, capacitor, bridge, semiconductor, loss, thermal, and geometry stages",
+    "dynamic_fields_excluded": [
+      "run_id",
+      "timestamps",
+      "runtime_seconds",
+      "temporary_paths",
+      "signatures"
+    ],
+    "efficiency_load_grid": [
+      0.5,
+      1.0
+    ],
+    "hardware_policy": "efficiency sweep reuses selected design-point hardware",
+    "operating_points": [
+      "nominal",
+      "low_line",
+      "high_line"
+    ]
+  },
+  "topology_id": "single_phase_boost_pfc_diode_bridge"
+}

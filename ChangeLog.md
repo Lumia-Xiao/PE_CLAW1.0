@@ -1,5 +1,24 @@
 # Change Log
 
+## 2026-09-28 Execute Step 0 Boost PFC Baseline
+
+- Added the step-0 baseline recorder, frozen JSON fixture, and regression test for the existing `single_phase_boost_pfc_diode_bridge` topology across nominal, low-line, and high-line cases.
+- The baseline covers full design-stage presence, candidate/waveform/stress values, selected device/bridge/magnetic/capacitor IDs, loss/thermal/geometry summaries, and fixed-hardware efficiency sweep points while excluding run-specific identifiers and paths.
+- Validation: structure test passed; repeatability test passed; no runtime/source production code was changed.
+
+## 2026-09-28 Two-Phase Interleaved Boost PFC Plan
+
+- Added `Plan/Active/two_phase_interleaved_boost_pfc_plan.md` as an analysis-only implementation plan for a future two-phase interleaved Boost PFC topology.
+- The plan records the existing single-phase Boost PFC foundation, two-phase electrical formulas, phase-level device and magnetic contracts, staged integration work, isolation rules, and tiered validation gates.
+- Revised the plan so the new topology keeps the existing Boost PFC-style design inputs without adding `sizing_efficiency_assumption`, and uses ideal equal phase-current sharing as a converter-design assumption rather than modeling current-sharing control or mismatch.
+- Validation: reviewed the plan against the current topology plugin, registry, capability, pipeline, magnetic adapter, waveform model, and AC-DC tests; no runtime/source code was changed and no runtime tests were run.
+
+## 2026-09-28 Topology Change Isolation and Tiered Verification Rules
+
+- Expanded `AGENTS.md` with a change-boundary classification for topology-local versus shared integration work, preservation of typed contracts, use of explicit adapters, run-scoped state/artifacts, and regression scope based on affected consumers.
+- Clarified that topology-local edits with unchanged shared contracts use topology and applicable pipeline tests; shared contracts and broad integration expand verification, with the full suite reserved for unbounded/high-risk or integration/release gates.
+- Validation: documentation review and `git diff --check`; no runtime tests run because this change only updates development rules.
+
 ## 2026-09-21 Web 计划与部署计划重组
 
 - 合并 `Plan/Active/plan.md` 与 `student_web_migration_plan.md` 为统一的 `web_migration_plan.md`，保留 Web 架构、执行阶段、学生交付规则和验收边界。

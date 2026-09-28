@@ -97,6 +97,31 @@ and push. A step must not be marked completed before its commit is pushed.
 
 When changing a topology or its shared base behavior:
 
+- Classify the change before editing. Topology-local changes stay inside that
+  topology package and do not alter shared models, field meanings, metadata
+  contracts, registry behavior, pipeline routing, or global state. Integration
+  changes include registry/capability/routing, plugin contracts, shared models,
+  semiconductor roles, pipeline stages, libraries, and report schemas.
+- Treat topology-local code as low-impact only while its shared contracts remain
+  unchanged. A topology package can still affect shared stages through
+  `TopologyCandidate`, `WaveformSet`, `StressResult`, `DesignReport`, and
+  metadata consumed by device, capacitor, magnetic, loss, thermal, and geometry
+  pipelines.
+- Keep topology physics, mode decisions, waveform generation, stress
+  extraction, and topology-level feasibility in the topology package. Keep
+  stage orchestration in `pipeline/`, reusable calculations in `engines/`,
+  engineering records in `libraries/`, and input/result presentation in `app/`.
+- Prefer an explicit topology adapter or typed request for topology-specific
+  downstream data. Do not reuse an existing field with a different meaning or
+  unit. Add a new shared abstraction only when it represents a stable contract
+  used by multiple topologies.
+- Before adding another `topology_id` branch to a shared pipeline, check whether
+  an existing capability declaration, role specification, or adapter contract
+  can express the behavior. Preserve explicit routing where required, but keep
+  topology-specific formulas out of shared orchestration.
+- Keep imports and execution isolated: importing a plugin must not run a design,
+  mutate shared runtime state, or write artifacts. Artifacts and mutable
+  intermediate state must be scoped to the current design run.
 - Trace the complete path through registry, capability declaration, input
   schema, normalization, synthesis, operating point, waveform, stress, device
   selection, report, and GUI routing.
@@ -110,6 +135,24 @@ When changing a topology or its shared base behavior:
   `model_boundary` label to avoid investigating a failure.
 - A new topology must update the registry, capability map, input contract,
   routing tests, topology tests, and user-facing documentation as applicable.
+- For a topology-local change, run that topology's schema, synthesis, waveform,
+  stress, boundary/mode-switching, and every operating-point case, plus its
+  plugin-contract and minimum applicable downstream-pipeline tests.
+- For a change that crosses a shared contract or stage, identify consumers of
+  the changed contract and run their affected topology-family regressions.
+  Changes to shared models, stage ordering, public report contracts, or broad
+  routing behavior require broader integration tests and may require the full
+  suite.
+- Do not run the full suite by default for every topology-local edit. Run it at
+  integration/release gates, or when the dependency impact cannot be bounded.
+  A narrow test run is not evidence for untested shared consumers; record the
+  tested scope and any remaining verification gate.
+- When existing normalized baselines are available, compare affected old
+  topologies before and after shared changes. Compare engineering values,
+  units, selected hardware, stage status, warnings, and report fields; exclude
+  run IDs, timestamps, and temporary paths only under an explicit stable policy.
+- For isolation-sensitive changes, run affected old and new topologies in
+  both orders and repeat them to detect leaked state or cross-run artifacts.
 
 ## Libraries and Candidate Selection
 
@@ -141,6 +184,26 @@ When changing a topology or its shared base behavior:
 
 Use the narrowest sufficient test set, then broaden it according to risk:
 
+- First classify the changed files and contracts as topology-local or shared
+  integration. A file's location alone does not prove isolation; inspect its
+  consumers and the fields/metadata they read.
+- Topology-local implementation change with unchanged shared contracts:
+  topology-specific tests, all operating points for that topology, plugin
+  contract/routing coverage as applicable, and a minimum applicable pipeline
+  smoke test.
+- Topology integration change (registry, form routing, capability, or new
+  adapter): the new topology tests plus registry/form contract tests and tests
+  for each shared consumer that the adapter reaches.
+- Shared model, device-role, capacitor/magnetic selection, pipeline, loss,
+  thermal, geometry, or report change: test the changed stage and all affected
+  topology consumers; add structured-output comparison when a public report
+  contract is involved.
+- Run the full suite for broad shared behavior, unbounded dependency impact,
+  migration/release acceptance, or the planned integration gate. Do not make a
+  full-suite run the default for an isolated topology-local iteration.
+- Keep a reviewable impact note with the changed boundary, selected tests, and
+  why broader consumers are or are not affected. Never reduce coverage by
+  weakening assertions, hiding failures, or relying on an unjustified skip.
 - Parser or shared-model change: parser, contract, and affected pipeline tests.
 - Topology change: topology-specific tests plus every operating point for that
   topology.

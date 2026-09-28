@@ -1,0 +1,702 @@
+# 两相交错 Boost PFC 拓扑新增计划
+
+- **状态**：Active / 仅计划
+- **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
+- **所属类别**：AC-DC
+- **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
+- **当前阶段**：只完成分析和计划，不在本计划阶段修改运行时代码。
+
+## 1. 计划目标和边界
+
+本计划的目标是为 PE-Claw 1.1 增加一个独立的两相交错 Boost PFC 拓扑。该拓扑由单相二极管桥、两个并联 Boost 功率相、两个独立 Boost 电感、两个高频开关、两个 Boost 二极管和共同的 DC-link 电容组成。
+
+首个实现版本固定以下边界：
+
+1. 相数固定为 2，不把首版扩展成任意 `N` 相通用求解器。
+2. 两相开关频率相同，理想相移固定为 180°。
+3. 两相使用相同的设计目标并直接采用理想均流假设，设计电流固定按总电流的一半分配；本计划不设计仿真或闭环均流控制器。
+4. 采用与现有单相 Boost PFC 相同的一阶平均电流、半线路周期采样和 CCM 设计边界。
+5. 设计点执行器件、电感和电容选择；运行点刷新和效率扫描复用已选硬件，不在每个负载点重新选择硬件。
+6. 线路零点换相、THD、EMI 滤波器、数字控制环路、DCM/CrM 和详细寄生参数不属于首版验收范围，但必须在结果中作为明确边界记录。
+
+首版不能采用以下简化：
+
+- 不能把单相总电流直接复制到两相；
+- 不能只把现有 Boost PFC 的电感电流和损耗乘以 2；
+- 不能用一个未定义语义的 `inductor_current_a` 同时表示单相总电流、单相电流和两相电流；
+- 不能用一个 `main_switch` 或 `rectifier_diode` 结果掩盖两个相位的独立器件应力；
+- 不能为了接入新拓扑而改变现有单相 Boost PFC 的公式、字段含义或选择策略。
+
+## 2. 现有基础从哪里来
+
+### 2.1 拓扑插件和公共运行路径
+
+现有单相 Boost PFC 拓扑位于：
+
+```text
+src/pe_claw_gui/topologies/ac_dc/single_phase_boost_pfc_diode_bridge/
+```
+
+其插件遵循公共接口：
+
+```text
+build_spec()
+    -> synthesize()
+    -> generate_waveforms()
+    -> extract_stress()
+    -> evaluate()
+    -> build_report()
+```
+
+公共接口定义在 `src/pe_claw_gui/topologies/base/interface.py`，结果边界主要经过：
+
+- `TopologySpec`：归一化输入和拓扑元数据；
+- `TopologyCandidate`：设计点合成结果；
+- `WaveformSet`：线路周期和开关纹波结果；
+- `StressResult`：器件电压、电流应力；
+- `DesignReport`：供器件、电容、磁件、损耗、热、几何和 GUI 使用的统一报告。
+
+两相拓扑必须使用这些公共结果类型，但不能改变现有字段对旧拓扑的既有含义。
+
+### 2.2 现有输入字段
+
+现有 Boost PFC 输入 schema 位于：
+
+```text
+src/pe_claw_gui/topologies/ac_dc/single_phase_boost_pfc_diode_bridge/input_schema.py
+```
+
+当前设计输入包括：
+
+- `vac_rms`、`vac_rms_min`、`vac_rms_max`；
+- `f_line_hz`；
+- `vdc_target_v`；
+- `pout_w`；
+- `fsw_hz`；
+- `dc_bus_ripple_percent`；
+- `inductor_current_ripple_ratio`；
+- `power_factor_target`；
+- `input_inductance_h`；
+- 环境温度、结温目标和半导体筛选字段。
+
+现有单相 Boost PFC schema 还保留 `sizing_efficiency_assumption` 这一历史输入；它仅用于说明旧拓扑现状，不复制到两相交错 Boost PFC 的用户输入或新拓扑公式。
+
+两相拓扑的用户设计输入应尽量与现有单相 Boost PFC 保持一致：复用电压、功率、频率、母线纹波、`inductor_current_ripple_ratio`、`input_inductance_h`、环境温度和器件筛选字段，不新增 `sizing_efficiency_assumption`。
+
+`phase_count=2` 和 `phase_shift_deg=180` 是拓扑固定能力，放在内部 capability/metadata 中，不作为用户可调设计输入。每相 Boost 电感目标由现有纹波率和总电流按理想均流推导，不新增 `phase_inductor_current_ripple_ratio` 或 `phase_inductance_h` 用户字段。
+
+由于现有 `input_inductance_h` 的命名可能被理解为单相输入串联电感，实施步骤 1 必须先冻结它在新拓扑中的确切物理位置；不得在不更新字段说明的情况下把它静默改成每相电感。若两相模型需要一个额外的公共桥后电感，才考虑新增明确命名的内部字段或可选输入。
+
+### 2.3 现有线路周期模型
+
+现有线路周期模型位于：
+
+```text
+src/pe_claw_gui/topologies/ac_dc/single_phase_boost_pfc_diode_bridge/line_cycle.py
+```
+
+它在整流半线路周期 `theta ∈ [0, pi]` 采样：
+
+- 整流输入电压；
+- 正弦输入电流目标；
+- Boost 占空比；
+- 电感平均电流；
+- 允许的开关纹波。
+
+线路周期采样结果目前存入候选元数据，并由波形、应力和磁件适配器继续读取。两相实现应保留同一个线路周期基准，但在每个采样点上计算两个相位的相电感电流和相位交错的开关纹波。
+
+### 2.4 现有单相 Boost 设计公式
+
+当前合成逻辑位于：
+
+```text
+src/pe_claw_gui/topologies/ac_dc/single_phase_boost_pfc_diode_bridge/synthesizer.py
+```
+
+当前核心关系为：
+
+```text
+V_ac,peak = sqrt(2) * V_ac,rms
+V_rec(theta) = V_ac,peak * sin(theta)
+D(theta) = clamp(1 - V_rec(theta) / V_dc, 0, 1)
+I_line,rms = P_out / V_ac,rms
+I_line,peak = sqrt(2) * I_line,rms
+Delta_I_allowed = ripple_ratio * I_line,peak
+L_total >= max[V_rec(theta) * D(theta) / (Delta_I_allowed * f_sw)]
+```
+
+当前单相 Boost PFC 同时保存电气电流和由 `sizing_efficiency_assumption` 推导的设计电流。两相拓扑不新增也不使用该输入，直接采用与理想 PFC 功率平衡一致的 `P_in = P_out` 设计电流；如未来需要固定工程裕量，应作为明确的拓扑策略或额定值规则记录，不能重新引入一个隐藏的效率输入。两相实现也不能悄然修改既有单相 Boost PFC 的 `power_factor_target` 解释。
+
+当前还会计算：
+
+- 高线整流峰值和 DC 母线可行性；
+- DC-link 电容需求；
+- Boost 开关、Boost 二极管和输入桥应力；
+- 线路周期波形和开关纹波积分指标。
+
+### 2.5 现有下游路径
+
+现有单相 Boost PFC 已有以下专用路径：
+
+- 拓扑注册：`src/pe_claw_gui/topologies/base/registry.py`；
+- 能力声明：`src/pe_claw_gui/topologies/base/capabilities.py`；
+- GUI 表单：`src/pe_claw_gui/app/topology_forms/single_phase_boost_pfc_diode_bridge_form.py`；
+- 输入桥选择：`pipeline/run_bridge_rectifier_pipeline.py` 和 `pipeline/run_full_pipeline.py`；
+- 半导体选择：`pipeline/run_device_pipeline.py`；
+- Boost 电感适配：`engines/magnetics/inductor_adapter.py`；
+- 损耗、热、几何和效率扫描：`pipeline/run_loss_pipeline.py`、`run_thermal_pipeline.py`、`run_geometry_pipeline.py`、`run_efficiency_sweep_pipeline.py`；
+- 现有 AC-DC 回归：`tests/test_phase8_ac_dc_topologies.py` 和 `tests/test_ac_dc_efficiency_sweep.py`。
+
+两相拓扑优先复用这些阶段的调用顺序和运行隔离机制；需要扩展的重点是“多相角色、多相波形和多磁件结果”，而不是重新创建一套公共流水线。
+
+## 3. 两相交错 Boost PFC 的目标物理模型和公式
+
+### 3.1 统一符号
+
+```text
+N = 2                         相数
+phi_1 = 0                     第 1 相开关相位
+phi_2 = pi                    第 2 相开关相位
+Tsw = 1 / f_sw                开关周期
+Vac,rms                       交流输入 RMS 电压
+Vdc                           目标 DC 母线电压
+Pout                          输出功率
+L1, L2                        两相 Boost 电感
+inductor_current_ripple_ratio 现有 Boost PFC 输入中的电感电流纹波率
+```
+
+首版默认 `L1 = L2 = L_phase`，但实现和报告应保留每相结果，不能只保留一个没有相位标识的电感值。
+
+### 3.2 线路周期电压和总输入电流
+
+在整流半线路周期 `theta ∈ [0, pi]`：
+
+```text
+V_rec(theta) = sqrt(2) * Vac,rms * sin(theta)
+D(theta) = clamp(1 - V_rec(theta) / Vdc, 0, 1)
+```
+
+首版沿用现有理想 PFC 功率平衡：
+
+```text
+P_in = Pout
+I_line,rms = P_in / Vac,rms
+I_line,peak = sqrt(2) * I_line,rms
+I_total(theta) = I_line,peak * sin(theta)
+```
+
+这里的 `I_total(theta)` 是桥后两相电感电流的总平均包络，不是任一相的电流。
+
+### 3.3 两相理想均流假设
+
+理想均流时：
+
+```text
+I_phase,1(theta) = I_phase,2(theta) = I_total(theta) / 2
+I_phase,peak = I_line,peak / 2
+```
+
+这是变换器设计阶段的理想均流前提，不是控制器仿真结果。首版不计算相间失配、不引入均流容差输入，也不输出不均流下的最坏相应力。报告只需记录 `current_sharing_assumption = ideal_equal_phase_current`。
+
+### 3.4 每相电感纹波和电感需求
+
+每相的 Boost 电感电流纹波在 CCM 一阶模型下为：
+
+```text
+Delta_i_phase,k(theta) = V_rec(theta) * D(theta) / (L_k * f_sw)
+```
+
+相电感的允许纹波定义为：
+
+```text
+Delta_i_allowed,phase = inductor_current_ripple_ratio * I_phase,peak
+```
+
+因此每相目标电感为：
+
+```text
+L_k,required >= max_theta[
+    V_rec(theta) * D(theta)
+    / (Delta_i_allowed,phase * f_sw)
+]
+```
+
+如果存在不同的 `L1`、`L2`，必须分别计算相 1 和相 2 的纹波、峰值、谷值和磁件需求；不能用两个电感的平均值替代最坏相。
+
+### 3.5 180° 交错后的总纹波
+
+两相开关调制使用：
+
+```text
+phi_1 = 0
+phi_2 = Tsw / 2
+```
+
+在每个线路周期采样点，分别构造两相的开关纹波函数 `r_1(t, theta)` 和 `r_2(t, theta)`，然后计算：
+
+```text
+r_total(t, theta) = r_1(t, theta) + r_2(t + Tsw/2, theta)
+Delta_i_total,pp(theta) = max_t(r_total) - min_t(r_total)
+```
+
+首版不得用固定的 `Delta_i_phase / 2` 代替总纹波，因为交错抵消量随占空比变化，在 `D ≈ 0.5` 附近最强，在其他占空比下不同。实现上应采用确定性的分段三角波或等价的一个开关周期采样器，并在以下边界验证：
+
+- `D = 0` 和 `D = 1`；
+- `D = 0.5` 的理想抵消；
+- 低线、高线和线路零点附近；
+- 两相电感不完全相等时的残余纹波。
+
+线路周期的总输入电流仍由两相平均电流之和决定；交错主要改变开关频率附近的纹波、器件 RMS 电流和 EMI 相关指标，不能把它误写成改变了低频 PFC 功率平衡。
+
+### 3.6 器件电流和电压应力
+
+每相开关和二极管的导通窗口沿用 Boost 关系，但输入电流使用该相电流：
+
+```text
+i_switch,k(t, theta) = D(theta) * i_phase,k(t, theta)
+i_diode,k(t, theta) = (1 - D(theta)) * i_phase,k(t, theta)
+```
+
+每相应分别计算：
+
+- 峰值电流；
+- RMS 电流；
+- 平均电流；
+- 开关电压最大值；
+- 二极管反向电压；
+- 低线、高线和理想均流条件下的设计值。
+
+输入桥的电流由两相总输入电流计算，不能把桥电流再乘以 2。Boost 二极管和主开关则按相独立选择或按相位实例复用同一候选，但报告必须保留两个位置的应力。
+
+### 3.7 DC-link 电容和低频纹波
+
+首版 DC-link 低频电容需求沿用现有一阶能量平衡：
+
+```text
+Delta_Vdc,pp = Vdc * dc_bus_ripple_percent / 100
+Cdc,required >= Pout / (2 * pi * f_line * Vdc * Delta_Vdc,pp)
+```
+
+这个公式基于总输出功率，不应因为相数为 2 而直接除以 2。两相交错主要降低开关频率纹波，低频二倍线频能量摆动仍由总功率决定。
+
+输出电容 RMS 电流应由两相二极管电流、负载 DC 电流和交错开关纹波的合成结果计算，并至少同时保留：
+
+- 每相二极管电流；
+- 两相合计二极管电流；
+- 电容电流；
+- 低频和开关频率分解口径。
+
+### 3.8 损耗、磁件和热量合并
+
+总损耗必须按物理位置求和：
+
+```text
+P_semiconductor,total = P_switch,1 + P_diode,1 + P_switch,2 + P_diode,2 + P_bridge
+P_magnetic,total = P_inductor,1 + P_inductor,2
+P_capacitor,total = P_dc_link
+P_total = P_semiconductor,total + P_magnetic,total + P_capacitor,total + P_other
+```
+
+热设计不能只使用总损耗平均分配。每个主开关、Boost 二极管和 Boost 电感都应有独立位置损耗；当两相共用一个器件候选时，只能复用候选参数，不能合并应力和热阻位置。
+
+## 4. 代码新增和修改的设计方案
+
+### 4.1 新增独立拓扑包
+
+推荐新增：
+
+```text
+src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/
+    __init__.py
+    input_schema.py
+    synthesizer.py
+    line_cycle.py
+    interleaving.py
+    waveform.py
+    stress.py
+    evaluator.py
+```
+
+职责建议如下：
+
+- `input_schema.py`：只负责输入归一化、字段范围和两相默认值；
+- `synthesizer.py`：负责总功率、两相电流、电感、电容和可行性；
+- `line_cycle.py`：负责线路周期电压、总电流、相电流和占空比；
+- `interleaving.py`：负责 180° 相移、两相开关纹波和总纹波合成；
+- `waveform.py`：构造兼容公共 `WaveformSet` 的聚合结果和相位明细；
+- `stress.py`：输出每个器件位置的独立应力；
+- `evaluator.py`：组装拓扑结果、公式口径、边界和警告；
+- `__init__.py`：暴露独立 `PLUGIN`，不导入或执行其他拓扑设计。
+
+不建议直接复制现有 Boost PFC 目录后进行大量字符串替换。应复用稳定的基础工具，但让两相公式和结果字段由新包拥有。
+
+### 4.2 公共结果契约
+
+现有 `TopologyCandidate` 仍可承载公共设计点字段，但新增两相数据必须使用明确的 metadata 命名或新的 typed adapter。建议最少包含：
+
+```text
+phase_count = 2
+phase_shift_deg = 180.0
+phase_inductance_h = {"phase_1": ..., "phase_2": ...}
+current_sharing_assumption = "ideal_equal_phase_current"
+phase_current_share = {"phase_1": 0.5, "phase_2": 0.5}
+phase_line_cycle = {"phase_1": {...}, "phase_2": {...}}
+interleaved_ripple_metadata = {...}
+phase_device_roles = {...}
+```
+
+公共 `WaveformSet` 的已有字段应保留稳定语义。推荐方案是：
+
+1. 既有 `inductor_current_a`、`switch_current_a` 和 `diode_current_a` 表示可审计的聚合或主结果，并在 metadata 中明确其定义；
+2. 相 1、相 2 的完整数组存入明确命名的 `phase_waveforms` typed 结构或版本化 metadata；
+3. 下游应力和器件适配器优先读取相位明细，不能从聚合电流反推单相应力；
+4. 若决定扩展 `WaveformSet` 字段，必须同步更新 schema、报告、GUI 读取和旧拓扑回归，不能让旧拓扑出现空的伪相位字段。
+
+`StressResult` 当前只有 `switch` 和 `rectifier` 两个通用槽位。两相实现需要在不改变旧槽位意义的前提下，引入相位角色明细，例如 `phase_1_main_switch`、`phase_2_main_switch`、`phase_1_boost_diode` 和 `phase_2_boost_diode`。如果公共模型暂不扩展，应通过拓扑专用应力映射和报告 metadata 保存完整角色结果，不能把两个相位的最大值伪装成单个器件的完整结果。
+
+### 4.3 Registry、能力和 GUI 路由
+
+需要新增但本计划阶段不实施的集成点：
+
+- `src/pe_claw_gui/topologies/base/registry.py`：注册新的 topology ID、显示名、插件路径、表单路径和 legacy key；
+- `src/pe_claw_gui/topologies/base/capabilities.py`：新增 AC-DC 两相 PFC 所需字段、hook、支持状态和边界说明；
+- 新增 `single_phase_interleaved_boost_pfc_diode_bridge_form.py`；
+- AC-DC 分类页、表单路由和结果页增加新 ID；
+- 用户文档列出新拓扑的“首版 CCM、180° 交错、理想均流和未覆盖控制边界”。
+
+表单不应直接暴露内部数组和 Python 对象。首版只允许明确的工程输入，`phase_count=2` 和 `phase_shift_deg=180` 可以作为只读能力展示或隐藏默认值。
+
+### 4.4 输入桥和半导体角色
+
+新拓扑仍使用单相二极管输入桥，因此应接入现有 AC-DC 桥式整流器选择流程。桥式整流器的电流使用两相总输入电流，桥损耗不能重复计算。
+
+Boost 功率级需要四个物理位置：
+
+```text
+phase_1_main_switch
+phase_2_main_switch
+phase_1_boost_diode
+phase_2_boost_diode
+```
+
+实现前应先检查现有半导体角色契约是否支持“同一角色的两个位置”。推荐增加可审计的角色/位置描述或 topology adapter，而不是在 `run_device_pipeline.py` 中继续堆积不可扩展的 `topology_id` 特判。
+
+首版可以允许两相选择相同型号，但报告必须记录：
+
+- 每个物理位置的候选 ID；
+- 相位数量和位置数量；
+- 相 1、相 2 的电流应力；
+- 选择是否强制同型号；
+- 若不同型号，是否经过匹配规则；
+- 每个位置的损耗和热结果。
+
+### 4.5 两个 Boost 电感的磁件路径
+
+现有单相 Boost PFC 电感请求在：
+
+```text
+src/pe_claw_gui/engines/magnetics/inductor_adapter.py
+```
+
+两相实现需要新增独立的 design request 和 operating-point request。推荐策略是：
+
+1. 分别建立 phase 1 和 phase 2 的 `InductorDesignRequest`；
+2. 在均流和参数相同的默认情况下优先选择同一磁件设计作为两个物理实例；
+3. 报告保留两个实例 ID、每相电流、每相损耗和匹配状态；
+4. 首版不建模相间磁件失配；若后续允许独立选型，必须另行定义匹配约束和适用范围；
+5. 效率扫描只刷新两个已选电感的损耗，不重新搜索磁件。
+
+不能把两个电感的损耗简单写入一个单相 `selected_design_id` 而丢失相位信息。若现有 `MagneticResult` 不支持多实例，应增加明确的 phase result 结构或 topology-specific magnetic adapter。
+
+### 4.6 效率扫描和运行点刷新
+
+现有 AC-DC 效率扫描已经为单相 Boost PFC 提供专用 evaluator。两相实现需要增加单独的分发路径：
+
+```text
+two-phase interleaved Boost PFC
+    -> two-phase load-point evaluator
+single-phase Boost PFC
+    -> existing single-phase evaluator
+```
+
+两相负载点 evaluator 必须：
+
+- 固定两相器件候选、电感候选和 DC-link 电容候选；
+- 按负载比例缩放总电流和每相电流；
+- 重新生成两相 180° 交错波形；
+- 重新计算每个相位的器件、电感和电容损耗；
+- 合并总效率和损耗；
+- 保留 phase-level warnings 和 aggregate warnings；
+- 不触发新的器件或磁件选择。
+
+操作点刷新也必须验证旧的单相 Boost PFC 结果不被两相分支覆盖。新拓扑的运行目录、artifact 和 report provenance 必须使用当前 run context。
+
+### 4.7 报告和 GUI 展示
+
+结果报告至少应能显示：
+
+- 总输入电流和每相输入/电感电流；
+- 相 1、相 2 的电感值、峰值、谷值和纹波；
+- 180° 相移和总纹波抵消指标；
+- 两相主开关和 Boost 二极管的独立应力；
+- 两个 Boost 电感的独立磁件结果；
+- 输入桥的总电流和桥损耗；
+- 总损耗与分相损耗之和；
+- 理想均流假设、相位设置和模型边界警告。
+
+GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boost inductor”。聚合视图可以保留，但必须能追溯到 phase 1 和 phase 2。
+
+## 5. 分步骤实施方案
+
+每一步都必须在开始前检查当前工作区，完成后运行该步骤的聚焦验证、检查 diff 和 status，并记录提交和验证结果。步骤之间不能用未验证的共享契约继续推进。
+
+### 步骤 0：冻结现有单相 Boost PFC 基线
+
+**目的**：证明新拓扑开发不会改变旧拓扑。
+
+**工作内容**：
+
+- 固定现有单相 Boost PFC 默认输入和至少一组低线/高线输入；
+- 记录 candidate、waveform、stress、device、bridge、magnetic、capacitor、loss、thermal、geometry 和 efficiency sweep 的关键字段；
+- 保存旧拓扑的硬件候选 ID、警告、artifact 清单和稳定输出摘要；
+- 明确现有字段单位和 `power_factor_target` 的当前语义；
+- 确认当前未提交用户修改，不将其纳入基线。
+
+**验收**：现有单相 Boost PFC 的焦点测试通过，形成可比较的 baseline fixture 或结构化摘要。
+
+**步骤 0 执行记录（2026-09-28）**：
+
+- 新增 `scripts/record_single_phase_boost_pfc_step0_baseline.py`，以临时隔离目录运行现有单相 Boost PFC 的完整设计链；
+- 固化 nominal、180 Vac low-line 和 265 Vac high-line 三个工况；
+- 固化 candidate、waveform、stress、device、输入桥、magnetic、capacitor、loss、thermal、geometry 和固定硬件 efficiency sweep 的稳定字段；
+- 新增 `tests/fixtures/single_phase_boost_pfc_step0_baseline.json` 和 `tests/test_single_phase_boost_pfc_step0_baseline.py`；
+- 快照排除了 run ID、时间戳、运行时长、临时路径和 efficiency sweep signature；
+- 当前基线记录的 efficiency sweep artifact 是 `efficiency_curve` 和 `loss_breakdown_stacked`，没有把未返回的 CSV artifact 写入基线；
+- 验证：结构验收 `1 passed`；重复性验收 `1 passed`；完整两项测试运行约 2 分 59 秒，未发现基线重复性差异。
+
+### 步骤 1：冻结两相拓扑输入和结果契约
+
+**目的**：在写公式和代码前确定字段含义，防止后续把单相字段复用成多相字段。
+
+**工作内容**：
+
+- 确认 topology ID、显示名、legacy key 和 support status；
+- 确认 `phase_count=2`、`phase_shift_deg=180` 是否固定；
+- 确认相电感纹波率的参考电流；
+- 确认公共输入电感和相电感是否同时存在；
+- 定义 phase-level device roles、magnetic instances、waveform metadata 和 report 字段；
+- 定义总电流、相电流、总纹波和每相纹波的单位与计算来源；
+- 写出首版不支持的 DCM、CrM、THD 和 EMI 边界，并明确理想均流是设计前提而非控制仿真结果。
+
+**验收**：输入字段、输出字段、单位、状态和 provenance 可由 schema/contract 测试表达，且没有复用歧义字段。
+
+### 步骤 2：实现独立 topology package 的输入和公式内核
+
+**目的**：先在拓扑包内完成可测试的电气合成，不接入公共流水线。
+
+**工作内容**：
+
+- 新增 `input_schema.py`、`synthesizer.py`、`line_cycle.py` 和 `interleaving.py`；
+- 实现总线路周期电压和总输入电流；
+- 实现固定的理想均流分配 `I_phase = I_total / 2`；
+- 实现每相 Boost 电感纹波和电感需求；
+- 实现 180° 交错开关纹波和总纹波；
+- 实现 DC-link 低频电容需求；
+- 实现低线、高线和母线可行性判断；
+- 在 metadata 中记录每个公式的 basis、单位和边界。
+
+**验收**：拓扑包可以独立完成 `build_spec()` 和 `synthesize()`；公式单元测试覆盖零点、峰值、`D=0.5` 交错抵消、低线和高线边界；未导入 GUI 或公共 pipeline。
+
+### 步骤 3：实现两相波形、应力和拓扑结果
+
+**目的**：把每相物理量建立完整，再映射到公共结果模型。
+
+**工作内容**：
+
+- 实现两个相位的线路周期平均电流；
+- 实现每相开关纹波、开关电流、二极管电流和电感电压；
+- 实现输入桥总电流；
+- 实现两相开关和二极管的独立 RMS/峰值/平均值；
+- 实现 phase-level stress metadata 或 typed adapter；
+- 实现 `evaluator.py`，记录总量与分相量的计算关系；
+- 保持现有 `WaveformSet` 旧字段对其他拓扑的兼容性。
+
+**验收**：拓扑独立测试可以验证 `phase_1 + phase_2 = total` 的平均电流关系、两相相移、总纹波抵消趋势、器件应力和报告字段完整性。
+
+### 步骤 4：接入 registry、capability 和 GUI form
+
+**目的**：让新拓扑可以被发现和选择，但暂时限制下游阶段在契约完成后接入。
+
+**工作内容**：
+
+- 注册 topology definition；
+- 添加 capability required/default fields 和 boundary notes；
+- 新增独立 topology form；
+- 接入 AC-DC 分类页和表单路由；
+- 添加 registry、capability、form switching 和 import isolation 测试；
+- 验证导入插件不会运行设计、修改共享状态或写 artifact。
+
+**验收**：registry 能解析新拓扑、form 能加载默认输入、旧 19 个拓扑的注册集合和表单路由不改变。
+
+### 步骤 5：接入输入桥和半导体选择
+
+**目的**：让输入桥和四个功率器件位置具有正确的选择与 provenance。
+
+**工作内容**：
+
+- 将新拓扑加入 AC-DC 输入桥选择映射；
+- 定义两个主开关和两个 Boost 二极管的 role/position 契约；
+- 确认候选筛选、额定电压、电流和位置数量；
+- 实现相同型号复用或相间匹配策略；
+- 保留每一物理位置的候选、拒绝原因、评分和来源；
+- 对输入桥使用总输入电流，避免桥损耗重复计算。
+
+**验收**：完整设计后四个功率位置和输入桥均有可审计结果；任一相的器件候选缺失时返回明确 warning/failure；旧拓扑器件角色测试不回归。
+
+### 步骤 6：接入两相电感磁件设计
+
+**目的**：让两个 Boost 电感进入现有磁件库和选择流程。
+
+**工作内容**：
+
+- 新增两相 design request 和 operating-point request；
+- 将每相电流、纹波、频率、伏秒和功率输入磁件筛选；
+- 设计默认策略优先选择同一磁件型号的两个物理实例；
+- 保存 phase 1/phase 2 的设计 ID、损耗、热和匹配状态；
+- 让效率扫描只刷新选定磁件的运行损耗；
+- 不改变单相 Boost PFC 的磁件请求和结果语义。
+
+**验收**：两相均有磁件结果，两个实例可以追溯到库记录；不允许只生成一个没有实例数量说明的总电感结果；单相和其他拓扑磁件测试通过。
+
+### 步骤 7：接入完整 pipeline、损耗、热和几何
+
+**目的**：让两相拓扑完成与现有 AC-DC 拓扑一致的设计阶段。
+
+**工作内容**：
+
+- 接入 `run_full_pipeline` 的输入桥、器件、磁件、损耗、热、几何顺序；
+- 只为新 topology ID 或 capability adapter 增加必要路由；
+- 校验总损耗等于桥、两相器件、两相电感、电容和其他损耗之和；
+- 为每相生成热输入和几何位置；
+- 维护 run-scoped state 和 artifact isolation。
+
+**验收**：默认输入可以完成设计；阶段状态、warning、失败原因和报告 provenance 完整；运行两相拓扑不会修改已有报告对象或旧拓扑缓存。
+
+### 步骤 8：接入 operating-point refresh 和 efficiency sweep
+
+**目的**：验证固定硬件下两相负载点行为正确。
+
+**工作内容**：
+
+- 新增两相专用 load-point evaluator；
+- 固定器件、两相电感和 DC-link 电容候选；
+- 按总负载比例缩放两相电流；
+- 重新计算交错纹波、相位器件损耗、磁损和电容损耗；
+- 生成效率曲线、损耗分解和结构化 CSV/JSON artifact；
+- 前置检查区分缺少相 1/相 2 器件、任一磁件、桥选择和电容选择；
+- 验证 `Generate Waveforms` 不重新选择硬件。
+
+**验收**：负载点网格全部完成或按明确边界失败；硬件候选 ID 在扫描前后不变；旧 AC-DC 五拓扑效率扫描结果不回归。
+
+### 步骤 9：GUI 结果和用户文档
+
+**目的**：保证 phase-level 结果对用户可解释。
+
+**工作内容**：
+
+- 增加两相波形、两相器件、两相磁件和总量/分量损耗展示；
+- 明确显示 180° 相移、理想均流假设和模型边界；
+- 使警告、失败原因和硬件前置条件可见；
+- 更新 README、拓扑目录、用户输入说明和工程文档；
+- 不将“交错降低纹波”表述成已完成 EMI 或控制环路验证。
+
+**验收**：真实 GUI 选择新拓扑、执行设计、生成波形、运行磁件/电容和效率扫描时，结果页不会把两个相位混成一个无标签器件。
+
+### 步骤 10：隔离回归和集成门禁
+
+**目的**：证明新增拓扑不会影响现有拓扑。
+
+**工作内容**：
+
+- 新拓扑执行 schema、公式、波形、应力、registry、器件、磁件和效率测试；
+- 现有单相 Boost PFC 执行完整 baseline comparison；
+- AC-DC 五拓扑执行既有回归；
+- 新旧拓扑按两种顺序运行：旧拓扑后新拓扑、新拓扑后旧拓扑；
+- 重复运行相同输入，检查 candidate、hardware、report、artifact 和 warning 稳定；
+- 检查运行目录、临时文件和共享缓存没有跨拓扑泄漏；
+- 在集成门禁再运行全量测试。
+
+**验收**：旧拓扑的工程字段、单位、候选、状态和报告结构无非预期变化；新拓扑独立通过所有验收；全量测试结果和任何环境限制均有记录。
+
+## 6. 测试分层和验证矩阵
+
+### 6.1 拓扑局部测试
+
+- 输入默认值、缺失字段、单位和边界值；
+- `phase_count=2` 和 `phase_shift_deg=180` 合约；
+- 总电流与相电流守恒；
+- 两相电感纹波和最坏线电压点；
+- `D=0.5` 的交错抵消和非 `D=0.5` 的残余纹波；
+- 理想均流下的相位应力和总量守恒；
+- 波形、应力和拓扑结果的 phase-level 字段；
+- 不支持 DCM/CrM/零点控制时的明确 warning。
+
+### 6.2 集成测试
+
+- registry/capability/form contract；
+- 输入桥选择和桥损耗顺序；
+- 四个功率器件角色选择；
+- 两相磁件选择和实例报告；
+- 完整 pipeline stage status；
+- operating-point refresh 固定硬件；
+- efficiency sweep 固定硬件和两相损耗合计；
+- GUI 真实按钮链和结果页字段。
+
+### 6.3 工况矩阵
+
+至少覆盖：
+
+- nominal：230 Vac、400 Vdc、1 kW；
+- low line：180 Vac；
+- high line：265 Vac；
+- 最小和最大允许 DC bus；
+- 0.1、0.5、1.0 p.u. 负载；
+- 不同 `inductor_current_ripple_ratio`；
+- 两相电感按相同设计目标生成；
+- 过低母线电压导致的可行性失败；
+- 任一相器件、磁件或电容缺失时的失败路径。
+
+### 6.4 低影响修改下的测试范围
+
+- 只改新拓扑包且公共契约不变：运行新拓扑全部工况、插件契约、最小 pipeline smoke test，并比较旧 Boost PFC baseline；
+- 改 registry/capability/form：增加 registry、路由和所有 AC-DC 表单切换测试；
+- 改 WaveformSet、StressResult、MagneticResult 或器件角色契约：运行所有直接消费者和受影响拓扑回归；
+- 改公共 pipeline、损耗、热、几何或报告 schema：运行所有受影响拓扑，必要时运行结构化输出比较和全量测试；
+- 不以“新增拓扑未被调用”为理由跳过共享消费者测试。
+
+## 7. 主要风险和未决设计决定
+
+1. **公共波形模型是否扩展**：如果不扩展 `WaveformSet`，相位明细必须有严格 typed adapter；如果扩展，必须保护所有旧拓扑默认值和序列化兼容性。
+2. **器件角色的多实例表达**：应优先使用角色规格和位置数量，而不是继续增加散落的 topology ID 分支。
+3. **磁件选择政策**：首版两个相位采用相同设计目标并优先使用同型号磁件，报告仍保留两个物理实例；相间失配不在首版模型内。
+4. **相电感纹波率的基准**：必须固定为相峰值电流，不能沿用总输入峰值而不改字段说明。
+5. **总纹波公式**：必须由相移后的开关波形求和得到，不能假设所有占空比下都恰好减半。
+6. **PF 目标语义**：新拓扑首版沿用旧 Boost 的理想 PF 功率平衡；若使用 `power_factor_target` 修正电流，需单独建立新的公式和旧拓扑兼容策略。
+7. **控制和 EMI 边界**：交错 PWM 的确定性波形和理想均流假设不等于闭环均流、THD 或 EMI 认证结果。
+8. **高风险共享修改**：多相器件、磁件、波形和报告若一次性改公共模型，影响范围会从 topology-local 变成 shared integration，必须提高测试等级。
+
+## 8. 完成标准
+
+本计划对应的实现只有同时满足以下条件，才能从 Active 进入完成状态：
+
+- 新 topology ID、capability、form、plugin 和所有路由已注册；
+- 输入、合成、两相波形、应力、拓扑报告和边界说明完整；
+- 两相相位、相电流、相电感、器件角色和损耗可独立追溯；
+- 输入桥使用总电流，功率级器件和电感按相计算；
+- 运行点刷新和 efficiency sweep 不重新选择硬件；
+- 两相和现有单相 Boost PFC 的 baseline 对比完成；
+- 旧的 19 个拓扑没有非预期的字段、数值、状态、候选或 artifact 变化；
+- 交错拓扑在新旧拓扑交替运行和重复运行下没有状态泄漏；
+- 聚焦测试、受影响回归和集成门禁结果已记录；
+- `ChangeLog.md`、用户文档和迁移/证据记录与实际实现一致；
+- 未把 DCM、CrM、动态均流、THD、EMI 或控制环路能力写成已实现功能；理想均流只作为设计假设。
