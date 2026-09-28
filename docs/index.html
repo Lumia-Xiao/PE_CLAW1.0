@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="PE-Claw 1.0 is a transparent, deterministic power-electronics converter design platform for staged electrical design, component selection, loss and thermal analysis, Pareto optimization, and engineering visualization." />
+  <meta name="theme-color" content="#0b3b60" />
+  <meta property="og:title" content="PE-Claw 1.0" />
+  <meta property="og:description" content="Transparent, deterministic, engineering-oriented power converter design." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/images/pe_claw1.0_logo.png" />
+  <title>PE-Claw 1.0 | Automated Power Converter Design</title>
+  <link rel="stylesheet" href="static/css/style.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header" id="top">
+    <div class="nav-shell">
+      <a class="brand" href="#top" aria-label="PE-Claw home">
+        <span class="brand-mark">PE</span>
+        <span>PE-Claw 1.0</span>
+      </a>
+      <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#overview">Overview</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#case-study">Case Study</a>
+        <a href="#topologies">Topologies</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#start">Get Started</a>
+      </nav>
+      <a class="button button-small" href="https://github.com/Lumia-Xiao/PE_CLAW1.0" target="_blank" rel="noreferrer">GitHub ↗</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero section-shell">
+      <div class="hero-copy">
+        <div class="eyebrow">Power electronics design automation</div>
+        <img class="hero-logo" src="assets/images/pe_claw1.0_logo.png" alt="PE-Claw 1.0" />
+        <h1>Transparent engineering workflows for power converter design.</h1>
+        <p class="hero-lead">
+          PE-Claw 1.0 turns structured converter specifications into a staged, auditable engineering workflow spanning electrical synthesis, waveform and stress extraction, component selection, magnetic design, loss and thermal analysis, Pareto exploration, and engineering visualization.
+        </p>
+        <div class="hero-actions">
+          <a class="button" href="https://github.com/Lumia-Xiao/PE_CLAW1.0" target="_blank" rel="noreferrer">View source on GitHub</a>
+          <a class="button button-ghost" href="#case-study">Explore case study</a>
+        </div>
+        <div class="hero-badges" aria-label="Project characteristics">
+          <span>Deterministic</span>
+          <span>GUI-driven</span>
+          <span>Physics-grounded</span>
+          <span>Auditable</span>
+        </div>
+      </div>
+
+      <div class="hero-panel" aria-label="PE-Claw workflow summary">
+        <div class="hero-panel-title">Design pipeline</div>
+        <div class="pipeline-mini">
+          <div><b>01</b><span>Topology & specification</span></div>
+          <div><b>02</b><span>Electrical synthesis</span></div>
+          <div><b>03</b><span>Waveform & stress</span></div>
+          <div><b>04</b><span>Semiconductor selection</span></div>
+          <div><b>05</b><span>Capacitor & magnetic design</span></div>
+          <div><b>06</b><span>Loss, thermal & efficiency</span></div>
+          <div><b>07</b><span>Pareto & geometry outputs</span></div>
+          <div><b>08</b><span>Engineering report</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics-band" aria-label="Project metrics">
+      <div class="metrics-grid section-shell">
+        <article><strong>19</strong><span>registered topologies</span></article>
+        <article><strong>3</strong><span>converter categories</span></article>
+        <article><strong>14</strong><span>engineering result views</span></article>
+        <article><strong>0.1–1.0 p.u.</strong><span>fixed-hardware efficiency sweep</span></article>
+      </div>
+    </section>
+
+    <section class="section section-shell" id="overview">
+      <div class="section-heading">
+        <div class="eyebrow">Overview</div>
+        <h2>Engineering automation with explicit design stages.</h2>
+        <p>
+          PE-Claw 1.0 is organized around a deterministic GUI/backend flow. Each stage exposes concrete electrical models, design decisions, selected hardware, and result artifacts instead of hiding the workflow behind a black-box optimizer.
+        </p>
+      </div>
+
+      <div class="library-grid">
+        <article class="feature-card">
+          <div class="feature-icon">K</div>
+          <h3>Knowledge Library</h3>
+          <p>Topology equations, waveform and stress models, device and passive design knowledge, loss models, thermal models, and engineering constraints.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon">R</div>
+          <h3>Rule Library</h3>
+          <p>Requirement handling, topology-specific synthesis, component filtering, Pareto ranking, staged execution, and reporting rules.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon">D</div>
+          <h3>Device Library</h3>
+          <p>Semiconductors, capacitors, magnetic cores, winding options, package geometry, thermal data, and mechanical attributes used by the design engines.</p>
+        </article>
+      </div>
+
+      <div class="note-box">
+        <strong>Current release boundary.</strong>
+        PE-Claw 1.0 accepts structured GUI inputs and runs a deterministic engineering workflow. AI design, agentic execution, natural-language design intake, and autonomous design loops are future-product directions and are not presented here as implemented 1.0 capabilities.
+      </div>
+    </section>
+
+    <section class="section section-alt" id="workflow">
+      <div class="section-shell">
+        <div class="section-heading compact">
+          <div class="eyebrow">Workflow</div>
+          <h2>From converter specification to fixed-hardware analysis.</h2>
+        </div>
+
+        <div class="workflow-grid">
+          <article><span>01</span><h3>Select topology</h3><p>Choose AC-DC, DC-AC, or DC-DC and enter topology-specific operating requirements.</p></article>
+          <article><span>02</span><h3>Run Design</h3><p>Perform electrical synthesis, generate waveforms, extract device stress, select semiconductors, and create the first design report.</p></article>
+          <article><span>03</span><h3>Run Capacitor</h3><p>Evaluate ripple and ESR constraints, build capacitor banks, generate Pareto fronts, and select a representative design.</p></article>
+          <article><span>04</span><h3>Run Magnetics</h3><p>Search core and winding candidates, screen saturation and loss, compress the design space, and generate geometry artifacts.</p></article>
+          <article><span>05</span><h3>Refresh operating point</h3><p>Regenerate waveforms and losses with the already selected hardware without silently re-optimizing the design.</p></article>
+          <article><span>06</span><h3>Efficiency Sweep</h3><p>Evaluate fixed selected hardware across 0.1–1.0 p.u. load and report efficiency and loss breakdown.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-shell" id="capabilities">
+      <div class="section-heading">
+        <div class="eyebrow">Capabilities</div>
+        <h2>One design report, multiple engineering views.</h2>
+        <p>The GUI organizes the same underlying design into complementary views for electrical behavior, selected hardware, optimization tradeoffs, losses, thermal constraints, efficiency, and geometry.</p>
+      </div>
+      <div class="capability-grid">
+        <article><h3>Electrical synthesis</h3><p>Duty ratio, component sizing, operating mode, ripple targets, and topology-specific nominal design calculations.</p></article>
+        <article><h3>Waveform & stress extraction</h3><p>Switching-period waveforms and voltage/current stress passed directly into downstream component-selection stages.</p></article>
+        <article><h3>Semiconductor selection</h3><p>Library filtering with role, rating, manufacturer, loss, and thermal considerations.</p></article>
+        <article><h3>Capacitor Pareto design</h3><p>Voltage, capacitance, ripple-current, ESR-loss, thermal-proxy, volume, and bank-configuration tradeoffs.</p></article>
+        <article><h3>Magnetic design</h3><p>Core/winding search, saturation screening, core and copper loss, thermal proxy, Pareto compression, and geometry generation.</p></article>
+        <article><h3>Loss & thermal analysis</h3><p>Selected-hardware loss aggregation with first-pass thermal assessment across active and passive components.</p></article>
+        <article><h3>Efficiency sweep</h3><p>Fixed-hardware load sweep with efficiency curve, stacked loss breakdown, peak-efficiency summary, and dominant-loss reporting.</p></article>
+        <article><h3>2D / 3D engineering visualization</h3><p>Component geometry and hardware overview artifacts for design inspection and communication.</p></article>
+      </div>
+    </section>
+
+    <section class="section section-dark" id="case-study">
+      <div class="section-shell">
+        <div class="section-heading light">
+          <div class="eyebrow">Representative case study</div>
+          <h2>5 kW synchronous buck design.</h2>
+          <p>A representative DC-DC example in the repository uses a 500 V input, 300 V output, 5 kW operating point, 50 kHz switching frequency, and CCM operation.</p>
+        </div>
+
+        <div class="case-specs">
+          <div><span>Input</span><strong>500 V</strong></div>
+          <div><span>Output</span><strong>300 V</strong></div>
+          <div><span>Power</span><strong>5 kW</strong></div>
+          <div><span>Frequency</span><strong>50 kHz</strong></div>
+          <div><span>Inductance</span><strong>480 µH</strong></div>
+          <div><span>Mode</span><strong>CCM</strong></div>
+        </div>
+
+        <div class="gallery-grid">
+          <figure class="gallery-card">
+            <button class="image-button" data-lightbox="assets/images/case_buck_sync_01_design_summary.png" aria-label="Open design summary image">
+              <img src="assets/images/case_buck_sync_01_design_summary.png" alt="PE-Claw synchronous buck design summary" loading="lazy" />
+            </button>
+            <figcaption><b>Design summary</b><span>Topology-level electrical parameters and nominal synthesis.</span></figcaption>
+          </figure>
+          <figure class="gallery-card">
+            <button class="image-button" data-lightbox="assets/images/case_buck_sync_02_waveforms.png" aria-label="Open waveform image">
+              <img src="assets/images/case_buck_sync_02_waveforms.png" alt="Synchronous buck operating waveforms" loading="lazy" />
+            </button>
+            <figcaption><b>Operating waveforms</b><span>Switching-period waveforms used for stress extraction and operating analysis.</span></figcaption>
+          </figure>
+          <figure class="gallery-card">
+            <button class="image-button" data-lightbox="assets/images/case_buck_sync_03_semiconductor_selection.png" aria-label="Open semiconductor selection image">
+              <img src="assets/images/case_buck_sync_03_semiconductor_selection.png" alt="Semiconductor selection result" loading="lazy" />
+            </button>
+            <figcaption><b>Semiconductor selection</b><span>Stress-based filtering, selected devices, estimated loss, and thermal summary.</span></figcaption>
+          </figure>
+          <figure class="gallery-card">
+            <button class="image-button" data-lightbox="assets/images/case_buck_sync_04_input_capacitor_pareto.png" aria-label="Open input capacitor Pareto image">
+              <img src="assets/images/case_buck_sync_04_input_capacitor_pareto.png" alt="Input capacitor Pareto front" loading="lazy" />
+            </button>
+            <figcaption><b>Capacitor Pareto front</b><span>Volume-loss design tradeoff under electrical and ripple constraints.</span></figcaption>
+          </figure>
+          <figure class="gallery-card">
+            <button class="image-button" data-lightbox="assets/images/case_buck_sync_08_inductor_pareto.png" aria-label="Open inductor Pareto image">
+              <img src="assets/images/case_buck_sync_08_inductor_pareto.png" alt="Inductor Pareto front" loading="lazy" />
+            </button>
+            <figcaption><b>Magnetic Pareto front</b><span>Core/winding design-space compression with volume-loss tradeoffs.</span></figcaption>
+          </figure>
+          <figure class="gallery-card">
+            <button class="image-button" data-lightbox="assets/images/efficiency_curve.png" aria-label="Open efficiency curve image">
+              <img src="assets/images/efficiency_curve.png" alt="Fixed-hardware efficiency curve" loading="lazy" />
+            </button>
+            <figcaption><b>Efficiency sweep</b><span>Fixed selected hardware evaluated over the load range.</span></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-shell" id="topologies">
+      <div class="section-heading">
+        <div class="eyebrow">Supported topologies</div>
+        <h2>19 registered converter plugins across three categories.</h2>
+        <p>All registered IDs are connected to the deterministic GUI/backend flow. Engineering maturity varies by topology, and several resonant, isolated, PFC, rectifier, and inverter paths retain source-documented first-pass or gated limitations.</p>
+      </div>
+
+      <div class="topology-columns">
+        <article>
+          <div class="topology-title"><span>AC–DC</span><strong>5</strong></div>
+          <ul>
+            <li>Single-phase diode bridge + capacitor filter</li>
+            <li>Single-phase diode bridge + DC inductor filter</li>
+            <li>Three-phase diode bridge + capacitor filter</li>
+            <li>Single-phase boost PFC diode bridge</li>
+            <li>Single-phase totem-pole bridgeless PFC</li>
+          </ul>
+        </article>
+        <article>
+          <div class="topology-title"><span>DC–AC</span><strong>3</strong></div>
+          <ul>
+            <li>Single-phase full-bridge inverter</li>
+            <li>Three-phase two-level VSI</li>
+            <li>Three-phase three-level NPC inverter</li>
+          </ul>
+        </article>
+        <article>
+          <div class="topology-title"><span>DC–DC</span><strong>11</strong></div>
+          <ul>
+            <li>Buck, diode rectified</li>
+            <li>Buck, synchronous rectified</li>
+            <li>Buck-Boost, diode rectified</li>
+            <li>Four-switch Buck-Boost</li>
+            <li>Three-level TZCM</li>
+            <li>Boost, diode rectified</li>
+            <li>Boost, synchronous rectified</li>
+            <li>LLC, diode rectifier</li>
+            <li>LLC, synchronous rectifier</li>
+            <li>Flyback</li>
+            <li>Phase-shifted full bridge</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="architecture">
+      <div class="section-shell">
+        <div class="section-heading">
+          <div class="eyebrow">Software architecture</div>
+          <h2>Eight layers from GUI state to engineering output.</h2>
+          <p>The repository separates topology physics, orchestration, libraries, multi-physics engines, shared models, and result visualization so each stage can be inspected and evolved independently.</p>
+        </div>
+
+        <div class="architecture-stack">
+          <div><span>Layer 1</span><b>GUI entry & state management</b></div>
+          <div><span>Layer 2</span><b>Converter category & topology registry</b></div>
+          <div><span>Layer 3</span><b>Topology-specific input forms</b></div>
+          <div><span>Layer 4</span><b>Topology plugins & physics modeling</b></div>
+          <div><span>Layer 5</span><b>Unified data model & DesignReport</b></div>
+          <div><span>Layer 6</span><b>Pipeline orchestration</b></div>
+          <div><span>Layer 7</span><b>Device libraries & multi-physics engines</b></div>
+          <div><span>Layer 8</span><b>Visualization & engineering outputs</b></div>
+        </div>
+
+        <div class="validation-card">
+          <div>
+            <div class="eyebrow">Repository validation evidence</div>
+            <h3>Deterministic replay across the migration acceptance set.</h3>
+            <p>The current README records 19 registered topologies, 17 request matrices, and 103 operating points, with the repaired replay completing 103/103 cases without execution errors, boundary failures, or unexplained differences.</p>
+          </div>
+          <div class="validation-number">103<span>/103</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-shell" id="start">
+      <div class="section-heading">
+        <div class="eyebrow">Get started</div>
+        <h2>Run PE-Claw locally.</h2>
+        <p>PE-Claw 1.0 requires Python 3.10 or newer. Install the package from the repository root, then launch the GUI.</p>
+      </div>
+
+      <div class="code-grid">
+        <div class="code-card">
+          <div class="code-label">Install</div>
+          <pre><code>python -m pip install -e .</code></pre>
+          <button class="copy-button" data-copy="python -m pip install -e .">Copy</button>
+        </div>
+        <div class="code-card">
+          <div class="code-label">Launch</div>
+          <pre><code>python -m pe_claw_gui</code></pre>
+          <button class="copy-button" data-copy="python -m pe_claw_gui">Copy</button>
+        </div>
+      </div>
+
+      <div class="cta-panel">
+        <div>
+          <div class="eyebrow">Source & documentation</div>
+          <h3>Inspect the equations, libraries, engines, pipelines, and validation evidence.</h3>
+        </div>
+        <div class="cta-actions">
+          <a class="button" href="https://github.com/Lumia-Xiao/PE_CLAW1.0" target="_blank" rel="noreferrer">Open repository</a>
+          <a class="button button-ghost" href="https://github.com/Lumia-Xiao/PE_CLAW1.0/blob/master/README.md" target="_blank" rel="noreferrer">Read documentation</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="section-shell footer-grid">
+      <div>
+        <strong>PE-Claw 1.0</strong>
+        <p>Transparent, deterministic, engineering-oriented power converter design.</p>
+      </div>
+      <div class="footer-links">
+        <a href="#top">Back to top ↑</a>
+        <a href="https://github.com/Lumia-Xiao/PE_CLAW1.0" target="_blank" rel="noreferrer">GitHub ↗</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="lightbox" aria-hidden="true" role="dialog" aria-label="Image preview">
+    <button class="lightbox-close" aria-label="Close image preview">×</button>
+    <img src="" alt="Expanded project result" />
+  </div>
+
+  <script src="static/js/main.js"></script>
+</body>
+</html>
