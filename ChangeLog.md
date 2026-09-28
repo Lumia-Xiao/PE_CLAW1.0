@@ -6,6 +6,7 @@
 - The core reuses the frozen Boost PFC inputs without `sizing_efficiency_assumption` or phase-control inputs, uses ideal 50/50 sharing, sizes per-phase series inductance from the low-line envelope, checks high-line DC-bus feasibility, and records formula/unit/boundary metadata.
 - Added focused tests for input normalization, line-cycle zero/peak behavior, equal sharing, half-duty ripple cancellation, inductance decomposition, and low/high-line boundaries.
 - Validation: `10 passed` for the step-1 contract and step-2 core tests; `compileall` passed; step-0 baseline regression `2 passed in 183.98s`; no registry, GUI, or shared pipeline code changed.
+- Affected files: the new `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/` package, `tests/test_two_phase_interleaved_boost_pfc_step2_core.py`, `Plan/Active/two_phase_interleaved_boost_pfc_plan.md`, and `ChangeLog.md`; branch: `codex/llc-waveform-operating-point-plan`; implementation commit: `49c05e0`.
 
 ## 2026-09-28 Execute Step 1 Interleaved Boost PFC Contract
 
