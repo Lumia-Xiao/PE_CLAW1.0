@@ -5,6 +5,7 @@
 - Added the frozen step-1 input/result contract and contract tests for the planned two-phase interleaved Boost PFC topology.
 - The contract reuses the existing Boost PFC user inputs, excludes `sizing_efficiency_assumption` and phase-control inputs, fixes 2 phases with 180-degree interleaving and ideal 50/50 design sharing, and defines per-phase/common field semantics, roles, provenance, and first-pass boundaries.
 - Validation: step-1 contract tests passed; no runtime topology, registry, GUI, or shared pipeline code was changed.
+- Affected files: `tests/fixtures/two_phase_interleaved_boost_pfc_step1_contract.json`, `tests/test_two_phase_interleaved_boost_pfc_step1_contract.py`, `Plan/Active/two_phase_interleaved_boost_pfc_plan.md`, and `ChangeLog.md`; branch: `codex/llc-waveform-operating-point-plan`; implementation commit: `e9c2e17`.
 
 ## 2026-09-28 Execute Step 0 Boost PFC Baseline
 
