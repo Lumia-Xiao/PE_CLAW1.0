@@ -6,6 +6,7 @@
 - Kept shared waveform/stress models unchanged; public waveform arrays have documented aggregate or representative-phase semantics, full phase arrays and offsets use topology metadata, and phase stress uses a typed topology adapter.
 - Added load-point coverage showing current scales with load while fixed-hardware inductor ripple remains unchanged, plus both execution orders and repeated old/new topology runs against the frozen step-0 single-phase candidate baseline.
 - Impact classification: topology-local; no registry, capability, shared models, pipeline, library, or GUI changes. Validation: steps 1-3 focused tests `15 passed`; package `compileall` passed.
+- Affected files: the interleaved topology package `__init__.py`, `waveform.py`, `stress.py`, and `evaluator.py`, `tests/test_two_phase_interleaved_boost_pfc_step3_waveform.py`, `Plan/Active/two_phase_interleaved_boost_pfc_plan.md`, and `ChangeLog.md`; branch: `codex/llc-waveform-operating-point-plan`; implementation commit: `83c85e6`.
 
 ## 2026-09-28 Execute Step 2 Interleaved Boost PFC Electrical Core
 
