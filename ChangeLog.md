@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-29 Execute Step 5 Interleaved Boost PFC Bridge and Device Selection
+
+- Added aggregate-current bridge selector routing and four independently auditable phase semiconductor roles for the planned two-phase interleaved Boost PFC.
+- Forced both phase Boost diodes to use independent binding, preserving phase-specific candidates, rejection traces, ratings, provenance, and selected part numbers.
+- Limited the new topology's full-pipeline path to bridge and semiconductor selection; magnetic, loss, thermal, geometry, and efficiency stages remain pending for later plan steps.
+- Validation: Steps 1–5 plus registry, legacy AC-DC boundaries, bridge models, semiconductor registry, and single-phase Boost baseline `55 passed` with `MPLBACKEND=Agg`.
+- Affected files: topology role map, stress adapter, bridge selector, device pipeline, full pipeline routing, step-4 integration test adjustment, `tests/test_two_phase_interleaved_boost_pfc_step5_devices.py`, plan, and ChangeLog; branch: `codex/llc-waveform-operating-point-plan`; implementation commit: pending.
+
 ## 2026-09-29 Execute Step 4 Interleaved Boost PFC Registry and GUI Integration
 
 - Registered `single_phase_interleaved_boost_pfc_diode_bridge` and its legacy key, added the planned capability declaration, and exposed a topology-local runtime plugin report hook without invoking downstream selection stages.

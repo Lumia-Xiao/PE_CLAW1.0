@@ -53,6 +53,7 @@ def build_default_inputs() -> dict[str, str]:
             "input_inductance_h": "0.0001",
             "ambient_temp_c": "25",
             "target_junction_temp_c": "100",
+            "diode_binding_policy": "independent",
         }
     )
 

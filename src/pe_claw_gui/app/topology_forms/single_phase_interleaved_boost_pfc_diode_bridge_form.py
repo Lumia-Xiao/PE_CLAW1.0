@@ -34,9 +34,9 @@ class SinglePhaseInterleavedBoostPFCDiodeBridgeForm(BaseTopologyForm):
 
     @classmethod
     def get_semiconductor_design_fields(cls) -> tuple[TopologyField, ...]:
-        """Keep device selectors out until the multi-phase role contract is added."""
+        """Expose shared filters for the four physical phase positions."""
 
-        return ()
+        return super().get_semiconductor_design_fields()
 
     def __init__(
         self,

@@ -28,6 +28,7 @@ DEFAULT_THREE_PHASE_BRIDGE_RECTIFIER_CSV_PATH = PACKAGED_THREE_PHASE_BRIDGE_RECT
 SINGLE_PHASE_BRIDGE_RECTIFIER_TOPOLOGY_KIND = "single_phase_bridge_rectifier"
 THREE_PHASE_BRIDGE_RECTIFIER_TOPOLOGY_KIND = "three_phase_bridge_rectifier"
 SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID = "single_phase_boost_pfc_diode_bridge"
+INTERLEAVED_BOOST_PFC_TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 BRIDGE_RECTIFIER_TOPOLOGY_CONFIG = {
     "single_phase_diode_bridge_rectifier_capacitor_filter": (
         DEFAULT_BRIDGE_RECTIFIER_CSV_PATH,
@@ -42,6 +43,10 @@ BRIDGE_RECTIFIER_TOPOLOGY_CONFIG = {
         THREE_PHASE_BRIDGE_RECTIFIER_TOPOLOGY_KIND,
     ),
     SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID: (
+        DEFAULT_BRIDGE_RECTIFIER_CSV_PATH,
+        SINGLE_PHASE_BRIDGE_RECTIFIER_TOPOLOGY_KIND,
+    ),
+    INTERLEAVED_BOOST_PFC_TOPOLOGY_ID: (
         DEFAULT_BRIDGE_RECTIFIER_CSV_PATH,
         SINGLE_PHASE_BRIDGE_RECTIFIER_TOPOLOGY_KIND,
     ),
@@ -144,6 +149,10 @@ def build_bridge_rectifier_selection_request(report: DesignReport) -> BridgeRect
         request_notes.append(
             "Boost PFC bridge current uses the rectified input-source current waveform, not the boost diode current."
         )
+    if report.spec.topology_id == INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        request_notes.append(
+            "Interleaved Boost PFC bridge current uses the aggregate two-phase input-source waveform; phase currents are not duplicated."
+        )
 
     return BridgeRectifierSelectionRequest(
         topology_id=report.spec.topology_id,
@@ -222,6 +231,10 @@ def _is_three_phase_bridge_topology(topology_id: str) -> bool:
 
 
 def _bridge_current_waveform(report: DesignReport) -> tuple[float, ...]:
+    if report.spec.topology_id == INTERLEAVED_BOOST_PFC_TOPOLOGY_ID and report.waveform is not None:
+        values = report.waveform.input_source_current_a
+        if values:
+            return tuple(float(value) for value in values)
     if (
         report.spec.topology_id == SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID
         and report.candidate is not None

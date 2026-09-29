@@ -18,6 +18,7 @@ _LLC_DIODE_RECTIFIER_TOPOLOGY_ID = "llc_resonant_converter_diode_rectifier"
 _LLC_SR_TOPOLOGY_ID = "llc_resonant_converter_synchronous_rectifier"
 _PSFB_DIODE_RECTIFIER_TOPOLOGY_ID = "phase_shifted_full_bridge_diode_rectifier_isolated"
 _SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID = "single_phase_boost_pfc_diode_bridge"
+_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID = "single_phase_totem_pole_bridgeless_pfc"
 
 
@@ -617,6 +618,61 @@ def _build_single_phase_boost_pfc_stresses(report: DesignReport) -> tuple[Switch
     return boost_switch, boost_diode
 
 
+def _build_interleaved_boost_pfc_stresses(report: DesignReport) -> tuple[SwitchStress, ...]:
+    """Return four independently named phase positions from the topology adapter."""
+
+    stress = report.stress
+    candidate = report.candidate
+    if stress is None or candidate is None:
+        raise ValueError("Candidate and stress result are required to build interleaved PFC stresses.")
+    metadata = report.waveform.metadata if report.waveform is not None else {}
+    phase_metrics = metadata.get("phase_device_metrics", {}) if isinstance(metadata, dict) else {}
+    switching_period_s = 1.0 / max(candidate.fs_hz, 1e-9)
+    mode = report.waveform.mode if report.waveform is not None else candidate.mode_capable.upper()
+    phase_stress = getattr(stress, "phase_stress", None)
+    result: list[SwitchStress] = []
+    for phase in ("phase_1", "phase_2"):
+        metrics = phase_metrics.get(phase, {}) if isinstance(phase_metrics, dict) else {}
+        source = phase_stress.get(phase) if isinstance(phase_stress, dict) else None
+        switch_metric = getattr(source, "main_switch", stress.switch)
+        diode_metric = getattr(source, "boost_diode", stress.rectifier)
+        switch_values = metrics.get("switch", {}) if isinstance(metrics, dict) else {}
+        diode_values = metrics.get("diode", {}) if isinstance(metrics, dict) else {}
+        result.extend(
+            (
+                SwitchStress(
+                    role=f"{phase}_main_switch",
+                    mode=mode,
+                    v_block_V=switch_metric.voltage_max_v,
+                    i_rms_A=float(switch_values.get("current_rms_a", switch_metric.current_rms_a or 0.0)),
+                    i_avg_A=float(switch_values.get("current_avg_a", switch_metric.current_avg_a or 0.0)),
+                    i_turn_on_A=switch_metric.current_peak_a,
+                    i_turn_off_A=switch_metric.current_peak_a,
+                    fsw_Hz=candidate.fs_hz,
+                    duty=max(0.0, min(candidate.duty_nom, 1.0)),
+                    conduction_time_s=max(0.0, min(candidate.duty_nom, 1.0)) * switching_period_s,
+                    ambient_temp_C=_ambient_temp_c(report),
+                    target_junction_temp_C=_target_junction_temp_c(report),
+                ),
+                SwitchStress(
+                    role=f"{phase}_boost_diode",
+                    mode=mode,
+                    v_block_V=diode_metric.voltage_max_v,
+                    i_rms_A=float(diode_values.get("current_rms_a", diode_metric.current_rms_a or 0.0)),
+                    i_avg_A=float(diode_values.get("current_avg_a", diode_metric.current_avg_a or 0.0)),
+                    i_turn_on_A=diode_metric.current_peak_a,
+                    i_turn_off_A=0.0,
+                    fsw_Hz=candidate.fs_hz,
+                    duty=max(0.0, min(1.0 - candidate.duty_nom, 1.0)),
+                    conduction_time_s=max(0.0, min(1.0 - candidate.duty_nom, 1.0)) * switching_period_s,
+                    ambient_temp_C=_ambient_temp_c(report),
+                    target_junction_temp_C=_target_junction_temp_c(report),
+                ),
+            )
+        )
+    return tuple(result)
+
+
 def _build_single_phase_totem_pole_pfc_stresses(report: DesignReport) -> tuple[SwitchStress, SwitchStress]:
     """Return first-pass stress for Totem-Pole high-frequency and line-frequency switch pairs."""
 
@@ -733,6 +789,19 @@ def _fallback_case(report: DesignReport, *, case_id: str, label: str, operating_
                 _format_operating_point_note(label, operating_point, mode),
                 "Boost PFC fallback stress maps one boost main_switch and one independent boost rectifier_diode.",
                 "Input bridge rectifier selection uses the AC-DC bridge selector rather than the generic semiconductor role map.",
+            ],
+        )
+    if report.spec.topology_id == _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        return SwitchStressCase(
+            case_id=case_id,
+            label=label,
+            operating_point=operating_point,
+            mode=mode,
+            stresses=_build_interleaved_boost_pfc_stresses(report),
+            notes=[
+                _format_operating_point_note(label, operating_point, mode),
+                "Interleaved Boost PFC maps independent phase 1/phase 2 switch and Boost-diode positions.",
+                "Input bridge rectifier uses aggregate current through the AC-DC bridge selector.",
             ],
         )
     if report.spec.topology_id == _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID:
@@ -887,6 +956,8 @@ def _build_case(report: DesignReport, waveform: WaveformSet, operating_point: Op
         stresses = list(_build_psfb_diode_rectifier_stresses(report))
     elif topology_id == _SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID:
         stresses = list(_build_single_phase_boost_pfc_stresses(report))
+    elif topology_id == _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        stresses = list(_build_interleaved_boost_pfc_stresses(report))
     elif topology_id == _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID:
         stresses = list(_build_single_phase_totem_pole_pfc_stresses(report))
     else:

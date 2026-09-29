@@ -595,6 +595,17 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 
 **验收**：完整设计后四个功率位置和输入桥均有可审计结果；任一相的器件候选缺失时返回明确 warning/failure；旧拓扑器件角色测试不回归。
 
+**步骤 5 执行记录（2026-09-29）**：
+
+- 将新拓扑接入 AC-DC bridge selector，使用聚合两相输入源电流波形构造桥请求；没有把相电流重复计入输入桥；
+- 新增四个独立半导体 role：`phase_1_main_switch`、`phase_2_main_switch`、`phase_1_boost_diode`、`phase_2_boost_diode`，每个 role 对应一个物理位置并保留候选计数、筛选轨迹、选中器件和来源；
+- 新拓扑的两个 Boost 二极管强制使用 `independent` binding policy，不绑定主开关内部二极管；相位器件仍沿用现有库筛选、额定电压/电流和并联方案机制；
+- `run_full_pipeline` 在步骤 5 对新拓扑只执行器件和输入桥选择，随后返回，不提前进入两相磁件、损耗、热和几何阶段；旧拓扑路径保持不变；
+- 更新 topology role note、phase role routing、GUI 共享器件筛选字段和步骤 5 专项测试 `tests/test_two_phase_interleaved_boost_pfc_step5_devices.py`；
+- 影响分类：integration change（semiconductor role map、stress adapter、bridge selector、pipeline routing）；共享 `DeviceSelectionResult`、`StressResult` 和 bridge/report 数据结构未扩展；
+- 验证：步骤 1–5、registry、旧 AC-DC 边界、bridge library、semiconductor library 和单相 Boost baseline 共 `55 passed`；使用 `MPLBACKEND=Agg`；未运行全量测试；
+- 完整 AC-DC downstream stages 仍留在步骤 7，未把步骤 5 的器件选择结果误标记为损耗、热或几何完成。
+
 ### 步骤 6：接入两相电感磁件设计
 
 **目的**：让两个 Boost 电感进入现有磁件库和选择流程。

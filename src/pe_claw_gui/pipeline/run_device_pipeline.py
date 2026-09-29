@@ -79,6 +79,7 @@ _LLC_DIODE_RECTIFIER_TOPOLOGY_ID = "llc_resonant_converter_diode_rectifier"
 _LLC_SR_TOPOLOGY_ID = "llc_resonant_converter_synchronous_rectifier"
 _PSFB_DIODE_RECTIFIER_TOPOLOGY_ID = "phase_shifted_full_bridge_diode_rectifier_isolated"
 _SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID = "single_phase_boost_pfc_diode_bridge"
+_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID = "single_phase_totem_pole_bridgeless_pfc"
 _SECONDARY_SYNC_SWITCH_MANUFACTURER_INPUT_KEY = "secondary_sync_switch_manufacturer"
 _INDEPENDENT_SECONDARY_DIODE_TOPOLOGY_IDS = {
@@ -86,6 +87,7 @@ _INDEPENDENT_SECONDARY_DIODE_TOPOLOGY_IDS = {
     "flyback_diode_rectified_isolated",
     _PSFB_DIODE_RECTIFIER_TOPOLOGY_ID,
     _SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID,
+    _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID,
 }
 
 
@@ -298,6 +300,11 @@ def _category_for_role(role: str, topology_id: str | None, metadata: dict[str, o
         if topology_id == "four_switch_buck_boost_simplified_four_mode":
             return metadata.get(SWITCH_IMPLEMENTATION_CATEGORY_INPUT_KEY)
         return metadata.get(MAIN_SWITCH_CATEGORY_INPUT_KEY)
+    if topology_id == _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID and normalized_role in {
+        "phase_1_main_switch",
+        "phase_2_main_switch",
+    }:
+        return metadata.get(MAIN_SWITCH_CATEGORY_INPUT_KEY)
     if topology_id == _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID and normalized_role in {
         "totem_pole_hf_switch",
         "totem_pole_lf_switch",
@@ -385,7 +392,11 @@ def _filter_candidates_for_role(candidates, role: str, topology_id: str | None, 
 
 
 def _role_manufacturer_for_topology(role: str, topology_id: str | None, metadata: dict[str, object]) -> str:
-    if topology_id not in {_LLC_DIODE_RECTIFIER_TOPOLOGY_ID, _LLC_SR_TOPOLOGY_ID, _PSFB_DIODE_RECTIFIER_TOPOLOGY_ID}:
+    if topology_id not in {
+        _LLC_DIODE_RECTIFIER_TOPOLOGY_ID,
+        _LLC_SR_TOPOLOGY_ID,
+        _PSFB_DIODE_RECTIFIER_TOPOLOGY_ID,
+    }:
         return "Any"
     normalized_role = role.strip().casefold()
     if normalized_role == "main_switch":
@@ -405,6 +416,13 @@ def _filter_candidates_by_manufacturer(candidates, manufacturer: str) -> tuple[l
 
 
 def _topology_position_count_for_role(role: str, topology_id: str | None, metadata: dict[str, object]) -> int:
+    if topology_id == _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID and role.strip().casefold() in {
+        "phase_1_main_switch",
+        "phase_2_main_switch",
+        "phase_1_boost_diode",
+        "phase_2_boost_diode",
+    }:
+        return 1
     if topology_id == "single_phase_full_bridge_inverter" and role.strip().casefold() == "main_switch":
         return 4
     if topology_id == "three_phase_two_level_voltage_source_inverter" and role.strip().casefold() == "main_switch":
@@ -1445,6 +1463,8 @@ def _evaluate_parallel_scheme(
             or (topology_id == CONVENTIONAL_NPC_CONTRACT.topology_id and role.strip().casefold() == "npc_clamp_diode")
         ):
             diode_binding_policy = "independent"
+            if topology_id == _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+                role_category = spec_metadata.get(RECTIFIER_DIODE_CATEGORY_INPUT_KEY)
         elif _is_rectifier_diode_role(role) and diode_binding_policy in {"auto", "internal_module_diode"}:
             main_device = selected_device_objects.get("main_switch")
             if main_device is not None and _requires_internal_diode_binding(main_device):

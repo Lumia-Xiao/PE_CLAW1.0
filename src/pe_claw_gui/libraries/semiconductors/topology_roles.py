@@ -133,6 +133,55 @@ _SINGLE_PHASE_BOOST_PFC_ROLE_SPECS: tuple[SemiconductorRoleSpec, ...] = (
     ),
 )
 
+_TWO_PHASE_INTERLEAVED_BOOST_PFC_ROLE_SPECS: tuple[SemiconductorRoleSpec, ...] = tuple(
+    SemiconductorRoleSpec(
+        role_name=role_name,
+        role_label=label,
+        allowed_electrical_types=types,
+        role_kind=kind,
+        default_category=category,
+        quantity_per_power_cell=1,
+        can_use_discrete=True,
+        can_use_module_section=True,
+        can_use_internal_diode=False,
+        notes=note,
+    )
+    for role_name, label, types, kind, category, note in (
+        (
+            "phase_1_main_switch",
+            "Phase 1 Boost switch",
+            ("MOSFET", "IGBT"),
+            "active_switch",
+            ANY_ACTIVE_SWITCH_CATEGORY,
+            "Independent active switch position for interleaved Boost phase 1.",
+        ),
+        (
+            "phase_2_main_switch",
+            "Phase 2 Boost switch",
+            ("MOSFET", "IGBT"),
+            "active_switch",
+            ANY_ACTIVE_SWITCH_CATEGORY,
+            "Independent active switch position for interleaved Boost phase 2.",
+        ),
+        (
+            "phase_1_boost_diode",
+            "Phase 1 Boost diode",
+            ("Diode",),
+            "rectifier_diode",
+            ANY_DIODE_CATEGORY,
+            "Independent Boost diode position for interleaved Boost phase 1.",
+        ),
+        (
+            "phase_2_boost_diode",
+            "Phase 2 Boost diode",
+            ("Diode",),
+            "rectifier_diode",
+            ANY_DIODE_CATEGORY,
+            "Independent Boost diode position for interleaved Boost phase 2.",
+        ),
+    )
+)
+
 _SINGLE_PHASE_TOTEM_POLE_PFC_ROLE_SPECS: tuple[SemiconductorRoleSpec, ...] = (
     SemiconductorRoleSpec(
         role_name="totem_pole_hf_switch",
@@ -329,6 +378,7 @@ _ROLE_MAP: dict[str, tuple[SemiconductorRoleSpec, ...]] = {
     "flyback_diode_rectified_isolated": _ISOLATED_FLYBACK_DIODE_ROLE_SPECS,
     "phase_shifted_full_bridge_diode_rectifier_isolated": _ISOLATED_PSFB_DIODE_ROLE_SPECS,
     "single_phase_boost_pfc_diode_bridge": _SINGLE_PHASE_BOOST_PFC_ROLE_SPECS,
+    "single_phase_interleaved_boost_pfc_diode_bridge": _TWO_PHASE_INTERLEAVED_BOOST_PFC_ROLE_SPECS,
     "single_phase_totem_pole_bridgeless_pfc": _SINGLE_PHASE_TOTEM_POLE_PFC_ROLE_SPECS,
     "buck_synchronous_rectified_unidirectional": _SYNCHRONOUS_ROLE_SPECS,
     "boost_synchronous_rectified_unidirectional": _SYNCHRONOUS_ROLE_SPECS,
@@ -405,6 +455,7 @@ def classify_topology_role_family(topology_id: str | None) -> str:
         "flyback_diode_rectified_isolated",
         "phase_shifted_full_bridge_diode_rectifier_isolated",
         "single_phase_boost_pfc_diode_bridge",
+        "single_phase_interleaved_boost_pfc_diode_bridge",
     }:
         return "diode_rectified_two_role"
     if topology_id == "single_phase_totem_pole_bridgeless_pfc":
@@ -435,6 +486,8 @@ def topology_role_note(topology_id: str | None) -> str | None:
 
     if topology_id == "single_phase_boost_pfc_diode_bridge":
         return "Boost PFC roles: boost main_switch and independent boost rectifier_diode; input bridge rectifier is selected by the AC-DC bridge selector."
+    if topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
+        return "Interleaved Boost PFC roles: phase_1_main_switch, phase_2_main_switch, phase_1_boost_diode, and phase_2_boost_diode; input bridge uses aggregate current."
     if topology_id == "single_phase_totem_pole_bridgeless_pfc":
         return "Totem-Pole PFC roles: totem_pole_hf_switch x2 and totem_pole_lf_switch x2; no input bridge rectifier or boost diode is selected."
     family = classify_topology_role_family(topology_id)

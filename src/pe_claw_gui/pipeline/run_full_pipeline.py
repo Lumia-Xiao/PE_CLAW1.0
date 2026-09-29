@@ -32,9 +32,11 @@ AC_DC_DIODE_BRIDGE_TOPOLOGIES = {
     "single_phase_diode_bridge_rectifier_dc_inductor_filter",
     "three_phase_diode_bridge_rectifier_capacitor_filter",
 }
+AC_DC_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 SELECTION_ONLY_TOPOLOGIES = {
     "single_phase_full_bridge_inverter",
     "flyback_diode_rectified_isolated",
+    AC_DC_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID,
 }
 
 
@@ -81,7 +83,10 @@ def _run_full_pipeline_in_context(
         report = replace(report, llc_run_context=report.llc_run_context.transition("design", "succeeded"))
     if is_first_pass_topology_only(report.spec.topology_id):
         return report
-    uses_bridge_rectifier_selector = report.spec.topology_id in AC_DC_DIODE_BRIDGE_TOPOLOGIES
+    uses_bridge_rectifier_selector = (
+        report.spec.topology_id in AC_DC_DIODE_BRIDGE_TOPOLOGIES
+        or report.spec.topology_id == AC_DC_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID
+    )
     uses_semiconductor_selector = has_semiconductor_selection_path(report.spec.topology_id)
     if uses_bridge_rectifier_selector:
         report = replace(report, device=None, semiconductor_geometry=None)
@@ -96,6 +101,10 @@ def _run_full_pipeline_in_context(
             )
     if uses_semiconductor_selector and report.waveform is not None and report.operating_point is not None:
         report = run_device_operating_point_refresh(report, plugin=plugin)
+    if report.spec.topology_id == AC_DC_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        if options.enable_bridge_rectifier_selection:
+            report = run_bridge_rectifier_pipeline(report)
+        return report
     if report.spec.topology_id in SELECTION_ONLY_TOPOLOGIES and (
         report.spec.topology_id != "flyback_diode_rectified_isolated" or not options.enable_magnetic_design
     ):
