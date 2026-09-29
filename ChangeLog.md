@@ -1498,3 +1498,8 @@ listed here.
 - Presentation notes: the page labels the three-phase three-level case as NPC rather than T-type; it records current artifact boundaries for the TZCM load sweep, Flyback magnetic gallery, LLC volume scope and Boost-PFC volume scope. Desktop uses a featured full-width GUI image and two-column result cards; narrow screens use a two-column case selector and single-column figures without horizontal overflow.
 - Validation: UTF-8 HTML audit passed with seven tabs, seven panels, 34 case figures, expected per-case counts and zero missing local assets or duplicate IDs. `node --check docs/static/js/main.js` passed. Chrome verification exercised all seven tabs, confirmed exactly one visible/selected panel, loaded all four Flyback images, found no Flyback magnetic caption, opened/closed the image lightbox, found no console errors, and verified the 375 px viewport has no horizontal overflow.
 - Git/publication: prepared on feature branch `codex/multi-case-design-gallery-20260929` for deliberate merge to `master`, the configured GitHub Pages source (`/docs`). Exact publication commits and live-build verification are reported in the task completion response. No user outputs were deleted, and no backup operation was required for this documentation-only change.
+
+## 2026-09-29 - Remove release-boundary website copy
+
+- Removed the `Current release boundary` notice and its AI/future-product statement from `docs/index.html` at the user's request. No engineering behavior, design-case content or image assets changed.
+- Validation: confirmed the removed heading and sentence no longer occur in the page source. Publication uses a dedicated feature branch merged deliberately into `master`; no user outputs were modified or deleted.
