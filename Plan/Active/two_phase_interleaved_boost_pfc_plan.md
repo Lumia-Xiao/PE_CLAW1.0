@@ -543,6 +543,17 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 
 **验收**：拓扑独立测试可以验证 `phase_1 + phase_2 = total` 的平均电流关系、两相相移、总纹波抵消趋势、器件应力和报告字段完整性。
 
+**步骤 3 执行记录（2026-09-29）**：
+
+- 在两相 topology package 内新增 `waveform.py`、`stress.py` 和 `evaluator.py`，完成线路周期电流、每相开关/Boost 二极管包络、每相电感电压、聚合输入桥电流、相级 RMS/峰值/平均应力和拓扑汇总；
+- `WaveformSet` 旧数组继续按步骤 1 定义提供聚合或代表相投影，完整两相数组、180° carrier offset、纹波抵消和字段 basis 放在该拓扑自己的 metadata；没有扩展共享 `WaveformSet`/`StressResult` 模型；
+- 相级应力通过拓扑内 typed `InterleavedPFCStress` adapter 暴露，公共 `StressResult` 两个兼容槽代表 phase 1，输入桥应力单独保存在 adapter；
+- 固定硬件 operating-point 波形中电流按 load ratio 缩放，电感纹波保持由既定电感与开关频率决定；
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step3_waveform.py`，验证相电流和等于总电流、180°相移、D=0.5 总纹波抵消、固定硬件纹波、相级器件应力、输入桥应力和 evaluator 汇总；
+- 增加旧单相与新两相拓扑在两个执行顺序下重复运行的隔离检查，并用步骤 0 nominal baseline 核对旧拓扑 candidate 电感和电容；
+- 影响分类：topology-local；未变更共享结果模型、registry、capability、pipeline、器件/磁件角色或 GUI，因此运行步骤 1/2/3 聚焦测试、compileall 和旧/新拓扑隔离检查，不运行全量测试；步骤 4 及之后的集成阶段另行验证 downstream consumers；
+- 验证：步骤 1/2/3 聚焦测试 `15 passed`；隔离检查包含在该测试结果内；新增包 `compileall` 通过。
+
 ### 步骤 4：接入 registry、capability 和 GUI form
 
 **目的**：让新拓扑可以被发现和选择，但暂时限制下游阶段在契约完成后接入。

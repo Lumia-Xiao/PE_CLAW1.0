@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-29 Execute Step 3 Interleaved Boost PFC Waveform and Stress
+
+- Added topology-local line-cycle waveform envelopes, explicit phase-level device stress, shared input-bridge stress, and electrical evaluation summary for the two-phase interleaved Boost PFC.
+- Kept shared waveform/stress models unchanged; public waveform arrays have documented aggregate or representative-phase semantics, full phase arrays and offsets use topology metadata, and phase stress uses a typed topology adapter.
+- Added load-point coverage showing current scales with load while fixed-hardware inductor ripple remains unchanged, plus both execution orders and repeated old/new topology runs against the frozen step-0 single-phase candidate baseline.
+- Impact classification: topology-local; no registry, capability, shared models, pipeline, library, or GUI changes. Validation: steps 1-3 focused tests `15 passed`; package `compileall` passed.
+
 ## 2026-09-28 Execute Step 2 Interleaved Boost PFC Electrical Core
 
 - Added an isolated two-phase interleaved Boost PFC input schema, line-cycle model, 180-degree ripple-cancellation helper, and first-pass electrical synthesizer.
