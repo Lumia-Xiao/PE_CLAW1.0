@@ -15,6 +15,7 @@ TOPOLOGY_IMAGE_SUBDIRECTORIES: dict[str, str] = {
     "single_phase_diode_bridge_rectifier_dc_inductor_filter": "ac_dc",
     "three_phase_diode_bridge_rectifier_capacitor_filter": "ac_dc",
     "single_phase_boost_pfc_diode_bridge": "ac_dc",
+    "single_phase_interleaved_boost_pfc_diode_bridge": "ac_dc",
     "single_phase_totem_pole_bridgeless_pfc": "ac_dc",
     "single_phase_full_bridge_inverter": "dc_ac",
     "three_phase_two_level_voltage_source_inverter": "dc_ac",
@@ -37,6 +38,8 @@ TOPOLOGY_IMAGE_FILENAMES: dict[str, str] = {
     "single_phase_diode_bridge_rectifier_dc_inductor_filter": "single_phase_diode_bridge_rectifier_dc_inductor_filter.png",
     "three_phase_diode_bridge_rectifier_capacitor_filter": "three_phase_diode_bridge_rectifier_capacitor_filter.png",
     "single_phase_boost_pfc_diode_bridge": "single_phase_boost_pfc_diode_bridge.png",
+    # Reuse the existing Boost PFC card until a dedicated interleaved schematic is added.
+    "single_phase_interleaved_boost_pfc_diode_bridge": "single_phase_boost_pfc_diode_bridge.png",
     "single_phase_totem_pole_bridgeless_pfc": "single_phase_totem_pole_bridgeless_pfc.png",
     "single_phase_full_bridge_inverter": "single_phase_full_bridge_inverter.png",
     "three_phase_two_level_voltage_source_inverter": "three_phase_two_level_voltage_source_inverter.png",

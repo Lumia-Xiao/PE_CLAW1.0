@@ -79,7 +79,7 @@ def test_default_registry_keeps_phase7_resolvable_topology_contracts() -> None:
     registry = build_default_registry()
     definitions = registry.list_definitions()
 
-    assert len(definitions) == 19
+    assert len(definitions) == 20
     assert {definition.category_id for definition in definitions} == {"dc_dc", "ac_dc", "dc_ac"}
     for definition in definitions:
         assert registry.get_plugin(definition.topology_id) is not None

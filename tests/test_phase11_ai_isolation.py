@@ -96,12 +96,12 @@ def test_gui_shell_import_does_not_load_ai_modules() -> None:
     assert result.returncode == 0, result.stderr
 
 
-def test_all_19_deterministic_topology_plugins_remain_loadable() -> None:
+def test_all_registered_deterministic_topology_plugins_remain_loadable() -> None:
     result = _run_isolated(
         "from pe_claw_gui.topologies.base.registry import build_default_registry; "
         "registry = build_default_registry(); "
         "definitions = registry.list_definitions(); "
-        "assert len(definitions) == 19; "
+        "assert len(definitions) == 20; "
         "assert all(registry.get_plugin(item.topology_id) is not None for item in definitions)"
     )
     assert result.returncode == 0, result.stderr

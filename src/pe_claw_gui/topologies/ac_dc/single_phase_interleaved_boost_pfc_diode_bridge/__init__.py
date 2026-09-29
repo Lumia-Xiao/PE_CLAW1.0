@@ -1,23 +1,92 @@
-"""Independent first-pass two-phase interleaved Boost PFC electrical core.
+"""First-pass two-phase interleaved Boost PFC topology plugin."""
 
-This package is intentionally not registered with the runtime topology registry.
-It provides the step-2 input and synthesis boundary for later integration.
-"""
+from collections.abc import Mapping
+from dataclasses import dataclass
 
+from ....models.design_report import DesignReport
+from ....models.operating_point import OperatingPoint
+from ....models.stress_result import StressResult
+from ....models.waveform import WaveformSet
+from ...base.candidate import TopologyCandidate
+from ...base.interface import TopologyPlugin
+from ...base.result import TopologyResult
+from ...base.spec import TopologySpec
+from .evaluator import build_report, evaluate
 from .input_schema import DISPLAY_NAME, LEGACY_KEY, TOPOLOGY_ID, build_default_inputs, build_spec
-from .evaluator import evaluate
-from .synthesizer import synthesize
 from .stress import InterleavedPFCStress, PhaseStress, extract_phase_stress, extract_stress
+from .synthesizer import synthesize
 from .waveform import generate_waveforms
+
+
+@dataclass(frozen=True)
+class SinglePhaseInterleavedBoostPFCDiodeBridgePlugin(TopologyPlugin):
+    """Planned registry adapter for the topology-local electrical core."""
+
+    topology_id: str = TOPOLOGY_ID
+    display_name: str = DISPLAY_NAME
+    legacy_key: str = LEGACY_KEY
+    implemented: bool = False
+
+    def build_spec(self, raw_input: Mapping[str, str]) -> TopologySpec:
+        return build_spec(raw_input)
+
+    def synthesize(self, spec: TopologySpec) -> TopologyCandidate:
+        return synthesize(spec)
+
+    def generate_waveforms(
+        self,
+        candidate: TopologyCandidate,
+        operating_point: OperatingPoint | None = None,
+    ) -> WaveformSet | None:
+        return generate_waveforms(candidate, operating_point=operating_point)
+
+    def extract_stress(
+        self,
+        candidate: TopologyCandidate,
+        waveform_set: WaveformSet | None = None,
+    ) -> StressResult:
+        return extract_stress(candidate, waveform_set=waveform_set)
+
+    def evaluate(
+        self,
+        candidate: TopologyCandidate,
+        waveform_set: WaveformSet | None = None,
+        stress_result: StressResult | None = None,
+    ) -> TopologyResult:
+        return evaluate(candidate, waveform_set=waveform_set, stress_result=stress_result)
+
+    def build_report(
+        self,
+        spec: TopologySpec,
+        candidate: TopologyCandidate,
+        operating_point: OperatingPoint | None = None,
+        waveform_set: WaveformSet | None = None,
+        stress_result: StressResult | None = None,
+        topology_result: TopologyResult | None = None,
+    ) -> DesignReport:
+        return build_report(
+            spec=spec,
+            candidate=candidate,
+            operating_point=operating_point,
+            waveform_set=waveform_set,
+            stress_result=stress_result,
+            topology_result=topology_result,
+        )
+
+
+PLUGIN = SinglePhaseInterleavedBoostPFCDiodeBridgePlugin()
 
 __all__ = [
     "DISPLAY_NAME",
     "InterleavedPFCStress",
     "LEGACY_KEY",
+    "PLUGIN",
+    "SinglePhaseInterleavedBoostPFCDiodeBridgePlugin",
     "PhaseStress",
     "TOPOLOGY_ID",
     "build_default_inputs",
     "build_spec",
+    "build_report",
     "evaluate",
     "extract_phase_stress",
     "extract_stress",

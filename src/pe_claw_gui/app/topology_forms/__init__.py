@@ -18,6 +18,7 @@ from .llc_resonant_converter_synchronous_rectifier_form import LLCResonantConver
 from .psfb_form import PSFBTopologyForm
 from .single_phase_full_bridge_inverter_form import SinglePhaseFullBridgeInverterForm
 from .single_phase_boost_pfc_diode_bridge_form import SinglePhaseBoostPFCDiodeBridgeForm
+from .single_phase_interleaved_boost_pfc_diode_bridge_form import SinglePhaseInterleavedBoostPFCDiodeBridgeForm
 from .single_phase_diode_bridge_rectifier_capacitor_filter_form import SinglePhaseDiodeBridgeRectifierCapacitorFilterForm
 from .single_phase_diode_bridge_rectifier_dc_inductor_filter_form import SinglePhaseDiodeBridgeRectifierDCInductorFilterForm
 from .single_phase_totem_pole_bridgeless_pfc_form import SinglePhaseTotemPoleBridgelessPFCForm
@@ -46,6 +47,7 @@ __all__ = [
     "PlaceholderTopologyForm",
     "SinglePhaseFullBridgeInverterForm",
     "SinglePhaseBoostPFCDiodeBridgeForm",
+    "SinglePhaseInterleavedBoostPFCDiodeBridgeForm",
     "SinglePhaseDiodeBridgeRectifierCapacitorFilterForm",
     "SinglePhaseDiodeBridgeRectifierDCInductorFilterForm",
     "SinglePhaseTotemPoleBridgelessPFCForm",

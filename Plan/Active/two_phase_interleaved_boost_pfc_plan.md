@@ -569,6 +569,17 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 
 **验收**：registry 能解析新拓扑、form 能加载默认输入、旧 19 个拓扑的注册集合和表单路由不改变。
 
+**步骤 4 执行记录（2026-09-29）**：
+
+- 将 `single_phase_interleaved_boost_pfc_diode_bridge` 注册到 AC-DC registry，保留 legacy key，并新增 runtime plugin adapter；plugin hooks 委托步骤 1–3 的 topology-local core，`build_report()` 只组装电气结果，不触发后续公共流水线；
+- 新增 planned capability `ac_dc_single_phase_interleaved_boost_pfc`，required/default fields 与冻结输入契约一致，不包含 `sizing_efficiency_assumption`、相数、相移或均流控制字段；boundary notes 明确 CCM、180 度交错、理想均流及 DCM/CrM/控制动态/THD/EMI/寄生模型边界；
+- 新增独立 GUI form，显示冻结的 13 个设计输入，禁止后续设计、器件、磁件和波形按钮，避免步骤 4 提前调用尚未接入的公共 pipeline；AC-DC 分类页加入两相交错、180 度相移、理想均流和首版边界说明；
+- 新拓扑暂时复用单相 Boost PFC 卡片 PNG，并在资源映射中显式记录复用关系；
+- 更新 registry 数量和 planned 拓扑例外测试，新增 `tests/test_two_phase_interleaved_boost_pfc_step4_integration.py`，覆盖 legacy routing、capability/form contract、topology-local report 和 import side-effect isolation；
+- 影响分类：integration change（registry、capability、form、AC-DC 路由和资源映射）；旧 19 个拓扑的定义、plugin、表单和 pipeline 行为保持原有边界，planned 新拓扑未加入步骤 8 的完整 pipeline 回归；
+- 验证：步骤 1–4 聚焦及受影响 registry/GUI 测试 `62 passed`；AC-DC registry/旧 PFC 边界测试 `2 passed`（`MPLBACKEND=Agg`）；完整 AC-DC pipeline 测试未纳入本步骤，因为当前 Python Tk 安装缺少 `entry.tcl`，且旧三相整流 waveform 测试在该环境尝试创建 Tk 窗口；该环境失败与步骤 4 代码无关；
+- 本步骤未运行全量测试；未修改 `outputs/` 及既有 migration/Web/deployment 工作区变更。
+
 ### 步骤 5：接入输入桥和半导体选择
 
 **目的**：让输入桥和四个功率器件位置具有正确的选择与 provenance。

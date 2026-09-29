@@ -29,15 +29,16 @@ EXPECTED_TOPOLOGY_IDS = {
     "llc_resonant_converter_synchronous_rectifier",
     "flyback_diode_rectified_isolated",
     "phase_shifted_full_bridge_diode_rectifier_isolated",
+    "single_phase_interleaved_boost_pfc_diode_bridge",
 }
 
 
-def test_phase12_registry_is_unique_and_exactly_19_topologies() -> None:
+def test_phase12_registry_is_unique_and_includes_planned_topology() -> None:
     registry = build_default_registry()
     definitions = registry.list_definitions()
     topology_ids = [definition.topology_id for definition in definitions]
 
-    assert len(topology_ids) == 19
+    assert len(topology_ids) == 20
     assert len(topology_ids) == len(set(topology_ids))
     assert set(topology_ids) == EXPECTED_TOPOLOGY_IDS
     assert {definition.category_id for definition in definitions} == {"ac_dc", "dc_ac", "dc_dc"}
@@ -50,7 +51,10 @@ def test_phase12_every_form_has_defaults_and_matches_registered_topology() -> No
         form_class = registry.get_form_class(definition.topology_id)
         fields = form_class.get_design_fields()
         assert form_class.topology_id == definition.topology_id
-        assert form_class.implemented is True
+        if definition.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
+            assert form_class.implemented is False
+        else:
+            assert form_class.implemented is True
         assert fields
         assert len({field.key for field in fields}) == len(fields)
         assert all(field.default is not None for field in fields)

@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-29 Execute Step 4 Interleaved Boost PFC Registry and GUI Integration
+
+- Registered `single_phase_interleaved_boost_pfc_diode_bridge` and its legacy key, added the planned capability declaration, and exposed a topology-local runtime plugin report hook without invoking downstream selection stages.
+- Added a planned GUI form with the frozen 13 design inputs, no `sizing_efficiency_assumption` or phase-control inputs, disabled later-stage actions, an AC-DC category hint, and an explicit temporary reuse of the existing Boost PFC card image.
+- Updated registry and GUI contract tests for the 20-definition registry while preserving the original 19 implemented topology contracts; added focused Step 4 tests for routing, form/capability fields, report isolation, and import side effects.
+- Validation: Steps 1–4 and affected registry/GUI tests `62 passed`; AC-DC registry and legacy PFC boundary checks `2 passed` with `MPLBACKEND=Agg`. The complete AC-DC pipeline test was not included because the current Python Tk installation lacks `entry.tcl` and the pre-existing three-phase waveform path attempts to create a Tk window in this environment.
+- Affected files: the interleaved topology package, registry/capabilities, topology form exports and form, AC-DC category hints, topology card assets, affected registry/GUI tests, `tests/test_two_phase_interleaved_boost_pfc_step4_integration.py`, `Plan/Active/two_phase_interleaved_boost_pfc_plan.md`, and `ChangeLog.md`; branch: `codex/llc-waveform-operating-point-plan`; implementation commit: pending.
+
 ## 2026-09-29 Execute Step 3 Interleaved Boost PFC Waveform and Stress
 
 - Added topology-local line-cycle waveform envelopes, explicit phase-level device stress, shared input-bridge stress, and electrical evaluation summary for the two-phase interleaved Boost PFC.

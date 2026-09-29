@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from ....models.design_report import DesignReport
+from ....models.operating_point import OperatingPoint
 from ....models.stress_result import StressResult
 from ....models.waveform import WaveformSet
 from ...base.candidate import TopologyCandidate
 from ...base.result import TopologyResult
+from ...base.spec import TopologySpec
 from .stress import extract_phase_stress
 from .waveform import generate_waveforms
 
@@ -46,5 +49,40 @@ def evaluate(
             "Aggregate inductor RMS includes the summed line envelope and residual interleaved ripple; device-loss RMS combines independent phase RMS values by root-sum-square.",
             "Phase-level stress is available through the typed InterleavedPFCStress adapter; common StressResult slots represent phase_1.",
             "Switching edges, detailed loss, control-loop, THD, EMI, and phase mismatch are outside this first-pass evaluation.",
+        ],
+    )
+
+
+def build_report(
+    spec: TopologySpec,
+    candidate: TopologyCandidate,
+    operating_point: OperatingPoint | None = None,
+    waveform_set: WaveformSet | None = None,
+    stress_result: StressResult | None = None,
+    topology_result: TopologyResult | None = None,
+) -> DesignReport:
+    """Assemble the topology-local report used while downstream stages are planned."""
+
+    if waveform_set is None:
+        waveform_set = generate_waveforms(candidate, operating_point=operating_point)
+    if stress_result is None:
+        stress_result = extract_phase_stress(candidate, waveform_set=waveform_set).shared_result
+    if topology_result is None:
+        topology_result = evaluate(
+            candidate,
+            waveform_set=waveform_set,
+            stress_result=stress_result,
+        )
+
+    return DesignReport(
+        spec=spec,
+        candidate=candidate,
+        operating_point=operating_point,
+        waveform=waveform_set,
+        stress=stress_result,
+        topology_result=topology_result,
+        notes=[
+            "Two-phase interleaved Boost PFC is registered as a planned topology; this report contains topology-local electrical results only.",
+            "Input-bridge, semiconductor, magnetic, loss, thermal, geometry, and efficiency stages remain pending for later plan steps.",
         ],
     )

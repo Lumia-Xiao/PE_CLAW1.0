@@ -182,6 +182,19 @@ def build_default_registry() -> TopologyRegistry:
             legacy_key="SinglePhase_TotemPole_BridgelessPFC_FirstPass",
         )
     )
+    registry.register(
+        TopologyDefinition(
+            category_id=ac_dc_category.category_id,
+            category_display_name=ac_dc_category.display_name,
+            topology_id="single_phase_interleaved_boost_pfc_diode_bridge",
+            display_name="Single-Phase Interleaved Boost PFC Diode Bridge",
+            module_path="pe_claw_gui.topologies.ac_dc.single_phase_interleaved_boost_pfc_diode_bridge",
+            form_path="pe_claw_gui.app.topology_forms.single_phase_interleaved_boost_pfc_diode_bridge_form",
+            form_class="SinglePhaseInterleavedBoostPFCDiodeBridgeForm",
+            implemented=False,
+            legacy_key="SinglePhase_InterleavedBoostPFC_DiodeBridge_FirstPass",
+        )
+    )
     dc_ac_category = CONVERTER_CATEGORY_BY_ID["dc_ac"]
     registry.register(
         TopologyDefinition(

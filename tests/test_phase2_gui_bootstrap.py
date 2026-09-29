@@ -39,7 +39,7 @@ def test_gui_constructs_with_phase7_topology_baseline() -> None:
     result = _run_isolated(
         "from pe_claw_gui.app.shell.main_window import PEClawMainWindow; "
         "app=PEClawMainWindow(); app.withdraw(); app.update_idletasks(); "
-            "assert len(app.state_store.registry.list_definitions()) == 19; "
+            "assert len(app.state_store.registry.list_definitions()) == 20; "
         "assert not hasattr(app.navigation, 'ai_design_button'); "
         "app.destroy()"
     )

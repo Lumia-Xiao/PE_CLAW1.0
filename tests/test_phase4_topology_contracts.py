@@ -38,9 +38,9 @@ MIGRATED_CASES = (
 def test_phase4_registry_has_unique_ids_and_capabilities() -> None:
     registry = build_default_registry()
     definitions = registry.list_definitions()
-    assert len(definitions) == 19
-    assert len({item.topology_id for item in definitions}) == 19
-    assert len({item.legacy_key for item in definitions}) == 19
+    assert len(definitions) == 20
+    assert len({item.topology_id for item in definitions}) == 20
+    assert len({item.legacy_key for item in definitions}) == 20
     migrated_ids = {topology_id for _, topology_id in MIGRATED_CASES}
     assert migrated_ids <= {item.topology_id for item in definitions}
     assert len(migrated_ids) == 16
@@ -50,6 +50,10 @@ def test_phase4_registry_has_unique_ids_and_capabilities() -> None:
         assert capability.topology_id == definition.topology_id
         assert capability.category_id == definition.category_id
         assert capability.hooks == PLUGIN_HOOKS
+
+    planned = registry.get_definition("single_phase_interleaved_boost_pfc_diode_bridge")
+    assert planned.implemented is False
+    assert registry.get_capability(planned.topology_id).support_status == "planned"
 
 
 @pytest.mark.parametrize("request_directory, expected_topology_id", MIGRATED_CASES)
@@ -77,6 +81,54 @@ def test_phase4_migrated_directory_routes_to_registered_plugin(
     assert spec.topology_id == expected_topology_id
     assert candidate.topology_id == expected_topology_id
     assert result.topology_id == expected_topology_id
+
+
+def test_phase4_interleaved_pfc_planned_plugin_contract() -> None:
+    registry = build_default_registry()
+    topology_id = "single_phase_interleaved_boost_pfc_diode_bridge"
+    definition = registry.get_definition(topology_id)
+    plugin = registry.get_plugin(topology_id)
+    form = registry.get_form_class(topology_id)
+    capability = registry.get_capability(topology_id)
+
+    assert definition.legacy_key == "SinglePhase_InterleavedBoostPFC_DiodeBridge_FirstPass"
+    assert registry.resolve_topology_id(definition.legacy_key) == topology_id
+    assert plugin.implemented is False
+    assert form.implemented is False
+    assert capability.support_status == "planned"
+    assert all(callable(getattr(plugin, hook)) for hook in PLUGIN_HOOKS)
+    assert [field.key for field in form.get_design_fields()[:13]] == [
+        "vac_rms",
+        "vac_rms_min",
+        "vac_rms_max",
+        "f_line_hz",
+        "vdc_target_v",
+        "pout_w",
+        "fsw_hz",
+        "dc_bus_ripple_percent",
+        "inductor_current_ripple_ratio",
+        "power_factor_target",
+        "input_inductance_h",
+        "ambient_temp_c",
+        "target_junction_temp_c",
+    ]
+    assert "sizing_efficiency_assumption" not in {field.key for field in form.get_design_fields()}
+    assert "phase_count" not in {field.key for field in form.get_design_fields()}
+    assert "phase_shift_deg" not in {field.key for field in form.get_design_fields()}
+
+    module = import_module(definition.module_path)
+    raw_input = module.build_default_inputs()
+    spec = plugin.build_spec(raw_input)
+    candidate = plugin.synthesize(spec)
+    waveform = plugin.generate_waveforms(candidate)
+    stress = plugin.extract_stress(candidate, waveform)
+    result = plugin.evaluate(candidate, waveform, stress)
+    report = plugin.build_report(spec, candidate, waveform_set=waveform, stress_result=stress, topology_result=result)
+    assert report.spec.topology_id == topology_id
+    assert report.topology_result.topology_id == topology_id
+    assert report.device is None
+    assert report.magnetic is None
+    assert report.loss is None
 
 
 def test_phase4_llc_variants_preserve_bridge_and_rectifier_constraints() -> None:
