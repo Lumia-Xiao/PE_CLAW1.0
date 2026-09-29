@@ -621,6 +621,16 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 
 **验收**：两相均有磁件结果，两个实例可以追溯到库记录；不允许只生成一个没有实例数量说明的总电感结果；单相和其他拓扑磁件测试通过。
 
+**步骤 6 执行记录（2026-09-29）**：
+
+- 在 `inductor_adapter.py` 增加两相 Boost PFC 的 per-phase design request 和 operating-point request；每相使用总输入电流的一半、相同的 CCM 纹波目标、开关频率、伏秒条件和每相功率代理，phase 2 明确记录 180° 相移；
+- 在 `run_magnetic_pipeline.py` 增加新拓扑专用磁件分支。磁件库只执行一次 phase 1 候选搜索，phase 2 在理想均流和相同设计目标下复用同一库型号作为第二个物理实例，避免无意义的重复搜索；
+- 聚合结果保留 `magnetic_quantity=2`、phase 1/phase 2 设计 ID、物理实例 ID、匹配状态和匹配策略；每个选定候选的 metadata 记录 `phase_role` 与 `physical_instance_id`，可以追溯到相位和库记录；
+- 不改变单相 Boost PFC 的磁件请求、候选筛选或 `MagneticResult` 公共字段；效率扫描的固定硬件刷新、总损耗、热和几何接入仍留在后续步骤；
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step6_magnetics.py`，覆盖每相请求、180° 标识、50/50 功率电流分配、固定硬件纹波和双实例磁件报告；
+- 影响分类：integration change（磁件 adapter 和新拓扑磁件 pipeline routing）；共享磁件结果模型未扩展；
+- 验证：两相步骤 6 专项测试 `3 passed`；步骤 1–6 两相拓扑聚焦回归 `26 passed`；默认磁件库实际运行完成并返回两个 phase 设计 ID，均为 `T_24_14_19_FT-3M_Litz_10x0.15_-_Grade_1_-_Unserved_N62_P4`；未运行其他拓扑全量测试。
+
 ### 步骤 7：接入完整 pipeline、损耗、热和几何
 
 **目的**：让两相拓扑完成与现有 AC-DC 拓扑一致的设计阶段。

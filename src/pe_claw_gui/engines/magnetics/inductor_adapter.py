@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 from collections.abc import Callable, Iterable, Sequence
 
 from ...models.design_report import DesignReport
@@ -552,6 +553,130 @@ def _build_single_phase_boost_pfc_design_request(report: DesignReport) -> Induct
             "boost_inductor_worst_delta_i_allowed_a": metadata.get("boost_inductor_worst_delta_i_allowed_a"),
             "dc_link_capacitance_required_f": metadata.get("dc_link_capacitance_required_f"),
         },
+    )
+
+
+def _build_interleaved_boost_pfc_design_request(report: DesignReport) -> InductorDesignRequest:
+    """Build one per-phase request while preserving the aggregate PFC contract."""
+
+    candidate = _require_candidate(report)
+    metadata = dict(candidate.metadata) if isinstance(candidate.metadata, dict) else {}
+    phase_count = 2
+    phase_fraction = 1.0 / phase_count
+    phase_current_rms_a = _positive_float(
+        metadata.get("phase_current_rms_a", {}).get("phase_1") if isinstance(metadata.get("phase_current_rms_a"), dict) else None,
+        _positive_float(metadata.get("electrical_input_current_rms_a"), candidate.iout) * phase_fraction,
+    )
+    phase_current_peak_a = _positive_float(
+        metadata.get("phase_current_peak_a", {}).get("phase_1") if isinstance(metadata.get("phase_current_peak_a"), dict) else None,
+        phase_current_rms_a * math.sqrt(2.0),
+    )
+    delta_i_pp_a = _positive_float(metadata.get("delta_il_pp_nom_a"), abs(candidate.delta_il))
+    inductance_h = _positive_float(
+        metadata.get("phase_boost_inductance_h", {}).get("phase_1")
+        if isinstance(metadata.get("phase_boost_inductance_h"), dict) else None,
+        candidate.inductance_h,
+    )
+    return InductorDesignRequest(
+        topology_id=candidate.topology_id,
+        display_name=f"{_normalized_display_name(report)} Phase 1",
+        inductance_h=inductance_h,
+        fs_hz=candidate.fs_hz,
+        i_avg_a=phase_current_rms_a,
+        i_rms_a=math.sqrt(phase_current_rms_a**2 + (delta_i_pp_a / math.sqrt(12.0))**2),
+        i_peak_a=phase_current_peak_a + 0.5 * delta_i_pp_a,
+        i_valley_a=max(phase_current_peak_a - 0.5 * delta_i_pp_a, 0.0),
+        delta_i_pp_a=delta_i_pp_a,
+        throughput_power_w=candidate.pout_target * phase_fraction,
+        mode="ccm_two_phase_interleaved_boost_pfc_per_phase",
+        vin_nom_v=candidate.vin_nom,
+        vout_nom_v=candidate.vout_target,
+        duty_nom=candidate.duty_nom,
+        v_l_on_v=_positive_float(metadata.get("boost_inductor_worst_vrectified_v"), candidate.vin_nom),
+        v_l_off_v=_positive_float(metadata.get("boost_inductor_worst_vrectified_v"), candidate.vin_nom) - candidate.vout_target,
+        ccm_valid=candidate.ccm_valid,
+        mode_capable=candidate.mode_capable,
+        notes=[
+            "Derived from the two-phase interleaved Boost PFC synthesized candidate.",
+            "This request represents phase 1 only; phase 2 receives an independent request with the same ideal-sharing basis.",
+            "Magnetic search returns one physical inductor instance per phase.",
+        ],
+        metadata={
+            "candidate_display_name": candidate.display_name,
+            "throughput_label": "per-phase interleaved Boost PFC output power proxy",
+            "phase_count": phase_count,
+            "magnetic_quantity": 1,
+            "phase_role": "phase_1",
+            "phase_boost_inductance_h": inductance_h,
+            "phase_total_series_inductance_h": metadata.get("phase_total_series_inductance_h", {}).get("phase_1")
+            if isinstance(metadata.get("phase_total_series_inductance_h"), dict) else candidate.inductance_h,
+            "magnetic_request_basis": "two_phase_interleaved_boost_pfc_per_phase_boost_inductor",
+            "system_pout_w": candidate.pout_target,
+            "per_phase_power_proxy_w": candidate.pout_target * phase_fraction,
+            "i_phase_rms_a": phase_current_rms_a,
+            "i_phase_peak_a": phase_current_peak_a,
+            "current_basis": "ideal_equal_phase_current",
+            "phase_shift_deg": 0.0,
+            "line_frequency_hz": metadata.get("f_line_hz"),
+        },
+    )
+
+
+def build_interleaved_boost_pfc_phase_design_request(
+    report: DesignReport, phase: int
+) -> InductorDesignRequest:
+    """Return the same typed per-phase contract with an explicit phase identity."""
+
+    if phase not in (1, 2):
+        raise ValueError("Interleaved Boost PFC phase must be 1 or 2.")
+    request = _build_interleaved_boost_pfc_design_request(report)
+    role = f"phase_{phase}"
+    metadata = dict(request.metadata)
+    metadata.update({"phase_role": role, "phase_shift_deg": 0.0 if phase == 1 else 180.0})
+    return replace(request, display_name=f"{_normalized_display_name(report)} Phase {phase}", metadata=metadata)
+
+
+def build_interleaved_boost_pfc_phase_operating_request(
+    report: DesignReport, phase: int
+) -> InductorOperatingPointRequest:
+    """Return one phase's fixed-hardware operating-point request."""
+
+    if phase not in (1, 2):
+        raise ValueError("Interleaved Boost PFC phase must be 1 or 2.")
+    request = _build_interleaved_boost_pfc_operating_request(report)
+    role = f"phase_{phase}"
+    metadata = dict(request.metadata)
+    metadata.update({"phase_role": role, "phase_shift_deg": 0.0 if phase == 1 else 180.0})
+    return replace(request, display_name=f"{_normalized_display_name(report)} Phase {phase}", metadata=metadata)
+
+
+def _build_interleaved_boost_pfc_operating_request(report: DesignReport) -> InductorOperatingPointRequest:
+    design = _build_interleaved_boost_pfc_design_request(report)
+    load_ratio = _operating_load_ratio(report)
+    scale = max(load_ratio, 0.0)
+    return InductorOperatingPointRequest(
+        topology_id=design.topology_id,
+        display_name=design.display_name,
+        fs_hz=design.fs_hz,
+        operating_vin_v=float(report.operating_point.vin_v) if report.operating_point and report.operating_point.vin_v is not None else float(design.vin_nom_v or 0.0),
+        operating_vout_v=float(design.vout_nom_v or 0.0),
+        operating_iout_a=design.i_rms_a * scale,
+        throughput_power_w=design.throughput_power_w * scale,
+        duty=design.duty_nom,
+        i_avg_a=design.i_avg_a * scale,
+        i_rms_a=design.i_rms_a * scale,
+        i_peak_a=((design.i_peak_a + design.i_valley_a) / 2.0) * scale + 0.5 * design.delta_i_pp_a,
+        i_valley_a=max(((design.i_peak_a + design.i_valley_a) / 2.0) * scale - 0.5 * design.delta_i_pp_a, 0.0),
+        delta_i_pp_a=design.delta_i_pp_a,
+        v_l_on_v=design.v_l_on_v,
+        v_l_off_v=design.v_l_off_v,
+        mode="ccm_two_phase_interleaved_boost_pfc_per_phase_operating",
+        load_ratio=load_ratio,
+        notes=[
+            "Operating request evaluates one selected physical phase inductor.",
+            "Phase 2 uses the same fixed hardware under the ideal equal-sharing assumption.",
+        ],
+        metadata={**design.metadata, "operating_load_ratio": load_ratio, "phase_role": "phase_1"},
     )
 
 
@@ -1459,6 +1584,7 @@ _DESIGN_REQUEST_BUILDERS: dict[str, Callable[[DesignReport], InductorDesignReque
     "three_phase_two_level_voltage_source_inverter": _build_three_phase_two_level_inverter_design_request,
     "three_phase_three_level_npc_inverter": _build_three_phase_three_level_npc_inverter_design_request,
     "single_phase_boost_pfc_diode_bridge": _build_single_phase_boost_pfc_design_request,
+    "single_phase_interleaved_boost_pfc_diode_bridge": _build_interleaved_boost_pfc_design_request,
     "single_phase_totem_pole_bridgeless_pfc": _build_single_phase_totem_pole_pfc_design_request,
 }
 
@@ -1474,6 +1600,7 @@ _OPERATING_REQUEST_BUILDERS: dict[str, Callable[[DesignReport], InductorOperatin
     "three_phase_two_level_voltage_source_inverter": _build_three_phase_two_level_inverter_operating_request,
     "three_phase_three_level_npc_inverter": _build_three_phase_three_level_npc_inverter_operating_request,
     "single_phase_boost_pfc_diode_bridge": _build_single_phase_boost_pfc_operating_request,
+    "single_phase_interleaved_boost_pfc_diode_bridge": _build_interleaved_boost_pfc_operating_request,
     "single_phase_totem_pole_bridgeless_pfc": _build_single_phase_totem_pole_pfc_operating_request,
 }
 

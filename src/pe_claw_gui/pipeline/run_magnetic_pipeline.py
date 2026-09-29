@@ -82,6 +82,7 @@ except ModuleNotFoundError:  # Transformer visualizations belong to later topolo
 from ..engines.magnetics.inductor_adapter import (
     build_design_requirements_dict,
     build_inductor_design_request,
+    build_interleaved_boost_pfc_phase_design_request,
     InductorRequestUnavailableError,
 )
 from ..engines.magnetics.inductor_design import (
@@ -107,6 +108,7 @@ LLC_TRANSFORMER_TOPOLOGY_IDS = {
     "llc_resonant_converter_synchronous_rectifier",
 }
 FLYBACK_MATERIAL_LIMIT = 16
+INTERLEAVED_BOOST_PFC_TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 
 
 def run_magnetic_pipeline(
@@ -175,6 +177,11 @@ def _run_magnetic_pipeline_without_excitation_audit(
 
     if report.spec.topology_id == "single_phase_diode_bridge_rectifier_dc_inductor_filter":
         return _run_ac_dc_reactor_magnetic_pipeline(report, geometry_result)
+
+    if report.spec.topology_id == INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        return _run_interleaved_boost_pfc_magnetic_pipeline(
+            report, geometry_result, backend_config=resolved_backend_config
+        )
 
     try:
         request = build_inductor_design_request(report)
@@ -433,6 +440,170 @@ def _run_magnetic_pipeline_without_excitation_audit(
         )
 
     return replace(report, magnetic=magnetic_result, geometry=geometry_result)
+
+
+def _run_interleaved_boost_pfc_magnetic_pipeline(
+    report: DesignReport,
+    geometry_result: GeometryResult,
+    *,
+    backend_config: MagneticDataBackendConfig,
+) -> DesignReport:
+    """Screen two independent physical phase inductors and expose both identities."""
+
+    phase_results: dict[str, MagneticResult] = {}
+    phase_requirements: dict[str, dict[str, object]] = {}
+    for phase in (1, 2):
+        try:
+            request = build_interleaved_boost_pfc_phase_design_request(report, phase)
+            # The first pass intentionally searches the library once. Phase 2 is
+            # a second physical instance of the selected phase-1 design under
+            # ideal equal sharing, so it reuses the same candidate records.
+            if phase == 2 and "phase_1" in phase_results:
+                phase_one = phase_results["phase_1"]
+                phase_two_chosen = [
+                    replace(
+                        candidate,
+                        metadata={
+                            **candidate.metadata,
+                            "phase_role": "phase_2",
+                            "physical_instance_id": "phase_2",
+                        },
+                    )
+                    for candidate in phase_one.chosen_designs
+                ]
+                phase_results["phase_2"] = replace(
+                    phase_one,
+                    summary="Phase 2 uses a second physical instance of the phase 1 selected magnetic model.",
+                    design_requirements=build_design_requirements_dict(request),
+                    chosen_designs=phase_two_chosen,
+                    notes=[
+                        *request.notes,
+                        "Phase 2 reuses the phase 1 library model as a second physical instance under ideal equal sharing.",
+                    ],
+                )
+                phase_requirements["phase_2"] = build_design_requirements_dict(request)
+                continue
+            allow_profile = get_default_allow_profile(request.fs_hz)
+            screening_context = MagneticCandidateContext(
+                topology_id=request.topology_id,
+                fs_hz=request.fs_hz,
+                throughput_power_w=request.throughput_power_w,
+                throughput_label="per-phase interleaved Boost PFC output power proxy",
+            )
+            basic = synthesize_fixed_inductor_candidates_with_backend(request, backend_config)
+            compression = compress_candidates(basic, context=screening_context, allow_profile=allow_profile)
+            pareto = build_pareto_front(compression.compressed_candidates)
+            chosen = choose_representative_designs(pareto, count=5)
+            selected = chosen[len(chosen) // 2].candidate_id if chosen else None
+            chosen = [
+                replace(
+                    candidate,
+                    metadata={
+                        **candidate.metadata,
+                        "phase_role": f"phase_{phase}",
+                        "physical_instance_id": f"phase_{phase}",
+                    },
+                )
+                for candidate in chosen
+            ]
+            phase_results[f"phase_{phase}"] = MagneticResult(
+                summary=f"Phase {phase} magnetic search found {len(basic)} basic candidates and {len(pareto)} Pareto points.",
+                design_requirements=build_design_requirements_dict(request),
+                basic_feasible_count=len(basic),
+                post_allow_count=compression.post_allow_count,
+                post_compression_count=compression.post_compression_count,
+                final_post_allow_count=compression.post_allow_count,
+                final_post_compression_count=compression.post_compression_count,
+                pareto_count=len(pareto),
+                feasible_count=len(basic),
+                frequency_band=allow_profile.band_name,
+                allow_profile=allow_profile.to_dict(),
+                selected_design_id=selected,
+                search_selected_design_id=selected,
+                screened_candidates=compression.filtered_candidates,
+                compressed_candidates=compression.compressed_candidates,
+                chosen_designs=chosen,
+                notes=[*request.notes, *compression.notes],
+            )
+            phase_requirements[f"phase_{phase}"] = build_design_requirements_dict(request)
+        except Exception as exc:
+            phase_results[f"phase_{phase}"] = MagneticResult(
+                summary=f"Phase {phase} magnetic search failed: {type(exc).__name__}: {exc}",
+                notes=[f"Phase {phase} magnetic search failed: {type(exc).__name__}: {exc}"],
+            )
+
+    p1 = phase_results["phase_1"]
+    p2 = phase_results["phase_2"]
+    c1 = next((c for c in p1.chosen_designs if c.candidate_id == p1.selected_design_id), None)
+    c2 = next((c for c in p2.chosen_designs if c.candidate_id == p2.selected_design_id), None)
+    def signature(candidate):
+        if candidate is None:
+            return None
+        return (
+            candidate.assembly_type,
+            candidate.stack_count,
+            candidate.core_name,
+            candidate.material_name,
+            candidate.wire_name,
+            candidate.turns,
+            candidate.parallel_bundles,
+            candidate.inductance_h,
+            candidate.gap_m,
+        )
+
+    same_model = c1 is not None and c2 is not None and signature(c1) == signature(c2)
+    selected_id = c1.candidate_id if c1 is not None else None
+    requirements: dict[str, object] = {
+        "topology_id": INTERLEAVED_BOOST_PFC_TOPOLOGY_ID,
+        "phase_count": 2,
+        "magnetic_quantity": 2,
+        "magnetic_request_basis": "two_phase_interleaved_boost_pfc_two_physical_inductors",
+        "phase_1": phase_requirements.get("phase_1", {}),
+        "phase_2": phase_requirements.get("phase_2", {}),
+        "phase_1_design_id": c1.candidate_id if c1 else None,
+        "phase_2_design_id": c2.candidate_id if c2 else None,
+        "phase_1_instance_id": "phase_1",
+        "phase_2_instance_id": "phase_2",
+        "phase_1_reference_copper_loss_w": c1.reference_copper_loss_w if c1 else None,
+        "phase_1_reference_core_loss_w": c1.reference_core_loss_w if c1 else None,
+        "phase_1_reference_total_loss_w": c1.reference_total_loss_w if c1 else None,
+        "phase_2_reference_copper_loss_w": c2.reference_copper_loss_w if c2 else None,
+        "phase_2_reference_core_loss_w": c2.reference_core_loss_w if c2 else None,
+        "phase_2_reference_total_loss_w": c2.reference_total_loss_w if c2 else None,
+        "phase_1_thermal_status": "pending_step_7",
+        "phase_2_thermal_status": "pending_step_7",
+        "matched_magnetic_model": same_model,
+        "matching_policy": "prefer_same_core_material_wire_geometry_then_report_mismatch",
+    }
+    notes = [
+        "Two independent physical Boost inductors were screened, one for each phase.",
+        "Design current and throughput power are divided equally under the ideal equal-sharing assumption.",
+        f"Same-model phase matching status = {'matched' if same_model else 'mismatch or incomplete'}.",
+        "Phase design IDs and selected library records remain separately traceable.",
+    ]
+    if c1 is None or c2 is None:
+        notes.append("At least one phase has no selected magnetic design; no aggregate selection is reported.")
+    aggregate = MagneticResult(
+        summary="Two-phase interleaved Boost PFC magnetic screening completed with separate phase results.",
+        design_requirements=requirements,
+        basic_feasible_count=p1.basic_feasible_count + p2.basic_feasible_count,
+        post_allow_count=p1.post_allow_count + p2.post_allow_count,
+        post_compression_count=p1.post_compression_count + p2.post_compression_count,
+        final_post_allow_count=p1.final_post_allow_count + p2.final_post_allow_count,
+        final_post_compression_count=p1.final_post_compression_count + p2.final_post_compression_count,
+        pareto_count=p1.pareto_count + p2.pareto_count,
+        feasible_count=p1.feasible_count + p2.feasible_count,
+        frequency_band=p1.frequency_band or p2.frequency_band,
+        allow_profile=p1.allow_profile or p2.allow_profile,
+        selected_design_id=selected_id,
+        search_selected_design_id=selected_id,
+        chosen_designs=[c for c in (c1, c2) if c is not None],
+        screened_candidates=[*p1.screened_candidates, *p2.screened_candidates],
+        compressed_candidates=[*p1.compressed_candidates, *p2.compressed_candidates],
+        notes=notes,
+        performance_timing={"phase_results": {key: value.summary for key, value in phase_results.items()}},
+    )
+    return replace(report, magnetic=aggregate, geometry=geometry_result)
 
 
 def _run_flyback_coupled_inductor_magnetic_pipeline(

@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-29 Execute Step 6 Interleaved Boost PFC Magnetic Design
+
+- Added per-phase design and operating-point inductor requests for the two-phase interleaved Boost PFC, preserving ideal 50/50 current sharing and the fixed 180-degree phase relationship.
+- Added a topology-specific magnetic pipeline that searches the library once, reuses the selected model as a second physical phase instance, and reports phase design IDs, physical instance IDs, matching status, and traceable candidate metadata.
+- Kept single-phase Boost PFC magnetic request semantics and the shared `MagneticResult` model unchanged; fixed-hardware efficiency refresh, total loss, thermal, and geometry remain for later steps.
+- Validation: two-phase Step 6 tests `3 passed`; Steps 1–6 topology-focused regression `26 passed`; default packaged magnetic backend completed the new topology and returned matching phase design IDs for the per-phase Boost inductance target. Other-topology full tests were not run.
+- Affected files: `src/pe_claw_gui/engines/magnetics/inductor_adapter.py`, `src/pe_claw_gui/pipeline/run_magnetic_pipeline.py`, `tests/test_two_phase_interleaved_boost_pfc_step6_magnetics.py`, plan, and ChangeLog; branch: `codex/llc-waveform-operating-point-plan`; implementation commit: pending.
+
 ## 2026-09-29 Execute Step 5 Interleaved Boost PFC Bridge and Device Selection
 
 - Added aggregate-current bridge selector routing and four independently auditable phase semiconductor roles for the planned two-phase interleaved Boost PFC.
