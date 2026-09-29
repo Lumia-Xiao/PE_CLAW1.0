@@ -26,7 +26,7 @@
         <a href="#overview">Overview</a>
         <a href="#workflow">Workflow</a>
         <a href="#capabilities">Capabilities</a>
-        <a href="#case-study">Case Study</a>
+        <a href="#case-study">Design Cases</a>
         <a href="#topologies">Topologies</a>
         <a href="#architecture">Architecture</a>
         <a href="#start">Get Started</a>
@@ -46,7 +46,7 @@
         </p>
         <div class="hero-actions">
           <a class="button" href="https://github.com/Lumia-Xiao/PE_CLAW1.0" target="_blank" rel="noreferrer">View source on GitHub</a>
-          <a class="button button-ghost" href="#case-study">Explore case study</a>
+          <a class="button button-ghost" href="#case-study">Explore design cases</a>
         </div>
         <div class="hero-badges" aria-label="Project characteristics">
           <span>Deterministic</span>
@@ -152,57 +152,157 @@
     <section class="section section-dark" id="case-study">
       <div class="section-shell">
         <div class="section-heading light">
-          <div class="eyebrow">Representative case study</div>
-          <h2>5 kW synchronous buck design.</h2>
-          <p>A representative DC-DC example in the repository uses a 500 V input, 300 V output, 5 kW operating point, 50 kHz switching frequency, and CCM operation.</p>
+          <div class="eyebrow">Generated design cases</div>
+          <h2>Seven converter designs across AC-DC, DC-AC, and DC-DC.</h2>
+          <p>Select a case to inspect its GUI inputs and operating waveforms, capacitor and magnetic Pareto results, fixed-hardware efficiency sweep, and hardware-volume breakdown.</p>
         </div>
 
-        <div class="case-specs">
-          <div><span>Input</span><strong>500 V</strong></div>
-          <div><span>Output</span><strong>300 V</strong></div>
-          <div><span>Power</span><strong>5 kW</strong></div>
-          <div><span>Frequency</span><strong>50 kHz</strong></div>
-          <div><span>Inductance</span><strong>480 µH</strong></div>
-          <div><span>Mode</span><strong>CCM</strong></div>
+        <div class="case-selector" role="tablist" aria-label="PE-Claw design cases">
+          <button class="case-tab is-active" id="case-tab-tzcm" type="button" role="tab" aria-selected="true" aria-controls="case-tzcm" data-case-target="case-tzcm">
+            <span>DC-DC</span><strong>Three-Level TZCM</strong><small>6 kW · 800 → 400 V</small>
+          </button>
+          <button class="case-tab" id="case-tab-flyback" type="button" role="tab" aria-selected="false" aria-controls="case-flyback" data-case-target="case-flyback" tabindex="-1">
+            <span>DC-DC</span><strong>Flyback</strong><small>500 W · 600–800 → 320 V</small>
+          </button>
+          <button class="case-tab" id="case-tab-llc" type="button" role="tab" aria-selected="false" aria-controls="case-llc" data-case-target="case-llc" tabindex="-1">
+            <span>DC-DC</span><strong>LLC Resonant</strong><small>4 kW · 400 → 400 V</small>
+          </button>
+          <button class="case-tab" id="case-tab-vsi" type="button" role="tab" aria-selected="false" aria-controls="case-vsi" data-case-target="case-vsi" tabindex="-1">
+            <span>DC-AC</span><strong>Three-Phase 2L VSI</strong><small>10 kW · 850 Vdc → 400 Vac</small>
+          </button>
+          <button class="case-tab" id="case-tab-npc" type="button" role="tab" aria-selected="false" aria-controls="case-npc" data-case-target="case-npc" tabindex="-1">
+            <span>DC-AC</span><strong>Three-Phase 3L NPC</strong><small>10 kW · 850 Vdc → 400 Vac</small>
+          </button>
+          <button class="case-tab" id="case-tab-boost-pfc" type="button" role="tab" aria-selected="false" aria-controls="case-boost-pfc" data-case-target="case-boost-pfc" tabindex="-1">
+            <span>AC-DC</span><strong>Boost PFC</strong><small>1 kW · 230 Vac → 400 Vdc</small>
+          </button>
+          <button class="case-tab" id="case-tab-totem-pole-pfc" type="button" role="tab" aria-selected="false" aria-controls="case-totem-pole-pfc" data-case-target="case-totem-pole-pfc" tabindex="-1">
+            <span>AC-DC</span><strong>Totem-Pole PFC</strong><small>1 kW · 230 Vac → 400 Vdc</small>
+          </button>
         </div>
 
-        <div class="gallery-grid">
-          <figure class="gallery-card">
-            <button class="image-button" data-lightbox="assets/images/case_buck_sync_01_design_summary.png" aria-label="Open design summary image">
-              <img src="assets/images/case_buck_sync_01_design_summary.png" alt="PE-Claw synchronous buck design summary" loading="lazy" />
-            </button>
-            <figcaption><b>Design summary</b><span>Topology-level electrical parameters and nominal synthesis.</span></figcaption>
-          </figure>
-          <figure class="gallery-card">
-            <button class="image-button" data-lightbox="assets/images/case_buck_sync_02_waveforms.png" aria-label="Open waveform image">
-              <img src="assets/images/case_buck_sync_02_waveforms.png" alt="Synchronous buck operating waveforms" loading="lazy" />
-            </button>
-            <figcaption><b>Operating waveforms</b><span>Switching-period waveforms used for stress extraction and operating analysis.</span></figcaption>
-          </figure>
-          <figure class="gallery-card">
-            <button class="image-button" data-lightbox="assets/images/case_buck_sync_03_semiconductor_selection.png" aria-label="Open semiconductor selection image">
-              <img src="assets/images/case_buck_sync_03_semiconductor_selection.png" alt="Semiconductor selection result" loading="lazy" />
-            </button>
-            <figcaption><b>Semiconductor selection</b><span>Stress-based filtering, selected devices, estimated loss, and thermal summary.</span></figcaption>
-          </figure>
-          <figure class="gallery-card">
-            <button class="image-button" data-lightbox="assets/images/case_buck_sync_04_input_capacitor_pareto.png" aria-label="Open input capacitor Pareto image">
-              <img src="assets/images/case_buck_sync_04_input_capacitor_pareto.png" alt="Input capacitor Pareto front" loading="lazy" />
-            </button>
-            <figcaption><b>Capacitor Pareto front</b><span>Volume-loss design tradeoff under electrical and ripple constraints.</span></figcaption>
-          </figure>
-          <figure class="gallery-card">
-            <button class="image-button" data-lightbox="assets/images/case_buck_sync_08_inductor_pareto.png" aria-label="Open inductor Pareto image">
-              <img src="assets/images/case_buck_sync_08_inductor_pareto.png" alt="Inductor Pareto front" loading="lazy" />
-            </button>
-            <figcaption><b>Magnetic Pareto front</b><span>Core/winding design-space compression with volume-loss tradeoffs.</span></figcaption>
-          </figure>
-          <figure class="gallery-card">
-            <button class="image-button" data-lightbox="assets/images/efficiency_curve.png" aria-label="Open efficiency curve image">
-              <img src="assets/images/efficiency_curve.png" alt="Fixed-hardware efficiency curve" loading="lazy" />
-            </button>
-            <figcaption><b>Efficiency sweep</b><span>Fixed selected hardware evaluated over the load range.</span></figcaption>
-          </figure>
+        <div class="case-panels">
+          <article class="case-panel is-active" id="case-tzcm" role="tabpanel" aria-labelledby="case-tab-tzcm">
+            <div class="case-panel-heading">
+              <div><span class="case-category">DC-DC design case</span><h3>Three-Level DC-DC TZCM Fixed Frequency</h3><p>A 6 kW three-level fixed-frequency TZCM design with silicon MOSFETs and a 50 kHz nominal switching frequency.</p></div>
+              <div class="case-result"><span>Full-load efficiency</span><strong>99.53%</strong></div>
+            </div>
+            <div class="case-specs">
+              <div><span>Input</span><strong>800 V</strong></div><div><span>Output</span><strong>400 V</strong></div><div><span>Power</span><strong>6 kW</strong></div><div><span>Frequency</span><strong>50 kHz</strong></div><div><span>Full-load loss</span><strong>28.27 W</strong></div><div><span>Valid sweep</span><strong>0.25–1.0 p.u.</strong></div>
+            </div>
+            <p class="case-note">The generated efficiency sweep has valid operating points from 0.25 to 1.0 p.u.; lower-load TZCM points are outside the synthesized duty boundary.</p>
+            <div class="gallery-grid">
+              <figure class="gallery-card gallery-card-featured"><button class="image-button" data-lightbox="assets/images/cases/tzcm/gui-waveforms.png" aria-label="Open TZCM GUI inputs and waveforms"><img src="assets/images/cases/tzcm/gui-waveforms.png" alt="Three-level TZCM GUI inputs and operating waveforms" loading="lazy" /></button><figcaption><b>1 · GUI inputs &amp; waveforms</b><span>Nominal inputs, switching states, output-node voltage, inductor current, and capacitor ripple.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/tzcm/capacitor-pareto.png" aria-label="Open TZCM capacitor Pareto front"><img src="assets/images/cases/tzcm/capacitor-pareto.png" alt="Three-level TZCM output capacitor Pareto front" loading="lazy" /></button><figcaption><b>2 · Capacitor Pareto front</b><span>Output-capacitor bank volume and loss tradeoff.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/tzcm/magnetic-pareto.png" aria-label="Open TZCM magnetic Pareto front"><img src="assets/images/cases/tzcm/magnetic-pareto.png" alt="Three-level TZCM inductor Pareto front" loading="lazy" /></button><figcaption><b>3 · Magnetic Pareto front</b><span>Inductor core, winding, volume, and reference-loss tradeoff.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/tzcm/efficiency-curve.png" aria-label="Open TZCM efficiency curve"><img src="assets/images/cases/tzcm/efficiency-curve.png" alt="Three-level TZCM fixed-hardware efficiency curve" loading="lazy" /></button><figcaption><b>4 · Efficiency sweep</b><span>Fixed selected hardware across the valid load range.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/tzcm/hardware-volume.png" aria-label="Open TZCM hardware volume chart"><img src="assets/images/cases/tzcm/hardware-volume.png" alt="Three-level TZCM hardware volume breakdown" loading="lazy" /></button><figcaption><b>5 · Hardware volume</b><span>Semiconductor, inductor, and capacitor volume contribution.</span></figcaption></figure>
+            </div>
+          </article>
+
+          <article class="case-panel" id="case-flyback" role="tabpanel" aria-labelledby="case-tab-flyback" hidden>
+            <div class="case-panel-heading">
+              <div><span class="case-category">DC-DC design case</span><h3>Flyback Diode-Rectified Isolated Converter</h3><p>A 500 W boundary-conduction-mode isolated design spanning 600–800 V input and a 320 V output.</p></div>
+              <div class="case-result"><span>Full-load efficiency</span><strong>98.13%</strong></div>
+            </div>
+            <div class="case-specs">
+              <div><span>Input</span><strong>600–800 V</strong></div><div><span>Output</span><strong>320 V</strong></div><div><span>Power</span><strong>500 W</strong></div><div><span>Frequency</span><strong>100 kHz</strong></div><div><span>Mode</span><strong>BCM</strong></div><div><span>Full-load loss</span><strong>9.53 W</strong></div>
+            </div>
+            <p class="case-note">This gallery intentionally omits a magnetic Pareto card because the current Flyback artifact set does not include a generated magnetic Pareto-front image.</p>
+            <div class="gallery-grid">
+              <figure class="gallery-card gallery-card-featured"><button class="image-button" data-lightbox="assets/images/cases/flyback/gui-waveforms.png" aria-label="Open Flyback GUI inputs and waveforms"><img src="assets/images/cases/flyback/gui-waveforms.png" alt="Flyback GUI inputs and operating waveforms" loading="lazy" /></button><figcaption><b>1 · GUI inputs &amp; waveforms</b><span>BCM switch-node voltage, magnetizing current, capacitor current, and output ripple.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/flyback/capacitor-pareto.png" aria-label="Open Flyback capacitor Pareto front"><img src="assets/images/cases/flyback/capacitor-pareto.png" alt="Flyback output capacitor Pareto front" loading="lazy" /></button><figcaption><b>2 · Capacitor Pareto front</b><span>Output-capacitor bank volume and loss tradeoff.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/flyback/efficiency-curve.png" aria-label="Open Flyback efficiency curve"><img src="assets/images/cases/flyback/efficiency-curve.png" alt="Flyback fixed-hardware efficiency curve" loading="lazy" /></button><figcaption><b>3 · Efficiency sweep</b><span>Fixed selected hardware from light load to rated power.</span></figcaption></figure>
+              <figure class="gallery-card gallery-card-wide"><button class="image-button" data-lightbox="assets/images/cases/flyback/hardware-volume.png" aria-label="Open Flyback hardware volume chart"><img src="assets/images/cases/flyback/hardware-volume.png" alt="Flyback hardware volume breakdown" loading="lazy" /></button><figcaption><b>4 · Hardware volume</b><span>Semiconductor, coupled magnetic assembly, and capacitor volume contribution.</span></figcaption></figure>
+            </div>
+          </article>
+
+          <article class="case-panel" id="case-llc" role="tabpanel" aria-labelledby="case-tab-llc" hidden>
+            <div class="case-panel-heading">
+              <div><span class="case-category">DC-DC design case</span><h3>LLC Resonant Converter, Diode Rectifier</h3><p>A 4 kW full-bridge LLC design with automatic operating-frequency resolution over a 380–420 V input/output range.</p></div>
+              <div class="case-result"><span>Full-load efficiency</span><strong>99.32%</strong></div>
+            </div>
+            <div class="case-specs">
+              <div><span>Input</span><strong>380–420 V</strong></div><div><span>Output</span><strong>380–420 V</strong></div><div><span>Power</span><strong>4 kW</strong></div><div><span>Frequency range</span><strong>80–180 kHz</strong></div><div><span>Bridge</span><strong>Full bridge</strong></div><div><span>Full-load loss</span><strong>27.22 W</strong></div>
+            </div>
+            <p class="case-note">The volume chart covers semiconductors, transformer, external resonant inductor, and resonant capacitor Cr; ordinary input/output capacitor banks are outside its current scope.</p>
+            <div class="gallery-grid">
+              <figure class="gallery-card gallery-card-featured"><button class="image-button" data-lightbox="assets/images/cases/llc/gui-waveforms.png" aria-label="Open LLC GUI inputs and waveforms"><img src="assets/images/cases/llc/gui-waveforms.png" alt="LLC GUI inputs and resonant operating waveforms" loading="lazy" /></button><figcaption><b>1 · GUI inputs &amp; waveforms</b><span>Resolved frequency, bridge voltage, resonant current, capacitor current, and actual output.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/llc/capacitor-pareto.png" aria-label="Open LLC resonant capacitor Pareto front"><img src="assets/images/cases/llc/capacitor-pareto.png" alt="LLC resonant capacitor Pareto front" loading="lazy" /></button><figcaption><b>2 · Capacitor Pareto front</b><span>Dedicated resonant-capacitor Cr bank tradeoff.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/llc/magnetic-pareto.png" aria-label="Open LLC transformer Pareto front"><img src="assets/images/cases/llc/magnetic-pareto.png" alt="LLC transformer Pareto front" loading="lazy" /></button><figcaption><b>3 · Magnetic Pareto front</b><span>Transformer volume and loss tradeoff with the recommended compromise.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/llc/efficiency-curve.png" aria-label="Open LLC efficiency curve"><img src="assets/images/cases/llc/efficiency-curve.png" alt="LLC fixed-hardware efficiency curve" loading="lazy" /></button><figcaption><b>4 · Efficiency sweep</b><span>Fixed selected LLC hardware across the load range.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/llc/hardware-volume.png" aria-label="Open LLC hardware volume chart"><img src="assets/images/cases/llc/hardware-volume.png" alt="LLC hardware volume breakdown" loading="lazy" /></button><figcaption><b>5 · Hardware volume</b><span>Current LLC overview scope by component group.</span></figcaption></figure>
+            </div>
+          </article>
+
+          <article class="case-panel" id="case-vsi" role="tabpanel" aria-labelledby="case-tab-vsi" hidden>
+            <div class="case-panel-heading">
+              <div><span class="case-category">DC-AC design case</span><h3>Three-Phase Two-Level Voltage-Source Inverter</h3><p>A 10 kW, 400 V line-line three-phase inverter using fixed-frequency SPWM and a selected output-filter inductor bank.</p></div>
+              <div class="case-result"><span>Full-load efficiency</span><strong>97.99%</strong></div>
+            </div>
+            <div class="case-specs">
+              <div><span>DC link</span><strong>850 V</strong></div><div><span>AC output</span><strong>400 V L-L</strong></div><div><span>Power</span><strong>10 kW</strong></div><div><span>Frequency</span><strong>48 kHz</strong></div><div><span>Power factor</span><strong>1.0</strong></div><div><span>Full-load loss</span><strong>205.60 W</strong></div>
+            </div>
+            <div class="gallery-grid">
+              <figure class="gallery-card gallery-card-featured"><button class="image-button" data-lightbox="assets/images/cases/vsi/gui-waveforms.png" aria-label="Open VSI GUI inputs and waveforms"><img src="assets/images/cases/vsi/gui-waveforms.png" alt="Three-phase two-level VSI GUI inputs and waveforms" loading="lazy" /></button><figcaption><b>1 · GUI inputs &amp; waveforms</b><span>Three-phase voltage/current, SPWM state, and DC-link behavior.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/vsi/capacitor-pareto.png" aria-label="Open VSI capacitor Pareto front"><img src="assets/images/cases/vsi/capacitor-pareto.png" alt="Three-phase VSI DC-link capacitor Pareto front" loading="lazy" /></button><figcaption><b>2 · Capacitor Pareto front</b><span>DC-link capacitor-bank volume and loss tradeoff.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/vsi/magnetic-pareto.png" aria-label="Open VSI magnetic Pareto front"><img src="assets/images/cases/vsi/magnetic-pareto.png" alt="Three-phase VSI output inductor Pareto front" loading="lazy" /></button><figcaption><b>3 · Magnetic Pareto front</b><span>Three-phase output-filter magnetic tradeoff.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/vsi/efficiency-curve.png" aria-label="Open VSI efficiency curve"><img src="assets/images/cases/vsi/efficiency-curve.png" alt="Three-phase VSI fixed-hardware efficiency curve" loading="lazy" /></button><figcaption><b>4 · Efficiency sweep</b><span>Fixed selected hardware over the load range at unity power factor.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/vsi/hardware-volume.png" aria-label="Open VSI hardware volume chart"><img src="assets/images/cases/vsi/hardware-volume.png" alt="Three-phase VSI hardware volume breakdown" loading="lazy" /></button><figcaption><b>5 · Hardware volume</b><span>Bridge, three output inductors, and DC-link capacitor bank.</span></figcaption></figure>
+            </div>
+          </article>
+
+          <article class="case-panel" id="case-npc" role="tabpanel" aria-labelledby="case-tab-npc" hidden>
+            <div class="case-panel-heading">
+              <div><span class="case-category">DC-AC design case</span><h3>Three-Phase Three-Level NPC Inverter</h3><p>A 10 kW NPC inverter with role-specific semiconductor selection, split DC-link capacitor design, and PF-aware loss and thermal evaluation.</p></div>
+              <div class="case-result"><span>Full-load efficiency</span><strong>99.25%</strong></div>
+            </div>
+            <div class="case-specs">
+              <div><span>DC link</span><strong>850 V</strong></div><div><span>AC output</span><strong>400 V L-L</strong></div><div><span>Power</span><strong>10 kW</strong></div><div><span>Frequency</span><strong>48 kHz</strong></div><div><span>Ambient</span><strong>45°C</strong></div><div><span>Full-load loss</span><strong>75.08 W</strong></div>
+            </div>
+            <div class="gallery-grid">
+              <figure class="gallery-card gallery-card-featured"><button class="image-button" data-lightbox="assets/images/cases/npc/gui-waveforms.png" aria-label="Open NPC GUI inputs and waveforms"><img src="assets/images/cases/npc/gui-waveforms.png" alt="Three-phase three-level NPC GUI inputs and waveforms" loading="lazy" /></button><figcaption><b>1 · GUI inputs &amp; waveforms</b><span>Three-phase output, NPC pole voltages, PD-SPWM, and neutral-point current proxies.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/npc/capacitor-pareto.png" aria-label="Open NPC capacitor Pareto front"><img src="assets/images/cases/npc/capacitor-pareto.png" alt="NPC upper split-link capacitor Pareto front" loading="lazy" /></button><figcaption><b>2 · Capacitor Pareto front</b><span>Upper split-link bank; the symmetric lower bank uses the same selected design.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/npc/magnetic-pareto.png" aria-label="Open NPC magnetic Pareto front"><img src="assets/images/cases/npc/magnetic-pareto.png" alt="NPC output inductor Pareto front" loading="lazy" /></button><figcaption><b>3 · Magnetic Pareto front</b><span>Three-phase output-filter magnetic design space.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/npc/efficiency-curve.png" aria-label="Open NPC efficiency curve"><img src="assets/images/cases/npc/efficiency-curve.png" alt="NPC fixed-hardware efficiency curve" loading="lazy" /></button><figcaption><b>4 · Efficiency sweep</b><span>Fixed selected NPC hardware across the load range.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/npc/hardware-volume.png" aria-label="Open NPC hardware volume chart"><img src="assets/images/cases/npc/hardware-volume.png" alt="NPC hardware volume breakdown" loading="lazy" /></button><figcaption><b>5 · Hardware volume</b><span>NPC semiconductor roles, output inductors, and symmetric split-link banks.</span></figcaption></figure>
+            </div>
+          </article>
+
+          <article class="case-panel" id="case-boost-pfc" role="tabpanel" aria-labelledby="case-tab-boost-pfc" hidden>
+            <div class="case-panel-heading">
+              <div><span class="case-category">AC-DC design case</span><h3>Single-Phase Boost PFC, Diode Bridge</h3><p>A 1 kW boost PFC with a front-end diode bridge, 400 V DC bus, and 0.99 target power factor.</p></div>
+              <div class="case-result"><span>Full-load efficiency</span><strong>97.62%</strong></div>
+            </div>
+            <div class="case-specs">
+              <div><span>AC input</span><strong>180–265 V</strong></div><div><span>DC output</span><strong>400 V</strong></div><div><span>Power</span><strong>1 kW</strong></div><div><span>Frequency</span><strong>100 kHz</strong></div><div><span>PF target</span><strong>0.99</strong></div><div><span>Full-load loss</span><strong>24.42 W</strong></div>
+            </div>
+            <p class="case-note">The current volume artifact covers the bridge rectifier, PFC inductor, and DC-link capacitor; the boost switch and boost diode are outside this overview scope.</p>
+            <div class="gallery-grid">
+              <figure class="gallery-card gallery-card-featured"><button class="image-button" data-lightbox="assets/images/cases/boost-pfc/gui-waveforms.png" aria-label="Open Boost PFC GUI inputs and waveforms"><img src="assets/images/cases/boost-pfc/gui-waveforms.png" alt="Boost PFC GUI inputs and operating waveforms" loading="lazy" /></button><figcaption><b>1 · GUI inputs &amp; waveforms</b><span>AC/DC specifications, boost current, capacitor current, and DC-bus ripple.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/boost-pfc/capacitor-pareto.png" aria-label="Open Boost PFC capacitor Pareto front"><img src="assets/images/cases/boost-pfc/capacitor-pareto.png" alt="Boost PFC DC-link capacitor Pareto front" loading="lazy" /></button><figcaption><b>2 · Capacitor Pareto front</b><span>DC-link capacitor volume and loss tradeoff.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/boost-pfc/magnetic-pareto.png" aria-label="Open Boost PFC magnetic Pareto front"><img src="assets/images/cases/boost-pfc/magnetic-pareto.png" alt="Boost PFC inductor Pareto front" loading="lazy" /></button><figcaption><b>3 · Magnetic Pareto front</b><span>Boost-inductor core and winding tradeoff.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/boost-pfc/efficiency-curve.png" aria-label="Open Boost PFC efficiency curve"><img src="assets/images/cases/boost-pfc/efficiency-curve.png" alt="Boost PFC fixed-hardware efficiency curve" loading="lazy" /></button><figcaption><b>4 · Efficiency sweep</b><span>Fixed selected hardware including diode-bridge loss.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/boost-pfc/hardware-volume.png" aria-label="Open Boost PFC hardware volume chart"><img src="assets/images/cases/boost-pfc/hardware-volume.png" alt="Boost PFC current-scope hardware volume breakdown" loading="lazy" /></button><figcaption><b>5 · Hardware volume</b><span>Current overview scope: bridge rectifier, inductor, and DC-link capacitor.</span></figcaption></figure>
+            </div>
+          </article>
+
+          <article class="case-panel" id="case-totem-pole-pfc" role="tabpanel" aria-labelledby="case-tab-totem-pole-pfc" hidden>
+            <div class="case-panel-heading">
+              <div><span class="case-category">AC-DC design case</span><h3>Single-Phase Totem-Pole Bridgeless PFC</h3><p>A 1 kW bridgeless PFC with distinct high-frequency and line-frequency switch roles and a 400 V DC bus.</p></div>
+              <div class="case-result"><span>Full-load efficiency</span><strong>97.64%</strong></div>
+            </div>
+            <div class="case-specs">
+              <div><span>AC input</span><strong>180–265 V</strong></div><div><span>DC output</span><strong>400 V</strong></div><div><span>Power</span><strong>1 kW</strong></div><div><span>Frequency</span><strong>100 kHz</strong></div><div><span>PF target</span><strong>0.99</strong></div><div><span>Full-load loss</span><strong>24.13 W</strong></div>
+            </div>
+            <div class="gallery-grid">
+              <figure class="gallery-card gallery-card-featured"><button class="image-button" data-lightbox="assets/images/cases/totem-pole-pfc/gui-waveforms.png" aria-label="Open Totem-Pole PFC GUI inputs and waveforms"><img src="assets/images/cases/totem-pole-pfc/gui-waveforms.png" alt="Totem-Pole PFC GUI inputs and operating waveforms" loading="lazy" /></button><figcaption><b>1 · GUI inputs &amp; waveforms</b><span>AC/DC specifications, boost current, capacitor current, and DC-bus ripple.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/totem-pole-pfc/capacitor-pareto.png" aria-label="Open Totem-Pole PFC capacitor Pareto front"><img src="assets/images/cases/totem-pole-pfc/capacitor-pareto.png" alt="Totem-Pole PFC DC-link capacitor Pareto front" loading="lazy" /></button><figcaption><b>2 · Capacitor Pareto front</b><span>DC-link capacitor volume and loss tradeoff.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/totem-pole-pfc/magnetic-pareto.png" aria-label="Open Totem-Pole PFC magnetic Pareto front"><img src="assets/images/cases/totem-pole-pfc/magnetic-pareto.png" alt="Totem-Pole PFC inductor Pareto front" loading="lazy" /></button><figcaption><b>3 · Magnetic Pareto front</b><span>PFC-inductor core and winding tradeoff.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/totem-pole-pfc/efficiency-curve.png" aria-label="Open Totem-Pole PFC efficiency curve"><img src="assets/images/cases/totem-pole-pfc/efficiency-curve.png" alt="Totem-Pole PFC fixed-hardware efficiency curve" loading="lazy" /></button><figcaption><b>4 · Efficiency sweep</b><span>Fixed selected high- and line-frequency switch hardware.</span></figcaption></figure>
+              <figure class="gallery-card"><button class="image-button" data-lightbox="assets/images/cases/totem-pole-pfc/hardware-volume.png" aria-label="Open Totem-Pole PFC hardware volume chart"><img src="assets/images/cases/totem-pole-pfc/hardware-volume.png" alt="Totem-Pole PFC hardware volume breakdown" loading="lazy" /></button><figcaption><b>5 · Hardware volume</b><span>Semiconductor roles, PFC inductor, and DC-link capacitor.</span></figcaption></figure>
+            </div>
+          </article>
         </div>
       </div>
     </section>

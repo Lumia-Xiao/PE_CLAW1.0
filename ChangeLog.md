@@ -1489,3 +1489,12 @@ listed here.
 
 - 实现、回归与验收证据提交 54c6b99 已成功推送至 origin/codex/llc-waveform-operating-point-plan；自动调频修正计划据此标记完成。
 - 本回执仅更新归档计划与 ChangeLog，git diff --check 通过，随独立文档提交推送同一分支。
+
+## 2026-09-29 - GitHub Pages multi-case design gallery
+
+- Purpose: replace the single 5 kW synchronous-Buck website example with seven current PE-Claw design cases covering AC-DC, DC-AC and DC-DC converters.
+- Files: updated `docs/index.html`, `docs/static/css/style.css` and `docs/static/js/main.js`; added 34 curated result images under `docs/assets/images/cases/` without modifying or deleting the source artifacts in `outputs/`.
+- Behavior: the Design Cases section now provides accessible tabs for Three-Level TZCM, Flyback, LLC, Three-Phase Two-Level VSI, Three-Phase Three-Level NPC, Boost PFC and Totem-Pole PFC. Each case presents the GUI-input/waveform image first, followed by capacitor Pareto, magnetic Pareto, efficiency and volume results. Flyback intentionally omits the magnetic Pareto card and contains four images, per the current presentation requirement.
+- Presentation notes: the page labels the three-phase three-level case as NPC rather than T-type; it records current artifact boundaries for the TZCM load sweep, Flyback magnetic gallery, LLC volume scope and Boost-PFC volume scope. Desktop uses a featured full-width GUI image and two-column result cards; narrow screens use a two-column case selector and single-column figures without horizontal overflow.
+- Validation: UTF-8 HTML audit passed with seven tabs, seven panels, 34 case figures, expected per-case counts and zero missing local assets or duplicate IDs. `node --check docs/static/js/main.js` passed. Chrome verification exercised all seven tabs, confirmed exactly one visible/selected panel, loaded all four Flyback images, found no Flyback magnetic caption, opened/closed the image lightbox, found no console errors, and verified the 375 px viewport has no horizontal overflow.
+- Git/publication: prepared on feature branch `codex/multi-case-design-gallery-20260929` for deliberate merge to `master`, the configured GitHub Pages source (`/docs`). Exact publication commits and live-build verification are reported in the task completion response. No user outputs were deleted, and no backup operation was required for this documentation-only change.
