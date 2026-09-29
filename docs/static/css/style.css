@@ -243,6 +243,84 @@ button, input, textarea, select { font: inherit; }
 .workflow-grid h3 { color: var(--navy); margin: 10px 0 8px; }
 .workflow-grid p { color: var(--muted); margin: 0; }
 
+.case-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: 34px;
+}
+.case-tab {
+  appearance: none;
+  min-height: 118px;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 16px;
+  padding: 16px;
+  background: rgba(255,255,255,.055);
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+.case-tab span {
+  display: block;
+  color: #8fe5dd;
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.case-tab strong { display: block; margin-top: 5px; line-height: 1.28; }
+.case-tab small { display: block; margin-top: 7px; color: #9fb7ca; line-height: 1.35; }
+.case-tab:hover,
+.case-tab:focus-visible {
+  border-color: rgba(143,229,221,.65);
+  background: rgba(255,255,255,.09);
+  transform: translateY(-2px);
+  outline: none;
+}
+.case-tab.is-active {
+  border-color: #64d8cf;
+  background: linear-gradient(145deg, rgba(31,122,224,.25), rgba(14,165,164,.2));
+  box-shadow: inset 4px 0 #64d8cf, 0 14px 30px rgba(0,0,0,.17);
+}
+.case-panel-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+.case-panel-heading h3 {
+  margin: 5px 0 8px;
+  font-size: clamp(1.55rem, 2.5vw, 2.35rem);
+  line-height: 1.15;
+}
+.case-panel-heading p { margin: 0; color: #b9ccda; }
+.case-category {
+  color: #8fe5dd;
+  font-size: .76rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.case-result {
+  min-width: 156px;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 16px;
+  padding: 13px 16px;
+  background: rgba(255,255,255,.055);
+}
+.case-result span { display: block; color: #9fb7ca; font-size: .75rem; }
+.case-result strong { display: block; color: #fff; font-size: 1.35rem; }
+.case-note {
+  margin: -6px 0 26px;
+  border-left: 3px solid var(--orange);
+  border-radius: 0 12px 12px 0;
+  padding: 12px 15px;
+  background: rgba(242,140,40,.1);
+  color: #d7e4ed;
+  font-size: .9rem;
+}
 .case-specs {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -264,6 +342,14 @@ button, input, textarea, select { font: inherit; }
 .gallery-card figcaption { padding: 16px 18px 18px; display: grid; gap: 3px; }
 .gallery-card figcaption b { color: var(--navy); }
 .gallery-card figcaption span { color: var(--muted); font-size: .9rem; }
+.gallery-card-featured { grid-column: 1 / -1; }
+.gallery-card-featured .image-button img { aspect-ratio: 1920 / 1017; }
+.gallery-card-wide {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: calc(50% - 10px);
+  margin-inline: auto;
+}
 
 .topology-columns { display: grid; grid-template-columns: 1fr .85fr 1.25fr; gap: 18px; }
 .topology-columns article { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: #fff; }
@@ -368,6 +454,8 @@ button, input, textarea, select { font: inherit; }
   .hero-panel { max-width: 760px; }
   .capability-grid { grid-template-columns: repeat(2, 1fr); }
   .case-specs { grid-template-columns: repeat(3, 1fr); }
+  .case-panel-heading { grid-template-columns: 1fr; align-items: start; }
+  .case-result { justify-self: start; }
 }
 
 @media (max-width: 760px) {
@@ -378,7 +466,11 @@ button, input, textarea, select { font: inherit; }
   .metrics-grid article { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.12); }
   .metrics-grid article:last-child { border-bottom: 0; }
   .section { padding: 66px 0; }
+  .case-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .case-tab { min-height: 0; }
   .case-specs { grid-template-columns: repeat(2, 1fr); }
+  .gallery-card-featured, .gallery-card-wide { grid-column: auto; max-width: none; }
+  .gallery-card-featured .image-button img { aspect-ratio: 16 / 9; }
   .validation-card, .cta-panel { grid-template-columns: 1fr; display: grid; }
   .validation-number { font-size: 3rem; }
   .footer-grid { flex-direction: column; justify-content: center; align-items: flex-start; padding: 32px 0; }
