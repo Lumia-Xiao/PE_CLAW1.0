@@ -12,11 +12,14 @@ from .options import MAGNETIC_LOSS_DISABLED_NOTE, PipelineOptions, resolve_pipel
 from ..engines.magnetics.inductor_adapter import (
     InductorRequestUnavailableError,
     build_inductor_operating_point_request,
+    build_interleaved_boost_pfc_phase_operating_request,
 )
 from ..engines.magnetics.inductor_design import evaluate_selected_designs, export_design_artifacts
 from ..topology_capabilities import is_single_phase_full_bridge_inverter_topology
 from ..engines.magnetics.core_loss_audit import core_loss_consistency, core_loss_status
 from ..models.llc_run_context import is_llc_topology
+
+_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 
 
 def run_loss_pipeline(
@@ -93,6 +96,7 @@ def _run_loss_pipeline_without_excitation_audit(
                 notes=["LLC magnetic loss is blocked because the magnetic combination contract is incomplete."]
             )
             return replace(report, loss=loss_result)
+
         transformer_result = report.magnetic.transformer_pareto_result
         transformer = getattr(transformer_result, "recommended_candidate", None)
         external_result = report.magnetic.llc_external_resonant_inductor_search_result
@@ -170,6 +174,12 @@ def _run_loss_pipeline_without_excitation_audit(
                 ],
             )
         return replace(report, loss=loss_result)
+
+    if report.spec.topology_id == _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        return _run_interleaved_boost_pfc_loss_pipeline(
+            report,
+            preserve_selected_design_id=preserve_selected_design_id,
+        )
 
     if report.magnetic is not None and report.magnetic.result_type == "ac_dc_sendust_reactor":
         selection = report.magnetic.ac_dc_reactor_result
@@ -519,6 +529,92 @@ def _run_loss_pipeline_without_excitation_audit(
     except Exception as exc:
         loss_result = LossResult(notes=[f"Inductor loss evaluation failed: {type(exc).__name__}: {exc}"])
         return replace(report, loss=loss_result)
+
+
+def _run_interleaved_boost_pfc_loss_pipeline(
+    report: DesignReport,
+    *,
+    preserve_selected_design_id: bool,
+) -> DesignReport:
+    """Evaluate the two fixed phase inductors and aggregate their losses."""
+
+    magnetic = report.magnetic
+    if magnetic is None or not magnetic.chosen_designs:
+        return replace(report, loss=LossResult(notes=["Two-phase magnetic loss is unavailable because no phase inductors were selected."]))
+
+    phase_designs = {
+        str(design.metadata.get("phase_role")): design
+        for design in magnetic.chosen_designs
+        if isinstance(design.metadata, dict) and design.metadata.get("phase_role") in {"phase_1", "phase_2"}
+    }
+    evaluations = []
+    phase_loss: dict[str, dict[str, float | None]] = {}
+    for phase in ("phase_1", "phase_2"):
+        design = phase_designs.get(phase)
+        if design is None:
+            continue
+        phase_number = int(phase[-1])
+        request = build_interleaved_boost_pfc_phase_operating_request(report, phase_number)
+        result = evaluate_selected_designs([design], request)
+        if not result:
+            continue
+        evaluation = result[0]
+        evaluations.append(evaluation)
+        phase_loss[phase] = {
+            "copper_loss_w": evaluation.copper_loss_w,
+            "core_loss_w": evaluation.core_loss_w,
+            "total_loss_w": evaluation.total_loss_w,
+        }
+
+    total_loss = sum(
+        float(values["total_loss_w"])
+        for values in phase_loss.values()
+        if values["total_loss_w"] is not None
+    )
+    copper_loss = sum(
+        float(values["copper_loss_w"])
+        for values in phase_loss.values()
+        if values["copper_loss_w"] is not None
+    )
+    core_loss = sum(
+        float(values["core_loss_w"])
+        for values in phase_loss.values()
+        if values["core_loss_w"] is not None
+    )
+    recommended_id = magnetic.selected_design_id if preserve_selected_design_id else next(
+        (design.candidate_id for design in magnetic.chosen_designs if design.metadata.get("phase_role") == "phase_1"),
+        magnetic.selected_design_id,
+    )
+    loss_result = LossResult(
+        total_loss_w=total_loss if phase_loss else None,
+        breakdown_w={
+            "phase_1_inductor_total_loss_w": phase_loss.get("phase_1", {}).get("total_loss_w"),
+            "phase_2_inductor_total_loss_w": phase_loss.get("phase_2", {}).get("total_loss_w"),
+            "inductor_copper_loss_w": copper_loss if phase_loss else None,
+            "inductor_core_loss_w": core_loss if phase_loss else None,
+            "inductor_total_loss_w": total_loss if phase_loss else None,
+        },
+        recommended_design_id=recommended_id,
+        top_design_losses={
+            design_id: {
+                "total_loss_w": values["total_loss_w"],
+                "copper_loss_w": values["copper_loss_w"],
+                "core_loss_w": values["core_loss_w"],
+            }
+            for design_id, values in (
+                (design.candidate_id, phase_loss.get(str(design.metadata.get("phase_role")), {}))
+                for design in magnetic.chosen_designs
+            )
+            if values
+        },
+        notes=[
+            "Two-phase interleaved Boost PFC magnetic loss evaluates the selected phase 1 and phase 2 fixed inductors independently.",
+            "The aggregate inductor loss is the sum of the two phase losses; no phase loss is multiplied by two after evaluation.",
+            "Semiconductor, bridge, and DC-link capacitor losses remain separate report components for downstream aggregation.",
+        ],
+    )
+    updated_magnetic = replace(magnetic, evaluations=evaluations)
+    return replace(report, magnetic=updated_magnetic, loss=loss_result)
 
 
 def _choose_recommended_design_id(designs, evaluations, preferred_design_id: str | None = None) -> str | None:

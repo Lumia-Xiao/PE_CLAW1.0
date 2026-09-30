@@ -36,7 +36,6 @@ AC_DC_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_di
 SELECTION_ONLY_TOPOLOGIES = {
     "single_phase_full_bridge_inverter",
     "flyback_diode_rectified_isolated",
-    AC_DC_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID,
 }
 
 
@@ -101,10 +100,6 @@ def _run_full_pipeline_in_context(
             )
     if uses_semiconductor_selector and report.waveform is not None and report.operating_point is not None:
         report = run_device_operating_point_refresh(report, plugin=plugin)
-    if report.spec.topology_id == AC_DC_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
-        if options.enable_bridge_rectifier_selection:
-            report = run_bridge_rectifier_pipeline(report)
-        return report
     if report.spec.topology_id in SELECTION_ONLY_TOPOLOGIES and (
         report.spec.topology_id != "flyback_diode_rectified_isolated" or not options.enable_magnetic_design
     ):
@@ -167,6 +162,19 @@ def _run_full_pipeline_in_context(
     report = run_geometry_pipeline(report, pipeline_options=options)
     if not is_llc_topology(report.spec.topology_id) and options.enable_capacitor_design:
         report = run_capacitor_pipeline(report, plugin=plugin, output_root=get_run_output_root(report))
+    if report.spec.topology_id == AC_DC_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        report = update_design_run(
+            report,
+            {
+                "semiconductor_design": "succeeded" if report.device is not None else "blocked",
+                "capacitor_design": "succeeded" if options.enable_capacitor_design and report.capacitor is not None else "not_applicable",
+                "inductor_design": "succeeded" if options.enable_magnetic_design and report.magnetic is not None else "not_applicable",
+                "loss": "succeeded" if options.enable_magnetic_design and report.loss is not None else "not_applicable",
+                "thermal": "succeeded" if options.enable_magnetic_design and report.thermal is not None else "not_applicable",
+                "hardware_overview": "not_applicable",
+                "validation": "not_applicable",
+            },
+        )
     if report.spec.topology_id == "three_phase_three_level_npc_inverter":
         stage_updates = {
             "inductor_design": "succeeded" if options.enable_magnetic_design and report.magnetic is not None else "not_applicable",

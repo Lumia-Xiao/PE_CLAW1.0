@@ -28,12 +28,14 @@ from .run_capacitor_geometry_pipeline import run_capacitor_geometry_pipeline
 from .npc_capacitor_design import build_npc_capacitor_design
 
 _SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID = "single_phase_boost_pfc_diode_bridge"
+_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID = "single_phase_totem_pole_bridgeless_pfc"
 AC_DC_ELECTROLYTIC_DC_LINK_TOPOLOGY_IDS = {
     "single_phase_diode_bridge_rectifier_capacitor_filter",
     "single_phase_diode_bridge_rectifier_dc_inductor_filter",
     "three_phase_diode_bridge_rectifier_capacitor_filter",
     _SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID,
+    _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID,
     _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID,
 }
 INVERTER_ELECTROLYTIC_DC_LINK_TOPOLOGY_IDS = {
@@ -82,6 +84,14 @@ def run_capacitor_pipeline(
                 "Boost PFC capacitor selection is for the regulated DC-link capacitor bank only.",
                 "Boost PFC DC-link capacitor current uses the sampled line-cycle boost-diode current minus DC load current.",
                 "Boost PFC EMI/input-filter capacitors are not selected in this first-pass stage.",
+            ]
+        )
+    if report.spec.topology_id == _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        notes.extend(
+            [
+                "Two-phase interleaved Boost PFC capacitor selection is for the common regulated DC-link capacitor bank.",
+                "DC-link capacitor current uses the aggregate two-phase Boost-diode current minus DC load current.",
+                "The selected bank is shared by both phases; phase-specific EMI capacitors are not selected in this stage.",
             ]
         )
     if report.spec.topology_id == _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID:
@@ -474,6 +484,7 @@ def _refresh_selected_active_pfc(
     if topology_id not in {
         _SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID,
         _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID,
+        _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID,
     }:
         return report
     if plugin is None or report.candidate is None or report.capacitor is None:
@@ -486,6 +497,30 @@ def _refresh_selected_active_pfc(
     if topology_id == _SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID:
         from ..topologies.ac_dc.single_phase_boost_pfc_diode_bridge.waveform import (
             refresh_selected_capacitor_candidate,
+        )
+    elif topology_id == _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        from ..topologies.ac_dc.single_phase_interleaved_boost_pfc_diode_bridge.waveform import (
+            generate_waveforms as _generate_waveforms,
+        )
+        candidate = replace(
+            report.candidate,
+            metadata={
+                **report.candidate.metadata,
+                "selected_capacitance_f": float(selected.equivalent_capacitance_f),
+            },
+        )
+        operating_point = report.operating_point or OperatingPoint(vin_v=candidate.vin_nom, load_ratio=1.0)
+        waveform = call_with_report_run(report, _generate_waveforms, candidate, operating_point=operating_point)
+        stress = plugin.extract_stress(candidate, waveform_set=waveform)
+        topology_result = plugin.evaluate(candidate, waveform_set=waveform, stress_result=stress)
+        return replace(
+            report,
+            candidate=candidate,
+            waveform=waveform,
+            stress=stress,
+            topology_result=topology_result,
+            operating_point=replace(operating_point, vout_v=candidate.vout_target),
+            notes=[*report.notes, "Two-phase interleaved Boost PFC electrical readback refreshed using the selected DC-link capacitor bank."],
         )
     else:
         from ..topologies.ac_dc.single_phase_totem_pole_bridgeless_pfc.waveform import (
@@ -770,6 +805,12 @@ def _resolve_output_capacitor_waveform(report: DesignReport) -> tuple[list[float
             list(waveform.capacitor_current_a),
             "Boost PFC line-cycle DC-link capacitor current from boost diode current minus DC load current",
         )
+    if report.spec.topology_id == _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        return (
+            list(waveform.time_s),
+            list(waveform.capacitor_current_a),
+            "Two-phase interleaved Boost PFC aggregate DC-link capacitor current from both Boost-diode currents minus DC load current",
+        )
     if report.spec.topology_id == _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID:
         return (
             list(waveform.time_s),
@@ -922,6 +963,8 @@ def _is_electrolytic_dc_link_topology(report: DesignReport) -> bool:
 def _output_design_type(report: DesignReport) -> str:
     if report.spec.topology_id == _SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID:
         return "boost_pfc_electrolytic_dc_link"
+    if report.spec.topology_id == _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        return "interleaved_boost_pfc_electrolytic_dc_link"
     if report.spec.topology_id == _SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID:
         return "totem_pole_pfc_electrolytic_dc_link"
     if _is_ac_dc_electrolytic_dc_link_topology(report):

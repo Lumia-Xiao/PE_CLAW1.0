@@ -50,9 +50,9 @@ def test_step5_selects_bridge_and_four_auditable_device_positions() -> None:
     }
     assert report.device.diode_binding_policies["phase_1_boost_diode"] == "independent"
     assert report.device.diode_binding_policies["phase_2_boost_diode"] == "independent"
-    assert report.loss is None
-    assert report.thermal is None
-    assert report.geometry is None
+    assert report.loss is not None
+    assert any("disabled by pipeline option" in note for note in report.loss.notes)
+    assert report.magnetic is None
 
 
 def test_step5_bridge_request_uses_aggregate_input_current() -> None:

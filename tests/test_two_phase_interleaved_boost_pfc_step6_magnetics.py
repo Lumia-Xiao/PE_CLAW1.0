@@ -78,8 +78,8 @@ def test_magnetic_result_exposes_two_physical_phase_instances(monkeypatch) -> No
     assert calls == ["phase_1"]
     requirements = result.magnetic.design_requirements
     assert requirements["magnetic_quantity"] == 2
-    assert requirements["phase_1_design_id"] == "core-A"
-    assert requirements["phase_2_design_id"] == "core-A"
+    assert requirements["phase_1_design_id"] == "core-A::phase_1"
+    assert requirements["phase_2_design_id"] == "core-A::phase_2"
     assert requirements["matched_magnetic_model"] is True
     assert requirements["phase_1_instance_id"] == "phase_1"
     assert requirements["phase_2_instance_id"] == "phase_2"

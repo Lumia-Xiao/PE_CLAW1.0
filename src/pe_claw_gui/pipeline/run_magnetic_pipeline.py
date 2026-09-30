@@ -463,19 +463,28 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
                 phase_two_chosen = [
                     replace(
                         candidate,
+                        candidate_id=f"{candidate.metadata.get('library_candidate_id', candidate.candidate_id)}::phase_2",
                         metadata={
                             **candidate.metadata,
                             "phase_role": "phase_2",
                             "physical_instance_id": "phase_2",
+                            "library_candidate_id": candidate.candidate_id,
                         },
                     )
                     for candidate in phase_one.chosen_designs
                 ]
+                phase_two_selected = next(
+                    (candidate.candidate_id for candidate in phase_two_chosen
+                     if candidate.metadata.get("library_candidate_id") == phase_one.selected_design_id),
+                    phase_two_chosen[len(phase_two_chosen) // 2].candidate_id if phase_two_chosen else None,
+                )
                 phase_results["phase_2"] = replace(
                     phase_one,
                     summary="Phase 2 uses a second physical instance of the phase 1 selected magnetic model.",
                     design_requirements=build_design_requirements_dict(request),
                     chosen_designs=phase_two_chosen,
+                    selected_design_id=phase_two_selected,
+                    search_selected_design_id=phase_two_selected,
                     notes=[
                         *request.notes,
                         "Phase 2 reuses the phase 1 library model as a second physical instance under ideal equal sharing.",
@@ -494,18 +503,20 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
             compression = compress_candidates(basic, context=screening_context, allow_profile=allow_profile)
             pareto = build_pareto_front(compression.compressed_candidates)
             chosen = choose_representative_designs(pareto, count=5)
-            selected = chosen[len(chosen) // 2].candidate_id if chosen else None
             chosen = [
                 replace(
                     candidate,
+                    candidate_id=f"{candidate.candidate_id}::phase_{phase}",
                     metadata={
                         **candidate.metadata,
                         "phase_role": f"phase_{phase}",
                         "physical_instance_id": f"phase_{phase}",
+                        "library_candidate_id": candidate.candidate_id,
                     },
                 )
                 for candidate in chosen
             ]
+            selected = chosen[len(chosen) // 2].candidate_id if chosen else None
             phase_results[f"phase_{phase}"] = MagneticResult(
                 summary=f"Phase {phase} magnetic search found {len(basic)} basic candidates and {len(pareto)} Pareto points.",
                 design_requirements=build_design_requirements_dict(request),

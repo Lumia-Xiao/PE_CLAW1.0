@@ -161,6 +161,39 @@ def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOption
         ),
         notes=notes,
     )
+    if report.spec.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
+        phase_targets = []
+        phase_loss_by_design_id = _resolve_loss_by_design_id(report)
+        for phase in ("phase_1", "phase_2"):
+            design = next(
+                (item for item in report.magnetic.chosen_designs
+                 if isinstance(item.metadata, dict) and item.metadata.get("phase_role") == phase),
+                None,
+            )
+            existing = unique_targets_by_design_id.get(design.candidate_id) if design is not None else None
+            phase_targets.append(
+                GeometryTarget(
+                    role=phase,
+                    label=f"{phase.replace('_', ' ').title()} Inductor",
+                    design_id=design.candidate_id if design is not None else None,
+                    layout=existing.layout if existing is not None else None,
+                    volume_m3=design.total_volume_m3 if design is not None else None,
+                    loss_w=phase_loss_by_design_id.get(design.candidate_id) if design is not None else None,
+                    artifact_paths=list(existing.artifact_paths) if existing is not None else [],
+                    notes=[
+                        "Second physical phase instance shares the selected magnetic model dimensions."
+                        if phase == "phase_2" else "Phase-specific physical instance of the selected Boost inductor model."
+                    ],
+                    error_message=existing.error_message if existing is not None else "Phase magnetic geometry is unavailable.",
+                    component_role="boost_phase_inductor",
+                    representative_role=phase,
+                )
+            )
+        geometry_result = replace(
+            geometry_result,
+            targets=[*geometry_result.targets, *phase_targets],
+            notes=[*geometry_result.notes, "Phase 1 and phase 2 inductor instances are listed separately; identical model geometry is shared when the magnetic match policy selects the same library design."],
+        )
     return replace(report, geometry=geometry_result)
 
 
