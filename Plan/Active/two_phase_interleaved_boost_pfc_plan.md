@@ -1,10 +1,10 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 实施中（步骤 0–7 已完成）
+- **状态**：Active / 实施中（步骤 0–8 已完成）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：步骤 0–7 已实施；步骤 8–10 尚未执行。
+- **当前阶段**：步骤 0–8 已实施；步骤 9–10 尚未执行。
 
 ## 1. 计划目标和边界
 
@@ -673,6 +673,16 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 验证 `Generate Waveforms` 不重新选择硬件。
 
 **验收**：负载点网格全部完成或按明确边界失败；硬件候选 ID 在扫描前后不变；旧 AC-DC 五拓扑效率扫描结果不回归。
+
+**步骤 8 执行记录（2026-09-30）**：
+
+- 为两相拓扑增加独立效率扫描路由和固定硬件前置检查，分别指出缺失的输入桥、phase 1/phase 2 开关或 Boost 二极管、任一已选相电感及共享 DC-link 电容。
+- 每个负载点按总负载比例生成两相波形与 180° 交错纹波，刷新现有选定器件、phase 1/phase 2 电感和电容的运行点损耗，并按当前输入电流重算桥损耗；不调用器件、磁件、电容重新选型。
+- 点级报告汇总桥、半导体、两相磁件、电容和 `other_loss_w=0`。缺任一必需损耗时该点不生成部分总损耗，整个 sweep 状态标记为 blocked 并保留明确 warning。
+- 点级 switching-loss audit 记录相移、理想均流、两相电感 RMS、最坏合成纹波和固定硬件 ID；sweep signature 纳入两相磁件 ID。新增 CSV、结构化 JSON 与效率/损耗图表产物。
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step8_efficiency.py`，覆盖 0.1/0.5/1.0 p.u.、逐点损耗守恒、输出功率/相电流随负载变化、相位纹波审计、硬件 ID 不变、artifact 内容及四类前置缺项。
+- 验证：两相步骤 1–8 组合专项回归 `32 passed`；最终步骤 8 专项复跑 `5 passed`；`git diff --check` 通过。未运行其他拓扑或全量测试；旧 AC-DC 五拓扑效率对比留待步骤 10 集成门禁，未宣称旧拓扑回归已验证。
+- 实现提交 `d9a8064` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；步骤 9–10 尚未执行。
 
 ### 步骤 9：GUI 结果和用户文档
 

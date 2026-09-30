@@ -1567,3 +1567,10 @@ listed here.
 - 按步骤 7 验收补齐系统级设计点损耗：选中桥损耗、活动半导体方案损耗、phase 1/phase 2 电感损耗、共享 DC-link 电容组损耗及显式 `other_loss_w=0` 汇总到该拓扑的 `LossResult`。必需分量缺失时总值为 unavailable，并记录缺项，不返回部分和。只新增新拓扑专用后处理，没有修改其他拓扑的损耗语义。
 - 验证：两相步骤 1–7 专项测试 `27 passed`；新增的步骤 7 缺失分量边界验证 `1 passed`；`git diff --check` 通过。未运行其他拓扑或全量测试。
 - 实现与测试提交 `808de30`；本记录与步骤 7 计划更新作为后续文档提交，均推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`。保留既有无关删除和未跟踪文件。
+
+## 2026-09-30 - 两相交错 Boost PFC 步骤 8
+
+- 新增两相固定硬件 operating-point evaluator 和 efficiency sweep；每个负载点刷新交错波形、相位器件、电感、电容及桥损耗，汇总系统损耗并保留相位与硬件 ID 审计。缺少输入桥、任一相位器件/磁件或共享电容时前置诊断指出具体缺项；必需损耗缺失时 sweep 明确 blocked。
+- 为新拓扑生成 CSV、JSON、效率曲线和损耗分解图；测试覆盖 0.1/0.5/1.0 p.u.、损耗和守恒、固定硬件 ID 不变、两相电流/纹波审计及前置缺项。
+- 验证仅限两相拓扑：步骤 1–8 组合专项回归 `32 passed`；步骤 8 最终专项复跑 `5 passed`；`git diff --check` 通过。未运行旧 AC-DC 拓扑或全量测试，其基线对比保留在计划步骤 10。
+- 实现与测试提交 `d9a8064` 已推送；本记录与计划步骤 8 执行记录作为独立文档提交后推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`。工作区既有无关删除和未跟踪文件均未纳入。
