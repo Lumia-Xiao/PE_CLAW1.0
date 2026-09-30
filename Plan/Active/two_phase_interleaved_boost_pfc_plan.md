@@ -1,10 +1,10 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 实施中（步骤 0–8 已完成）
+- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：步骤 0–9 已实施；步骤 10 尚未执行。
+- **当前阶段**：步骤 0–10 已实施；步骤 10 的验证范围按用户要求限定为两相拓扑专项及与单相 Boost PFC 的双顺序隔离回归。
 
 ## 1. 计划目标和边界
 
@@ -722,6 +722,15 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 在集成门禁再运行全量测试。
 
 **验收**：旧拓扑的工程字段、单位、候选、状态和报告结构无非预期变化；新拓扑独立通过所有验收；全量测试结果和任何环境限制均有记录。
+
+**步骤 10 执行记录（2026-09-30）**：
+
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step10_isolation.py`。同一个 registry/plugin 实例按“单相 Boost PFC → 两相交错 Boost PFC”和相反顺序运行，输入分别重复；比较 candidate、report/stress/loss/thermal、器件/桥/磁件/电容硬件、manifest 阶段状态、warning、0.1/0.5/1.0 p.u. efficiency sweep 和结构化结果。运行间保留先前 report 与 artifacts，验证对象快照及文件哈希不变、run ID 独立、artifact 归属各自 run root、活动 run context 在调用后清空。结构化 JSON artifact 比较时仅归一化 run ID 与本次运行根路径。
+- 验证：步骤 1–10 两相拓扑专项回归 `37 passed`（451.87s）；步骤 10 双顺序隔离用例单独复跑 `1 passed`（217.13s）。命令均设置 `PYTHONPATH=src`、`MPLBACKEND=Agg`。
+- 用户要求本步骤只运行两相拓扑，不做其他拓扑全测试。因此旧 AC-DC 五拓扑全面回归和全量 pytest 不作为本步骤验收门槛；隔离用例只为验证跨运行状态保留单相 Boost PFC 作为配对对照。全量 pytest 曾启动但按用户随后指示中止，不记录为通过或失败结果。
+- 在范围缩小指示前，曾额外运行选择性基线/AC-DC/输出隔离/GUI 集成集合：`25 passed, 8 failed`（892.31s）。两个单相 Boost PFC baseline fixture 测试通过；失败包括旧效率测试预期的 `csv` artifact key 与当前实现不一致，以及旧输出隔离测试在本机 Windows 长路径下写 artifact 失败。调查发现部分 `tests/` 路径解析到 `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\tests`，该集合不作为两相拓扑验收结果；未修改其断言或生产代码。
+- 一次早期隔离夹具使用长临时路径触发 Windows 文件名长度错误；缩短临时目录名后，两相专项隔离用例通过。未因此更改生产 pipeline。
+- 影响分类：test-only；新增隔离测试，没有修改拓扑实现或其他拓扑行为。`git diff --check` 对工作树整体报告既有 migration/evidence 长路径问题，相关文件均是预存删除项，不属于本步骤改动；本次新增/修改文件单独检查通过。
 
 ## 6. 测试分层和验证矩阵
 
