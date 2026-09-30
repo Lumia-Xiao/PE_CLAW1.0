@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from importlib import import_module
 
 from pe_claw_gui.pipeline.options import PipelineOptions
-from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
+from pe_claw_gui.pipeline.run_full_pipeline import _aggregate_interleaved_boost_pfc_losses, run_full_pipeline
 from pe_claw_gui.topologies.base.registry import build_default_registry
 
 
@@ -46,6 +47,25 @@ def test_step7_runs_two_phase_pipeline_through_geometry() -> None:
     assert breakdown["inductor_total_loss_w"] == (
         breakdown["phase_1_inductor_total_loss_w"] + breakdown["phase_2_inductor_total_loss_w"]
     )
+    assert breakdown["bridge_rectifier_loss_w"] == next(
+        item.loss_estimate.total_loss_w
+        for item in report.bridge_rectifier.evaluations
+        if item.candidate.candidate_id == report.bridge_rectifier.selected_candidate.candidate_id
+    )
+    active_scheme = next(item for item in report.device.scheme_results if item.scheme_id == report.device.active_scheme_id)
+    assert breakdown["semiconductor_loss_w"] == active_scheme.total_scheme_loss_w
+    assert breakdown["dc_link_capacitor_loss_w"] == report.capacitor.output_selection.recommended.p_total_w
+    assert breakdown["other_loss_w"] == 0.0
+    assert report.loss.total_loss_w == sum(
+        breakdown[key]
+        for key in (
+            "bridge_rectifier_loss_w",
+            "semiconductor_loss_w",
+            "inductor_total_loss_w",
+            "dc_link_capacitor_loss_w",
+            "other_loss_w",
+        )
+    )
     assert report.thermal is not None
     assert report.thermal.status in {"valid", "unavailable"}
     assert report.geometry is not None
@@ -53,6 +73,13 @@ def test_step7_runs_two_phase_pipeline_through_geometry() -> None:
     assert set(phase_targets) == {"phase_1", "phase_2"}
     assert phase_targets["phase_1"].design_id == requirements["phase_1_design_id"]
     assert phase_targets["phase_2"].design_id == requirements["phase_2_design_id"]
+
+    missing_capacitor = replace(report.capacitor, output_selection=None)
+    incomplete_report = _aggregate_interleaved_boost_pfc_losses(replace(report, capacitor=missing_capacitor))
+    assert incomplete_report.loss.total_loss_w is None
+    assert "bridge_rectifier_loss_w" not in incomplete_report.loss.breakdown_w
+    assert "dc_link_capacitor_loss_w" not in incomplete_report.loss.breakdown_w
+    assert any("dc_link_capacitor_loss_w" in note for note in incomplete_report.loss.notes)
 
     statuses = report.run_context.stage_status
     assert statuses["semiconductor_design"] == "succeeded"

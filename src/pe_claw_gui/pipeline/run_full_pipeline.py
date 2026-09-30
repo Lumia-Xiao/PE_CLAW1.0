@@ -10,6 +10,7 @@ from ..models.design_report import DesignReport
 from ..models.design_run_context import activate_report_run, get_run_output_root, update_design_run
 from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
+from ..engines.devices.loss_aggregation import semiconductor_losses_total_w
 from ..topologies.base import TopologyPlugin
 from ..topology_capabilities import has_semiconductor_selection_path, is_first_pass_topology_only
 from .run_bridge_rectifier_pipeline import (
@@ -163,6 +164,7 @@ def _run_full_pipeline_in_context(
     if not is_llc_topology(report.spec.topology_id) and options.enable_capacitor_design:
         report = run_capacitor_pipeline(report, plugin=plugin, output_root=get_run_output_root(report))
     if report.spec.topology_id == AC_DC_INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        report = _aggregate_interleaved_boost_pfc_losses(report)
         report = update_design_run(
             report,
             {
@@ -188,6 +190,93 @@ def _run_full_pipeline_in_context(
         }
         report = update_design_run(report, stage_updates)
     return report
+
+
+def _aggregate_interleaved_boost_pfc_losses(report: DesignReport) -> DesignReport:
+    """Publish a design-point system loss total for the two-phase Boost PFC."""
+
+    if report.loss is None:
+        return report
+
+    components: dict[str, float | None] = {
+        "bridge_rectifier_loss_w": _selected_bridge_loss_w(report),
+        "semiconductor_loss_w": _selected_semiconductor_loss_w(report),
+        "inductor_total_loss_w": report.loss.breakdown_w.get("inductor_total_loss_w"),
+        "dc_link_capacitor_loss_w": _selected_dc_link_capacitor_loss_w(report),
+        "other_loss_w": 0.0,
+    }
+    missing = [name for name, value in components.items() if value is None]
+    if missing:
+        system_component_names = set(components)
+        return replace(
+            report,
+            loss=replace(
+                report.loss,
+                total_loss_w=None,
+                breakdown_w={
+                    key: value
+                    for key, value in report.loss.breakdown_w.items()
+                    if key not in system_component_names
+                },
+                notes=[
+                    *report.loss.notes,
+                    "System loss total is unavailable because required design-point components are missing: "
+                    + ", ".join(missing)
+                    + ".",
+                ],
+            ),
+        )
+
+    complete_components = {name: float(value) for name, value in components.items()}
+    total_loss_w = sum(complete_components.values())
+    return replace(
+        report,
+        loss=replace(
+            report.loss,
+            total_loss_w=total_loss_w,
+            breakdown_w={**report.loss.breakdown_w, **complete_components},
+            notes=[
+                *report.loss.notes,
+                "System design-point loss is the sum of selected bridge, active semiconductor scheme, both phase inductors, and the shared DC-link capacitor bank.",
+                "Other loss is explicitly zero because no additional loss component is modeled for this first-pass topology.",
+            ],
+        ),
+    )
+
+
+def _selected_bridge_loss_w(report: DesignReport) -> float | None:
+    selection = report.bridge_rectifier
+    if selection is None or selection.selected_candidate is None:
+        return None
+    evaluation = next(
+        (
+            item
+            for item in selection.evaluations
+            if item.candidate.candidate_id == selection.selected_candidate.candidate_id
+        ),
+        None,
+    )
+    estimate = evaluation.loss_estimate if evaluation is not None else None
+    return float(estimate.total_loss_w) if estimate is not None else None
+
+
+def _selected_semiconductor_loss_w(report: DesignReport) -> float | None:
+    device = report.device
+    if device is None:
+        return None
+    active_scheme_id = device.active_scheme_id or device.recommended_scheme_id
+    scheme = next((item for item in device.scheme_results if item.scheme_id == active_scheme_id), None)
+    if scheme is not None and scheme.total_scheme_loss_w is not None:
+        return float(scheme.total_scheme_loss_w)
+    losses = device.current_operating_losses or device.design_point_losses
+    return semiconductor_losses_total_w(device, losses) if losses else None
+
+
+def _selected_dc_link_capacitor_loss_w(report: DesignReport) -> float | None:
+    capacitor = report.capacitor
+    output = capacitor.output_selection if capacitor is not None else None
+    selected = output.recommended if output is not None else None
+    return float(selected.p_total_w) if selected is not None else None
 
 
 def _write_tcm_diagnostic(report: DesignReport) -> DesignReport:
