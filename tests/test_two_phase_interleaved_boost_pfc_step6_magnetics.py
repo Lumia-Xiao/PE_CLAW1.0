@@ -32,8 +32,17 @@ def test_phase_requests_are_explicit_and_equal_share() -> None:
     assert phase_2.metadata["phase_shift_deg"] == 180.0
     assert phase_1.throughput_power_w == phase_2.throughput_power_w == report.candidate.pout_target / 2.0
     assert phase_1.i_rms_a == phase_2.i_rms_a
+    assert phase_1.i_avg_a < phase_1.i_rms_a
+    assert phase_1.metadata["current_design_line"] == "low_line"
+    assert phase_1.metadata["voltage_design_line"] == "low_line"
+    assert phase_1.metadata["i_phase_average_a"] == phase_1.i_avg_a
+    assert phase_1.metadata["i_phase_rms_envelope_a"] < phase_1.i_rms_a
+    assert phase_1.metadata["pwm_ripple_rms_a"] > 0.0
+    assert phase_1.metadata["delta_i_pp_design_a"] == phase_1.delta_i_pp_a
     assert phase_1.inductance_h == phase_2.inductance_h
     assert phase_1.inductance_h == report.candidate.metadata["boost_inductor_required_h"]
+    assert phase_1.metadata["phase_total_series_inductance_h"] > phase_1.inductance_h
+    assert any("low-line phase average" in note for note in phase_1.notes)
 
 
 def test_operating_requests_keep_switching_ripple_and_scale_average_current() -> None:

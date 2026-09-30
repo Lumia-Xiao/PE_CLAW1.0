@@ -151,7 +151,7 @@ def build_bridge_rectifier_selection_request(report: DesignReport) -> BridgeRect
         )
     if report.spec.topology_id == INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
         request_notes.append(
-            "Interleaved Boost PFC bridge current uses the aggregate two-phase input-source waveform; phase currents are not duplicated."
+            "Interleaved Boost PFC bridge design current uses the low-line aggregate two-phase input-source waveform; phase currents are not duplicated."
         )
 
     return BridgeRectifierSelectionRequest(
@@ -180,6 +180,14 @@ def _bridge_required_reverse_voltage_v(report: DesignReport) -> float:
     if report.candidate is None:
         raise ValueError("Cannot build bridge rectifier request without a topology candidate.")
     metadata = report.candidate.metadata
+    if report.spec.topology_id == INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        return _metadata_float(
+            metadata,
+            "bridge_reverse_stress_v",
+            "recommended_diode_vrrm_v",
+            "diode_vrrm_required_v",
+            default=report.candidate.vin_nom,
+        )
     if _is_three_phase_bridge_topology(report.spec.topology_id):
         return _metadata_float(
             metadata,
@@ -231,10 +239,16 @@ def _is_three_phase_bridge_topology(topology_id: str) -> bool:
 
 
 def _bridge_current_waveform(report: DesignReport) -> tuple[float, ...]:
-    if report.spec.topology_id == INTERLEAVED_BOOST_PFC_TOPOLOGY_ID and report.waveform is not None:
-        values = report.waveform.input_source_current_a
-        if values:
-            return tuple(float(value) for value in values)
+    if report.spec.topology_id == INTERLEAVED_BOOST_PFC_TOPOLOGY_ID and report.candidate is not None:
+        line_cycle = report.candidate.metadata.get("low_line_line_cycle")
+        if isinstance(line_cycle, dict):
+            values = line_cycle.get("total_input_current_a")
+            if isinstance(values, (list, tuple)) and values:
+                try:
+                    half = [float(value) for value in values]
+                    return tuple([*half, *[-value for value in half[1:]]])
+                except (TypeError, ValueError):
+                    pass
     if (
         report.spec.topology_id == SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID
         and report.candidate is not None

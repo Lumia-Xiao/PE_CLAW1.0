@@ -1621,3 +1621,10 @@ listed here.
 - 影响分类：两相 topology-local waveform/stress change，带一个共享 stress adapter 的显式两相路由；未改变单相 Boost PFC、公共 StressResult 字段或运行点 refresh 语义。
 - 验证仅限该拓扑：步骤 3、5、10A/10B/10C focused run `15 passed`；最终 stress/device 复跑 `6 passed`；`py_compile` 通过。未运行其他拓扑或全量测试。
 - 步骤 10C 实现与测试待提交并推送；步骤 10D–10F 尚未执行。
+
+## 2026-09-30 - 两相交错 Boost PFC 步骤 10D 磁件与输入桥设计边界
+
+- 两相磁件请求现在使用 low-line 每相线路周期平均电流、相电流 RMS 包络与三角开关纹波 RMS 的合成值、低线相峰值加半个允许纹波，并把 low-line Boost 电感目标、current/voltage design line 和纹波来源写入 metadata。输入桥请求只使用一次 low-line 两相聚合输入电流，反向电压要求使用 high-line `bridge_reverse_stress_v`，推荐 VRRM margin 保持不变。
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step10d_requests.py` 和 `tests/fixtures/two_phase_interleaved_boost_pfc_step10d_baseline.json`；10A/10C 历史证据保留，当前重复性检查切换到 10D schema。
+- 当前磁性库 allow profile 对默认 low-line 设计没有可选候选，phase 1/phase 2 磁件不可用状态由报告和测试显式保留；没有放宽筛选规则或伪造硬件结果。步骤 7 完整损耗/几何和步骤 8 效率扫描因此仍受磁件前置条件阻断。
+- 验证仅限两相拓扑：10D 请求及相关边界测试 `14 passed`；10D 基线结构/重复性 `2 passed`；`py_compile`、`git diff --check` 通过。未运行其他拓扑或全量测试。

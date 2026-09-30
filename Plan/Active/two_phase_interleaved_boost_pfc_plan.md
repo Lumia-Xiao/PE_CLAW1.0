@@ -1,6 +1,6 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10A、10B、10C 已完成；步骤 10D–10F 待执行）
+- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10A、10B、10C、10D 已完成；步骤 10E–10F 待执行）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
@@ -732,7 +732,7 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 一次早期隔离夹具使用长临时路径触发 Windows 文件名长度错误；缩短临时目录名后，两相专项隔离用例通过。未因此更改生产 pipeline。
 - 影响分类：test-only；新增隔离测试，没有修改拓扑实现或其他拓扑行为。`git diff --check` 对工作树整体报告既有 migration/evidence 长路径问题，相关文件均是预存删除项，不属于本步骤改动；本次新增/修改文件单独检查通过。
 
-### 步骤 10 后修正：设计边界一致性修正（10A、10B、10C 已完成；10D–10F 待执行）
+### 步骤 10 后修正：设计边界一致性修正（10A、10B、10C、10D 已完成；10E–10F 待执行）
 
 **触发原因**：步骤 10 的隔离测试证明两相拓扑在当前实现下可以独立运行，但手动对比发现电感、磁件和器件选型没有完全使用同一设计边界。两相电感合成使用低线输入，而磁件请求、相位器件应力和输入桥电流主要读取额定线路波形；磁件请求还把相电流 RMS 填入了平均电流字段。该问题属于两相拓扑的设计边界和下游适配一致性问题，不改变步骤 10 已完成的运行隔离结论。
 
@@ -784,6 +784,16 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - `delta_i_pp_a`、伏秒和目标电感与低线电感设计使用同一口径；
 - `pipeline/run_bridge_rectifier_pipeline.py` 中，桥电流容量使用低线聚合输入电流，反向电压仍使用高线边界；
 - 两相磁件仍优先复用相同库型号作为两个物理实例，报告保留 phase 1/phase 2 实例信息。
+
+**步骤 10D 执行记录（2026-09-30）**：
+
+- `src/pe_claw_gui/engines/magnetics/inductor_adapter.py` 的两相磁件请求改为明确使用 low-line 每相线路周期平均电流、相电流 RMS 包络与三角开关纹波 RMS 的合成值、低线相峰值加半个允许纹波，以及 low-line 允许纹波和 Boost 电感目标；请求 metadata 记录 current/voltage design line、相电流包络和纹波来源。运行点固定硬件请求仍保留独立语义。
+- `src/pe_claw_gui/pipeline/run_bridge_rectifier_pipeline.py` 的两相桥请求改为只使用一次 low-line 两相聚合输入电流波形；反向电压要求使用 high-line `bridge_reverse_stress_v`，推荐 VRRM 继续保留 margin。没有再次乘以相数，也没有改变单相 Boost PFC 分支。
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step10d_requests.py`，验证磁件请求的平均/RMS/峰值/纹波公式、每相 Boost 电感目标、桥请求的低线聚合电流和高线反压，以及当前磁性库 allow profile 下磁件不可用时的显式结果。
+- 新增 `tests/fixtures/two_phase_interleaved_boost_pfc_step10d_baseline.json`。保留 10A 和 10C fixture，不覆盖历史证据；当前基线重复性测试改为读取 10D fixture，并规范化其 schema/version 标记。
+- 结果边界：在当前默认设计和磁性库 allow profile 下，磁性搜索基本候选存在但最终没有通过 allow profile 的候选，phase 1/phase 2 design ID 和 chosen physical instances 显式为 unavailable，不能把步骤 7 的损耗/几何和步骤 8 的效率扫描标记为已完成。未放宽 allow profile、未伪造磁件结果，也未改变共享磁件筛选策略。
+- 验证仅限两相拓扑：10D 请求专项及 10B/10C 相关测试 `14 passed`；10D 基线结构/重复性测试 `2 passed`；目标代码 `py_compile` 与 `git diff --check` 通过。一次包含步骤 7/8 的探索性 focused run 为 `14 passed, 5 failed`，失败均为新低线磁件边界导致的无选中磁件及其下游前置条件/旧基线引用，不纳入通过结论；未运行其他拓扑或全量测试。
+- 影响分类：两相 topology-local 磁件/桥请求适配，桥 pipeline 有两相显式分支；公共字段语义、单相 Boost PFC、运行点刷新和其他拓扑未修改。下一步为步骤 10E，处理不可用磁件状态和设计边界在结果展示中的明确表达。
 
 **步骤 10E：修正结果展示和用户可读性**
 

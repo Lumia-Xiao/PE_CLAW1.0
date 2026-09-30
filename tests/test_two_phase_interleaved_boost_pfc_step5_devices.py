@@ -63,11 +63,18 @@ def test_step5_bridge_request_uses_aggregate_input_current() -> None:
     assert request.topology_id == INTERLEAVED_BOOST_PFC_TOPOLOGY_ID
     waveform = report.waveform
     assert waveform is not None
-    expected_rms = (sum(value * value for value in waveform.input_source_current_a) / len(waveform.input_source_current_a)) ** 0.5
+    low_line = candidate.metadata["low_line_line_cycle"]
+    low_line_waveform = tuple(
+        [float(value) for value in low_line["total_input_current_a"]]
+        + [-float(value) for value in low_line["total_input_current_a"][1:]]
+    )
+    expected_rms = (sum(value * value for value in low_line_waveform) / len(low_line_waveform)) ** 0.5
     assert request.bridge_current_rms_a == expected_rms
     assert request.bridge_current_rms_a > 0.0
-    assert request.bridge_current_waveform_a
-    assert any("aggregate two-phase" in note for note in request.notes)
+    assert request.bridge_current_waveform_a == low_line_waveform
+    assert request.required_reverse_voltage_v == candidate.metadata["bridge_reverse_stress_v"]
+    assert request.recommended_reverse_voltage_v > request.required_reverse_voltage_v
+    assert any("low-line aggregate two-phase" in note for note in request.notes)
 
 
 def test_step5_failed_phase_candidate_is_explicit() -> None:

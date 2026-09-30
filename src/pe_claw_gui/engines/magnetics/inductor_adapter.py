@@ -557,21 +557,34 @@ def _build_single_phase_boost_pfc_design_request(report: DesignReport) -> Induct
 
 
 def _build_interleaved_boost_pfc_design_request(report: DesignReport) -> InductorDesignRequest:
-    """Build one per-phase request while preserving the aggregate PFC contract."""
+    """Build one per-phase request from the low-line magnetic design boundary."""
 
     candidate = _require_candidate(report)
     metadata = dict(candidate.metadata) if isinstance(candidate.metadata, dict) else {}
     phase_count = 2
     phase_fraction = 1.0 / phase_count
-    phase_current_rms_a = _positive_float(
-        metadata.get("phase_current_rms_a", {}).get("phase_1") if isinstance(metadata.get("phase_current_rms_a"), dict) else None,
+    line_metrics = metadata.get("line_condition_metrics")
+    low_line_metrics = line_metrics.get("low_line") if isinstance(line_metrics, dict) else None
+    if not isinstance(low_line_metrics, dict):
+        raise ValueError("Two-phase Boost PFC candidate is missing low-line current design metrics.")
+    phase_current_avg_a = _positive_float(
+        low_line_metrics.get("phase_current_average_a"),
+        _positive_float(low_line_metrics.get("phase_current_rms_a"), candidate.iout * phase_fraction),
+    )
+    phase_current_rms_envelope_a = _positive_float(
+        low_line_metrics.get("phase_current_rms_a"),
         _positive_float(metadata.get("electrical_input_current_rms_a"), candidate.iout) * phase_fraction,
     )
     phase_current_peak_a = _positive_float(
-        metadata.get("phase_current_peak_a", {}).get("phase_1") if isinstance(metadata.get("phase_current_peak_a"), dict) else None,
-        phase_current_rms_a * math.sqrt(2.0),
+        low_line_metrics.get("phase_current_peak_a"),
+        phase_current_rms_envelope_a * math.sqrt(2.0),
     )
-    delta_i_pp_a = _positive_float(metadata.get("delta_il_pp_nom_a"), abs(candidate.delta_il))
+    delta_i_pp_a = _positive_float(
+        low_line_metrics.get("phase_ripple_allowed_pp_a"),
+        abs(candidate.delta_il),
+    )
+    ripple_rms_a = delta_i_pp_a / math.sqrt(12.0)
+    phase_current_rms_a = math.sqrt(phase_current_rms_envelope_a**2 + ripple_rms_a**2)
     inductance_h = _positive_float(
         metadata.get("phase_boost_inductance_h", {}).get("phase_1")
         if isinstance(metadata.get("phase_boost_inductance_h"), dict) else None,
@@ -582,8 +595,8 @@ def _build_interleaved_boost_pfc_design_request(report: DesignReport) -> Inducto
         display_name=f"{_normalized_display_name(report)} Phase 1",
         inductance_h=inductance_h,
         fs_hz=candidate.fs_hz,
-        i_avg_a=phase_current_rms_a,
-        i_rms_a=math.sqrt(phase_current_rms_a**2 + (delta_i_pp_a / math.sqrt(12.0))**2),
+        i_avg_a=phase_current_avg_a,
+        i_rms_a=phase_current_rms_a,
         i_peak_a=phase_current_peak_a + 0.5 * delta_i_pp_a,
         i_valley_a=max(phase_current_peak_a - 0.5 * delta_i_pp_a, 0.0),
         delta_i_pp_a=delta_i_pp_a,
@@ -599,6 +612,8 @@ def _build_interleaved_boost_pfc_design_request(report: DesignReport) -> Inducto
         notes=[
             "Derived from the two-phase interleaved Boost PFC synthesized candidate.",
             "This request represents phase 1 only; phase 2 receives an independent request with the same ideal-sharing basis.",
+            "Magnetic current sizing uses the low-line phase average, RMS envelope, peak, and allowed triangular switching ripple.",
+            "The target is the per-phase Boost inductance; the per-phase input inductance remains recorded separately in candidate metadata.",
             "Magnetic search returns one physical inductor instance per phase.",
         ],
         metadata={
@@ -613,11 +628,21 @@ def _build_interleaved_boost_pfc_design_request(report: DesignReport) -> Inducto
             "magnetic_request_basis": "two_phase_interleaved_boost_pfc_per_phase_boost_inductor",
             "system_pout_w": candidate.pout_target,
             "per_phase_power_proxy_w": candidate.pout_target * phase_fraction,
+            "current_design_line": "low_line",
+            "voltage_design_line": "low_line",
+            "i_phase_average_a": phase_current_avg_a,
+            "i_phase_rms_envelope_a": phase_current_rms_envelope_a,
             "i_phase_rms_a": phase_current_rms_a,
             "i_phase_peak_a": phase_current_peak_a,
-            "current_basis": "ideal_equal_phase_current",
+            "pwm_ripple_rms_a": ripple_rms_a,
+            "delta_i_pp_design_a": delta_i_pp_a,
+            "current_basis": "low_line_phase_current_envelope_plus_triangular_switching_ripple",
             "phase_shift_deg": 0.0,
             "line_frequency_hz": metadata.get("f_line_hz"),
+            "boost_inductor_worst_theta_deg": metadata.get("boost_inductor_worst_theta_deg"),
+            "boost_inductor_worst_vrectified_v": metadata.get("boost_inductor_worst_vrectified_v"),
+            "boost_inductor_worst_duty": metadata.get("boost_inductor_worst_duty"),
+            "boost_inductor_worst_delta_i_allowed_a": metadata.get("boost_inductor_worst_delta_i_allowed_a"),
         },
     )
 
