@@ -1561,3 +1561,9 @@ listed here.
 - 完成两相交错 Boost PFC 完整设计 pipeline 的下游接入：启用磁件、损耗、热、几何和共享 DC-link 电容阶段，保留逐相磁件身份与电感损耗，并更新对应步骤 5/6 测试期望；新增完整 pipeline 专项测试。
 - 影响分类：integration change，包含公共 pipeline 的新拓扑路由和下游适配。验证仅覆盖该拓扑步骤 1–7：`PYTHONPATH=src MPLBACKEND=Agg python -m pytest -q --basetemp .pytest-tmp-two-phase tests/test_two_phase_interleaved_boost_pfc_step1_contract.py tests/test_two_phase_interleaved_boost_pfc_step2_core.py tests/test_two_phase_interleaved_boost_pfc_step3_waveform.py tests/test_two_phase_interleaved_boost_pfc_step4_integration.py tests/test_two_phase_interleaved_boost_pfc_step5_devices.py tests/test_two_phase_interleaved_boost_pfc_step6_magnetics.py tests/test_two_phase_interleaved_boost_pfc_step7_pipeline.py`；`27 passed`，未运行其他拓扑或全量测试。`git diff --check` 通过。
 - 实现提交 `2e409dc` 已推送至远端分支 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；本计划和变更日志作为独立文档提交随后推送。保留工作区既有 migration、deployment、Web 删除及 `outputs/` 未跟踪内容，均未纳入本次提交。未执行备份或清理。
+
+## 2026-09-30 - 两相交错 Boost PFC 系统损耗汇总
+
+- 按步骤 7 验收补齐系统级设计点损耗：选中桥损耗、活动半导体方案损耗、phase 1/phase 2 电感损耗、共享 DC-link 电容组损耗及显式 `other_loss_w=0` 汇总到该拓扑的 `LossResult`。必需分量缺失时总值为 unavailable，并记录缺项，不返回部分和。只新增新拓扑专用后处理，没有修改其他拓扑的损耗语义。
+- 验证：两相步骤 1–7 专项测试 `27 passed`；新增的步骤 7 缺失分量边界验证 `1 passed`；`git diff --check` 通过。未运行其他拓扑或全量测试。
+- 实现与测试提交 `808de30`；本记录与步骤 7 计划更新作为后续文档提交，均推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`。保留既有无关删除和未跟踪文件。
