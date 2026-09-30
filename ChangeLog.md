@@ -1511,3 +1511,11 @@ listed here.
 - Updated `docs/index.html` and `docs/static/css/style.css` only; design calculations, Design Case content and existing images are unchanged.
 - Validation: HTML audit confirmed one accessible affiliation link with the official URL and local logo. Browser checks confirmed the 768×225 logo loads, the card is visible in the first viewport on desktop and 375 px mobile layouts, and neither layout has horizontal overflow or console errors.
 - Git/publication: prepared on a dedicated feature branch for deliberate merge into `master`, the configured GitHub Pages source. No user outputs were modified or deleted, and no backup operation was required for this documentation-only change.
+
+## 2026-09-30 - Consolidate website typography scale
+
+- Standardized `docs/static/css/style.css` around one existing system sans-serif family and a compact shared type scale for small labels, metadata, body text, lead text, card headings, section headings and display text.
+- Reduced the homepage hero maximum from 5.15 rem to 3.8 rem, reduced section/display extremes, and mapped previously scattered 0.70–1.45 rem values onto reusable CSS variables. Icon-only sizes remain independent.
+- Page wording, HTML structure, images, links, Design Case data and JavaScript behavior are unchanged.
+- Validation: computed-style checks confirmed the representative page text now resolves to eight rendered sizes from 13.12 px through 56.32 px at the desktop test viewport, versus the previous scattered range. Desktop and 375 px mobile browser checks found no horizontal overflow or console errors; homepage and Design Case layouts were visually inspected.
+- Git/publication: prepared on a dedicated feature branch for deliberate merge into `master`, the configured GitHub Pages source. No user outputs were modified or deleted, and no backup operation was required for this CSS-only presentation change.
