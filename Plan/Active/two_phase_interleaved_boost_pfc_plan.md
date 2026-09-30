@@ -1,10 +1,10 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10A 已完成；步骤 10B–10F 待执行）
+- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10A、10B 已完成；步骤 10C–10F 待执行）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：步骤 0–10 已实施；步骤 10 的验证范围按用户要求限定为两相拓扑专项及与单相 Boost PFC 的双顺序隔离回归。
+- **当前阶段**：步骤 0–10 已实施，步骤 10A/10B 修正已完成；步骤 10 的验证范围按用户要求限定为两相拓扑专项及与单相 Boost PFC 的双顺序隔离回归。
 
 ## 1. 计划目标和边界
 
@@ -732,7 +732,7 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 一次早期隔离夹具使用长临时路径触发 Windows 文件名长度错误；缩短临时目录名后，两相专项隔离用例通过。未因此更改生产 pipeline。
 - 影响分类：test-only；新增隔离测试，没有修改拓扑实现或其他拓扑行为。`git diff --check` 对工作树整体报告既有 migration/evidence 长路径问题，相关文件均是预存删除项，不属于本步骤改动；本次新增/修改文件单独检查通过。
 
-### 步骤 10 后修正：设计边界一致性修正（10A 已完成；10B–10F 待执行）
+### 步骤 10 后修正：设计边界一致性修正（10A、10B 已完成；10C–10F 待执行）
 
 **触发原因**：步骤 10 的隔离测试证明两相拓扑在当前实现下可以独立运行，但手动对比发现电感、磁件和器件选型没有完全使用同一设计边界。两相电感合成使用低线输入，而磁件请求、相位器件应力和输入桥电流主要读取额定线路波形；磁件请求还把相电流 RMS 填入了平均电流字段。该问题属于两相拓扑的设计边界和下游适配一致性问题，不改变步骤 10 已完成的运行隔离结论。
 
@@ -830,6 +830,14 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 新增 `tests/test_two_phase_interleaved_boost_pfc_step10a_baseline.py`，验证三工况、字段语义、相位角色、磁件实例或明确不可用状态、GUI 摘要和基线重复性。
 - 验证：基线结构测试 `1 passed`；完整基线重复性测试 `1 passed in 140.00s`；新增脚本和测试 `py_compile` 通过；新增文件 `git diff --check` 通过；未运行其他拓扑或全量测试。
 - 影响分类：test/evidence/documentation-only；未修改生产拓扑、共享模型、公共 pipeline 或其他拓扑行为。步骤 10B 继续处理低线设计边界向磁件和器件适配的传递。
+
+**步骤 10B 执行记录（2026-09-30）**：
+
+- 修改 `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/synthesizer.py`，保留低线电感最坏点公式，在候选 metadata 中新增 nominal、low-line、high-line 的输入/相电流、平均值、RMS、峰值、允许纹波和实际纹波指标；同时记录电感、功率器件和输入桥各自的电流/电压设计边界。没有修改公共 `TopologyCandidate` 字段语义，也没有新增 `sizing_efficiency_assumption`。
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step10b_boundaries.py`，验证三种线路条件的电流大小规律、两相均流、纹波口径、低线最坏纹波和独立的电流/电压边界 metadata。
+- 设计 RMS 继续使用输入 RMS 的理想 50/50 相分配，同时保留采样相电流包络 RMS 和叠加三角开关纹波 RMS，避免线路周期端点离散采样误差被误认为公共字段语义变化。
+- 验证仅限两相拓扑：10B 边界测试与步骤 2 合计 `7 passed`；步骤 1–3、步骤 6、10A 结构、10B 综合 focused run 合计 `21 passed`；10A 基线重复性回归 `1 passed`（110.81s）；目标文件 `py_compile` 通过，新增/修改文件 `git diff --check` 通过。未运行其他拓扑或全量测试。
+- 影响分类：topology-local metadata/test change；未修改 `waveform.py`、`stress.py`、共享适配器、磁件/桥选型 pipeline 或其他拓扑行为。下一步为步骤 10C，处理低线电流/高线电压边界向相位应力的适配。
 
 ## 6. 测试分层和验证矩阵
 

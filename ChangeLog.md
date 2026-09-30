@@ -1605,3 +1605,10 @@ listed here.
 - 按用户要求只把两相拓扑专项作为本步骤门禁：步骤 1–10 `37 passed`（451.87s），步骤 10 双顺序隔离单测复跑 `1 passed`（217.13s），`PYTHONPATH=src`、`MPLBACKEND=Agg`。未执行其他拓扑全面回归或全量 pytest；曾启动的全量 pytest 根据用户后续指示中止。
 - 范围缩小指示前运行的选择性既有 baseline/AC-DC/输出隔离/GUI 集合为 `25 passed, 8 failed`（892.31s）。失败来自旧测试中与当前 artifact key 不一致的断言，以及 Windows 长路径写入失败；测试文件路径检查发现部分内容解析到本机 PE-Claw 1.0 测试目录。它们未被纳入两相拓扑的通过结论，未修改旧测试或生产代码。
 - 实现、隔离回归和计划记录提交 `1edd142`；本 ChangeLog 回执作为后续文档提交推送。工作区原有 migration、deployment、Web 删除，以及 `outputs/` 和 pytest 临时目录均保持原样、未纳入提交。
+
+## 2026-09-30 - 两相交错 Boost PFC 步骤 10B 设计边界元数据
+
+- 在两相交错 Boost PFC 合成器中补充 nominal、low-line、high-line 的总输入电流、每相电流、平均值、RMS、峰值、允许纹波和实际纹波指标，并在候选 metadata 中明确电感、功率器件和输入桥的低线电流/高线电压设计边界。保留低线电感最坏点公式、公共字段语义、理想 50/50 均流假设和现有输入契约；未新增 `sizing_efficiency_assumption`，未修改其他拓扑或共享 pipeline。
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step10b_boundaries.py`，覆盖三种线路条件的边界指标、相电流守恒、纹波口径和边界元数据分离。
+- 影响分类：topology-local metadata/test change。验证仅限该拓扑：10B 边界测试与步骤 2 合计 `7 passed`；步骤 1–3、步骤 6、10A 结构、10B 综合 focused run 合计 `21 passed`；10A 基线重复性回归 `1 passed`（110.81s）；目标文件 `py_compile` 通过，新增/修改文件 `git diff --check` 通过。未运行其他拓扑或全量测试。
+- 实现提交 `0efa61a` 已推送至远端分支 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；本计划和 ChangeLog 更新作为独立文档提交随后推送。步骤 10C–10F 尚未执行。
