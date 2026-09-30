@@ -1581,4 +1581,4 @@ listed here.
 - Summary/波形视图显示两相和聚合 envelope；磁件逐项标记物理相位；损耗视图使用两相系统总量及 bridge、半导体、两相电感、共享电容分量。README 和专用用户指南更新，卡片继续复用现有 Boost PFC 图片占位配置。
 - 更新该拓扑状态相关的冻结契约和注册测试期望，新增 `tests/test_two_phase_interleaved_boost_pfc_step9_gui.py`。
 - 影响分类：integration change，涉及 registry、capability、拓扑 form 与公共 GUI result views。验证：步骤 1–9 两相拓扑专项回归 `35 passed`；步骤 9 最终 GUI、结果和文档专项测试 `4 passed`（含真实 Tk GUI 端到端按钮链）；`py_compile` 与 `git diff --check` 通过。未运行其他拓扑或全量测试。
-- Git：待提交、推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；既有无关工作区删除和未跟踪输出不纳入本次变更。
+- Git：实现、测试和用户文档提交 `b074599` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；本执行记录随后作为独立文档提交推送。既有无关工作区删除和未跟踪输出未纳入实现提交。

@@ -705,7 +705,7 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - Design Summary 展示相数、相移、每相总串联电感、设计/运行相电流、纹波和 switching-edge 边界；波形页分别绘制 phase 1、phase 2 与合成电流、逐相开关/二极管电流包络及合成纹波包络。磁件结果增加物理相位标记；损耗页使用拓扑级系统总量和分量，避免把系统损耗误作磁件损耗。
 - 更新 README、`docs/two_phase_interleaved_boost_pfc.md` 和针对当前拓扑状态的路由/契约断言；新增步骤 9 结果与文档专项测试。旧迁移验收中的 19 拓扑计数保留为历史记录。
 - 验证：步骤 1–9 专项回归 `35 passed`；步骤 9 最终 GUI、结果和文档专项测试 `4 passed`（含真实 Tk GUI 端到端按钮链）；`py_compile` 与 `git diff --check` 通过。未运行其他拓扑或全量测试。
-- Git：实现、测试和文档待提交并推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；步骤 10 集成门禁仍待执行。
+- Git：实现、测试和文档提交 `b074599` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；本执行回执为后续独立文档提交。步骤 10 集成门禁仍待执行。
 
 ### 步骤 10：隔离回归和集成门禁
 
