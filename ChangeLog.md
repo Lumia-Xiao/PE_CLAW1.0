@@ -1588,4 +1588,4 @@ listed here.
 - 新增 `tests/test_two_phase_interleaved_boost_pfc_step10_isolation.py`，以相反顺序重复运行既有单相 Boost PFC 和两相交错 Boost PFC，比较稳定的设计报告、所选硬件、损耗、warning、manifest 阶段、efficiency sweep 和 artifact；校验旧 run 对象和 artifact 不被后续运行修改，且路径/run context 保持隔离。
 - 按用户要求只把两相拓扑专项作为本步骤门禁：步骤 1–10 `37 passed`（451.87s），步骤 10 双顺序隔离单测复跑 `1 passed`（217.13s），`PYTHONPATH=src`、`MPLBACKEND=Agg`。未执行其他拓扑全面回归或全量 pytest；曾启动的全量 pytest 根据用户后续指示中止。
 - 范围缩小指示前运行的选择性既有 baseline/AC-DC/输出隔离/GUI 集合为 `25 passed, 8 failed`（892.31s）。失败来自旧测试中与当前 artifact key 不一致的断言，以及 Windows 长路径写入失败；测试文件路径检查发现部分内容解析到本机 PE-Claw 1.0 测试目录。它们未被纳入两相拓扑的通过结论，未修改旧测试或生产代码。
-- 实施提交待记录；计划和变更日志随本次文档提交。工作区原有 migration、deployment、Web 删除，以及 `outputs/` 和 pytest 临时目录均保持原样、未暂存。
+- 实现、隔离回归和计划记录提交 `1edd142`；本 ChangeLog 回执作为后续文档提交推送。工作区原有 migration、deployment、Web 删除，以及 `outputs/` 和 pytest 临时目录均保持原样、未纳入提交。
