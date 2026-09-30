@@ -47,6 +47,9 @@ DEFAULT_LOAD_POINTS: tuple[float, ...] = tuple(round(index / 20.0, 2) for index 
 DEFAULT_INVERTER_PF_POINTS: tuple[float, ...] = tuple(round(index / 10.0, 1) for index in range(-10, 11) if index != 0)
 SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID = "single_phase_boost_pfc_diode_bridge"
 SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID = "single_phase_totem_pole_bridgeless_pfc"
+INTERLEAVED_BOOST_PFC_TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
+
+
 def run_efficiency_sweep(
     report: DesignReport,
     plugin: TopologyPlugin | None = None,
@@ -88,7 +91,10 @@ def run_efficiency_sweep(
 
     if report.capacitor is None:
         warnings.append("Capacitor design has not been run; capacitor loss is omitted.")
-    if _is_single_phase_pfc_topology(report):
+    if _is_interleaved_boost_pfc_topology(report):
+        if report.magnetic is None or not _has_selected_magnetic_design(report):
+            warnings.append("Two-phase interleaved Boost PFC magnetic design is unavailable.")
+    elif _is_single_phase_pfc_topology(report):
         if report.magnetic is None or not _has_selected_magnetic_design(report):
             warnings.append("PFC magnetic design has not been run; boost-inductor loss is omitted.")
     elif _is_ac_dc_bridge_topology(report):
@@ -113,6 +119,14 @@ def run_efficiency_sweep(
         npc_periodic_initial_current_a = _next_npc_periodic_initial_current(report, point)
 
     result = _build_result(points, load_grid, warnings, signature, report)
+    if _is_interleaved_boost_pfc_topology(report) and not _all_points_complete(points):
+        reason = "Two-phase interleaved Boost PFC efficiency sweep blocked: one or more load points lack required loss components."
+        result = replace(
+            result,
+            status="blocked",
+            blocked_reason=reason,
+            warnings=tuple(_dedupe([*result.warnings, reason])),
+        )
     if is_llc_topology(report.spec.topology_id) and not _all_points_complete(points):
         reason = "LLC efficiency sweep blocked: one or more load points did not produce complete efficiency results."
         result = replace(
@@ -127,7 +141,13 @@ def run_efficiency_sweep(
             fixed_parameters=_llc_fixed_parameters(report),
         )
         return _write_blocked_llc_result(result, _resolve_efficiency_output_dir(report, output_dir))
-    artifacts = _write_artifacts(result, _resolve_efficiency_output_dir(report, output_dir))
+    artifact_dir = _resolve_efficiency_output_dir(report, output_dir)
+    artifacts = _write_artifacts(result, artifact_dir)
+    if _is_interleaved_boost_pfc_topology(report):
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+        csv_path = artifact_dir / "efficiency_sweep.csv"
+        json_path = artifact_dir / "efficiency_sweep_result.json"
+        artifacts = {**artifacts, "efficiency_sweep_csv": str(csv_path), "result_json": str(json_path)}
     pf_sweep_points: tuple[dict[str, object], ...] = ()
     pf_sweep_artifacts: dict[str, str] = {}
     if _is_single_phase_inverter_topology(report):
@@ -143,7 +163,7 @@ def run_efficiency_sweep(
         )
         warnings.extend(pf_warnings)
         result = _build_result(points, load_grid, warnings, signature, report)
-    return replace(
+    completed_result = replace(
         result,
         artifact_paths=artifacts,
         pf_sweep_points=pf_sweep_points,
@@ -154,6 +174,13 @@ def run_efficiency_sweep(
         source_ids=_llc_source_ids(report),
         fixed_parameters=_llc_fixed_parameters(report),
     )
+    if _is_interleaved_boost_pfc_topology(report):
+        json_path = Path(artifacts["result_json"])
+        json_path.write_text(
+            json.dumps(completed_result.to_dict(), indent=2, sort_keys=True, default=str),
+            encoding="utf-8",
+        )
+    return completed_result
 
 
 def _validate_llc_efficiency_dependencies(report: DesignReport) -> str | None:
@@ -270,6 +297,8 @@ def _evaluate_sweep_load_point(
     """Isolate one failed operating point so the remaining sweep can finish."""
 
     try:
+        if _is_interleaved_boost_pfc_topology(report):
+            return _evaluate_interleaved_boost_pfc_load_point(report, plugin, load_pu)
         if _is_single_phase_boost_pfc_topology(report):
             return _evaluate_single_phase_boost_pfc_load_point(report, plugin, load_pu)
         if _is_single_phase_totem_pole_pfc_topology(report):
@@ -434,6 +463,8 @@ def _evaluate_load_point(
 def _blocking_warning(report: DesignReport, plugin: TopologyPlugin | None) -> str | None:
     if report is None or report.candidate is None:
         return "Run Design before running Efficiency Sweep."
+    if _is_interleaved_boost_pfc_topology(report):
+        return _interleaved_boost_pfc_fixed_hardware_warning(report)
     if plugin is None:
         return "Efficiency sweep requires the active topology plugin."
     return efficiency_sweep_blocking_warning(report)
@@ -444,6 +475,8 @@ def efficiency_sweep_blocking_warning(report: DesignReport | None) -> str | None
 
     if report is None or report.candidate is None:
         return "Run Design before running Efficiency Sweep."
+    if _is_interleaved_boost_pfc_topology(report):
+        return _interleaved_boost_pfc_fixed_hardware_warning(report)
     if _is_single_phase_boost_pfc_topology(report):
         return _boost_pfc_fixed_hardware_warning(report)
     if _is_single_phase_totem_pole_pfc_topology(report):
@@ -473,6 +506,44 @@ def _boost_pfc_fixed_hardware_warning(report: DesignReport) -> str | None:
         return "Boost PFC efficiency sweep requires selected DC-link capacitor hardware from Run Capacitor."
     if report.magnetic is None or not _has_selected_magnetic_design(report):
         return "Boost PFC efficiency sweep requires selected boost-inductor hardware from Run Magnetics."
+    return None
+
+
+def _interleaved_boost_pfc_fixed_hardware_warning(report: DesignReport) -> str | None:
+    bridge = report.bridge_rectifier
+    if bridge is None or bridge.selected_candidate is None:
+        return "Two-phase interleaved Boost PFC efficiency sweep requires selected input bridge hardware from Run Design."
+
+    device = report.device
+    required_roles = (
+        "phase_1_main_switch",
+        "phase_2_main_switch",
+        "phase_1_boost_diode",
+        "phase_2_boost_diode",
+    )
+    selected_roles = set(device.selected_devices) if device is not None else set()
+    for role in required_roles:
+        if role not in selected_roles:
+            return f"Two-phase interleaved Boost PFC efficiency sweep requires selected {role} hardware from Run Design."
+
+    magnetic = report.magnetic
+    if magnetic is None:
+        return "Two-phase interleaved Boost PFC efficiency sweep requires both phase inductors from Run Magnetics."
+    requirements = magnetic.design_requirements if isinstance(magnetic.design_requirements, dict) else {}
+    for phase in ("phase_1", "phase_2"):
+        design_id = requirements.get(f"{phase}_design_id")
+        has_selected_design = any(
+            item.candidate_id == design_id
+            and isinstance(item.metadata, dict)
+            and item.metadata.get("phase_role") == phase
+            for item in magnetic.chosen_designs
+        )
+        if not design_id or not has_selected_design:
+            return f"Two-phase interleaved Boost PFC efficiency sweep requires the {phase} inductor from Run Magnetics."
+
+    capacitor = report.capacitor
+    if capacitor is None or capacitor.output_selection is None or capacitor.output_selection.recommended is None:
+        return "Two-phase interleaved Boost PFC efficiency sweep requires selected shared DC-link capacitor hardware from Run Capacitor."
     return None
 
 
@@ -582,6 +653,129 @@ def _evaluate_single_phase_boost_pfc_load_point(
         ),
         point_warnings,
     )
+
+
+def _evaluate_interleaved_boost_pfc_load_point(
+    base_report: DesignReport,
+    plugin: TopologyPlugin,
+    load_pu: float,
+) -> tuple[EfficiencySweepPoint, list[str]]:
+    point_warnings: list[str] = []
+    operating_point = _sweep_operating_point(base_report, load_pu)
+    waveform_set = call_with_report_run(
+        base_report, plugin.generate_waveforms, base_report.candidate, operating_point=operating_point
+    )
+    if waveform_set is None:
+        warning = f"Two-phase interleaved Boost PFC waveform generation returned no data at {load_pu:.1f} p.u."
+        return _incomplete_interleaved_pfc_point(load_pu, warning), [warning]
+
+    stress_result = plugin.extract_stress(base_report.candidate, waveform_set=waveform_set)
+    topology_result = plugin.evaluate(base_report.candidate, waveform_set=waveform_set, stress_result=stress_result)
+    refreshed = replace(
+        base_report,
+        operating_point=operating_point,
+        waveform=waveform_set,
+        stress=stress_result,
+        topology_result=topology_result,
+    )
+    refreshed = run_device_operating_point_refresh(refreshed, plugin=plugin)
+    magnetic_options = PipelineOptions(enable_magnetic_design=True, enable_capacitor_design=refreshed.capacitor is not None)
+    refreshed = run_loss_pipeline(
+        refreshed,
+        preserve_selected_design_id=True,
+        refresh_plot_artifact=False,
+        pipeline_options=magnetic_options,
+    )
+    refreshed = run_thermal_pipeline(refreshed, pipeline_options=magnetic_options)
+    refreshed = run_capacitor_operating_point_refresh(refreshed)
+
+    bridge_loss_w = _ac_dc_bridge_loss_w(refreshed, load_pu)
+    semiconductor_loss_w = _semiconductor_loss_w(refreshed)
+    magnetic_loss_w = _magnetic_loss_w(refreshed)
+    capacitor_loss_w = _capacitor_loss_w(refreshed)
+    component_values = {
+        "bridge rectifier": bridge_loss_w,
+        "semiconductor": semiconductor_loss_w,
+        "phase inductors": magnetic_loss_w,
+        "DC-link capacitor": capacitor_loss_w,
+    }
+    for label, value in component_values.items():
+        if value is None:
+            point_warnings.append(f"Selected {label} loss was unavailable at {load_pu:.1f} p.u.")
+
+    other_loss_w = 0.0
+    total_loss_w = (
+        bridge_loss_w + semiconductor_loss_w + magnetic_loss_w + capacitor_loss_w + other_loss_w
+        if all(value is not None for value in component_values.values())
+        else None
+    )
+    output_power_w, power_warning = _output_power_w(refreshed, load_pu)
+    if power_warning:
+        point_warnings.append(power_warning)
+    efficiency = (
+        output_power_w / (output_power_w + total_loss_w)
+        if total_loss_w is not None and output_power_w > 0.0
+        else None
+    )
+
+    audit = _interleaved_boost_pfc_load_point_audit(refreshed)
+    return (
+        EfficiencySweepPoint(
+            load_pu=load_pu,
+            output_power_w=output_power_w,
+            total_loss_w=total_loss_w,
+            efficiency=efficiency,
+            semiconductor_loss_w=semiconductor_loss_w,
+            magnetic_loss_w=magnetic_loss_w,
+            capacitor_loss_w=capacitor_loss_w,
+            other_loss_w=other_loss_w,
+            bridge_rectifier_loss_w=bridge_loss_w,
+            loss_breakdown_w=_loss_breakdown(
+                semiconductor=semiconductor_loss_w,
+                bridge_rectifier=bridge_loss_w,
+                magnetic=magnetic_loss_w,
+                capacitor=capacitor_loss_w,
+                other=other_loss_w,
+            ),
+            warnings=tuple(point_warnings),
+            switching_loss_audit=audit,
+        ),
+        point_warnings,
+    )
+
+
+def _incomplete_interleaved_pfc_point(load_pu: float, warning: str) -> EfficiencySweepPoint:
+    return EfficiencySweepPoint(
+        load_pu=load_pu,
+        output_power_w=0.0,
+        total_loss_w=None,
+        efficiency=None,
+        semiconductor_loss_w=None,
+        magnetic_loss_w=None,
+        capacitor_loss_w=None,
+        other_loss_w=None,
+        bridge_rectifier_loss_w=None,
+        warnings=(warning,),
+    )
+
+
+def _interleaved_boost_pfc_load_point_audit(report: DesignReport) -> dict[str, object]:
+    metadata = report.waveform.metadata if report.waveform is not None else {}
+    interleaved = metadata.get("interleaved_ripple_pp_a", {}) if isinstance(metadata, dict) else {}
+    phase_metrics = metadata.get("phase_device_metrics", {}) if isinstance(metadata, dict) else {}
+    if not isinstance(interleaved, dict):
+        interleaved = {}
+    if not isinstance(phase_metrics, dict):
+        phase_metrics = {}
+    return {
+        "phase_shift_deg": metadata.get("phase_shift_deg", 180.0),
+        "current_sharing_assumption": metadata.get("current_sharing_assumption", "ideal_equal_phase_current"),
+        "worst_aggregate_ripple_pp_a": interleaved.get("worst_aggregate_ripple_pp_a"),
+        "worst_ripple_theta_deg": interleaved.get("worst_theta_deg"),
+        "phase_1_inductor_rms_a": phase_metrics.get("phase_1", {}).get("inductor_current_rms_a"),
+        "phase_2_inductor_rms_a": phase_metrics.get("phase_2", {}).get("inductor_current_rms_a"),
+        "fixed_hardware_ids": _interleaved_fixed_hardware_ids(report),
+    }
 
 
 def _evaluate_single_phase_totem_pole_pfc_load_point(
@@ -799,6 +993,19 @@ def _ac_dc_bridge_loss_w(report: DesignReport, load_pu: float) -> float | None:
 
 
 def _adjust_ac_dc_bridge_request_for_load(report, request, load_pu: float):
+    if _is_interleaved_boost_pfc_topology(report):
+        output_power_w, _ = _output_power_w(report, load_pu)
+        dc_bus_voltage_v = max(float(request.dc_bus_voltage_v), 1.0e-12)
+        return replace(
+            request,
+            output_power_w=output_power_w,
+            dc_output_current_a=output_power_w / dc_bus_voltage_v,
+            bridge_current_avg_a=request.bridge_current_avg_a * load_pu,
+            bridge_current_rms_a=request.bridge_current_rms_a * load_pu,
+            bridge_current_waveform_a=tuple(report.waveform.input_source_current_a)
+            if report.waveform is not None
+            else (),
+        )
     if _is_three_phase_ac_dc_bridge_topology(report):
         output_power_w, _ = _output_power_w(report, load_pu)
         dc_output_current_a = output_power_w / max(request.dc_bus_voltage_v, 1.0e-12)
@@ -1169,6 +1376,9 @@ def _sweep_basis(report: DesignReport, load_grid: tuple[float, ...], points: lis
         "load_grid": tuple(load_grid),
         "operating_power_factor": _operating_power_factor_for_report(report),
         "fixed_hardware": _fixed_hardware_label(report),
+        "fixed_hardware_ids": (
+            _interleaved_fixed_hardware_ids(report) if _is_interleaved_boost_pfc_topology(report) else {}
+        ),
         "included_losses": tuple(included_losses),
         "loss_breakdown": dict(full_load.loss_breakdown_w) if full_load is not None else {},
         "loss_labels": _loss_labels(report),
@@ -1218,6 +1428,8 @@ def _fixed_hardware_label(report: DesignReport) -> str:
         return "selected NPC outer/inner switches, clamp diodes, 3x per-phase output inductors, and upper/lower split-link capacitor banks"
     if _is_single_phase_boost_pfc_topology(report):
         return "selected input bridge rectifier, boost switch/diode, boost inductor, and DC-link capacitor bank"
+    if _is_interleaved_boost_pfc_topology(report):
+        return "selected input bridge, four phase-position devices, two phase inductors, and shared DC-link capacitor bank"
     if _is_single_phase_totem_pole_pfc_topology(report):
         return "selected Totem-Pole HF/LF switches, boost inductor, and DC-link capacitor bank"
     if _is_ac_dc_bridge_topology(report):
@@ -1239,6 +1451,14 @@ def _loss_labels(report: DesignReport) -> dict[str, str]:
             bridge_rectifier="input bridge rectifier",
             magnetic="boost inductor",
             capacitor="DC-link capacitor",
+        )
+    elif _is_interleaved_boost_pfc_topology(report):
+        labels.update(
+            semiconductor="two-phase Boost switches / diodes",
+            bridge_rectifier="input bridge rectifier",
+            magnetic="two Boost phase inductors",
+            capacitor="shared DC-link capacitor",
+            other="other modeled loss",
         )
     elif _is_single_phase_totem_pole_pfc_topology(report):
         labels.update(
@@ -1584,6 +1804,9 @@ def _build_signature(report: DesignReport, load_grid: tuple[float, ...]) -> str:
         "selected_bridge_rectifier": _bridge_rectifier_signature(bridge),
         "capacitor_parts": _capacitor_signature(capacitor),
         "magnetic_design_id": _magnetic_design_signature(magnetic),
+        "interleaved_fixed_hardware_ids": (
+            _interleaved_fixed_hardware_ids(report) if _is_interleaved_boost_pfc_topology(report) else None
+        ),
         "load_grid": load_grid,
         "operating_vin": report.operating_point.vin_v if report.operating_point is not None else None,
         "operating_power_factor": report.operating_point.power_factor if report.operating_point is not None else None,
@@ -1686,6 +1909,39 @@ def _magnetic_design_signature(magnetic) -> str | None:
     return getattr(magnetic, "selected_design_id", None)
 
 
+def _interleaved_fixed_hardware_ids(report: DesignReport) -> dict[str, object]:
+    bridge = report.bridge_rectifier
+    device = report.device
+    magnetic = report.magnetic
+    capacitor = report.capacitor
+    output = capacitor.output_selection if capacitor is not None else None
+    selected_capacitor = output.recommended if output is not None else None
+    phase_design_candidates = {
+        str(item.metadata.get("phase_role")): item.candidate_id
+        for item in (magnetic.chosen_designs if magnetic is not None else [])
+        if isinstance(item.metadata, dict) and item.metadata.get("phase_role") in {"phase_1", "phase_2"}
+    }
+    requirements = magnetic.design_requirements if magnetic is not None and isinstance(magnetic.design_requirements, dict) else {}
+    phase_designs = {
+        phase: requirements.get(f"{phase}_design_id") or phase_design_candidates.get(phase)
+        for phase in ("phase_1", "phase_2")
+    }
+    return {
+        "bridge_rectifier": getattr(getattr(bridge, "selected_candidate", None), "candidate_id", None),
+        "devices": dict(getattr(device, "selected_devices", {}) or {}),
+        "phase_inductors": phase_designs,
+        "dc_link_capacitor": (
+            {
+                "part_number": selected_capacitor.candidate.part_number,
+                "series_count": selected_capacitor.series_count,
+                "parallel_count": selected_capacitor.parallel_count,
+            }
+            if selected_capacitor is not None
+            else None
+        ),
+    }
+
+
 def _selected_ac_dc_reactor_candidate(report: DesignReport):
     magnetic = report.magnetic
     if magnetic is None or magnetic.result_type != "ac_dc_sendust_reactor":
@@ -1717,6 +1973,10 @@ def _is_ac_dc_bridge_topology(report: DesignReport) -> bool:
 
 def _is_single_phase_boost_pfc_topology(report: DesignReport) -> bool:
     return report.spec.topology_id == SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID
+
+
+def _is_interleaved_boost_pfc_topology(report: DesignReport) -> bool:
+    return report.spec.topology_id == INTERLEAVED_BOOST_PFC_TOPOLOGY_ID
 
 
 def _is_single_phase_totem_pole_pfc_topology(report: DesignReport) -> bool:
