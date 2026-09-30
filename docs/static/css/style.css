@@ -135,6 +135,41 @@ button, input, textarea, select { font: inherit; }
 }
 .hero-logo { width: min(520px, 88%); max-height: 160px; object-fit: contain; object-position: left center; }
 .hero-lead { max-width: 760px; color: var(--muted); font-size: 1.12rem; }
+.lab-affiliation {
+  display: grid;
+  grid-template-columns: minmax(165px, 200px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  max-width: 760px;
+  margin-top: 18px;
+  border: 1px solid #cfe0ec;
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #fff, #f2f8fc);
+  color: var(--navy);
+  text-decoration: none;
+  box-shadow: 0 12px 30px rgba(11,59,96,.08);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.lab-affiliation:hover,
+.lab-affiliation:focus-visible {
+  transform: translateY(-2px);
+  border-color: #78b9d9;
+  box-shadow: 0 16px 34px rgba(11,59,96,.13);
+  outline: none;
+}
+.lab-affiliation img { width: 100%; max-width: 200px; }
+.lab-affiliation-copy { display: grid; line-height: 1.25; }
+.lab-affiliation-copy > span {
+  color: var(--teal);
+  font-size: .7rem;
+  font-weight: 850;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.lab-affiliation-copy strong { margin-top: 3px; font-size: 1.05rem; }
+.lab-affiliation-copy small { margin-top: 4px; color: var(--muted); font-size: .76rem; line-height: 1.4; }
+.lab-affiliation-arrow { color: var(--blue); font-size: 1.25rem; font-weight: 850; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 .hero-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
 .hero-badges span {
@@ -474,4 +509,11 @@ button, input, textarea, select { font: inherit; }
   .validation-card, .cta-panel { grid-template-columns: 1fr; display: grid; }
   .validation-number { font-size: 3rem; }
   .footer-grid { flex-direction: column; justify-content: center; align-items: flex-start; padding: 32px 0; }
+}
+
+@media (max-width: 520px) {
+  .lab-affiliation { grid-template-columns: 1fr auto; }
+  .lab-affiliation img { grid-column: 1 / -1; max-width: 245px; }
+  .lab-affiliation-copy { grid-column: 1; }
+  .lab-affiliation-arrow { grid-column: 2; grid-row: 2; }
 }
