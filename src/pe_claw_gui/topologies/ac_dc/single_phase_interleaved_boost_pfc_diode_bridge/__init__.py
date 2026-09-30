@@ -25,7 +25,7 @@ class SinglePhaseInterleavedBoostPFCDiodeBridgePlugin(TopologyPlugin):
     topology_id: str = TOPOLOGY_ID
     display_name: str = DISPLAY_NAME
     legacy_key: str = LEGACY_KEY
-    implemented: bool = False
+    implemented: bool = True
 
     def build_spec(self, raw_input: Mapping[str, str]) -> TopologySpec:
         return build_spec(raw_input)

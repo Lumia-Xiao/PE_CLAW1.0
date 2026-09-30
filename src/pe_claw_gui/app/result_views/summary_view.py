@@ -108,6 +108,28 @@ def _build_electrical_parameter_lines(report: DesignReport) -> list[str]:
     topology_id = report.spec.topology_id
     metadata = candidate.metadata
     waveform_metadata = report.waveform.metadata if report.waveform is not None else {}
+    if topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
+        phase_inductance = metadata.get("phase_total_series_inductance_h", {})
+        phase_current_rms = metadata.get("phase_current_rms_a", {})
+        phase_metrics = waveform_metadata.get("phase_device_metrics", {})
+        interleaved = waveform_metadata.get("interleaved_ripple_pp_a", {})
+        return [
+            f"  Vac nominal/min/max = {_fmt_float(metadata.get('vac_rms_v'))} / {_fmt_float(metadata.get('vac_rms_min_v'))} / {_fmt_float(metadata.get('vac_rms_max_v'))} V RMS",
+            f"  Vdc target = {candidate.vout_target:.6f} V",
+            f"  Pout = {candidate.pout_target:.6f} W",
+            f"  f_line / f_sw = {_fmt_float(metadata.get('f_line_hz'))} / {_fmt_float(metadata.get('fsw_hz'))} Hz",
+            f"  PF target = {_fmt_float(metadata.get('power_factor_target'))}",
+            f"  phase count / shift = {int(metadata.get('phase_count', 2))} / {_fmt_float(metadata.get('phase_shift_deg', 180.0))} deg",
+            "  current sharing = ideal 50/50 (design assumption)",
+            f"  L phase 1 / phase 2 = {_fmt_float(_mapping_value(phase_inductance, 'phase_1') * 1e6 if _mapping_value(phase_inductance, 'phase_1') is not None else None)} / {_fmt_float(_mapping_value(phase_inductance, 'phase_2') * 1e6 if _mapping_value(phase_inductance, 'phase_2') is not None else None)} uH",
+            f"  I phase 1 / phase 2 RMS = {_fmt_float(_mapping_value(phase_current_rms, 'phase_1'))} / {_fmt_float(_mapping_value(phase_current_rms, 'phase_2'))} A",
+            f"  nominal worst aggregate switching ripple = {_fmt_float(interleaved.get('worst_aggregate_ripple_pp_a'))} A p-p",
+            f"  operating load ratio = {_fmt_float(report.waveform.load_ratio if report.waveform is not None else None)} p.u.",
+            f"  phase 1 inductor RMS = {_fmt_float(_mapping_value(phase_metrics.get('phase_1', {}), 'inductor_current_rms_a'))} A",
+            f"  phase 2 inductor RMS = {_fmt_float(_mapping_value(phase_metrics.get('phase_2', {}), 'inductor_current_rms_a'))} A",
+            f"  CCM feasible = {candidate.ccm_valid}; switching edges resolved = {waveform_metadata.get('switching_edges_resolved', False)}",
+            f"  Feasibility reason = {candidate.failure_reason or 'OK'}",
+        ]
     if is_llc_topology(topology_id):
         llc_fha = metadata.get("llc_fha") if isinstance(metadata.get("llc_fha"), dict) else {}
         reason = "FHA electrical result is unavailable."
@@ -225,6 +247,10 @@ def _fmt_float(value) -> str:
         return f"{float(value):.6g}"
     except (TypeError, ValueError):
         return "-"
+
+
+def _mapping_value(mapping, key: str):
+    return mapping.get(key) if isinstance(mapping, dict) else None
 
 
 def _llc_current_value(llc_fha: dict, key: str):

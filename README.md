@@ -24,7 +24,7 @@ User specifications
 PE-Claw 1.0 focuses on a transparent engineering pipeline rather than a black-box optimizer. Each design stage is rule-based, auditable, and connected to concrete electrical equations, component libraries, and result views.
 
 > **Current release scope:** PE-Claw 1.0 provides a deterministic GUI and
-> backend flow for 19 registered converter topologies across AC-DC, DC-AC, and
+> backend flow for 20 registered converter topologies across AC-DC, DC-AC, and
 > DC-DC. AI Design, agentic execution, natural-language design intake, and
 > autonomous design loops are intentionally outside this release.
 
@@ -294,7 +294,15 @@ devices/
 | single_phase_diode_bridge_rectifier_dc_inductor_filter | Single-phase diode bridge rectifier with DC-side inductor filter |
 | three_phase_diode_bridge_rectifier_capacitor_filter | Three-phase diode bridge rectifier with capacitor filter |
 | single_phase_boost_pfc_diode_bridge | Single-phase boost PFC diode bridge |
+| single_phase_interleaved_boost_pfc_diode_bridge | Two-phase interleaved boost PFC diode bridge |
 | single_phase_totem_pole_bridgeless_pfc | Single-phase totem-pole bridgeless PFC |
+
+The two-phase interleaved Boost PFC is a first-pass CCM design flow with fixed
+180-degree interleaving and ideal 50/50 phase-current sharing. It reports the
+two phase positions separately and aggregates system losses across the input
+bridge, semiconductor devices, both inductors, and shared DC-link capacitor.
+See [the topology guide](docs/two_phase_interleaved_boost_pfc.md) for its
+inputs, workflow, result views, and model boundaries.
 
 ### DC-AC
 

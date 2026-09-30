@@ -61,7 +61,7 @@ def build_report(
     stress_result: StressResult | None = None,
     topology_result: TopologyResult | None = None,
 ) -> DesignReport:
-    """Assemble the topology-local report used while downstream stages are planned."""
+    """Assemble the topology-local electrical report before pipeline enrichment."""
 
     if waveform_set is None:
         waveform_set = generate_waveforms(candidate, operating_point=operating_point)
@@ -82,7 +82,7 @@ def build_report(
         stress=stress_result,
         topology_result=topology_result,
         notes=[
-            "Two-phase interleaved Boost PFC is registered as a planned topology; this report contains topology-local electrical results only.",
-            "Input-bridge, semiconductor, magnetic, loss, thermal, geometry, and efficiency stages remain pending for later plan steps.",
+            "Two-phase interleaved Boost PFC first-pass CCM design assumes fixed 180-degree interleaving and ideal 50/50 current sharing.",
+            "DCM, CrM, dynamic current-sharing control, phase mismatch, zero-crossing control dynamics, THD, EMI, and detailed parasitics are not modeled.",
         ],
     )

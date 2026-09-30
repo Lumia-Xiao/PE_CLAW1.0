@@ -18,14 +18,14 @@ PHASE8_TOPOLOGY_IDS = (
     "single_phase_boost_pfc_diode_bridge",
     "single_phase_totem_pole_bridgeless_pfc",
 )
-PLANNED_AC_DC_TOPOLOGY_IDS = ("single_phase_interleaved_boost_pfc_diode_bridge",)
+ADDITIONAL_AC_DC_TOPOLOGY_IDS = ("single_phase_interleaved_boost_pfc_diode_bridge",)
 
 
 def test_phase8_topologies_are_registered_with_gui_forms() -> None:
     registry = build_default_registry()
     definitions = {definition.topology_id: definition for definition in registry.list_topologies("ac_dc")}
 
-    assert set(definitions) == set(PHASE8_TOPOLOGY_IDS) | set(PLANNED_AC_DC_TOPOLOGY_IDS)
+    assert set(definitions) == set(PHASE8_TOPOLOGY_IDS) | set(ADDITIONAL_AC_DC_TOPOLOGY_IDS)
     for topology_id in PHASE8_TOPOLOGY_IDS:
         definition = definitions[topology_id]
         plugin = registry.get_plugin(topology_id)
@@ -37,12 +37,12 @@ def test_phase8_topologies_are_registered_with_gui_forms() -> None:
         assert form_class.topology_id == topology_id
         assert form_class.implemented is True
 
-    for topology_id in PLANNED_AC_DC_TOPOLOGY_IDS:
+    for topology_id in ADDITIONAL_AC_DC_TOPOLOGY_IDS:
         definition = definitions[topology_id]
-        assert definition.implemented is False
-        assert registry.get_plugin(topology_id).implemented is False
-        assert registry.get_form_class(topology_id).implemented is False
-        assert registry.get_capability(topology_id).support_status == "planned"
+        assert definition.implemented is True
+        assert registry.get_plugin(topology_id).implemented is True
+        assert registry.get_form_class(topology_id).implemented is True
+        assert registry.get_capability(topology_id).support_status == "first-pass"
 
 
 def test_phase8_topologies_run_deterministic_backend_pipeline() -> None:

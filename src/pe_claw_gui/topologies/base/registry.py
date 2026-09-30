@@ -191,7 +191,7 @@ def build_default_registry() -> TopologyRegistry:
             module_path="pe_claw_gui.topologies.ac_dc.single_phase_interleaved_boost_pfc_diode_bridge",
             form_path="pe_claw_gui.app.topology_forms.single_phase_interleaved_boost_pfc_diode_bridge_form",
             form_class="SinglePhaseInterleavedBoostPFCDiodeBridgeForm",
-            implemented=False,
+            implemented=True,
             legacy_key="SinglePhase_InterleavedBoostPFC_DiodeBridge_FirstPass",
         )
     )

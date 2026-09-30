@@ -1574,3 +1574,11 @@ listed here.
 - 为新拓扑生成 CSV、JSON、效率曲线和损耗分解图；测试覆盖 0.1/0.5/1.0 p.u.、损耗和守恒、固定硬件 ID 不变、两相电流/纹波审计及前置缺项。
 - 验证仅限两相拓扑：步骤 1–8 组合专项回归 `32 passed`；步骤 8 最终专项复跑 `5 passed`；`git diff --check` 通过。未运行旧 AC-DC 拓扑或全量测试，其基线对比保留在计划步骤 10。
 - 实现与测试提交 `d9a8064` 已推送；本记录与计划步骤 8 执行记录作为独立文档提交后推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`。工作区既有无关删除和未跟踪文件均未纳入。
+
+## 2026-09-30 - 两相交错 Boost PFC 步骤 9 GUI 与用户文档
+
+- 启用两相拓扑的 first-pass GUI 路由和能力状态；设计后开放波形、磁件和电容动作，硬件齐备后才开放效率扫描。拓扑选择说明和输入表单明确 180° 交错、理想 50/50 均流与首版模型边界。
+- Summary/波形视图显示两相和聚合 envelope；磁件逐项标记物理相位；损耗视图使用两相系统总量及 bridge、半导体、两相电感、共享电容分量。README 和专用用户指南更新，卡片继续复用现有 Boost PFC 图片占位配置。
+- 更新该拓扑状态相关的冻结契约和注册测试期望，新增 `tests/test_two_phase_interleaved_boost_pfc_step9_gui.py`。
+- 影响分类：integration change，涉及 registry、capability、拓扑 form 与公共 GUI result views。验证：步骤 1–9 两相拓扑专项回归 `35 passed`；步骤 9 最终 GUI、结果和文档专项测试 `4 passed`（含真实 Tk GUI 端到端按钮链）；`py_compile` 与 `git diff --check` 通过。未运行其他拓扑或全量测试。
+- Git：待提交、推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；既有无关工作区删除和未跟踪输出不纳入本次变更。

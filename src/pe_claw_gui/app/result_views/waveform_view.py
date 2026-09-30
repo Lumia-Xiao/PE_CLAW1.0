@@ -36,6 +36,11 @@ class WaveformView(ttk.Frame):
 
         waveform = report.waveform
         time_us = [t * 1e6 for t in waveform.time_s]
+        if report.spec.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
+            phase_waveforms = waveform.metadata.get("phase_waveforms")
+            if isinstance(phase_waveforms, dict):
+                self._render_interleaved_boost_pfc_waveforms(report, phase_waveforms)
+                return
         refined = waveform.metadata.get("single_phase_inverter_refined_waveforms")
         if report.spec.topology_id == "single_phase_full_bridge_inverter" and isinstance(refined, dict):
             self._render_single_phase_inverter_waveforms(report, refined)
@@ -126,6 +131,78 @@ class WaveformView(ttk.Frame):
             fontsize=11,
         )
         self.figure.tight_layout(rect=[0, 0, 1, 0.97])
+        self.canvas.draw_idle()
+
+    def _render_interleaved_boost_pfc_waveforms(
+        self,
+        report: DesignReport,
+        phase_waveforms: dict[str, object],
+    ) -> None:
+        waveform = report.waveform
+        if waveform is None:
+            return
+        time_ms = [value * 1e3 for value in waveform.time_s]
+        phases = {
+            f"phase_{index}": phase_waveforms.get(f"phase_{index}", {})
+            for index in (1, 2)
+        }
+        axes = [self.figure.add_subplot(4, 1, index + 1) for index in range(4)]
+
+        aggregate = waveform.metadata.get("phase_currents_a", {}).get("aggregate", [])
+        for phase, color in (("phase_1", "tab:blue"), ("phase_2", "tab:orange")):
+            data = phases[phase]
+            if not isinstance(data, dict):
+                continue
+            axes[0].plot(time_ms, _series(data, "inductor_current_avg_a"), color=color, label=f"{phase} iL avg")
+        if isinstance(aggregate, list):
+            axes[0].plot(time_ms, [float(value) for value in aggregate], color="black", linestyle="--", label="aggregate iL avg")
+        axes[0].set_ylabel("iL [A]")
+        axes[0].set_title("Phase and aggregate inductor-current envelopes")
+        axes[0].legend(fontsize=7, ncol=3)
+        axes[0].grid(True, alpha=0.35)
+
+        for phase, color in (("phase_1", "tab:blue"), ("phase_2", "tab:orange")):
+            data = phases[phase]
+            if isinstance(data, dict):
+                axes[1].plot(time_ms, _series(data, "switch_current_envelope_a"), color=color, label=f"{phase} switch")
+                axes[2].plot(time_ms, _series(data, "boost_diode_current_envelope_a"), color=color, label=f"{phase} Boost diode")
+        axes[1].set_ylabel("iSW [A]")
+        axes[1].set_title("Per-phase switch-current envelopes")
+        axes[2].set_ylabel("iD [A]")
+        axes[2].set_title("Per-phase Boost-diode current envelopes")
+        for axis in axes[1:3]:
+            axis.legend(fontsize=7, ncol=2)
+            axis.grid(True, alpha=0.35)
+
+        ripple = waveform.metadata.get("interleaved_ripple_pp_a", {})
+        if isinstance(ripple, dict):
+            values = ripple.get("aggregate_ripple_pp_a", [])
+            theta = ripple.get("theta_deg", [])
+            if isinstance(values, list) and len(values) == len(time_ms):
+                axes[3].plot(time_ms, [float(value) for value in values], label="aggregate ripple p-p")
+            if isinstance(theta, list) and len(theta) == len(time_ms):
+                axes[3].set_xlabel("Line-cycle time [ms]")
+        axes[3].set_ylabel("Delta iL [A]")
+        axes[3].set_title("180-degree interleaved aggregate switching-ripple envelope")
+        axes[3].set_xlabel("Line-cycle time [ms]")
+        axes[3].legend(fontsize=7)
+        axes[3].grid(True, alpha=0.35)
+
+        for axis in axes:
+            axis.set_xlim(time_ms[0], time_ms[-1])
+        self.figure.suptitle(
+            f"{report.spec.display_name} | 180 deg interleaving | ideal 50/50 sharing | Load={waveform.load_ratio:.3f} p.u.",
+            fontsize=11,
+        )
+        self.figure.text(
+            0.5,
+            0.005,
+            "CCM line-cycle average envelopes; switching edges, dynamic sharing, THD, and EMI are not modeled.",
+            ha="center",
+            va="bottom",
+            fontsize=7,
+        )
+        self.figure.tight_layout(rect=[0, 0.035, 1, 0.96])
         self.canvas.draw_idle()
 
     def _render_single_phase_inverter_waveforms(self, report: DesignReport, data: dict[str, object]) -> None:

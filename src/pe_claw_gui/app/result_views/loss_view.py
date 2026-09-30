@@ -215,6 +215,9 @@ def _inverter_mixed_mode_segment_text(losses: dict) -> str:
 def build_system_loss_summary(report: DesignReport) -> list[str]:
     """Build unified semiconductor, magnetic, and capacitor loss summary lines."""
 
+    if report.spec.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
+        return _build_interleaved_boost_pfc_loss_summary(report)
+
     semiconductor_total = _resolve_semiconductor_total_loss(report)
     magnetic_total = _resolve_magnetic_total_loss(report)
     magnetic_applicable = has_magnetic_loss_path(report.spec.topology_id)
@@ -277,6 +280,33 @@ def build_system_loss_summary(report: DesignReport) -> list[str]:
     else:
         lines.extend(_build_capacitor_loss_lines(report))
 
+    return lines
+
+
+def _build_interleaved_boost_pfc_loss_summary(report: DesignReport) -> list[str]:
+    loss = report.loss
+    breakdown = loss.breakdown_w if loss is not None else {}
+    total = loss.total_loss_w if loss is not None else None
+    output_power = report.candidate.pout_target if report.candidate is not None else report.spec.pout
+    lines = [
+        "Two-phase interleaved Boost PFC system loss summary",
+        "  System total is the sum of the selected input bridge, active semiconductor scheme, both phase inductors, and shared DC-link capacitor.",
+        f"  Total estimated loss: {_fmt_float(total)} W",
+        f"  Design-point estimated efficiency: {_fmt_efficiency(output_power, total) if total is not None else '-'}",
+        "",
+        "System components",
+        f"  Input bridge: {_fmt_float(breakdown.get('bridge_rectifier_loss_w'))} W",
+        f"  Four phase-position semiconductor devices: {_fmt_float(breakdown.get('semiconductor_loss_w'))} W",
+        f"  Phase 1 inductor: {_fmt_float(breakdown.get('phase_1_inductor_total_loss_w'))} W",
+        f"  Phase 2 inductor: {_fmt_float(breakdown.get('phase_2_inductor_total_loss_w'))} W",
+        f"  Both phase inductors: {_fmt_float(breakdown.get('inductor_total_loss_w'))} W",
+        f"  Shared DC-link capacitor bank: {_fmt_float(breakdown.get('dc_link_capacitor_loss_w'))} W",
+        f"  Other (not modeled): {_fmt_float(breakdown.get('other_loss_w'))} W",
+    ]
+    if total is None:
+        lines.append("  Total unavailable: one or more required selected-hardware loss components are missing.")
+    if loss is not None and loss.notes:
+        lines.extend(["", "Notes", *[f"  {note}" for note in loss.notes]])
     return lines
 
 

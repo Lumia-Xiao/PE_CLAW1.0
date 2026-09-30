@@ -51,9 +51,9 @@ def test_phase4_registry_has_unique_ids_and_capabilities() -> None:
         assert capability.category_id == definition.category_id
         assert capability.hooks == PLUGIN_HOOKS
 
-    planned = registry.get_definition("single_phase_interleaved_boost_pfc_diode_bridge")
-    assert planned.implemented is False
-    assert registry.get_capability(planned.topology_id).support_status == "planned"
+    interleaved = registry.get_definition("single_phase_interleaved_boost_pfc_diode_bridge")
+    assert interleaved.implemented is True
+    assert registry.get_capability(interleaved.topology_id).support_status == "first-pass"
 
 
 @pytest.mark.parametrize("request_directory, expected_topology_id", MIGRATED_CASES)
@@ -83,7 +83,7 @@ def test_phase4_migrated_directory_routes_to_registered_plugin(
     assert result.topology_id == expected_topology_id
 
 
-def test_phase4_interleaved_pfc_planned_plugin_contract() -> None:
+def test_phase4_interleaved_pfc_first_pass_plugin_contract() -> None:
     registry = build_default_registry()
     topology_id = "single_phase_interleaved_boost_pfc_diode_bridge"
     definition = registry.get_definition(topology_id)
@@ -93,9 +93,9 @@ def test_phase4_interleaved_pfc_planned_plugin_contract() -> None:
 
     assert definition.legacy_key == "SinglePhase_InterleavedBoostPFC_DiodeBridge_FirstPass"
     assert registry.resolve_topology_id(definition.legacy_key) == topology_id
-    assert plugin.implemented is False
-    assert form.implemented is False
-    assert capability.support_status == "planned"
+    assert plugin.implemented is True
+    assert form.implemented is True
+    assert capability.support_status == "first-pass"
     assert all(callable(getattr(plugin, hook)) for hook in PLUGIN_HOOKS)
     assert [field.key for field in form.get_design_fields()[:13]] == [
         "vac_rms",

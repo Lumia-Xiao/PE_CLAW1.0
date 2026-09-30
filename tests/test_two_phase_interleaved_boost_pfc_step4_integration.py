@@ -20,10 +20,10 @@ def test_step4_registry_capability_and_legacy_routing() -> None:
     plugin = registry.get_plugin(TOPOLOGY_ID)
 
     assert definition.category_id == "ac_dc"
-    assert definition.implemented is False
+    assert definition.implemented is True
     assert registry.resolve_topology_id(definition.legacy_key) == TOPOLOGY_ID
     assert capability.capability_id == "ac_dc_single_phase_interleaved_boost_pfc"
-    assert capability.support_status == "planned"
+    assert capability.support_status == "first-pass"
     assert capability.hooks == PLUGIN_HOOKS
     assert all(callable(getattr(plugin, hook)) for hook in PLUGIN_HOOKS)
 
@@ -33,7 +33,7 @@ def test_step4_form_matches_frozen_inputs_without_phase_controls() -> None:
 
     form_class = build_default_registry().get_form_class(TOPOLOGY_ID)
     field_keys = [field.key for field in form_class.get_design_fields()]
-    assert form_class.implemented is False
+    assert form_class.implemented is True
     assert field_keys[:13] == [
         "vac_rms",
         "vac_rms_min",
@@ -95,7 +95,7 @@ def test_step4_import_is_side_effect_free() -> None:
         "import pathlib; "
         "before=sorted(str(p) for p in pathlib.Path('outputs').glob('**/*')) if pathlib.Path('outputs').exists() else []; "
         "import pe_claw_gui.topologies.ac_dc.single_phase_interleaved_boost_pfc_diode_bridge as m; "
-        "assert m.PLUGIN.implemented is False; "
+        "assert m.PLUGIN.implemented is True; "
         "after=sorted(str(p) for p in pathlib.Path('outputs').glob('**/*')) if pathlib.Path('outputs').exists() else []; "
         "assert before == after"
     )

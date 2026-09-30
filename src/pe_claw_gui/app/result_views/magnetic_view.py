@@ -174,7 +174,8 @@ def _fmt_percent(value) -> str:
 def _design_detail_lines(design, indent: str) -> list[str]:
     b_peak_t = _fmt_float(design.b_peak_design_t)
     sat_margin = _fmt_float(_sat_margin(design))
-    return [
+    phase_role = design.metadata.get("phase_role") if hasattr(design, "metadata") else None
+    lines = [
         f"{indent}{design.candidate_id}",
         (
             f"{indent}  assembly={design.assembly_type or '-'}  stack_count={design.stack_count}  "
@@ -193,6 +194,9 @@ def _design_detail_lines(design, indent: str) -> list[str]:
             + f"Bpeak={b_peak_t} T  sat_margin={sat_margin}"
         ),
     ]
+    if phase_role in {"phase_1", "phase_2"}:
+        lines.insert(1, f"{indent}  physical position={phase_role.replace('_', ' ')}")
+    return lines
 
 
 def _sat_margin(design) -> float | None:

@@ -20,7 +20,7 @@ def test_step1_contract_freezes_identity_and_fixed_two_phase_assumptions() -> No
         "display_name": "Single-Phase Interleaved Boost PFC Diode Bridge",
         "legacy_key": "SinglePhase_InterleavedBoostPFC_DiodeBridge_FirstPass",
         "category_id": "ac_dc",
-        "support_status": "planned",
+        "support_status": "first-pass",
     }
     fixed = contract["fixed_topology"]
     assert fixed["phase_count"] == 2

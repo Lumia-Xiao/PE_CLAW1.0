@@ -111,7 +111,7 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
         {
             "contract_version": CONTRACT_VERSION,
             "legacy_key": LEGACY_KEY,
-            "planned_first_pass": True,
+            "planned_first_pass": False,
             "rectifier_type": "single_phase_diode_bridge",
             "pfc_stage": "two_phase_interleaved_boost_pfc",
             "vac_rms_v": vac_rms_v,

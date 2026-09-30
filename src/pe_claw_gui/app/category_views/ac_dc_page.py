@@ -27,9 +27,9 @@ _TOPOLOGY_HINTS = {
         "device, bridge, capacitor, boost-inductor, loss, thermal, and geometry readback."
     ),
     "single_phase_interleaved_boost_pfc_diode_bridge": (
-        "Two-phase diode-bridge Boost PFC preview with fixed 180-degree interleaving and ideal "
-        "50/50 current sharing. First-pass CCM electrical results only; DCM, CrM, control "
-        "dynamics, THD, and EMI validation are pending."
+        "Two-phase diode-bridge Boost PFC first-pass CCM design with fixed 180-degree interleaving, "
+        "ideal 50/50 current sharing, phase-specific hardware, and system loss/efficiency results. "
+        "DCM, CrM, control dynamics, THD, and EMI validation are outside the model."
     ),
     "single_phase_totem_pole_bridgeless_pfc": (
         "Single-phase bridgeless Totem-Pole PFC md-first/manual flow with first-pass "

@@ -33,7 +33,7 @@ EXPECTED_TOPOLOGY_IDS = {
 }
 
 
-def test_phase12_registry_is_unique_and_includes_planned_topology() -> None:
+def test_phase12_registry_is_unique_and_includes_interleaved_pfc() -> None:
     registry = build_default_registry()
     definitions = registry.list_definitions()
     topology_ids = [definition.topology_id for definition in definitions]
@@ -51,10 +51,7 @@ def test_phase12_every_form_has_defaults_and_matches_registered_topology() -> No
         form_class = registry.get_form_class(definition.topology_id)
         fields = form_class.get_design_fields()
         assert form_class.topology_id == definition.topology_id
-        if definition.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
-            assert form_class.implemented is False
-        else:
-            assert form_class.implemented is True
+        assert form_class.implemented is True
         assert fields
         assert len({field.key for field in fields}) == len(fields)
         assert all(field.default is not None for field in fields)

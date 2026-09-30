@@ -184,11 +184,11 @@ TOPOLOGY_CAPABILITIES = (
             "ambient_temp_c",
             "target_junction_temp_c",
         ),
-        support_status="planned",
+        support_status="first-pass",
         boundary_notes=(
-            "First-pass CCM electrical design uses fixed two-phase, 180-degree interleaving and ideal 50/50 current sharing.",
+            "First-pass CCM design uses fixed two-phase, 180-degree interleaving and ideal 50/50 current sharing.",
             "DCM, CrM, dynamic current-sharing control, phase mismatch, zero-crossing control dynamics, THD, EMI, and detailed parasitics are outside this capability.",
-            "Input bridge, semiconductor, magnetic, loss, thermal, geometry, and efficiency pipeline stages are added in later plan steps.",
+            "Efficiency and loss results depend on selected bridge, four phase-position devices, two phase inductors, and shared DC-link capacitor hardware.",
         ),
     ),
     _capability(
