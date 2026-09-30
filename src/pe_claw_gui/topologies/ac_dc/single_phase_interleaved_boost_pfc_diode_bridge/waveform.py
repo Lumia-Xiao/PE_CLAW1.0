@@ -51,10 +51,7 @@ def generate_waveforms(
     interleaved = calculate_interleaved_ripple(duty=duty, phase_ripple_pp_a=delta_i)
     worst_ripple_index = interleaved.aggregate_ripple_pp_a.index(max(interleaved.aggregate_ripple_pp_a))
 
-    source_current = [
-        *total_current[: len(theta_half)],
-        *[-value for value in total_current[len(theta_half) :]],
-    ]
+    source_current = _signed_source_current(total_current, len(theta_half))
     phase_switch = [current * switch_duty for current, switch_duty in zip(phase_current, duty, strict=True)]
     phase_diode = [current * (1.0 - switch_duty) for current, switch_duty in zip(phase_current, duty, strict=True)]
     aggregate_switch = [PHASE_COUNT * value for value in phase_switch]
@@ -93,6 +90,7 @@ def generate_waveforms(
         for index in (1, 2)
     }
     bridge_metrics = _bridge_metrics(source_current)
+    design_boundary_stress = build_design_boundary_stress_metadata(candidate)
     metadata_readback: dict[str, object] = {
         "topology_role": "two_phase_interleaved_boost_pfc_line_cycle_readback",
         "waveform_basis": "line-cycle average-current envelopes with switching-period triangular-ripple integration",
@@ -140,6 +138,7 @@ def generate_waveforms(
         },
         "phase_device_metrics": phase_metrics,
         "bridge_metrics": bridge_metrics,
+        "design_boundary_stress": design_boundary_stress,
         "load_ratio": load_ratio,
         "operating_active_power_w": candidate.pout_target * load_ratio,
         "dc_link_ripple_limit_vpp": ripple_limit_vpp,
@@ -181,6 +180,7 @@ def generate_waveforms(
         notes=[
             "Public current arrays are line-cycle aggregate or representative-phase envelopes as defined in metadata.",
             "Complete phase-level envelopes and ideal 180-degree carrier offsets are stored in phase_waveforms metadata.",
+            "Design-point semiconductor stress uses the low-line current envelope with the high-line voltage boundary; this is a sizing combination, not a single-line operating waveform.",
             "Switching edges, zero-crossing control dynamics, and phase mismatch are not modeled.",
         ],
         metadata=metadata_readback,
@@ -194,6 +194,60 @@ def _phase_ripple_from_candidate(
 ) -> list[float]:
     denominator = max(candidate.inductance_h * candidate.fs_hz, 1e-12)
     return [vin * switch_duty / denominator for vin, switch_duty in zip(vrect, duty, strict=True)]
+
+
+def build_design_boundary_stress_metadata(candidate: TopologyCandidate) -> dict[str, object]:
+    """Build the topology-local design stress envelope from explicit line boundaries.
+
+    The GUI and operating-point paths continue to use the selected line-cycle
+    waveform.  Semiconductor sizing combines the low-line current envelope
+    with the high-line voltage boundary, so this readback is kept separate from
+    the nominal waveform metrics.
+    """
+
+    metadata = candidate.metadata
+    low_line = metadata.get("low_line_line_cycle")
+    if not isinstance(low_line, dict):
+        raise ValueError("Interleaved Boost PFC candidate is missing low-line design metadata.")
+    theta_half = _float_list(low_line, "theta_deg")
+    vrect_half = _float_list(low_line, "v_rectified_v")
+    total_current_half = _float_list(low_line, "total_input_current_a")
+    phase_current_half = _float_list(low_line, "phase_current_a")
+    duty_half = _float_list(low_line, "duty")
+    if not theta_half:
+        raise ValueError("Interleaved Boost PFC low-line design waveform is empty.")
+
+    total_current = _mirror_half_cycle(total_current_half)
+    phase_current = _mirror_half_cycle(phase_current_half)
+    vrect = _mirror_half_cycle(vrect_half)
+    duty = _mirror_half_cycle(duty_half)
+    ripple = _mirror_half_cycle(_phase_ripple_from_candidate(candidate, vrect_half, duty_half))
+    phase_metrics = {
+        f"phase_{index}": _phase_metrics(phase_current, ripple, duty)
+        for index in (1, 2)
+    }
+    bridge_metrics = _bridge_metrics(_signed_source_current(total_current, len(theta_half)))
+    line_metrics = metadata.get("line_condition_metrics", {})
+    high_line_metrics = line_metrics.get("high_line", {}) if isinstance(line_metrics, dict) else {}
+    high_line_peak_v = float(
+        high_line_metrics.get("vac_peak_v", metadata.get("vac_peak_max_v", 0.0))
+    )
+    phase_voltage_max_v = max(float(candidate.vout_target), high_line_peak_v)
+    return {
+        "current_line_condition": "low_line",
+        "voltage_line_condition": "high_line",
+        "boundary_basis": "low-line current envelope combined with high-line voltage boundary",
+        "current_basis": "low_line_phase_current_envelope_with_switching_ripple",
+        "voltage_basis": "high_line_rectified_peak_and_target_dc_bus",
+        "phase_voltage_max_v": phase_voltage_max_v,
+        "bridge_voltage_max_v": float(metadata["bridge_reverse_stress_v"]),
+        "phase_device_metrics": phase_metrics,
+        "bridge_metrics": bridge_metrics,
+        "low_line_vac_rms_v": float(metadata.get("vac_rms_min_v", 0.0)),
+        "low_line_phase_current_peak_a": max(phase_current, default=0.0),
+        "high_line_vac_peak_v": high_line_peak_v,
+        "line_cycle_point_count": len(theta_half),
+    }
 
 
 def _phase_metrics(
@@ -228,6 +282,13 @@ def _bridge_metrics(source_current: list[float]) -> dict[str, float]:
         "input_bridge_current_rms_a": sqrt(_mean([value * value for value in source_current])),
         "input_bridge_current_peak_a": max(absolute, default=0.0),
     }
+
+
+def _signed_source_current(total_current: list[float], half_cycle_length: int) -> list[float]:
+    return [
+        *total_current[:half_cycle_length],
+        *[-value for value in total_current[half_cycle_length:]],
+    ]
 
 
 def _aggregate_metrics(

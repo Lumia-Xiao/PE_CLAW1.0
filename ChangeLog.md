@@ -1612,3 +1612,12 @@ listed here.
 - 新增 `tests/test_two_phase_interleaved_boost_pfc_step10b_boundaries.py`，覆盖三种线路条件的边界指标、相电流守恒、纹波口径和边界元数据分离。
 - 影响分类：topology-local metadata/test change。验证仅限该拓扑：10B 边界测试与步骤 2 合计 `7 passed`；步骤 1–3、步骤 6、10A 结构、10B 综合 focused run 合计 `21 passed`；10A 基线重复性回归 `1 passed`（110.81s）；目标文件 `py_compile` 通过，新增/修改文件 `git diff --check` 通过。未运行其他拓扑或全量测试。
 - 实现提交 `0efa61a` 已推送至远端分支 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；本计划和 ChangeLog 更新作为独立文档提交随后推送。步骤 10C–10F 尚未执行。
+
+## 2026-09-30 - 两相交错 Boost PFC 步骤 10C 相位应力边界适配
+
+- 在两相拓扑 waveform/stress 适配中增加独立的 design-boundary readback：低线提供每相主开关、Boost 二极管和聚合输入桥的电流边界，高线提供相位器件及输入桥的电压边界。nominal/operating-point 波形仍保持 GUI 和固定硬件刷新语义。
+- 在共享 `engines/devices/stress_adapter.py` 中仅为两相拓扑的 design-point 分支接入该组合边界；current operating-point 路径继续使用普通 phase waveform metrics。四个相位器件角色保持独立，输入桥电流只聚合一次。
+- 新增 `extract_design_phase_stress`、10C stress 专项测试及 `two_phase_interleaved_boost_pfc_step10c_baseline.json`。10A 历史 fixture 保留不覆盖，当前重复性检查改用 10C 修正后快照。
+- 影响分类：两相 topology-local waveform/stress change，带一个共享 stress adapter 的显式两相路由；未改变单相 Boost PFC、公共 StressResult 字段或运行点 refresh 语义。
+- 验证仅限该拓扑：步骤 3、5、10A/10B/10C focused run `15 passed`；最终 stress/device 复跑 `6 passed`；`py_compile` 通过。未运行其他拓扑或全量测试。
+- 步骤 10C 实现与测试待提交并推送；步骤 10D–10F 尚未执行。

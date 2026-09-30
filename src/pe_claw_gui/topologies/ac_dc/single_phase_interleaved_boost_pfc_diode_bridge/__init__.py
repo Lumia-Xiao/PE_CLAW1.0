@@ -13,7 +13,13 @@ from ...base.result import TopologyResult
 from ...base.spec import TopologySpec
 from .evaluator import build_report, evaluate
 from .input_schema import DISPLAY_NAME, LEGACY_KEY, TOPOLOGY_ID, build_default_inputs, build_spec
-from .stress import InterleavedPFCStress, PhaseStress, extract_phase_stress, extract_stress
+from .stress import (
+    InterleavedPFCStress,
+    PhaseStress,
+    extract_design_phase_stress,
+    extract_phase_stress,
+    extract_stress,
+)
 from .synthesizer import synthesize
 from .waveform import generate_waveforms
 
@@ -89,6 +95,7 @@ __all__ = [
     "build_report",
     "evaluate",
     "extract_phase_stress",
+    "extract_design_phase_stress",
     "extract_stress",
     "generate_waveforms",
     "synthesize",

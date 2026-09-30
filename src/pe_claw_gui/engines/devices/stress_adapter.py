@@ -638,6 +638,10 @@ def _build_interleaved_boost_pfc_stresses(report: DesignReport) -> tuple[SwitchS
         diode_metric = getattr(source, "boost_diode", stress.rectifier)
         switch_values = metrics.get("switch", {}) if isinstance(metrics, dict) else {}
         diode_values = metrics.get("diode", {}) if isinstance(metrics, dict) else {}
+        if not isinstance(switch_values, dict):
+            switch_values = {}
+        if not isinstance(diode_values, dict):
+            diode_values = {}
         result.extend(
             (
                 SwitchStress(
@@ -1033,11 +1037,32 @@ def build_design_point_switch_stress_cases(report: DesignReport, plugin: Topolog
     if waveform is None:
         fallback = _fallback_case(report, case_id="design_point", label="Design Point", operating_point=design_operating_point)
         return [] if fallback is None else [fallback]
+    if report.spec.topology_id == _INTERLEAVED_BOOST_PFC_TOPOLOGY_ID:
+        # This topology keeps nominal/operating-point waveform readback for the
+        # GUI, while semiconductor sizing uses its explicit low-line-current /
+        # high-line-voltage combination boundary.
+        from ...topologies.ac_dc.single_phase_interleaved_boost_pfc_diode_bridge.stress import (
+            extract_design_phase_stress,
+        )
+
+        design_stress = call_with_report_run(
+            report,
+            extract_design_phase_stress,
+            report.candidate,
+            waveform_set=waveform,
+        ).shared_result
+    else:
+        design_stress = call_with_report_run(
+            report,
+            plugin.extract_stress,
+            report.candidate,
+            waveform_set=waveform,
+        )
     case_report = replace(
         report,
         operating_point=design_operating_point,
         waveform=waveform,
-        stress=call_with_report_run(report, plugin.extract_stress, report.candidate, waveform_set=waveform),
+        stress=design_stress,
     )
     if report.spec.topology_id in {_LLC_DIODE_RECTIFIER_TOPOLOGY_ID, _LLC_SR_TOPOLOGY_ID}:
         # Keep the existing selection basis separate from current-point losses:

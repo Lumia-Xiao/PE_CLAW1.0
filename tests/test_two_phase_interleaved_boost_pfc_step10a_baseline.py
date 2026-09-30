@@ -7,6 +7,7 @@ from scripts.record_two_phase_interleaved_boost_pfc_step10a_baseline import buil
 
 
 BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10a_baseline.json"
+CURRENT_BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10c_baseline.json"
 
 
 def test_step10a_baseline_freezes_design_boundaries_and_semantics() -> None:
@@ -45,6 +46,8 @@ def test_step10a_baseline_freezes_design_boundaries_and_semantics() -> None:
         assert case["gui"]["loss_summary_lines"]
 
 
-def test_step10a_baseline_is_repeatable() -> None:
-    expected = json.loads(BASELINE.read_text(encoding="ascii"))
+def test_step10c_corrected_baseline_is_repeatable() -> None:
+    """The post-10C hardware/loss snapshot is checked separately from 10A history."""
+
+    expected = json.loads(CURRENT_BASELINE.read_text(encoding="ascii"))
     assert build_baseline() == expected

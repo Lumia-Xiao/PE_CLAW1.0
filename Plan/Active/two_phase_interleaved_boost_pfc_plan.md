@@ -1,10 +1,10 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10A、10B 已完成；步骤 10C–10F 待执行）
+- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10A、10B、10C 已完成；步骤 10D–10F 待执行）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：步骤 0–10 已实施，步骤 10A/10B 修正已完成；步骤 10 的验证范围按用户要求限定为两相拓扑专项及与单相 Boost PFC 的双顺序隔离回归。
+- **当前阶段**：步骤 0–10 已实施，步骤 10A/10B/10C 修正已完成；步骤 10 的验证范围按用户要求限定为两相拓扑专项及与单相 Boost PFC 的双顺序隔离回归。
 
 ## 1. 计划目标和边界
 
@@ -732,7 +732,7 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 一次早期隔离夹具使用长临时路径触发 Windows 文件名长度错误；缩短临时目录名后，两相专项隔离用例通过。未因此更改生产 pipeline。
 - 影响分类：test-only；新增隔离测试，没有修改拓扑实现或其他拓扑行为。`git diff --check` 对工作树整体报告既有 migration/evidence 长路径问题，相关文件均是预存删除项，不属于本步骤改动；本次新增/修改文件单独检查通过。
 
-### 步骤 10 后修正：设计边界一致性修正（10A、10B 已完成；10C–10F 待执行）
+### 步骤 10 后修正：设计边界一致性修正（10A、10B、10C 已完成；10D–10F 待执行）
 
 **触发原因**：步骤 10 的隔离测试证明两相拓扑在当前实现下可以独立运行，但手动对比发现电感、磁件和器件选型没有完全使用同一设计边界。两相电感合成使用低线输入，而磁件请求、相位器件应力和输入桥电流主要读取额定线路波形；磁件请求还把相电流 RMS 填入了平均电流字段。该问题属于两相拓扑的设计边界和下游适配一致性问题，不改变步骤 10 已完成的运行隔离结论。
 
@@ -838,6 +838,16 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 设计 RMS 继续使用输入 RMS 的理想 50/50 相分配，同时保留采样相电流包络 RMS 和叠加三角开关纹波 RMS，避免线路周期端点离散采样误差被误认为公共字段语义变化。
 - 验证仅限两相拓扑：10B 边界测试与步骤 2 合计 `7 passed`；步骤 1–3、步骤 6、10A 结构、10B 综合 focused run 合计 `21 passed`；10A 基线重复性回归 `1 passed`（110.81s）；目标文件 `py_compile` 通过，新增/修改文件 `git diff --check` 通过。未运行其他拓扑或全量测试。
 - 影响分类：topology-local metadata/test change；未修改 `waveform.py`、`stress.py`、共享适配器、磁件/桥选型 pipeline 或其他拓扑行为。下一步为步骤 10C，处理低线电流/高线电压边界向相位应力的适配。
+
+**步骤 10C 执行记录（2026-09-30）**：
+
+- 在 `waveform.py` 中增加 topology-local `design_boundary_stress` readback：低线生成两相独立器件电流指标和聚合输入桥电流，高线提供整流峰值/目标 DC bus 电压边界；nominal 或 operating-point 波形数组及其 `phase_device_metrics` 保持原运行点语义。
+- 在 `stress.py` 中新增 `extract_design_phase_stress`，明确生成 phase 1/phase 2 的主开关和 Boost 二极管独立设计应力，以及只使用一次的聚合输入桥应力；`StressResult.notes` 记录“低线电流 / 高线电压组合边界”不是单一线路运行波形。
+- 在 `engines/devices/stress_adapter.py` 增加仅针对 `single_phase_interleaved_boost_pfc_diode_bridge` 的 design-point 显式分支，使器件选型使用组合边界；current operating-point/efficiency refresh 继续调用普通波形应力，不被设计边界覆盖。
+- 保留步骤 10A 的历史 fixture，新增 `tests/fixtures/two_phase_interleaved_boost_pfc_step10c_baseline.json` 验证修正后的完整硬件/损耗快照；10A 结构语义测试仍读取历史 fixture，当前重复性测试改用 10C 快照，未覆盖历史证据。
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step10c_stress.py`，覆盖组合边界、相位独立性、聚合桥应力和共享 design-point adapter 路径。
+- 验证仅限两相拓扑：步骤 3、5、10A/10B/10C focused run `15 passed`；清理 design-point adapter 重复调用后的最终 stress/器件复跑 `6 passed`；目标文件 `py_compile` 通过。未运行其他拓扑或全量测试。
+- 影响分类：两相 topology-local waveform/stress change，另有共享 stress adapter 中的两相显式路由；未改变单相 Boost PFC、公共 StressResult 字段或运行点 refresh 语义。下一步为步骤 10D，处理磁件请求和桥选型请求的低线电流口径。
 
 ## 6. 测试分层和验证矩阵
 
