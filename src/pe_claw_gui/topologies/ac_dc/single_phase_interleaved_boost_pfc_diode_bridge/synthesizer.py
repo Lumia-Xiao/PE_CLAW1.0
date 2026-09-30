@@ -108,6 +108,29 @@ def synthesize(spec: TopologySpec) -> TopologyCandidate:
     nominal_ripple_index = nominal_interleaved_ripple.aggregate_ripple_pp_a.index(
         max(nominal_interleaved_ripple.aggregate_ripple_pp_a)
     )
+    line_condition_metrics = {
+        "nominal": _line_condition_metrics(
+            nominal_line_cycle,
+            vac_rms_v=vac_rms_v,
+            input_current_rms_a=nominal_input_rms_a,
+            total_series_inductance_h=phase_total_series_inductance_h,
+            fsw_hz=fsw_hz,
+        ),
+        "low_line": _line_condition_metrics(
+            low_line_cycle,
+            vac_rms_v=vac_rms_min_v,
+            input_current_rms_a=low_line_input_rms_a,
+            total_series_inductance_h=phase_total_series_inductance_h,
+            fsw_hz=fsw_hz,
+        ),
+        "high_line": _line_condition_metrics(
+            high_line_cycle,
+            vac_rms_v=vac_rms_max_v,
+            input_current_rms_a=high_line_input_rms_a,
+            total_series_inductance_h=phase_total_series_inductance_h,
+            fsw_hz=fsw_hz,
+        ),
+    }
     phase_line_cycle = {
         "phase_1": _phase_line_cycle_metadata(nominal_line_cycle),
         "phase_2": _phase_line_cycle_metadata(nominal_line_cycle),
@@ -147,6 +170,26 @@ def synthesize(spec: TopologySpec) -> TopologyCandidate:
         "low_line_line_cycle": low_line_cycle.as_metadata(),
         "high_line_line_cycle": high_line_cycle.as_metadata(),
         "phase_line_cycle": phase_line_cycle,
+        "line_condition_metrics": line_condition_metrics,
+        "design_boundary_basis": {
+            "inductor": {
+                "current_design_basis": "low_line_phase_current_envelope_and_allowed_ripple",
+                "voltage_design_basis": "low_line_rectified_line_cycle_volt_second",
+                "line_condition": "low_line",
+            },
+            "power_devices": {
+                "current_design_basis": "low_line_phase_current_envelope; phase positions use ideal 50/50 sharing",
+                "voltage_design_basis": "high_line_rectified_peak_and_target_dc_bus",
+                "current_line_condition": "low_line",
+                "voltage_line_condition": "high_line",
+            },
+            "input_bridge": {
+                "current_design_basis": "low_line_aggregate_rectified_input_current_envelope",
+                "voltage_design_basis": "high_line_rectified_peak_reverse_stress",
+                "current_line_condition": "low_line",
+                "voltage_line_condition": "high_line",
+            },
+        },
         "input_inductance_h": input_inductance_h,
         "input_inductance_role": "per_phase_series_input_inductance",
         "phase_boost_inductance_h": {"phase_1": phase_boost_inductance_h, "phase_2": phase_boost_inductance_h},
@@ -235,3 +278,66 @@ def _phase_line_cycle_metadata(line_cycle: InterleavedBoostPFCLineCycle) -> dict
         "duty": list(line_cycle.duty),
         "delta_i_allowed_a": list(line_cycle.delta_i_allowed_a),
     }
+
+
+def _line_condition_metrics(
+    line_cycle: InterleavedBoostPFCLineCycle,
+    *,
+    vac_rms_v: float,
+    input_current_rms_a: float,
+    total_series_inductance_h: float,
+    fsw_hz: float,
+) -> dict[str, object]:
+    """Return auditable current and ripple metrics for one line-voltage condition."""
+
+    phase_current = [float(value) for value in line_cycle.phase_current_a]
+    total_current = [float(value) for value in line_cycle.total_input_current_a]
+    actual_ripple = [
+        v_rectified * duty / max(total_series_inductance_h * fsw_hz, 1e-12)
+        for v_rectified, duty in zip(
+            line_cycle.v_rectified_v,
+            line_cycle.duty,
+            strict=True,
+        )
+    ]
+    worst_index = actual_ripple.index(max(actual_ripple))
+    phase_current_average_a = _mean(phase_current)
+    phase_current_envelope_rms_sampled_a = _rms(phase_current)
+    phase_current_rms_a = float(input_current_rms_a) / PHASE_COUNT
+    phase_current_rms_with_ripple_a = sqrt(
+        sum(
+            current * current + ripple * ripple / 12.0
+            for current, ripple in zip(phase_current, actual_ripple, strict=True)
+        )
+        / max(len(phase_current), 1)
+    )
+    return {
+        "vac_rms_v": float(vac_rms_v),
+        "vac_peak_v": sqrt(2.0) * float(vac_rms_v),
+        "input_current_rms_a": float(input_current_rms_a),
+        "input_current_peak_a": max(total_current, default=0.0),
+        "input_current_average_rectified_a": _mean(total_current),
+        "phase_current_average_a": phase_current_average_a,
+        "phase_current_rms_a": phase_current_rms_a,
+        "phase_current_envelope_rms_sampled_a": phase_current_envelope_rms_sampled_a,
+        "phase_current_rms_with_switching_ripple_a": phase_current_rms_with_ripple_a,
+        "phase_current_peak_a": max(phase_current, default=0.0),
+        "phase_current_share": 1.0 / PHASE_COUNT,
+        "phase_ripple_allowed_pp_a": max(line_cycle.delta_i_allowed_a, default=0.0),
+        "phase_ripple_actual_pp_max_a": max(actual_ripple, default=0.0),
+        "phase_ripple_actual_worst_theta_deg": line_cycle.theta_deg[worst_index],
+        "phase_ripple_actual_worst_vrectified_v": line_cycle.v_rectified_v[worst_index],
+        "phase_ripple_actual_worst_duty": line_cycle.duty[worst_index],
+        "current_basis": "sinusoidal_rectified_line_current_with_ideal_equal_phase_sharing",
+        "rms_basis": "sampled_phase_current_envelope_plus_triangular_switching_ripple_rms",
+        "ripple_equation": "DeltaI_phase=Vrect*D/(Ltotal*fsw)",
+        "line_cycle_point_count": line_cycle.point_count,
+    }
+
+
+def _mean(values: list[float]) -> float:
+    return sum(values) / max(len(values), 1)
+
+
+def _rms(values: list[float]) -> float:
+    return sqrt(sum(value * value for value in values) / max(len(values), 1))
