@@ -1503,3 +1503,11 @@ listed here.
 
 - Removed the `Current release boundary` notice and its AI/future-product statement from `docs/index.html` at the user's request. No engineering behavior, design-case content or image assets changed.
 - Validation: confirmed the removed heading and sentence no longer occur in the page source. Publication uses a dedicated feature branch merged deliberately into `master`; no user outputs were modified or deleted.
+
+## 2026-09-30 - Add NTU LEAP laboratory identity to the homepage
+
+- Added a first-screen laboratory affiliation card to the PE-Claw hero using the official LEAP logo and the laboratory information published at `https://ntu-leap.github.io/`: Laboratory for Electrification & Advanced Power Conversion, School of Electrical and Electronic Engineering, Nanyang Technological University, Singapore.
+- Added the official logo as `docs/assets/images/leap-logo.png` and linked the complete card to the NTU LEAP website. The asset is stored locally so the PE-Claw homepage does not depend on cross-site image loading.
+- Updated `docs/index.html` and `docs/static/css/style.css` only; design calculations, Design Case content and existing images are unchanged.
+- Validation: HTML audit confirmed one accessible affiliation link with the official URL and local logo. Browser checks confirmed the 768×225 logo loads, the card is visible in the first viewport on desktop and 375 px mobile layouts, and neither layout has horizontal overflow or console errors.
+- Git/publication: prepared on a dedicated feature branch for deliberate merge into `master`, the configured GitHub Pages source. No user outputs were modified or deleted, and no backup operation was required for this documentation-only change.
