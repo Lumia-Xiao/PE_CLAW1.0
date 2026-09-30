@@ -1,6 +1,6 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10 后设计边界一致性修正待执行）
+- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10A 已完成；步骤 10B–10F 待执行）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
@@ -732,7 +732,7 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 一次早期隔离夹具使用长临时路径触发 Windows 文件名长度错误；缩短临时目录名后，两相专项隔离用例通过。未因此更改生产 pipeline。
 - 影响分类：test-only；新增隔离测试，没有修改拓扑实现或其他拓扑行为。`git diff --check` 对工作树整体报告既有 migration/evidence 长路径问题，相关文件均是预存删除项，不属于本步骤改动；本次新增/修改文件单独检查通过。
 
-### 步骤 10 后修正：设计边界一致性修正（待执行）
+### 步骤 10 后修正：设计边界一致性修正（10A 已完成；10B–10F 待执行）
 
 **触发原因**：步骤 10 的隔离测试证明两相拓扑在当前实现下可以独立运行，但手动对比发现电感、磁件和器件选型没有完全使用同一设计边界。两相电感合成使用低线输入，而磁件请求、相位器件应力和输入桥电流主要读取额定线路波形；磁件请求还把相电流 RMS 填入了平均电流字段。该问题属于两相拓扑的设计边界和下游适配一致性问题，不改变步骤 10 已完成的运行隔离结论。
 
@@ -818,6 +818,18 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 两相固定硬件效率扫描和损耗汇总保持守恒；
 - 单相 Boost PFC 的结果、字段和选择策略没有非预期变化；
 - 修正后的专项测试、提交和推送记录补充到本计划和 `ChangeLog.md` 后，才能将该修正阶段标记为完成。
+
+**步骤 10A 执行记录（2026-09-30）**：
+
+- 新增 `scripts/record_two_phase_interleaved_boost_pfc_step10a_baseline.py`，对 nominal（230 Vac）、low-line（180 Vac）和 high-line（265 Vac）三种设计输入运行当前两相拓扑完整设计链；新增 `tests/fixtures/two_phase_interleaved_boost_pfc_step10a_baseline.json` 作为稳定字段证据。
+- 基线冻结 candidate、候选 metadata、三组线路周期数组、聚合和分相波形指标、代表性 StressResult、四个相位器件角色、输入桥请求、两相磁件结果、电容、损耗、热、几何以及 Summary/Loss GUI 文本行；排除 run ID、时间戳、运行时长、临时路径和 artifact 路径。
+- 冻结字段语义：`candidate.inductance_h` 是每相总串联电感；`phase_boost_inductance_h` 是磁件搜索使用的每相 Boost 电感；`input_inductance_h` 是每相串联输入电感贡献；相电流 average、RMS、peak 保留各自物理来源。
+- 当前默认设计数据显示每相总串联电感约 `840.035426 uH`、每相 Boost 电感约 `740.035426 uH`。Nominal 相电流 RMS 约 `2.195872 A`，low-line 约 `2.805836 A`，high-line 约 `1.905851 A`，确认 low-line 是当前电流边界。
+- Nominal 和 high-line 当前各返回两个可追溯的物理磁件实例；low-line 当前磁件结果对象存在但没有选中实例，损耗为 unavailable，并在基线中保留明确的磁件 notes。该状态作为 10B 磁件边界修正前的事实基线，不被标记为测试失败或被隐藏。
+- 三种工况均保留四个功率器件角色和输入桥请求；桥请求使用聚合输入电流，反向电压要求仍记录高线母线边界。
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step10a_baseline.py`，验证三工况、字段语义、相位角色、磁件实例或明确不可用状态、GUI 摘要和基线重复性。
+- 验证：基线结构测试 `1 passed`；完整基线重复性测试 `1 passed in 140.00s`；新增脚本和测试 `py_compile` 通过；新增文件 `git diff --check` 通过；未运行其他拓扑或全量测试。
+- 影响分类：test/evidence/documentation-only；未修改生产拓扑、共享模型、公共 pipeline 或其他拓扑行为。步骤 10B 继续处理低线设计边界向磁件和器件适配的传递。
 
 ## 6. 测试分层和验证矩阵
 

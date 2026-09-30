@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-30 Execute Step 10A Interleaved Boost PFC Boundary Baseline
+
+- Added a Step 10A baseline recorder, stable fixture, and focused test for the two-phase interleaved Boost PFC across nominal (230 Vac), low-line (180 Vac), and high-line (265 Vac) cases.
+- Frozen candidate, boundary metadata, line-cycle arrays, phase stress, four semiconductor positions, aggregate bridge request, magnetic instances, capacitor, loss, thermal, geometry, and GUI summary fields while excluding run-specific identifiers and paths.
+- Recorded the current semantics that `candidate.inductance_h` is per-phase total series inductance, `phase_boost_inductance_h` is the magnetic-search target, and low-line is the current design boundary. The current low-line case has no selected magnetic instances and unavailable loss; this is preserved as evidence for Step 10B rather than hidden.
+- Validation: baseline structure `1 passed`; repeatability `1 passed in 140.00s`; `py_compile` and targeted `git diff --check` passed. No other-topology or full-suite tests were run.
+- Affected files: `scripts/record_two_phase_interleaved_boost_pfc_step10a_baseline.py`, `tests/fixtures/two_phase_interleaved_boost_pfc_step10a_baseline.json`, `tests/test_two_phase_interleaved_boost_pfc_step10a_baseline.py`, `Plan/Active/two_phase_interleaved_boost_pfc_plan.md`, and `ChangeLog.md`; branch: `codex/llc-waveform-operating-point-plan`.
+
 ## 2026-09-30 Add Post-Step-10 Interleaved Boost PFC Correction Plan
 
 - Added a post-Step-10 correction section to `Plan/Active/two_phase_interleaved_boost_pfc_plan.md` for design-boundary consistency in the two-phase interleaved Boost PFC.
