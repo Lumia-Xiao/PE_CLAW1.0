@@ -1,10 +1,10 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 仅计划
+- **状态**：Active / 实施中（步骤 0–7 已完成）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：只完成分析和计划，不在本计划阶段修改运行时代码。
+- **当前阶段**：步骤 0–7 已实施；步骤 8–10 尚未执行。
 
 ## 1. 计划目标和边界
 
@@ -644,6 +644,17 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 维护 run-scoped state 和 artifact isolation。
 
 **验收**：默认输入可以完成设计；阶段状态、warning、失败原因和报告 provenance 完整；运行两相拓扑不会修改已有报告对象或旧拓扑缓存。
+
+**步骤 7 执行记录（2026-09-30）**：
+
+- 在 `run_full_pipeline` 中移除该拓扑器件选择后的早退，使其继续执行磁件、损耗、热、几何和电容阶段，并记录阶段状态；输入桥、四个相位功率器件仍由此前步骤的专用路由提供。
+- 接入共用 DC-link 电容选择，并以两相 Boost 二极管电流合成的电容电流刷新拓扑波形和应力；所选电容只代表两相共享母线电容组。
+- 损耗阶段分别刷新 phase 1 和 phase 2 固定电感运行损耗，报告保留两相损耗并将其相加；没有把单相结果乘以 2。磁件候选 ID 增加相位后缀以区分两个物理实例，同时保留原磁件库候选 ID。
+- 几何结果分别列出 phase 1/phase 2 电感目标；热分析复用现有流程及其状态语义。电容、loss、thermal 和 geometry 仍遵循各自现有阶段边界。
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step7_pipeline.py` 覆盖默认输入完整 pipeline、桥/器件/电容/磁件结果、两相损耗合计、热状态、分相几何及阶段状态；更新步骤 5/6 专项断言以反映完整 pipeline 启用后的结果结构。
+- 影响分类：integration change（公共 pipeline 阶段路由及电容、磁件损耗、几何下游适配）；改动限定为新拓扑 ID 的显式分支，未更改既有拓扑的计算公式或共享报告字段。
+- 验证：设置 `PYTHONPATH=src` 以确保导入当前仓库，设置 `MPLBACKEND=Agg`；步骤 1–7 两相拓扑专项测试 `27 passed`（59.80s）。未运行其他拓扑测试或全量测试，符合本次拓扑范围要求。首次未设置 `PYTHONPATH` 的测试收集误导入本机 PE-Claw 1.0 包，未执行用例；修正导入路径后的正式测试通过。
+- 实现提交 `2e409dc` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；本记录由后续文档提交记录。步骤 8–10 未执行。
 
 ### 步骤 8：接入 operating-point refresh 和 efficiency sweep
 

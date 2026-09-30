@@ -1555,3 +1555,9 @@ listed here.
 
 - 实现、回归与验收证据提交 54c6b99 已成功推送至 origin/codex/llc-waveform-operating-point-plan；自动调频修正计划据此标记完成。
 - 本回执仅更新归档计划与 ChangeLog，git diff --check 通过，随独立文档提交推送同一分支。
+
+## 2026-09-30 - 两相交错 Boost PFC 步骤 7
+
+- 完成两相交错 Boost PFC 完整设计 pipeline 的下游接入：启用磁件、损耗、热、几何和共享 DC-link 电容阶段，保留逐相磁件身份与电感损耗，并更新对应步骤 5/6 测试期望；新增完整 pipeline 专项测试。
+- 影响分类：integration change，包含公共 pipeline 的新拓扑路由和下游适配。验证仅覆盖该拓扑步骤 1–7：`PYTHONPATH=src MPLBACKEND=Agg python -m pytest -q --basetemp .pytest-tmp-two-phase tests/test_two_phase_interleaved_boost_pfc_step1_contract.py tests/test_two_phase_interleaved_boost_pfc_step2_core.py tests/test_two_phase_interleaved_boost_pfc_step3_waveform.py tests/test_two_phase_interleaved_boost_pfc_step4_integration.py tests/test_two_phase_interleaved_boost_pfc_step5_devices.py tests/test_two_phase_interleaved_boost_pfc_step6_magnetics.py tests/test_two_phase_interleaved_boost_pfc_step7_pipeline.py`；`27 passed`，未运行其他拓扑或全量测试。`git diff --check` 通过。
+- 实现提交 `2e409dc` 已推送至远端分支 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；本计划和变更日志作为独立文档提交随后推送。保留工作区既有 migration、deployment、Web 删除及 `outputs/` 未跟踪内容，均未纳入本次提交。未执行备份或清理。
