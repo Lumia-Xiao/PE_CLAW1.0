@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-30 Add Post-Step-10 Interleaved Boost PFC Correction Plan
+
+- Added a post-Step-10 correction section to `Plan/Active/two_phase_interleaved_boost_pfc_plan.md` for design-boundary consistency in the two-phase interleaved Boost PFC.
+- The correction plan preserves the low-line inductance design boundary, separates low-line current and high-line voltage limits, fixes average/RMS/peak current semantics for magnetic requests, aligns phase-device and bridge selection inputs, and keeps single-phase Boost PFC behavior outside the change scope.
+- Added focused validation gates for the two-phase topology and a minimum single-phase isolation smoke test; full-suite testing is not made a default requirement for this topology-scoped correction.
+- Validation: documentation-only change; `git diff --check` and targeted diff inspection required, with no runtime tests run.
+- Affected files: `Plan/Active/two_phase_interleaved_boost_pfc_plan.md`, `ChangeLog.md`; branch: `codex/llc-waveform-operating-point-plan`.
+
 ## 2026-09-29 Execute Step 6 Interleaved Boost PFC Magnetic Design
 
 - Added per-phase design and operating-point inductor requests for the two-phase interleaved Boost PFC, preserving ideal 50/50 current sharing and the fixed 180-degree phase relationship.
