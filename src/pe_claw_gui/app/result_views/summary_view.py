@@ -109,8 +109,14 @@ def _build_electrical_parameter_lines(report: DesignReport) -> list[str]:
     metadata = candidate.metadata
     waveform_metadata = report.waveform.metadata if report.waveform is not None else {}
     if topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
+        phase_boost_inductance = metadata.get("phase_boost_inductance_h", {})
         phase_inductance = metadata.get("phase_total_series_inductance_h", {})
         phase_current_rms = metadata.get("phase_current_rms_a", {})
+        line_metrics = metadata.get("line_condition_metrics", {})
+        low_line = line_metrics.get("low_line", {}) if isinstance(line_metrics, dict) else {}
+        nominal_line = line_metrics.get("nominal", {}) if isinstance(line_metrics, dict) else {}
+        boundary_basis = metadata.get("design_boundary_basis", {})
+        device_basis = boundary_basis.get("power_devices", {}) if isinstance(boundary_basis, dict) else {}
         phase_metrics = waveform_metadata.get("phase_device_metrics", {})
         interleaved = waveform_metadata.get("interleaved_ripple_pp_a", {})
         return [
@@ -121,7 +127,13 @@ def _build_electrical_parameter_lines(report: DesignReport) -> list[str]:
             f"  PF target = {_fmt_float(metadata.get('power_factor_target'))}",
             f"  phase count / shift = {int(metadata.get('phase_count', 2))} / {_fmt_float(metadata.get('phase_shift_deg', 180.0))} deg",
             "  current sharing = ideal 50/50 (design assumption)",
+            f"  Lboost phase 1 / phase 2 = {_fmt_float(_mapping_value(phase_boost_inductance, 'phase_1') * 1e6 if _mapping_value(phase_boost_inductance, 'phase_1') is not None else None)} / {_fmt_float(_mapping_value(phase_boost_inductance, 'phase_2') * 1e6 if _mapping_value(phase_boost_inductance, 'phase_2') is not None else None)} uH",
             f"  L phase 1 / phase 2 = {_fmt_float(_mapping_value(phase_inductance, 'phase_1') * 1e6 if _mapping_value(phase_inductance, 'phase_1') is not None else None)} / {_fmt_float(_mapping_value(phase_inductance, 'phase_2') * 1e6 if _mapping_value(phase_inductance, 'phase_2') is not None else None)} uH",
+            f"  magnetic design boundary = {metadata.get('inductor_design_line', 'low_line')} current / voltage line",
+            f"  device design boundary = {device_basis.get('current_line_condition', 'low_line')} current + {device_basis.get('voltage_line_condition', 'high_line')} voltage",
+            f"  design phase current low-line avg / RMS / peak = {_fmt_float(low_line.get('phase_current_average_a'))} / {_fmt_float(low_line.get('phase_current_rms_with_switching_ripple_a'))} / {_fmt_float(low_line.get('phase_current_peak_a'))} A",
+            f"  nominal phase current avg / RMS / peak = {_fmt_float(nominal_line.get('phase_current_average_a'))} / {_fmt_float(nominal_line.get('phase_current_rms_with_switching_ripple_a'))} / {_fmt_float(nominal_line.get('phase_current_peak_a'))} A",
+            "  design boundary note = low-line current combined with high-line voltage; this is not one operating waveform",
             f"  I phase 1 / phase 2 RMS = {_fmt_float(_mapping_value(phase_current_rms, 'phase_1'))} / {_fmt_float(_mapping_value(phase_current_rms, 'phase_2'))} A",
             f"  nominal worst aggregate switching ripple = {_fmt_float(interleaved.get('worst_aggregate_ripple_pp_a'))} A p-p",
             f"  operating load ratio = {_fmt_float(report.waveform.load_ratio if report.waveform is not None else None)} p.u.",

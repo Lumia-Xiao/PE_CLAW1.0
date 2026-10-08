@@ -37,6 +37,8 @@ class MagneticView(ttk.Frame):
             self._set_text(build_llc_magnetic_summary_text(report))
             return
         lines = [magnetic.summary or "Magnetic design has not run yet."]
+        if report.spec.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
+            lines.extend(_interleaved_boundary_lines(report))
         lines.extend(
             [
                 "",
@@ -169,6 +171,37 @@ def _fmt_percent(value) -> str:
         return f"{100.0 * float(value):.3g}%"
     except (TypeError, ValueError):
         return "-"
+
+
+def _interleaved_boundary_lines(report: DesignReport) -> list[str]:
+    candidate = report.candidate
+    if candidate is None:
+        return []
+    metadata = candidate.metadata if isinstance(candidate.metadata, dict) else {}
+    basis = metadata.get("design_boundary_basis", {})
+    inductor_basis = basis.get("inductor", {}) if isinstance(basis, dict) else {}
+    device_basis = basis.get("power_devices", {}) if isinstance(basis, dict) else {}
+    requirements = report.magnetic.design_requirements if report.magnetic is not None else {}
+    phase_1 = requirements.get("phase_1", {}) if isinstance(requirements, dict) else {}
+    phase_2 = requirements.get("phase_2", {}) if isinstance(requirements, dict) else {}
+    lines = [
+        "",
+        "Two-phase Boost PFC design boundary",
+        "  Current sharing: ideal 50/50; phase shift: 180 deg",
+        f"  Magnetic current / voltage line: {inductor_basis.get('line_condition', 'low_line')} / {inductor_basis.get('line_condition', 'low_line')}",
+        f"  Device current / voltage line: {device_basis.get('current_line_condition', 'low_line')} / {device_basis.get('voltage_line_condition', 'high_line')}",
+        "  Boundary basis: low-line current combined with high-line voltage; not one operating waveform",
+    ]
+    for role, request in (("phase 1", phase_1), ("phase 2", phase_2)):
+        if request:
+            lines.append(
+                f"  {role}: Boost L target={_fmt_si(request.get('inductance_h'), 1e6, 'uH')}; "
+                f"total series L={_fmt_si(metadata.get('phase_total_series_inductance_h', {}).get(role.replace(' ', '_')) if isinstance(metadata.get('phase_total_series_inductance_h'), dict) else None, 1e6, 'uH')}; "
+                f"design Iavg/Irms/Ipeak={_fmt_float(request.get('i_avg_a'))}/{_fmt_float(request.get('i_rms_a'))}/{_fmt_float(request.get('i_peak_a'))} A"
+            )
+    if not report.magnetic.chosen_designs:
+        lines.append("  Magnetic selection status: unavailable; no phase design passed the current engineering allow profile.")
+    return lines
 
 
 def _design_detail_lines(design, indent: str) -> list[str]:

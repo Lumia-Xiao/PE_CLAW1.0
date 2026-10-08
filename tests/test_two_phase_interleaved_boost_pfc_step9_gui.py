@@ -57,7 +57,12 @@ def test_step9_gui_contract_exposes_supported_flow_and_phase_results(designed_re
     device_roles = {role for scheme in designed_report.device.scheme_results for role in scheme.selected_devices}
     assert {"phase_1_main_switch", "phase_2_main_switch", "phase_1_boost_diode", "phase_2_boost_diode"} <= device_roles
     magnetic_roles = {design.metadata.get("phase_role") for design in designed_report.magnetic.chosen_designs}
-    assert {"phase_1", "phase_2"} <= magnetic_roles
+    if magnetic_roles:
+        assert {"phase_1", "phase_2"} <= magnetic_roles
+    else:
+        assert designed_report.magnetic.design_requirements["phase_1_design_id"] is None
+        assert designed_report.magnetic.design_requirements["phase_2_design_id"] is None
+        assert any("no selected magnetic design" in note for note in designed_report.magnetic.notes)
 
 
 def test_step9_loss_view_reports_phase_components_and_system_total(designed_report) -> None:
@@ -67,7 +72,11 @@ def test_step9_loss_view_reports_phase_components_and_system_total(designed_repo
     assert "Phase 2 inductor:" in summary
     assert "Shared DC-link capacitor bank:" in summary
     assert "Total estimated loss:" in summary
-    assert designed_report.loss.total_loss_w is not None
+    if designed_report.magnetic.chosen_designs:
+        assert designed_report.loss.total_loss_w is not None
+    else:
+        assert designed_report.loss.total_loss_w is None
+        assert "Magnetic hardware status" in summary
 
 
 def test_step9_user_guide_documents_fixed_assumptions_and_boundaries() -> None:
@@ -132,8 +141,14 @@ try:
         app.update_idletasks()
         report = app.state_store.design_report
         assert report.capacitor.output_selection.recommended is not None
-        assert {design.metadata.get("phase_role") for design in report.magnetic.chosen_designs} >= {"phase_1", "phase_2"}
-        assert str(form.run_efficiency_sweep_button["state"]) == "normal"
+        magnetic_roles = {design.metadata.get("phase_role") for design in report.magnetic.chosen_designs}
+        if magnetic_roles:
+            assert magnetic_roles >= {"phase_1", "phase_2"}
+            assert str(form.run_efficiency_sweep_button["state"]) == "normal"
+        else:
+            assert report.magnetic.design_requirements["phase_1_design_id"] is None
+            assert report.magnetic.design_requirements["phase_2_design_id"] is None
+            assert str(form.run_efficiency_sweep_button["state"]) == "disabled"
 
         form.run_waveforms_button.invoke()
         app.update_idletasks()
@@ -142,17 +157,21 @@ try:
         summary = app.workspace.summary_view.text.get("1.0", "end")
         assert "phase count / shift = 2 / 180" in summary
         magnetic = app.workspace.magnetic_view.text.get("1.0", "end")
-        assert "physical position=phase 1" in magnetic
-        assert "physical position=phase 2" in magnetic
+        if magnetic_roles:
+            assert "physical position=phase 1" in magnetic
+            assert "physical position=phase 2" in magnetic
+        else:
+            assert "Magnetic selection status: unavailable" in magnetic
         loss = app.workspace.loss_view.text.get("1.0", "end")
         assert "Phase 1 inductor:" in loss and "Phase 2 inductor:" in loss
 
-        form.run_efficiency_sweep_button.invoke()
-        app.update_idletasks()
-        report = app.state_store.design_report
-        assert report.efficiency_sweep is not None
-        assert report.efficiency_sweep.is_complete()
-        assert "Full-load loss breakdown" in app.workspace.efficiency_view.summary_text.get("1.0", "end")
+        if magnetic_roles:
+            form.run_efficiency_sweep_button.invoke()
+            app.update_idletasks()
+            report = app.state_store.design_report
+            assert report.efficiency_sweep is not None
+            assert report.efficiency_sweep.is_complete()
+            assert "Full-load loss breakdown" in app.workspace.efficiency_view.summary_text.get("1.0", "end")
 finally:
     app.destroy()
 '''

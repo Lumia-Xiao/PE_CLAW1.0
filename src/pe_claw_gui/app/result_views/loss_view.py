@@ -291,6 +291,7 @@ def _build_interleaved_boost_pfc_loss_summary(report: DesignReport) -> list[str]
     lines = [
         "Two-phase interleaved Boost PFC system loss summary",
         "  System total is the sum of the selected input bridge, active semiconductor scheme, both phase inductors, and shared DC-link capacitor.",
+        "  Design boundary: low-line current with high-line voltage; loss is unavailable when required phase magnetic hardware is unavailable.",
         f"  Total estimated loss: {_fmt_float(total)} W",
         f"  Design-point estimated efficiency: {_fmt_efficiency(output_power, total) if total is not None else '-'}",
         "",
@@ -305,6 +306,8 @@ def _build_interleaved_boost_pfc_loss_summary(report: DesignReport) -> list[str]
     ]
     if total is None:
         lines.append("  Total unavailable: one or more required selected-hardware loss components are missing.")
+        if report.magnetic is not None and not report.magnetic.chosen_designs:
+            lines.append("  Magnetic hardware status: phase 1/phase 2 inductors were not selected under the engineering allow profile.")
     if loss is not None and loss.notes:
         lines.extend(["", "Notes", *[f"  {note}" for note in loss.notes]])
     return lines

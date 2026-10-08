@@ -42,12 +42,21 @@ first-pass topology.
    both phase inductors, and the shared capacitor bank are available. The sweep
    keeps that hardware fixed across load points.
 
-The Design Summary reports phase inductance and current values, phase shift,
-sharing assumption, and aggregate ripple. Device and magnetic result sections
-retain role/phase labels. Loss results distinguish bridge, semiconductor,
+The Design Summary reports each phase's Boost inductance target and total series
+inductance, phase current values, phase shift, sharing assumption, aggregate
+ripple, and the design boundary used for sizing. Device and magnetic result
+sections retain role/phase labels and show the low-line current/high-line voltage
+combination boundary. Loss results distinguish bridge, semiconductor,
 phase 1 inductor, phase 2 inductor, shared capacitor, and the system total.
 Missing hardware or required loss data remains unavailable with a stage
-warning; it is not displayed as a partial system total.
+warning; it is not displayed as a partial system total. If the low-line
+magnetic search has no surviving candidate, the two phase design IDs remain
+unavailable and the result view reports that condition explicitly.
+
+The Boost inductance target is the value used to select each phase's Boost
+inductor. Total series inductance includes that Boost inductance plus the
+per-phase input series inductance contribution; the two values are not
+interchangeable when reading magnetic selection results.
 
 ## Model Boundaries
 
@@ -61,3 +70,6 @@ warning; it is not displayed as a partial system total.
   this does not establish EMI compliance or control-loop performance.
 - Device, magnetic, thermal, and efficiency results depend on the selected
   library candidates and remain engineering estimates, not hardware validation.
+- Design-point sizing uses low-line current and high-line voltage as a combined
+  boundary. This combination is an engineering sizing envelope, not a single
+  line-cycle operating waveform.
