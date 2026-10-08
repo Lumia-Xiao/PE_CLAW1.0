@@ -73,3 +73,26 @@ interchangeable when reading magnetic selection results.
 - Design-point sizing uses low-line current and high-line voltage as a combined
   boundary. This combination is an engineering sizing envelope, not a single
   line-cycle operating waveform.
+- The fixed-hardware sweep varies load at the synthesized line condition; it
+  does not validate arbitrary changes of AC line voltage. Waveforms reuse the
+  candidate's sampled line cycle. Magnetic operating requests currently scale
+  the low-line design average and combined RMS currents with load, retain the
+  design ripple and volt-second values, and record operating voltage without
+  recomputing those currents from it. Sweep completeness and loss-sum checks
+  therefore do not establish a physically consistent line/load loss map.
+
+## Verified Hardware Availability
+
+The Step 10F gate uses two real-library cases at 1 kW, 400 V DC and 100 kHz,
+with nominal input 230 V AC. With the default 180--265 V AC range, basic
+feasible magnetic candidates exist, but none survive the current allow profile.
+Both phase inductor IDs and the system loss remain unavailable; the efficiency
+sweep returns a missing-inductor warning and no points or artifacts.
+The current preflight result retains the default `status="available"` even in
+this case. Use `is_complete()`, the points and the warning to determine whether
+the sweep completed; the status field alone does not establish completion.
+
+Changing only the minimum input to 230 V AC gives a 230--265 V AC design with
+two selected physical inductors. This case exercises full system loss summation
+and the fixed-hardware 0.1/0.5/1.0 p.u. sweep. It demonstrates that supported
+case, not magnetic availability across the default wide input range.

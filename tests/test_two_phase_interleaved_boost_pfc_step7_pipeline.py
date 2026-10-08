@@ -16,7 +16,9 @@ def test_step7_runs_two_phase_pipeline_through_geometry() -> None:
     topology = import_module(plugin.__module__)
     report = run_full_pipeline(
         plugin,
-        topology.build_default_inputs(),
+        # A real library-supported 230--265 Vac design exercises the complete
+        # loss/geometry path; the 180 Vac no-selection case is tested in 10F.
+        {**topology.build_default_inputs(), "vac_rms_min": "230"},
         include_waveforms=True,
         pipeline_options=PipelineOptions(
             enable_magnetic_design=True,
@@ -80,6 +82,24 @@ def test_step7_runs_two_phase_pipeline_through_geometry() -> None:
     assert "bridge_rectifier_loss_w" not in incomplete_report.loss.breakdown_w
     assert "dc_link_capacitor_loss_w" not in incomplete_report.loss.breakdown_w
     assert any("dc_link_capacitor_loss_w" in note for note in incomplete_report.loss.notes)
+
+    for missing_component in ("bridge_rectifier", "device", "inductor_total_loss_w"):
+        if missing_component == "inductor_total_loss_w":
+            incomplete = replace(report, loss=replace(
+                report.loss,
+                breakdown_w={key: value for key, value in breakdown.items() if key != missing_component},
+            ))
+        else:
+            incomplete = replace(report, **{missing_component: None})
+        aggregated = _aggregate_interleaved_boost_pfc_losses(incomplete)
+        expected_missing = {
+            "bridge_rectifier": "bridge_rectifier_loss_w",
+            "device": "semiconductor_loss_w",
+            "inductor_total_loss_w": "inductor_total_loss_w",
+        }[missing_component]
+        assert aggregated.loss.total_loss_w is None
+        assert expected_missing not in aggregated.loss.breakdown_w
+        assert any(expected_missing in note for note in aggregated.loss.notes)
 
     statuses = report.run_context.stage_status
     assert statuses["semiconductor_design"] == "succeeded"

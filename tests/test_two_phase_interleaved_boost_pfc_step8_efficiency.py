@@ -26,7 +26,7 @@ def designed_two_phase_pfc(tmp_path_factory):
     topology = import_module(plugin.__module__)
     report = run_full_pipeline(
         plugin,
-        topology.build_default_inputs(),
+        {**topology.build_default_inputs(), "vac_rms_min": "230"},
         include_waveforms=True,
         pipeline_options=PipelineOptions(
             enable_magnetic_design=True,
@@ -38,9 +38,22 @@ def designed_two_phase_pfc(tmp_path_factory):
     return plugin, report
 
 
-def test_step8_efficiency_sweep_refreshes_fixed_two_phase_hardware(designed_two_phase_pfc, tmp_path) -> None:
+def test_step8_efficiency_sweep_refreshes_fixed_two_phase_hardware(designed_two_phase_pfc, tmp_path, monkeypatch) -> None:
     plugin, report = designed_two_phase_pfc
     hardware_before = _interleaved_fixed_hardware_ids(report)
+    assert hardware_before["phase_inductors"]["phase_1"] is not None
+    assert hardware_before["phase_inductors"]["phase_2"] is not None
+
+    def forbidden_selection(*args, **kwargs):
+        pytest.fail("Fixed-hardware sweep must not search or select new hardware.")
+
+    for module_name, function_name in (
+        ("run_magnetic_pipeline", "synthesize_fixed_inductor_candidates_with_backend"),
+        ("run_device_pipeline", "select_switch_device_with_audit"),
+        ("run_capacitor_pipeline", "select_capacitor_bank"),
+        ("run_bridge_rectifier_pipeline", "select_bridge_rectifier"),
+    ):
+        monkeypatch.setattr(import_module(f"pe_claw_gui.pipeline.{module_name}"), function_name, forbidden_selection)
     result = run_efficiency_sweep(
         report,
         plugin=plugin,
@@ -91,7 +104,9 @@ def test_step8_efficiency_sweep_refreshes_fixed_two_phase_hardware(designed_two_
     ("missing_component", "message_fragment"),
     (
         ("bridge", "input bridge"),
+        ("phase_1_switch", "phase_1_main_switch"),
         ("phase_2_switch", "phase_2_main_switch"),
+        ("phase_1_magnetic", "phase_1 inductor"),
         ("phase_2_magnetic", "phase_2 inductor"),
         ("capacitor", "shared DC-link capacitor"),
     ),
@@ -104,15 +119,17 @@ def test_step8_preflight_names_missing_fixed_hardware(
     _, report = designed_two_phase_pfc
     if missing_component == "bridge":
         incomplete = replace(report, bridge_rectifier=None)
-    elif missing_component == "phase_2_switch":
+    elif missing_component.endswith("_switch"):
+        role = missing_component.removesuffix("_switch") + "_main_switch"
         selected = dict(report.device.selected_devices)
-        selected.pop("phase_2_main_switch")
+        selected.pop(role)
         incomplete = replace(report, device=replace(report.device, selected_devices=selected))
-    elif missing_component == "phase_2_magnetic":
+    elif missing_component.endswith("_magnetic"):
+        phase = missing_component.removesuffix("_magnetic")
         chosen = [
             item
             for item in report.magnetic.chosen_designs
-            if item.metadata.get("phase_role") != "phase_2"
+            if item.metadata.get("phase_role") != phase
         ]
         incomplete = replace(report, magnetic=replace(report.magnetic, chosen_designs=chosen))
     else:

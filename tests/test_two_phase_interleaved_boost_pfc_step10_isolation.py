@@ -9,7 +9,7 @@ import pickle
 
 from pe_claw_gui.models.design_run_context import get_active_run_output_dir
 from pe_claw_gui.pipeline.options import PipelineOptions
-from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import run_efficiency_sweep
+from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import efficiency_sweep_blocking_warning, run_efficiency_sweep
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.topologies.base.registry import build_default_registry
 
@@ -35,6 +35,69 @@ def test_step10_old_and_new_topologies_are_isolated_in_both_orders(tmp_path: Pat
         assert first_snapshots[topology_id] == second_snapshots[topology_id]
 
 
+def test_step10f_selected_and_unavailable_two_phase_runs_are_isolated_in_both_orders(tmp_path: Path) -> None:
+    registry = build_default_registry()
+    plugin = registry.get_plugin(NEW_TOPOLOGY_ID)
+    topology = import_module(plugin.__module__)
+    options = PipelineOptions(
+        enable_magnetic_design=True,
+        enable_capacitor_design=True,
+        enable_bridge_rectifier_selection=True,
+    )
+    snapshots = {}
+    prior_runs = []
+    for sequence, order in enumerate((("wide", "narrow"), ("narrow", "wide"))):
+        for case in order:
+            inputs = topology.build_default_inputs()
+            if case == "narrow":
+                inputs["vac_rms_min"] = "230"
+            run_root = tmp_path / str(sequence) / case
+            report = run_full_pipeline(
+                plugin, inputs, include_waveforms=True,
+                pipeline_options=options, output_root=run_root,
+            )
+            sweep_root = run_root / "sweep"
+            sweep = run_efficiency_sweep(
+                report, plugin=plugin, load_points=LOAD_POINTS, output_dir=sweep_root,
+            )
+            if case == "wide":
+                # Basic feasible candidates exist, but none pass the current
+                # allow profile. Preserve this real boundary, not a partial sum.
+                assert report.magnetic.basic_feasible_count > 0
+                assert report.magnetic.post_allow_count == 0
+                assert report.magnetic.chosen_designs == []
+                for phase in ("phase_1", "phase_2"):
+                    assert report.magnetic.design_requirements[f"{phase}_design_id"] is None
+                assert any("no selected magnetic design" in note for note in report.magnetic.notes)
+                assert report.loss.total_loss_w is None
+                assert any("inductor_total_loss_w" in note for note in report.loss.notes)
+                warning = efficiency_sweep_blocking_warning(report)
+                assert warning is not None and "phase_1 inductor" in warning
+                assert not sweep.is_complete()
+                assert sweep.points == ()
+                assert warning in sweep.warnings
+                assert sweep.artifact_paths == {}
+                assert not sweep_root.exists()
+            else:
+                assert report.magnetic.post_allow_count > 0
+                assert len(report.magnetic.chosen_designs) == 2
+                assert report.loss.total_loss_w is not None
+                assert efficiency_sweep_blocking_warning(report) is None
+                assert sweep.is_complete()
+            assert report.run_context.topology_id == NEW_TOPOLOGY_ID
+            assert get_active_run_output_dir() is None
+            for prior_report, prior_bytes, prior_root, prior_files in prior_runs:
+                assert pickle.dumps(prior_report) == prior_bytes
+                assert _file_hashes(prior_root) == prior_files
+                assert prior_report.run_context.run_id != report.run_context.run_id
+            snapshot = _snapshot(report, sweep, run_root)
+            if case in snapshots:
+                assert snapshot == snapshots[case]
+            else:
+                snapshots[case] = snapshot
+            prior_runs.append((report, pickle.dumps(report), run_root, _file_hashes(run_root)))
+
+
 def _run_order(order: tuple[str, str], root: Path, registry, prior_runs) -> dict[str, dict[str, object]]:
     snapshots: dict[str, dict[str, object]] = {}
     options = PipelineOptions(
@@ -47,9 +110,14 @@ def _run_order(order: tuple[str, str], root: Path, registry, prior_runs) -> dict
         topology_module = import_module(plugin.__module__)
         # Keep Windows artifact filenames below MAX_PATH in long checkout paths.
         run_root = root / ("sp" if topology_id == OLD_TOPOLOGY_ID else "tp")
+        inputs = topology_module.build_default_inputs()
+        if topology_id == NEW_TOPOLOGY_ID:
+            # Real selected phase inductors are required for the sweep path.
+            # Default wide-line unavailable isolation is covered by Step 10F.
+            inputs["vac_rms_min"] = "230"
         report = run_full_pipeline(
             plugin=plugin,
-            raw_input=topology_module.build_default_inputs(),
+            raw_input=inputs,
             include_waveforms=True,
             pipeline_options=options,
             output_root=run_root,

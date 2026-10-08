@@ -1,6 +1,6 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10A、10B、10C、10D、10E 已完成；步骤 10F 待执行）
+- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10A、10B、10C、10D、10E 已完成；步骤 10F 专项验证通过，待提交推送）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
@@ -732,7 +732,7 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 一次早期隔离夹具使用长临时路径触发 Windows 文件名长度错误；缩短临时目录名后，两相专项隔离用例通过。未因此更改生产 pipeline。
 - 影响分类：test-only；新增隔离测试，没有修改拓扑实现或其他拓扑行为。`git diff --check` 对工作树整体报告既有 migration/evidence 长路径问题，相关文件均是预存删除项，不属于本步骤改动；本次新增/修改文件单独检查通过。
 
-### 步骤 10 后修正：设计边界一致性修正（10A、10B、10C、10D、10E 已完成；10F 待执行）
+### 步骤 10 后修正：设计边界一致性修正（10A、10B、10C、10D、10E 已完成；10F 专项验证通过，待提交推送）
 
 **触发原因**：步骤 10 的隔离测试证明两相拓扑在当前实现下可以独立运行，但手动对比发现电感、磁件和器件选型没有完全使用同一设计边界。两相电感合成使用低线输入，而磁件请求、相位器件应力和输入桥电流主要读取额定线路波形；磁件请求还把相电流 RMS 填入了平均电流字段。该问题属于两相拓扑的设计边界和下游适配一致性问题，不改变步骤 10 已完成的运行隔离结论。
 
@@ -827,6 +827,37 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 步骤 9：验证 GUI 同时显示 Boost 电感与总串联电感；
 - 步骤 10：重复两相拓扑并保留最小单相 Boost PFC 配对 smoke test，确认两相适配器分支没有改变旧拓扑结果；
 - 对每个修改步骤执行 `git diff --check`、聚焦测试、提交和推送；不把未运行的其他拓扑全量回归标记为通过。
+
+**步骤 10F 执行记录（2026-10-08）**：
+
+- 影响分类为 test/evidence/documentation-only。修改步骤 7、8、10 隔离测试和当前基线重复性测试，新增 `scripts/record_two_phase_interleaved_boost_pfc_step10f_baseline.py` 与 `tests/fixtures/two_phase_interleaved_boost_pfc_step10f_baseline.json`，补充用户文档。不修改生产公式、共享模型、库记录、磁件 allow profile、选型政策或其他拓扑。
+- 完整硬件成功路径使用真实库支持的 230–265 Vac 工况：仅将默认 `vac_rms_min` 改为 230，nominal 230 Vac、400 Vdc、1 kW、100 kHz 等其他输入不变。实际筛选得到两个可追溯的物理电感，总设计损耗约 `25.0454313765 W`；严格验证桥、四个器件位置、两相电感、共享电容的系统损耗守恒、分相几何和阶段状态。桥、半导体、电感损耗或电容任一必需分量缺失时，总损耗不得返回部分和。
+- 默认 180–265 Vac 工况单独严格验证：基本可行磁件候选存在，但当前 allow profile 无通过候选，两相 design ID 均为 None、chosen designs 为空、系统损耗为 unavailable。扫描必须返回 phase 1 磁件缺项警告、无点集、无效率产物且 `is_complete()` 为 False。现有前置返回仍使用默认 `status="available"`，本步骤不改共享状态语义，不把该字段当作扫描成功证据。
+- 固定硬件扫描覆盖 0.1/0.5/1.0 p.u.，保持所有硬件 ID 不变；用禁止调用的断言替换磁件搜索、半导体、电容和桥选型入口，证明扫描未重新选型。保留逐点损耗求和、电流趋势、理想均流、180° 交错和 CSV/JSON/图像产物检查；补充任一相主开关或电感缺失的前置诊断。
+- 最小单相 Boost PFC / 两相配对完整链路按两个顺序运行，比较归一化报告、硬件、损耗、warnings、阶段、扫描结果和产物。另在同一 registry/plugin 内按“默认无磁件 → 可选磁件”和反向顺序重复两相设计。使用 pickle 对象快照和文件 SHA256 检查先前报告及产物不变、run ID 独立、产物路径归属及活动 run context 清空；同工况重复结果严格相等。
+- 新 10F 快照由脚本生成，覆盖 nominal、low-line、high-line 三组设计输入并重复验证；10A/10C/10D 历史快照保留。与 10D 比较仅排除 10E 明确修改的 `gui` 文本，其余工程字段全部严格相等，不放宽数值或选型断言。
+- 初轮诊断 `42 passed, 5 failed`（433.14s）：步骤 7/8 旧用例假定默认工况必有磁件，导致完整链路与下游缺项断言失败；10D 快照还包含被 10E 更新的 GUI 文本。上述根因分别通过独立真实成功/不可用工况和新版本快照解决，不删除失败证据、不伪造磁件、不放宽公共公式或筛选规则。
+- 最终两组不重叠专项验证合计 **51 passed，无 skip**：步骤 7/8/10 隔离组 `10 passed`（820.89s）；步骤 1–6、9、10A–10E 组 `41 passed`（660.23s，含真实 Tk 按钮链、快照重复性与设计边界测试）。未运行全量测试或其他拓扑全面回归，仅保留计划要求的单相 Boost 最小配对对照。
+- 复现命令（本次两组分别运行；完整覆盖所有两相专项测试文件）：
+
+```powershell
+$env:PYTHONPATH = 'src'
+$env:MPLBACKEND = 'Agg'
+$focusNames = @(
+    'test_two_phase_interleaved_boost_pfc_step7_pipeline.py',
+    'test_two_phase_interleaved_boost_pfc_step8_efficiency.py',
+    'test_two_phase_interleaved_boost_pfc_step10_isolation.py'
+)
+$twoPhaseTests = @(Get-ChildItem tests -Filter 'test_two_phase_interleaved_boost_pfc_*.py')
+$focusTests = @($twoPhaseTests | Where-Object Name -In $focusNames | ForEach-Object FullName)
+$restTests = @($twoPhaseTests | Where-Object Name -NotIn $focusNames | ForEach-Object FullName)
+python -m pytest -q --basetemp .pytest-tmp-10f-focus @focusTests
+python -m pytest -q --basetemp .pytest-tmp-10f-rest @restTests
+```
+
+- 验证范围限制：设计边界 metadata 的三种线电压检查不等于固定硬件跨线电压刷新验证。当前波形复用候选线路周期，磁件 operating request 按负载缩放 low-line 平均值和含纹波 RMS，保留设计纹波及伏秒，未按 operating voltage 重算电流。硬件固定和损耗代数守恒的通过不证明跨线/跨负载损耗图的完整物理一致性，该问题已写入用户文档，未在本验证步骤中修改生产模型。
+- 本计划继续保留 Active：默认宽线工况的磁件可用性、上述 operating-point 模型限制，以及未执行的旧拓扑全面/发布验收，均不能被 10F 的专项通过替代。图卡仍为占位。暂不归档本计划，也不声称旧 19 拓扑全面回归完成。
+- Python 编译、定向 `git diff --check` 和暂存差异检查随提交执行；既有 migration/deployment/Web 删除、outputs 和 pytest 临时文件不纳入本次提交，不清理、不执行备份。专项验证已通过，提交推送完成后再更新 10F 完成状态。
 
 **修正验收标准**：
 
