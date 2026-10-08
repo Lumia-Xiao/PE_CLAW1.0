@@ -1647,3 +1647,8 @@ listed here.
 - 最终两组不重叠专项验证共 `51 passed`，无 skip：步骤 7/8/10 隔离 `10 passed`（820.89s）；步骤 1–6、9、10A–10E `41 passed`（660.23s，含真实 Tk GUI）。环境 `PYTHONPATH=src`、`MPLBACKEND=Agg`，分别使用 `.pytest-tmp-10f-focus`、`.pytest-tmp-10f-rest`；复现命令和影响说明记录于活动计划。未执行全量测试或其他拓扑全面回归。
 - 更新 `docs/two_phase_interleaved_boost_pfc.md` 和活动计划，记录真实工况边界、preflight 空点集仍为默认 available 状态的现有语义，以及运行点波形复用线路周期、磁件 low-line RMS 负载缩放的模型限制。10F 硬件固定/损耗守恒不代表跨线电压刷新或损耗物理模型完整验收；计划暂不归档。
 - 影响分类：test/evidence/documentation-only；不修改生产代码、公共公式、库数据或筛选策略。本次 Python 编译和定向/暂存 `git diff --check` 随提交核验；目标分支 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，提交推送后另追加回执。工作区既有删除、outputs 和 pytest 产物保持原样，不纳入提交；未执行备份或清理。
+
+### 步骤 10F Git 回执
+
+- 实现、专项测试、生成快照与验证记录提交 `201abbb` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；本计划状态与日志回执随独立文档提交推送。步骤 10F 在限定门禁范围内完成，活动计划保留尚未处理的磁件可用性、运行点模型和全面验收事项。
+- 本步骤目标 Python 文件 `py_compile`、定向及暂存 `git diff --check` 已通过。只提交上述 9 个相关文件，既有无关删除和运行产物未纳入；未运行其他拓扑全面回归或全量测试，未执行备份或清理。
