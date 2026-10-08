@@ -1628,3 +1628,12 @@ listed here.
 - 新增 `tests/test_two_phase_interleaved_boost_pfc_step10d_requests.py` 和 `tests/fixtures/two_phase_interleaved_boost_pfc_step10d_baseline.json`；10A/10C 历史证据保留，当前重复性检查切换到 10D schema。
 - 当前磁性库 allow profile 对默认 low-line 设计没有可选候选，phase 1/phase 2 磁件不可用状态由报告和测试显式保留；没有放宽筛选规则或伪造硬件结果。步骤 7 完整损耗/几何和步骤 8 效率扫描因此仍受磁件前置条件阻断。
 - 验证仅限两相拓扑：10D 请求及相关边界测试 `14 passed`；10D 基线结构/重复性 `2 passed`；`py_compile`、`git diff --check` 通过。未运行其他拓扑或全量测试。
+
+## 2026-10-08 - 两相交错 Boost PFC 步骤 10E 结果展示与用户文档
+
+- 更新两相拓扑 `summary_view.py`、`magnetic_view.py` 和 `loss_view.py`：同时显示每相 Boost 电感目标与总串联电感，区分 low-line 设计点和 nominal 运行点相电流，明确 low-line 电流与 high-line 电压组合设计边界，并在磁件未选中时保持损耗 unavailable、给出可读原因。
+- 更新 `docs/two_phase_interleaved_boost_pfc.md`，补充电感口径、边界组合和磁件不可用状态；更新步骤 9 GUI 测试以覆盖已选磁件和 unavailable 两种结果分支；新增 `tests/test_two_phase_interleaved_boost_pfc_step10e_results.py`，并更新活动计划执行记录。
+- 验证仅限两相拓扑：步骤 10E 结果、步骤 10D 请求和步骤 9 GUI 定向测试 `9 passed`（201.15s，含真实 Tk 按钮链）；步骤 5/6/10D smoke 测试 `10 passed`（58.36s，10D 与前一批重复，不累计为独立用例数）；结果视图和测试文件 `py_compile` 通过。未运行其他拓扑或全量测试。
+- 本步骤文件及暂存差异 `git diff --check` 通过；全工作区检查受到既有 migration 超长路径删除项影响，未将该环境问题计为通过。首次运行曾因步骤 9 内嵌 Python 缩进错误失败，修复并复跑通过。
+- 影响范围：共享 GUI 文件内仅增加两相显式展示分支，无公共模型或数值计算契约变化；未修改公共公式、单相 Boost PFC 或磁件筛选策略。默认磁件不可用仍是步骤 10F 的待处理验证边界。
+- Git：实现、测试与用户文档提交 `1a127ac` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；本计划与 ChangeLog 执行记录随独立文档提交推送。保留既有无关删除和未跟踪输出，未执行备份或清理。

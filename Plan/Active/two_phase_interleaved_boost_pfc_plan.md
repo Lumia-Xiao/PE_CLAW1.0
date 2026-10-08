@@ -1,10 +1,10 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10A、10B、10C、10D 已完成；步骤 10E–10F 待执行）
+- **状态**：Active / 实施中（步骤 0–10 已按用户限定范围执行；步骤 10A、10B、10C、10D、10E 已完成；步骤 10F 待执行）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：步骤 0–10 已实施，步骤 10A/10B/10C 修正已完成；步骤 10 的验证范围按用户要求限定为两相拓扑专项及与单相 Boost PFC 的双顺序隔离回归。
+- **当前阶段**：步骤 0–10 已实施，步骤 10A/10B/10C/10D/10E 修正已完成；步骤 10 的验证范围按用户要求限定为两相拓扑专项及与单相 Boost PFC 的双顺序隔离回归。
 
 ## 1. 计划目标和边界
 
@@ -732,7 +732,7 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 一次早期隔离夹具使用长临时路径触发 Windows 文件名长度错误；缩短临时目录名后，两相专项隔离用例通过。未因此更改生产 pipeline。
 - 影响分类：test-only；新增隔离测试，没有修改拓扑实现或其他拓扑行为。`git diff --check` 对工作树整体报告既有 migration/evidence 长路径问题，相关文件均是预存删除项，不属于本步骤改动；本次新增/修改文件单独检查通过。
 
-### 步骤 10 后修正：设计边界一致性修正（10A、10B、10C、10D 已完成；10E–10F 待执行）
+### 步骤 10 后修正：设计边界一致性修正（10A、10B、10C、10D、10E 已完成；10F 待执行）
 
 **触发原因**：步骤 10 的隔离测试证明两相拓扑在当前实现下可以独立运行，但手动对比发现电感、磁件和器件选型没有完全使用同一设计边界。两相电感合成使用低线输入，而磁件请求、相位器件应力和输入桥电流主要读取额定线路波形；磁件请求还把相电流 RMS 填入了平均电流字段。该问题属于两相拓扑的设计边界和下游适配一致性问题，不改变步骤 10 已完成的运行隔离结论。
 
@@ -804,6 +804,17 @@ GUI 不应把两个相位渲染成一个无标签的“Boost switch”或“Boos
 - 区分设计点相电流和 nominal 运行点相电流；
 - 对“低线电流、高线电压组合边界”给出明确说明；
 - 保留理想均流、180° 交错和未建模控制/EMI 边界提示。
+
+**步骤 10E 执行记录（2026-10-08）**：
+
+- 更新 `summary_view.py`，同时展示每相 Boost 电感目标与每相总串联电感，分别列出 low-line 设计点和 nominal 运行点的相电流平均值、RMS、峰值，并说明磁件和功率器件的设计边界。
+- 更新 `magnetic_view.py`，展示理想均流、180° 交错、low-line 电流/电压边界、high-line 器件电压边界、每相电感设计口径；当当前 allow profile 未选中 phase 1/phase 2 磁件时，明确显示 unavailable 原因。
+- 更新 `loss_view.py`，明确低线电流与高线电压是组合设计边界，并在磁件缺失时将系统总损耗保持为 unavailable，同时提示缺少两相磁性硬件。
+- 更新 `docs/two_phase_interleaved_boost_pfc.md`，补充 Boost 电感与总串联电感区别、组合设计边界和磁件 unavailable 状态；更新步骤 9 GUI 测试以同时覆盖已选磁件与不可用磁件分支；新增 `tests/test_two_phase_interleaved_boost_pfc_step10e_results.py`。
+- 验证仅限两相拓扑结果视图和相邻步骤：`tests/test_two_phase_interleaved_boost_pfc_step10e_results.py`、`tests/test_two_phase_interleaved_boost_pfc_step10d_requests.py`、`tests/test_two_phase_interleaved_boost_pfc_step9_gui.py` 共 `9 passed`；目标生产代码和测试 `py_compile` 通过。未运行其他拓扑或全量测试。
+- `git diff --check` 的检查范围受工作区既有超长路径删除项影响，已单独检查本步骤相关文件无空白错误；既有 migration/deployment/Web 删除、`outputs/` 和 pytest 临时目录未纳入本步骤提交。下一步为步骤 10F。
+- 追加两相步骤 5/6/10D smoke 验证 `10 passed`（58.36s）；前述 9 项结果/请求/真实 Tk GUI 测试耗时 201.15s。两批中的 10D 用例重复执行，不作为独立用例累加。
+- Git：实现、测试与用户文档提交 `1a127ac` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；本执行记录和状态更新随独立文档提交推送。步骤 10E 完成，步骤 10F 待执行。
 
 **步骤 10F：两相专项验证和低影响隔离门禁**
 
