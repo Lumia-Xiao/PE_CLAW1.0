@@ -1659,3 +1659,10 @@ listed here.
 - 根因为两相分支没有复用现有工程 allow-aware frontier fallback。用户 case 的内存诊断在 14 核范围每相 103,494 个候选且 allow 0，扩大到 48 核范围同限值有 181 个通过；不把诊断数量冻结成永久断言，不通过缩小输入范围或放宽库/筛选限值修复。
 - 仅修改现有两相路由；公共搜索/筛选、NaN 数据处理、运行点模型及其他拓扑保持各自范围。保留历史快照，新增 10G 证据，默认宽线由真实不可用转为成功的预期改变必须有新回归与旧失败路径覆盖。
 - 本阶段仅修改 `Plan/Active/two_phase_interleaved_boost_pfc_plan.md` 与 ChangeLog；验证为文档内容和定向/暂存 `git diff --check`，未运行计算测试。目标分支 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，推送后进入 10G-1；既有删除、outputs、缓存和测试临时目录均不纳入。未备份或清理。
+
+## 2026-10-09 - 两相交错 Boost PFC 10G-1 搜索接入与按相审计
+
+- 10G-0 计划提交 `df24fdf` 已推送。修改共享 `pipeline/run_magnetic_pipeline.py` 内仅两相分支：初始 allow 无通过时调用既有 bounded frontier；同一请求/context/profile/backend 和初始候选/compression 直接复用，初筛通过则不扩大。
+- phase 1 搜索一次，phase 2 复用模型；修正 phase 2 的 library_candidate_id 为原始库候选 ID，所选模型匹配继续追踪 phase 1 design ID，物理实例身份独立。使用既有 `frontier_search_audit` 保存原始单次搜索证据及 phase 2 来源，不把两相聚合计数误称为执行两次搜索。
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step10g_frontier.py`，覆盖成功/耗尽/空初始候选/异常/初筛通过的边界。分支与既有步骤 6 请求/实例测试 `8 passed`（4.91s），来源 ID 匹配末次修正后复跑和编译/diff 检查随提交执行。
+- integration change 范围可界定到既有两相分支；公共搜索算法、allow profile、库数据、物理公式、其他拓扑路由未变。真实硬件、损耗、效率与当前 baseline 的更新在 10G-2 执行，隔离最终门禁在 10G-3，不以分支 fixture 替代真实库验收。未全测试、未清理或备份；只暂存本阶段四个文件并推送指定分支。

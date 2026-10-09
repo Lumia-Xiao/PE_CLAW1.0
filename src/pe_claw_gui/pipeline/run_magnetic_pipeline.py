@@ -468,14 +468,14 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
                             **candidate.metadata,
                             "phase_role": "phase_2",
                             "physical_instance_id": "phase_2",
-                            "library_candidate_id": candidate.candidate_id,
+                            "library_candidate_id": candidate.metadata.get("library_candidate_id", candidate.candidate_id),
                         },
                     )
                     for candidate in phase_one.chosen_designs
                 ]
                 phase_two_selected = next(
                     (candidate.candidate_id for candidate in phase_two_chosen
-                     if candidate.metadata.get("library_candidate_id") == phase_one.selected_design_id),
+                     if f"{candidate.metadata.get('library_candidate_id')}::phase_1" == phase_one.selected_design_id),
                     phase_two_chosen[len(phase_two_chosen) // 2].candidate_id if phase_two_chosen else None,
                 )
                 phase_results["phase_2"] = replace(
@@ -485,6 +485,12 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
                     chosen_designs=phase_two_chosen,
                     selected_design_id=phase_two_selected,
                     search_selected_design_id=phase_two_selected,
+                    frontier_search_audit={
+                        "frontier_executed": False,
+                        "shared_from_phase": "phase_1",
+                        "status": phase_one.frontier_search_audit.get("status", "unavailable"),
+                        "selected_stage": phase_one.frontier_search_audit.get("selected_stage"),
+                    },
                     notes=[
                         *request.notes,
                         "Phase 2 reuses the phase 1 library model as a second physical instance under ideal equal sharing.",
@@ -501,6 +507,31 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
             )
             basic = synthesize_fixed_inductor_candidates_with_backend(request, backend_config)
             compression = compress_candidates(basic, context=screening_context, allow_profile=allow_profile)
+            search_audit: dict[str, object] = {
+                "frontier_executed": False,
+                "status": "initial_allow_passed",
+                "selected_stage": "baseline_core_14",
+            }
+            search_notes: list[str] = []
+            if compression.post_allow_count == 0:
+                # Basic feasibility is not engineering acceptance. Reuse the
+                # bounded fallback before declaring the phase unavailable.
+                frontier = search_fixed_inductor_candidate_frontier(
+                    request,
+                    context=screening_context,
+                    allow_profile=allow_profile,
+                    backend_config=backend_config,
+                    baseline_candidates=basic,
+                    baseline_compression_result=compression,
+                )
+                basic = frontier.candidates
+                compression = frontier.compression_result
+                search_audit = {**frontier.audit_dict(), "frontier_executed": True}
+                search_notes = [
+                    *frontier.notes,
+                    f"Phase 1 allow-aware frontier status={frontier.status}, "
+                    f"selected_stage={frontier.selected_stage or 'none'}.",
+                ]
             pareto = build_pareto_front(compression.compressed_candidates)
             chosen = choose_representative_designs(pareto, count=5)
             chosen = [
@@ -534,7 +565,8 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
                 screened_candidates=compression.filtered_candidates,
                 compressed_candidates=compression.compressed_candidates,
                 chosen_designs=chosen,
-                notes=[*request.notes, *compression.notes],
+                frontier_search_audit=search_audit,
+                notes=[*request.notes, *search_notes, *compression.notes],
             )
             phase_requirements[f"phase_{phase}"] = build_design_requirements_dict(request)
         except Exception as exc:
@@ -612,6 +644,13 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
         screened_candidates=[*p1.screened_candidates, *p2.screened_candidates],
         compressed_candidates=[*p1.compressed_candidates, *p2.compressed_candidates],
         notes=notes,
+        frontier_search_audit={
+            "contract_version": "two-phase-fixed-inductor-frontier-v1",
+            "search_phase": "phase_1",
+            "physical_instance_count": 2,
+            "phase_1": p1.frontier_search_audit,
+            "phase_2": p2.frontier_search_audit,
+        },
         performance_timing={"phase_results": {key: value.summary for key, value in phase_results.items()}},
     )
     return replace(report, magnetic=aggregate, geometry=geometry_result)
