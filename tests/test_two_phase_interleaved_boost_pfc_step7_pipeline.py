@@ -16,9 +16,7 @@ def test_step7_runs_two_phase_pipeline_through_geometry() -> None:
     topology = import_module(plugin.__module__)
     report = run_full_pipeline(
         plugin,
-        # A real library-supported 230--265 Vac design exercises the complete
-        # loss/geometry path; the 180 Vac no-selection case is tested in 10F.
-        {**topology.build_default_inputs(), "vac_rms_min": "230"},
+        topology.build_default_inputs(),
         include_waveforms=True,
         pipeline_options=PipelineOptions(
             enable_magnetic_design=True,
@@ -43,6 +41,7 @@ def test_step7_runs_two_phase_pipeline_through_geometry() -> None:
     assert requirements["phase_1_instance_id"] == "phase_1"
     assert requirements["phase_2_instance_id"] == "phase_2"
     assert len(report.magnetic.evaluations) == 2
+    assert report.magnetic.frontier_search_audit["phase_1"]["status"] == "feasible_selection_verified"
 
     assert report.loss is not None
     breakdown = report.loss.breakdown_w

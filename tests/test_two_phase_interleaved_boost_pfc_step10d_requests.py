@@ -2,10 +2,14 @@ from __future__ import annotations
 
 from importlib import import_module
 
+from pe_claw_gui.engines.magnetics.candidate_compression import compress_candidates
+from pe_claw_gui.engines.magnetics.inductor_frontier_search import FixedInductorFrontierSearchResult
+
 from pe_claw_gui.engines.magnetics.inductor_adapter import build_interleaved_boost_pfc_phase_design_request
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_bridge_rectifier_pipeline import build_bridge_rectifier_selection_request
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
+from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import efficiency_sweep_blocking_warning, run_efficiency_sweep
 from pe_claw_gui.topologies.base.registry import build_default_registry
 
 
@@ -54,14 +58,28 @@ def test_step10d_bridge_request_uses_low_line_current_and_high_line_voltage() ->
     assert request.recommended_reverse_voltage_v > request.required_reverse_voltage_v
 
 
-def test_step10d_magnetic_unavailability_is_explicit_under_current_allow_profile() -> None:
+def test_step10d_magnetic_unavailability_is_explicit_when_search_is_exhausted(monkeypatch, tmp_path) -> None:
+    module = import_module("pe_claw_gui.pipeline.run_magnetic_pipeline")
+    monkeypatch.setattr(module, "synthesize_fixed_inductor_candidates_with_backend", lambda *args: [])
+
+    def exhausted(request, **kwargs):
+        return FixedInductorFrontierSearchResult(
+            status="request_infeasible_under_current_library_and_limits",
+            selected_stage=None, candidates=[],
+            compression_result=compress_candidates([], kwargs["context"], kwargs["allow_profile"]),
+            stage_audits=(), inventory_audit={"cartesian_scan_policy": "all_configured_bounded_stages_exhausted"},
+        )
+
+    monkeypatch.setattr(module, "search_fixed_inductor_candidate_frontier", exhausted)
     plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
     topology = import_module(plugin.__module__)
     report = run_full_pipeline(
         plugin,
         topology.build_default_inputs(),
         include_waveforms=True,
-        pipeline_options=PipelineOptions(enable_magnetic_design=True, enable_capacitor_design=True),
+        pipeline_options=PipelineOptions(enable_magnetic_design=True, enable_capacitor_design=True,
+                                         enable_bridge_rectifier_selection=True),
+        output_root=tmp_path / "no",
     )
 
     assert report.magnetic is not None
@@ -69,3 +87,13 @@ def test_step10d_magnetic_unavailability_is_explicit_under_current_allow_profile
     assert report.magnetic.design_requirements["phase_1_design_id"] is None
     assert report.magnetic.design_requirements["phase_2_design_id"] is None
     assert any("no selected magnetic design" in note for note in report.magnetic.notes)
+    assert report.magnetic.frontier_search_audit["phase_1"]["status"] == "request_infeasible_under_current_library_and_limits"
+    assert report.loss.total_loss_w is None
+    warning = efficiency_sweep_blocking_warning(report)
+    assert warning is not None and "phase_1 inductor" in warning
+    output_dir = tmp_path / "sweep"
+    sweep = run_efficiency_sweep(report, plugin=plugin, load_points=(0.1, 0.5, 1.0), output_dir=output_dir)
+    assert not sweep.is_complete()
+    assert sweep.points == () and sweep.artifact_paths == {}
+    assert warning in sweep.warnings
+    assert not output_dir.exists()

@@ -882,6 +882,17 @@ python -m pytest -q --basetemp .pytest-tmp-10f-rest @restTests
 
 **10G-0/1 执行记录（2026-10-09）**：10G-0 文档提交 `df24fdf` 已推送。10G-1 在既有两相分支接入共享 frontier fallback，复用初始候选/compression，不重复初始搜索；phase 2 复用 phase 1 搜索、保留同一原始 library_candidate_id 和独立实例 ID，aggregate 的既有 audit 字段按相记录搜索和复用关系。新增 step10g_frontier 分支测试覆盖初筛已通过、不通过后扩大成功、扩大耗尽、空初始候选及异常，步骤 6 实例/请求测试一并验证 `8 passed`（4.91s），末次来源 ID 匹配修正后复跑记录随提交。纯分支测试使用数值 fixture 验证路由；真实库宽线/窄线完整链路在 10G-2 执行，不用该 fixture 宣称生产硬件成功。历史默认 unavailable 与当前基线的预期更新留到下一阶段，不把未运行的测试记为通过。定向 diff/编译检查随本阶段提交执行，推送后进入 10G-2。
 
+**10G-1 推送回执 / 10G-2 执行记录（2026-10-09）**：
+
+- 10G-1 实现提交 `bcfb899` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；末次分支/步骤 6 复跑为 `8 passed`（3.70s），编译及定向/暂存 diff 检查通过。10G-0、10G-1 完成。
+- 步骤 7 恢复默认 180–265 Vac；步骤 8 同时验证真实宽线/窄线模型的饱和、损耗、电流密度、填充限值，两相参数一致但实例/design ID 不同、原始 library ID 相同。宽线初筛无通过、扩大后通过；窄线不触发扩大。扫描禁止磁件 basic/frontier 搜索及器件/桥/电容重选，三负载点硬件身份固定、损耗守恒。
+- 默认失败断言改为独立注入的搜索耗尽用例：两个电感无 ID、系统总损耗 None、missing-inductor 诊断、无扫描点/文件。结果视图缺硬件分支也独立覆盖；真实 Tk 默认设计必须选中两相磁件并完成效率扫描，不保留成功/失败任选的断言。
+- 新增 `scripts/record_two_phase_interleaved_boost_pfc_step10g_baseline.py` 和脚本生成的 10G fixture。10A/10C/10D/10F 历史证据保持不变。三工况与 10F 严格比较输入、candidate/metadata、线路、波形、应力、器件、桥请求及电容身份；变化限于磁件及其损耗、热、几何、GUI 和 frontier 审计。
+- 实际 14→24→48 搜索在三工况均得到可选模型。额定/高线选中两个 PQ 35/35、FT-3M、43 匝、8 并绕模型；低线两个 PQ 40/30、FT-3M、38 匝、1 并绕模型。系统估算损耗分别为 nominal `30.957926132850 W`、low-line `31.870757008381 W`、high-line `31.353494887234 W`，不作为所有输入或实物的承诺。
+- 验证：步骤 7/8/10D `18 passed`（478.62s）；真实 Tk/10D 最新耗尽断言/10E 视图 `9 passed`（578.42s）；新格式基线结构、诊断编码及独立完整复跑 `4 passed`（333.90s）。10D 三用例重复，两阶段本批合计 28 个独立用例通过，无 skip。环境 `PYTHONPATH=src`、`MPLBACKEND=Agg`，basetemp 分别 `.pytest-tmp-10g-p`、`.pytest-tmp-10g-v`、`.pytest-tmp-10g-b2`，未全测试。
+- 首次基线重复检查 `2 passed, 1 failed`（542.62s）：审计中的 NaN 不等于自身，旧通用稳定化函数不能直接用于审计快照。只在新证据脚本将 NaN/±Infinity 编码为明确字符串，保留全部诊断字段并使用 `allow_nan=False`；新增编码测试，重新运行脚本生成基线后独立复跑通过。未删除字段、放宽工程断言或改生产 NaN 处理。
+- 用户文档更新搜索机制、实例/计数语义、耗尽状态与虚拟模型限制。目标 Python 编译及定向/暂存 diff 检查通过；本阶段提交推送后再记完成，随后进入 10G-3。原用户输出、无关删除、pytest 临时文件保留且不提交，不清理或备份。
+
 **修正验收标准**：
 
 - 两相电感、磁件和器件电流选型都覆盖低线设计边界；

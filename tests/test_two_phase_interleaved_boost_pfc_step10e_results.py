@@ -1,19 +1,23 @@
 from __future__ import annotations
 
 from importlib import import_module
+from dataclasses import replace
+
+import pytest
 
 from pe_claw_gui.app.result_views.loss_view import build_system_loss_summary
 from pe_claw_gui.app.result_views.magnetic_view import _interleaved_boundary_lines
 from pe_claw_gui.app.result_views.summary_view import _build_electrical_parameter_lines
 from pe_claw_gui.pipeline.options import PipelineOptions
-from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
+from pe_claw_gui.pipeline.run_full_pipeline import _aggregate_interleaved_boost_pfc_losses, run_full_pipeline
 from pe_claw_gui.topologies.base.registry import build_default_registry
 
 
 TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 
 
-def _report():
+@pytest.fixture(scope="module")
+def designed_report(tmp_path_factory):
     plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
     topology = import_module(plugin.__module__)
     return run_full_pipeline(
@@ -25,11 +29,12 @@ def _report():
             enable_capacitor_design=True,
             enable_bridge_rectifier_selection=True,
         ),
+        output_root=tmp_path_factory.mktemp("view"),
     )
 
 
-def test_step10e_summary_exposes_design_and_nominal_boundaries() -> None:
-    report = _report()
+def test_step10e_summary_exposes_design_and_nominal_boundaries(designed_report) -> None:
+    report = designed_report
     summary = "\n".join(_build_electrical_parameter_lines(report))
 
     assert "Lboost phase 1 / phase 2" in summary
@@ -41,8 +46,8 @@ def test_step10e_summary_exposes_design_and_nominal_boundaries() -> None:
     assert "low-line current combined with high-line voltage" in summary
 
 
-def test_step10e_magnetic_and_loss_views_explain_boundary_and_unavailable_hardware() -> None:
-    report = _report()
+def test_step10e_magnetic_and_loss_views_explain_boundary_and_unavailable_hardware(designed_report) -> None:
+    report = designed_report
     magnetic = "\n".join(_interleaved_boundary_lines(report))
     loss = "\n".join(build_system_loss_summary(report))
 
@@ -51,6 +56,14 @@ def test_step10e_magnetic_and_loss_views_explain_boundary_and_unavailable_hardwa
     assert "Device current / voltage line: low_line / high_line" in magnetic
     assert "Boundary basis: low-line current combined with high-line voltage" in magnetic
     assert "Boost L target=" in magnetic
-    if report.magnetic is not None and not report.magnetic.chosen_designs:
-        assert "Magnetic selection status: unavailable" in magnetic
-        assert "Magnetic hardware status" in loss
+    assert len(report.magnetic.chosen_designs) == 2
+    assert report.loss.total_loss_w is not None
+
+    missing = replace(report.magnetic, chosen_designs=[], selected_design_id=None,
+                      design_requirements={**report.magnetic.design_requirements,
+                                           "phase_1_design_id": None, "phase_2_design_id": None})
+    incomplete = replace(report, magnetic=missing, loss=replace(report.loss, breakdown_w={}))
+    incomplete = _aggregate_interleaved_boost_pfc_losses(incomplete)
+    assert "Magnetic selection status: unavailable" in "\n".join(_interleaved_boundary_lines(incomplete))
+    assert "Magnetic hardware status" in "\n".join(build_system_loss_summary(incomplete))
+    assert incomplete.loss.total_loss_w is None

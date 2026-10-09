@@ -81,18 +81,34 @@ interchangeable when reading magnetic selection results.
   recomputing those currents from it. Sweep completeness and loss-sum checks
   therefore do not establish a physically consistent line/load loss map.
 
-## Verified Hardware Availability
+## Magnetic Search and Hardware Availability
 
-The Step 10F gate uses two real-library cases at 1 kW, 400 V DC and 100 kHz,
-with nominal input 230 V AC. With the default 180--265 V AC range, basic
-feasible magnetic candidates exist, but none survive the current allow profile.
-Both phase inductor IDs and the system loss remain unavailable; the efficiency
-sweep returns a missing-inductor warning and no points or artifacts.
-The current preflight result retains the default `status="available"` even in
-this case. Use `is_complete()`, the points and the warning to determine whether
-the sweep completed; the status field alone does not establish completion.
+If the initial magnetic candidates all fail engineering screening, the two-phase
+flow now reuses the bounded core-frontier search. It expands the eligible core
+pool through 14, 24, 48 and 96 cores and stops at the first accepted stage.
+Material, wire, turns, parallel-conductor bounds and the engineering allow
+profile stay fixed. The search runs once for phase 1; phase 2 reuses the same
+model as a separate physical instance with its own design and instance IDs.
+The report's `frontier_search_audit` records the phase 1 search stages and the
+phase 2 reuse relationship; phase-level audit counts describe one search, even
+when aggregate magnetic counts describe both physical instances.
 
-Changing only the minimum input to 230 V AC gives a 230--265 V AC design with
-two selected physical inductors. This case exercises full system loss summation
-and the fixed-hardware 0.1/0.5/1.0 p.u. sweep. It demonstrates that supported
-case, not magnetic availability across the default wide input range.
+At 1 kW, 400 V DC, 100 kHz and nominal 230 V AC, the earlier Step 10F initial
+search could select inductors for 230--265 V AC but not the default 180--265 V
+AC range. Step 10G expands that default wide-line search without changing its
+electrical requirements or allow limits. The wide-line and narrow-line cases
+are both checked with real library data, system loss summation and fixed-hardware
+0.1/0.5/1.0 p.u. sweeps. Historical snapshots retain the earlier unavailable result.
+
+If every configured stage is exhausted, both phase inductor IDs and system loss
+remain unavailable. The efficiency sweep returns a missing-inductor warning
+and no points or artifacts. Its current preflight result retains the default
+`status="available"` in this case: use `is_complete()`, the points and the warning
+to determine completion. A manifest stage marked succeeded records execution,
+and alone does not prove that magnetic selection succeeded.
+
+The production backend uses virtual combinations of core geometry, material
+and winding data. An accepted model is not proof of a purchasable catalog
+assembly, manufacturer-approved pairing or tested hardware. Missing 100 degC
+saturation data can yield NaN screening margins; the existing shared treatment
+is retained and needs separate data/contract review.

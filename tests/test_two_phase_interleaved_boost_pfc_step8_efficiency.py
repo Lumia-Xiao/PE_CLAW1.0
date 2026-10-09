@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import replace
 from importlib import import_module
 from pathlib import Path
 
 import pytest
+
+from pe_claw_gui.engines.magnetics.allow_profiles import get_default_allow_profile
+from pe_claw_gui.engines.magnetics.candidate_metrics import MagneticCandidateContext, compute_candidate_engineering_metrics
 
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import (
@@ -20,13 +24,13 @@ from pe_claw_gui.topologies.base.registry import build_default_registry
 TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 
 
-@pytest.fixture(scope="module")
-def designed_two_phase_pfc(tmp_path_factory):
+@pytest.fixture(scope="module", params=("180", "230"), ids=("wide", "narrow"))
+def designed_two_phase_pfc(tmp_path_factory, request):
     plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
     topology = import_module(plugin.__module__)
     report = run_full_pipeline(
         plugin,
-        {**topology.build_default_inputs(), "vac_rms_min": "230"},
+        {**topology.build_default_inputs(), "vac_rms_min": request.param},
         include_waveforms=True,
         pipeline_options=PipelineOptions(
             enable_magnetic_design=True,
@@ -43,12 +47,44 @@ def test_step8_efficiency_sweep_refreshes_fixed_two_phase_hardware(designed_two_
     hardware_before = _interleaved_fixed_hardware_ids(report)
     assert hardware_before["phase_inductors"]["phase_1"] is not None
     assert hardware_before["phase_inductors"]["phase_2"] is not None
+    magnetic = report.magnetic
+    phase_1, phase_2 = magnetic.chosen_designs
+    assert phase_1.candidate_id != phase_2.candidate_id
+    assert phase_1.metadata["library_candidate_id"] == phase_2.metadata["library_candidate_id"]
+    assert phase_1.metadata["physical_instance_id"] == "phase_1"
+    assert phase_2.metadata["physical_instance_id"] == "phase_2"
+    for field in ("core_name", "material_name", "wire_name", "turns", "parallel_bundles", "inductance_h", "gap_m"):
+        assert getattr(phase_1, field) == getattr(phase_2, field)
+    context = MagneticCandidateContext(
+        topology_id=report.spec.topology_id, fs_hz=report.candidate.fs_hz,
+        throughput_power_w=report.candidate.pout_target / 2.0,
+    )
+    for design in (phase_1, phase_2):
+        metric = compute_candidate_engineering_metrics(design, context, get_default_allow_profile(context.fs_hz))
+        for field in ("sat_margin", "loss_margin", "current_density_margin", "fill_margin"):
+            value = getattr(metric, field)
+            assert value is not None and math.isfinite(value) and value >= 1.0
+    audit = magnetic.frontier_search_audit
+    assert audit["phase_2"]["shared_from_phase"] == "phase_1"
+    if report.spec.vin_min == 180.0:
+        assert audit["phase_1"]["frontier_executed"] is True
+        stages = audit["phase_1"]["stage_audits"]
+        assert stages[0]["post_allow_count"] == 0
+        assert stages[-1]["post_allow_count"] > 0
+        assert audit["phase_1"]["selected_stage"] == stages[-1]["bounds"]["stage_id"]
+    else:
+        assert audit["phase_1"]["frontier_executed"] is False
+    assert report.loss.total_loss_w is not None
+    assert report.loss.breakdown_w["inductor_total_loss_w"] == pytest.approx(
+        sum(report.loss.breakdown_w[f"phase_{phase}_inductor_total_loss_w"] for phase in (1, 2))
+    )
 
     def forbidden_selection(*args, **kwargs):
         pytest.fail("Fixed-hardware sweep must not search or select new hardware.")
 
     for module_name, function_name in (
         ("run_magnetic_pipeline", "synthesize_fixed_inductor_candidates_with_backend"),
+        ("run_magnetic_pipeline", "search_fixed_inductor_candidate_frontier"),
         ("run_device_pipeline", "select_switch_device_with_audit"),
         ("run_capacitor_pipeline", "select_capacitor_bank"),
         ("run_bridge_rectifier_pipeline", "select_bridge_rectifier"),
