@@ -149,6 +149,12 @@ try:
         assert inductor_group.status == "available"
         assert {entry.entry_id for entry in inductor_group.child_entries} == {"phase_1", "phase_2"}
         assert inductor_group.quantity == 2
+        phase_objects = [obj for obj in overview.integrated_layout.groups if obj.source_group == "inductor"]
+        assert {obj.id for obj in phase_objects} == {"inductor_phase_1", "inductor_phase_2"}
+        assert phase_objects[0].layout_position_mm.x_mm != phase_objects[1].layout_position_mm.x_mm
+        assert phase_objects[0].layout_position_mm.y_mm == phase_objects[1].layout_position_mm.y_mm
+        assert all(Path(path).is_file() for path in report.magnetic.artifact_paths)
+        assert any(Path(path).name == "pareto_front.csv" for path in report.magnetic.artifact_paths)
         assert str(form.run_efficiency_sweep_button["state"]) == "normal"
 
         form.run_waveforms_button.invoke()

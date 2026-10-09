@@ -903,7 +903,15 @@ def _integrated_layout_objects(groups: list[HardwareOverviewComponentGroup]) -> 
         )
     inductor = by_id.get("inductor")
     if inductor is not None and _group_available_for_integrated_layout(inductor):
-        objects.append(_integrated_object_from_group(inductor, object_id="inductor", display_name=inductor.display_name))
+        if inductor.shape_type == "two_phase_magnetic_core_assemblies":
+            if inductor.status == "available":
+                for child in inductor.child_entries:
+                    objects.append(replace(
+                        _integrated_object_from_child(child, f"inductor_{child.entry_id}", child.display_name),
+                        source_group="inductor",
+                    ))
+        else:
+            objects.append(_integrated_object_from_group(inductor, object_id="inductor", display_name=inductor.display_name))
     capacitor = by_id.get("capacitor")
     if capacitor is not None:
         capacitor_children = [child for child in capacitor.child_entries if _bbox_complete(child.bounding_box_mm)]
@@ -1053,6 +1061,8 @@ def _place_integrated_objects(
         "bridge_rectifier",
         "semiconductor",
         "inductor",
+        "inductor_phase_1",
+        "inductor_phase_2",
         "llc_resonant_capacitor",
         "capacitor_lower",
         "capacitor_output",
@@ -1063,11 +1073,17 @@ def _place_integrated_objects(
     x_cursor = 0.0
     depth_step_mm = max(6.0, 0.30 * capacitor_internal_spacing_mm)
     depth_offsets = _depth_offsets_for_order(ordered_objects, depth_step_mm)
+    if "inductor_phase_1" in by_id and "inductor_phase_2" in by_id:
+        depth_offsets["inductor_phase_2"] = depth_offsets["inductor_phase_1"]
     for index, obj in enumerate(ordered_objects):
         placed.append(_place_object(obj, x_cursor + 0.5 * _box_width(obj.bbox_mm), depth_offsets.get(obj.id, 0.0)))
         x_cursor += _box_width(obj.bbox_mm)
         if index < len(ordered_objects) - 1:
-            x_cursor += group_spacing_mm
+            next_obj = ordered_objects[index + 1]
+            if obj.id == "inductor_phase_1" and next_obj.id == "inductor_phase_2":
+                x_cursor += max(10.0, 0.15 * max(_box_width(obj.bbox_mm), _box_width(next_obj.bbox_mm)))
+            else:
+                x_cursor += group_spacing_mm
     return _center_integrated_layout(placed)
 
 
@@ -1162,7 +1178,9 @@ def _integrated_missing_warnings(
     if by_id.get("semiconductor") is not None and "semiconductor" not in present_ids:
         warning = _first_warning(by_id.get("semiconductor")) or "Semiconductor is unavailable for integrated hardware overview."
         warnings.append(warning)
-    if by_id.get("inductor") is not None and "inductor" not in present_ids:
+    if by_id.get("inductor") is not None and not (
+        "inductor" in present_ids or {"inductor_phase_1", "inductor_phase_2"} <= present_ids
+    ):
         warning = _first_warning(by_id.get("inductor")) or "Inductor is unavailable for integrated hardware overview."
         warnings.append(warning)
     capacitor = by_id.get("capacitor")
@@ -1315,10 +1333,24 @@ def _build_two_phase_inductor_group(report: DesignReport) -> HardwareOverviewCom
 
     children: list[HardwareOverviewChildEntry] = []
     phase_values: list[tuple[float | None, float | None, HardwareOverviewBoundingBox]] = []
+    diagnostics: list[str] = []
+    magnetic_paths = [Path(path) for path in magnetic.artifact_paths]
+    if not any(path.name == "pareto_front.png" and path.is_file() for path in magnetic_paths):
+        diagnostics.append("Missing phase_1 Pareto plot artifact.")
+    if not any(path.name == "pareto_front.csv" and path.is_file() for path in magnetic_paths):
+        diagnostics.append("Missing phase_1 Pareto search-data artifact.")
     for phase in ("phase_1", "phase_2"):
         design = designs[phase]
         target = targets[phase]
         layout = target.layout
+        if layout is None:
+            diagnostics.append(f"Missing {phase} geometry layout: {target.error_message or 'layout unavailable'}.")
+        elif target.error_message:
+            diagnostics.append(f"Invalid {phase} geometry: {target.error_message}.")
+        elif target.design_id != design.candidate_id or layout.design_id != design.candidate_id:
+            diagnostics.append(f"Mismatched {phase} geometry design identity.")
+        if not target.artifact_paths or any(not Path(path).is_file() for path in target.artifact_paths):
+            diagnostics.append(f"Missing {phase} geometry artifact files.")
         bbox = _inductor_bbox(layout)
         loss_w = _inductor_loss_w(report, design.candidate_id)
         volume_cm3 = _m3_to_cm3(target.volume_m3 if target.volume_m3 is not None else design.total_volume_m3)
@@ -1349,16 +1381,16 @@ def _build_two_phase_inductor_group(report: DesignReport) -> HardwareOverviewCom
     volumes = [value[0] for value in phase_values]
     losses = [value[1] for value in phase_values]
     bboxes = [value[2] for value in phase_values]
-    complete = all(value is not None for value in volumes) and all(value is not None for value in losses) and all(_bbox_complete(bbox) for bbox in bboxes)
+    complete = not diagnostics and all(value is not None for value in volumes) and all(value is not None for value in losses) and all(_bbox_complete(bbox) for bbox in bboxes)
     spacing_mm = max(10.0, 0.15 * max((bbox.width_mm or 0.0) for bbox in bboxes))
     group_bbox = HardwareOverviewBoundingBox(
         width_mm=sum(bbox.width_mm or 0.0 for bbox in bboxes) + spacing_mm,
         height_mm=max((bbox.height_mm or 0.0) for bbox in bboxes),
         depth_mm=max((bbox.depth_mm or 0.0) for bbox in bboxes),
     )
-    warnings = _bbox_warnings(group_bbox)
+    warnings = [*_bbox_warnings(group_bbox), *diagnostics]
     if not complete:
-        warnings.append("Two-phase inductor total is unavailable because a phase loss, volume, or geometry value is missing.")
+        warnings.append("Two-phase inductor total is unavailable because a phase loss, volume, geometry, identity, or artifact is missing or invalid.")
     return HardwareOverviewComponentGroup(
         group_id="inductor",
         display_name="Two-phase interleaved Boost inductors",

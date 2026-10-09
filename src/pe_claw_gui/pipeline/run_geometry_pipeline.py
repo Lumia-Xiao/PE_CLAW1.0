@@ -195,6 +195,11 @@ def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOption
                 unique_targets_by_design_id[design.candidate_id] = existing
             if existing is not None:
                 unique_artifact_paths = _merge_artifact_paths(unique_artifact_paths, existing.artifact_paths)
+            phase_error = existing.error_message if existing is not None else "Phase magnetic geometry is unavailable."
+            if existing is not None and existing.layout is not None and (
+                not existing.artifact_paths or any(not Path(path).is_file() for path in existing.artifact_paths)
+            ):
+                phase_error = "Phase geometry artifact files are missing."
             phase_targets.append(
                 GeometryTarget(
                     role=phase,
@@ -207,7 +212,7 @@ def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOption
                     artifact_paths=list(existing.artifact_paths) if existing is not None else [],
                     duplicate_of=existing.role if existing is not None and existing.design_id != design.candidate_id else None,
                     notes=["Phase-specific physical instance; geometry reuse requires the same library model and dimensions."],
-                    error_message=existing.error_message if existing is not None else "Phase magnetic geometry is unavailable.",
+                    error_message=phase_error,
                     component_role="boost_phase_inductor",
                     representative_role=phase,
                 )

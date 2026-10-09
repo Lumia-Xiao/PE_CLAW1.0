@@ -3,13 +3,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.record_two_phase_interleaved_boost_pfc_step10g_baseline import _audit_snapshot, build_step10g_baseline
+from scripts.record_two_phase_interleaved_boost_pfc_step10g_baseline import _audit_snapshot
+from scripts.record_two_phase_interleaved_boost_pfc_step10h_baseline import build_step10h_baseline
 
 
 BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10a_baseline.json"
 STEP10D_BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10d_baseline.json"
 STEP10F_BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10f_baseline.json"
-CURRENT_BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10g_baseline.json"
+STEP10G_BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10g_baseline.json"
+CURRENT_BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10h_baseline.json"
 
 
 def test_step10g_audit_snapshot_retains_non_finite_diagnostics_as_strict_json() -> None:
@@ -69,10 +71,8 @@ def test_step10f_historical_snapshot_preserves_10d_engineering() -> None:
         }
 
 
-def test_step10g_baseline_is_repeatable_and_preserves_electrical_design() -> None:
-    expected = json.loads(CURRENT_BASELINE.read_text(encoding="ascii"))
-    actual = build_step10g_baseline()
-    assert actual == expected
+def test_step10g_historical_baseline_preserves_electrical_design() -> None:
+    actual = json.loads(STEP10G_BASELINE.read_text(encoding="ascii"))
     historical = json.loads(STEP10F_BASELINE.read_text(encoding="ascii"))
     for current, previous in zip(actual["cases"], historical["cases"], strict=True):
         for key in ("case_id", "raw_input", "candidate", "candidate_metadata", "line_cycles", "waveform", "stress", "presence"):
@@ -84,3 +84,24 @@ def test_step10g_baseline_is_repeatable_and_preserves_electrical_design() -> Non
         assert len(current["hardware"]["magnetic_designs"]) == 2
         assert current["loss"]["total_loss_w"] is not None
         assert current["frontier_search_audit"]["phase_1"]["status"] == "feasible_selection_verified"
+
+
+def test_step10h_current_baseline_is_repeatable_and_preserves_10g_engineering() -> None:
+    expected = json.loads(CURRENT_BASELINE.read_text(encoding="ascii"))
+    actual = build_step10h_baseline()
+    assert actual == expected
+    historical = json.loads(STEP10G_BASELINE.read_text(encoding="ascii"))
+    added_note = "Pareto artifacts export the phase-1 magnetic search frontier once; phase 2 is a physical instance reuse."
+    for current, previous in zip(actual["cases"], historical["cases"], strict=True):
+        assert current["hardware"]["magnetic_notes"] == previous["hardware"]["magnetic_notes"] + [added_note]
+        legacy = {key: value for key, value in current.items() if key != "presentation"}
+        legacy["hardware"] = {**legacy["hardware"], "magnetic_notes": previous["hardware"]["magnetic_notes"]}
+        assert legacy == previous  # no other engineering or diagnostic differences allowed
+        presentation = current["presentation"]
+        assert presentation["inductor_group"]["status"] == "available"
+        assert presentation["inductor_group"]["quantity"] == 2
+        assert len(presentation["phase_geometry"]) == 2
+        assert all(presentation["overview_artifacts"].values())
+        assert {obj["id"] for obj in presentation["integrated_objects"] if obj["source_group"] == "inductor"} == {
+            "inductor_phase_1", "inductor_phase_2",
+        }

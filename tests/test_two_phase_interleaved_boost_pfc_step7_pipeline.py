@@ -11,7 +11,7 @@ from pe_claw_gui.topologies.base.registry import build_default_registry
 TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 
 
-def test_step7_runs_two_phase_pipeline_through_geometry() -> None:
+def test_step7_runs_two_phase_pipeline_through_geometry(tmp_path) -> None:
     plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
     topology = import_module(plugin.__module__)
     report = run_full_pipeline(
@@ -23,6 +23,7 @@ def test_step7_runs_two_phase_pipeline_through_geometry() -> None:
             enable_capacitor_design=True,
             enable_bridge_rectifier_selection=True,
         ),
+        output_root=tmp_path / "run",
     )
 
     assert report.bridge_rectifier is not None

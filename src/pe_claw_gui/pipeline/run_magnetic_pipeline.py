@@ -543,7 +543,7 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
                 chosen_candidates=chosen,
                 stack_count_comparison={},
                 recommended_design_id=library_selected_id,
-                write_csvs=False,
+                write_csvs=True,
                 output_dir=get_run_output_dir(report, "inductor_design"),
             ) if chosen else None
             chosen = [

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 from importlib import import_module
 
 import pytest
@@ -34,11 +35,17 @@ def _branch_candidate(request, *, accepted: bool) -> FixedInductorDesignCandidat
 
 
 @pytest.mark.parametrize("initial,expanded", (("accepted", True), ("rejected", True), ("rejected", False), ("empty", False)))
-def test_step10g_frontier_branch_reuses_request_and_search_once(monkeypatch, initial, expanded) -> None:
+def test_step10g_frontier_branch_reuses_request_and_search_once(monkeypatch, tmp_path, initial, expanded) -> None:
     module = import_module("pe_claw_gui.pipeline.run_magnetic_pipeline")
     backend = get_production_magnetic_backend_config()
     calls = []
     saved = {}
+    exports = []
+    export = module.export_design_artifacts
+
+    def tracked_export(**kwargs):
+        exports.append(kwargs)
+        return export(**kwargs)
 
     def basic_search(request, backend_config):
         assert request.metadata["phase_role"] == "phase_1"
@@ -67,6 +74,8 @@ def test_step10g_frontier_branch_reuses_request_and_search_once(monkeypatch, ini
 
     monkeypatch.setattr(module, "synthesize_fixed_inductor_candidates_with_backend", basic_search)
     monkeypatch.setattr(module, "search_fixed_inductor_candidate_frontier", frontier_search)
+    monkeypatch.setattr(module, "get_run_output_dir", lambda report, stage: tmp_path)
+    monkeypatch.setattr(module, "export_design_artifacts", tracked_export)
     result = module.run_magnetic_pipeline(_report(), backend_config=backend).magnetic
     assert calls == (["basic"] if initial == "accepted" else ["basic", "frontier"])
     audit = result.frontier_search_audit
@@ -75,6 +84,21 @@ def test_step10g_frontier_branch_reuses_request_and_search_once(monkeypatch, ini
     assert audit["phase_2"]["shared_from_phase"] == "phase_1"
     assert audit["phase_2"]["frontier_executed"] is False
     if initial == "accepted" or expanded:
+        assert len(exports) == 1
+        assert exports[0]["write_csvs"] is True
+        assert (tmp_path / "pareto_front.csv").is_file()
+        assert (tmp_path / "pareto_front.png").is_file()
+        for name, key in (("compressed_candidates.csv", "compressed_candidates"),
+                          ("pareto_front.csv", "pareto_candidates"),
+                          ("chosen_designs.csv", "chosen_candidates")):
+            with (tmp_path / name).open(newline="", encoding="utf-8") as source:
+                rows = list(csv.DictReader(source))
+            candidates = exports[0][key]
+            assert [row["candidate_id"] for row in rows] == [candidate.candidate_id for candidate in candidates]
+            assert [float(row["reference_total_loss_w"]) for row in rows] == pytest.approx(
+                [candidate.reference_total_loss_w for candidate in candidates]
+            )
+            assert all(row["candidate_id"] == "routing-fixture" for row in rows)
         phase_1, phase_2 = result.chosen_designs
         assert phase_1.candidate_id != phase_2.candidate_id
         assert phase_1.metadata["library_candidate_id"] == phase_2.metadata["library_candidate_id"] == "routing-fixture"
@@ -82,6 +106,7 @@ def test_step10g_frontier_branch_reuses_request_and_search_once(monkeypatch, ini
         assert phase_2.metadata["physical_instance_id"] == "phase_2"
         assert result.design_requirements["matched_magnetic_model"] is True
     else:
+        assert exports == []
         assert result.chosen_designs == []
         assert result.design_requirements["phase_1_design_id"] is None
         assert result.design_requirements["phase_2_design_id"] is None

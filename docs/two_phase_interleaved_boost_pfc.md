@@ -58,6 +58,19 @@ inductor. Total series inductance includes that Boost inductance plus the
 per-phase input series inductance contribution; the two values are not
 interchangeable when reading magnetic selection results.
 
+Hardware Overview draws phase 1 and phase 2 as separate, labelled engineering
+proxies in both the inductor view and the integrated 2D/3D view. Each object
+retains its own dimensions, design identity, volume and loss; the top-level
+inductor group sums the two instances. This layout is an engineering overview,
+not validated PCB or mechanical placement.
+
+Identical magnetic models share geometry rendering while keeping separate phase
+identities. Different physical signatures render separately. Missing phase
+results, layouts, mismatched geometry IDs, or missing geometry/Pareto files
+produce a diagnostic group with no complete inductor total or integrated
+inductor objects. The phase-1 search exports its Pareto PNG and source CSV
+files once; phase 2 reuses the model without another search or export.
+
 ## Model Boundaries
 
 - Electrical synthesis and waveform plots are first-pass CCM, line-cycle

@@ -9,6 +9,7 @@ import pickle
 
 from scripts.record_two_phase_interleaved_boost_pfc_step10g_baseline import _audit_snapshot
 from pe_claw_gui.models.design_run_context import get_active_run_output_dir
+from pe_claw_gui.engines.hardware_overview import build_and_generate_hardware_overview
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import efficiency_sweep_blocking_warning, run_efficiency_sweep
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
@@ -123,6 +124,11 @@ def _run_order(order: tuple[str, str], root: Path, registry, prior_runs) -> dict
             pipeline_options=options,
             output_root=run_root,
         )
+        overview = build_and_generate_hardware_overview(report, run_root / "hardware_overview")
+        inductors = [obj for obj in overview.integrated_layout.groups if obj.source_group == "inductor"]
+        expected_ids = {"inductor_phase_1", "inductor_phase_2"} if topology_id == NEW_TOPOLOGY_ID else {"inductor"}
+        assert {obj.id for obj in inductors} == expected_ids
+        assert all(Path(path).is_file() for path in overview.integrated_overview_artifacts.values())
         sweep = run_efficiency_sweep(
             report,
             plugin=plugin,

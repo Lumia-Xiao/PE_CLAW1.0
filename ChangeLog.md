@@ -1751,3 +1751,20 @@ listed here.
 - Validation: all 15 original targets absent and archive targets present; zero remaining .pytest-tmp-10h-* directories. SHA256 checks for all 149 files in the 12 retained output directories are unchanged. The 95 pre-existing tracked deletions are unchanged. Three .pytest-tmp-10g-* directories, historical caches, user results including 3c287123/8339d8bc/fe6cd98f, and unrelated moves remain in place. No pytest run for this generated-file-only cleanup, to avoid recreating artifacts.
 - Git: base 62f93a7; cleanup record committed on codex/llc-waveform-operating-point-plan and pushed to pe-claw-1.1 at the end of this maintenance turn. Only ChangeLog.md is staged; generated files and pre-existing changes are excluded.
 - Backup: the recoverable cleanup archive above is the preservation mechanism for these temporary artifacts; no weekly project backup was run.
+
+## 2026-10-09 - 10H 总览、遗漏路径和当前基线补齐
+
+- 目的：补齐原 10H 总览仅绘制聚合电感、异常路径验收缺口和当前版本仍读取 10G 历史基线的问题，按用户要求仅执行两相专项与必要的单相 Boost 隔离配对。
+- 生产文件：`engines/hardware_overview.py`、`visualization/hardware_overview/renderer.py`、`pipeline/run_geometry_pipeline.py`、`pipeline/run_magnetic_pipeline.py`。两相 integrated layout 和组图/整体图分别显示两个物理电感；同排间距与聚合 bbox 一致，逐相尺寸/身份/损耗/体积可追溯。缺 layout/target、身份不匹配、缺几何或 Pareto 文件时给出诊断占位，无完整数量/体积/损耗合计或集成电感实体。实际 CSV 与 PNG 由既有导出机制一次生成，CSV 候选 ID/损耗与 phase-1 来源一致，无 phase-2 重搜或重复导出。视觉检查发现长标签重叠，限定两个相位对象改为两行标签/体积单位标注。
+- 证据/测试/文档：新增 10H 基线脚本和独立 fixture；更新 10A/10E/10G/步骤 7/9/10 隔离专项，以及用户指南和 Active 计划。新增 nominal/low/high 三工况的真实完整链路和展示证据；仅动态路径、ID、时间/耗时按明确规则归一化，保留几何身份、位置、状态、警告和全部工程数值。10G 历史 fixture 未改，除原 10H 新增的 Pareto 来源说明外全部旧字段严格相等；系统损耗分别仍为 30.957926132850 / 31.870757008381 / 31.353494887234 W。当前基线 SHA256：`bd5b99ac4ddb3cbb0decf1e7fa9846d89eb435e467159dc2e9a64f0ea5e66578`。
+- 已通过验证：其余 9 个两相文件 33 passed（111.42s）；10A/10H 严格重放 5 passed（361.79s）；10E 结果/异常路径与 10G frontier 21 passed（142.01s）；步骤 7/8/9 完整链路及真实 Tk GUI 19 passed（564.13s）。CSV 来源追加检查单独复跑 5 passed（16.99s），属于 21 项中的重复覆盖。全部 16 个两相文件 collect-only 为 80 项；无字节码编译 21 个 Python 文件及定向 diff 检查通过。标签末次复跑与隔离结果随后补记，不把待运行结果算为通过。
+- 初次新增结果/几何测试 12 passed、9 failed：测试未显式开启磁件阶段和误用 `placeholder` 而非既有 `image_scale_type="missing"` 契约，已修正设置并严格复跑通过。首次当前基线 4 passed、1 failed，定位展示文本 thermal artifact notes 中的临时绝对路径，修正脚本路径规范并重新生成后严格重放通过；未放宽任何工程字段。直接脚本启动因 `scripts` 导入路径失败后改用 module 命令。四组真实搜索并发在约 8 GB 机器触发换页（约 11 GB 私有内存），中止三个未完成进程后顺序运行，不计为通过或跳过；未修改生产公式、筛选边界和库数据。
+- 影响：共享文件中的两相限定展示/导出/诊断分支，公共工程契约及其他拓扑计算路径未变；最小旧 Boost 配对用于总览路径兼容与跨运行隔离。未运行全量或其他拓扑全面回归，未修改跨线/运行点物理模型、公共 NaN 数据/状态语义或实物/卡片图片。
+- Git：基线提交 `79dbf1f`，分支 `codex/llc-waveform-operating-point-plan`。后续按 10G 原验收矩阵复核：frontier 分支 `5 passed`（4.84s），10G 结果/CSV/异常路径 `16 passed`（174.81s），宽线/窄线双顺序 `1 passed`（320.94s），单相/两相总览双顺序 `1 passed`（436.11s）；四组真实搜索串行执行。计划仍 Active；本轮相关文件、计划和记录在提交并推送后追加完成回执。保留 95 个既有无关删除、其他用户改动、outputs 和 pytest 产物，不提交、不清理、不备份。
+
+## 2026-10-09 - 10G 复核与 10H 补齐完成回执
+
+- 10G 复核严格按 Active 计划执行，未修改 10G 生产逻辑。验证为 frontier `5 passed`（4.84s）、结果/CSV/异常路径 `16 passed`（174.81s）、宽线/窄线双顺序隔离 `1 passed`（320.94s）、单相 Boost/两相双顺序隔离 `1 passed`（436.11s）。真实磁件搜索串行执行；未运行全量 pytest 或其他拓扑全面回归。
+- 10H 补齐包括两相 integrated 总览实体、几何/Pareto 缺项诊断、当前版本基线、CSV 来源校验和标签可读性修正。当前基线严格重放 `5 passed`（361.79s）；10H 结果/总览/frontier `21 passed`（142.01s）；步骤 7/8/9 与真实 Tk GUI `19 passed`（564.13s）；结果视图末次复跑 `16 passed`（174.81s）。80 项两相专项可收集，无 skip；基线三工况损耗和 fixture SHA256 已写入计划。
+- 编译 21 个 Python 文件（无字节码）、定向 `git diff --check` 和人工 PNG 检查通过。初次测试设置错误、基线临时路径差异和并发内存换页均已记录并修正/规避，未放宽工程断言。
+- Git：本条目随 10H 补齐实现、测试、fixture、计划和文档提交到 `codex/llc-waveform-operating-point-plan`，推送目标为 `pe-claw-1.1`。既有 95 个无关删除、用户 outputs、缓存和 pytest 临时目录不纳入提交。计划保持 Active，未宣称跨线/运行点模型、公共 NaN 语义、实物或全工程发布验收完成。

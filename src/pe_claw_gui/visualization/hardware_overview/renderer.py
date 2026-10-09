@@ -59,7 +59,9 @@ def generate_hardware_overview_artifacts(payload: HardwareOverviewPayload, outpu
         path_3d = output_root / file_names[1]
         group_warnings: list[str] = []
         try:
-            if _bbox_complete(group.bounding_box_mm) and group.status != "missing":
+            if _bbox_complete(group.bounding_box_mm) and group.status != "missing" and not (
+                group.shape_type == "two_phase_magnetic_core_assemblies" and group.status != "available"
+            ):
                 _export_group_2d(group, path_2d, scale)
                 _export_group_3d(group, path_3d, scale)
                 updated_group = _with_overview_images(group, str(path_2d), str(path_3d))
@@ -249,6 +251,13 @@ def _export_group_3d(group: HardwareOverviewComponentGroup, output_path: Path, s
 
 
 def _draw_group_2d(axis, group: HardwareOverviewComponentGroup) -> None:
+    if group.shape_type == "two_phase_magnetic_core_assemblies":
+        layout = build_integrated_hardware_layout_from_groups([group])
+        for obj in layout.groups:
+            # Group views use height; integrated views use footprint depth.
+            projected = replace(obj, bbox_mm=replace(obj.bbox_mm, depth_mm=obj.bbox_mm.height_mm))
+            _draw_integrated_object_2d(axis, projected)
+        return
     if group.group_id == "capacitor" and group.child_entries:
         _draw_capacitor_children_2d(axis, group)
         return
@@ -322,6 +331,10 @@ def _draw_group_bbox_2d(axis, group: HardwareOverviewComponentGroup, label: str)
 
 
 def _draw_group_3d(axis, group: HardwareOverviewComponentGroup) -> None:
+    if group.shape_type == "two_phase_magnetic_core_assemblies":
+        for obj in build_integrated_hardware_layout_from_groups([group]).groups:
+            _draw_integrated_object_3d(axis, obj)
+        return
     if group.group_id == "capacitor" and group.child_entries:
         _draw_capacitor_children_3d(axis, group)
         return
@@ -390,14 +403,17 @@ def _draw_integrated_object_2d(axis, obj: HardwareIntegratedLayoutObject) -> Non
             device_width = max(width * 0.28, min(width, 12.0))
             device_depth = max(depth * 0.22, min(depth, 10.0))
             axis.add_patch(Rectangle((x - 0.5 * device_width, y - 0.5 * device_depth), device_width, device_depth, facecolor="#94a3b8", edgecolor="#334155", linewidth=0.9))
-        if obj.id == "inductor":
+        if obj.source_group == "inductor":
             winding_width = width * 0.42
             winding_depth = depth * 0.42
             axis.add_patch(Rectangle((x - 0.5 * winding_width, y - 0.5 * winding_depth), winding_width, winding_depth, fill=False, edgecolor="#1d4ed8", linewidth=1.0))
     label = _integrated_label(obj, include_volume=False)
     axis.text(x, y + 0.5 * depth + 5.0, label, ha="center", va="bottom", fontsize=8.0)
     if obj.volume_cm3 is not None:
-        axis.text(x, y, f"{obj.volume_cm3:.3g} cm^3", ha="center", va="center", fontsize=7.0, color="#111827")
+        volume_label = f"{obj.volume_cm3:.3g} cm^3"
+        if obj.id in {"inductor_phase_1", "inductor_phase_2"}:
+            volume_label = f"{obj.volume_cm3:.3g}\ncm^3"
+        axis.text(x, y, volume_label, ha="center", va="center", fontsize=7.0, color="#111827")
 
 
 def _draw_integrated_object_3d(axis, obj: HardwareIntegratedLayoutObject) -> None:
@@ -435,6 +451,8 @@ def _short_component_label(obj: HardwareIntegratedLayoutObject) -> str:
         "semiconductor": "Semiconductor",
         "transformer": "LLC transformer",
         "inductor": "Inductor",
+        "inductor_phase_1": "Phase 1\ninductor",
+        "inductor_phase_2": "Phase 2\ninductor",
         "llc_resonant_capacitor": "LLC resonant capacitor",
         "capacitor_output": "Output capacitor",
         "capacitor": "Capacitors",
