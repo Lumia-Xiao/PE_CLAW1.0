@@ -932,6 +932,24 @@ python -B -m pytest -q --basetemp .pytest-tmp-10g-i $isolationTest
 
 **10G 完成与推送回执（2026-10-09）**：10G-3 测试与记录提交 `3b7a919` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`。10G-0 `df24fdf`、10G-1 `bcfb899`、10G-2 `b7e9079`、10G-3 `3b7a919` 均已按顺序验证、提交和推送，10G 限定门禁完成；本完成回执随后独立文档提交推送。最终 18 个目标 Python 文件编译、阶段定向及暂存 diff 检查通过，复现分组实际枚举为 16 个两相文件 / 9 个剩余文件。全部 65 个独立专项用例通过，无 skip；没有运行全量或其他拓扑全面回归。默认宽线及原用户 case 的扩大搜索可用性已解决，历史 unavailable 记录不再表示当前结果。原 outputs 和 95 个无关删除保持原样，未清理、未备份；运行点物理模型、公共 NaN 数据/状态语义、实物/图片与发布验收仍留在 Active，不宣称整个计划全面验收完成。
 
+## 10H：两相结果展示、几何与硬件总览修正
+
+10H 处理 10G 后仍可复现的结果层问题。范围只覆盖两相交错 Boost PFC 的结果展示和下游产物，不改变设计输入、均流假设、磁件筛选边界、损耗公式或其他拓扑的公共语义。
+
+1. **10H-0 计划冻结**：记录根因、影响边界、验收字段和专项测试；每个后续阶段独立验证、更新 ChangeLog、提交并推送后才标记完成。
+2. **10H-1 结果页**：电感页和磁件页读取 `design_requirements.phase_1/phase_2`，显示每相 L、频率、电流、纹波、吞吐和模式；两相明确说明未执行 1/2/3-core stack comparison；磁件损耗显示逐相及合计电感损耗，并与系统总损耗区分。单相及其他拓扑既有文本保持不变。
+3. **10H-2 几何与 Pareto**：两相几何按 library/model/mechanical/electrical signature 复用相同布局，保持 phase ID 和每相 target；signature 不匹配时分别渲染；两相磁件导出真实 phase-1 搜索 frontier 的 Pareto 工件和元数据一次， operating-point refresh 不重复搜索或导出。
+4. **10H-3 硬件总览**：两相电感组必须包含 phase 1、phase 2 两个 child entry、各自身份/几何/损耗/体积，并给出合计数量、体积和损耗以及 integrated layout；缺一相时状态为 incomplete/unavailable，禁止用单相代表值伪装完整总览。
+5. **10H-4 专项门禁**：覆盖实际 GUI 入口、结果文本、几何复用/不复用、Pareto artifact、硬件总览完整/缺相路径；运行两相全部受影响测试并保留最小单相 Boost 隔离配对，不运行全量 pytest。新增展示基线时保留 10G 历史工程边界基线。
+
+### 10H 验收标准
+
+- 两相结果页不再显示虚假的 `1-core/2-core/3-core unavailable`，且每相设计请求和损耗可追溯。
+- 两个 phase geometry target 均有明确 layout 状态；相同物理模型只共享渲染结果，不丢失 phase identity；不匹配模型分别生成布局并报告失败原因。
+- `MagneticResult.artifact_paths` 包含实际 Pareto 图及其搜索数据来源，图来自一次 phase-1 frontier；硬件总览包含两个 phase child entries 和聚合值。
+- 缺失 phase、缺失 layout 或缺失工件返回诊断状态，不生成部分合计。
+- 每阶段 Python 编译、定向 pytest、`git diff --check`、提交和推送均有记录；不提交 `outputs/`、缓存或既有无关删除。
+
 **修正验收标准**：
 
 - 两相电感、磁件和器件电流选型都覆盖低线设计边界；
