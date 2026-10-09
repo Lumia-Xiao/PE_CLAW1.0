@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from math import cos, pi, sqrt
 
 from ....models.operating_point import OperatingPoint
@@ -9,6 +10,7 @@ from ....models.waveform import WaveformSet
 from ...base.candidate import TopologyCandidate
 from .input_schema import PHASE_COUNT, PHASE_SHIFT_DEG
 from .interleaving import calculate_interleaved_ripple
+from .line_cycle import sample_interleaved_boost_pfc_line_cycle
 from .operating_point import validate_operating_point_contract
 
 
@@ -30,6 +32,48 @@ def generate_waveforms(
     if not isinstance(line_cycle, dict):
         raise ValueError("Interleaved Boost PFC candidate is missing line-cycle metadata.")
 
+    operating_vin_rms_v = float(metadata["vac_rms_v"])
+    operating_vout_v = float(metadata["vdc_target_v"])
+    operating_power_factor = float(metadata["power_factor_target"])
+    operating_fsw_hz = float(metadata["fsw_hz"])
+    load_ratio = 1.0
+    if operating_point is not None:
+        operating_vin_rms_v = float(operating_point.vin_v)
+        operating_vout_v = (
+            float(operating_point.vout_v)
+            if operating_point.vout_v is not None
+            else operating_vout_v
+        )
+        operating_power_factor = (
+            float(operating_point.power_factor)
+            if operating_point.power_factor is not None
+            else operating_power_factor
+        )
+        operating_fsw_hz = (
+            float(operating_point.switching_frequency_hz)
+            if operating_point.switching_frequency_hz is not None
+            else operating_fsw_hz
+        )
+        load_ratio = max(float(operating_point.load_ratio), 0.0)
+        operating_power_w = float(candidate.pout_target) * load_ratio
+        input_current_rms_a = operating_power_w / max(
+            operating_vin_rms_v * operating_power_factor,
+            1.0e-12,
+        )
+        resolved_line_cycle = sample_interleaved_boost_pfc_line_cycle(
+            vac_rms_v=operating_vin_rms_v,
+            vdc_target_v=operating_vout_v,
+            input_current_rms_a=max(input_current_rms_a, 1.0e-12),
+            ripple_current_ratio=float(metadata["inductor_current_ripple_ratio"]),
+        )
+        if load_ratio == 0.0:
+            resolved_line_cycle = replace(
+                resolved_line_cycle,
+                total_input_current_a=[0.0] * resolved_line_cycle.point_count,
+                phase_current_a=[0.0] * resolved_line_cycle.point_count,
+            )
+        line_cycle = resolved_line_cycle.as_metadata()
+
     theta_half = _float_list(line_cycle, "theta_deg")
     vrect_half = _float_list(line_cycle, "v_rectified_v")
     total_current_half = _float_list(line_cycle, "total_input_current_a")
@@ -38,18 +82,27 @@ def generate_waveforms(
     if not theta_half:
         raise ValueError("Interleaved Boost PFC line-cycle waveform is empty.")
 
-    load_ratio = 1.0 if operating_point is None else max(float(operating_point.load_ratio), 0.0)
     f_line_hz = float(metadata["f_line_hz"])
-    fsw_hz = float(metadata["fsw_hz"])
-    vdc_target_v = float(metadata["vdc_target_v"])
+    fsw_hz = operating_fsw_hz
+    vdc_target_v = operating_vout_v
     phase_inductance_h = float(candidate.inductance_h)
-    idc_a = candidate.iout * load_ratio
+    idc_a = (
+        candidate.iout * load_ratio
+        if operating_point is None
+        else float(candidate.pout_target) * load_ratio / max(vdc_target_v, 1.0e-12)
+    )
     theta_deg = _mirror_half_cycle(theta_half, offset=180.0)
     vrect = _mirror_half_cycle(vrect_half)
     duty = _mirror_half_cycle(duty_half)
-    total_current = _mirror_half_cycle([value * load_ratio for value in total_current_half])
-    phase_current = _mirror_half_cycle([value * load_ratio for value in phase_current_half])
-    phase_delta_i = _phase_ripple_from_candidate(candidate, vrect_half, duty_half)
+    current_scale = load_ratio if operating_point is None else 1.0
+    total_current = _mirror_half_cycle([value * current_scale for value in total_current_half])
+    phase_current = _mirror_half_cycle([value * current_scale for value in phase_current_half])
+    phase_delta_i = _phase_ripple_from_candidate(
+        candidate,
+        vrect_half,
+        duty_half,
+        switching_frequency_hz=fsw_hz,
+    )
     delta_i = _mirror_half_cycle(phase_delta_i)
     interleaved = calculate_interleaved_ripple(duty=duty, phase_ripple_pp_a=delta_i)
     worst_ripple_index = interleaved.aggregate_ripple_pp_a.index(max(interleaved.aggregate_ripple_pp_a))
@@ -70,7 +123,7 @@ def generate_waveforms(
     ripple_limit_vpp = float(metadata["dc_link_ripple_limit_vpp"]) * load_ratio
     predicted_ripple_vpp = ripple_limit_vpp * candidate.capacitance_f / max(selected_cdc_f, 1e-12)
     output_voltage = [
-        candidate.vout_target + 0.5 * predicted_ripple_vpp * cos(4.0 * pi * f_line_hz * instant)
+        vdc_target_v + 0.5 * predicted_ripple_vpp * cos(4.0 * pi * f_line_hz * instant)
         for instant in time_s
     ]
 
@@ -156,6 +209,16 @@ def generate_waveforms(
             interleaved.aggregate_ripple_pp_a,
         ),
     }
+    if operating_point is not None:
+        metadata_readback.update(
+            {
+                "operating_vin_rms_v": operating_vin_rms_v,
+                "operating_vout_v": vdc_target_v,
+                "operating_power_factor": operating_power_factor,
+                "operating_switching_frequency_hz": fsw_hz,
+                "operating_line_cycle_source": "recomputed_from_operating_point",
+            }
+        )
 
     return WaveformSet(
         time_s=time_s,
@@ -163,9 +226,9 @@ def generate_waveforms(
         inductor_current_a=list(total_current),
         capacitor_current_a=capacitor_current,
         output_voltage_v=output_voltage,
-        operating_vin_v=float(metadata["vac_rms_v"]),
-        operating_vout_v=candidate.vout_target,
-        duty=candidate.duty_nom,
+        operating_vin_v=operating_vin_rms_v,
+        operating_vout_v=vdc_target_v,
+        duty=candidate.duty_nom if operating_point is None else _mean(duty),
         load_ratio=load_ratio,
         switching_period_s=1.0 / fsw_hz,
         time_span_s=time_span_s,
@@ -179,7 +242,7 @@ def generate_waveforms(
         diode_current_a=aggregate_diode,
         input_source_current_a=source_current,
         inductor_voltage_v=phase_inductor_voltage,
-        output_ripple_v=[value - candidate.vout_target for value in output_voltage],
+        output_ripple_v=[value - vdc_target_v for value in output_voltage],
         notes=[
             "Public current arrays are line-cycle aggregate or representative-phase envelopes as defined in metadata.",
             "Complete phase-level envelopes and ideal 180-degree carrier offsets are stored in phase_waveforms metadata.",
@@ -194,8 +257,10 @@ def _phase_ripple_from_candidate(
     candidate: TopologyCandidate,
     vrect: list[float],
     duty: list[float],
+    *,
+    switching_frequency_hz: float | None = None,
 ) -> list[float]:
-    denominator = max(candidate.inductance_h * candidate.fs_hz, 1e-12)
+    denominator = max(candidate.inductance_h * (switching_frequency_hz or candidate.fs_hz), 1e-12)
     return [vin * switch_duty / denominator for vin, switch_duty in zip(vrect, duty, strict=True)]
 
 

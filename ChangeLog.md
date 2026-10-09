@@ -1791,3 +1791,11 @@ listed here.
 - 行为：`vin_v` 按设计范围内的交流 RMS 电压校验；`load_ratio` 为有限非负值；可选 `vout_v`、`power_factor` 和 `switching_frequency_hz` 必须满足有限正值语义。校验从两相波形入口生效，运行点仍复用现有硬件。
 - 验证：10I-0 契约测试与步骤 1 合同测试 `21 passed`（3.69s）；3 个目标 Python 文件 `py_compile` 通过；未运行全量测试或其他拓扑全面回归。
 - 状态：10I-0 完成，下一步为 10I-1 实际运行点线路周期和两相波形重建。既有 95 个无关删除、outputs、缓存和 pytest 临时目录不纳入提交。
+
+## 2026-10-10 - Implement 10I-1 two-phase operating-point waveform refresh
+
+- 目的与文件：实现两相交错 Boost PFC 的实际运行点线路周期和波形重建，修改 `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/waveform.py`、10I 专项测试、Active plan 和本日志；设计点无 operating point 的既有路径保持不变。
+- 行为：运行点按实际交流 RMS Vin、负载比例和 PF 计算输入电流，按 50/50 分配两相电流；按运行点 Vout 计算 duty，按固定电感和运行点开关频率计算相纹波及 180° 交错总纹波；readback 记录运行点 Vin/Vout/PF/频率和线路周期来源。
+- 修正：运行点线路周期已经包含负载电流后，不再被旧逻辑重复乘 `load_ratio`；固定硬件和选型入口未在本阶段改变。
+- 验证：10I-0/10I-1/步骤 3 核心测试 `23 passed`（3.73s）；两相效率链专项 `14 passed`（183.92s）；目标 Python 编译和定向 `git diff --check` 通过；未运行全量测试或其他拓扑全面回归。
+- 状态：10I-1 完成，下一步为 10I-2 固定硬件损耗链和跨线损耗守恒。既有 95 个无关删除、outputs、缓存和 pytest 临时目录不纳入提交。

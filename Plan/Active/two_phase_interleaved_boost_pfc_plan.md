@@ -1,10 +1,10 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 10G 复核及 10H 补齐限定门禁完成并已推送；10I-0 契约校验已完成，下一步为 10I-1 波形修正（全面发布验收仍单独保留）
+- **状态**：Active / 10G 复核及 10H 补齐限定门禁完成并已推送；10I-0/10I-1 已完成，下一步为 10I-2 固定硬件损耗链（全面发布验收仍单独保留）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：步骤 0–10、10A–10H 及本轮 10H 补齐已实施并推送，本轮 10G 复核通过；10I-0 已实施并验证，10I-1 尚未开始。既有验证范围按用户要求限定为两相专项及必要的单相 Boost PFC 双顺序隔离配对；10I-0 新增契约测试与步骤 1 合同测试共 21 项通过，未运行全量测试或其他拓扑全面回归。
+- **当前阶段**：步骤 0–10、10A–10H 及本轮 10H 补齐已实施并推送，本轮 10G 复核通过；10I-0/10I-1 已实施并验证，10I-2 尚未开始。既有验证范围按用户要求限定为两相专项及必要的单相 Boost PFC 双顺序隔离配对；10I-1 核心/步骤 3 测试 23 项通过，效率链专项 14 项通过，未运行全量测试或其他拓扑全面回归。
 
 ## 1. 计划目标和边界
 
@@ -1054,6 +1054,8 @@ P_loss_total = P_bridge + P_phase_1 + P_phase_2 + P_capacitor + P_other
 10I 只能在代码、专项测试、隔离测试、ChangeLog、提交和推送全部完成后标记完成。完成前计划继续保持 Active，并明确保留全量发布验收、公共 NaN 数据语义、实物可采购性和卡片图片等未决事项。
 
 **10I-0 执行记录（2026-10-10）**：新增两相拓扑专用 `validate_operating_point_contract`，在波形入口校验 `OperatingPoint.vin_v` 为设计范围内的交流 RMS 电压，`load_ratio` 为有限非负值，并校验可选 `vout_v`、`power_factor` 和 `switching_frequency_hz` 的有限正值语义；未修改公共 `OperatingPoint`、单相 Boost PFC 或其他拓扑。新增 `tests/test_two_phase_interleaved_boost_pfc_step10i_contract.py`，覆盖有效 180/230/265 Vac、边界/NaN/Infinity、负载和可选字段异常，以及波形入口接线。验证为 10I-0 契约与步骤 1 合同共 `21 passed`（3.69s），目标 Python 文件编译通过；未运行全量测试。下一步为 10I-1，按冻结公式重建实际运行点线路周期。
+
+**10I-1 执行记录（2026-10-10）**：两相 `waveform.py` 在传入 `OperatingPoint` 时按实际交流 RMS 电压调用现有线路周期采样器，使用 `Pout * load_ratio / (Vin_rms * PF)` 生成总输入电流，按 50/50 分配相电流，按当前运行点 Vout 计算占空比，按当前电感和可选开关频率计算每相纹波及 180° 交错总纹波；设计点无 operating point 的路径保持原 nominal metadata 和数组。运行点 readback 增加实际 Vin/Vout/PF/开关频率及线路周期来源，`WaveformSet` 的运行点电压、输出电压、周期和代表性 duty 与当前请求一致。新增跨线和可选覆盖断言，修正运行点线路周期已包含负载后被重复乘 `load_ratio` 的问题。验证：10I-0/10I-1/步骤 3 核心测试 `23 passed`（3.73s），两相效率链专项 `14 passed`（183.92s），目标 Python 编译通过；未运行全量测试。下一步为 10I-2 固定硬件损耗链和跨线损耗守恒。
 
 **修正验收标准**：
 
