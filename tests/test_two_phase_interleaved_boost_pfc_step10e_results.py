@@ -8,6 +8,7 @@ import pytest
 from pe_claw_gui.app.result_views.loss_view import build_system_loss_summary
 from pe_claw_gui.app.result_views.inductor_view import build_inductor_summary_text
 from pe_claw_gui.app.result_views.magnetic_view import MagneticView
+from pe_claw_gui.engines.hardware_overview import build_hardware_overview_payload
 from pe_claw_gui.app.result_views.magnetic_view import _interleaved_boundary_lines
 from pe_claw_gui.app.result_views.summary_view import _build_electrical_parameter_lines
 from pe_claw_gui.pipeline.options import PipelineOptions
@@ -89,3 +90,27 @@ def test_step10h_two_phase_result_pages_show_phase_requirements_and_loss_basis(d
     assert "phase 2:" in magnetic
     assert "Stacked-core comparison was not performed for the two-phase topology." in magnetic
     assert "No surviving 1-core candidate" not in magnetic
+
+
+def test_step10h_hardware_overview_exposes_two_phase_inductor_children(designed_report, tmp_path) -> None:
+    payload = build_hardware_overview_payload(designed_report, tmp_path)
+    group = next(item for item in payload.component_groups if item.group_id == "inductor")
+    assert group.status == "available"
+    assert group.quantity == 2
+    assert {child.entry_id for child in group.child_entries} == {"phase_1", "phase_2"}
+    assert group.volume_cm3 is not None and group.loss_w is not None
+    assert group.metadata["phase_arrangement"] == "side_by_side_integrated_layout"
+
+
+def test_step10h_hardware_overview_does_not_fabricate_missing_phase(designed_report, tmp_path) -> None:
+    incomplete_magnetic = replace(
+        designed_report.magnetic,
+        chosen_designs=[design for design in designed_report.magnetic.chosen_designs if design.metadata.get("phase_role") == "phase_1"],
+    )
+    incomplete = replace(designed_report, magnetic=incomplete_magnetic)
+    payload = build_hardware_overview_payload(incomplete, tmp_path / "missing")
+    group = next(item for item in payload.component_groups if item.group_id == "inductor")
+    assert group.status == "missing"
+    assert group.quantity is None
+    assert group.loss_w is None
+    assert "missing phase_2" in " ".join(group.warnings).lower()

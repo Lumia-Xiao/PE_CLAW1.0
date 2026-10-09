@@ -1204,6 +1204,8 @@ def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGrou
     if report.magnetic is None:
         display_name = _inductor_group_display_name(report.spec.topology_id)
         return _missing_group("inductor", display_name, "Run Magnetics first to populate inductor overview.")
+    if report.spec.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
+        return _build_two_phase_inductor_group(report)
 
     target = _recommended_inductor_target(report)
     design = _recommended_inductor_design(report)
@@ -1286,6 +1288,107 @@ def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGrou
             "llc_magnetic_contract": llc_contract.to_dict() if llc_contract is not None else None,
         },
         notes=_inductor_overview_notes(report, loss_basis_label),
+        warnings=warnings,
+    )
+
+
+def _build_two_phase_inductor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    """Build an explicit two-instance inductor group for interleaved Boost PFC."""
+    magnetic = report.magnetic
+    designs = {
+        str(design.metadata.get("phase_role")): design
+        for design in magnetic.chosen_designs
+        if isinstance(design.metadata, dict) and design.metadata.get("phase_role") in {"phase_1", "phase_2"}
+    }
+    targets = {
+        target.role: target
+        for target in (report.geometry.targets if report.geometry is not None else [])
+        if target.role in {"phase_1", "phase_2"}
+    }
+    missing = [phase for phase in ("phase_1", "phase_2") if designs.get(phase) is None or targets.get(phase) is None]
+    if missing:
+        return _missing_group(
+            "inductor",
+            "Two-phase interleaved Boost inductors",
+            "Two-phase hardware overview is incomplete; missing " + ", ".join(missing) + " magnetic phase result.",
+        )
+
+    children: list[HardwareOverviewChildEntry] = []
+    phase_values: list[tuple[float | None, float | None, HardwareOverviewBoundingBox]] = []
+    for phase in ("phase_1", "phase_2"):
+        design = designs[phase]
+        target = targets[phase]
+        layout = target.layout
+        bbox = _inductor_bbox(layout)
+        loss_w = _inductor_loss_w(report, design.candidate_id)
+        volume_cm3 = _m3_to_cm3(target.volume_m3 if target.volume_m3 is not None else design.total_volume_m3)
+        phase_values.append((volume_cm3, loss_w, bbox))
+        children.append(
+            HardwareOverviewChildEntry(
+                entry_id=phase,
+                display_name=phase.replace("_", " ").title() + " inductor",
+                recommended_name=design.candidate_id,
+                part_number=design.candidate_id,
+                series=design.core_name,
+                quantity=1,
+                volume_cm3=volume_cm3,
+                loss_w=loss_w,
+                bounding_box_mm=bbox,
+                shape_type="magnetic_core_assembly",
+                metadata={
+                    "phase_role": phase,
+                    "library_candidate_id": design.metadata.get("library_candidate_id"),
+                    "geometry_design_id": layout.design_id if layout is not None else None,
+                    "artifact_paths": list(target.artifact_paths),
+                },
+                notes=["Physical phase instance under ideal 50/50 current sharing."],
+                warnings=_bbox_warnings(bbox),
+            )
+        )
+
+    volumes = [value[0] for value in phase_values]
+    losses = [value[1] for value in phase_values]
+    bboxes = [value[2] for value in phase_values]
+    complete = all(value is not None for value in volumes) and all(value is not None for value in losses) and all(_bbox_complete(bbox) for bbox in bboxes)
+    spacing_mm = max(10.0, 0.15 * max((bbox.width_mm or 0.0) for bbox in bboxes))
+    group_bbox = HardwareOverviewBoundingBox(
+        width_mm=sum(bbox.width_mm or 0.0 for bbox in bboxes) + spacing_mm,
+        height_mm=max((bbox.height_mm or 0.0) for bbox in bboxes),
+        depth_mm=max((bbox.depth_mm or 0.0) for bbox in bboxes),
+    )
+    warnings = _bbox_warnings(group_bbox)
+    if not complete:
+        warnings.append("Two-phase inductor total is unavailable because a phase loss, volume, or geometry value is missing.")
+    return HardwareOverviewComponentGroup(
+        group_id="inductor",
+        display_name="Two-phase interleaved Boost inductors",
+        status="available" if complete else "incomplete",
+        recommended_name="phase_1 + phase_2 fixed inductor instances",
+        part_number=None,
+        quantity=2 if complete else None,
+        volume_cm3=sum(volumes) if complete else None,
+        volume_breakdown_cm3={
+            "phase_1_volume_cm3": volumes[0],
+            "phase_2_volume_cm3": volumes[1],
+            "assembly_volume_cm3": sum(volumes) if complete else None,
+        },
+        loss_w=sum(losses) if complete else None,
+        geometry_source="two_phase_integrated_geometry" if complete else "missing",
+        bounding_box_mm=group_bbox,
+        shape_type="two_phase_magnetic_core_assemblies",
+        child_entries=children,
+        metadata={
+            "topology_id": report.spec.topology_id,
+            "phase_count": 2,
+            "magnetic_quantity": 2,
+            "phase_arrangement": "side_by_side_integrated_layout",
+            "loss_basis_label": "operating-point magnetic loss, two phase inductors",
+            "phase_design_ids": {phase: designs[phase].candidate_id for phase in ("phase_1", "phase_2")},
+        },
+        notes=[
+            "Two physical phase inductors are represented as separate child entries.",
+            "Integrated geometry places the phase assemblies side by side in one group bounding box.",
+        ],
         warnings=warnings,
     )
 

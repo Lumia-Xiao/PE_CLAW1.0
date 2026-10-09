@@ -952,6 +952,8 @@ python -B -m pytest -q --basetemp .pytest-tmp-10g-i $isolationTest
 
 **10H-0/10H-1/10H-2 执行记录（2026-10-09）**：10H-0 计划冻结提交 `06403ec` 已推送；10H-1 结果页修正提交 `e394173` 已推送。10H-1 编译及视图/LLC 回归为 `15 passed`（117.66s），两相页已显示嵌套 phase request、逐相损耗和明确的未执行 stack comparison。10H-2 接入两相 phase-1 Pareto 工件一次性导出，并按物理模型签名复用相同几何、保留 phase-2 layout design ID；步骤 7 真实几何验证 `1 passed`（118.59s）。10H-2 的硬件总览实现和专门测试仍在执行，推送前不标记完成。
 
+**10H-2/10H-3 推送回执（2026-10-09）**：10H-2 几何复用和 Pareto 导出提交 `a607165` 已推送。10H-2 的步骤 7 真实验证为 `1 passed`（118.59s）。10H-3 两相硬件总览已实现两个 child entries、side-by-side integrated bbox、数量/体积/损耗合计和缺相诊断；结果页、总览完整路径及缺相路径共 `5 passed`（117.83s），待完成提交推送后进入 10H-4。
+
 **修正验收标准**：
 
 - 两相电感、磁件和器件电流选型都覆盖低线设计边界；

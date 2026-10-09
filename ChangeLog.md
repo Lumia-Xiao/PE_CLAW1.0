@@ -1711,3 +1711,11 @@ listed here.
 - Behavior: phase geometry reuse now requires matching physical model signatures and preserves phase-2 layout identity; mismatched models remain independently unavailable/rendered. The two-phase magnetic aggregate exports Pareto CSV/PNG artifacts from phase 1 without repeating phase-2 search/export.
 - Validation: Python compilation; `tests/test_two_phase_interleaved_boost_pfc_step7_pipeline.py`, `1 passed` in 118.59s. Hardware overview validation is part of the next stage.
 - Git: pending H-2/H-3 combined implementation commit and push.
+
+# 2026-10-09 — 10H-3 two-phase hardware overview
+
+- Purpose: expose both physical interleaved Boost inductor instances in the Hardware Overview payload and prevent a partial phase result from being shown as a complete aggregate.
+- Files: `src/pe_claw_gui/engines/hardware_overview.py`, `tests/test_two_phase_interleaved_boost_pfc_step10e_results.py`.
+- Behavior: the inductor group now has phase 1 and phase 2 child entries, quantity 2, summed volume/loss, and a side-by-side integrated bounding box when complete. Missing phase, loss, volume, or geometry produces an incomplete diagnostic group without fabricated totals.
+- Validation: `python -B -m py_compile` and focused two-phase result/overview tests, `5 passed` in 117.83s; no full suite.
+- Git: pending H-3 commit and push.
