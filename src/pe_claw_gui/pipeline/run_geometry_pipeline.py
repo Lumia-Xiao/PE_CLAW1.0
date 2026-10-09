@@ -170,13 +170,18 @@ def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOption
                  if isinstance(item.metadata, dict) and item.metadata.get("phase_role") == phase),
                 None,
             )
-            existing = unique_targets_by_design_id.get(design.candidate_id) if design is not None else None
+            existing = _find_phase_geometry_target(
+                unique_targets_by_design_id,
+                design,
+                report.magnetic.chosen_designs,
+            ) if design is not None else None
             phase_targets.append(
                 GeometryTarget(
                     role=phase,
                     label=f"{phase.replace('_', ' ').title()} Inductor",
                     design_id=design.candidate_id if design is not None else None,
-                    layout=existing.layout if existing is not None else None,
+                    layout=(replace(existing.layout, design_id=design.candidate_id)
+                            if existing is not None and existing.layout is not None else None),
                     volume_m3=design.total_volume_m3 if design is not None else None,
                     loss_w=phase_loss_by_design_id.get(design.candidate_id) if design is not None else None,
                     artifact_paths=list(existing.artifact_paths) if existing is not None else [],
@@ -195,6 +200,40 @@ def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOption
             notes=[*geometry_result.notes, "Phase 1 and phase 2 inductor instances are listed separately; identical model geometry is shared when the magnetic match policy selects the same library design."],
         )
     return replace(report, geometry=geometry_result)
+
+
+def _find_phase_geometry_target(
+    targets_by_id: dict[str, GeometryTarget],
+    design,
+    designs: list[FixedInductorDesignCandidate],
+) -> GeometryTarget | None:
+    """Find a rendered phase layout by physical model signature, preserving phase IDs."""
+    direct = targets_by_id.get(design.candidate_id)
+    if direct is not None:
+        return direct
+    signature = _geometry_model_signature(design)
+    design_by_id = {item.candidate_id: item for item in designs}
+    for target in targets_by_id.values():
+        target_design = design_by_id.get(target.design_id)
+        if target.layout is not None and target_design is not None and _geometry_model_signature(target_design) == signature:
+            return target
+    return None
+
+
+def _geometry_model_signature(design) -> tuple[object, ...]:
+    metadata = design.metadata if isinstance(getattr(design, "metadata", None), dict) else {}
+    return (
+        design.assembly_type,
+        design.stack_count,
+        design.core_name,
+        design.material_name,
+        design.wire_name,
+        design.turns,
+        design.parallel_bundles,
+        design.inductance_h,
+        design.gap_m,
+        round(float(design.total_volume_m3 or 0.0), 15),
+    )
 
 
 def _run_ac_dc_reactor_geometry_pipeline(report: DesignReport) -> DesignReport:

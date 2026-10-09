@@ -1703,3 +1703,11 @@ listed here.
 - Behavior: two-phase pages render nested phase 1/phase 2 L, frequency, current, ripple, throughput, and mode; state explicitly that stacked-core comparison was not run; show per-phase and aggregate inductor loss. Existing flat rendering remains for other topologies.
 - Validation: `python -B -m py_compile` for both views; focused view and LLC display tests, `15 passed` in 117.66s; no full suite.
 - Git: pending H-1 commit and push.
+
+# 2026-10-09 — 10H-2 geometry and Pareto artifacts
+
+- Purpose: keep two-phase geometry targets available for both physical phase instances and export the actual phase-1 Pareto search frontier once.
+- Files: `src/pe_claw_gui/pipeline/run_geometry_pipeline.py`, `src/pe_claw_gui/pipeline/run_magnetic_pipeline.py`.
+- Behavior: phase geometry reuse now requires matching physical model signatures and preserves phase-2 layout identity; mismatched models remain independently unavailable/rendered. The two-phase magnetic aggregate exports Pareto CSV/PNG artifacts from phase 1 without repeating phase-2 search/export.
+- Validation: Python compilation; `tests/test_two_phase_interleaved_boost_pfc_step7_pipeline.py`, `1 passed` in 118.59s. Hardware overview validation is part of the next stage.
+- Git: pending H-2/H-3 combined implementation commit and push.

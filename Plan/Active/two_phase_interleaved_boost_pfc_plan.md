@@ -950,6 +950,8 @@ python -B -m pytest -q --basetemp .pytest-tmp-10g-i $isolationTest
 - 缺失 phase、缺失 layout 或缺失工件返回诊断状态，不生成部分合计。
 - 每阶段 Python 编译、定向 pytest、`git diff --check`、提交和推送均有记录；不提交 `outputs/`、缓存或既有无关删除。
 
+**10H-0/10H-1/10H-2 执行记录（2026-10-09）**：10H-0 计划冻结提交 `06403ec` 已推送；10H-1 结果页修正提交 `e394173` 已推送。10H-1 编译及视图/LLC 回归为 `15 passed`（117.66s），两相页已显示嵌套 phase request、逐相损耗和明确的未执行 stack comparison。10H-2 接入两相 phase-1 Pareto 工件一次性导出，并按物理模型签名复用相同几何、保留 phase-2 layout design ID；步骤 7 真实几何验证 `1 passed`（118.59s）。10H-2 的硬件总览实现和专门测试仍在执行，推送前不标记完成。
+
 **修正验收标准**：
 
 - 两相电感、磁件和器件电流选型都覆盖低线设计边界；
