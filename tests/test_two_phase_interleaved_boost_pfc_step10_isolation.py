@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import pickle
 
+from scripts.record_two_phase_interleaved_boost_pfc_step10g_baseline import _audit_snapshot
 from pe_claw_gui.models.design_run_context import get_active_run_output_dir
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import efficiency_sweep_blocking_warning, run_efficiency_sweep
@@ -17,6 +18,16 @@ from pe_claw_gui.topologies.base.registry import build_default_registry
 OLD_TOPOLOGY_ID = "single_phase_boost_pfc_diode_bridge"
 NEW_TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 LOAD_POINTS = (0.1, 0.5, 1.0)
+# Frozen raw_input_snapshot from outputs/20261009_spibpdb_fe6cd98f/manifest.json.
+# Keep the regression independent of the presence of local user output files.
+USER_CASE_INPUTS = {
+    "ambient_temp_c": "25", "dc_bus_ripple_percent": "5", "diode_binding_policy": "auto",
+    "f_line_hz": "50", "fsw_hz": "100000", "inductor_current_ripple_ratio": "0.3",
+    "input_inductance_h": "0.0001", "main_switch_category": "Any active switch",
+    "pout_w": "1000", "power_factor_target": "0.99", "rectifier_diode_category": "Any diode",
+    "semiconductor_manufacturer": "Any", "target_junction_temp_c": "100",
+    "vac_rms": "230", "vac_rms_max": "265", "vac_rms_min": "180", "vdc_target_v": "400",
+}
 
 
 def test_step10_old_and_new_topologies_are_isolated_in_both_orders(tmp_path: Path) -> None:
@@ -35,10 +46,9 @@ def test_step10_old_and_new_topologies_are_isolated_in_both_orders(tmp_path: Pat
         assert first_snapshots[topology_id] == second_snapshots[topology_id]
 
 
-def test_step10f_selected_and_unavailable_two_phase_runs_are_isolated_in_both_orders(tmp_path: Path) -> None:
+def test_step10g_user_wide_and_narrow_two_phase_runs_are_isolated_in_both_orders(tmp_path: Path) -> None:
     registry = build_default_registry()
     plugin = registry.get_plugin(NEW_TOPOLOGY_ID)
-    topology = import_module(plugin.__module__)
     options = PipelineOptions(
         enable_magnetic_design=True,
         enable_capacitor_design=True,
@@ -48,7 +58,7 @@ def test_step10f_selected_and_unavailable_two_phase_runs_are_isolated_in_both_or
     prior_runs = []
     for sequence, order in enumerate((("wide", "narrow"), ("narrow", "wide"))):
         for case in order:
-            inputs = topology.build_default_inputs()
+            inputs = dict(USER_CASE_INPUTS)
             if case == "narrow":
                 inputs["vac_rms_min"] = "230"
             run_root = tmp_path / str(sequence) / case
@@ -60,30 +70,19 @@ def test_step10f_selected_and_unavailable_two_phase_runs_are_isolated_in_both_or
             sweep = run_efficiency_sweep(
                 report, plugin=plugin, load_points=LOAD_POINTS, output_dir=sweep_root,
             )
-            if case == "wide":
-                # Basic feasible candidates exist, but none pass the current
-                # allow profile. Preserve this real boundary, not a partial sum.
-                assert report.magnetic.basic_feasible_count > 0
-                assert report.magnetic.post_allow_count == 0
-                assert report.magnetic.chosen_designs == []
-                for phase in ("phase_1", "phase_2"):
-                    assert report.magnetic.design_requirements[f"{phase}_design_id"] is None
-                assert any("no selected magnetic design" in note for note in report.magnetic.notes)
-                assert report.loss.total_loss_w is None
-                assert any("inductor_total_loss_w" in note for note in report.loss.notes)
-                warning = efficiency_sweep_blocking_warning(report)
-                assert warning is not None and "phase_1 inductor" in warning
-                assert not sweep.is_complete()
-                assert sweep.points == ()
-                assert warning in sweep.warnings
-                assert sweep.artifact_paths == {}
-                assert not sweep_root.exists()
-            else:
-                assert report.magnetic.post_allow_count > 0
-                assert len(report.magnetic.chosen_designs) == 2
-                assert report.loss.total_loss_w is not None
-                assert efficiency_sweep_blocking_warning(report) is None
-                assert sweep.is_complete()
+            assert report.magnetic.post_allow_count > 0
+            assert len(report.magnetic.chosen_designs) == 2
+            phase_1, phase_2 = report.magnetic.chosen_designs
+            assert phase_1.candidate_id != phase_2.candidate_id
+            assert phase_1.metadata["library_candidate_id"] == phase_2.metadata["library_candidate_id"]
+            audit = report.magnetic.frontier_search_audit
+            assert audit["phase_1"]["frontier_executed"] is (case == "wide")
+            assert audit["phase_2"]["frontier_executed"] is False
+            assert audit["phase_2"]["shared_from_phase"] == "phase_1"
+            assert report.loss.total_loss_w is not None
+            assert efficiency_sweep_blocking_warning(report) is None
+            assert sweep.is_complete()
+            assert len(sweep.points) == len(LOAD_POINTS)
             assert report.run_context.topology_id == NEW_TOPOLOGY_ID
             assert get_active_run_output_dir() is None
             for prior_report, prior_bytes, prior_root, prior_files in prior_runs:
@@ -95,6 +94,12 @@ def test_step10f_selected_and_unavailable_two_phase_runs_are_isolated_in_both_or
                 assert snapshot == snapshots[case]
             else:
                 snapshots[case] = snapshot
+                # Store a reviewable replay receipt with the same normalized
+                # engineering values used by the isolation comparison.
+                (run_root / "isolation_receipt.json").write_text(
+                    json.dumps({"raw_input": inputs, "snapshot": snapshot}, sort_keys=True, indent=2, allow_nan=False),
+                    encoding="utf-8",
+                )
             prior_runs.append((report, pickle.dumps(report), run_root, _file_hashes(run_root)))
 
 
@@ -111,10 +116,6 @@ def _run_order(order: tuple[str, str], root: Path, registry, prior_runs) -> dict
         # Keep Windows artifact filenames below MAX_PATH in long checkout paths.
         run_root = root / ("sp" if topology_id == OLD_TOPOLOGY_ID else "tp")
         inputs = topology_module.build_default_inputs()
-        if topology_id == NEW_TOPOLOGY_ID:
-            # Real selected phase inductors are required for the sweep path.
-            # Default wide-line unavailable isolation is covered by Step 10F.
-            inputs["vac_rms_min"] = "230"
         report = run_full_pipeline(
             plugin=plugin,
             raw_input=inputs,
@@ -199,6 +200,7 @@ def _snapshot(report, sweep, run_root: Path) -> dict[str, object]:
             "total_loss_w": _stable(getattr(report.loss, "total_loss_w", None)),
             "breakdown_w": _stable(getattr(report.loss, "breakdown_w", {})),
         },
+        "frontier_search_audit": _audit_snapshot(getattr(magnetic, "frontier_search_audit", {})),
         "stage_status": manifest["stage_status"],
         "report": _normalize({
             name: asdict(getattr(report, name))

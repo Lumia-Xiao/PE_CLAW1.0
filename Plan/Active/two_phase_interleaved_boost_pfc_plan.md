@@ -893,6 +893,43 @@ python -m pytest -q --basetemp .pytest-tmp-10f-rest @restTests
 - 首次基线重复检查 `2 passed, 1 failed`（542.62s）：审计中的 NaN 不等于自身，旧通用稳定化函数不能直接用于审计快照。只在新证据脚本将 NaN/±Infinity 编码为明确字符串，保留全部诊断字段并使用 `allow_nan=False`；新增编码测试，重新运行脚本生成基线后独立复跑通过。未删除字段、放宽工程断言或改生产 NaN 处理。
 - 用户文档更新搜索机制、实例/计数语义、耗尽状态与虚拟模型限制。目标 Python 编译及定向/暂存 diff 检查通过；本阶段提交推送后再记完成，随后进入 10G-3。原用户输出、无关删除、pytest 临时文件保留且不提交，不清理或备份。
 
+**10G-2 推送回执 / 10G-3 专项门禁记录（2026-10-09）**：
+
+- 10G-2 提交 `b7e9079` 已推送至指定远端分支，10G-2 完成。10G-3 只修改隔离测试与本计划/ChangeLog，不再修改生产代码。
+- 单相 Boost PFC／两相默认宽线双顺序重复通过；两相宽线／窄线也双顺序重复通过。后者宽线冻结原用户 case 的全部 17 个原始输入字段（含 `diode_binding_policy=auto`），已与原 manifest 的 raw_input_snapshot 精确核对；窄线只改 vac_rms_min 为 230。回归不依赖本机 outputs 文件的存在。
+- 归一化快照增加 frontier 审计，保留 non-finite 明确编码、硬件、损耗、警告、阶段、效率与产物检查。宽线扩大、窄线不扩大，phase 2 复用而不再搜索。复用同一插件/registry，保留旧报告和文件，pickle/文件哈希不变、run ID 独立、artifact 属于本 run、active context 清空均通过。搜索耗尽的失败路径在 10D/10G 分支测试独立通过。
+- 原用户 case 重放选中两个 PQ 35/35 / FT-3M / Litz 75x0.04 Grade 1 Single Served / 43 匝 / 8 并绕模型，设计 ID 分别以 `::phase_1`、`::phase_2` 结尾。设计点系统估算损耗 `30.957926132850 W`；nominal operating sweep 的 0.1/0.5/1.0 p.u. 损耗分别 `4.002510473180 / 12.455468002578 / 24.733962566017 W`，效率分别 `0.961515251363 / 0.975694535857 / 0.975863040097`。设计组合边界和 operating 点口径分别记录，不能混为同一工况；既有跨线刷新/磁件 low-line 负载缩放限制不因扫描完成而消失。
+- 原 case manifest SHA256 前后均为 `33834eecdce929e932839522fd007d2e5620cb80aac240f365de370c067a1e52`，没有覆盖旧结果。测试生成可复核的首轮宽/窄 `isolation_receipt.json`，位于 `.pytest-tmp-10g-i/test_step10g_user_wide_and_nar0/0/{wide,narrow}/`；这些是可重建临时证据，不提交。
+- 最终隔离组 `2 passed`（675.72s）；剩余步骤 1–6、10B/10C/10G 组 `35 passed`（19.42s）。加上 10G-2 的 28 个独立用例，全部 16 个两相专项文件共 **65 passed、无 skip**；pytest collect-only 核对为 65。10G-1 的 8 项已包含于最终剩余组，不重复累计。未运行全量 pytest 或其他拓扑全面回归，旧拓扑只做上述单相最小配对。
+- 复现命令如下；10D 在前两批重复，最终按唯一用例计数。最初在 PowerShell 将通配符直接交给 pytest 的 collection 命令没有展开路径，未收集用例；改用显式文件列表后完成收集，不计为测试通过或生产失败。
+
+```powershell
+$env:PYTHONPATH = 'src'
+$env:MPLBACKEND = 'Agg'
+$lossTests = @(
+    'tests/test_two_phase_interleaved_boost_pfc_step7_pipeline.py',
+    'tests/test_two_phase_interleaved_boost_pfc_step8_efficiency.py',
+    'tests/test_two_phase_interleaved_boost_pfc_step10d_requests.py'
+)
+$guiTests = @(
+    'tests/test_two_phase_interleaved_boost_pfc_step9_gui.py',
+    'tests/test_two_phase_interleaved_boost_pfc_step10d_requests.py',
+    'tests/test_two_phase_interleaved_boost_pfc_step10e_results.py'
+)
+$baselineTest = 'tests/test_two_phase_interleaved_boost_pfc_step10a_baseline.py'
+$isolationTest = 'tests/test_two_phase_interleaved_boost_pfc_step10_isolation.py'
+$coveredNames = @($lossTests + $guiTests + @($baselineTest, $isolationTest) | ForEach-Object { Split-Path $_ -Leaf })
+$allTests = @(Get-ChildItem tests -Filter 'test_two_phase_interleaved_boost_pfc_*.py')
+$restTests = @($allTests | Where-Object Name -NotIn $coveredNames | ForEach-Object FullName)
+python -B -m pytest -q --basetemp .pytest-tmp-10g-p @lossTests
+python -B -m pytest -q --basetemp .pytest-tmp-10g-v @guiTests
+python -B -m pytest -q --basetemp .pytest-tmp-10g-b2 $baselineTest
+python -B -m pytest -q --basetemp .pytest-tmp-10g-r @restTests
+python -B -m pytest -q --basetemp .pytest-tmp-10g-i $isolationTest
+```
+
+- 本阶段编译、定向/暂存 diff 检查和 Git 审查随提交执行；验证已通过，提交推送后再更新完成回执。既有 95 个无关删除、用户 outputs 和临时产物不纳入提交，不清理或备份。本计划仍 Active，保留运行点模型、公共 NaN 数据/状态语义、实物、卡片图片以及未执行的旧拓扑全面/发布验收事项。
+
 **修正验收标准**：
 
 - 两相电感、磁件和器件电流选型都覆盖低线设计边界；
