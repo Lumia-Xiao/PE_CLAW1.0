@@ -1783,3 +1783,11 @@ listed here.
 - 测试矩阵：180/230/265 Vac × 0.1/0.5/1.0 p.u. 公式与字段测试、固定硬件门禁、逐相/聚合损耗守恒、效率产物及两顺序单相 Boost 隔离；共享 pipeline 只允许两相显式分支，是否扩大回归范围由实际契约影响决定。
 - 状态：10I 方案已冻结，尚未实施或验证；计划继续 Active。既有 10G/10H 结果、基线和未决的公共 NaN 语义、实物可采购性、卡片图片及全面发布验收保持不变。
 - 验证：文档差异审查和 `git diff --check`；无代码变更，未运行 pytest。既有 95 个无关删除、outputs、缓存和 pytest 临时目录不纳入提交。
+
+## 2026-10-10 - Implement 10I-0 two-phase operating-point contract
+
+- 目的与边界：开始 Active plan 的 10I-0，只实现两相交错 Boost PFC 的运行点字段契约校验；不重建线路周期、不修改损耗公式、不改变公共 `OperatingPoint` 或其他拓扑。
+- 文件：新增 `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/operating_point.py`；接入两相 `waveform.py` 和拓扑导出；新增 `tests/test_two_phase_interleaved_boost_pfc_step10i_contract.py`；同步 Active plan。
+- 行为：`vin_v` 按设计范围内的交流 RMS 电压校验；`load_ratio` 为有限非负值；可选 `vout_v`、`power_factor` 和 `switching_frequency_hz` 必须满足有限正值语义。校验从两相波形入口生效，运行点仍复用现有硬件。
+- 验证：10I-0 契约测试与步骤 1 合同测试 `21 passed`（3.69s）；3 个目标 Python 文件 `py_compile` 通过；未运行全量测试或其他拓扑全面回归。
+- 状态：10I-0 完成，下一步为 10I-1 实际运行点线路周期和两相波形重建。既有 95 个无关删除、outputs、缓存和 pytest 临时目录不纳入提交。

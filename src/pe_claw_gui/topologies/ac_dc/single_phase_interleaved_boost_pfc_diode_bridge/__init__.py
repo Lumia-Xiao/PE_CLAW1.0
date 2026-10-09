@@ -13,6 +13,7 @@ from ...base.result import TopologyResult
 from ...base.spec import TopologySpec
 from .evaluator import build_report, evaluate
 from .input_schema import DISPLAY_NAME, LEGACY_KEY, TOPOLOGY_ID, build_default_inputs, build_spec
+from .operating_point import validate_operating_point_contract
 from .stress import (
     InterleavedPFCStress,
     PhaseStress,
@@ -99,4 +100,5 @@ __all__ = [
     "extract_stress",
     "generate_waveforms",
     "synthesize",
+    "validate_operating_point_contract",
 ]

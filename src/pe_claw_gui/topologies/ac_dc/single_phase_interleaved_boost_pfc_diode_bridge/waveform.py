@@ -9,6 +9,7 @@ from ....models.waveform import WaveformSet
 from ...base.candidate import TopologyCandidate
 from .input_schema import PHASE_COUNT, PHASE_SHIFT_DEG
 from .interleaving import calculate_interleaved_ripple
+from .operating_point import validate_operating_point_contract
 
 
 def generate_waveforms(
@@ -23,6 +24,8 @@ def generate_waveforms(
     """
 
     metadata = candidate.metadata
+    if operating_point is not None:
+        validate_operating_point_contract(candidate, operating_point)
     line_cycle = metadata.get("line_cycle")
     if not isinstance(line_cycle, dict):
         raise ValueError("Interleaved Boost PFC candidate is missing line-cycle metadata.")
