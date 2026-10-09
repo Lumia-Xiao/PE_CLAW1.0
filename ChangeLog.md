@@ -1695,3 +1695,11 @@ listed here.
 - Behavior: defines H-0 through H-4, explicit two-phase-only boundaries, missing-phase diagnostics, and validation/commit/push gates. No production code changed.
 - Validation: plan and log diff review; no pytest required for documentation-only freeze.
 - Git: pending H-0 commit and push.
+
+# 2026-10-09 — 10H-1 two-phase result pages
+
+- Purpose: make the Inductor and Magnetic result pages reflect the two physical phase requests and distinguish magnetic inductor loss from the all-component system loss.
+- Files: `src/pe_claw_gui/app/result_views/inductor_view.py`, `src/pe_claw_gui/app/result_views/magnetic_view.py`, `tests/test_two_phase_interleaved_boost_pfc_step10e_results.py`.
+- Behavior: two-phase pages render nested phase 1/phase 2 L, frequency, current, ripple, throughput, and mode; state explicitly that stacked-core comparison was not run; show per-phase and aggregate inductor loss. Existing flat rendering remains for other topologies.
+- Validation: `python -B -m py_compile` for both views; focused view and LLC display tests, `15 passed` in 117.66s; no full suite.
+- Git: pending H-1 commit and push.

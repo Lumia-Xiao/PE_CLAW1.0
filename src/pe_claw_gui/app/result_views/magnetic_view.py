@@ -98,36 +98,26 @@ class MagneticView(ttk.Frame):
                 ]
             )
 
+        interleaved = report.spec.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge"
         if magnetic.design_requirements:
             lines.extend(
                 [
                     "",
                     "Design requirements",
-                    f"  Topology = {magnetic.design_requirements.get('display_name') or magnetic.design_requirements.get('topology_id') or '-'}",
-                    f"  L target = {_fmt_si(magnetic.design_requirements.get('inductance_h', magnetic.design_requirements.get('target_inductance_h')), 1e6, 'uH')}",
-                    f"  fs = {_fmt_float(magnetic.design_requirements.get('fs_hz'))} Hz",
-                    f"  Iavg = {_fmt_float(magnetic.design_requirements.get('i_avg_a'))} A",
-                    f"  Irms = {_fmt_float(magnetic.design_requirements.get('i_rms_a'))} A",
-                    f"  Ipeak = {_fmt_float(magnetic.design_requirements.get('i_peak_a'))} A",
-                    f"  Delta iL = {_fmt_float(magnetic.design_requirements.get('delta_i_pp_a', magnetic.design_requirements.get('delta_il_pp_a')))} A",
-                    f"  Throughput = {_fmt_float(magnetic.design_requirements.get('throughput_power_w', magnetic.design_requirements.get('pout_nom_w')))} W",
-                    f"  Mode = {magnetic.design_requirements.get('mode') or '-'}",
                 ]
             )
+            lines.extend(_two_phase_requirement_lines(magnetic.design_requirements) if interleaved else _flat_requirement_lines(magnetic.design_requirements))
 
         if magnetic.chosen_designs:
             lines.extend(["", "Chosen fixed designs"])
             for design in magnetic.chosen_designs:
                 lines.extend(_design_detail_lines(design, indent="  "))
 
-        lines.extend(["", "Best Design By Stack Count"])
-        for stack_count in (1, 2, 3):
-            design = magnetic.best_by_stack_count.get(stack_count)
-            if design is None:
-                lines.append(f"  No surviving {stack_count}-core candidate")
-                continue
-            lines.append(f"  Best {stack_count}-core")
-            lines.extend(_design_detail_lines(design, indent="    "))
+        lines.extend(["", "Stack comparison"])
+        if interleaved:
+            lines.append("  Stacked-core comparison was not performed for the two-phase topology.")
+        else:
+            lines.extend(_stack_comparison_lines(magnetic))
 
         if magnetic.artifact_paths:
             lines.extend(["", "Artifacts"])
@@ -201,6 +191,55 @@ def _interleaved_boundary_lines(report: DesignReport) -> list[str]:
             )
     if not report.magnetic.chosen_designs:
         lines.append("  Magnetic selection status: unavailable; no phase design passed the current engineering allow profile.")
+    return lines
+
+
+def _flat_requirement_lines(requirements: dict[str, object]) -> list[str]:
+    return [
+        f"  Topology = {requirements.get('display_name') or requirements.get('topology_id') or '-'}",
+        f"  L target = {_fmt_si(requirements.get('inductance_h', requirements.get('target_inductance_h')), 1e6, 'uH')}",
+        f"  fs = {_fmt_float(requirements.get('fs_hz'))} Hz",
+        f"  Iavg = {_fmt_float(requirements.get('i_avg_a'))} A",
+        f"  Irms = {_fmt_float(requirements.get('i_rms_a'))} A",
+        f"  Ipeak = {_fmt_float(requirements.get('i_peak_a'))} A",
+        f"  Delta iL = {_fmt_float(requirements.get('delta_i_pp_a', requirements.get('delta_il_pp_a')))} A",
+        f"  Throughput = {_fmt_float(requirements.get('throughput_power_w', requirements.get('pout_nom_w')))} W",
+        f"  Mode = {requirements.get('mode') or '-'}",
+    ]
+
+
+def _two_phase_requirement_lines(requirements: dict[str, object]) -> list[str]:
+    lines = [f"  Topology = {requirements.get('display_name') or requirements.get('topology_id') or '-'}"]
+    for phase in ("phase_1", "phase_2"):
+        phase_req = requirements.get(phase)
+        if not isinstance(phase_req, dict):
+            lines.append(f"  {phase.replace('_', ' ')}: unavailable")
+            continue
+        lines.extend(
+            [
+                f"  {phase.replace('_', ' ')}:",
+                f"    L target = {_fmt_si(phase_req.get('inductance_h', phase_req.get('target_inductance_h')), 1e6, 'uH')}",
+                f"    fs = {_fmt_float(phase_req.get('fs_hz'))} Hz",
+                f"    Iavg = {_fmt_float(phase_req.get('i_avg_a'))} A",
+                f"    Irms = {_fmt_float(phase_req.get('i_rms_a'))} A",
+                f"    Ipeak = {_fmt_float(phase_req.get('i_peak_a'))} A",
+                f"    Delta iL = {_fmt_float(phase_req.get('delta_i_pp_a', phase_req.get('delta_il_pp_a')))} A",
+                f"    Throughput = {_fmt_float(phase_req.get('throughput_power_w', phase_req.get('pout_nom_w')))} W",
+                f"    Mode = {phase_req.get('mode') or '-'}",
+            ]
+        )
+    return lines
+
+
+def _stack_comparison_lines(magnetic) -> list[str]:
+    lines = []
+    for stack_count in (1, 2, 3):
+        design = magnetic.best_by_stack_count.get(stack_count)
+        if design is None:
+            lines.append(f"  No surviving {stack_count}-core candidate")
+            continue
+        lines.append(f"  Best {stack_count}-core")
+        lines.extend(_design_detail_lines(design, indent="    "))
     return lines
 
 

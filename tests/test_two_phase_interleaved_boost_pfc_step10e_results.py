@@ -6,6 +6,8 @@ from dataclasses import replace
 import pytest
 
 from pe_claw_gui.app.result_views.loss_view import build_system_loss_summary
+from pe_claw_gui.app.result_views.inductor_view import build_inductor_summary_text
+from pe_claw_gui.app.result_views.magnetic_view import MagneticView
 from pe_claw_gui.app.result_views.magnetic_view import _interleaved_boundary_lines
 from pe_claw_gui.app.result_views.summary_view import _build_electrical_parameter_lines
 from pe_claw_gui.pipeline.options import PipelineOptions
@@ -67,3 +69,23 @@ def test_step10e_magnetic_and_loss_views_explain_boundary_and_unavailable_hardwa
     assert "Magnetic selection status: unavailable" in "\n".join(_interleaved_boundary_lines(incomplete))
     assert "Magnetic hardware status" in "\n".join(build_system_loss_summary(incomplete))
     assert incomplete.loss.total_loss_w is None
+
+
+def test_step10h_two_phase_result_pages_show_phase_requirements_and_loss_basis(designed_report) -> None:
+    inductor = build_inductor_summary_text(designed_report)
+    assert "phase 1:" in inductor
+    assert "phase 2:" in inductor
+    assert "Stacked-core comparison was not performed for the two-phase topology." in inductor
+    assert "magnetic inductor loss:" in inductor
+    assert "system total loss (all components):" in inductor
+    assert "1-core: unavailable" not in inductor
+
+    view = MagneticView.__new__(MagneticView)
+    captured = {}
+    view._set_text = lambda value: captured.setdefault("text", value)
+    MagneticView.render(view, designed_report)
+    magnetic = captured["text"]
+    assert "phase 1:" in magnetic
+    assert "phase 2:" in magnetic
+    assert "Stacked-core comparison was not performed for the two-phase topology." in magnetic
+    assert "No surviving 1-core candidate" not in magnetic

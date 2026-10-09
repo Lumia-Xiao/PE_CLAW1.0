@@ -109,23 +109,30 @@ def build_inductor_summary_text(report: DesignReport | None) -> str:
         ]
     )
 
+    interleaved = _is_two_phase_interleaved(report)
     if magnetic.design_requirements:
         lines.extend(["", "Design requirements"])
-        lines.extend(_design_requirement_lines(magnetic.design_requirements))
+        if interleaved:
+            lines.extend(_two_phase_requirement_lines(magnetic.design_requirements))
+        else:
+            lines.extend(_design_requirement_lines(magnetic.design_requirements))
 
     if magnetic.chosen_designs:
         lines.extend(["", "Chosen representative designs"])
         for design in magnetic.chosen_designs:
             lines.extend(_design_lines(design, indent="  "))
 
-    lines.extend(["", "Best by stack count"])
-    for stack_count in (1, 2, 3):
-        design = magnetic.best_by_stack_count.get(stack_count)
-        if design is None:
-            lines.append(f"  {stack_count}-core: unavailable")
-            continue
-        lines.append(f"  {stack_count}-core")
-        lines.extend(_design_lines(design, indent="    "))
+    lines.extend(["", "Stack comparison"])
+    if interleaved:
+        lines.append("  Stacked-core comparison was not performed for the two-phase topology.")
+    else:
+        for stack_count in (1, 2, 3):
+            design = magnetic.best_by_stack_count.get(stack_count)
+            if design is None:
+                lines.append(f"  {stack_count}-core: unavailable")
+                continue
+            lines.append(f"  {stack_count}-core")
+            lines.extend(_design_lines(design, indent="    "))
 
     if report.loss is not None:
         lines.extend(["", "Magnetic loss"])
@@ -136,12 +143,15 @@ def build_inductor_summary_text(report: DesignReport | None) -> str:
                 [
                     f"  loss basis: {_magnetic_loss_basis(report)}",
                     f"  recommended design: {report.loss.recommended_design_id or '-'}",
-                    f"  total loss: {_fmt_float(report.loss.total_loss_w)} W",
+                    f"  magnetic inductor loss: {_fmt_float(report.loss.breakdown_w.get('inductor_total_loss_w', report.loss.total_loss_w))} W",
                     f"  copper loss: {_fmt_float(report.loss.breakdown_w.get('inductor_copper_loss_w'))} W",
                     f"  core loss: {_fmt_float(report.loss.breakdown_w.get('inductor_core_loss_w'))} W",
                     f"  recommended volume: {_fmt_si(report.loss.recommended_design_total_volume_m3, 1e6, 'cm^3')}",
                 ]
             )
+            if interleaved:
+                lines.extend(_two_phase_loss_lines(report.loss.breakdown_w))
+                lines.append(f"  system total loss (all components): {_fmt_float(report.loss.total_loss_w)} W")
 
     if report.thermal is not None:
         lines.extend(["", "Magnetic thermal"])
@@ -226,6 +236,41 @@ def _design_requirement_lines(requirements: dict[str, object]) -> list[str]:
         f"  Delta iL: {_fmt_float(requirements.get('delta_i_pp_a', requirements.get('delta_il_pp_a')))} A",
         f"  throughput: {_fmt_float(requirements.get('throughput_power_w', requirements.get('pout_nom_w')))} W",
         f"  mode: {requirements.get('mode') or '-'}",
+    ]
+
+
+def _is_two_phase_interleaved(report: DesignReport) -> bool:
+    return report.spec.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge"
+
+
+def _two_phase_requirement_lines(requirements: dict[str, object]) -> list[str]:
+    lines = [f"  topology: {requirements.get('display_name') or requirements.get('topology_id') or '-'}"]
+    for phase in ("phase_1", "phase_2"):
+        phase_req = requirements.get(phase)
+        if not isinstance(phase_req, dict):
+            lines.append(f"  {phase.replace('_', ' ')}: unavailable")
+            continue
+        lines.extend(
+            [
+                f"  {phase.replace('_', ' ')}:",
+                f"    L target: {_fmt_si(phase_req.get('inductance_h', phase_req.get('target_inductance_h')), 1e6, 'uH')}",
+                f"    fs: {_fmt_float(phase_req.get('fs_hz'))} Hz",
+                f"    Iavg: {_fmt_float(phase_req.get('i_avg_a'))} A",
+                f"    Irms: {_fmt_float(phase_req.get('i_rms_a'))} A",
+                f"    Ipeak: {_fmt_float(phase_req.get('i_peak_a'))} A",
+                f"    Delta iL: {_fmt_float(phase_req.get('delta_i_pp_a', phase_req.get('delta_il_pp_a')))} A",
+                f"    throughput: {_fmt_float(phase_req.get('throughput_power_w', phase_req.get('pout_nom_w')))} W",
+                f"    mode: {phase_req.get('mode') or '-'}",
+            ]
+        )
+    return lines
+
+
+def _two_phase_loss_lines(breakdown: dict[str, object]) -> list[str]:
+    return [
+        f"  phase 1 inductor loss: {_fmt_float(breakdown.get('phase_1_inductor_total_loss_w'))} W",
+        f"  phase 2 inductor loss: {_fmt_float(breakdown.get('phase_2_inductor_total_loss_w'))} W",
+        f"  both phase inductors: {_fmt_float(breakdown.get('inductor_total_loss_w'))} W",
     ]
 
 
