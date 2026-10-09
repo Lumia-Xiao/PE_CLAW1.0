@@ -1725,7 +1725,7 @@ listed here.
 - Purpose: extend the real two-phase Tk GUI acceptance path to verify Pareto artifact export, phase geometry availability, and two-child Hardware Overview aggregation after Magnetics.
 - Files: `tests/test_two_phase_interleaved_boost_pfc_step9_gui.py`, `Plan/Active/two_phase_interleaved_boost_pfc_plan.md`, `ChangeLog.md`.
 - Validation: final real Tk GUI `4 passed` in 263.22s; result/overview/frontier tests `10 passed` in 118.29s; geometry pipeline `1 passed` in 114.77s; isolation gate `2 passed` in 644.53s. No full suite.
-- Git: pending H-4 commit and push.
+- Git: H-4 implementation commit `c8236a8` pushed to `pe-claw-1.1/codex/llc-waveform-operating-point-plan`.
 
 # 2026-10-09 — 10H final GUI and isolation gate
 
