@@ -113,7 +113,7 @@ class MagneticView(ttk.Frame):
             for design in magnetic.chosen_designs:
                 lines.extend(_design_detail_lines(design, indent="  "))
 
-        lines.extend(["", "Stack comparison"])
+        lines.extend(["", "Stack comparison" if interleaved else "Best Design By Stack Count"])
         if interleaved:
             lines.append("  Stacked-core comparison was not performed for the two-phase topology.")
         else:
@@ -212,7 +212,7 @@ def _two_phase_requirement_lines(requirements: dict[str, object]) -> list[str]:
     lines = [f"  Topology = {requirements.get('display_name') or requirements.get('topology_id') or '-'}"]
     for phase in ("phase_1", "phase_2"):
         phase_req = requirements.get(phase)
-        if not isinstance(phase_req, dict):
+        if not isinstance(phase_req, dict) or not phase_req:
             lines.append(f"  {phase.replace('_', ' ')}: unavailable")
             continue
         lines.extend(

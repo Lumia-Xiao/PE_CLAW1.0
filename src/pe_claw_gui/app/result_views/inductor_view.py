@@ -122,7 +122,7 @@ def build_inductor_summary_text(report: DesignReport | None) -> str:
         for design in magnetic.chosen_designs:
             lines.extend(_design_lines(design, indent="  "))
 
-    lines.extend(["", "Stack comparison"])
+    lines.extend(["", "Stack comparison" if interleaved else "Best by stack count"])
     if interleaved:
         lines.append("  Stacked-core comparison was not performed for the two-phase topology.")
     else:
@@ -143,14 +143,15 @@ def build_inductor_summary_text(report: DesignReport | None) -> str:
                 [
                     f"  loss basis: {_magnetic_loss_basis(report)}",
                     f"  recommended design: {report.loss.recommended_design_id or '-'}",
-                    f"  magnetic inductor loss: {_fmt_float(report.loss.breakdown_w.get('inductor_total_loss_w', report.loss.total_loss_w))} W",
+                    (f"  magnetic inductor loss: {_fmt_float(report.loss.breakdown_w.get('inductor_total_loss_w'))} W"
+                     if interleaved else f"  total loss: {_fmt_float(report.loss.total_loss_w)} W"),
                     f"  copper loss: {_fmt_float(report.loss.breakdown_w.get('inductor_copper_loss_w'))} W",
                     f"  core loss: {_fmt_float(report.loss.breakdown_w.get('inductor_core_loss_w'))} W",
                     f"  recommended volume: {_fmt_si(report.loss.recommended_design_total_volume_m3, 1e6, 'cm^3')}",
                 ]
             )
             if interleaved:
-                lines.extend(_two_phase_loss_lines(report.loss.breakdown_w))
+                lines.extend(_two_phase_loss_lines(report))
                 lines.append(f"  system total loss (all components): {_fmt_float(report.loss.total_loss_w)} W")
 
     if report.thermal is not None:
@@ -247,7 +248,7 @@ def _two_phase_requirement_lines(requirements: dict[str, object]) -> list[str]:
     lines = [f"  topology: {requirements.get('display_name') or requirements.get('topology_id') or '-'}"]
     for phase in ("phase_1", "phase_2"):
         phase_req = requirements.get(phase)
-        if not isinstance(phase_req, dict):
+        if not isinstance(phase_req, dict) or not phase_req:
             lines.append(f"  {phase.replace('_', ' ')}: unavailable")
             continue
         lines.extend(
@@ -266,12 +267,19 @@ def _two_phase_requirement_lines(requirements: dict[str, object]) -> list[str]:
     return lines
 
 
-def _two_phase_loss_lines(breakdown: dict[str, object]) -> list[str]:
-    return [
-        f"  phase 1 inductor loss: {_fmt_float(breakdown.get('phase_1_inductor_total_loss_w'))} W",
-        f"  phase 2 inductor loss: {_fmt_float(breakdown.get('phase_2_inductor_total_loss_w'))} W",
-        f"  both phase inductors: {_fmt_float(breakdown.get('inductor_total_loss_w'))} W",
-    ]
+def _two_phase_loss_lines(report: DesignReport) -> list[str]:
+    lines = []
+    for phase in ("phase_1", "phase_2"):
+        design_id = report.magnetic.design_requirements.get(f"{phase}_design_id")
+        values = report.loss.top_design_losses.get(design_id, {})
+        lines.append(
+            f"  {phase.replace('_', ' ')} inductor loss: "
+            f"{_fmt_float(report.loss.breakdown_w.get(f'{phase}_inductor_total_loss_w'))} W; "
+            f"copper={_fmt_float(values.get('copper_loss_w'))} W; "
+            f"core={_fmt_float(values.get('core_loss_w'))} W"
+        )
+    lines.append(f"  both phase inductors: {_fmt_float(report.loss.breakdown_w.get('inductor_total_loss_w'))} W")
+    return lines
 
 
 def _design_lines(design, indent: str) -> list[str]:

@@ -135,6 +135,20 @@ try:
         assert report.capacitor.output_selection.recommended is not None
         magnetic_roles = {design.metadata.get("phase_role") for design in report.magnetic.chosen_designs}
         assert magnetic_roles == {"phase_1", "phase_2"}
+        assert report.magnetic.artifact_paths
+        assert any(Path(path).name == "pareto_front.png" for path in report.magnetic.artifact_paths)
+        assert app.workspace.inductor_pf_view._pareto_plot_path is not None
+        assert app.workspace.inductor_pf_view._figure is not None
+        phase_targets = {target.role: target for target in report.geometry.targets}
+        assert phase_targets["phase_1"].layout is not None
+        assert phase_targets["phase_2"].layout is not None
+        assert phase_targets["phase_1"].design_id != phase_targets["phase_2"].design_id
+        from pe_claw_gui.engines.hardware_overview import build_hardware_overview_payload
+        overview = build_hardware_overview_payload(report, root)
+        inductor_group = next(group for group in overview.component_groups if group.group_id == "inductor")
+        assert inductor_group.status == "available"
+        assert {entry.entry_id for entry in inductor_group.child_entries} == {"phase_1", "phase_2"}
+        assert inductor_group.quantity == 2
         assert str(form.run_efficiency_sweep_button["state"]) == "normal"
 
         form.run_waveforms_button.invoke()

@@ -175,6 +175,26 @@ def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOption
                 design,
                 report.magnetic.chosen_designs,
             ) if design is not None else None
+            if design is not None and existing is None:
+                try:
+                    layout = build_inductor_geometry_layout(design)
+                    paths = [
+                        *export_geometry_artifacts(layout, output_dir=output_dir, basename=f"geometry_{phase}"),
+                        *export_geometry_3d_artifacts(layout, output_dir=output_dir, basename=f"geometry_{phase}_3d"),
+                    ]
+                    existing = GeometryTarget(
+                        role=phase, label=phase.replace("_", " ").title(),
+                        design_id=design.candidate_id, layout=layout, artifact_paths=paths,
+                    )
+                except Exception as exc:
+                    existing = GeometryTarget(
+                        role=phase, label=phase.replace("_", " ").title(),
+                        design_id=design.candidate_id,
+                        error_message=f"{type(exc).__name__}: {exc}",
+                    )
+                unique_targets_by_design_id[design.candidate_id] = existing
+            if existing is not None:
+                unique_artifact_paths = _merge_artifact_paths(unique_artifact_paths, existing.artifact_paths)
             phase_targets.append(
                 GeometryTarget(
                     role=phase,
@@ -185,10 +205,8 @@ def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOption
                     volume_m3=design.total_volume_m3 if design is not None else None,
                     loss_w=phase_loss_by_design_id.get(design.candidate_id) if design is not None else None,
                     artifact_paths=list(existing.artifact_paths) if existing is not None else [],
-                    notes=[
-                        "Second physical phase instance shares the selected magnetic model dimensions."
-                        if phase == "phase_2" else "Phase-specific physical instance of the selected Boost inductor model."
-                    ],
+                    duplicate_of=existing.role if existing is not None and existing.design_id != design.candidate_id else None,
+                    notes=["Phase-specific physical instance; geometry reuse requires the same library model and dimensions."],
                     error_message=existing.error_message if existing is not None else "Phase magnetic geometry is unavailable.",
                     component_role="boost_phase_inductor",
                     representative_role=phase,
@@ -197,6 +215,7 @@ def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOption
         geometry_result = replace(
             geometry_result,
             targets=[*geometry_result.targets, *phase_targets],
+            artifact_paths=unique_artifact_paths,
             notes=[*geometry_result.notes, "Phase 1 and phase 2 inductor instances are listed separately; identical model geometry is shared when the magnetic match policy selects the same library design."],
         )
     return replace(report, geometry=geometry_result)
@@ -215,7 +234,7 @@ def _find_phase_geometry_target(
     design_by_id = {item.candidate_id: item for item in designs}
     for target in targets_by_id.values():
         target_design = design_by_id.get(target.design_id)
-        if target.layout is not None and target_design is not None and _geometry_model_signature(target_design) == signature:
+        if target_design is not None and _geometry_model_signature(target_design) == signature:
             return target
     return None
 
@@ -223,6 +242,7 @@ def _find_phase_geometry_target(
 def _geometry_model_signature(design) -> tuple[object, ...]:
     metadata = design.metadata if isinstance(getattr(design, "metadata", None), dict) else {}
     return (
+        metadata.get("library_candidate_id") or design.candidate_id,
         design.assembly_type,
         design.stack_count,
         design.core_name,
@@ -232,7 +252,17 @@ def _geometry_model_signature(design) -> tuple[object, ...]:
         design.parallel_bundles,
         design.inductance_h,
         design.gap_m,
-        round(float(design.total_volume_m3 or 0.0), 15),
+        design.base_core_name,
+        design.fill_factor,
+        design.core_volume_m3,
+        design.winding_volume_m3,
+        design.total_volume_m3,
+        *(metadata.get(key) for key in (
+            "family", "shape_label", "core_width_m", "core_height_m", "core_depth_m",
+            "library_core_width_m", "library_core_height_m", "library_core_depth_m",
+            "library_item_is_half_core", "core_effective_area_m2", "core_window_area_m2",
+            "gross_volume_m3",
+        )),
     )
 
 

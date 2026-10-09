@@ -1719,3 +1719,26 @@ listed here.
 - Behavior: the inductor group now has phase 1 and phase 2 child entries, quantity 2, summed volume/loss, and a side-by-side integrated bounding box when complete. Missing phase, loss, volume, or geometry produces an incomplete diagnostic group without fabricated totals.
 - Validation: `python -B -m py_compile` and focused two-phase result/overview tests, `5 passed` in 117.83s; no full suite.
 - Git: pending H-3 commit and push.
+
+# 2026-10-09 — 10H-4 GUI and artifact gate preparation
+
+- Purpose: extend the real two-phase Tk GUI acceptance path to verify Pareto artifact export, phase geometry availability, and two-child Hardware Overview aggregation after Magnetics.
+- Files: `tests/test_two_phase_interleaved_boost_pfc_step9_gui.py`, `Plan/Active/two_phase_interleaved_boost_pfc_plan.md`, `ChangeLog.md`.
+- Validation: final real Tk GUI `4 passed` in 263.22s; result/overview/frontier tests `10 passed` in 118.29s; geometry pipeline `1 passed` in 114.77s; isolation gate `2 passed` in 644.53s. No full suite.
+- Git: pending H-4 commit and push.
+
+# 2026-10-09 — 10H final GUI and isolation gate
+
+- Purpose: verify the complete two-phase GUI result chain after result-page, geometry/Pareto, and Hardware Overview repairs.
+- Files: `tests/test_two_phase_interleaved_boost_pfc_step9_gui.py`, `Plan/Active/two_phase_interleaved_boost_pfc_plan.md`, `ChangeLog.md`.
+- Behavior: the actual GUI now asserts a loaded Pareto plot, available phase geometry targets with separate IDs, and a complete two-child inductor overview before efficiency sweep.
+- Validation: real Tk GUI `4 passed` in 267.48s; two-phase isolation gate `2 passed` in 625.89s; no full suite or unrelated topology-wide regression.
+- Git: pending H-4 commit and push.
+
+# 2026-10-09 — 10H implementation completion
+
+- Purpose: complete the two-phase result presentation, geometry/Pareto artifact, Hardware Overview, GUI, and isolation repairs.
+- Files: `src/pe_claw_gui/app/result_views/inductor_view.py`, `src/pe_claw_gui/app/result_views/magnetic_view.py`, `src/pe_claw_gui/pipeline/run_geometry_pipeline.py`, `src/pe_claw_gui/pipeline/run_magnetic_pipeline.py`, `src/pe_claw_gui/engines/hardware_overview.py`, focused two-phase tests, plan and ChangeLog.
+- Behavior: nested phase requirements and per-phase magnetic loss are shown; stack comparison is explicitly out of scope for this topology; Pareto artifacts are exported once from phase 1; physical geometry is reused only for matching signatures and independently rendered otherwise; Hardware Overview contains two phase children and complete aggregate values, with missing-phase diagnostics.
+- Validation: focused result/overview/frontier `10 passed` (118.29s), geometry `1 passed` (114.77s), real Tk GUI `4 passed` (263.22s), isolation `2 passed` (644.53s); no skip and no full suite.
+- Git: pending H-4 commit and push.

@@ -954,6 +954,14 @@ python -B -m pytest -q --basetemp .pytest-tmp-10g-i $isolationTest
 
 **10H-2/10H-3 推送回执（2026-10-09）**：10H-2 几何复用和 Pareto 导出提交 `a607165` 已推送。10H-2 的步骤 7 真实验证为 `1 passed`（118.59s）。10H-3 两相硬件总览已实现两个 child entries、side-by-side integrated bbox、数量/体积/损耗合计和缺相诊断；结果页、总览完整路径及缺相路径共 `5 passed`（117.83s），待完成提交推送后进入 10H-4。
 
+10H-4 将运行实际 Tk GUI 设计/磁件/波形/效率入口，检查两相 Pareto artifact、两个几何 target 和硬件总览 child entries；同时保留步骤 10E/10F 的结果与隔离测试作为专项门禁，不运行全量 pytest。
+
+**10H-4 完成与推送回执（2026-10-09）**：最终实际 Tk GUI 入口验证 `4 passed`（263.22s），覆盖 Magnetics 后自动进入 Inductor 页、phase-1 Pareto PNG 和 PF view 加载、phase 1/2 geometry layout、两相 Hardware Overview child entries 及效率扫描。最终两相隔离门禁 `2 passed`（644.53s），保留宽/窄线双顺序和单相 Boost 配对；10H 相关结果/总览专项无 skip。10H 的 10H-0 `06403ec`、10H-1 `e394173`、10H-2 `a607165`、10H-3 `4dc3fca` 均已推送，H-4 最终测试与文档提交待推送后完成。
+
+最终 H-4 快速专项还包括结果/总览/前沿分支 `10 passed`（118.29s）和几何全链路 `1 passed`（114.77s）；这些测试没有运行全量 pytest。
+
+10H 仍不宣称全量工程验收：未运行全量 pytest，未改变运行点物理模型、公共 NaN 饱和语义、实物可采购性或拓扑图片；Pareto 工件表达一次 phase-1 搜索 frontier，phase 2 是同一物理模型的独立实例。
+
 **修正验收标准**：
 
 - 两相电感、磁件和器件电流选型都覆盖低线设计边界；

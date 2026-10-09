@@ -534,6 +534,18 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
                 ]
             pareto = build_pareto_front(compression.compressed_candidates)
             chosen = choose_representative_designs(pareto, count=5)
+            library_selected_id = chosen[len(chosen) // 2].candidate_id if chosen else None
+            artifact_result = export_design_artifacts(
+                feasible_candidates=basic,
+                screened_candidates=compression.filtered_candidates,
+                compressed_candidates=compression.compressed_candidates,
+                pareto_candidates=pareto,
+                chosen_candidates=chosen,
+                stack_count_comparison={},
+                recommended_design_id=library_selected_id,
+                write_csvs=False,
+                output_dir=get_run_output_dir(report, "inductor_design"),
+            ) if chosen else None
             chosen = [
                 replace(
                     candidate,
@@ -566,7 +578,11 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
                 compressed_candidates=compression.compressed_candidates,
                 chosen_designs=chosen,
                 frontier_search_audit=search_audit,
-                notes=[*request.notes, *search_notes, *compression.notes],
+                artifact_paths=artifact_result.artifact_paths if artifact_result else [],
+                plot_source_name=artifact_result.plot_source_name if artifact_result else None,
+                plot_color_dimension=artifact_result.plot_color_dimension if artifact_result else None,
+                notes=[*request.notes, *search_notes, *compression.notes,
+                       *([artifact_result.plot_fallback_note] if artifact_result and artifact_result.plot_fallback_note else [])],
             )
             phase_requirements[f"phase_{phase}"] = build_design_requirements_dict(request)
         except Exception as exc:
@@ -596,31 +612,6 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
 
     same_model = c1 is not None and c2 is not None and signature(c1) == signature(c2)
     selected_id = c1.candidate_id if c1 is not None else None
-    artifact_result = None
-    if p1.compressed_candidates:
-        phase_one_pareto = build_pareto_front(p1.compressed_candidates)
-        artifact_result = export_design_artifacts(
-            feasible_candidates=p1.screened_candidates,
-            screened_candidates=p1.screened_candidates,
-            compressed_candidates=p1.compressed_candidates,
-            pareto_candidates=phase_one_pareto,
-            chosen_candidates=p1.chosen_designs,
-            stack_count_comparison={},
-            recommended_design_id=p1.selected_design_id,
-            output_dir=get_run_output_dir(report, "inductor_design"),
-        )
-    elif p1.screened_candidates:
-        phase_one_pareto = build_pareto_front(p1.screened_candidates)
-        artifact_result = export_design_artifacts(
-            feasible_candidates=p1.screened_candidates,
-            screened_candidates=p1.screened_candidates,
-            compressed_candidates=None,
-            pareto_candidates=phase_one_pareto,
-            chosen_candidates=p1.chosen_designs,
-            stack_count_comparison={},
-            recommended_design_id=p1.selected_design_id,
-            output_dir=get_run_output_dir(report, "inductor_design"),
-        )
     requirements: dict[str, object] = {
         "topology_id": INTERLEAVED_BOOST_PFC_TOPOLOGY_ID,
         "phase_count": 2,
@@ -677,17 +668,16 @@ def _run_interleaved_boost_pfc_magnetic_pipeline(
             "phase_2": p2.frontier_search_audit,
         },
         performance_timing={"phase_results": {key: value.summary for key, value in phase_results.items()}},
-        artifact_paths=artifact_result.artifact_paths if artifact_result is not None else [],
-        plot_source_name=artifact_result.plot_source_name if artifact_result is not None else None,
-        plot_color_dimension=artifact_result.plot_color_dimension if artifact_result is not None else None,
+        artifact_paths=list(p1.artifact_paths),
+        plot_source_name=p1.plot_source_name,
+        plot_color_dimension=p1.plot_color_dimension,
     )
-    if artifact_result is not None:
+    if p1.artifact_paths:
         aggregate = replace(
             aggregate,
             notes=[
                 *aggregate.notes,
                 "Pareto artifacts export the phase-1 magnetic search frontier once; phase 2 is a physical instance reuse.",
-                *([artifact_result.plot_fallback_note] if artifact_result.plot_fallback_note else []),
             ],
         )
     return replace(report, magnetic=aggregate, geometry=geometry_result)
