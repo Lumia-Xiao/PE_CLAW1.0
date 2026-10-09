@@ -1,6 +1,6 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 专项阶段完成（步骤 0–10 已按用户限定范围执行；步骤 10A–10F 已完成并推送；默认宽线磁件可用性、运行点模型限制和未执行的全面发布验收仍须单独处理）
+- **状态**：Active / 10G 待实施（步骤 0–10 已按用户限定范围执行；10A–10F 已完成并推送；10G 接入两相扩大磁件搜索并验证完整链路，运行点模型及全面发布验收仍单独保留）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
@@ -860,6 +860,25 @@ python -m pytest -q --basetemp .pytest-tmp-10f-rest @restTests
 - Python 编译、定向 `git diff --check` 和暂存差异检查随提交执行；既有 migration/deployment/Web 删除、outputs 和 pytest 临时文件不纳入本次提交，不清理、不执行备份。专项验证已通过，提交推送完成后再更新 10F 完成状态。
 
 **10F 提交推送回执（2026-10-08）**：专项测试、快照脚本/证据、用户文档和执行记录提交 `201abbb`，已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`。本次目标 Python 文件编译、定向与暂存 `git diff --check` 均通过；全工作区既有超长路径删除项不属于本次验证通过范围。步骤 10F 的限定门禁完成，本状态回执随独立文档提交推送。此前记录中的“待提交推送”为提交前状态，不代表仍待执行。未运行的其他拓扑全面回归、默认磁件可用性和运行点物理模型限制继续保留。
+
+**步骤 10G：两相磁件扩大搜索与完整链路修正（2026-10-09 新增，待实施）**
+
+触发 case 为 `outputs/20261009_spibpdb_fe6cd98f`：180–265 Vac、nominal 230 Vac、1 kW、400 Vdc、100 kHz。只读重放发现每相前 14 个磁芯生成 103,494 个基本候选、allow 后为 0；保持同一请求/库/工程限值扩大到前 48 个磁芯后有 181 个通过。该数字是诊断证据，不作为永久固定的验收数量。两相分支没有复用公共路径已有 frontier fallback，不能据初始筛选为空断言整个库没有可行磁件。
+
+影响分类：共享 `run_magnetic_pipeline.py` 内已有两相显式分支的 integration change；调用现有 engine，不修改公共搜索实现、allow profile、库记录、输入、公式、单位或其他拓扑分支。搜索按相只执行一次，phase 2 在理想均流下复用模型、保留独立身份。不会新增叠芯竞争搜索，不顺带修正公共 NaN 处理或运行点物理模型。
+
+按以下四个阶段顺序实施，每阶段验证后独立 commit/push，推送后才能标记该阶段完成：
+
+1. **10G-0 计划冻结**：将根因、影响范围、修改方案、验证范围和剩余问题写入本计划与 ChangeLog。定向检查文档差异后提交并推送。
+2. **10G-1 搜索接入、两相实例与审计**：在初始工程筛选 `post_allow_count == 0` 时调用已有 `search_fixed_inductor_candidate_frontier`；传入同一 phase 1 request、context、profile、backend，以及已生成的基本候选和 compression，避免重复初始搜索。沿用已有 14→24→48→96 磁芯分阶段边界，合格即停止；无基本候选也允许扩大搜索，避免遗漏更大磁芯。使用最终 compression 进入既有 Pareto/代表性选择。只对 phase 1 搜索；phase 2 与其物理设计参数一致，但 design ID/phase_role/physical_instance_id 独立。使用既有 `MagneticResult.frontier_search_audit` 保存 stage bounds、候选数、通过数、淘汰原因和 final stage；phase 2 审计注明共享搜索来源，aggregate 用按相审计结构保留真实单次搜索数量。专项单元测试覆盖 fallback 参数不变、初筛成功不扩大、全部搜索耗尽、零基本候选和异常；更新默认工况旧 unavailable 断言为成功，并保留独立失败路径，不伪造生产成功硬件。
+3. **10G-2 真实宽线／窄线硬件、损耗与效率**：默认 180–265 Vac 和既有 230–265 Vac 都用真实库全链路验证。严格检查两个所选实例参数一致/身份不同/工程限值通过、逐相电感损耗合计、桥/半导体/电感/共享电容系统求和、分相几何和阶段；0.1/0.5/1.0 p.u. sweep 完整，硬件 ID 固定，搜索与四类选型入口禁止调用。必需硬件或损耗缺失必须诊断，不返回部分和。保留 10A/10C/10D/10F 历史快照，新增脚本生成 10G 基线；设计输入、candidate、line metadata、waveform/stress、桥请求和器件身份等未修改边界应与 10F 一致，磁件／损耗／热／几何／GUI 下游变化单独记录。用户文档说明扩大搜索和模型候选边界；不把虚拟 shape/material 配对宣称为已验证商业料号或实物。
+4. **10G-3 隔离和最终专项门禁**：单相 Boost PFC／两相默认宽线按两顺序运行，保留最小旧拓扑配对对照；宽线／窄线两相也双顺序重复，比较归一化报告、硬件、损耗、警告、阶段、效率和产物，校验旧 report pickle 与文件哈希不变、run ID 独立、路径归属及活动 context 清空。明确无候选场景另测，不能继续假定默认宽线必失败。最终运行全部两相 step1–10G 专项文件；不运行全量 pytest 或其他拓扑全面回归。更新验证数字、耗时、commit/push、真实默认 case 结果及剩余事项。
+
+验证命令：环境 `PYTHONPATH=src`、`MPLBACKEND=Agg`。10G-1 先运行 `tests/test_two_phase_interleaved_boost_pfc_step10g_frontier.py` 中纯分支测试；10G-2 运行真实磁件、步骤 7/8、10D 请求和 baseline 用例；10G-3 按两相文件列表运行（只枚举 `tests/test_two_phase_interleaved_boost_pfc_*.py`），隔离测试可单独一批。Windows 使用短 basetemp 名（如 `.pytest-tmp-10g`），避免 artifact 超长路径。新增/修改 Python 文件编译、定向 `git diff --check`、暂存差异和 Git 状态检查随每阶段执行；不清理或提交 outputs、缓存及既有无关删除。
+
+验收：默认宽线真实库得到两个可追溯的合格模型实例；扫描固定硬件且损耗代数守恒；搜索复用与失败路径有证据；未修改输入范围或工程筛选限值；配对和重复隔离通过。最终候选数不冻结为 181，默认选型成功也不代表所有输入范围均有候选或损耗模型已全面验证。
+
+继续保留的限制：100℃ 饱和数据 NaN 会进入饱和淘汰，诊断应区分数据缺失和真实超限；manifest stage succeeded 表示阶段执行完成，不能单独证明推荐硬件存在；nominal 线路波形／low-line 磁件 operating request 的负载缩放及跨线刷新问题仍未修正；旧拓扑全面／发布验收、实物验证及专用卡片图片仍未执行。以上不通过放宽本次断言解决。
 
 **修正验收标准**：
 
