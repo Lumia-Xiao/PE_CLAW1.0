@@ -549,14 +549,22 @@ def _run_interleaved_boost_pfc_loss_pipeline(
     }
     evaluations = []
     phase_loss: dict[str, dict[str, float | None]] = {}
+    missing_phases: list[str] = []
+    invalid_phases: list[str] = []
     for phase in ("phase_1", "phase_2"):
         design = phase_designs.get(phase)
         if design is None:
+            missing_phases.append(phase)
             continue
         phase_number = int(phase[-1])
-        request = build_interleaved_boost_pfc_phase_operating_request(report, phase_number)
-        result = evaluate_selected_designs([design], request)
+        try:
+            request = build_interleaved_boost_pfc_phase_operating_request(report, phase_number)
+            result = evaluate_selected_designs([design], request)
+        except (InductorRequestUnavailableError, ValueError) as exc:
+            invalid_phases.append(f"{phase}: {exc}")
+            continue
         if not result:
+            invalid_phases.append(f"{phase}: no operating evaluation was returned")
             continue
         evaluation = result[0]
         evaluations.append(evaluation)
@@ -566,34 +574,60 @@ def _run_interleaved_boost_pfc_loss_pipeline(
             "total_loss_w": evaluation.total_loss_w,
         }
 
-    total_loss = sum(
-        float(values["total_loss_w"])
+    required_phases_present = not missing_phases and set(phase_loss) == {"phase_1", "phase_2"}
+    phase_losses_valid = required_phases_present and all(
+        all(values.get(key) is not None for key in ("copper_loss_w", "core_loss_w", "total_loss_w"))
         for values in phase_loss.values()
-        if values["total_loss_w"] is not None
     )
-    copper_loss = sum(
-        float(values["copper_loss_w"])
-        for values in phase_loss.values()
-        if values["copper_loss_w"] is not None
+    total_loss = (
+        sum(float(phase_loss[phase]["total_loss_w"]) for phase in ("phase_1", "phase_2"))
+        if phase_losses_valid
+        else None
     )
-    core_loss = sum(
-        float(values["core_loss_w"])
-        for values in phase_loss.values()
-        if values["core_loss_w"] is not None
+    copper_loss = (
+        sum(float(phase_loss[phase]["copper_loss_w"]) for phase in ("phase_1", "phase_2"))
+        if phase_losses_valid
+        else None
+    )
+    core_loss = (
+        sum(float(phase_loss[phase]["core_loss_w"]) for phase in ("phase_1", "phase_2"))
+        if phase_losses_valid
+        else None
     )
     recommended_id = magnetic.selected_design_id if preserve_selected_design_id else next(
         (design.candidate_id for design in magnetic.chosen_designs if design.metadata.get("phase_role") == "phase_1"),
         magnetic.selected_design_id,
     )
+    breakdown = {
+        "phase_1_inductor_total_loss_w": phase_loss.get("phase_1", {}).get("total_loss_w"),
+        "phase_2_inductor_total_loss_w": phase_loss.get("phase_2", {}).get("total_loss_w"),
+    }
+    if phase_losses_valid:
+        breakdown.update(
+            {
+                "inductor_copper_loss_w": copper_loss,
+                "inductor_core_loss_w": core_loss,
+                "inductor_total_loss_w": total_loss,
+            }
+        )
+    notes = [
+        "Two-phase interleaved Boost PFC magnetic loss evaluates the selected phase 1 and phase 2 fixed inductors independently.",
+        "The aggregate inductor loss is the sum of the two phase losses; no phase loss is multiplied by two after evaluation.",
+        "Semiconductor, bridge, and DC-link capacitor losses remain separate report components for downstream aggregation.",
+    ]
+    if not phase_losses_valid:
+        reasons = [*missing_phases]
+        reasons.extend(invalid_phases)
+        if not reasons:
+            reasons.append("one or more phase copper/core/total loss values are unavailable")
+        notes.append(
+            "Two-phase magnetic loss is incomplete; no aggregate inductor loss is published because both phase results are required: "
+            + "; ".join(reasons)
+            + "."
+        )
     loss_result = LossResult(
-        total_loss_w=total_loss if phase_loss else None,
-        breakdown_w={
-            "phase_1_inductor_total_loss_w": phase_loss.get("phase_1", {}).get("total_loss_w"),
-            "phase_2_inductor_total_loss_w": phase_loss.get("phase_2", {}).get("total_loss_w"),
-            "inductor_copper_loss_w": copper_loss if phase_loss else None,
-            "inductor_core_loss_w": core_loss if phase_loss else None,
-            "inductor_total_loss_w": total_loss if phase_loss else None,
-        },
+        total_loss_w=total_loss,
+        breakdown_w=breakdown,
         recommended_design_id=recommended_id,
         top_design_losses={
             design_id: {
@@ -607,11 +641,7 @@ def _run_interleaved_boost_pfc_loss_pipeline(
             )
             if values
         },
-        notes=[
-            "Two-phase interleaved Boost PFC magnetic loss evaluates the selected phase 1 and phase 2 fixed inductors independently.",
-            "The aggregate inductor loss is the sum of the two phase losses; no phase loss is multiplied by two after evaluation.",
-            "Semiconductor, bridge, and DC-link capacitor losses remain separate report components for downstream aggregation.",
-        ],
+        notes=notes,
     )
     updated_magnetic = replace(magnetic, evaluations=evaluations)
     return replace(report, magnetic=updated_magnetic, loss=loss_result)

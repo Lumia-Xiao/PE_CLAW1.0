@@ -1799,3 +1799,11 @@ listed here.
 - 修正：运行点线路周期已经包含负载电流后，不再被旧逻辑重复乘 `load_ratio`；固定硬件和选型入口未在本阶段改变。
 - 验证：10I-0/10I-1/步骤 3 核心测试 `23 passed`（3.73s）；两相效率链专项 `14 passed`（183.92s）；目标 Python 编译和定向 `git diff --check` 通过；未运行全量测试或其他拓扑全面回归。
 - 状态：10I-1 完成，下一步为 10I-2 固定硬件损耗链和跨线损耗守恒。既有 95 个无关删除、outputs、缓存和 pytest 临时目录不纳入提交。
+
+## 2026-10-10 - Implement 10I-2 fixed-hardware two-phase loss chain
+
+- 目的与边界：完成 Active plan 的 10I-2，仅修正两相交错 Boost PFC 的运行点磁件请求、桥损耗请求和两相磁件损耗聚合；不改变单相 Boost PFC、公共模型字段或器件/磁件选择策略。
+- 文件：修改 `src/pe_claw_gui/engines/magnetics/inductor_adapter.py`、`src/pe_claw_gui/pipeline/run_loss_pipeline.py`、`src/pe_claw_gui/pipeline/run_efficiency_sweep_pipeline.py`；新增 `tests/test_two_phase_interleaved_boost_pfc_step10i2_loss.py`；同步 Active plan。
+- 行为：运行点磁件请求逐相读取当前 waveform 的相电流、RMS/peak、纹波和电感电压，并保留 phase role/物理实例；桥损耗使用当前 `bridge_metrics` 和当前输入波形，不再重复缩放已重建的运行点电流；缺任一 phase 或关键损耗时不发布部分磁件总损耗。
+- 验证：10I 合同/步骤 3 `23 passed`（4.23s）；步骤 6 与 10I-2 专项 `6 passed`（16.75s）；步骤 7 `1 passed`（193.24s）；步骤 8 `14 passed`（231.34s）；目标 Python 编译和定向 `git diff --check` 通过。显式使用工作区 `PYTHONPATH=src`，未运行全量测试或其他拓扑全面回归。
+- 状态：10I-2 完成，下一步为 10I-3 效率产物与隔离门禁。既有 95 个无关删除、outputs、缓存和 pytest 临时目录不纳入提交。

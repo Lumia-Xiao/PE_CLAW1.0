@@ -1,10 +1,10 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 10G 复核及 10H 补齐限定门禁完成并已推送；10I-0/10I-1 已完成，下一步为 10I-2 固定硬件损耗链（全面发布验收仍单独保留）
+- **状态**：Active / 10G 复核及 10H 补齐限定门禁完成并已推送；10I-0/10I-1/10I-2 已完成，下一步为 10I-3 效率产物与隔离门禁（全面发布验收仍单独保留）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：步骤 0–10、10A–10H 及本轮 10H 补齐已实施并推送，本轮 10G 复核通过；10I-0/10I-1 已实施并验证，10I-2 尚未开始。既有验证范围按用户要求限定为两相专项及必要的单相 Boost PFC 双顺序隔离配对；10I-1 核心/步骤 3 测试 23 项通过，效率链专项 14 项通过，未运行全量测试或其他拓扑全面回归。
+- **当前阶段**：步骤 0–10、10A–10H 及本轮 10H 补齐已实施并推送，本轮 10G 复核通过；10I-0/10I-1/10I-2 已实施并验证，下一步为 10I-3。既有验证范围按用户要求限定为两相专项及必要的单相 Boost PFC 双顺序隔离配对；本轮未运行全量测试或其他拓扑全面回归。
 
 ## 1. 计划目标和边界
 
@@ -1056,6 +1056,15 @@ P_loss_total = P_bridge + P_phase_1 + P_phase_2 + P_capacitor + P_other
 **10I-0 执行记录（2026-10-10）**：新增两相拓扑专用 `validate_operating_point_contract`，在波形入口校验 `OperatingPoint.vin_v` 为设计范围内的交流 RMS 电压，`load_ratio` 为有限非负值，并校验可选 `vout_v`、`power_factor` 和 `switching_frequency_hz` 的有限正值语义；未修改公共 `OperatingPoint`、单相 Boost PFC 或其他拓扑。新增 `tests/test_two_phase_interleaved_boost_pfc_step10i_contract.py`，覆盖有效 180/230/265 Vac、边界/NaN/Infinity、负载和可选字段异常，以及波形入口接线。验证为 10I-0 契约与步骤 1 合同共 `21 passed`（3.69s），目标 Python 文件编译通过；未运行全量测试。下一步为 10I-1，按冻结公式重建实际运行点线路周期。
 
 **10I-1 执行记录（2026-10-10）**：两相 `waveform.py` 在传入 `OperatingPoint` 时按实际交流 RMS 电压调用现有线路周期采样器，使用 `Pout * load_ratio / (Vin_rms * PF)` 生成总输入电流，按 50/50 分配相电流，按当前运行点 Vout 计算占空比，按当前电感和可选开关频率计算每相纹波及 180° 交错总纹波；设计点无 operating point 的路径保持原 nominal metadata 和数组。运行点 readback 增加实际 Vin/Vout/PF/开关频率及线路周期来源，`WaveformSet` 的运行点电压、输出电压、周期和代表性 duty 与当前请求一致。新增跨线和可选覆盖断言，修正运行点线路周期已包含负载后被重复乘 `load_ratio` 的问题。验证：10I-0/10I-1/步骤 3 核心测试 `23 passed`（3.73s），两相效率链专项 `14 passed`（183.92s），目标 Python 编译通过；未运行全量测试。下一步为 10I-2 固定硬件损耗链和跨线损耗守恒。
+
+**10I-2 执行记录（2026-10-10）**：
+
+- `inductor_adapter.py` 的两相运行点磁件请求现在按 phase 1/phase 2 分别消费当前 `waveform.metadata.phase_device_metrics`、`phase_ripple_pp_a`、`phase_inductor_voltage_v` 和 phase waveform arrays；运行点 Vin/Vout、开关频率、负载功率、相电流 RMS/peak、纹波和伏秒均来自当前线路周期，继续保留选定磁件的物理实例身份，不调用磁件选择器。无 waveform 的旧设计级调用保留原兼容路径。
+- `run_loss_pipeline.py` 要求 phase 1 和 phase 2 都有有效铜损、磁芯损耗和总损耗后才发布 `inductor_total_loss_w` 与聚合值；缺相、请求字段缺失或任一关键损耗不可用时，`total_loss_w` 保持 `None`，不再生成部分相位总和，并在 notes 中记录明确原因。
+- `run_efficiency_sweep_pipeline.py` 的两相桥损耗请求改为读取当前 `bridge_metrics` 和当前输入电流波形，不再对已按运行点重建的平均/RMS 电流重复乘 `load_ratio`；桥 metrics 缺失时桥损耗明确不可用。
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step10i2_loss.py`，覆盖逐相运行请求字段来源、两相磁件损耗守恒、缺 phase 不能发布聚合损耗、桥请求不重复负载缩放和固定硬件路径。
+- 验证：10I 合同/步骤 3 `23 passed`（4.23s）；步骤 6 与 10I-2 专项 `6 passed`（16.75s）；步骤 7 `1 passed`（193.24s）；步骤 8 `14 passed`（231.34s）；目标 Python 编译和定向 `git diff --check` 通过。首次测试收集发现旧安装包路径优先，显式设置工作区 `PYTHONPATH=src` 后通过；未运行全量测试或其他拓扑全面回归。
+- 影响分类：两相显式 operating-point adapter、loss aggregation 和 bridge refresh 分支；单相 Boost PFC 及其他拓扑未改变。下一步为 10I-3 效率产物、缺损耗状态和双顺序隔离门禁。
 
 **修正验收标准**：
 

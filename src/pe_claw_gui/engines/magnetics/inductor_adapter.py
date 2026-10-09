@@ -668,15 +668,29 @@ def build_interleaved_boost_pfc_phase_operating_request(
 
     if phase not in (1, 2):
         raise ValueError("Interleaved Boost PFC phase must be 1 or 2.")
-    request = _build_interleaved_boost_pfc_operating_request(report)
+    request = _build_interleaved_boost_pfc_operating_request(report, phase=phase)
     role = f"phase_{phase}"
     metadata = dict(request.metadata)
     metadata.update({"phase_role": role, "phase_shift_deg": 0.0 if phase == 1 else 180.0})
     return replace(request, display_name=f"{_normalized_display_name(report)} Phase {phase}", metadata=metadata)
 
 
-def _build_interleaved_boost_pfc_operating_request(report: DesignReport) -> InductorOperatingPointRequest:
+def _build_interleaved_boost_pfc_operating_request(
+    report: DesignReport, *, phase: int = 1
+) -> InductorOperatingPointRequest:
     design = _build_interleaved_boost_pfc_design_request(report)
+    role = f"phase_{phase}"
+    design = replace(
+        design,
+        metadata={
+            **design.metadata,
+            "phase_role": role,
+            "phase_shift_deg": 0.0 if phase == 1 else 180.0,
+        },
+    )
+    waveform_request = _build_interleaved_boost_pfc_waveform_operating_request(report, design)
+    if waveform_request is not None:
+        return waveform_request
     load_ratio = _operating_load_ratio(report)
     scale = max(load_ratio, 0.0)
     return InductorOperatingPointRequest(
@@ -702,6 +716,119 @@ def _build_interleaved_boost_pfc_operating_request(report: DesignReport) -> Indu
             "Phase 2 uses the same fixed hardware under the ideal equal-sharing assumption.",
         ],
         metadata={**design.metadata, "operating_load_ratio": load_ratio, "phase_role": "phase_1"},
+    )
+
+
+def _build_interleaved_boost_pfc_waveform_operating_request(
+    report: DesignReport, design: InductorDesignRequest
+) -> InductorOperatingPointRequest | None:
+    """Build a phase request from the current operating waveform readback."""
+
+    waveform = report.waveform
+    metadata = waveform.metadata if waveform is not None else None
+    if waveform is None or not isinstance(metadata, dict):
+        return None
+    phase_metrics = metadata.get("phase_device_metrics")
+    phase_waveforms = metadata.get("phase_waveforms")
+    phase_ripple = metadata.get("phase_ripple_pp_a")
+    phase_voltage = metadata.get("phase_inductor_voltage_v")
+    if not all(isinstance(value, dict) for value in (phase_metrics, phase_waveforms, phase_ripple, phase_voltage)):
+        raise InductorRequestUnavailableError(
+            "Two-phase operating magnetic loss requires current phase waveform metadata."
+        )
+
+    phase_role = str(design.metadata.get("phase_role", "phase_1"))
+    if phase_role not in {"phase_1", "phase_2"}:
+        raise InductorRequestUnavailableError(f"Unknown two-phase operating magnetic role '{phase_role}'.")
+    phase_data = phase_metrics.get(phase_role)
+    phase_waveform = phase_waveforms.get(phase_role)
+    ripple_values = phase_ripple.get(phase_role)
+    voltage_values = phase_voltage.get(phase_role)
+    if not all(isinstance(value, (dict, list, tuple)) for value in (phase_data, phase_waveform, ripple_values, voltage_values)):
+        raise InductorRequestUnavailableError(
+            f"Two-phase operating magnetic loss is missing {phase_role} current, ripple, or voltage data."
+        )
+    if not isinstance(phase_data, dict) or not isinstance(phase_waveform, dict):
+        raise InductorRequestUnavailableError("Two-phase operating magnetic loss has invalid phase metadata.")
+
+    def _metric(name: str) -> float:
+        value = phase_data.get(name)
+        try:
+            resolved = float(value)
+        except (TypeError, ValueError):
+            raise InductorRequestUnavailableError(
+                f"Two-phase operating magnetic loss is missing phase metric '{name}'."
+            ) from None
+        if not math.isfinite(resolved) or resolved < 0.0:
+            raise InductorRequestUnavailableError(
+                f"Two-phase operating magnetic loss has invalid phase metric '{name}'."
+            )
+        return resolved
+
+    try:
+        currents = [float(value) for value in phase_waveform.get("inductor_current_avg_a", ())]
+        ripples = [float(value) for value in ripple_values]
+        voltages = [float(value) for value in voltage_values]
+        duties = [float(value) for value in phase_waveform.get("duty", ())]
+    except (TypeError, ValueError):
+        raise InductorRequestUnavailableError(
+            f"Two-phase operating magnetic loss has non-numeric {phase_role} data."
+        ) from None
+    if not currents or len(currents) != len(ripples) or len(currents) != len(voltages) or len(currents) != len(duties):
+        raise InductorRequestUnavailableError(
+            f"Two-phase operating magnetic loss has incomplete {phase_role} waveform arrays."
+        )
+    if not all(math.isfinite(value) for values in (currents, ripples, voltages, duties) for value in values):
+        raise InductorRequestUnavailableError(f"Two-phase operating magnetic loss has non-finite {phase_role} data.")
+
+    phase_number = int(phase_role[-1])
+
+    delta_i_pp_a = max(ripples, default=0.0)
+    i_valley_a = max(min((current - 0.5 * ripple) for current, ripple in zip(currents, ripples)), 0.0)
+    max_voltage_index = max(range(len(voltages)), key=lambda index: voltages[index])
+    operating_vin_v = float(waveform.operating_vin_v)
+    operating_vout_v = float(waveform.operating_vout_v)
+    fs_hz = 1.0 / max(float(waveform.switching_period_s), 1.0e-12)
+    load_ratio = max(float(waveform.load_ratio), 0.0)
+    operating_power_w = float(metadata.get("operating_active_power_w", design.throughput_power_w * load_ratio))
+    operating_phase_power_w = operating_power_w / 2.0
+    resolved_metadata = {
+        **design.metadata,
+        "phase_role": phase_role,
+        "phase_shift_deg": 0.0 if phase_number == 1 else 180.0,
+        "operating_load_ratio": load_ratio,
+        "operating_power_factor": metadata.get("operating_power_factor"),
+        "operating_current_basis": "current_operating_waveform_phase_metrics",
+        "i_phase_average_operating_a": _metric("inductor_current_avg_a"),
+        "i_phase_rms_operating_a": _metric("inductor_current_rms_a"),
+        "i_phase_peak_operating_a": _metric("inductor_current_peak_a"),
+        "delta_i_pp_operating_a": delta_i_pp_a,
+        "operating_phase_power_w": operating_phase_power_w,
+        "operating_phase_inductor_voltage_peak_v": abs(voltages[max_voltage_index]),
+    }
+    return InductorOperatingPointRequest(
+        topology_id=design.topology_id,
+        display_name=f"{_normalized_display_name(report)} {phase_role.replace('_', ' ').title()}",
+        fs_hz=fs_hz,
+        operating_vin_v=operating_vin_v,
+        operating_vout_v=operating_vout_v,
+        operating_iout_a=_metric("inductor_current_avg_a"),
+        throughput_power_w=operating_phase_power_w,
+        duty=max(min(duties[max_voltage_index], 1.0), 0.0),
+        i_avg_a=_metric("inductor_current_avg_a"),
+        i_rms_a=_metric("inductor_current_rms_a"),
+        i_peak_a=_metric("inductor_current_peak_a"),
+        i_valley_a=i_valley_a,
+        delta_i_pp_a=delta_i_pp_a,
+        v_l_on_v=max(voltages[max_voltage_index], 0.0),
+        v_l_off_v=min(voltages),
+        mode="ccm_two_phase_interleaved_boost_pfc_per_phase_operating",
+        load_ratio=load_ratio,
+        notes=[
+            "Operating request uses current sampled phase waveform metrics and reuses the selected physical inductor.",
+            "Phase 1 and phase 2 are evaluated independently under the ideal equal-sharing assumption.",
+        ],
+        metadata=resolved_metadata,
     )
 
 

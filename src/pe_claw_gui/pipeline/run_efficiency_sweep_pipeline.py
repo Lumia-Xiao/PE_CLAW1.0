@@ -987,6 +987,8 @@ def _ac_dc_bridge_loss_w(report: DesignReport, load_pu: float) -> float | None:
     bridge = report.bridge_rectifier
     if bridge is None or bridge.selected_candidate is None:
         return None
+    if _is_interleaved_boost_pfc_topology(report) and _interleaved_operating_bridge_metrics(report) is None:
+        return None
     request = bridge.request
     request = _adjust_ac_dc_bridge_request_for_load(report, request, load_pu)
     return estimate_bridge_rectifier_loss(bridge.selected_candidate, request).total_loss_w
@@ -996,12 +998,15 @@ def _adjust_ac_dc_bridge_request_for_load(report, request, load_pu: float):
     if _is_interleaved_boost_pfc_topology(report):
         output_power_w, _ = _output_power_w(report, load_pu)
         dc_bus_voltage_v = max(float(request.dc_bus_voltage_v), 1.0e-12)
+        bridge_metrics = _interleaved_operating_bridge_metrics(report)
+        if bridge_metrics is None:
+            return request
         return replace(
             request,
             output_power_w=output_power_w,
             dc_output_current_a=output_power_w / dc_bus_voltage_v,
-            bridge_current_avg_a=request.bridge_current_avg_a * load_pu,
-            bridge_current_rms_a=request.bridge_current_rms_a * load_pu,
+            bridge_current_avg_a=bridge_metrics["input_bridge_current_avg_a"],
+            bridge_current_rms_a=bridge_metrics["input_bridge_current_rms_a"],
             bridge_current_waveform_a=tuple(report.waveform.input_source_current_a)
             if report.waveform is not None
             else (),
@@ -1018,6 +1023,28 @@ def _adjust_ac_dc_bridge_request_for_load(report, request, load_pu: float):
             bridge_current_waveform_a=tuple(report.waveform.diode_current_a if report.waveform is not None else ()),
         )
     return request
+
+
+def _interleaved_operating_bridge_metrics(report: DesignReport) -> dict[str, float] | None:
+    """Return bridge current metrics from the current two-phase waveform."""
+
+    waveform = report.waveform
+    metadata = waveform.metadata if waveform is not None else None
+    metrics = metadata.get("bridge_metrics") if isinstance(metadata, dict) else None
+    if not isinstance(metrics, dict):
+        return None
+    resolved: dict[str, float] = {}
+    for key in ("input_bridge_current_avg_a", "input_bridge_current_rms_a", "input_bridge_current_peak_a"):
+        try:
+            value = float(metrics[key])
+        except (KeyError, TypeError, ValueError):
+            return None
+        if not math.isfinite(value) or value < 0.0:
+            return None
+        resolved[key] = value
+    if waveform is None or not waveform.input_source_current_a:
+        return None
+    return resolved
 
 
 def _ac_dc_reactor_loss_w(report: DesignReport) -> float | None:
