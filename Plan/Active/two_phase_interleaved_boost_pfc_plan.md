@@ -1,10 +1,10 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 10G 复核及 10H 补齐限定门禁完成并已推送（总览绘制、遗漏路径和当前版本基线已补齐；运行点模型及全面发布验收仍单独保留）
+- **状态**：Active / 10G 复核及 10H 补齐限定门禁完成并已推送；10I 运行点一致性方案已冻结，尚未实施（全面发布验收仍单独保留）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：步骤 0–10、10A–10H 及本轮 10H 补齐已实施并推送，本轮 10G 复核通过。验证范围按用户要求限定为全部两相专项及必要的单相 Boost PFC 双顺序隔离配对；80 个独立用例通过、无 skip，未运行全量测试或其他拓扑全面回归。
+- **当前阶段**：步骤 0–10、10A–10H 及本轮 10H 补齐已实施并推送，本轮 10G 复核通过；10I 仅完成方案冻结。既有验证范围按用户要求限定为全部两相专项及必要的单相 Boost PFC 双顺序隔离配对；80 个独立用例通过、无 skip，未运行全量测试或其他拓扑全面回归。
 
 ## 1. 计划目标和边界
 
@@ -983,6 +983,75 @@ python -B -m pytest -q --basetemp .pytest-tmp-10g-i $isolationTest
 **10H 补齐最终回执（2026-10-09）**：当前 10H 基线严格重放 `5 passed`（361.79s）；结果/总览/frontier `21 passed`（142.01s）；步骤 7/8/9 完整链路和真实 Tk GUI `19 passed`（564.13s）；标签修正后的结果视图 `16 passed`（174.81s）；10G CSV 来源追加校验 `5 passed`（16.99s）。全部两相专项 collect-only 共 80 项；本轮未运行全量 pytest 或其他拓扑全面回归。图片人工检查确认两相在组图和整体 2D/3D 图中为独立实体，保留工程包络语义。当前基线三工况损耗为 30.957926132850 / 31.870757008381 / 31.353494887234 W，fixture SHA256 为 `bd5b99ac4ddb3cbb0decf1e7fa9846d89eb435e467159dc2e9a64f0ea5e66578`。本轮修改与文档同步后提交并推送，计划仍保持 Active。
 
 **本轮提交推送回执（2026-10-09）**：10H 补齐实现、测试、基线及文档提交 `d02d617` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，远端分支核实为 `d02d6174415f3bda7513f4f1c893a8a607d14604`。全部 16 个两相专项文件的 80 个独立用例已分组执行通过（33 + 5 + 21 + 19 + 2），无 skip；末次标签/CSV/10G 复跑不重复累计。10G 复核和 10H 补齐的限定门禁完成，本回执与首页状态同步作为独立文档提交推送。计划仍 Active，保留上述未执行或未解决的工程与发布验收事项。
+
+## 10I：固定硬件运行点与跨线设计边界一致性修正方案冻结
+
+**冻结状态（2026-10-10）**：本节只冻结公式、字段口径、影响边界和测试矩阵，不代表 10I 代码已经修改或验证完成。10I 实施前不得把运行点跨线一致性写成已实现能力；10G/10H 的已完成结果和历史基线保持不变。
+
+### 10I-0 运行点契约
+
+- `OperatingPoint.vin_v` 在两相交错 Boost PFC 中冻结为输入交流 RMS 电压，单位 V；不得把它解释为整流瞬时电压、峰值电压或 DC-link 电压。
+- `OperatingPoint.load_ratio` 冻结为额定输出功率比例；允许值按现有效率扫描边界处理，运行点功率使用 `Pout * load_ratio`。首版沿用现有理想功率平衡和 `power_factor` 语义，不引入 `sizing_efficiency_assumption`。
+- `OperatingPoint.vout_v` 若未提供，继续使用设计目标 DC-link 电压；若提供，必须在两相拓扑的运行点波形、应力和损耗链中保持一致并记录来源。
+- 两相数量固定为 2、相移固定为 180°、相电流固定为 50/50 理想均流；运行点不引入动态均流、相间失配、DCM 或 CrM 模型。
+- 运行点始终复用设计阶段已经选定的 phase 1/phase 2 开关、Boost 二极管、两个电感和共享 DC-link 电容；任何运行点不得调用新的器件、磁件、电容或桥选型。
+
+### 10I-1 冻结公式与字段来源
+
+对每个运行点的线路角 `theta`，两相拓扑使用实际 `vin_v` 重新生成线路周期：
+
+```text
+v_rect(theta) = sqrt(2) * vin_v * abs(sin(theta))
+P_load = candidate.pout_target * load_ratio
+I_input_rms = P_load / (vin_v * power_factor)
+I_phase_rms = I_input_rms / 2
+D(theta) = clip(1 - v_rect(theta) / Vdc_operating, 0, 1)
+DeltaI_phase(theta) = v_rect(theta) * D(theta) / (L_phase * fsw)
+DeltaI_aggregate(theta) = DeltaI_phase(theta) * abs(1 - 2 * D(theta))
+```
+
+- `v_rect`、`D`、`phase_currents_a`、`phase_ripple_pp_a`、`interleaved_ripple_pp_a` 和 `phase_device_metrics` 必须来自当前运行点线路周期，不能继续直接复用设计点 nominal 数组。
+- `WaveformSet.operating_vin_v` 必须等于当前 `OperatingPoint.vin_v`；metadata 中的 `load_ratio`、`operating_active_power_w`、`phase_count`、`phase_shift_deg` 和 `current_sharing_assumption` 必须与运行点请求一致。
+- `candidate.inductance_h` 继续表示每相总串联电感；运行点不会把它解释成两相合计电感。两个物理磁件的 design ID、physical instance ID 和 phase role 不得变化。
+- 设计点的 `design_boundary_stress` 仍表示低线电流、高线电压的组合选型边界；运行点 stress 表示当前实际线路和负载，不覆盖或改写设计边界字段。
+
+### 10I-2 固定硬件损耗链
+
+每个运行点重新计算当前波形下的 phase 1/phase 2 开关损耗、Boost 二极管损耗、两个电感铜损/磁芯损耗、输入桥聚合损耗和共享 DC-link 电容损耗。总损耗必须保持：
+
+```text
+P_loss_total = P_bridge + P_phase_1 + P_phase_2 + P_capacitor + P_other
+```
+
+缺失任一必需硬件或关键损耗时，点结果必须明确为 incomplete/unavailable，不能用另一相或设计点数值补齐，也不能生成部分总损耗或伪造效率。
+
+### 10I-3 计划修改边界
+
+预计修改边界如下，实施时必须保持两相显式分支：
+
+- `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/waveform.py`：按运行点输入电压重建线路周期和两相应力数组。
+- 两相拓扑的 stress/evaluator：消费当前运行点数组，保留设计边界与运行点语义分离。
+- `src/pe_claw_gui/engines/magnetics/inductor_adapter.py`：运行点请求使用当前运行点的相电流、RMS 和纹波，同时保留固定物理实例身份。
+- `src/pe_claw_gui/pipeline/run_loss_pipeline.py` 与 `run_efficiency_sweep_pipeline.py`：仅修正两相固定硬件刷新和损耗汇总路径，不改变单相 Boost PFC 或其他拓扑的默认行为。
+- 两相专项测试、用户文档、Active plan 和 `ChangeLog.md`：记录字段、公式、诊断和验证证据。
+
+由于后两个 pipeline 文件是共享文件，本阶段按 integration change 管理；不得以“只有两相调用”为理由跳过最小单相 Boost PFC 配对验证。
+
+### 10I-4 冻结测试矩阵
+
+实施后按以下顺序执行，测试失败时不得通过放宽断言、隐藏诊断或改变状态含义来通过：
+
+1. **公式与字段测试**：两相 nominal/low/high 运行点波形，验证 `vin_v`、功率、电流、50/50 均流、180° 相移、占空比、相纹波和交错总纹波。
+2. **负载矩阵测试**：180/230/265 Vac × 0.1/0.5/1.0 p.u.，验证电流随负载比例变化、输出功率、逐相应力和损耗字段。
+3. **固定硬件门禁**：对每个运行点断言器件、电感、电容、桥和两个物理磁件 ID 与设计点一致；禁止调用所有选择器入口。
+4. **损耗守恒测试**：逐相电感/半导体损耗、输入桥损耗、共享电容损耗与总损耗严格求和；缺件路径返回明确 incomplete/unavailable。
+5. **效率产物测试**：效率 sweep 生成完整有效点时，CSV/JSON/图表使用当前运行点数据；无效点不生成伪造产物。
+6. **隔离测试**：两相→单相 Boost、单相 Boost→两相两个顺序各运行并重复，比较旧报告、硬件 ID、损耗、warning、stage status 和 artifact 哈希；确认 active run context 清空。
+7. **回归门禁**：运行全部两相 10I 相关文件及必要的单相 Boost 配对；不默认运行全量 pytest，除非实际修改扩大到公共模型、报告 schema 或无法界定的共享行为。
+
+### 10I-5 完成标准
+
+10I 只能在代码、专项测试、隔离测试、ChangeLog、提交和推送全部完成后标记完成。完成前计划继续保持 Active，并明确保留全量发布验收、公共 NaN 数据语义、实物可采购性和卡片图片等未决事项。
 
 **修正验收标准**：
 
