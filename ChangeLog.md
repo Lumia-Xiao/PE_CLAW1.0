@@ -1742,3 +1742,12 @@ listed here.
 - Behavior: nested phase requirements and per-phase magnetic loss are shown; stack comparison is explicitly out of scope for this topology; Pareto artifacts are exported once from phase 1; physical geometry is reused only for matching signatures and independently rendered otherwise; Hardware Overview contains two phase children and complete aggregate values, with missing-phase diagnostics.
 - Validation: focused result/overview/frontier `10 passed` (118.29s), geometry `1 passed` (114.77s), real Tk GUI `4 passed` (263.22s), isolation `2 passed` (644.53s); no skip and no full suite.
 - Git: pending H-4 commit and push.
+
+## 2026-10-09 - User-authorized 10H temporary artifact cleanup
+
+- Purpose: clean the confirmed 10H temporary artifacts identified by the preceding read-only inventory; production code and engineering records are unchanged.
+- Scope: seven .pytest-tmp-10h-* directories (view, overview, finalquick, gui, gui-final, isolation, isolation-final); outputs/20261009_spibpdb_2eadc259 and outputs/20261009_spibpdb_76e2617b from Step 7 tests; outputs/inductor_design/pareto_front.png from the routing fixture; five compiled .pyc files for the two result views, two pipelines, and hardware_overview.
+- Result: 15 explicitly enumerated targets, 909 files, 462,193,671 bytes (440.78 MiB) moved out of the checkout to C:\Users\Lumia\Documents\PE-Claw-cleanup-archive\20261009_10H, preserving relative paths. Disk space is not reclaimed; the archive is recoverable. Automatic approval review rejected the recursive deletion command with only 'blocked by policy', so that command did not execute and the safer archive operation was used.
+- Validation: all 15 original targets absent and archive targets present; zero remaining .pytest-tmp-10h-* directories. SHA256 checks for all 149 files in the 12 retained output directories are unchanged. The 95 pre-existing tracked deletions are unchanged. Three .pytest-tmp-10g-* directories, historical caches, user results including 3c287123/8339d8bc/fe6cd98f, and unrelated moves remain in place. No pytest run for this generated-file-only cleanup, to avoid recreating artifacts.
+- Git: base 62f93a7; cleanup record committed on codex/llc-waveform-operating-point-plan and pushed to pe-claw-1.1 at the end of this maintenance turn. Only ChangeLog.md is staged; generated files and pre-existing changes are excluded.
+- Backup: the recoverable cleanup archive above is the preservation mechanism for these temporary artifacts; no weekly project backup was run.
