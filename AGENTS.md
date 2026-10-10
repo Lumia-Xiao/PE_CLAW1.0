@@ -60,9 +60,15 @@ actions unless the user explicitly requests them.
 
 For every meaningful change:
 
-1. Identify the affected modules, topology families, data files, contracts,
-   and tests.
-2. State the intended behavior and the validation commands before editing.
+1. Classify the change as documentation/test tooling, topology-local, or shared
+   integration. Identify the affected modules, topology families, data files,
+   contracts, downstream consumers, and tests; record why other consumers are
+   outside the scope.
+2. State the intended behavior, relevant engineering semantics, and validation
+   commands before editing. For affected electrical data, record the physical
+   object/count, unit, average/RMS/peak/ripple meaning, design boundary or
+   operating point, producer, consumers, refresh/invalidation conditions, and
+   missing-data behavior in the task plan or existing engineering documentation.
 3. Make the smallest change that fits the existing architecture.
 4. Run focused tests first, then the broader tests required by the change.
 5. Update `ChangeLog.md` with the date, reason, files, behavior, and validation.
@@ -73,6 +79,21 @@ For every meaningful change:
 
 For a multi-step plan, each completed step requires its own validation, commit,
 and push. A step must not be marked completed before its commit is pushed.
+
+Scale the plan to the change. A small repair may use a concise impact note,
+but must retain the affected contract, necessary checks, and completion scope.
+Resolve routine implementation choices within the user's authorization; ask
+for clarification only when a material physical assumption, field meaning, or
+task scope cannot be determined from the instructions and existing contracts.
+
+Rule and validation development is tracked in
+[the active engineering rules plan](Plan/Active/topology_engineering_rules_and_validation_plan.md).
+`docs/engineering_contracts.md` and
+`Plan/templates/topology_change_plan_template.md` are planned deliverables of
+steps 2 and 3, respectively, and are not yet available. Until created, use the
+relevant topology documentation, code, and this plan's frozen requirements;
+their absence does not require approval or block authorized work. When those
+steps create the files, replace this notice with working authoritative links.
 
 ## Architecture Rules
 
@@ -125,8 +146,24 @@ When changing a topology or its shared base behavior:
 - Trace the complete path through registry, capability declaration, input
   schema, normalization, synthesis, operating point, waveform, stress, device
   selection, report, and GUI routing.
+- For a new topology, validate a representative case with real engineering
+  library data as soon as a complete path is available, before polishing all
+  modules independently. Follow the case through component selection, loss,
+  efficiency, report/export, and user-visible results as supported; record any
+  blocked stage explicitly and retain separate boundary and failure cases.
+- Reusing a helper or library does not establish workflow equivalence. Check
+  the existing search expansion/termination, selection, diagnostics, refresh,
+  and artifact-export policies before introducing a topology-specific path.
 - Preserve the distinction between design-point synthesis and fixed-hardware
   operating-point refresh.
+- Name the owner and readback source of each affected system result. Compare
+  pages, reports, sweeps, and exports only for matching hardware, line/output
+  voltage, load, frequency, power factor, and model scope as applicable; label
+  intentional design-boundary versus operating-point differences explicitly.
+- After relevant GUI actions, verify the displayed result comes from the
+  current report and operating basis. Keep per-instance and system quantities
+  distinct. Missing required components must not produce a partial system
+  total or efficiency, and stale data must not silently fill missing values.
 - Run all cases for the affected topology, not only the nominal case.
 - For PSFB, Flyback, LLC, and other model-boundary-sensitive topologies,
   document the formula, boundary condition, compatibility behavior, and test
@@ -219,6 +256,42 @@ Use the narrowest sufficient test set, then broaden it according to risk:
 - Use `python -B` for maintenance scripts when bytecode generation is not
   needed.
 - Report skipped tests and environment failures separately from passed tests.
+- Before electrical validation, verify and record the interpreter, imported
+  package, and selected test locations belong to the intended environment and
+  current workspace. Collection is not execution, and historical test receipts
+  are not evidence that the current revision passed.
+- For an engineering behavior change, provide separate applicable evidence for
+  formula correctness, producer/consumer contracts, the user workflow, and
+  isolation. Use an independent formula or reference for physical correctness;
+  comparing two consumers of the same calculation only proves consistency.
+- Test known failure modes with controlled negative cases when adding or
+  changing validation checks, and require diagnostics that identify the cause.
+  Retain real-library acceptance cases separately from mocked routing cases.
+- For documentation-only changes, review semantics, references, conflicts,
+  and the diff. Do not run electrical chains or add tests that merely mirror
+  the Markdown. Reuse valid evidence when no relevant behavior has changed;
+  stronger completion gates do not make full-suite testing the default.
+
+The following evidence must not be treated as interchangeable:
+
+| Existing evidence | Additional evidence needed for the corresponding claim |
+|---|---|
+| Isolation/order tests | Engineering formulas and physical boundaries |
+| Repeatable results or matching baselines | Correctness of the expected engineering values |
+| Loss components sum to the total | Correct operating basis of each component |
+| GUI labels or successful button actions | Current numeric values, provenance, and export consistency |
+| Explicit unavailable result | Configured search expansion and exhaustion, or a documented precondition failure |
+| Low/nominal/high design metadata | Fixed-hardware refresh at actual line/load operating points |
+
+For affected results, check the original published total and efficiency against
+the required components and power basis, using explicit units and tolerances.
+Recomputing a correct display value does not validate an inconsistent published
+value. Check completeness and finite values as required by the model contract;
+a success status, non-null result, or `is_complete()` alone is insufficient.
+Compare GUI numbers at their display precision and structured values at the
+documented tolerance. Record unexecuted or inapplicable checks with reasons;
+do not promote collection, skips, expected failures, or environment errors to
+passing evidence for a required gate.
 
 ## Generated Files and Cleanup
 
@@ -264,13 +337,30 @@ Use the narrowest sufficient test set, then broaden it according to risk:
 
 ## Completion Checklist
 
-Before reporting completion, confirm:
+Before reporting completion of the authorized scope, confirm:
 
-- Scope and affected files are understood.
-- Relevant tests and validation commands pass.
+- The change classification, affected contracts, downstream consumers, and
+  excluded scope are recorded.
+- Required validation for that scope has actually run and passed; record the
+  commands, revision/environment, results, and applicable evidence locations.
+- For affected engineering behavior, formula, contract, user-workflow, and
+  isolation conclusions are supported separately; any non-applicable category
+  has an explicit reason. A stage-success flag alone is not acceptance.
+- Affected system totals are complete and use the stated operating basis;
+  current GUI, report, sweep, and export readback agree within their stated
+  precision/tolerance, or intentional differences are explained.
 - No unexplained failures were hidden.
 - Generated files are not staged.
 - `ChangeLog.md` is updated.
 - `git diff --check` is clean.
 - Commit and push status are known.
 - Documentation and plan status match the actual result.
+
+The completion report must state delivered behavior, actual validation scope,
+blockers/unverified items, and commit/push status. Do not call a step complete
+while a required gate within its authorized scope is failed or unexecuted.
+If the user explicitly closes a plan within a narrower scope, preserve the
+untested or unresolved work as follow-up items; closure does not establish
+full release acceptance, correctness of all old topologies, or physical
+component purchasability. Rules, contracts, and planned checks describe
+requirements; they do not themselves prove that implementation passed.
