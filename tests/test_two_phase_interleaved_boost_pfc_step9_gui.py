@@ -89,6 +89,10 @@ import os
 from unittest.mock import patch
 
 from pe_claw_gui.app.shell.main_window import PEClawMainWindow
+from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import _interleaved_fixed_hardware_ids
+from engineering_support.interleaved_boost_pfc import (
+    assert_display_matches, assert_export_matches, assert_sweep_contract, full_load_point,
+)
 from tkinter import messagebox
 
 messagebox.showerror = lambda title, message: (_ for _ in ()).throw(RuntimeError(f"{title}: {message}"))
@@ -169,18 +173,53 @@ try:
         loss = app.workspace.loss_view.text.get("1.0", "end")
         assert "Phase 1 inductor:" in loss and "Phase 2 inductor:" in loss
 
-        form.run_efficiency_sweep_button.invoke()
+        before_sweep = app.state_store.design_report
+        hardware = _interleaved_fixed_hardware_ids(before_sweep)
+        selection_calls = []
+
+        def forbidden_selection(*args, **kwargs):
+            selection_calls.append("selection")
+            raise AssertionError("GUI fixed-hardware sweep must not select hardware")
+
+        with patch.multiple(
+            "pe_claw_gui.pipeline.run_magnetic_pipeline",
+            synthesize_fixed_inductor_candidates_with_backend=forbidden_selection,
+            search_fixed_inductor_candidate_frontier=forbidden_selection,
+        ), patch(
+            "pe_claw_gui.pipeline.run_device_pipeline.select_switch_device_with_audit", forbidden_selection,
+        ), patch(
+            "pe_claw_gui.pipeline.run_capacitor_pipeline.select_capacitor_bank", forbidden_selection,
+        ), patch(
+            "pe_claw_gui.pipeline.run_bridge_rectifier_pipeline.select_bridge_rectifier", forbidden_selection,
+        ):
+            form.run_efficiency_sweep_button.invoke()
         app.update_idletasks()
         report = app.state_store.design_report
+        assert report is not before_sweep
         assert report.efficiency_sweep is not None
         assert report.efficiency_sweep.is_complete()
         assert "Full-load loss breakdown" in app.workspace.efficiency_view.summary_text.get("1.0", "end")
+        result = report.efficiency_sweep
+        tolerances = dict(loss_abs_tol=1e-9, loss_rel_tol=1e-9,
+                          efficiency_abs_tol=1e-12, efficiency_rel_tol=1e-9)
+        assert result.run_id == report.run_context.run_id
+        assert result.input_sha256 == report.run_context.input_sha256
+        assert_sweep_contract(result, expected_grid=(0.5, 1.0), expected_hardware=hardware,
+                              selection_calls=selection_calls, **tolerances)
+        assert_export_matches(result, output_root=root, **tolerances)
+        assert_display_matches(
+            full_load_point(result),
+            loss_text=app.workspace.loss_view.text.get("1.0", "end"),
+            inductor_text=app.workspace.inductor_view.summary_text.get("1.0", "end"),
+            efficiency_text=app.workspace.efficiency_view.summary_text.get("1.0", "end"),
+            efficiency_labels=result.sweep_basis["loss_labels"],
+        )
 finally:
     app.destroy()
 '''
     env = {
         **os.environ,
-        "PYTHONPATH": str(ROOT / "src"),
+        "PYTHONPATH": os.pathsep.join((str(ROOT / "src"), str(ROOT / "tests"))),
         "PYTHONDONTWRITEBYTECODE": "1",
         "MPLBACKEND": "Agg",
         "PE_CLAW_STEP9_GUI_OUTPUT_ROOT": str(output_root),

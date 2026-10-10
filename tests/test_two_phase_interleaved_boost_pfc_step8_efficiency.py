@@ -8,6 +8,11 @@ from pathlib import Path
 
 import pytest
 
+from engineering_support.assertions import assert_fixed_hardware, assert_physical_instances
+from engineering_support.interleaved_boost_pfc import (
+    PHASE_ROLES, HARDWARE_ROLES, hardware_snapshot, magnetic_instances,
+    assert_sweep_contract, assert_export_matches, independent_waveform_reference, assert_waveform_reference,
+)
 from pe_claw_gui.engines.magnetics.allow_profiles import get_default_allow_profile
 from pe_claw_gui.engines.magnetics.candidate_metrics import MagneticCandidateContext, compute_candidate_engineering_metrics
 
@@ -22,6 +27,8 @@ from pe_claw_gui.topologies.base.registry import build_default_registry
 
 
 TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
+LOSS_TOLERANCES = dict(loss_abs_tol=1e-9, loss_rel_tol=1e-9,
+                       efficiency_abs_tol=1e-12, efficiency_rel_tol=1e-9)
 
 
 @pytest.fixture(scope="module", params=("180", "230"), ids=("wide", "narrow"))
@@ -48,6 +55,7 @@ def test_step8_efficiency_sweep_refreshes_fixed_two_phase_hardware(designed_two_
     assert hardware_before["phase_inductors"]["phase_1"] is not None
     assert hardware_before["phase_inductors"]["phase_2"] is not None
     magnetic = report.magnetic
+    assert_physical_instances(instances=magnetic_instances(magnetic), expected_roles=PHASE_ROLES, expected_count=2)
     phase_1, phase_2 = magnetic.chosen_designs
     assert phase_1.candidate_id != phase_2.candidate_id
     assert phase_1.metadata["library_candidate_id"] == phase_2.metadata["library_candidate_id"]
@@ -79,7 +87,10 @@ def test_step8_efficiency_sweep_refreshes_fixed_two_phase_hardware(designed_two_
         sum(report.loss.breakdown_w[f"phase_{phase}_inductor_total_loss_w"] for phase in (1, 2))
     )
 
+    selection_calls = []
+
     def forbidden_selection(*args, **kwargs):
+        selection_calls.append("selection")
         pytest.fail("Fixed-hardware sweep must not search or select new hardware.")
 
     for module_name, function_name in (
@@ -98,6 +109,9 @@ def test_step8_efficiency_sweep_refreshes_fixed_two_phase_hardware(designed_two_
     )
 
     assert result.is_complete()
+    assert_sweep_contract(result, expected_grid=(0.1, 0.5, 1.0), expected_hardware=hardware_before,
+                          selection_calls=selection_calls, **LOSS_TOLERANCES)
+    assert_export_matches(result, output_root=tmp_path, **LOSS_TOLERANCES)
     assert result.load_grid == (0.1, 0.5, 1.0)
     assert result.sweep_basis["fixed_hardware_ids"] == hardware_before
     assert _interleaved_fixed_hardware_ids(report) == hardware_before
@@ -134,6 +148,73 @@ def test_step8_efficiency_sweep_refreshes_fixed_two_phase_hardware(designed_two_
     payload = json.loads(Path(result.artifact_paths["result_json"]).read_text(encoding="utf-8"))
     assert payload["topology_id"] == TOPOLOGY_ID
     assert len(payload["points"]) == 3
+
+
+def test_engineering_actual_line_load_matrix_uses_fixed_hardware_and_current_requests(
+    designed_two_phase_pfc, tmp_path, monkeypatch,
+):
+    plugin, report = designed_two_phase_pfc
+    hardware = _interleaved_fixed_hardware_ids(report)
+    captured_waveforms, captured_requests, selection_calls = [], [], []
+    generate = type(plugin).generate_waveforms
+    loss_module = import_module("pe_claw_gui.pipeline.run_loss_pipeline")
+    build_request = loss_module.build_interleaved_boost_pfc_phase_operating_request
+
+    def tracked_waveforms(self, candidate, operating_point=None):
+        waveform = generate(self, candidate, operating_point)
+        captured_waveforms.append(waveform)
+        return waveform
+
+    def tracked_request(current_report, phase):
+        request = build_request(current_report, phase)
+        captured_requests.append(request)
+        return request
+
+    def forbidden_selection(*args, **kwargs):
+        selection_calls.append("selection")
+        pytest.fail("Actual line/load refresh must not select new hardware.")
+
+    monkeypatch.setattr(type(plugin), "generate_waveforms", tracked_waveforms)
+    monkeypatch.setattr(loss_module, "build_interleaved_boost_pfc_phase_operating_request", tracked_request)
+    for module_name, function_name in (
+        ("run_magnetic_pipeline", "synthesize_fixed_inductor_candidates_with_backend"),
+        ("run_magnetic_pipeline", "search_fixed_inductor_candidate_frontier"),
+        ("run_device_pipeline", "select_switch_device_with_audit"),
+        ("run_capacitor_pipeline", "select_capacitor_bank"),
+        ("run_bridge_rectifier_pipeline", "select_bridge_rectifier"),
+    ):
+        monkeypatch.setattr(import_module(f"pe_claw_gui.pipeline.{module_name}"), function_name, forbidden_selection)
+    from pe_claw_gui.models.operating_point import OperatingPoint
+
+    # Reuse this file's real wide/narrow design fixtures, never repeat library search.
+    lines = (180.0, 230.0, 265.0) if report.spec.vin_min == 180.0 else (230.0, 245.0, 265.0)
+    grid = (0.1, 0.5, 1.0)
+    for vin in lines:
+        start_waveforms, start_requests = len(captured_waveforms), len(captured_requests)
+        base = replace(report, operating_point=OperatingPoint(vin_v=vin), efficiency_sweep=None)
+        result = run_efficiency_sweep(base, plugin=plugin, load_points=grid, output_dir=tmp_path / str(int(vin)))
+        assert_sweep_contract(result, expected_grid=grid, expected_hardware=hardware,
+                              selection_calls=selection_calls, **LOSS_TOLERANCES)
+        assert_export_matches(result, output_root=tmp_path / str(int(vin)), **LOSS_TOLERANCES)
+        assert result.run_id == report.run_context.run_id
+        assert result.input_sha256 == report.run_context.input_sha256
+        waveforms = captured_waveforms[start_waveforms:]
+        requests = captured_requests[start_requests:]
+        assert len(waveforms) == 3 and len(requests) == 6
+        for index, load in enumerate(grid):
+            reference = independent_waveform_reference(report.candidate, vin, load)
+            assert_waveform_reference(waveforms[index], reference, abs_tol=1e-9, rel_tol=1e-9)
+            for phase, request in zip(PHASE_ROLES, requests[2*index:2*index+2]):
+                assert request.metadata["phase_role"] == phase
+                assert request.metadata["operating_current_basis"] == "current_operating_waveform_phase_metrics"
+                assert request.i_avg_a == pytest.approx(reference["average"], abs=1e-9, rel=1e-9)
+                assert request.i_rms_a == pytest.approx(reference["rms"], abs=1e-9, rel=1e-9)
+                assert request.i_peak_a == pytest.approx(reference["peak"], abs=1e-9, rel=1e-9)
+                assert request.operating_vin_v == vin
+                assert request.throughput_power_w == pytest.approx(report.candidate.pout_target * load / 2)
+        assert_fixed_hardware(before=hardware_snapshot(hardware),
+                              after=hardware_snapshot(_interleaved_fixed_hardware_ids(report)),
+                              required_roles=HARDWARE_ROLES, selection_calls=selection_calls)
 
 
 @pytest.mark.parametrize(

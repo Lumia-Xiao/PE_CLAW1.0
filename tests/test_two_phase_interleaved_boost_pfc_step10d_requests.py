@@ -16,7 +16,7 @@ from pe_claw_gui.topologies.base.registry import build_default_registry
 TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
 
 
-def _report():
+def _report(output_root):
     plugin = build_default_registry().get_plugin(TOPOLOGY_ID)
     topology = import_module(plugin.__module__)
     return run_full_pipeline(
@@ -24,11 +24,12 @@ def _report():
         topology.build_default_inputs(),
         include_waveforms=True,
         pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+        output_root=output_root,
     )
 
 
-def test_step10d_magnetic_request_uses_low_line_per_phase_boundary() -> None:
-    report = _report()
+def test_step10d_magnetic_request_uses_low_line_per_phase_boundary(tmp_path) -> None:
+    report = _report(tmp_path / "design")
     request = build_interleaved_boost_pfc_phase_design_request(report, 1)
     metrics = report.candidate.metadata["line_condition_metrics"]["low_line"]
 
@@ -43,8 +44,8 @@ def test_step10d_magnetic_request_uses_low_line_per_phase_boundary() -> None:
     assert request.metadata["magnetic_request_basis"] == "two_phase_interleaved_boost_pfc_per_phase_boost_inductor"
 
 
-def test_step10d_bridge_request_uses_low_line_current_and_high_line_voltage() -> None:
-    report = _report()
+def test_step10d_bridge_request_uses_low_line_current_and_high_line_voltage(tmp_path) -> None:
+    report = _report(tmp_path / "design")
     request = build_bridge_rectifier_selection_request(report)
     candidate = report.candidate
 

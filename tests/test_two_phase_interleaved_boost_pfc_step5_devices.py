@@ -12,7 +12,7 @@ from pe_claw_gui.libraries.semiconductors.topology_roles import get_required_sem
 from pe_claw_gui.topologies.base.registry import build_default_registry
 
 
-def _report():
+def _report(output_root):
     registry = build_default_registry()
     plugin = registry.get_plugin(INTERLEAVED_BOOST_PFC_TOPOLOGY_ID)
     module = import_module(plugin.__module__)
@@ -21,6 +21,7 @@ def _report():
         raw_input=module.build_default_inputs(),
         include_waveforms=True,
         pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+        output_root=output_root,
     )
 
 
@@ -36,8 +37,8 @@ def test_step5_declares_four_independent_phase_roles() -> None:
     assert {role.role_kind for role in roles} == {"active_switch", "rectifier_diode"}
 
 
-def test_step5_selects_bridge_and_four_auditable_device_positions() -> None:
-    report = _report()
+def test_step5_selects_bridge_and_four_auditable_device_positions(tmp_path) -> None:
+    report = _report(tmp_path / "design")
     assert report.bridge_rectifier is not None
     assert report.bridge_rectifier.selected_candidate is not None
     assert report.bridge_rectifier.request.topology_id == INTERLEAVED_BOOST_PFC_TOPOLOGY_ID
@@ -55,8 +56,8 @@ def test_step5_selects_bridge_and_four_auditable_device_positions() -> None:
     assert report.magnetic is None
 
 
-def test_step5_bridge_request_uses_aggregate_input_current() -> None:
-    report = _report()
+def test_step5_bridge_request_uses_aggregate_input_current(tmp_path) -> None:
+    report = _report(tmp_path / "design")
     request = build_bridge_rectifier_selection_request(report)
     candidate = report.candidate
     assert candidate is not None
@@ -77,7 +78,7 @@ def test_step5_bridge_request_uses_aggregate_input_current() -> None:
     assert any("low-line aggregate two-phase" in note for note in request.notes)
 
 
-def test_step5_failed_phase_candidate_is_explicit() -> None:
+def test_step5_failed_phase_candidate_is_explicit(tmp_path) -> None:
     registry = build_default_registry()
     plugin = registry.get_plugin(INTERLEAVED_BOOST_PFC_TOPOLOGY_ID)
     module = import_module(plugin.__module__)
@@ -88,6 +89,7 @@ def test_step5_failed_phase_candidate_is_explicit() -> None:
         raw_input=raw,
         include_waveforms=True,
         pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+        output_root=tmp_path / "design",
     )
     assert report.device is not None
     assert "phase_1_main_switch" in report.device.candidate_counts

@@ -57,7 +57,7 @@ def test_operating_requests_keep_switching_ripple_and_scale_average_current() ->
     assert request.throughput_power_w == design.throughput_power_w * 0.5
 
 
-def test_magnetic_result_exposes_two_physical_phase_instances(monkeypatch) -> None:
+def test_magnetic_result_exposes_two_physical_phase_instances(monkeypatch, tmp_path) -> None:
     report = _report()
     calls: list[str] = []
 
@@ -82,6 +82,7 @@ def test_magnetic_result_exposes_two_physical_phase_instances(monkeypatch) -> No
         ]
 
     monkeypatch.setattr(module, "synthesize_fixed_inductor_candidates_with_backend", fake_search)
+    monkeypatch.setattr(module, "get_run_output_dir", lambda report, stage: tmp_path / stage)
     result = run_magnetic_pipeline(report)
 
     assert calls == ["phase_1"]

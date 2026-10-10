@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import pytest
 
+from engineering_support.interleaved_boost_pfc import assert_point_loss
 from pe_claw_gui.app.result_views.inductor_view import build_inductor_summary_text
 from pe_claw_gui.app.result_views.loss_view import build_system_loss_summary
 from pe_claw_gui.models.common_spec import CommonSpec
@@ -76,6 +78,12 @@ def test_full_load_snapshot_sums_the_five_efficiency_components() -> None:
     assert snapshot.source == "full_load_efficiency_sweep"
     assert snapshot.total_loss_w == pytest.approx(24.5262044235051)
     assert snapshot.efficiency == pytest.approx(1000.0 / (1000.0 + 24.5262044235051))
+    point = _full_load_sweep().points[0]
+    point = replace(point, loss_breakdown_w={**point.loss_breakdown_w,
+        "bridge_rectifier": point.bridge_rectifier_loss_w, "semiconductor": point.semiconductor_loss_w,
+        "magnetic": point.magnetic_loss_w, "capacitor": point.capacitor_loss_w, "other": point.other_loss_w})
+    assert_point_loss(point, loss_abs_tol=1e-9, loss_rel_tol=1e-9,
+                      efficiency_abs_tol=1e-12, efficiency_rel_tol=1e-9)
 
 
 def test_loss_and_inductor_views_use_the_same_full_load_snapshot() -> None:
@@ -138,3 +146,23 @@ def test_blocked_sweep_does_not_fall_back_to_partial_design_or_sweep_values() ->
     assert "Total estimated loss: - W" in text
     assert "missing phase-2 magnetic loss" in text
     assert "30 W" not in text
+
+
+@pytest.mark.parametrize("field", ("bridge_rectifier_loss_w", "semiconductor_loss_w", "magnetic_loss_w", "capacitor_loss_w", "other_loss_w"))
+@pytest.mark.parametrize("invalid", (None, float("nan"), float("inf")))
+def test_missing_or_nonfinite_full_load_component_cannot_use_design_fallback(field, invalid):
+    sweep = _full_load_sweep()
+    invalid_point = replace(sweep.points[0], **{field: invalid})
+    report = _report(sweep=replace(sweep, points=(invalid_point,)))
+    snapshot = resolve_interleaved_boost_pfc_loss_snapshot(report)
+    assert snapshot.source == "unavailable"
+    assert snapshot.total_loss_w is None and snapshot.efficiency is None
+    assert "30 W" not in "\n".join(build_system_loss_summary(report))
+
+
+def test_sweep_without_exact_full_load_does_not_use_nearest_or_design_result():
+    sweep = _full_load_sweep()
+    report = _report(sweep=replace(sweep, points=(replace(sweep.points[0], load_pu=0.99),)))
+    snapshot = resolve_interleaved_boost_pfc_loss_snapshot(report)
+    assert snapshot.source == "unavailable" and snapshot.total_loss_w is None
+    assert "Total estimated loss: - W" in "\n".join(build_system_loss_summary(report))
