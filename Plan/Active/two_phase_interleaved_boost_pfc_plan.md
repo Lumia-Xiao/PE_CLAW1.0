@@ -1,10 +1,10 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 10G 复核及 10H 补齐限定门禁完成并已推送；10I-0/10I-1/10I-2 已完成，下一步为 10I-3 效率产物与隔离门禁（全面发布验收仍单独保留）
+- **状态**：Active / 10G 复核及 10H 补齐限定门禁完成并已推送；10I-0/10I-1/10I-2/10I-3 已完成，下一步为 10I-4 回归门禁（全面发布验收仍单独保留）
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：步骤 0–10、10A–10H 及本轮 10H 补齐已实施并推送，本轮 10G 复核通过；10I-0/10I-1/10I-2 已实施并验证，下一步为 10I-3。既有验证范围按用户要求限定为两相专项及必要的单相 Boost PFC 双顺序隔离配对；本轮未运行全量测试或其他拓扑全面回归。
+- **当前阶段**：步骤 0–10、10A–10H 及本轮 10H 补齐已实施并推送，本轮 10G 复核通过；10I-0/10I-1/10I-2/10I-3 已实施并验证，下一步为 10I-4。既有验证范围按用户要求限定为两相专项及必要的单相 Boost PFC 双顺序隔离配对；本轮未运行全量测试或其他拓扑全面回归。
 
 ## 1. 计划目标和边界
 
@@ -1065,6 +1065,14 @@ P_loss_total = P_bridge + P_phase_1 + P_phase_2 + P_capacitor + P_other
 - 新增 `tests/test_two_phase_interleaved_boost_pfc_step10i2_loss.py`，覆盖逐相运行请求字段来源、两相磁件损耗守恒、缺 phase 不能发布聚合损耗、桥请求不重复负载缩放和固定硬件路径。
 - 验证：10I 合同/步骤 3 `23 passed`（4.23s）；步骤 6 与 10I-2 专项 `6 passed`（16.75s）；步骤 7 `1 passed`（193.24s）；步骤 8 `14 passed`（231.34s）；目标 Python 编译和定向 `git diff --check` 通过。首次测试收集发现旧安装包路径优先，显式设置工作区 `PYTHONPATH=src` 后通过；未运行全量测试或其他拓扑全面回归。
 - 影响分类：两相显式 operating-point adapter、loss aggregation 和 bridge refresh 分支；单相 Boost PFC 及其他拓扑未改变。下一步为 10I-3 效率产物、缺损耗状态和双顺序隔离门禁。
+
+**10I-3 执行记录（2026-10-10）**：
+
+- 检查并修正 `run_efficiency_sweep_pipeline.py` 的两相不完整点路径：当任一负载点缺少必需损耗或效率时，结果保持 `status="blocked"` 并携带运行身份、阻塞原因和当前点诊断，函数在写入 CSV/JSON/图表前直接返回；无效点不会生成可被误读为有效效率的产物。
+- 新增 `tests/test_two_phase_interleaved_boost_pfc_step10i3_artifacts.py`，使用不完整磁件损耗点验证 blocked 状态、阻塞原因、空 artifact contract 和输出目录不创建。
+- 现有步骤 8 继续验证完整两相效率点的 CSV/JSON/曲线/损耗图、固定硬件 ID 和逐点损耗守恒；10I-2 损耗专项复跑验证新路径未回归。
+- 验证：步骤 8 `14 passed`（197.33s）；10I-2 损耗与 10I-3 blocked 产物测试 `4 passed`（16.19s）；两相→单相、单相→两相双顺序隔离 `2 passed`（758.71s）；目标文件编译和定向 `git diff --check` 通过。未运行全量测试或其他拓扑全面回归。
+- 影响分类：两相效率 sweep 的 blocked 产物门禁和专项测试；完整有效点产物格式、单相 Boost PFC 和其他拓扑路径保持不变。下一步为 10I-4 回归门禁。
 
 **修正验收标准**：
 

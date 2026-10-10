@@ -126,7 +126,16 @@ def run_efficiency_sweep(
             status="blocked",
             blocked_reason=reason,
             warnings=tuple(_dedupe([*result.warnings, reason])),
+            run_id=getattr(run_context, "run_id", None),
+            topology_id=report.spec.topology_id,
+            input_sha256=getattr(run_context, "input_sha256", None),
+            source_ids=_llc_source_ids(report),
+            fixed_parameters=_llc_fixed_parameters(report),
         )
+        # A blocked two-phase point is diagnostic data only. Do not write a
+        # CSV, JSON, or plot that could be mistaken for a valid efficiency
+        # sweep with fabricated or partial losses.
+        return result
     if is_llc_topology(report.spec.topology_id) and not _all_points_complete(points):
         reason = "LLC efficiency sweep blocked: one or more load points did not produce complete efficiency results."
         result = replace(

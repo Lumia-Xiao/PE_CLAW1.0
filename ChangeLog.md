@@ -1807,3 +1807,11 @@ listed here.
 - 行为：运行点磁件请求逐相读取当前 waveform 的相电流、RMS/peak、纹波和电感电压，并保留 phase role/物理实例；桥损耗使用当前 `bridge_metrics` 和当前输入波形，不再重复缩放已重建的运行点电流；缺任一 phase 或关键损耗时不发布部分磁件总损耗。
 - 验证：10I 合同/步骤 3 `23 passed`（4.23s）；步骤 6 与 10I-2 专项 `6 passed`（16.75s）；步骤 7 `1 passed`（193.24s）；步骤 8 `14 passed`（231.34s）；目标 Python 编译和定向 `git diff --check` 通过。显式使用工作区 `PYTHONPATH=src`，未运行全量测试或其他拓扑全面回归。
 - 状态：10I-2 完成，下一步为 10I-3 效率产物与隔离门禁。既有 95 个无关删除、outputs、缓存和 pytest 临时目录不纳入提交。
+
+## 2026-10-10 - Implement 10I-3 blocked efficiency artifact gate
+
+- 目的与边界：完成 Active plan 的 10I-3，阻止两相效率 sweep 在损耗不完整时生成 CSV、JSON 或图表；完整有效点的既有产物格式和其他拓扑路径不变。
+- 文件：修改 `src/pe_claw_gui/pipeline/run_efficiency_sweep_pipeline.py`；新增 `tests/test_two_phase_interleaved_boost_pfc_step10i3_artifacts.py`；同步 Active plan。
+- 行为：两相任一运行点缺少必需损耗时，结果显式为 `blocked`，保留阻塞原因、run ID/topology ID 等诊断字段，并在产物写入前返回空 artifact contract；有效点继续写入当前运行点数据。
+- 验证：步骤 8 `14 passed`（197.33s）；10I-2 损耗与 10I-3 blocked 产物测试 `4 passed`（16.19s）；两相/单相双顺序隔离 `2 passed`（758.71s）；目标文件编译和定向 `git diff --check` 通过。未运行全量测试或其他拓扑全面回归。
+- 状态：10I-3 完成，下一步为 10I-4 回归门禁。既有 95 个无关删除、outputs、缓存和 pytest 临时目录不纳入提交。
