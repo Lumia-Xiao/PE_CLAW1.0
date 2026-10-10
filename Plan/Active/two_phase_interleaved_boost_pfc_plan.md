@@ -1092,9 +1092,11 @@ P_loss_total = P_bridge + P_phase_1 + P_phase_2 + P_capacitor + P_other
 
 - 根因：Efficiency Sweep 已对每个负载点重新计算输入桥、四个相位位置半导体、两相电感、共享 DC-link 电容和 other loss；但 Efficiency Sweep Controller 只把结果写入 `report.efficiency_sweep`，两相 Loss 页和 Inductor 页仍直接显示设计阶段 `report.loss`，因此满载数据来源不同。
 - 实现：新增两相拓扑本地 `loss_readback.py`，Loss 页和 Inductor 页共同解析 `report.efficiency_sweep` 的 `load_pu == 1.0` 点，并将五项组件相加，效率按 `Pout/(Pout+Ploss)` 计算。没有修改 `LossResult` 公共语义、损耗物理公式、Efficiency Sweep 数值或其他拓扑路由。
+- 逐相展示：扫频点的 `loss_breakdown_w` 同时保留 phase 1/phase 2 电感损耗；Loss 页的两个相位行、两相聚合行、总损耗和效率均来自同一个满载点，不再出现页面内设计点/扫频点混用。
 - 状态边界：从未运行 sweep 时保留既有设计点总损耗和效率；sweep 已运行但 blocked、缺满载点、组件缺失或输出功率无效时显示 unavailable 与原因，不混用设计点数值，也不把部分损耗显示为系统总损耗。
 - 最新手工输出满载点对应显示为：半导体 `14.70342736831 W`、输入桥 `7.88581092665278 W`、两相电感 `0.478754624314492 W`、电容 `1.45821150422788 W`、other `0 W`、系统总损耗 `24.5262044235051 W`、效率 `97.6060930098605%`。浮点累加的末位差异按测试容差处理，GUI 使用既有有效数字格式。
 - 测试：新增 `tests/test_two_phase_interleaved_boost_pfc_loss_display_consistency.py` 覆盖五项求和、Loss/Inductor 同源、无 sweep 设计点回退和 blocked 不回退；与步骤 9 GUI、10E 结果页、步骤 8 efficiency sweep 合计 `38 passed in 562.70s`，无失败、无 skip。目标 Python 编译通过；未运行全量 pytest 或其他拓扑全面回归。
+- 逐相字段补齐后复跑两相一致性、步骤 8 效率产物和 10I-3 blocked 产物测试：`19 passed in 155.07s`，无失败、无 skip。
 - 文件：新增 `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/loss_readback.py` 和一致性测试，修改 `app/result_views/loss_view.py`、`app/result_views/inductor_view.py`、本计划及 `ChangeLog.md`。影响分类为两相专用结果读取/展示；共享报告 schema、公共损耗字段和其他拓扑计算路径未变。
 - Git：提交和推送状态待本阶段完成回执更新。
 

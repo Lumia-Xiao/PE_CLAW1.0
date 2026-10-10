@@ -8,6 +8,12 @@
 - Validation: focused consistency tests plus two-phase Step 8 efficiency, Step 9 GUI, and Step 10E result tests: `38 passed in 562.70s`, no failures or skips; target Python compilation passed. No full suite or unrelated topology regression was run.
 - Affected files: `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/loss_readback.py`, `src/pe_claw_gui/app/result_views/loss_view.py`, `src/pe_claw_gui/app/result_views/inductor_view.py`, `tests/test_two_phase_interleaved_boost_pfc_loss_display_consistency.py`, and the Active plan. Branch: `codex/llc-waveform-operating-point-plan`.
 
+## 2026-10-10 Preserve Per-Phase Loss Values in Two-Phase Sweep Readback
+
+- Extended the two-phase efficiency-sweep loss breakdown with phase 1 and phase 2 inductor values so the Loss page's per-phase rows and aggregate row share the same full-load source.
+- Validation: two-phase loss-display consistency, Step 8 efficiency artifacts, and 10I-3 blocked-artifact tests: `19 passed in 155.07s`, no failures or skips; target Python compilation passed.
+- Affected files: `src/pe_claw_gui/pipeline/run_efficiency_sweep_pipeline.py`, `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/loss_readback.py`, `src/pe_claw_gui/app/result_views/loss_view.py`, `tests/test_two_phase_interleaved_boost_pfc_loss_display_consistency.py`, and the Active plan. Branch: `codex/llc-waveform-operating-point-plan`.
+
 ## 2026-09-30 Execute Step 10A Interleaved Boost PFC Boundary Baseline
 
 - Added a Step 10A baseline recorder, stable fixture, and focused test for the two-phase interleaved Boost PFC across nominal (230 Vac), low-line (180 Vac), and high-line (265 Vac) cases.

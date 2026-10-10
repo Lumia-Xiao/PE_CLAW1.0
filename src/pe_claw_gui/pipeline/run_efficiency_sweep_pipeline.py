@@ -745,6 +745,10 @@ def _evaluate_interleaved_boost_pfc_load_point(
                 magnetic=magnetic_loss_w,
                 capacitor=capacitor_loss_w,
                 other=other_loss_w,
+                phase_1_inductor=refreshed.loss.breakdown_w.get("phase_1_inductor_total_loss_w")
+                if refreshed.loss is not None else None,
+                phase_2_inductor=refreshed.loss.breakdown_w.get("phase_2_inductor_total_loss_w")
+                if refreshed.loss is not None else None,
             ),
             warnings=tuple(point_warnings),
             switching_loss_audit=audit,

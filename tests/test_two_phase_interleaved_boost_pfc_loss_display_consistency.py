@@ -65,6 +65,7 @@ def _full_load_sweep() -> EfficiencySweepResult:
         capacitor_loss_w=1.45821150422788,
         other_loss_w=0.0,
         bridge_rectifier_loss_w=7.88581092665278,
+        loss_breakdown_w={"phase_1_inductor": 0.239377312157246, "phase_2_inductor": 0.239377312157246},
     )
     return EfficiencySweepResult(points=(point,), load_grid=(1.0,), status="available")
 
@@ -87,6 +88,7 @@ def test_loss_and_inductor_views_use_the_same_full_load_snapshot() -> None:
     assert "14.7034 W" in loss_text
     assert "7.88581 W" in loss_text
     assert "0.478755 W" in loss_text
+    assert "0.239377 W" in loss_text
     assert "1.45821 W" in loss_text
     assert "97.6061 %" in loss_text
     assert "Full-load efficiency sweep (1.0 p.u.)" in loss_text

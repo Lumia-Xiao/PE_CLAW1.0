@@ -18,6 +18,8 @@ class InterleavedBoostPFCLossSnapshot:
     semiconductor_loss_w: float | None = None
     bridge_rectifier_loss_w: float | None = None
     magnetic_loss_w: float | None = None
+    phase_1_magnetic_loss_w: float | None = None
+    phase_2_magnetic_loss_w: float | None = None
     capacitor_loss_w: float | None = None
     other_loss_w: float | None = None
     total_loss_w: float | None = None
@@ -77,6 +79,8 @@ def _snapshot_from_full_load_point(point: EfficiencySweepPoint) -> InterleavedBo
         semiconductor_loss_w=float(values["semiconductor"]),
         bridge_rectifier_loss_w=float(values["bridge rectifier"]),
         magnetic_loss_w=float(values["magnetic"]),
+        phase_1_magnetic_loss_w=_as_finite_float(point.loss_breakdown_w.get("phase_1_inductor")),
+        phase_2_magnetic_loss_w=_as_finite_float(point.loss_breakdown_w.get("phase_2_inductor")),
         capacitor_loss_w=float(values["capacitor"]),
         other_loss_w=float(values["other"]),
         total_loss_w=total,
@@ -100,6 +104,8 @@ def _snapshot_from_design_point(report: DesignReport) -> InterleavedBoostPFCLoss
         semiconductor_loss_w=_as_finite_float(breakdown.get("semiconductor_loss_w")),
         bridge_rectifier_loss_w=_as_finite_float(breakdown.get("bridge_rectifier_loss_w")),
         magnetic_loss_w=_as_finite_float(breakdown.get("inductor_total_loss_w")),
+        phase_1_magnetic_loss_w=_as_finite_float(breakdown.get("phase_1_inductor_total_loss_w")),
+        phase_2_magnetic_loss_w=_as_finite_float(breakdown.get("phase_2_inductor_total_loss_w")),
         capacitor_loss_w=_as_finite_float(breakdown.get("dc_link_capacitor_loss_w")),
         other_loss_w=_as_finite_float(breakdown.get("other_loss_w")),
         total_loss_w=total,
