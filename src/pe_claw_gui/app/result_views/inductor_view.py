@@ -14,6 +14,9 @@ from ...pipeline.options import (
 )
 from .geometry_view import GeometryView
 from .llc_result_text import build_llc_magnetic_summary_text, has_llc_display_summary
+from ...topologies.ac_dc.single_phase_interleaved_boost_pfc_diode_bridge.loss_readback import (
+    resolve_interleaved_boost_pfc_loss_snapshot,
+)
 
 
 class InductorView(ttk.Frame):
@@ -152,7 +155,12 @@ def build_inductor_summary_text(report: DesignReport | None) -> str:
             )
             if interleaved:
                 lines.extend(_two_phase_loss_lines(report))
-                lines.append(f"  system total loss (all components): {_fmt_float(report.loss.total_loss_w)} W")
+                snapshot = resolve_interleaved_boost_pfc_loss_snapshot(report)
+                lines.append(f"  system total loss (all components): {_fmt_float(snapshot.total_loss_w)} W")
+                if snapshot.source != "design_point":
+                    lines.append(f"  system loss source: {snapshot.source_label}")
+                if not snapshot.is_available and snapshot.source != "design_point":
+                    lines.append(f"  system loss status: {snapshot.unavailable_reason or 'unavailable'}")
 
     if report.thermal is not None:
         lines.extend(["", "Magnetic thermal"])

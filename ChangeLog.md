@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-10-10 Unify Two-Phase Interleaved Boost PFC Loss Display
+
+- Fixed the mismatch where the Loss and Inductor pages showed design-point system loss while Efficiency Sweep showed its independently evaluated 1.0 p.u. point.
+- Added a topology-local loss readback shared by both pages. A complete full-load sweep point is the preferred display source; design-point loss is used only before a sweep exists. Blocked or incomplete sweeps show unavailable with a reason and are never mixed with design-point values.
+- Preserved the public `LossResult` magnetic-stage meaning and all electrical loss calculations. Other topology routes are unchanged.
+- Validation: focused consistency tests plus two-phase Step 8 efficiency, Step 9 GUI, and Step 10E result tests: `38 passed in 562.70s`, no failures or skips; target Python compilation passed. No full suite or unrelated topology regression was run.
+- Affected files: `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/loss_readback.py`, `src/pe_claw_gui/app/result_views/loss_view.py`, `src/pe_claw_gui/app/result_views/inductor_view.py`, `tests/test_two_phase_interleaved_boost_pfc_loss_display_consistency.py`, and the Active plan. Branch: `codex/llc-waveform-operating-point-plan`.
+
 ## 2026-09-30 Execute Step 10A Interleaved Boost PFC Boundary Baseline
 
 - Added a Step 10A baseline recorder, stable fixture, and focused test for the two-phase interleaved Boost PFC across nominal (230 Vac), low-line (180 Vac), and high-line (265 Vac) cases.

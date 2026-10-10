@@ -1,10 +1,10 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 10G 复核、10H 补齐和 10I 运行点一致性修正均已完成并推送；10I-5 收尾核对完成，后续仅保留已明确列出的发布验收及其他未决事项
+- **状态**：Active / 10G 复核、10H 补齐、10I 运行点一致性及 10I 后系统损耗展示一致性修正均已完成并推送；后续仅保留已明确列出的发布验收及其他未决事项
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：步骤 0–10、10A–10H 及本轮 10H 补齐已实施并推送，本轮 10G 复核通过；10I-0/10I-1/10I-2/10I-3/10I-4/10I-5 已实施、验证并推送。10I 阶段完成；验证范围按用户要求限定为两相专项及必要的单相 Boost PFC 双顺序隔离配对，未运行全量测试或其他拓扑全面回归。
+- **当前阶段**：步骤 0–10、10A–10H 及本轮 10H 补齐已实施并推送，本轮 10G 复核通过；10I-0/10I-1/10I-2/10I-3/10I-4/10I-5 已实施、验证并推送。10I 后系统损耗展示一致性修正已完成：两相 Loss 与 Inductor 页共享完整满载扫频快照，未运行全量测试或其他拓扑全面回归。
 
 ## 1. 计划目标和边界
 
@@ -1087,6 +1087,16 @@ P_loss_total = P_bridge + P_phase_1 + P_phase_2 + P_capacitor + P_other
 - 质量检查结果：目标 Python 文件 `py_compile` 通过，计划与日志的定向 `git diff --check` 通过；提交 `293960c` 已推送，`git ls-remote` 核实远端 `codex/llc-waveform-operating-point-plan` 指向同一提交。
 - 10I 阶段结论：两相运行点字段口径、线路周期重建、固定硬件损耗链、损耗不完整阻塞和效率产物门禁已完成并保留专项证据。10I 不再有待执行步骤。
 - 计划状态：计划继续保持 `Active`，因为全量发布验收、公共 NaN 数据/状态语义、实物可采购性、拓扑卡片图片和其他拓扑全面回归仍是明确未决事项；本步骤不把这些事项标记为已完成。
+
+**10I 后系统损耗展示一致性修正（2026-10-10）**：
+
+- 根因：Efficiency Sweep 已对每个负载点重新计算输入桥、四个相位位置半导体、两相电感、共享 DC-link 电容和 other loss；但 Efficiency Sweep Controller 只把结果写入 `report.efficiency_sweep`，两相 Loss 页和 Inductor 页仍直接显示设计阶段 `report.loss`，因此满载数据来源不同。
+- 实现：新增两相拓扑本地 `loss_readback.py`，Loss 页和 Inductor 页共同解析 `report.efficiency_sweep` 的 `load_pu == 1.0` 点，并将五项组件相加，效率按 `Pout/(Pout+Ploss)` 计算。没有修改 `LossResult` 公共语义、损耗物理公式、Efficiency Sweep 数值或其他拓扑路由。
+- 状态边界：从未运行 sweep 时保留既有设计点总损耗和效率；sweep 已运行但 blocked、缺满载点、组件缺失或输出功率无效时显示 unavailable 与原因，不混用设计点数值，也不把部分损耗显示为系统总损耗。
+- 最新手工输出满载点对应显示为：半导体 `14.70342736831 W`、输入桥 `7.88581092665278 W`、两相电感 `0.478754624314492 W`、电容 `1.45821150422788 W`、other `0 W`、系统总损耗 `24.5262044235051 W`、效率 `97.6060930098605%`。浮点累加的末位差异按测试容差处理，GUI 使用既有有效数字格式。
+- 测试：新增 `tests/test_two_phase_interleaved_boost_pfc_loss_display_consistency.py` 覆盖五项求和、Loss/Inductor 同源、无 sweep 设计点回退和 blocked 不回退；与步骤 9 GUI、10E 结果页、步骤 8 efficiency sweep 合计 `38 passed in 562.70s`，无失败、无 skip。目标 Python 编译通过；未运行全量 pytest 或其他拓扑全面回归。
+- 文件：新增 `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/loss_readback.py` 和一致性测试，修改 `app/result_views/loss_view.py`、`app/result_views/inductor_view.py`、本计划及 `ChangeLog.md`。影响分类为两相专用结果读取/展示；共享报告 schema、公共损耗字段和其他拓扑计算路径未变。
+- Git：提交和推送状态待本阶段完成回执更新。
 
 **修正验收标准**：
 
