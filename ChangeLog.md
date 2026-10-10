@@ -1881,3 +1881,8 @@ listed here.
 - 验证：Python 3.12.10、pytest 9.1.1、matplotlib 3.11.0、Tk 8.6.15；实际源码位置断言和隐藏 Tk 初始化探测通过。20 个两相文件 collect-only 收集 107 项（13.66 s），未执行用例/fixture；分组基准 quick 60、integration 44、gui 1、isolation 2。未运行设计、电气链、真实 GUI 按钮链、全量或旧拓扑全面回归。
 - 后续：保留独立公式参考、原始发布损耗/效率校验、旧工况注入和真实跨页/导出一致性门槛；不把 schema CLI 空快照成功或 is_complete 当完整验收；不修改公共状态/公式/历史基线。
 - Git 与维护：基准 `b7c2cbf`，分支 `codex/llc-waveform-operating-point-plan`，推送 `pe-claw-1.1` 同名分支；阶段完成状态在本记录验证、提交并推送后同步。既有 95 个无关删除、两个无关 untracked 和用户 outputs 不纳入提交；不清理、不备份。定向/暂存 diff、引用及分组检查随本阶段提交执行。
+
+## 2026-10-10 - 步骤 0 完成状态与推送确认
+
+- 冻结记录提交 `b066fac` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，远端 SHA 核实为 `b066fac978d89dcea258ff47ddb243e71de9aa53`；更新 Active plan 首页、阶段表和完成回执，步骤 1–7 保持待执行。
+- 验证：28 个现有引用、20 文件/107 collected 的分组基准、ChangeLog append-only、定向及暂存 diff 检查通过；来源/Tk 探测结果沿用本阶段实际记录，不重复收集或执行电气测试。本回执仅修改计划与 ChangeLog，独立提交推送；其余工作区改动不纳入。
