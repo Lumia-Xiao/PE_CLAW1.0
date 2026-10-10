@@ -1925,3 +1925,10 @@ listed here.
 
 - 模板与引用提交 `6337fe0` 已推送到 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，远端核实为 `6337fe0385837025da767774a656d3e12bc9a0f1`；更新 Active plan 首页、步骤 3 状态及回执，步骤 4–7 待执行。
 - 验证：13 个本地链接、1 个示例测试函数、13 个完整/简化章节及七类根因映射、可填写性/冲突、append-only 与定向/暂存 diff/四文档暂存范围检查通过。未运行 pytest、收集、GUI 或电气链。本回执仅修改计划和 ChangeLog，独立提交推送，既有无关改动保留。
+
+## 2026-10-10 - 步骤 4 建立可复用工程断言与负向检查
+
+- 目的与文件：新增 `tests/engineering_support/assertions.py`、`tests/engineering_support/interleaved_boost_pfc.py`、`tests/test_topology_engineering_checks.py`；更新两相 loss display、步骤 5/6/8/9/10D 测试以复用显式断言和 run-scoped 输出目录。未修改生产模型、公式、公共字段、状态、库记录或选型策略。
+- 行为：公共断言检查损耗原始总量/效率、运行工况来源、固定硬件身份/禁止重新选型和物理实例唯一性；两相适配器检查五分量、每相磁件子项、精确满载点、3×3 独立波形参考、GUI 显示精度及 JSON/CSV 工件归属。已知错误通过受控负向用例明确拒绝。
+- 验证：显式当前仓库 `src;tests` 导入，Python 3.12.10、pytest 9.1.1。快速层 `128 passed`（6.78 s）；真实两相专项层 `31 passed`（503.56 s）；每层 1 个既有 `cache_dir` 配置 warning，无失败。真实层覆盖宽/窄设计、固定硬件运行点、GUI 按钮链和页面/导出一致性；未运行步骤 5 入口、步骤 6 隔离、全量 pytest 或其他拓扑全面回归。
+- Git 与维护：实现与本计划回执分开提交，推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；既有无关删除/untracked/outputs 保持原样，测试临时目录不纳入提交。步骤 5 分层入口仍待执行。

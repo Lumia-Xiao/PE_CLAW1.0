@@ -1,8 +1,8 @@
 # 拓扑工程规则与验证机制加强计划
 
-- **状态**：Active / 步骤 0–3 已完成并推送；步骤 4–7 待执行。
+- **状态**：Active / 步骤 0–4 已完成并推送；步骤 5–7 待执行。
 - **创建日期**：2026-10-10。
-- **当前授权**：执行步骤 3，建立完整/简化计划模板并同步 AGENTS.md 引用、本计划和 ChangeLog；不执行步骤 4–7。
+- **当前授权**：执行步骤 4，建立测试支持断言、负向检查及两相结果/导出/GUI 一致性验证；不执行步骤 5–7。
 - **目标**：使智能体能够从开发规则找到工程契约，从契约找到可执行断言，并以可复核证据说明修改完成范围，减少新增拓扑时的跨阶段遗漏和返工。
 - **首个试点**：`single_phase_interleaved_boost_pfc_diode_bridge`；必要时保留单相 Boost PFC 最小配对验证。
 - **Git 分支**：`codex/llc-waveform-operating-point-plan`。
@@ -104,7 +104,7 @@
 | 1 | 已完成并推送 | AGENTS.md 完成门槛 |
 | 2 | 已完成并推送 | 公共工程契约及两相实例 |
 | 3 | 已完成并推送 | 计划模板 |
-| 4 | 待执行 | 可复用断言及负向测试 |
+| 4 | 已完成并推送 | 可复用断言及负向测试 |
 | 5 | 待执行 | 分层验证入口与回执 |
 | 6 | 待执行 | 两相真实试运行和必要旧拓扑配对 |
 | 7 | 待执行 | 范围核对与收尾 |
@@ -151,7 +151,11 @@
 
 至少构造以下独立负向案例：磁件损耗冒充系统总量、缺必需分量、过期运行点、缺第二相、运行点重新选型。还需验证总量或效率错误、非有限值和来源不匹配时能给出明确失败；具体参数适用性由拓扑契约决定。
 
-**验证与完成条件**：正确案例通过，已知错误被拒绝并指出原因；迁移到支持模块的原断言不削弱；适用的公式有独立参考，不仅自我求和。运行新增支持模块测试及受影响的两相专项；没有生产契约变化时不扩到全部拓扑。
+**本步实际交付**：新增 `tests/engineering_support/assertions.py` 和 `interleaved_boost_pfc.py`，并新增 `tests/test_topology_engineering_checks.py`。公共接口冻结为损耗守恒、运行工况、固定硬件和物理实例四类普通断言；两相适配器显式区分设计点与 sweep 字段、系统五分量与每相磁件子项，缺项保持缺失，不将其静默变成零。检查器还覆盖精确满载点、固定硬件身份、selection 调用、JSON/CSV 工件归属和页面显示精度。
+
+同步修改 loss display、步骤 5/6/8/9/10D 测试的必要隔离及复用路径。步骤 8 和步骤 9 的真实链路保留原断言，并在固定硬件刷新时核对来源、运行 ID、输入哈希、逐点损耗、CSV/JSON、Loss/Inductor/Efficiency 页面；独立波形参考使用三条输入线电压和三个负载点，不调用生产采样器作为预期。
+
+**验证与完成条件**：正确案例通过，已知错误被拒绝并指出原因；迁移到支持模块的原断言不削弱；适用的公式有独立参考，不仅自我求和。当前实际结果为：快速层 `128 passed`（6.78 s），真实两相专项层 `31 passed`（503.56 s），每层 1 个既有 pytest 配置 warning（`cache_dir` 未知），无失败。真实层包含步骤 8 的宽/窄设计、3×3 运行点矩阵和步骤 9 GUI/导出核对；未运行步骤 5 分层入口、步骤 6 独立隔离门禁、全量 pytest 或其他拓扑全面回归。临时根为本步专属 `.pytest-tmp-rules4-quick` 与 `.pytest-tmp-rules4-integration`，未提交运行产物。
 
 ### 步骤 5：建立分层验证入口
 
@@ -278,11 +282,11 @@ GUI 格式和 CSV/JSON 对照放在两相专项断言内，读取字段值及显
 
 ### 8.5 分组冻结与成本政策
 
-本次成功 collect-only：20 文件 / 107 个独立参数化用例，13.66 s；以下按现有节点分组互不重叠。数字是当前收集基准，步骤 4 新增检查后必须重新收集，不把 107 当永久目标或 passed 数。
+本次成功 collect-only：20 文件 / 107 个独立参数化用例，13.66 s；以下按现有节点分组互不重叠。步骤 4 已新增支持检查，实际执行数量以本步回执为准，不把 107 当永久目标或 passed 数。
 
 | 层级 | 当前节点归属 | 当前数量 |
 |---|---|---:|
-| quick | loss display、步骤 1/2/3/4/6、10B/10C/10G/10I-contract 全文件；10A 除真实 current-baseline replay 外四项；步骤 5 仅 role 声明；步骤 9 仅 user guide | 60 |
+| quick | 新增工程支持/负向检查、loss display、步骤 1/2/3/4/6、10B/10C/10G/10I-contract 全文件；10A 除真实 current-baseline replay 外四项；步骤 5 仅 role 声明；步骤 9 仅 user guide | 128（本步实际） |
 | integration | 步骤 5 其余三项、10D 三项、10I-2 三项、10I-3 一项、步骤 7 一项、步骤 8 十四项、10E 十六项、10A current-baseline replay 一项、步骤 9 前两个结果契约项 | 44 |
 | gui | 步骤 9 `test_step9_real_gui_runs_two_phase_design_results_and_efficiency` | 1 |
 | isolation | 步骤 10 的旧/新双顺序与宽/窄双顺序两项 | 2 |
@@ -291,7 +295,7 @@ quick 允许轻量文件和绘图 mock 工件，但不执行真实库选型；�
 
 现有 module fixture：步骤 8 每个宽/窄设计复用一次；10E 共用一次默认设计；步骤 9 结果检查共用一次。保持这些复用，不为了公共断言复制真实设计。3×3 工况矩阵应在同一固定宽线硬件上刷新九点，公式检查另用独立预期；真实 GUI、双顺序隔离及严格基线重放按其目的独立执行。昂贵搜索串行，不引入 xdist，也不跨隔离运行缓存。
 
-以下新增用例在步骤 4/5 实现：通用损耗/工况/身份/实例负向与适配测试归 quick；真实跨线损耗矩阵与导出对照归 integration；刷新后的页面数值归 gui；入口参数、来源、空集合、子进程失败及回执测试归 quick，用受控轻量子进程，不触发真实搜索。测试列表使用显式文件/node ID，不用会隐式扩到全部测试的默认路径。
+步骤 4 已实现：通用损耗/工况/身份/实例负向与适配测试归 quick；真实跨线损耗矩阵、固定硬件和导出对照归 integration；刷新后的页面数值归真实 GUI 用例。步骤 5 仍负责入口参数、来源、空集合、子进程失败及回执测试，用受控轻量子进程，不触发真实搜索。测试列表使用显式文件/node ID，不用会隐式扩到全部测试的默认路径。
 
 ### 8.6 验证入口与回执边界冻结
 
@@ -313,6 +317,16 @@ JSON 回执至少包含版本、拓扑/层级、解释器/包与测试来源、G
 - 隐藏 Tk 窗口 `Tk → withdraw → update_idletasks → destroy` 成功；只证明当前会话可初始化 Tk，不证明真实应用按钮链或后续会话一直可用。
 - collect-only 返回 0：`107 tests collected in 13.66s`；没有运行 fixture/test body。AST 辅助检查未发现 20 文件顶层直接执行设计或 Tk；它不是全部 import 副作用证明。
 - 新契约、模板、支持包及入口目标路径均未存在，未创建占位文件。未生成根 `.pytest-tmp-*` 或共享 `outputs/inductor_design`；已有 `pytest_temp` 不清理。
+
+### 8.8 步骤 4 执行回执
+
+- **变更分类**：测试支持层、两相专项测试和测试工件隔离；没有生产模型、公式、公共字段、状态枚举、库记录或选型策略变更。受影响消费者是两相损耗读回、Efficiency Sweep、Loss/Inductor/Efficiency 页面及 CSV/JSON 工件。
+- **新增支持**：`tests/engineering_support/assertions.py` 提供 `assert_loss_balance`、`assert_operating_basis`、`assert_fixed_hardware`、`assert_physical_instances`；`interleaved_boost_pfc.py` 提供两相显式适配、精确满载、逐点损耗、硬件、导出、显示和独立波形参考检查。
+- **负向证据**：覆盖磁件-only 总量、缺失/非有限/负值分量、错误总量或效率、缺精确满载、旧 Vin/负载/来源、缺相/重复实例、硬件变化/重新选型、CSV/JSON 篡改或越界工件以及页面数值/来源/相子项错误；失败诊断包含规则、字段、预期和实际。
+- **快速命令与结果**：`python -B -m pytest -o addopts= -p no:cacheprovider tests/test_topology_engineering_checks.py tests/test_two_phase_interleaved_boost_pfc_loss_display_consistency.py tests/test_two_phase_interleaved_boost_pfc_step3_waveform.py tests/test_two_phase_interleaved_boost_pfc_step6_magnetics.py tests/test_two_phase_interleaved_boost_pfc_step10g_frontier.py tests/test_two_phase_interleaved_boost_pfc_step10i_contract.py -q --basetemp .pytest-tmp-rules4-quick`；`128 passed`，`6.78 s`。
+- **真实命令与结果**：`python -B -m pytest -o addopts= -p no:cacheprovider tests/test_two_phase_interleaved_boost_pfc_step5_devices.py tests/test_two_phase_interleaved_boost_pfc_step10d_requests.py tests/test_two_phase_interleaved_boost_pfc_step8_efficiency.py tests/test_two_phase_interleaved_boost_pfc_step9_gui.py tests/test_two_phase_interleaved_boost_pfc_step10i2_loss.py tests/test_two_phase_interleaved_boost_pfc_step10i3_artifacts.py -q --basetemp .pytest-tmp-rules4-integration`；`31 passed`，`503.56 s`。真实层覆盖宽/窄设计、固定硬件 3×3 运行点、实际 phase operating request、GUI 按钮链及页面/CSV/JSON 一致性。
+- **环境与限制**：Python `3.12.10`、pytest `9.1.1`，显式 `PYTHONPATH=<repo>\src;<repo>\tests`，当前包路径已核实；两条命令各有 1 个既有 `cache_dir` 配置 warning。未运行步骤 5 入口、步骤 6 独立旧拓扑/双顺序隔离、全量 pytest 或其他拓扑全面回归；这不升级为全工程验收。
+- **提交门槛**：本步计划和 ChangeLog 在实现提交后另行提交；提交前检查 `git diff --check`、暂存范围和远端分支。保留既有 95 个无关 tracked 删除、两个无关 untracked 和用户 outputs，不纳入本步。
 - 早期只读搜索因 PowerShell 不展开 rg 文件通配符/不支持 Bash 花括号而报错，已用目录加 `-g` 或显式路径重查；不属于测试失败或工程缺陷。
 
 本次关键命令（从仓库根运行）：
