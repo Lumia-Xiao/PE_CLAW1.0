@@ -94,10 +94,12 @@ documentation, such as the
 [two-phase Boost PFC contract](docs/two_phase_interleaved_boost_pfc.md).
 The common document defines semantic and evidence requirements; topology
 documents own specific formulas and field mappings. Neither changes production
-models or replaces actual validation. The plan template at
-`Plan/templates/topology_change_plan_template.md` remains a planned step 3
-deliverable and is not yet available. Until created, use the active plan and
-these rules; its absence does not block authorized work or require approval.
+models or replaces actual validation. Use the
+[topology change plan template](Plan/templates/topology_change_plan_template.md)
+for new topologies and cross-stage changes; use its concise form for bounded
+repairs. Scale the record to the impact and retain applicable contracts,
+consumers, validation and Git receipts. Templates and examples are planning
+guidance, not proof of execution or an additional approval requirement.
 
 ## Architecture Rules
 

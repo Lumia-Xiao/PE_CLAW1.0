@@ -1912,3 +1912,11 @@ listed here.
 
 - 契约与两相映射提交 `0608a21` 已推送到 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，远端 SHA 核实为 `0608a2188bd29a6fcdaebbbbd7c005d23eb53160`；同步 Active plan 首页、步骤表和回执，步骤 3–7 保持待执行。
 - 验证：50 个本地链接、19 个测试函数、14 个生产者函数和 17 个关键字段静态映射、用户说明保留、ChangeLog append-only、定向/暂存 diff 和暂存范围通过；没有电气测试或运行行为变更。本回执仅更新计划与 ChangeLog，独立提交推送；工作区其他改动保留。
+
+## 2026-10-10 - 步骤 3 建立拓扑新增及修改计划模板
+
+- 文件与目的：新增 `Plan/templates/topology_change_plan_template.md`，更新 AGENTS.md 正式引用、Active rules plan 和本日志；只修改四个文档。
+- 行为：提供完整与小修复简化模板，填写授权/范围、分类/消费者、工程契约、复用策略、早期真实案例、正常/边界/失败矩阵、分层验证及成本、每步交付/断言/未决项和 Git 回执。按影响缩放，纯文档不要求电气链，授权内常规选择不增加审批。
+- 桌面审查：以两相历史根因核查边界传递/平均与 RMS、扩大搜索、双实例、固定硬件运行点、当前 Loss/Sweep/GUI/export 来源、缺项阻塞和隔离/测试成本；提供历史损耗读回简化填写演示。示例不是新任务或执行证据，不改写归档完成结论，不复制公共公式。
+- 验证：引用/示例断言、模板可填写性/门槛映射、规则冲突、append-only、契约/归档未改及定向/暂存 diff；不执行 pytest、收集、GUI 或设计链。实际结果写 Active plan，提交推送后再同步完成状态，步骤 4–7 待执行。
+- Git 与维护：基准 `b78cabf`，分支 `codex/llc-waveform-operating-point-plan`，推送目标 `pe-claw-1.1` 同名分支；保留既有无关删除/untracked/outputs，不创建断言/验证入口，不清理、不备份。
