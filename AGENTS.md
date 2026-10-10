@@ -88,12 +88,16 @@ task scope cannot be determined from the instructions and existing contracts.
 
 Rule and validation development is tracked in
 [the active engineering rules plan](Plan/Active/topology_engineering_rules_and_validation_plan.md).
-`docs/engineering_contracts.md` and
-`Plan/templates/topology_change_plan_template.md` are planned deliverables of
-steps 2 and 3, respectively, and are not yet available. Until created, use the
-relevant topology documentation, code, and this plan's frozen requirements;
-their absence does not require approval or block authorized work. When those
-steps create the files, replace this notice with working authoritative links.
+For electrical changes, read the applicable
+[engineering semantic contracts](docs/engineering_contracts.md) and topology
+documentation, such as the
+[two-phase Boost PFC contract](docs/two_phase_interleaved_boost_pfc.md).
+The common document defines semantic and evidence requirements; topology
+documents own specific formulas and field mappings. Neither changes production
+models or replaces actual validation. The plan template at
+`Plan/templates/topology_change_plan_template.md` remains a planned step 3
+deliverable and is not yet available. Until created, use the active plan and
+these rules; its absence does not block authorized work or require approval.
 
 ## Architecture Rules
 

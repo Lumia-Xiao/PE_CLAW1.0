@@ -1899,3 +1899,11 @@ listed here.
 
 - AGENTS.md 门槛补强及记录提交 `e24be2b` 已推送到 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；远端核实为 `e24be2b7562abd6e1cccd0b6281af8dc0c805176`。同步计划首页、步骤 1 状态及回执，步骤 2–7 待执行。
 - 验证：规则/引用/待建状态、原章节顺序和安全规则保留、append-only、定向及暂存 diff 检查通过。纯文档变更未执行 pytest、收集或工程链；本回执仅更新计划和 ChangeLog，独立提交推送，无关工作区文件保持原样。
+
+## 2026-10-10 - 步骤 2 建立公共工程契约及两相实例
+
+- 目的与文件：新增 `docs/engineering_contracts.md`，补齐 `docs/two_phase_interleaved_boost_pfc.md`，同步 AGENTS.md 权威引用、Active rules plan 和本日志；共五个文档。
+- 内容：定义公共语义记录、同工况比较、缺项/完整性、原始总损耗/效率、刷新/来源与证据要求；两相实例映射实际电感、电流、边界、请求、双实例/搜索、损耗和显示字段的生产者、消费者、公式及已有测试。
+- 修正与限制：修正 10I 前运行点旧描述，保留并说明无波形回退；区分 waveform 可选覆盖与 sweep 当前 Vin/PF 传递、磁件阶段与系统总量、resolver 重算与原始发布值验证、status/is_complete 与工程完整性。未修改生产语义；独立 3×3 矩阵、负向断言和真实 GUI/export 数值门槛保留后续步骤。
+- 验证：静态代码/断言映射、链接、字段/函数、文档必需描述、append-only 及定向/暂存 diff 检查；不运行 pytest、收集、GUI 或设计链，不将历史通过记为本次通过。结果写入 Active plan，提交推送后同步步骤 2 完成状态。
+- Git 与维护：基准 `a0ca0f3`，分支 `codex/llc-waveform-operating-point-plan`，推送至 `pe-claw-1.1` 同名分支；只提交五文档，保留无关删除/untracked/outputs。模板与自动检查未创建，不清理、不备份。
