@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-10-10 Archive Two-Phase Interleaved Boost PFC Plan
+
+- Marked `two_phase_interleaved_boost_pfc_plan.md` Completed at the user's direction and moved it from `Plan/Active/` to `Plan/completed/`.
+- Completion records the implemented topology, 10G/10H/10I stages, loss-display consistency repair, and their scoped validation. Full-suite pytest, comprehensive regression of the previous 19 topologies, release acceptance, public NaN/status semantics, purchasability, and topology-card images remain explicitly unverified or outstanding; archiving does not claim those gates passed.
+- Corrected the stale pending Git receipt for the loss-display repair; commits `5193279`, `c0d073a`, and `405c6ba` were already pushed to the requested branch.
+- Validation: plan text/path and staged diff checks only; no production code changed and no tests run.
+- Affected files: `Plan/Active/two_phase_interleaved_boost_pfc_plan.md` (move) and `ChangeLog.md`. Branch: `codex/llc-waveform-operating-point-plan`.
+
 ## 2026-10-10 Unify Two-Phase Interleaved Boost PFC Loss Display
 
 - Fixed the mismatch where the Loss and Inductor pages showed design-point system loss while Efficiency Sweep showed its independently evaluated 1.0 p.u. point.

@@ -1,10 +1,14 @@
 # 两相交错 Boost PFC 拓扑新增计划
 
-- **状态**：Active / 10G 复核、10H 补齐、10I 运行点一致性及 10I 后系统损耗展示一致性修正均已完成并推送；后续仅保留已明确列出的发布验收及其他未决事项
+- **状态**：Completed / 按用户 2026-10-10 指示关闭并归档；两相拓扑实施、限定专项验证及后续修正已完成，未执行或未解决的事项保留为后续工程工作
+- **完成日期**：2026-10-10
+- **归档路径**：`Plan/completed/two_phase_interleaved_boost_pfc_plan.md`
 - **目标拓扑 ID**：`single_phase_interleaved_boost_pfc_diode_bridge`
 - **所属类别**：AC-DC
 - **计划范围**：在现有单相二极管桥 Boost PFC 基础上，新增两相、180° 交错、单向、CCM 一阶工程设计拓扑。
-- **当前阶段**：步骤 0–10、10A–10H 及本轮 10H 补齐已实施并推送，本轮 10G 复核通过；10I-0/10I-1/10I-2/10I-3/10I-4/10I-5 已实施、验证并推送。10I 后系统损耗展示一致性修正已完成：两相 Loss 与 Inductor 页共享完整满载扫频快照，未运行全量测试或其他拓扑全面回归。
+- **当前阶段**：计划已收尾。步骤 0–10、10A–10H、10H 补齐、10G 复核及 10I-0 至 10I-5 已完成；10I 后系统损耗展示修正提交 `5193279`、`c0d073a`、`405c6ba` 均已推送。历史执行记录中的 Active、待执行或下一步表述仅表示当时状态；最终状态以本首页和归档回执为准。
+
+**归档回执（2026-10-10）**：按用户要求将本计划记为 Completed 并移动到 `Plan/completed`。完成范围采用本轮已授权的两相专项及必要单相 Boost PFC 配对验证，不以归档声明全量 pytest、旧 19 拓扑全面回归、发布验收、公共 NaN/状态语义、实物可采购性或卡片图片已完成。这些事项保留为后续工程工作，不再作为本计划保持 Active 的条件。原始公式、范围、历史验证和失败记录均保留；本次仅更新文档状态及路径，不运行测试或修改生产代码。
 
 ## 1. 计划目标和边界
 
@@ -1100,7 +1104,7 @@ P_loss_total = P_bridge + P_phase_1 + P_phase_2 + P_capacitor + P_other
 - 逐相字段补齐后复跑两相一致性、步骤 8 效率产物和 10I-3 blocked 产物测试：`19 passed in 155.07s`，无失败、无 skip。
 - 针对磁件阶段误读的回归测试新增后，结果页专项 `5 passed`，10E 结果与 GUI `20 passed in 410.01s`；无失败、无 skip。
 - 文件：新增 `src/pe_claw_gui/topologies/ac_dc/single_phase_interleaved_boost_pfc_diode_bridge/loss_readback.py` 和一致性测试，修改 `app/result_views/loss_view.py`、`app/result_views/inductor_view.py`、本计划及 `ChangeLog.md`。影响分类为两相专用结果读取/展示；共享报告 schema、公共损耗字段和其他拓扑计算路径未变。
-- Git：提交和推送状态待本阶段完成回执更新。
+- Git：损耗展示同源修正 `5193279`、逐相字段补齐 `c0d073a`、磁件阶段误读回退修正 `405c6ba` 均已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；本阶段代码及专项验证完成。
 
 **修正验收标准**：
 
@@ -1203,7 +1207,7 @@ P_loss_total = P_bridge + P_phase_1 + P_phase_2 + P_capacitor + P_other
 
 ## 8. 完成标准
 
-本计划对应的实现只有同时满足以下条件，才能从 Active 进入完成状态：
+以下为原始完成标准。2026-10-10 用户要求按已执行的限定范围将计划归档为 Completed；未覆盖的全工程验证项保留为后续工作，不视为已通过：
 
 - 新 topology ID、capability、form、plugin 和所有路由已注册；
 - 输入、合成、两相波形、应力、拓扑报告和边界说明完整；
