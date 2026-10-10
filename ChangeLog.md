@@ -1907,3 +1907,8 @@ listed here.
 - 修正与限制：修正 10I 前运行点旧描述，保留并说明无波形回退；区分 waveform 可选覆盖与 sweep 当前 Vin/PF 传递、磁件阶段与系统总量、resolver 重算与原始发布值验证、status/is_complete 与工程完整性。未修改生产语义；独立 3×3 矩阵、负向断言和真实 GUI/export 数值门槛保留后续步骤。
 - 验证：静态代码/断言映射、链接、字段/函数、文档必需描述、append-only 及定向/暂存 diff 检查；不运行 pytest、收集、GUI 或设计链，不将历史通过记为本次通过。结果写入 Active plan，提交推送后同步步骤 2 完成状态。
 - Git 与维护：基准 `a0ca0f3`，分支 `codex/llc-waveform-operating-point-plan`，推送至 `pe-claw-1.1` 同名分支；只提交五文档，保留无关删除/untracked/outputs。模板与自动检查未创建，不清理、不备份。
+
+## 2026-10-10 - 步骤 2 完成状态与推送确认
+
+- 契约与两相映射提交 `0608a21` 已推送到 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，远端 SHA 核实为 `0608a2188bd29a6fcdaebbbbd7c005d23eb53160`；同步 Active plan 首页、步骤表和回执，步骤 3–7 保持待执行。
+- 验证：50 个本地链接、19 个测试函数、14 个生产者函数和 17 个关键字段静态映射、用户说明保留、ChangeLog append-only、定向/暂存 diff 和暂存范围通过；没有电气测试或运行行为变更。本回执仅更新计划与 ChangeLog，独立提交推送；工作区其他改动保留。
