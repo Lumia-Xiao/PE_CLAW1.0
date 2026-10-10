@@ -1865,3 +1865,11 @@ listed here.
 - Execution: initial recursive `Remove-Item` was rejected by automatic approval review (`blocked by policy`) before execution. Scoped .NET filesystem deletion completed the cleanup; two cache roots initially failed due to read-only OneDrive directory attributes, then their confirmed-empty directories were removed after clearing only those attributes.
 - Tests: no pytest or compilation run for this generated-file-only maintenance, to avoid regenerating the removed artifacts. ChangeLog diff and staged-file validation precede commit/push.
 - Git: base `405c6ba`, branch `codex/llc-waveform-operating-point-plan`, push target `pe-claw-1.1/codex/llc-waveform-operating-point-plan`; only this cleanup record is committed. No backup or external cleanup archive was created.
+
+## 2026-10-10 - 建立拓扑工程规则与验证机制独立计划
+
+- 目的与文件：按用户要求新增 `Plan/Active/topology_engineering_rules_and_validation_plan.md`，并追加本日志；将减少新增拓扑返工的规则、工程契约、计划模板和可复用自动检查整理为独立计划。
+- 内容：定义步骤 0–7 的交付、影响边界、验证与完成门槛；优先复用两相损耗一致性、扩大搜索、固定硬件、GUI 和隔离测试，建立快速/真实集成/GUI/隔离分层入口。首个试点为两相交错 Boost PFC，保留必要单相配对，不默认全测。
+- 状态：Active，步骤 0–7 全部待执行；本次只创建计划，不修改 AGENTS.md、工程契约、模板、生产代码、测试或脚本，不重新打开已归档两相计划。
+- 验证：文件存在性、现有文件引用、阶段状态、文档审查及定向/暂存 `git diff --check`；本次无运行行为变更，不运行 pytest。实际创建提交和远端确认见本次 Git 历史与任务回执。
+- Git 与维护：基准 `dd53e9e`，分支 `codex/llc-waveform-operating-point-plan`，推送目标 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`。既有无关删除及用户文件不纳入提交；不清理文件、不执行备份。
