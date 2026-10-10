@@ -347,6 +347,12 @@ git diff --cached --check
 
 步骤 0 冻结记录提交 `b066fac` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；`git ls-remote` 核实远端为 `b066fac978d89dcea258ff47ddb243e71de9aa53`。28 个已有文件引用、20 文件分组基准、步骤 1–7 待执行状态、ChangeLog append-only 及定向/暂存 diff 检查通过。阶段状态在该提交推送后更新为完成；本回执随独立文档提交推送。下一步为步骤 1，尚未修改 AGENTS.md 或实施后续代码。
 
+## 12. 步骤 4 执行记录（2026-10-10）
+
+步骤 4 已完成并推送。实现提交为 `6d00115`，计划与 ChangeLog 回执提交为 `15e0310`；两个提交均已推送到 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，远端 `git ls-remote` 为 `15e0310fca79e67fdcf2696c302865d732db806c`。
+
+本步只改变测试支持层、两相专项测试和测试输出隔离。快速层 128 项、真实两相专项层 31 项全部通过；未运行步骤 5 分层入口、步骤 6 独立隔离门禁、全量 pytest 或其他拓扑全面回归。步骤 5 是下一步。
+
 ## 9. 步骤 1 执行记录（2026-10-10）
 
 ### 9.1 修改边界及实际规则
