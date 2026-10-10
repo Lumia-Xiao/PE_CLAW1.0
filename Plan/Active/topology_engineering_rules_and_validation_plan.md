@@ -1,8 +1,8 @@
 # 拓扑工程规则与验证机制加强计划
 
-- **状态**：Active / 方案已建立，步骤 0–7 待执行。
+- **状态**：Active / 步骤 0 盘点、环境探测和范围冻结已验证，待提交推送；步骤 1–7 待执行。
 - **创建日期**：2026-10-10。
-- **当前授权**：创建本独立计划并记录 ChangeLog；本次不执行下列规则、契约、模板或自动检查的实施。
+- **当前授权**：执行步骤 0 的现状盘点与边界冻结；本次只更新本计划和 ChangeLog，不执行步骤 1–7。
 - **目标**：使智能体能够从开发规则找到工程契约，从契约找到可执行断言，并以可复核证据说明修改完成范围，减少新增拓扑时的跨阶段遗漏和返工。
 - **首个试点**：`single_phase_interleaved_boost_pfc_diode_bridge`；必要时保留单相 Boost PFC 最小配对验证。
 - **Git 分支**：`codex/llc-waveform-operating-point-plan`。
@@ -100,7 +100,7 @@
 
 | 步骤 | 状态 | 主要交付 |
 |---|---|---|
-| 0 | 待执行 | 现状、依赖、复用和验证范围冻结 |
+| 0 | 已验证，待提交推送 | 现状、依赖、复用和验证范围冻结 |
 | 1 | 待执行 | AGENTS.md 完成门槛 |
 | 2 | 待执行 | 公共工程契约及两相实例 |
 | 3 | 待执行 | 计划模板 |
@@ -215,3 +215,116 @@
 ## 7. 创建记录
 
 2026-10-10：按用户要求建立本独立 Active plan。仅新增本计划并追加 ChangeLog；没有修改 AGENTS.md、工程契约、模板、生产代码、测试或验证脚本。步骤 0–7 均待执行。本次创建采用文件存在性、现有文件引用、状态检查及定向/暂存 diff 验证，不运行 pytest。创建提交与推送结果由 Git 记录和任务回执确认。
+
+## 8. 步骤 0 执行记录与冻结清单（2026-10-10）
+
+### 8.1 实际执行范围
+
+基准提交为 `b7c2cbf`。读取根规则、现有拓扑文档、归档计划、相关模型、拓扑算法、请求适配、流水线、GUI controller/view、现有校验与基线脚本及全部 20 个两相专项测试文件。检查解释器、包导入来源、pytest 收集和隐藏 Tk 窗口；没有执行设计、选型、损耗、效率或真实 GUI 按钮链。
+
+本阶段只更新本计划和 ChangeLog。既有 95 个无关 tracked 删除、两个无关 untracked 文件及用户 outputs 不处理；归档计划保持原样。本节冻结的文件和接口是后续实施目标，不表示已经建立。
+
+### 8.2 历史问题到当前实现、断言和缺口的映射
+
+以下“已有实现/覆盖”来自静态阅读和本次收集，不代表本次运行通过。
+
+| 历史问题 | 当前实现及实际消费者 | 已有断言 | 后续补强或限制 |
+|---|---|---|---|
+| 低线电感与额定线请求混用、平均/RMS 混用 | 两相 `synthesizer.py` 保存 low/nominal/high metrics；`waveform.py` 提供 design boundary；`stress_adapter.py`、`inductor_adapter.py`、桥 pipeline 消费对应边界 | 步骤 2、10B、10C、10D 检查边界和请求 | 步骤 2 统一生产者/消费者表；独立公式参考保留，不能仅让适配器与同一个 metadata 相等 |
+| 两相分支漏扩大搜索 | `run_magnetic_pipeline.py` 初筛 allow 为零时调用现有 `search_fixed_inductor_candidate_frontier`；phase 2 独立身份复用模型 | 10G mock 分支、步骤 8 真实宽/窄线、隔离案例 | 分支测试与真实库验收分别保留，不把 mock 成功当可用磁件证据 |
+| 第二相缺失或总览只画一个电感 | magnetic、geometry、hardware overview 各保留相位实例/target/child/object | 步骤 6/7、10E 的完整、缺相、缺布局/工件和复用路径 | 公共断言显式要求实例数、role、ID 唯一；理想均流为两相契约，不能泛化成全部拓扑规则 |
+| 运行点复用设计数组、负载重复缩放 | `waveform.py` 按 OperatingPoint 重采样；运行点磁件适配与桥损耗读取当前 waveform；`run_operating_point_refresh.py` 保留选定硬件 | 10I contract、10I-2、步骤 8 禁止 selector 调用 | 现有跨线波形测试为三个满载点，未独立覆盖完整 3×3 物理矩阵；步骤 4/6 补独立数值预期及旧工况注入拒绝 |
+| Loss/Inductor 与 Sweep 来源不同 | 两相 `loss_readback.py` 优先取精确 1.0 p.u. 点；两页调用同一 resolver；controller 用 replace 将 sweep 写回 report | loss display 五项测试覆盖同源、回退、磁件冒充系统和 blocked | 补缺精确满载、缺单分量、NaN/Infinity、错误发布总量/效率的检查器负向例；比较 resolver 重算结果之外，还要检查原始 sweep 发布值 |
+| GUI 链路成功但数值未核对 | `efficiency_sweep_controller.py` 更新 state report；Loss/Inductor/Efficiency 各有 view | 步骤 9 真实 Tk 检查按钮、实例、效率完整和标题；纯文本测试另查固定数值 | 真实 GUI 运行 sweep 后缺少跨页数值与 CSV/JSON 精确对照；步骤 4/6 补读取当前 report、页面和导出的一致性 |
+| 空/部分结果被状态名掩盖 | 缺硬件前置返回可能保留默认 `status="available"`；`is_complete()` 检查非空及非 None，未证明网格齐全、有限性和守恒 | 步骤 8 缺硬件、10I-3 blocked 无产物 | 新门禁检查 status、期望网格、点/分量有限性、守恒、来源和工件；不在本计划改公共 status 或 `is_complete()` |
+| 旧报告或文件被下一次运行改变 | run context、输出目录、保留旧对象与文件哈希 | 步骤 3 轻量顺序检查、步骤 10 真实双顺序与宽/窄线重复 | 保留独立重复设计，不能用共享 fixture 或复用缓存代替真实隔离 |
+
+另有三项现状需要明确处理：
+
+1. `docs/two_phase_interleaved_boost_pfc.md` 的 Design Boundary 段仍描述 10I 前“复用候选线路周期/只缩放低线电流”的限制，与当前 operating-point 实现不一致。步骤 2 修正文档并区分实际刷新支持与未完成的全工况物理验收；本步不改该文档。
+2. `scripts/report_schema_validation.py` 校验历史 structured report v1；其快照入口对空 records 不会自动报错，不能直接把 CLI exit=0 当新验收门禁。后续只在适用 schema 上复用 `validate_report`，入口自行拒绝空集合，不修改历史脚本或 schema。
+3. 部分现有测试会写默认 outputs：步骤 5/10D 的 `_report()` 未传 output_root，步骤 6 mock 磁件测试的报告没有 run context，可能回退共享 `outputs/inductor_design`。后续只在相关两相测试中补 tmp_path/显式工件目录，不新增影响全部 tests 的全局 fixture，也不改生产默认输出策略。10G 正常分支已经用 tmp_path 隔离，不重复改写。
+
+### 8.3 文件与权威关系冻结
+
+| 步骤 | 确认的新增或修改载体 | 边界 |
+|---|---|---|
+| 1 | `AGENTS.md` | 补强现有工作流/验收段落；后续文档不存在前不设失效必读链接 |
+| 2 | 新增 `docs/engineering_contracts.md`；修改 `docs/two_phase_interleaved_boost_pfc.md` 和必要 AGENTS 引用 | 公共描述方式一个来源；具体两相字段/公式归拓扑文档；历史证据只引用 |
+| 3 | 新增 `Plan/templates/topology_change_plan_template.md`；必要 AGENTS 引用 | 完整与简化模板共享门槛，模板不重复抄写全部公式 |
+| 4 | 新增 `tests/engineering_support/__init__.py`、`assertions.py`、`interleaved_boost_pfc.py`；新增 `tests/test_topology_engineering_checks.py` | 测试支持层，无生产包依赖此支持层；拓扑适配只读取/构造测试快照 |
+| 4 | 按必要性修改现有 loss display、步骤 8/9 用例；补步骤 5/6/10D 测试输出隔离；新矩阵可放新检查文件 | 复用既有断言，不删除原路径，不把真实测试替换成 mock；修改前再确认具体用例依赖 |
+| 5 | 新增 `scripts/validate_topology_engineering.py`、`tests/test_topology_engineering_runner.py`；更新契约中的执行说明 | 显式测试映射、标准库 subprocess/XML/JSON；不新增 pytest 插件或第三方依赖 |
+| 6/7 | 本计划、ChangeLog、必要验证说明 | 记录限定实测；超范围生产缺陷另行安排 |
+
+`src/`、`pyproject.toml`、历史 fixtures/快照生成脚本不属于本轮预定修改范围。运行环境在入口及子进程显式设置，不全局改变 pytest 配置。导入测试支持模块使用 `engineering_support`，子进程 PYTHONPATH 依次包含本仓库 `src`、`tests`，且 cwd 为本仓库；不用 `tests` 同名包作为公共生产依赖。
+
+`runtime/reproducibility.py` 已有 environment snapshot、canonicalization 和严格 JSON 工具，可阅读复用适用部分；它会移除 artifact/path 等 volatile 字段，不能无差别用于新来源/工件归属校验。10G `_audit_snapshot` 已保留 non-finite 诊断编码，历史 fixture 原样保留；新回执使用明确编码与 `allow_nan=False`，不靠删字段通过。
+
+### 8.4 最小公共接口冻结（后续实现目标）
+
+公共接口为普通测试辅助函数，失败抛 `AssertionError`，诊断含规则代码、字段、预期与实际；不修改生产模型、状态 enum 或引入通用计算框架。数值容差按契约显式传入，不设覆盖所有物理量的隐藏容差。
+
+| 接口 | 最小输入及检查 |
+|---|---|
+| `assert_loss_balance` | components、required_components、发布 total_loss_w、output_power_w、efficiency 及明确容差；检查完整/有限/适用非负、原始总量和独立效率公式，不能先重算覆盖错误再检查 |
+| `assert_operating_basis` | expected/actual 工况映射、required_keys、数值容差；检查 Vin RMS/Vout/load/frequency/PF/来源等适用参数，缺字段失败，拒绝混入旧工况 |
+| `assert_fixed_hardware` | before/after 身份映射、required_roles、已捕获 selection 调用；检查角色完整、身份不变与调用为零，调用监视由测试安装，不通过快照猜测 |
+| `assert_physical_instances` | 实例列表、expected_roles、expected_count；检查角色、design ID/physical ID、数量和唯一性；相同库型号可合法复用 |
+
+`interleaved_boost_pfc.py` 负责显式字段映射：设计 breakdown 使用 `*_loss_w`，sweep 使用桥/半导体/磁件/电容/other 字段及精确满载点；每相子项不再计入系统分量以免重复求和。字段生产者、工况和完整性来自步骤 2 文档，适配器不得把缺项变成 0。
+
+GUI 格式和 CSV/JSON 对照放在两相专项断言内，读取字段值及显示精度，不先提取一个泛化的任意文本解析器。搜索分支继续复用 10G 测试，隔离继续复用既有双顺序测试，不重复封装所有能力。
+
+### 8.5 分组冻结与成本政策
+
+本次成功 collect-only：20 文件 / 107 个独立参数化用例，13.66 s；以下按现有节点分组互不重叠。数字是当前收集基准，步骤 4 新增检查后必须重新收集，不把 107 当永久目标或 passed 数。
+
+| 层级 | 当前节点归属 | 当前数量 |
+|---|---|---:|
+| quick | loss display、步骤 1/2/3/4/6、10B/10C/10G/10I-contract 全文件；10A 除真实 current-baseline replay 外四项；步骤 5 仅 role 声明；步骤 9 仅 user guide | 60 |
+| integration | 步骤 5 其余三项、10D 三项、10I-2 三项、10I-3 一项、步骤 7 一项、步骤 8 十四项、10E 十六项、10A current-baseline replay 一项、步骤 9 前两个结果契约项 | 44 |
+| gui | 步骤 9 `test_step9_real_gui_runs_two_phase_design_results_and_efficiency` | 1 |
+| isolation | 步骤 10 的旧/新双顺序与宽/窄双顺序两项 | 2 |
+
+quick 允许轻量文件和绘图 mock 工件，但不执行真实库选型；必要输出隔离修正完成后才满足入口要求。不能以文件名含 contract/gui 判断是否昂贵：10E 和步骤 9 前两项均依赖真实完整设计；10I-2 会执行部分真实 pipeline，归 integration。
+
+现有 module fixture：步骤 8 每个宽/窄设计复用一次；10E 共用一次默认设计；步骤 9 结果检查共用一次。保持这些复用，不为了公共断言复制真实设计。3×3 工况矩阵应在同一固定宽线硬件上刷新九点，公式检查另用独立预期；真实 GUI、双顺序隔离及严格基线重放按其目的独立执行。昂贵搜索串行，不引入 xdist，也不跨隔离运行缓存。
+
+以下新增用例在步骤 4/5 实现：通用损耗/工况/身份/实例负向与适配测试归 quick；真实跨线损耗矩阵与导出对照归 integration；刷新后的页面数值归 gui；入口参数、来源、空集合、子进程失败及回执测试归 quick，用受控轻量子进程，不触发真实搜索。测试列表使用显式文件/node ID，不用会隐式扩到全部测试的默认路径。
+
+### 8.6 验证入口与回执边界冻结
+
+首版参数为 `--topology`、可重复 `--level quick|integration|gui|isolation`、`--output-dir`，均要求显式给出。只接受两相 topology ID；旧 Boost 仅作为 isolation 内部配对，不宣称为第二个完整适配。未知拓扑/层级或空选择失败，不设置默认全量/全部层级。
+
+入口相对自身定位仓库，使用当前解释器、结构化 argv、明确 cwd/PYTHONPATH，先核验实际包和所收集测试路径都属于当前仓库，再执行。新增支持层必须在来源检测后导入。子进程使用 `-B`、`PYTHONDONTWRITEBYTECODE=1`、现有确定性环境和 `MPLBACKEND=Agg`；GUI 层额外探测 Tk，失败单独分类。
+
+每层使用 pytest `-o addopts=`、`-p no:cacheprovider`、独立 `--basetemp`、JUnit XML 及 stdout/stderr，避免继承共享 `pytest_temp`。输出根必须为本次新目录，拒绝复用已有目录；pytest basetemp 自带清空行为只允许作用于该新根的专属子目录。历史基线脚本使用的 TemporaryDirectory 通过子进程 TEMP/TMP 指向本次新根，不改用户历史输出，不自动清理。
+
+JSON 回执至少包含版本、拓扑/层级、解释器/包与测试来源、Git HEAD/dirty 状态、期望/实际节点、实际命令/退出码、各类计数/耗时、工件路径及诊断。JUnit/stdout 互相核对，失败、不适用、未执行、收集错误和环境问题保留区别；required skip/xfail/空集合/缺期望节点均不能升级为 passed。合法不适用项按预先声明的适配范围列明，不通过 pytest skip 隐藏。
+
+入口退出码：0 仅表示请求层级全部必要检查通过；1 为执行后的必要断言/测试失败；2 为配置、来源、环境、收集或未执行等不能完成验证的情况。实际 child returncode 原样记录，其他异常/中断也必须非零并保留诊断；未选择层级标为 not_requested，不能写成整体拓扑已验收。
+
+### 8.7 本次环境与实际验证
+
+- Python `3.12.10`，解释器 `C:\Users\Lumia\AppData\Local\Programs\Python\Python312\python.exe`；pytest `9.1.1`，matplotlib `3.11.0`，Tk `8.6.15`。
+- **默认导入风险已证实**：未设置 PYTHONPATH 时 find_spec 指向 `C:\Users\Lumia\Documents\PE_Claw\PE-Claw1.0\src\pe_claw_gui\__init__.py`；这只是定位探测，没有从该旧包执行测试。
+- 设置当前仓库 `src` 后，实际导入路径位于本仓库 `src/pe_claw_gui/__init__.py`，Path.is_relative_to 断言通过。
+- 隐藏 Tk 窗口 `Tk → withdraw → update_idletasks → destroy` 成功；只证明当前会话可初始化 Tk，不证明真实应用按钮链或后续会话一直可用。
+- collect-only 返回 0：`107 tests collected in 13.66s`；没有运行 fixture/test body。AST 辅助检查未发现 20 文件顶层直接执行设计或 Tk；它不是全部 import 副作用证明。
+- 新契约、模板、支持包及入口目标路径均未存在，未创建占位文件。未生成根 `.pytest-tmp-*` 或共享 `outputs/inductor_design`；已有 `pytest_temp` 不清理。
+- 早期只读搜索因 PowerShell 不展开 rg 文件通配符/不支持 Bash 花括号而报错，已用目录加 `-g` 或显式路径重查；不属于测试失败或工程缺陷。
+
+本次关键命令（从仓库根运行）：
+
+```powershell
+$env:PYTHONPATH = (Join-Path (Get-Location).Path 'src')
+$env:PYTHONDONTWRITEBYTECODE = '1'
+$env:MPLBACKEND = 'Agg'
+$testFiles = @(Get-ChildItem tests -Filter 'test_two_phase_interleaved_boost_pfc_*.py' | Sort-Object Name | ForEach-Object FullName)
+python -B -m pytest -o addopts= -p no:cacheprovider --collect-only -q @testFiles
+git diff --check -- Plan/Active/topology_engineering_rules_and_validation_plan.md ChangeLog.md
+git diff --cached --check
+```
+
+实际收集由 Python subprocess 以等价 argv 和 60 s timeout 调用上述 pytest，输出逐文件节点数量；环境/Tk 用 `python -B -` 内联诊断。步骤 0 不将任何 collected 用例写成 passed，也不重复历史电气验证。文档/引用和分组覆盖检查、定向及暂存 diff 审查完成后提交推送，再更新步骤 0 完成状态。

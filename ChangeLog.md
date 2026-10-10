@@ -1873,3 +1873,11 @@ listed here.
 - 状态：Active，步骤 0–7 全部待执行；本次只创建计划，不修改 AGENTS.md、工程契约、模板、生产代码、测试或脚本，不重新打开已归档两相计划。
 - 验证：文件存在性、现有文件引用、阶段状态、文档审查及定向/暂存 `git diff --check`；本次无运行行为变更，不运行 pytest。实际创建提交和远端确认见本次 Git 历史与任务回执。
 - Git 与维护：基准 `dd53e9e`，分支 `codex/llc-waveform-operating-point-plan`，推送目标 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`。既有无关删除及用户文件不纳入提交；不清理文件、不执行备份。
+
+## 2026-10-10 - 拓扑工程规则与验证计划步骤 0 盘点和范围冻结
+
+- 目的与文件：执行 `Plan/Active/topology_engineering_rules_and_validation_plan.md` 步骤 0，仅更新计划和本日志；核对历史问题的当前实现、消费者、已有断言和后续覆盖缺口，冻结后续文件、最小测试接口、四层分组及入口/回执边界。
+- 发现：默认 Python 包来源仍指向旧 PE-Claw1.0，显式设置当前 src 后实际导入正确；两相文档仍有 10I 前运行点限制说明，安排步骤 2 修正；部分旧两相测试缺显式工件根，安排后续测试局部隔离。上述不是本步生产修复。
+- 验证：Python 3.12.10、pytest 9.1.1、matplotlib 3.11.0、Tk 8.6.15；实际源码位置断言和隐藏 Tk 初始化探测通过。20 个两相文件 collect-only 收集 107 项（13.66 s），未执行用例/fixture；分组基准 quick 60、integration 44、gui 1、isolation 2。未运行设计、电气链、真实 GUI 按钮链、全量或旧拓扑全面回归。
+- 后续：保留独立公式参考、原始发布损耗/效率校验、旧工况注入和真实跨页/导出一致性门槛；不把 schema CLI 空快照成功或 is_complete 当完整验收；不修改公共状态/公式/历史基线。
+- Git 与维护：基准 `b7c2cbf`，分支 `codex/llc-waveform-operating-point-plan`，推送 `pe-claw-1.1` 同名分支；阶段完成状态在本记录验证、提交并推送后同步。既有 95 个无关删除、两个无关 untracked 和用户 outputs 不纳入提交；不清理、不备份。定向/暂存 diff、引用及分组检查随本阶段提交执行。
