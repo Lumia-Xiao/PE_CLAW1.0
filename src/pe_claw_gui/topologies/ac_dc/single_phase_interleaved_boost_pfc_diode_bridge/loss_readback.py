@@ -91,23 +91,35 @@ def _snapshot_from_full_load_point(point: EfficiencySweepPoint) -> InterleavedBo
 
 def _snapshot_from_design_point(report: DesignReport) -> InterleavedBoostPFCLossSnapshot:
     loss = report.loss
-    if loss is None or not _finite_nonnegative(loss.total_loss_w):
+    if loss is None:
         return _unavailable_snapshot("Design-point system loss is unavailable.")
+    breakdown = loss.breakdown_w
+    values = {
+        "semiconductor": breakdown.get("semiconductor_loss_w"),
+        "bridge rectifier": breakdown.get("bridge_rectifier_loss_w"),
+        "magnetic": breakdown.get("inductor_total_loss_w"),
+        "capacitor": breakdown.get("dc_link_capacitor_loss_w"),
+        "other": breakdown.get("other_loss_w"),
+    }
+    if any(not _finite_nonnegative(value) for value in values.values()):
+        return _unavailable_snapshot(
+            "Design-point system loss is unavailable until bridge, semiconductor, "
+            "magnetic, capacitor, and other components are all available."
+        )
     output_power = report.candidate.pout_target if report.candidate is not None else report.spec.pout
     output_power = _as_finite_float(output_power)
-    total = float(loss.total_loss_w)
+    total = sum(float(value) for value in values.values())
     efficiency = output_power / (output_power + total) if output_power is not None and output_power > 0.0 else None
-    breakdown = loss.breakdown_w
     return InterleavedBoostPFCLossSnapshot(
         source="design_point",
         source_label="Design-point",
-        semiconductor_loss_w=_as_finite_float(breakdown.get("semiconductor_loss_w")),
-        bridge_rectifier_loss_w=_as_finite_float(breakdown.get("bridge_rectifier_loss_w")),
-        magnetic_loss_w=_as_finite_float(breakdown.get("inductor_total_loss_w")),
+        semiconductor_loss_w=float(values["semiconductor"]),
+        bridge_rectifier_loss_w=float(values["bridge rectifier"]),
+        magnetic_loss_w=float(values["magnetic"]),
         phase_1_magnetic_loss_w=_as_finite_float(breakdown.get("phase_1_inductor_total_loss_w")),
         phase_2_magnetic_loss_w=_as_finite_float(breakdown.get("phase_2_inductor_total_loss_w")),
-        capacitor_loss_w=_as_finite_float(breakdown.get("dc_link_capacitor_loss_w")),
-        other_loss_w=_as_finite_float(breakdown.get("other_loss_w")),
+        capacitor_loss_w=float(values["capacitor"]),
+        other_loss_w=float(values["other"]),
         total_loss_w=total,
         output_power_w=output_power,
         efficiency=efficiency,

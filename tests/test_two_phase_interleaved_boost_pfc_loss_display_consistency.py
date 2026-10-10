@@ -105,6 +105,28 @@ def test_design_point_is_used_only_when_no_sweep_exists() -> None:
     assert "30 W" in text
 
 
+def test_magnetic_stage_total_is_not_displayed_as_design_point_system_loss() -> None:
+    report = _report()
+    report = report.__class__(
+        spec=report.spec,
+        loss=LossResult(
+            total_loss_w=0.478755,
+            breakdown_w={
+                "phase_1_inductor_total_loss_w": 0.2393775,
+                "phase_2_inductor_total_loss_w": 0.2393775,
+                "inductor_total_loss_w": 0.478755,
+            },
+        ),
+    )
+    snapshot = resolve_interleaved_boost_pfc_loss_snapshot(report)
+    text = "\n".join(build_system_loss_summary(report))
+
+    assert snapshot.source == "unavailable"
+    assert snapshot.total_loss_w is None
+    assert "Total estimated loss: - W" in text
+    assert "0.478755 W" not in text
+
+
 def test_blocked_sweep_does_not_fall_back_to_partial_design_or_sweep_values() -> None:
     blocked = EfficiencySweepResult(status="blocked", blocked_reason="missing phase-2 magnetic loss")
     report = _report(sweep=blocked)
