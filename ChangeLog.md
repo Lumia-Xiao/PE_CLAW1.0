@@ -3,7 +3,7 @@
 - 目的与范围：完成 topology engineering rules plan 的文档、引用、证据和 Git 收尾；没有重复昂贵工程测试或修改生产代码、库、历史 fixture 和公共配置。
 - 审计：67 个本地文档链接、AGENTS 完成门槛、工程契约、两相契约、模板、分层入口、当前参考、测试映射和未覆盖范围核对通过。当前参考门禁和步骤 6 推送回执保留；完整发布验收、全量 pytest、其他拓扑全面回归与硬件可采购性不作完成声明。
 - 归档：`Plan/Active/topology_engineering_rules_and_validation_plan.md` 移动至 `Plan/completed/topology_engineering_rules_and_validation_plan.md`；工作区权威引用同步到 completed 路径，计划内部历史 provenance 保留。
-- Git：本步文档和归档更新待提交并推送到 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；既有无关删除、untracked 和本地运行产物不纳入。
+- Git：文档和归档更新提交 `d9934f4` 已推送到 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，远端 SHA 为 `d9934f47f63b93cb8787b5203a103ec7ca34b2e5`；既有无关删除、untracked 和本地运行产物不纳入。
 
 ## 2026-10-11 - 建立当前版本参考并修正两相基线门禁
 
