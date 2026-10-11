@@ -1940,3 +1940,8 @@ listed here.
 - 验证：入口轻量真实子进程专项最终 43 passed（40.87 s），覆盖正常/断言/fixture/收集/来源/Tk/退出/中断等；首轮嵌套 rootdir 继承造成失败，已显式固定并保留原失败证据。当前清单独立 collect-only 为 22 文件 / 244 个唯一节点，分层 195/46/1/2，无遗漏或重叠。最终新入口 quick 195 passed（pytest 53.54 s；入口 66.88 s），包括前述 43 项，非额外唯一用例；failed/errors/skipped/xfail 为 0。每次 pytest 的既有 cache_dir 配置 warning 单列，未改公共配置。来源/源码编译/帮助/链接及定向、暂存 diff 核对随提交执行。
 - 范围与维护：真实 integration/gui/isolation、全量及其他拓扑全面回归未运行，步骤 6 完整试运行/隔离仍待执行。测试/回执根均为本步新 `.pytest-tmp-rules5-*`；不清理、不备份、不提交产物，保留无关删除、untracked 和用户 outputs。
 - Git：基准 `576272d`，分支 `codex/llc-waveform-operating-point-plan`，推送 `pe-claw-1.1` 同名分支；实现及文档提交推送后，以独立回执提交同步步骤 5 完成状态。
+
+## 2026-10-11 - 步骤 5 完成状态与推送确认
+
+- 分层入口、probe、43 项工具测试及使用文档提交 `b73de83` 已推送到 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，远端 SHA 为 `b73de8332d2264742ee80e0048e48e0bbacb8555`。同步 Active plan 首页、步骤 5 状态及本回执，步骤 6–7 保持待执行。
+- 验证：沿用本步最终实际 quick 195 passed（含 43 项工具测试，不重复累计）、22 文件/244 节点清单、三个源码编译/帮助、54 个本地链接、append-only、定向及暂存 diff/八文件范围。回执仅修改计划和 ChangeLog，独立提交推送，不重复电气测试。未执行真实 integration/gui/isolation、全量或其他拓扑全面回归；既有无关改动和临时产物保留且未纳入提交。
