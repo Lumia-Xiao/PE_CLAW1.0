@@ -39,7 +39,8 @@ reuse; real magnetic searches are serialized. The full 244-case manifest is a
 selection contract, not a claim that all cases were executed by step 5.
 
 For additional layers, repeat `--level`, for example `--level integration --level gui`.
-These can be costly. Step 6 owns the complete real-chain trial and isolation gate.
+These can be costly. Step 6 owns the complete real-chain trial and isolation gate;
+its actual result below includes a failed baseline check.
 
 ## Receipt and failure handling
 
@@ -77,3 +78,42 @@ outputs, regenerate baselines, or publish generated artifacts. Existing baseline
 tests retain their own temporary-directory lifecycle. Keep all receipts, logs and
 runtime artifacts untracked. A passed selected layer does not establish release
 acceptance, physical purchasability, or correctness of unselected topologies.
+
+## Step 6 trial, 2026-10-11
+
+At `9e7d76f`, all four layers executed 244 unique cases: quick 195 passed,
+integration 45 passed / 1 failed, GUI 1 passed, isolation 2 passed. The overall
+receipt correctly reports `failed` / exit 1. The failed check compares the
+current three-case design snapshot to the frozen 10H baseline; that baseline
+predates subsequent operating-point and loss-readback changes. The failure
+remains a required gate and has not been skipped or repaired by replacing a
+baseline. Step 6 is not complete.
+
+A separate nominal diagnostic found 21 differences, limited to operating magnetic
+loss and its total/thermal/presentation consumers, plus the explicit operating
+waveform's public duty. Hardware and search audits matched. For example, both
+inductors changed from 0.686512766826 W to 0.478754624314 W; explicit operating
+duty changed from 0.186827201635 to 0.483765244950. These correspond to post-10H
+waveform/adapter changes; they require a separately reviewed current reference,
+not automatic promotion of the diagnostic to a golden baseline. The diagnostic
+took 135.06 s and one additional design search chain.
+
+Layer durations including collection were 63.73 / 1067.21 / 189.92 / 788.55 s;
+total entry-point duration was 2115.41 s. There were 17 real magnetic design
+search chains (integration 8, GUI 1, isolation 8), counted once per real-library
+design including its initial and optional expanded search. Phase-instance reuse
+and fixed-hardware refresh are not new searches. This is not a low-level backend
+call count or a measured speedup. A separate single-case diagnostic is excluded
+from these trial counts.
+
+Direct pytest repeated 102 lightweight cases and matched all 102 nodes against
+quick's passed call outcomes: 244 unique cases, 346 node executions including
+the repeat. Current fixed-hardware line/load, real GUI numeric/export and
+both-order isolation checks passed; they do not override the baseline failure.
+The existing `cache_dir` configuration warning was recorded separately.
+
+Local evidence is under `.pytest-tmp-rules6-trial/` (overall receipt, per-layer
+logs/JUnit and `step6_cost_and_search_summary.json`), `.pytest-tmp-rules6-direct/`
+(direct commands and node comparison), and `.pytest-tmp-rules6-baseline-diagnostic/`
+(single-case field differences). These generated files remain untracked. See
+section 14 of the Active plan for scope, failure diagnosis and follow-up gates.

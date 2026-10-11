@@ -356,6 +356,10 @@ These supplement existing T10G search and isolation tests.
 
 Use the [layered validation entry point](topology_engineering_validation.md)
 for explicit test selection and execution receipts. The Active plan records
-step 4 direct runs and step 5 tooling validation separately; the complete
-step 6 trial/isolation gate remains pending. Neither these mappings nor a
-collected manifest mark unexecuted checks passed or reopen archived plans.
+step 4 direct runs and step 5 tooling validation separately. Step 6 executed all
+244 selected cases on 2026-10-11: 243 passed, and the current replay versus the
+frozen 10H baseline failed. Real fixed-hardware line/load, GUI numeric/export
+and both-order isolation checks passed, but step 6 remains incomplete pending
+the baseline gate. See section 14 of the Active plan for evidence and diagnosis;
+no historical baseline was replaced. Neither these mappings nor a collected
+manifest mark unexecuted checks passed or reopen archived plans.

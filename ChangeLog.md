@@ -1945,3 +1945,12 @@ listed here.
 
 - 分层入口、probe、43 项工具测试及使用文档提交 `b73de83` 已推送到 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，远端 SHA 为 `b73de8332d2264742ee80e0048e48e0bbacb8555`。同步 Active plan 首页、步骤 5 状态及本回执，步骤 6–7 保持待执行。
 - 验证：沿用本步最终实际 quick 195 passed（含 43 项工具测试，不重复累计）、22 文件/244 节点清单、三个源码编译/帮助、54 个本地链接、append-only、定向及暂存 diff/八文件范围。回执仅修改计划和 ChangeLog，独立提交推送，不重复电气测试。未执行真实 integration/gui/isolation、全量或其他拓扑全面回归；既有无关改动和临时产物保留且未纳入提交。
+
+## 2026-10-11 - 步骤 6 两相分层试运行与基线门禁失败记录
+
+- 范围与文件：执行四层入口，仅修改 Active rules plan、`docs/topology_engineering_validation.md`、`docs/two_phase_interleaved_boost_pfc.md` 和本日志；生产代码、测试、脚本、公式、字段、库、选型策略和历史基线均未修改。
+- 实际验证：当前 `9e7d76f`，Python 3.12.10 / pytest 9.1.1，入口核实本仓库包及测试来源。22 文件/244 唯一节点：quick 195 passed、integration 45 passed/1 failed、GUI 1 passed、isolation 2 passed；无 errors/skipped/xfail，整体 failed/exit 1。各层含收集耗时 63.73/1067.21/189.92/788.55 s，总 2115.41 s。既有 cache_dir 配置 warning 单列；未运行全量或其他旧拓扑全面回归。
+- 通过范围：真实宽/窄库、固定硬件线路/负载矩阵、原始系统总量/效率及工件、真实 Tk 按钮/当前数值和 CSV/JSON、必要旧 Boost/两相及宽/窄双顺序隔离通过。直接 pytest 102 passed（6.94 s）逐节点与 quick 匹配，是重复执行，合计仍为 244 唯一节点/346 次节点执行。真实磁件设计搜索链为 17 次（8/1/8，包含基线三例；固定硬件刷新/phase 2 复用不计为重选），不宣称底层调用数或加速比。
+- 失败与诊断：当前基线回放与 `d02d617` 冻结的 10H 快照精确比较失败；后续 10I 改了运行点磁件请求和 duty。仅追加一次 nominal 诊断（135.06 s，1 次搜索），保存 21 条字段差异：双相磁件 0.686512766826→0.478754624314 W，design 聚合 30.957926132850→30.750167990339 W，运行 duty 0.186827201635→0.483765244950；硬件/搜索审计等不变。该 design 聚合与额定 sweep 24.52620442350514 W 使用不同分量边界，不混作同工况总量。诊断不是门禁通过；未覆盖/替换黄金文件或弱化断言。
+- 状态与证据：步骤 6 记为已试运行、基线门禁未通过，步骤 7 待执行，计划不归档；后续单独审查当前参考、字段契约/独立预期并重验。原失败总回执、分层日志/JUnit/真实工件和搜索计数位于 `.pytest-tmp-rules6-trial`；重复核对及字段差异位于 `.pytest-tmp-rules6-direct`、`.pytest-tmp-rules6-baseline-diagnostic`，全部不提交。
+- Git 与维护：基准 `9e7d76f`，分支 `codex/llc-waveform-operating-point-plan`，仅将四文档提交推送至 `pe-claw-1.1` 同名分支。保留 95 个既有无关删除、无关 untracked 和用户 outputs；不清理、不备份。文档/引用、append-only、定向及暂存 diff/范围和远端 SHA 在提交时核对，Git 回执后续单独同步；不得将记录已推送写成工程门禁通过。

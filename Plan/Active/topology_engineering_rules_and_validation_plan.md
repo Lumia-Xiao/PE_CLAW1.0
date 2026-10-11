@@ -1,8 +1,8 @@
 # 拓扑工程规则与验证机制加强计划
 
-- **状态**：Active / 步骤 0–5 已完成并推送；步骤 6–7 待执行。
+- **状态**：Active / 步骤 0–5 已完成并推送；步骤 6 已试运行，基线门禁未通过；步骤 7 待执行。
 - **创建日期**：2026-10-10。
-- **当前授权**：执行步骤 5，建立分层验证入口、结构化回执及轻量子进程测试；不执行步骤 6–7 的完整试运行和隔离验收。
+- **当前授权**：执行步骤 6，通过新入口完成两相快速、真实集成、GUI 及必要旧 Boost 配对隔离验收；不执行全量测试或步骤 7 归档。
 - **目标**：使智能体能够从开发规则找到工程契约，从契约找到可执行断言，并以可复核证据说明修改完成范围，减少新增拓扑时的跨阶段遗漏和返工。
 - **首个试点**：`single_phase_interleaved_boost_pfc_diode_bridge`；必要时保留单相 Boost PFC 最小配对验证。
 - **Git 分支**：`codex/llc-waveform-operating-point-plan`。
@@ -106,7 +106,7 @@
 | 3 | 已完成并推送 | 计划模板 |
 | 4 | 已完成并推送 | 可复用断言及负向测试 |
 | 5 | 已完成并推送 | 分层验证入口与回执 |
-| 6 | 待执行 | 两相真实试运行和必要旧拓扑配对 |
+| 6 | 已试运行，基线门禁未通过 | 两相真实试运行和必要旧拓扑配对；见第 14 节 |
 | 7 | 待执行 | 范围核对与收尾 |
 
 每一步修改前说明预期行为与命令；完成必要验证、追加 ChangeLog、检查差异、commit 并 push 后才能标记完成。计划创建本身不代表步骤 0 已执行。
@@ -512,3 +512,90 @@ Python 3.12.10、pytest 9.1.1，当前 src 与 tests 来源已由入口核实。
 实现及文档提交 `b73de83` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；`git ls-remote` 核实为 `b73de8332d2264742ee80e0048e48e0bbacb8555`。最终 quick 195 passed、22 文件/244 节点清单核对、三个 Python 源码编译、CLI 帮助、54 个本地文档链接、ChangeLog append-only、定向及暂存 diff/八文件暂存范围均通过；没有生产代码、公共配置或历史基线变更。无关 95 个删除及既有 untracked 保留，运行产物未提交。
 
 步骤 5 在实现推送核实后标记完成，本回执及状态以独立文档提交推送。步骤 6–7 保持待执行；下一步是步骤 6：通过新入口执行两相完整试运行、真实集成/GUI 及必要旧 Boost 双顺序隔离。当前回执不表示这些未选层级或全量发布验收通过。
+
+## 14. 步骤 6 两相试运行与必要配对验收（2026-10-11）
+
+### 14.1 范围、环境与命令
+
+本步为验证执行及文档记录，基准提交 `9e7d76f2d9610e068c99979bf5f953ebbdcbcc91`。复用步骤 4 的断言与步骤 5 的入口，不修改生产代码、公式、字段、单位、状态、库记录、选型策略、公共配置、历史基线或测试。范围为两相全部 244 个显式节点及 isolation 内必要单相 Boost 配对；其他拓扑不在本步范围。既有 95 个 tracked 删除和无关 untracked 保留，不清理历史目录或用户 outputs。
+
+实际命令（仓库根目录，PowerShell）：
+
+```powershell
+python -B scripts/validate_topology_engineering.py --topology single_phase_interleaved_boost_pfc_diode_bridge --level quick --level integration --level gui --level isolation --output-dir .pytest-tmp-rules6-trial
+```
+
+入口为每层设置当前仓库 `src;tests;root`、新 pytest basetemp 和 TEMP/TMP/TMPDIR，先核对实际来源再执行。Python 3.12.10、pytest 9.1.1、matplotlib 3.11.0，解释器为 `C:\Users\Lumia\AppData\Local\Programs\Python\Python312\python.exe`。实际包、工程测试支持和收集节点均来自本工作区；默认安装的旧 PE-Claw1.0 路径未用于本次电气验证。
+
+另以直接 pytest 复核 102 个轻量节点，使用相同 child_environment 和来源 preflight、新根 `.pytest-tmp-rules6-direct`，不重复真实磁件搜索：
+
+```powershell
+python -B -m pytest --rootdir <当前仓库绝对路径> -q -o addopts= -p no:cacheprovider --basetemp <当前仓库>/.pytest-tmp-rules6-direct/pytest-temp --junitxml <当前仓库>/.pytest-tmp-rules6-direct/junit.xml tests/test_topology_engineering_checks.py tests/test_two_phase_interleaved_boost_pfc_loss_display_consistency.py tests/test_two_phase_interleaved_boost_pfc_step3_waveform.py
+```
+
+实际完整 argv、退出码及 stdout/stderr 留在 `command.json` 和同目录日志中；占位路径只是本文的命令缩写。该 102 项与 quick 重叠，不能累计为新增唯一用例。
+
+### 14.2 分开判定的证据
+
+- **公式**：quick 的独立参考与 integration 的固定硬件矩阵，分别核对设计边界、运行点相电流/电压/占空比/纹波及平均/RMS/峰值；损耗检查读取原始发布 total/efficiency，按明确五分量、输出功率基准和容差验证，不只验证 resolver 的重算值。
+- **契约与真实库**：默认宽线与窄线分别检验扩大搜索和初筛，两相独立身份、每相请求、几何、损耗、缺件阻塞及真实 CSV/JSON/图片。T8 在宽线 180/230/265 Vac 和窄线 230/245/265 Vac，各取 0.1/0.5/1.0 p.u.；刷新禁止重新选型，核对实际工况和工件归属。
+- **用户链路**：真实 Tk 应用隐藏窗口，调用设计→电容→磁件→波形→效率按钮；比较当前 state_store report、Loss/Inductor/Efficiency 文本和 CSV/JSON 的数值、来源及显示精度。采用自动按钮链，未做人工可视交互验收；GUI sweep 只取 0.5/1.0 p.u.，完整线路矩阵由 T8 承担。
+- **隔离**：单相→两相与两相→单相，宽线→窄线与窄线→宽线，各重跑两个设计；比较规范化工程快照、旧报告 pickle 和文件哈希，检查 run ID 独立、工件归属及 active run context 清空。顺序隔离不替代公式验证，也不证明其他旧拓扑通过。
+
+已知故障由受控负向用例拒绝，mock 耗尽/异常分支与真实库可用性分开记录。原有 first-pass、理想均流和 CCM 模型范围保持不变，本步不新增控制、DCM 或器件可采购性结论。
+
+### 14.3 实际结果、重复执行与成本
+
+四层入口实际收集并执行 22 文件 / 244 个互不重叠的唯一节点，243 passed、1 failed，errors/skipped/xfail 为 0；总回执为 `failed`，退出码 1，耗时 2115.41 s（35.26 min）。每层的 JUnit、执行阶段记录和终端汇总均由入口核对。没有缺失节点、环境失败或被忽略的必要项。
+
+| 层级 | 实际结果 | pytest 执行耗时 | 层级耗时（含收集；GUI 含 Tk 探测） | 真实磁件设计搜索链 |
+|---|---|---:|---:|---:|
+| quick | 195 passed | 55.40 s | 63.73 s | 0 |
+| integration | 45 passed / 1 failed | 1057.99 s | 1067.21 s | 8 |
+| gui | 1 passed | 175.91 s | 189.92 s | 1 |
+| isolation | 2 passed | 778.64 s | 788.55 s | 8 |
+
+这里一次“真实搜索链”指一个设计执行真实库磁件初筛及必要的有界扩大搜索，第二相型号复用不另算一次。integration 为 T7 一次、T8 宽/窄两个 module fixture、T10E 一次、基线回放 nominal/low/high 三次、T9 结果契约一次；gui 为按钮链一次；isolation 为两个测试各四次，其中单相 Boost 两次、两相六次。合计 17 次（两相 15、单相 2）；mock/禁用磁件分支及固定硬件刷新不计入。这是设计搜索链次数，不是未插桩的底层 backend 调用数、候选数或搜索内部阶段数。
+
+工件交叉核对：integration 保留 5 个实际 `feasible_candidates.csv` 设计根，gui 1 个，isolation 8 个；基线回放的 3 个临时根按既有 helper 生命周期清除，但执行失败发生在三例生成后的比较断言，不能漏计其搜索。隔离的宽/窄 `isolation_receipt.json` 实际记录宽线 14→24→48（前两级 post_allow=0，48 为 181），窄线初筛 14 通过；phase 2 均共享 phase 1。阶段计数不把提供的 baseline 重算成一次新增生成。
+
+直接执行 102 passed（6.94 s，退出 0），JUnit 节点逐项与 quick 的 call passed 匹配，额外唯一节点为 0。故本轮为 244 个唯一用例、346 次节点执行（含重复 102），不是 346 个不同用例。负向子进程中的预期失败属于检查器测试内部输入，不是被隐藏的外层失败。每次 pytest 的既有 `Unknown config option: cache_dir` 单列为 warning，未修改共享配置。
+
+本轮实际宽线硬件在 230 Vac / 满载导出系统损耗 `24.52620442350514 W`、效率 `0.9760609300986051`（97.606093%）；180/265 Vac 分别为 `30.961320352541275 W` / `20.926549784566884 W`，对应不同实际线路，不强制数值相等。GUI 同工况的页面/导出检查通过；两类双顺序隔离检查通过，旧报告和工件哈希未被后续运行改变。
+
+本步无未经测量的提速结论；耗时包含真实库、图片/CSV 导出、GUI、基线回放及隔离重跑，不可仅按节点数量比较成本。
+
+### 14.4 失败门禁与证据位置
+
+唯一失败为 `test_step10h_current_baseline_is_repeatable_and_preserves_10g_engineering` 中 `assert actual == expected`。冻结快照最后修改于 `d02d617`（10H），后续 `ab59926`、`309e376` 修改实际运行波形/磁件损耗请求，`5193279`、`c0d073a`、`405c6ba` 修改损耗来源和显示；静态历史关联不能替代具体字段诊断。额外只复算一个 nominal 案例定位差异，单独记为诊断搜索，不计为新 pytest 用例、不覆盖历史快照，也不把诊断执行成功当原门禁通过。
+
+nominal 诊断实际完成，退出 0、135.06 s，增加 1 次真实两相设计搜索链，故包括诊断共 18 次（四层试运行自身仍为 17 次）。实际字段级差异共 21 处：gui 5、loss 6、presentation 8、thermal 1、waveform 1。同一输入下 candidate、candidate_metadata、line_cycles、stress、hardware、frontier_search_audit、geometry、presence、notes 均与历史一致；这里“geometry 一致”指顶层身份/尺寸快照，presentation 内随磁件损耗更新的 loss_w 仍是差异。
+
+| 字段 | 10H 历史 source | 当前 nominal target | 绝对差 | 口径与所有者 |
+|---|---:|---:|---:|---|
+| `loss.breakdown_w.inductor_copper_loss_w` | 0.625950424799 W | 0.382301965533 W | 0.243648459266 W | loss pipeline，两相当前磁件评估 |
+| `loss.breakdown_w.inductor_core_loss_w` | 0.060562342027 W | 0.096452658781 W | 0.035890316754 W | loss pipeline，两相当前磁件评估 |
+| `loss.breakdown_w.inductor_total_loss_w` | 0.686512766826 W | 0.478754624314 W | 0.207758142512 W | 两相之和，不重复计入系统 |
+| `loss.total_loss_w` | 30.957926132850 W | 30.750167990339 W | 0.207758142511 W | design-point 聚合，半导体/桥仍按设计边界 |
+| `waveform.public.duty` | 0.186827201635 | 0.483765244950 | 0.296938043315 | 显式 OperatingPoint 时由 waveform 取线路周期均值 |
+
+历史比较为精确相等（数值容差 0），相对误差及每条 source/target/category/owner 和证据路径保留在 `comparison.json`；序列化数值字段也显式计算误差，不丢弃来源字符串。当前额定波形的每相磁件损耗为 0.239377312157 W，相关总览、几何展示、热 summary 和 Loss 文本随之变化；21 处差异由这些字段及 duty 构成。`309e376` 的 adapter diff 明确从设计低线回退改为优先当前相波形；`ab59926` 的 waveform diff 明确显式运行点使用 `_mean(duty)`。这确认 10H 精确快照与后续 10I 语义不再相同，不证明当前所有字段已经拥有完整新基线。
+
+诊断的 `30.750167990339 W` 是未附 sweep 的 design-point 聚合，不能与 230 Vac 固定硬件 sweep 的 `24.52620442350514 W` 当作同工况同范围总量强行相等：前者半导体/桥仍用低线电流/高线电压设计边界，磁件优先当前额定相波形；后者逐点刷新各系统分量。GUI 在 sweep 后读取精确满载快照的检查本次通过。新参考必须保留并说明这一边界区别，不能仅用页面一致性代替工程基准。
+
+本次本地证据（均不提交）：
+
+- `.pytest-tmp-rules6-trial/receipt.json`：四层失败总回执、Git/解释器/来源、完整命令、退出码和时间。
+- 同根各层 `collect.json`、`execute.json`、`junit.xml`、stdout/stderr：实际节点、执行阶段及失败诊断。
+- `.pytest-tmp-rules6-trial/step6_cost_and_search_summary.json`：唯一/重复计数、设计搜索链口径、实际磁件工件根和宽/窄搜索审计。
+- `.pytest-tmp-rules6-trial/integration/execute-temp/`、`gui/execute-temp/`、`isolation/execute-temp/`：真实工件及必要隔离回执。
+- `.pytest-tmp-rules6-direct/command.json`、`comparison.json`、`junit.xml`：102 项直接执行与入口逐节点比较。
+- `.pytest-tmp-rules6-baseline-diagnostic/`：独立 nominal 当前快照、字段级 source/target/error/tolerance/basis/owner/category/path 诊断及命令耗时。
+
+步骤 6 不标记完成，步骤 7 及全计划归档不执行。不得删除失败项、调整清单将其移出门禁、放宽比较或自动重写历史基线。后续需依据具体差异明确历史快照与当前验收的关系、受影响字段契约和当前参考的来源，再安排单独修正及必要重验；已通过且未受修改影响的昂贵层不无理由重跑。未执行全量 pytest、其他旧拓扑全面回归或发布验收。
+
+### 14.5 后续修正及提交范围
+
+后续单独安排基线验收修正：保留 10H 冻结文件和历史断言的可追溯性，明确后续 10I/duty/磁件损耗变化的独立参考、适用工况及字段容差；建立当前修订的版本化参考和对应断言，不将本次自动诊断快照直接升级为黄金值，也不回退正确的运行点模型去满足旧快照。修正必须检查三例、实际损耗分量/功率基准、相关热/展示消费者及独立公式；验证工具应仍拒绝未解释差异。完成该修正后再决定步骤 6 能否通过，步骤 7 才能收尾。
+
+本步仅提交本计划、验证入口文档、两相验证映射和 append-only ChangeLog；实际 src/tests/scripts/库/基线无修改。本地诊断脚本和所有产物不提交。提交前审查命令/结果、文档引用、ChangeLog append-only、定向/暂存 diff 和范围；推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，不推旧 origin、不处理 95 个既有删除。失败门禁的保留是本步真实结果，不是步骤 6 完成声明。
