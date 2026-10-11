@@ -1,8 +1,8 @@
 # 拓扑工程规则与验证机制加强计划
 
-- **状态**：Active / 步骤 0–4 已完成并推送；步骤 5–7 待执行。
+- **状态**：Active / 步骤 0–4 已完成并推送；步骤 5 实施与验证中；步骤 6–7 待执行。
 - **创建日期**：2026-10-10。
-- **当前授权**：执行步骤 4，建立测试支持断言、负向检查及两相结果/导出/GUI 一致性验证；不执行步骤 5–7。
+- **当前授权**：执行步骤 5，建立分层验证入口、结构化回执及轻量子进程测试；不执行步骤 6–7 的完整试运行和隔离验收。
 - **目标**：使智能体能够从开发规则找到工程契约，从契约找到可执行断言，并以可复核证据说明修改完成范围，减少新增拓扑时的跨阶段遗漏和返工。
 - **首个试点**：`single_phase_interleaved_boost_pfc_diode_bridge`；必要时保留单相 Boost PFC 最小配对验证。
 - **Git 分支**：`codex/llc-waveform-operating-point-plan`。
@@ -56,7 +56,7 @@
 | `scripts/record_two_phase_interleaved_boost_pfc_step10h_baseline.py` | 真实链路快照和明确归一化政策 |
 | `pyproject.toml` | 现有 pytest 配置及测试目录 |
 
-载体如下；AGENTS.md 门槛及工程契约/两相实例已在步骤 1–2 实施，模板本次按步骤 3 建设，自动检查仍待后续步骤：
+载体如下；AGENTS.md、工程契约、模板及测试支持已在步骤 1–4 实施；本次步骤 5 建立分层入口及回执：
 
 | 载体 | 计划处理 |
 |---|---|
@@ -65,7 +65,7 @@
 | `docs/two_phase_interleaved_boost_pfc.md` | 补齐实际字段生产者、消费者、工况及验证映射 |
 | `Plan/templates/topology_change_plan_template.md` | 新增完整模板及小改动简化方式 |
 | `tests/` 下必要支持模块与专项测试 | 复用已有用例，提取最小公共断言；具体文件在步骤 0/4 确认 |
-| `scripts/validate_topology_engineering.py` | 拟新增专项验证入口；参数及回执契约在步骤 0/5 确认 |
+| `scripts/validate_topology_engineering.py` | 步骤 5 分层入口；用法见 `docs/topology_engineering_validation.md` |
 | `ChangeLog.md` | 每个有意义阶段追加记录 |
 
 公共断言属于测试支持层，不把测试读取适配放入生产 electrical models。只有存在真实重复或稳定消费者时才提取抽象。
@@ -105,7 +105,7 @@
 | 2 | 已完成并推送 | 公共工程契约及两相实例 |
 | 3 | 已完成并推送 | 计划模板 |
 | 4 | 已完成并推送 | 可复用断言及负向测试 |
-| 5 | 待执行 | 分层验证入口与回执 |
+| 5 | 实施与验证中 | 分层验证入口与回执 |
 | 6 | 待执行 | 两相真实试运行和必要旧拓扑配对 |
 | 7 | 待执行 | 范围核对与收尾 |
 
@@ -265,7 +265,7 @@
 
 `runtime/reproducibility.py` 已有 environment snapshot、canonicalization 和严格 JSON 工具，可阅读复用适用部分；它会移除 artifact/path 等 volatile 字段，不能无差别用于新来源/工件归属校验。10G `_audit_snapshot` 已保留 non-finite 诊断编码，历史 fixture 原样保留；新回执使用明确编码与 `allow_nan=False`，不靠删字段通过。
 
-### 8.4 最小公共接口冻结（后续实现目标）
+### 8.4 最小公共接口冻结（步骤 4 已实现）
 
 公共接口为普通测试辅助函数，失败抛 `AssertionError`，诊断含规则代码、字段、预期与实际；不修改生产模型、状态 enum 或引入通用计算框架。数值容差按契约显式传入，不设覆盖所有物理量的隐藏容差。
 
@@ -282,12 +282,12 @@ GUI 格式和 CSV/JSON 对照放在两相专项断言内，读取字段值及显
 
 ### 8.5 分组冻结与成本政策
 
-本次成功 collect-only：20 文件 / 107 个独立参数化用例，13.66 s；以下按现有节点分组互不重叠。步骤 4 已新增支持检查，实际执行数量以本步回执为准，不把 107 当永久目标或 passed 数。
+步骤 0 历史 collect-only 为 20 文件 / 107 项（13.66 s）；步骤 4 后为 21 文件 / 201 项。步骤 5 新增 43 项入口测试，当前重新收集为 22 文件 / 244 项。下表是当前完整、互不重叠的选择契约，不是全部用例通过记录；步骤 4 的 128 项快速执行仅为当时选定子集。
 
 | 层级 | 当前节点归属 | 当前数量 |
 |---|---|---:|
-| quick | 新增工程支持/负向检查、loss display、步骤 1/2/3/4/6、10B/10C/10G/10I-contract 全文件；10A 除真实 current-baseline replay 外四项；步骤 5 仅 role 声明；步骤 9 仅 user guide | 128（本步实际） |
-| integration | 步骤 5 其余三项、10D 三项、10I-2 三项、10I-3 一项、步骤 7 一项、步骤 8 十四项、10E 十六项、10A current-baseline replay 一项、步骤 9 前两个结果契约项 | 44 |
+| quick | 工程支持/负向检查 76 项、入口测试 43 项、loss display、步骤 1/2/3/4/6、10B/10C/10G/10I-contract 全文件；10A 除真实 current-baseline replay 外四项；步骤 5 仅 role 声明；步骤 9 仅 user guide | 195 |
+| integration | 步骤 5 其余三项、10D 三项、10I-2 三项、10I-3 一项、步骤 7 一项、步骤 8 十六项、10E 十六项、10A current-baseline replay 一项、步骤 9 前两个结果契约项 | 46 |
 | gui | 步骤 9 `test_step9_real_gui_runs_two_phase_design_results_and_efficiency` | 1 |
 | isolation | 步骤 10 的旧/新双顺序与宽/窄双顺序两项 | 2 |
 
@@ -295,7 +295,7 @@ quick 允许轻量文件和绘图 mock 工件，但不执行真实库选型；�
 
 现有 module fixture：步骤 8 每个宽/窄设计复用一次；10E 共用一次默认设计；步骤 9 结果检查共用一次。保持这些复用，不为了公共断言复制真实设计。3×3 工况矩阵应在同一固定宽线硬件上刷新九点，公式检查另用独立预期；真实 GUI、双顺序隔离及严格基线重放按其目的独立执行。昂贵搜索串行，不引入 xdist，也不跨隔离运行缓存。
 
-步骤 4 已实现：通用损耗/工况/身份/实例负向与适配测试归 quick；真实跨线损耗矩阵、固定硬件和导出对照归 integration；刷新后的页面数值归真实 GUI 用例。步骤 5 仍负责入口参数、来源、空集合、子进程失败及回执测试，用受控轻量子进程，不触发真实搜索。测试列表使用显式文件/node ID，不用会隐式扩到全部测试的默认路径。
+步骤 4 已实现：通用损耗/工况/身份/实例负向与适配测试归 quick；真实跨线损耗矩阵、固定硬件和导出对照归 integration；刷新后的页面数值归真实 GUI 用例。步骤 5 已新增入口参数、来源、空集合、子进程失败及回执测试，使用受控轻量子进程，不触发真实搜索。入口使用显式文件/node ID 和每项冻结数量，不用会隐式扩到全部测试的默认路径。
 
 ### 8.6 验证入口与回执边界冻结
 
@@ -465,3 +465,44 @@ git diff --cached --check
 ### 11.4 完成与推送回执
 
 模板及正式引用提交 `6337fe0` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实远端 SHA 为 `6337fe0385837025da767774a656d3e12bc9a0f1`。定向及暂存 diff、四文档暂存范围、文档审查和引用/映射检查通过，既有无关改动保留。本步没有电气/GUI/pytest 执行或生产实现改变；步骤 3 在模板提交推送后标为完成，状态及本回执以独立文档提交推送。下一步为步骤 4：整理可复用断言与负向检查；步骤 4–7 保持待执行。
+
+## 13. 步骤 5 执行记录（2026-10-11）
+
+### 13.1 修改边界与交付
+
+基准 `576272d717c0de70c3b58d3ddba18436e9c534fb`。分类为文档/测试工具；新增 `scripts/validate_topology_engineering.py`、`scripts/topology_validation_probe.py`、`tests/test_validate_topology_engineering.py` 和 `docs/topology_engineering_validation.md`，同步公共契约、两相文档覆盖状态、本计划及 ChangeLog。未修改 src、生产公式、工程字段/单位/状态、库记录、选型策略、旧拓扑实现或历史基线；其他拓扑没有新的生产消费者，故不扩展全面回归。
+
+首版仅适配两相 ID，旧 Boost 只作为 isolation 内部配对；三个必填参数为 `--topology`、可重复 `--level quick|integration|gui|isolation` 和 `--output-dir`。重复层级去重并按固定顺序串行；不支持默认全测或任意拓扑。每个显式 selector 冻结参数化数量，当前四层为 195/46/1/2，22 文件共 244 个互不重叠节点。收集与执行分开核实，不把收集数当 passed。
+
+### 13.2 来源、输出及回执行为
+
+- 入口相对脚本定位仓库，子进程显式使用当前解释器、cwd、src/tests/root PYTHONPATH、`-B`、禁字节码、Agg 和既有确定性运行环境。预检先用 find_spec 核实包/支持层来源，再核对实际 pe_claw_gui 导入与 runtime helper；pytest probe 在测试模块收集前再次核实来源，并检查每个实际测试路径。
+- 来源验证后复用 `runtime.reproducibility.environment_snapshot` 和 `DETERMINISTIC_ENVIRONMENT`；不复用会删除路径/来源的 canonicalization。回执保留原始 Git 版本/HEAD/分支/dirty 状态、解释器/源码来源、运行参数、预期/实际节点及路径、命令/退出码、各层计数/耗时、诊断及日志位置。
+- 输出根独占新建，拒绝已有文件或目录。每层拥有 collect/execute basetemp、JUnit 与 stdout/stderr，TEMP/TMP/TMPDIR 指向本次根。入口不清理旧输出或重新生成基线；既有 baseline helper 的 TemporaryDirectory 自身生命周期保持原样。
+- `collect.json`/`execute.json` 记录实际节点及 setup/call/teardown；入口对照冻结 selector/count、执行节点与来源、JUnit 身份/计数及终端汇总。缺节点、空集合、skip/xfail/xpass、缺阶段、证据不一致、环境/收集/内部失败及异常退出均不返回成功。fixture 失败与真实 assertion 失败保留为执行失败，Tk 预探测失败单列为环境问题。
+- `receipt.json` schema 为 `topology_engineering_validation_v1`；0 表示选中层级必要项通过，1 表示执行的测试/fixture 失败，2 表示配置/来源/环境/收集/证据/未执行等不完整情况。未选层为 not_requested，未到达的已选层为 not_executed。非有限诊断采用带 non_finite 键的明确编码，并以 allow_nan=False 写 JSON；不删除诊断或改物理值。
+- 参数/已有输出在独占目录创建前拒绝时，仅 stderr 返回错误，不向用户已有目录写回执；创建后的失败保留非成功回执及可用日志。支持模块没有生产计算或 GUI 行为改动。
+
+### 13.3 验证与实际范围
+
+本步验证命令：
+
+```powershell
+$env:PYTHONPATH = (Join-Path (Get-Location) 'src') + ';' + (Join-Path (Get-Location) 'tests')
+$env:PYTHONDONTWRITEBYTECODE = '1'
+$env:MPLBACKEND = 'Agg'
+python -B -m pytest -o addopts= -p no:cacheprovider tests/test_validate_topology_engineering.py -q --basetemp .pytest-tmp-rules5-tooling-r3
+python -B scripts/validate_topology_engineering.py --topology single_phase_interleaved_boost_pfc_diode_bridge --level quick --output-dir .pytest-tmp-rules5-entry-final
+```
+
+入口专项：43 passed（40.87 s），包含受控轻量真实子进程：正常执行、断言失败、fixture setup/teardown 失败及组合失败、skip/xfail/xpass、空/报错/缺节点收集、子进程退出、源码及测试路径错误、Tk 失败、超时/中断、已有根保护、无效参数和严格 JSON 诊断。首轮发现嵌套仓库继承外层 rootdir，已显式固定 --rootdir 并验证修复；原失败记录保留，不弱化断言。
+
+全清单 collect-only 独立核实：22 文件 / 244 节点，四层完整且互不重叠；工件位于 `.pytest-tmp-rules5-manifest/`，仅证明选择清单，不执行真实 fixture。初次新入口 quick 为 195 passed（入口总耗时 70.82 s；执行子进程 58.38 s），回执位于 `.pytest-tmp-rules5-entry/receipt.json`。补充失败时的节点/证据路径及预期清单记录后，再以 final 新根验证最终版本，结果在提交前记录。
+
+**最终版本结果**：`.pytest-tmp-rules5-entry-final/receipt.json` 为 passed / exit 0；quick 195 passed（pytest 53.54 s；执行子进程 54.63 s；收集子进程 6.55 s；入口总耗时 66.88 s）。failed/errors/skipped/xfail 均为 0，JUnit、执行阶段证据和终端汇总一致；其余三层为 not_requested。包含上述 43 项入口测试的最终版本重新执行，先前 43 passed 与 quick 中的 43 项属于重复验证，不能相加成唯一测试数。`--help`、三个 Python 文件源码编译和实际源码来源核验通过。
+
+Python 3.12.10、pytest 9.1.1，当前 src 与 tests 来源已由入口核实。no:cacheprovider 导致既有 cache_dir 选项 warning，单列为配置 warning，未改 pytest 公共配置。未执行本步 integration/gui/isolation 的真实应用链、全量 pytest 或其他拓扑全面回归；步骤 4 历史真实链路不冒充本步验证。步骤 6 仍需使用新入口做完整试运行和必要旧拓扑隔离。
+
+### 13.4 完成门槛及 Git
+
+检查新 Python 源码编译、实际清单/分组、使用文档链接/字段、ChangeLog append-only、定向及暂存 diff、暂存范围和远端。只提交本步文件；保留既有 95 个无关 tracked 删除、无关 untracked、用户 outputs 和既有临时目录，不清理、不备份、不提交运行产物。实现/文档验证、commit 和指定分支 push 后再同步步骤 5 完成状态。

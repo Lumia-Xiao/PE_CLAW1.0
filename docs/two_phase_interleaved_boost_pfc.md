@@ -181,7 +181,7 @@ it does not assert that all generic caches automatically detect stale data.
 | `OperatingPoint.vin_v`, `load_ratio`, optional `vout_v`, `power_factor`, `switching_frequency_hz` | V AC RMS, ratio, V DC, ratio, Hz | `validate_operating_point_contract` then `generate_waveforms`; actual Vin in inclusive design range, finite load >= 0; optional Vout/fs positive finite, PF in (0,1] | Invalid inputs raise ValueError. No enforced load upper bound; acceptance is not overload validation. Optional fields fall back to design values in waveform generation. T10I |
 | `phase_currents_a`, `phase_ripple_pp_a`, `phase_waveforms`, `phase_device_metrics` | A per phase average envelope / p-p / average,RMS,peak metrics; phase offsets in degrees | `generate_waveforms` / `_phase_metrics`; actual line/load on explicit operating path; stress, magnetic loss, plots | Require phase_1 and phase_2 and consistent array lengths. Refresh each actual point; candidate design arrays remain unchanged. T3/T10I/T10I2 |
 | `WaveformSet.inductor_current_a`, `switch_current_a`, `diode_current_a`, `input_source_current_a`; `phase_inductor_voltage_v` | A aggregate envelopes / signed AC source; V representative phase envelope | Waveform projection and `aggregate_waveform_basis`; current operating adapters and plots | Public scalar arrays do not resolve switching edges. Per-phase requests read phase metadata, not aggregate current. T3/T10I2 |
-| `operating_vin_rms_v`, `operating_vout_v`, `operating_power_factor`, `operating_switching_frequency_hz`, `operating_active_power_w`, `operating_line_cycle_source` | V RMS, V DC, ratio, Hz, system W, source string | Explicit operating waveform path; source is `recomputed_from_operating_point`; adapters/audit readers | Match actual requested basis and waveform identity; nominal no-point path does not promise these source keys. Presence alone does not prove freshness. T10I plus pending stale-source gate |
+| `operating_vin_rms_v`, `operating_vout_v`, `operating_power_factor`, `operating_switching_frequency_hz`, `operating_active_power_w`, `operating_line_cycle_source` | V RMS, V DC, ratio, Hz, system W, source string | Explicit operating waveform path; source is `recomputed_from_operating_point`; adapters/audit readers | Match actual requested basis and waveform identity; nominal no-point path does not promise these source keys. Presence alone does not prove freshness. T10I plus engineering-support stale-source and independent-reference checks |
 | `InductorDesignRequest.i_avg_a`, `i_rms_a`, `i_peak_a`, `i_valley_a`, `delta_i_pp_a`, `v_l_on_v`, `v_l_off_v` | A per phase mean/RMS/peak/design valley/ripple p-p; V on/off | `_build_interleaved_boost_pfc_design_request`: low-line current and low-line volt-seconds; magnetic screening | One physical Boost inductor per request; throughput is Pout/2 proxy, not loss. `i_valley_a` is the clipped design peak-envelope lower edge, not minimum across the line. T10D/T6 |
 | Operating magnetic request: same current fields, `fs_hz`, operating Vin/Vout, `throughput_power_w` | A actual phase metrics; Hz; V RMS / DC; W per-phase proxy | `_build_interleaved_boost_pfc_waveform_operating_request` reads phase metadata; selected model loss evaluator | Array/metric completeness and finiteness checked; missing phase raises `InductorRequestUnavailableError`. No-waveform compatibility fallback retains design ripple/volt-seconds and is separately covered by T6, not actual-line evidence. T10I2 |
 | `phase_1_design_id`, `phase_2_design_id`, `phase_1_instance_id`, `phase_2_instance_id` in magnetic `design_requirements`; chosen-design `phase_role` | Identity, two physical instances | Magnetic pipeline: one search, two phase instances; loss, geometry, overview and sweep hardware audit | Same model allowed, distinct phase/design identity required. No fabricated second phase; incomplete geometry has no complete group totals. Keep fixed during refresh; reselecting invalidates dependent results. T6/T10E/T8 |
@@ -300,7 +300,8 @@ all five design breakdown keys are required before source `design_point` can
 be shown; magnetic-only totals are insufficient. Per-phase values are optional
 in this resolver, so system-component completeness alone does not prove complete
 instance readback. The resolver does not compare the original published sweep
-total/efficiency to its recalculation; that is a step 4 negative-check target.
+total/efficiency to its recalculation; the test-only `assert_point_loss` check
+now rejects inconsistent original values independently of this resolver.
 
 The Efficiency page and JSON/CSV use the sweep result's published values.
 `EfficiencySweepController.run_active_efficiency_sweep` attaches the result via
@@ -335,7 +336,7 @@ assertion and a real-library assertion are labelled separately.
 | T5 | [step5_devices](../tests/test_two_phase_interleaved_boost_pfc_step5_devices.py): `test_step5_selects_bridge_and_four_auditable_device_positions`; aggregate bridge and failed phase | Real device routing/selection; not full converter loss proof |
 | T6 | [step6_magnetics](../tests/test_two_phase_interleaved_boost_pfc_step6_magnetics.py): `test_phase_requests_are_explicit_and_equal_share`; no-waveform operating compatibility and two instances | Magnetic search mocked; actual waveform request covered by T10I2 |
 | T7 | [step7_pipeline](../tests/test_two_phase_interleaved_boost_pfc_step7_pipeline.py): `test_step7_runs_two_phase_pipeline_through_geometry` | Real component sum/geometry and missing component; design basis |
-| T8 | [step8_efficiency](../tests/test_two_phase_interleaved_boost_pfc_step8_efficiency.py): `test_step8_efficiency_sweep_refreshes_fixed_two_phase_hardware`; missing hardware parameterization | Real wide/narrow designs, load points, no selector calls and artifacts; not a complete independent 3-by-3 line/load matrix |
+| T8 | [step8_efficiency](../tests/test_two_phase_interleaved_boost_pfc_step8_efficiency.py): `test_step8_efficiency_sweep_refreshes_fixed_two_phase_hardware`; `test_engineering_actual_line_load_matrix_uses_fixed_hardware_and_current_requests`; missing hardware parameterization | Real wide/narrow designs, fixed-hardware 3-by-3 actual line/load waveforms and requests, independent phase equations, loss/efficiency and exports |
 | T10B / T10C | [step10b_boundaries](../tests/test_two_phase_interleaved_boost_pfc_step10b_boundaries.py): `test_step10b_records_separate_current_and_voltage_design_boundaries`; [step10c_stress](../tests/test_two_phase_interleaved_boost_pfc_step10c_stress.py): `test_step10c_combines_low_line_current_with_high_line_voltage` | Separate design envelope and nominal readback |
 | T10D | [step10d_requests](../tests/test_two_phase_interleaved_boost_pfc_step10d_requests.py): `test_step10d_magnetic_request_uses_low_line_per_phase_boundary`, `test_step10d_bridge_request_uses_low_line_current_and_high_line_voltage` | Request basis; exhaustion branch mocked |
 | T10E | [step10e_results](../tests/test_two_phase_interleaved_boost_pfc_step10e_results.py): `test_step10h_hardware_overview_exposes_two_phase_inductor_children`; missing phase/layout/artifact and geometry reuse/failure cases | Real default design with injected missing/failure paths |
@@ -345,10 +346,16 @@ assertion and a real-library assertion are labelled separately.
 | Display | [loss_display_consistency](../tests/test_two_phase_interleaved_boost_pfc_loss_display_consistency.py): `test_loss_and_inductor_views_use_the_same_full_load_snapshot`; five-component sum/design fallback/magnetic-only/blocked cases | Fixed-value text checks, not real GUI refresh/export equality |
 | GUI / isolation | [step9_gui](../tests/test_two_phase_interleaved_boost_pfc_step9_gui.py): `test_step9_real_gui_runs_two_phase_design_results_and_efficiency`; [step10_isolation](../tests/test_two_phase_interleaved_boost_pfc_step10_isolation.py): both-order old/new and wide/narrow tests | Real GUI operation and separate isolation runs; neither substitutes for independent numerical checks |
 
-Pending Active-plan checks include original published total/efficiency
-corruption, absent exact full-load point, individual missing/non-finite
-components, stale basis/source, absent second instance, selection during refresh,
-independent fixed-hardware 3-by-3 line/load values, and current GUI/CSV/JSON
-numeric agreement. Existing coverage should be reused where it already supplies
-a gate. Steps 4-6 implement or execute these checks; this documentation step
-does not mark them passed, change production semantics or reopen archived plans.
+The test-only [engineering checks](../tests/test_topology_engineering_checks.py)
+now cover published total/efficiency corruption, absent exact full-load point,
+missing/non-finite components, stale basis/source, absent or duplicated physical
+instances, reselection, and corrupted/foreign exports or display values. T8 adds
+the real fixed-hardware matrix; the existing real GUI test reads current state
+and compares Loss/Inductor/Efficiency numbers and exports after the sweep.
+These supplement existing T10G search and isolation tests.
+
+Use the [layered validation entry point](topology_engineering_validation.md)
+for explicit test selection and execution receipts. The Active plan records
+step 4 direct runs and step 5 tooling validation separately; the complete
+step 6 trial/isolation gate remains pending. Neither these mappings nor a
+collected manifest mark unexecuted checks passed or reopen archived plans.

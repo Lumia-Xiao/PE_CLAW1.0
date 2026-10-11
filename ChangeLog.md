@@ -1932,3 +1932,11 @@ listed here.
 - 行为：公共断言检查损耗原始总量/效率、运行工况来源、固定硬件身份/禁止重新选型和物理实例唯一性；两相适配器检查五分量、每相磁件子项、精确满载点、3×3 独立波形参考、GUI 显示精度及 JSON/CSV 工件归属。已知错误通过受控负向用例明确拒绝。
 - 验证：显式当前仓库 `src;tests` 导入，Python 3.12.10、pytest 9.1.1。快速层 `128 passed`（6.78 s）；真实两相专项层 `31 passed`（503.56 s）；每层 1 个既有 `cache_dir` 配置 warning，无失败。真实层覆盖宽/窄设计、固定硬件运行点、GUI 按钮链和页面/导出一致性；未运行步骤 5 入口、步骤 6 隔离、全量 pytest 或其他拓扑全面回归。
 - Git 与维护：实现与本计划回执分开提交，推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；既有无关删除/untracked/outputs 保持原样，测试临时目录不纳入提交。步骤 5 分层入口仍待执行。
+
+## 2026-10-11 - 步骤 5 建立分层验证入口及执行回执
+
+- 文件与目的：新增 `scripts/validate_topology_engineering.py`、`scripts/topology_validation_probe.py`、`tests/test_validate_topology_engineering.py`、`docs/topology_engineering_validation.md`，同步公共工程契约、两相文档、Active rules plan 及本日志。分类为文档/测试工具；不修改 src、生产公式/字段/单位/状态、库、选型策略或历史基线。
+- 行为：只适配两相 ID，显式选择 quick/integration/gui/isolation 和新输出目录；冻结 selector/count，先核实实际包/测试来源，再分别收集和执行。记录 Git/解释器/环境、预期/实际节点、setup/call/teardown、JUnit/终端计数、原始命令/退出码/日志/耗时；拒绝空集、缺节点、skip/xfail/xpass、来源错误和不完整证据。退出 0/1/2 区分选中层级通过、执行失败和配置/环境/收集/未完成；非有限诊断显式编码，JSON 不丢路径和来源。
+- 验证：入口轻量真实子进程专项最终 43 passed（40.87 s），覆盖正常/断言/fixture/收集/来源/Tk/退出/中断等；首轮嵌套 rootdir 继承造成失败，已显式固定并保留原失败证据。当前清单独立 collect-only 为 22 文件 / 244 个唯一节点，分层 195/46/1/2，无遗漏或重叠。最终新入口 quick 195 passed（pytest 53.54 s；入口 66.88 s），包括前述 43 项，非额外唯一用例；failed/errors/skipped/xfail 为 0。每次 pytest 的既有 cache_dir 配置 warning 单列，未改公共配置。来源/源码编译/帮助/链接及定向、暂存 diff 核对随提交执行。
+- 范围与维护：真实 integration/gui/isolation、全量及其他拓扑全面回归未运行，步骤 6 完整试运行/隔离仍待执行。测试/回执根均为本步新 `.pytest-tmp-rules5-*`；不清理、不备份、不提交产物，保留无关删除、untracked 和用户 outputs。
+- Git：基准 `576272d`，分支 `codex/llc-waveform-operating-point-plan`，推送 `pe-claw-1.1` 同名分支；实现及文档提交推送后，以独立回执提交同步步骤 5 完成状态。

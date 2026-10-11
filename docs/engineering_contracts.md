@@ -141,9 +141,10 @@ as separate evidence. Stable baselines, sums, labels, unavailable status and
 design metadata cannot substitute for the physical or actual operating-point
 checks they do not exercise. Reuse existing coverage without weakening it.
 
-The two-phase document maps current producers and tests and explicitly lists
-gaps. Creating these documents runs no electrical tests and adds no automatic
-checker. The Active plan schedules reusable assertions in step 4, the validation
-entry point in step 5 and real-chain trial validation in step 6. Until then,
-use the existing focused tests under AGENTS.md; neither a link nor a historical
-passing record constitutes current execution evidence.
+The two-phase document maps current producers and tests. Test-only reusable
+assertions are implemented in `tests/engineering_support/`, and the
+[layered validation entry point](topology_engineering_validation.md) selects
+explicit two-phase tests and records their actual execution. The Active plan
+retains the complete real-chain trial and isolation gate in step 6. These
+documents and links are requirements, not current execution evidence; read the
+receipt for the selected revision and layers.
