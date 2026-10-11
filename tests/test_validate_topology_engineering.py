@@ -228,5 +228,5 @@ def test_adapter_manifest_is_explicit_and_levels_do_not_overlap():
     all_selectors = [selector for selections in runner.SELECTIONS.values() for selector, count in selections]
     assert len(all_selectors) == len(set(all_selectors))
     assert {level: sum(count for selector, count in entries) for level, entries in runner.SELECTIONS.items()} == {
-        "quick": 195, "integration": 46, "gui": 1, "isolation": 2}
+        "quick": 216, "integration": 46, "gui": 1, "isolation": 2}
     assert all(selector.startswith("tests/") and not selector.startswith("tests/test_single_phase") for selector in all_selectors)

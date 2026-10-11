@@ -34,6 +34,7 @@ SELECTIONS = {
     "quick": (
         ("tests/test_validate_topology_engineering.py", 43),
         ("tests/test_topology_engineering_checks.py", 76),
+        (_case("current_reference"), 20),
         (_case("loss_display_consistency"), 21),
         *tuple((_case(file), count) for file, count in (
             ("step1_contract", 5), ("step2_core", 5), ("step3_waveform", 5),
@@ -43,7 +44,8 @@ SELECTIONS = {
             "test_step10g_audit_snapshot_retains_non_finite_diagnostics_as_strict_json",
             "test_step10a_baseline_freezes_design_boundaries_and_semantics",
             "test_step10f_historical_snapshot_preserves_10d_engineering",
-            "test_step10g_historical_baseline_preserves_electrical_design")),
+            "test_step10g_historical_baseline_preserves_electrical_design",
+            "test_step10h_historical_baseline_preserves_10g_engineering")),
         (_case("step5_devices", "test_step5_declares_four_independent_phase_roles"), 1),
         (_case("step9_gui", "test_step9_user_guide_documents_fixed_assumptions_and_boundaries"), 1),
     ),
@@ -55,7 +57,7 @@ SELECTIONS = {
         *tuple((_case(file), count) for file, count in (
             ("step10d_requests", 3), ("step10i2_loss", 3), ("step10i3_artifacts", 1),
             ("step7_pipeline", 1), ("step8_efficiency", 16), ("step10e_results", 16))),
-        (_case("step10a_baseline", "test_step10h_current_baseline_is_repeatable_and_preserves_10g_engineering"), 1),
+        (_case("step10a_baseline", "test_step6_current_reference_is_repeatable_and_preserves_history"), 1),
         (_case("step9_gui", "test_step9_gui_contract_exposes_supported_flow_and_phase_results"), 1),
         (_case("step9_gui", "test_step9_loss_view_reports_phase_components_and_system_total"), 1),
     ),

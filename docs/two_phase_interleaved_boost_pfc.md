@@ -107,8 +107,9 @@ files once; phase 2 reuses the model without another search or export.
   optional Vout or switching-frequency overrides; standalone waveform override
   support must not be described as sweep override support. Validator acceptance
   and sweep completeness do not establish DCM, arbitrary overload or light-load
-  physical validity. The complete independent 3-by-3 line/load validation and
-  refreshed GUI/export comparison remain gates in the Active validation plan.
+  physical validity. The independent 3-by-3 line/load and refreshed GUI/export
+  checks were executed in step 6; their exact scope is recorded in the validation
+  plan and does not extend the production model boundary.
 
 ## Magnetic Search and Hardware Availability
 
@@ -323,6 +324,58 @@ a load identity test, not an electrical tolerance.
 
 ## Verification mapping and remaining gates
 
+### Current version reference policy
+
+The [current reference generator](../scripts/record_two_phase_interleaved_boost_pfc_current_reference.py)
+and [v1 fixture](../tests/fixtures/two_phase_interleaved_boost_pfc_current_reference_v1.json)
+own the reviewed post-10I nominal/low/high design snapshots. The source model
+revision is `351d627`; execution revisions and environments belong in the
+runner receipts. The 10H fixture remains historical, with its checksum and
+field-level transition recorded in v1. Static 10H-to-10G checks remain required;
+live three-case replay compares every current field exactly after the existing
+12-decimal and run-path normalization. The generator refuses an existing output.
+Neither the validation entry point nor pytest updates a frozen reference.
+
+For explicit operating points, public `waveform.duty` is the arithmetic mean
+of clipped `D=1-vrect/Vout` over the 361 samples, not `candidate.duty_nom`.
+The independent reference computes phase current/ripple/RMS from the equations
+above without calling the production sampler or request/loss kernel. For these
+single-core, raw-Steinmetz cases it additionally checks:
+
+```text
+skin_depth = sqrt(1.724e-8 / (pi*fs*mu0))              # m, mu0=4*pi*1e-7
+Fac = 1 + (strand_diameter/skin_depth)^4*sqrt(total_strands)/192
+Pcu = Iphase_rms^2 * Rdc_25c * Fac                    # W per phase
+j = argmax(vrect - D*Vout)
+Bac = max(vrect[j]-D[j]*Vout, 0)*D[j]/(2*fs*Ae*N)   # T, AC peak
+Pcore = k*fs^alpha*Bac^beta*Ve                        # W per phase
+```
+
+`Ae`, `Ve`, winding resistance/strands and the in-range SI Steinmetz record
+come from each selected physical instance; raw beta takes precedence where
+recorded. The scalar core excitation follows the existing adapter's convention,
+not a line-integrated or measured core-loss claim. This reference intentionally
+supports one core, one applicable coefficient range and no temperature
+correction; another model requires a reviewed reference implementation.
+Numerical formula checks use absolute and relative tolerances of `1e-9` in
+each stated unit, accommodating the snapshot's 12-decimal input rounding.
+These tolerances do not relax exact replay or historical transition checks.
+
+Each case retains operating evaluations and the actual two-row thermal CSV
+readback. Checks compare independently derived copper/core losses to the thermal
+inputs, recompute separated rises and hotspot from exported resistances/area,
+and compare the thermal summary and Loss/Inductor/geometry/overview numbers.
+The resistance and surface proxies are frozen inputs here, not independently
+validated CFD or measured thermal parameters. Known physical/identity/basis,
+display, thermal and unexplained-history faults must be rejected.
+
+The fixture's system total is a **design-stage estimate**: design-boundary
+bridge/semiconductor values plus current nominal/low/high magnetic loss and
+the shared capacitor. For nominal it is `30.750167990339 W`; the actual 230 Vac
+full-load sweep is `24.52620442350514 W`. Different component bases explain
+the difference. After a sweep, the current GUI/export contract remains the
+exact full-load sweep source; these design snapshots do not replace that gate.
+
 These are existing tests read for contract traceability, not tests executed by
 the documentation step. The functions listed are representative entry points;
 run the affected topology's complete applicable cases per AGENTS.md. A mock
@@ -330,6 +383,7 @@ assertion and a real-library assertion are labelled separately.
 
 | Reference | Existing test / assertion mapping | Evidence limit |
 |---|---|---|
+| Current / historical reference | [current_reference](../tests/test_two_phase_interleaved_boost_pfc_current_reference.py): independent three-case equations and controlled faults; [step10a_baseline](../tests/test_two_phase_interleaved_boost_pfc_step10a_baseline.py): `test_step6_current_reference_is_repeatable_and_preserves_history`, static 10H-to-10G | Real three-case replay and exact snapshots; thermal resistances and scalar core model remain first-pass inputs |
 | T1 | [step1_contract](../tests/test_two_phase_interleaved_boost_pfc_step1_contract.py): `test_step1_contract_freezes_inductance_and_common_model_semantics`; identity/input/provenance checks | Contract, not physical selection |
 | T2 | [step2_core](../tests/test_two_phase_interleaved_boost_pfc_step2_core.py): `test_low_line_sizes_inductor_and_high_line_sets_bus_feasibility`; sampled peak/zero and half-duty ripple tests | First-pass formulas and boundary, not hardware validation |
 | T3 | [step3_waveform](../tests/test_two_phase_interleaved_boost_pfc_step3_waveform.py): `test_step3_waveform_phase_currents_sum_to_total_and_store_180_degree_offsets`; reduced-load ripple/stress/evaluation/order checks | Lightweight waveform/contract isolation |
@@ -359,7 +413,8 @@ for explicit test selection and execution receipts. The Active plan records
 step 4 direct runs and step 5 tooling validation separately. Step 6 executed all
 244 selected cases on 2026-10-11: 243 passed, and the current replay versus the
 frozen 10H baseline failed. Real fixed-hardware line/load, GUI numeric/export
-and both-order isolation checks passed, but step 6 remains incomplete pending
-the baseline gate. See section 14 of the Active plan for evidence and diagnosis;
+and both-order isolation checks passed. That historical baseline failure is
+retained; section 15 records the subsequent current-reference repair. See the
+validation plan for the two distinct receipts;
 no historical baseline was replaced. Neither these mappings nor a collected
 manifest mark unexecuted checks passed or reopen archived plans.

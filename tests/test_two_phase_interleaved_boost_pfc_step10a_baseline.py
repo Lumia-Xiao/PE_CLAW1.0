@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import tempfile
 
 from scripts.record_two_phase_interleaved_boost_pfc_step10g_baseline import _audit_snapshot
-from scripts.record_two_phase_interleaved_boost_pfc_step10h_baseline import build_step10h_baseline
+from scripts.record_two_phase_interleaved_boost_pfc_current_reference import CURRENT, build_current_reference, validate_case
 
 
 BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10a_baseline.json"
 STEP10D_BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10d_baseline.json"
 STEP10F_BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10f_baseline.json"
 STEP10G_BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10g_baseline.json"
-CURRENT_BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10h_baseline.json"
+STEP10H_BASELINE = Path(__file__).resolve().parent / "fixtures" / "two_phase_interleaved_boost_pfc_step10h_baseline.json"
 
 
 def test_step10g_audit_snapshot_retains_non_finite_diagnostics_as_strict_json() -> None:
@@ -86,10 +87,8 @@ def test_step10g_historical_baseline_preserves_electrical_design() -> None:
         assert current["frontier_search_audit"]["phase_1"]["status"] == "feasible_selection_verified"
 
 
-def test_step10h_current_baseline_is_repeatable_and_preserves_10g_engineering() -> None:
-    expected = json.loads(CURRENT_BASELINE.read_text(encoding="ascii"))
-    actual = build_step10h_baseline()
-    assert actual == expected
+def test_step10h_historical_baseline_preserves_10g_engineering() -> None:
+    actual = json.loads(STEP10H_BASELINE.read_text(encoding="ascii"))
     historical = json.loads(STEP10G_BASELINE.read_text(encoding="ascii"))
     added_note = "Pareto artifacts export the phase-1 magnetic search frontier once; phase 2 is a physical instance reuse."
     for current, previous in zip(actual["cases"], historical["cases"], strict=True):
@@ -105,3 +104,15 @@ def test_step10h_current_baseline_is_repeatable_and_preserves_10g_engineering() 
         assert {obj["id"] for obj in presentation["integrated_objects"] if obj["source_group"] == "inductor"} == {
             "inductor_phase_1", "inductor_phase_2",
         }
+
+
+def test_step6_current_reference_is_repeatable_and_preserves_history(tmp_path) -> None:
+    expected = json.loads(CURRENT.read_text(encoding="utf-8"))
+    # Windows artifact names exceed MAX_PATH beneath pytest's function directory.
+    # The entry point scopes TEMP to this invocation; retain runs there for audit.
+    run_parent = Path(tempfile.mkdtemp(prefix="ref-"))
+    actual = build_current_reference(run_parent / "runs")
+    # Compare every published snapshot field, not only formula-checked values.
+    assert actual == expected
+    for case in actual["cases"]:
+        validate_case(case)

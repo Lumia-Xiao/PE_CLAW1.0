@@ -1,3 +1,11 @@
+## 2026-10-11 - 建立当前版本参考并修正两相基线门禁
+
+- 目的与范围：修正 post-10I 两相 Boost PFC 回放仍绑定 10H 快照的问题；保留 10H/10G 历史验证，新增独立当前参考，不修改生产代码、工程库、历史 fixture 或其他拓扑。
+- 文件与行为：新增 `scripts/record_two_phase_interleaved_boost_pfc_current_reference.py`、`tests/test_two_phase_interleaved_boost_pfc_current_reference.py`、`tests/fixtures/two_phase_interleaved_boost_pfc_current_reference_v1.json`；更新两相 baseline、分层入口清单、工程契约/验证文档和 Active plan。当前参考冻结 nominal/low/high 三例、两物理实例、361 点相电流/RMS/纹波、平均 duty、铜/铁/总损耗、完整系统五分量、热 CSV 及展示读回；明确 design-stage 与 actual full-load sweep 的不同口径。
+- 根因与门禁：10H 后运行点波形/磁件损耗语义已改变，旧 live exact comparison 的 21 处差异被逐路径记录；未知字段、硬件/搜索/数组变化仍拒绝。独立公式不调用生产 sampler/request/loss kernel。生成器拒绝覆盖已有输出；Windows 长路径导致的首次 focused replay 失败保留，短入口 TEMP 重跑通过。
+- 验证：生成 383.02 s / 3 真实搜索链；quick 216 passed（58.45 s，1 个既有 `cache_dir` warning）；focused integration 当前三例回放 1 passed，` .pytest-tmp-r6-replay/receipt.json`。完整清单 23 文件/265 唯一节点、216/46/1/2；旧步骤 6 已通过 integration 45、GUI 1、isolation 2 按 1,847 个相关文件 Git blob 核对后复用，原失败回执保留。历史 10H SHA 和当前 v1 SHA 均核对。
+- Git：实现和文档待提交至 `codex/llc-waveform-operating-point-plan` 并推送 `pe-claw-1.1`；不纳入 outputs、pytest 临时目录、既有 95 个 tracked 删除或无关 untracked 文件。
+
 # Change Log
 
 ## 2026-10-10 Archive Two-Phase Interleaved Boost PFC Plan

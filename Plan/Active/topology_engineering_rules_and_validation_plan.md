@@ -1,8 +1,8 @@
 # 拓扑工程规则与验证机制加强计划
 
-- **状态**：Active / 步骤 0–5 已完成并推送；步骤 6 已试运行，基线门禁未通过；步骤 7 待执行。
+- **状态**：Active / 步骤 0–6 已完成并推送；步骤 7 待执行。
 - **创建日期**：2026-10-10。
-- **当前授权**：执行步骤 6，通过新入口完成两相快速、真实集成、GUI 及必要旧 Boost 配对隔离验收；不执行全量测试或步骤 7 归档。
+- **当前授权**：建立并验证当前版本参考、修正步骤 6 基线门禁，并执行步骤 7 收尾和归档；不执行全工程测试。
 - **目标**：使智能体能够从开发规则找到工程契约，从契约找到可执行断言，并以可复核证据说明修改完成范围，减少新增拓扑时的跨阶段遗漏和返工。
 - **首个试点**：`single_phase_interleaved_boost_pfc_diode_bridge`；必要时保留单相 Boost PFC 最小配对验证。
 - **Git 分支**：`codex/llc-waveform-operating-point-plan`。
@@ -106,8 +106,8 @@
 | 3 | 已完成并推送 | 计划模板 |
 | 4 | 已完成并推送 | 可复用断言及负向测试 |
 | 5 | 已完成并推送 | 分层验证入口与回执 |
-| 6 | 已试运行，基线门禁未通过 | 两相真实试运行和必要旧拓扑配对；见第 14 节 |
-| 7 | 待执行 | 范围核对与收尾 |
+| 6 | 已完成并推送 | 两相真实试运行、当前参考基线门禁及必要旧拓扑配对；见第 14–15 节 |
+| 7 | 待执行 | 范围核对与收尾、计划归档 |
 
 每一步修改前说明预期行为与命令；完成必要验证、追加 ChangeLog、检查差异、commit 并 push 后才能标记完成。计划创建本身不代表步骤 0 已执行。
 
@@ -603,3 +603,31 @@ nominal 诊断实际完成，退出 0、135.06 s，增加 1 次真实两相设�
 ### 14.6 验证记录推送回执
 
 四文档记录提交 `d163140` 已推送到 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；`git ls-remote` 确认为 `d163140367cab24cfdad7c379c6943b37454f62e`。48 个本地引用、ChangeLog append-only、实际失败回执/统计、定向及暂存 diff 检查通过，暂存仅四文档；95 个既有删除和所有运行产物未纳入。此回执以独立文档提交推送，不重复昂贵测试。步骤 6 的 required 基线仍失败，状态不改为完成，步骤 7 待执行。
+
+## 15. 当前版本参考修正（2026-10-11，已完成，待推送回执）
+
+用户授权建立验证当前参考并修正门禁，随后执行步骤 7。本次分类为两相测试工具/文档：新增独立公式审查与当前参考生成脚本、版本化 JSON fixture、受控负向测试；保留 10H 与 10G 的历史静态比较，实际回放改为精确比较当前参考，并限制历史→当前差异为已经定位的 21 类字段路径。不得移除必要真实三例、自动更新既有 fixture 或扩大容差。仅影响两相 baseline gate、quick 清单和测试映射，不影响生产消费者、其他拓扑或历史证据。
+
+冻结口径：每例仍为 1 kW、400 V、100 kHz、PF 0.99、180–265 Vac 的同一设计边界，nominal/low/high 的当前波形分别为 230/180/265 Vac。当前参考独立计算 361 个采样点的相电流、纹波 RMS 和显式运行点 duty 均值；每相铜耗按 I_rms² Rdc Fac，铁耗按选中库记录的 SI Steinmetz 系数及当前请求的交流峰值磁通计算，不调用生产损耗核作为预期。字段名称/单位/统计量、缺项拒绝、design-point 组合边界与 sweep 当前工况差异保持契约原义。热和总览/页面数值保留精确参考，磁件/系统各分量和物理实例检查不替代独立公式。
+
+验证顺序：先源码来源 preflight、独立公式及受控破坏检查，再真实生成三例到新本地工件根；检查历史变化路径、公式、分量和工件后发布到全新 fixture 路径。通过入口 quick 全部 216 项与 integration 的 1 项三例真实基线回放重验实际修改门禁；其余 45 项 integration、GUI 1 项和 isolation 2 项按节点及生产/库/支持/对应测试 Git blob 与文件哈希核对后复用步骤 6 已通过证据，不将 focused integration 回执写成新执行 46 passed，也不重复昂贵配对。当前完整清单为 23 文件 / 265 项，分层 216/46/1/2；新增 20 项独立参考及负向检查、拆分历史静态断言增加 1 项。保留此前失败回执。修正的实现、验证、日志、commit/push 完成后才同步步骤 6 完成，步骤 7 另行提交。
+
+
+### 15.1 当前参考发布与门禁结果
+
+基准生产版本为 `351d6277c8e6583b3a188578b9fef7cbcde470f9`；本次没有修改 `src/`、库记录或生产公式。新增当前参考生成器、v1 fixture、独立公式/展示/热 CSV 检查，并将步骤 6 回放从过时 10H live exact comparison 改为当前 v1 exact comparison；10H/10G 静态历史检查保留。新增 `engineering_reference` 只保存当前参考所需的两相物理实例、运行评估和热 CSV 输入，运行路径不进入 fixture。
+
+当前 fixture：`tests/fixtures/two_phase_interleaved_boost_pfc_current_reference_v1.json`，SHA-256 为 `0fac673b3d204f56a237acc496e0e20ba430c23efa7691d129ee56d4b1b40197`。10H 历史 SHA-256 仍为 `bd5b99ac4ddb3cbb0decf1e7fa9846d89eb435e467159dc2e9a64f0ea5e66578`。nominal/low/high 三例各有 21 条已定位历史过渡；硬件身份、候选、搜索审计和结构字段变化仍会失败。独立 361 点公式检查使用 `1e-9` 绝对/相对数值容差，历史过渡容差为 0；受控错误覆盖 duty、相电流、铜/铁/总损耗、实例、输入、电阻、缺项、basis、展示、热损耗和温升。
+
+发布前实际生成三例耗时 383.02 s，三次真实搜索链；nominal、low_line、high_line 均通过相电流/RMS/峰值/纹波、磁件损耗、完整五分量系统总和、双物理实例、Loss/Inductor/geometry/overview 数值和 thermal_summary.csv 读回。design-stage nominal system total 为 `30.750167990339 W`；230 Vac 满载 sweep 的 `24.52620442350514 W` 仍是另一 operating-point 口径，不强制相等。
+
+门禁验证使用当前工作区子环境、Python 3.12.10、pytest 9.1.1：
+
+```text
+quick: 216 passed, 58.45 s, 1 existing cache_dir warning
+focused integration: 1 passed, 约 383 s（三例真实回放；入口总 receipt 在 .pytest-tmp-r6-replay/receipt.json）
+```
+
+首次 focused 回放因 pytest 临时路径过长，在电容 CSV 创建前失败；失败 receipt 保留在 `.pytest-tmp-rules6-reference-validation/receipt.json`。测试改为入口独占 TEMP 下的短随机父目录后重跑通过，没有放宽断言或修改生产路径。完整 manifest 独立收集为 23 文件/265 唯一节点，层级 216/46/1/2；此前已通过的 integration 45、GUI 1、isolation 2 项按节点与 1,847 个相关文件 Git blob 一致性复用，未冒充本次新执行。原步骤 6 失败 receipt 保留。
+
+因此步骤 6 基线门禁通过，当前状态由“已试运行、基线门禁未通过”改为“已完成并推送”，步骤 7 可执行。本节改动待本次实现提交及后续状态回执提交分别核对。

@@ -27,7 +27,7 @@ levels run once in quick/integration/gui/isolation order. `--help` lists the opt
 
 | Level | Required current cases | Scope |
 |---|---:|---|
-| `quick` | 195 | Formula/contract/negative checks, historical snapshot readback, routing and entry-point tests; no real magnetic selection |
+| `quick` | 216 | Formula/contract/negative checks, historical and current reference readback, routing and entry-point tests; no real magnetic selection |
 | `integration` | 46 | Real two-phase selection, design/operating points, loss, reports, plots, geometry and current baseline replay |
 | `gui` | 1 | Tk probe, then real application buttons and current Loss/Inductor/Efficiency/export numbers |
 | `isolation` | 2 | Existing old/new and wide/narrow runs in both orders, prior report/artifact preservation |
@@ -35,12 +35,13 @@ levels run once in quick/integration/gui/isolation order. `--help` lists the opt
 Counts are frozen per explicit file/function selector in `SELECTIONS`. A change
 in parameterized coverage fails collection until the manifest has been reviewed
 and updated. Layers are disjoint. Integration retains existing module fixture
-reuse; real magnetic searches are serialized. The full 244-case manifest is a
+reuse; real magnetic searches are serialized. The current 265-case manifest is a
 selection contract, not a claim that all cases were executed by step 5.
 
 For additional layers, repeat `--level`, for example `--level integration --level gui`.
 These can be costly. Step 6 owns the complete real-chain trial and isolation gate;
-its actual result below includes a failed baseline check.
+its historical trial below includes a failed baseline check. The separately
+reviewed current-reference repair is recorded after that historical result.
 
 ## Receipt and failure handling
 
@@ -85,9 +86,9 @@ At `9e7d76f`, all four layers executed 244 unique cases: quick 195 passed,
 integration 45 passed / 1 failed, GUI 1 passed, isolation 2 passed. The overall
 receipt correctly reports `failed` / exit 1. The failed check compares the
 current three-case design snapshot to the frozen 10H baseline; that baseline
-predates subsequent operating-point and loss-readback changes. The failure
-remains a required gate and has not been skipped or repaired by replacing a
-baseline. Step 6 is not complete.
+predates subsequent operating-point and loss-readback changes. At that trial revision the failure blocked step 6. The failed receipt and
+frozen historical baseline remain intact; the current-reference repair below
+records the subsequent resolution separately.
 
 A separate nominal diagnostic found 21 differences, limited to operating magnetic
 loss and its total/thermal/presentation consumers, plus the explicit operating
@@ -116,4 +117,48 @@ Local evidence is under `.pytest-tmp-rules6-trial/` (overall receipt, per-layer
 logs/JUnit and `step6_cost_and_search_summary.json`), `.pytest-tmp-rules6-direct/`
 (direct commands and node comparison), and `.pytest-tmp-rules6-baseline-diagnostic/`
 (single-case field differences). These generated files remain untracked. See
-section 14 of the Active plan for scope, failure diagnosis and follow-up gates.
+sections 14–15 of the validation plan for historical failure and current-reference evidence.
+
+
+## Reviewed current reference, 2026-10-11
+
+The live replay now uses the separately reviewed post-10I v1 reference; 10H-to-10G
+history is checked statically and its fixtures stay unchanged. See the
+[two-phase reference policy](two_phase_interleaved_boost_pfc.md#current-version-reference-policy)
+for formula scope, explicit duty, per-instance loss, thermal readback, system
+basis and tolerances. The generator is an explicit review tool, not part of the
+validation entry point. It writes a new output only and never updates a fixture
+in place. Use the current-workspace child environment/source preflight, then
+invoke it with the module command below. Default installed imports may belong
+to another checkout. Review all cases before publishing a new reference.
+
+```powershell
+python -B -m scripts.record_two_phase_interleaved_boost_pfc_current_reference <new-output.json> --output-root <new-runs-root>
+```
+
+Generation at production revision `351d627` took 383.02 s / three real design
+search chains. Each case's 21 historical transitions has source, target,
+absolute/relative error, zero historical tolerance, category, owner, basis and
+path. Three-case independent equations, two physical identities, complete
+system totals, thermal CSV and numeric consumers were reviewed before the new
+fixture was published. The current reference SHA-256 is
+`0fac673b3d204f56a237acc496e0e20ba430c23efa7691d129ee56d4b1b40197`;
+the unchanged 10H SHA-256 is
+`bd5b99ac4ddb3cbb0decf1e7fa9846d89eb435e467159dc2e9a64f0ea5e66578`.
+
+The repaired quick layer executed 216 passed (58.45 s), including 20 independent
+reference/negative checks and the retained historical 10H assertion. The first
+focused replay failed before baseline comparison: a long nested Windows pytest
+path prevented capacitor CSV creation. Its failed receipt is preserved at
+`.pytest-tmp-rules6-reference-validation/receipt.json`. The replay test now keeps
+its artifacts under the entry point's exclusive invocation TEMP, with a shorter
+fresh parent; no production artifact behavior or assertion was changed.
+
+The full manifest was independently collected: 23 files / 265 unique nodes,
+216/46/1/2 with no overlap. This collection is not execution. Previously passed
+45 integration, 1 GUI and 2 isolation nodes are reused only after node mapping
+and 1,847 production/library/support/script/relevant test files matched their
+`9e7d76f` Git blobs; SHA-256 values are recorded. Changed baseline generation and
+replay are separately executed. Reuse does not mean 46 integration tests were
+newly run, and does not change the original failed trial receipt. Local audit
+and generation evidence is under `.pytest-tmp-rules6-reference-build/`.
