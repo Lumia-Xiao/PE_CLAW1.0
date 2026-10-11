@@ -13,7 +13,7 @@ resolved through a separately scoped implementation change.
 | [AGENTS.md](../AGENTS.md) | Development workflow, impact classification, validation and completion rules |
 | This document | Common semantic record and evidence requirements |
 | [Two-phase Boost PFC example](two_phase_interleaved_boost_pfc.md) | Specific physical quantities, formulas, boundaries, producers, consumers and test mappings |
-| [Active validation plan](../Plan/Active/topology_engineering_rules_and_validation_plan.md) | Implementation scope, pending checks and actual execution receipts |
+| [Completed engineering rules plan](../Plan/completed/topology_engineering_rules_and_validation_plan.md) | Implementation scope, pending checks and actual execution receipts |
 | Current code and generated reports | Implemented behavior and the results of a particular run; discrepancies with the intended contract require investigation |
 
 Other topologies should fill out the same semantic record with their own

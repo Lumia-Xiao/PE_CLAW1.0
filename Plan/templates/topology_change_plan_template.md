@@ -9,7 +9,7 @@
 - [AGENTS.md](../../AGENTS.md)：工作流、测试范围及完成规则。
 - [公共工程契约](../../docs/engineering_contracts.md)：字段语义与证据要求。
 - [两相拓扑契约示例](../../docs/two_phase_interleaved_boost_pfc.md)：具体字段、公式、消费者与已有断言映射。
-- [规则建设 Active plan](../Active/topology_engineering_rules_and_validation_plan.md)：本模板及后续自动检查的建设状态。
+- [规则建设 completed plan](../completed/topology_engineering_rules_and_validation_plan.md)：本模板及后续自动检查的建设状态。
 
 计划引用契约的具体章节，不复制一套可能漂移的公共原则或拓扑公式。新字段或公式没有现成契约时，安排其权威文档的新增/更新并记录依据；不得直接在计划中重定义旧字段。检查器和脚本仅在确认存在且支持所选拓扑后列入可执行命令，未建设能力标为待实施。
 

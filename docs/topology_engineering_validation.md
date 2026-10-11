@@ -8,7 +8,7 @@ origins before collecting electrical tests. No package installation is performed
 The only standalone adapter is
 `single_phase_interleaved_boost_pfc_diode_bridge`. Single-phase Boost is included
 only as the existing isolation pair, not as a second independently accepted adapter.
-The [Active plan](../Plan/Active/topology_engineering_rules_and_validation_plan.md)
+The [completed plan](../Plan/completed/topology_engineering_rules_and_validation_plan.md)
 records implementation and execution evidence; the
 [engineering contracts](engineering_contracts.md) define the semantics.
 

@@ -4,7 +4,7 @@ This topology-specific contract follows the common
 [engineering semantic contracts](engineering_contracts.md). Source and test
 mappings below describe the code reviewed on 2026-10-10; they are not a new
 electrical validation run. Implementation gaps are tracked in the
-[Active validation plan](../Plan/Active/topology_engineering_rules_and_validation_plan.md).
+[Completed engineering rules plan](../Plan/completed/topology_engineering_rules_and_validation_plan.md).
 
 ## Scope
 

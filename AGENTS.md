@@ -87,7 +87,7 @@ for clarification only when a material physical assumption, field meaning, or
 task scope cannot be determined from the instructions and existing contracts.
 
 Rule and validation development is tracked in
-[the active engineering rules plan](Plan/Active/topology_engineering_rules_and_validation_plan.md).
+[the completed engineering rules plan](Plan/completed/topology_engineering_rules_and_validation_plan.md).
 For electrical changes, read the applicable
 [engineering semantic contracts](docs/engineering_contracts.md) and topology
 documentation, such as the
