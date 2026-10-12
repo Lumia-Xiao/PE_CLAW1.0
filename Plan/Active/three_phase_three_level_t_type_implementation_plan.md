@@ -1,8 +1,8 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Active；步骤 0 已完成并推送（仅接口冻结与 NPC 基准）；步骤 1–8 待执行。
+- 状态：Active；步骤 0、步骤 1 已完成并推送；步骤 2–8 待执行。
 - 创建日期：2026-10-12。
-- 当前授权：执行步骤 0，更新本计划、契约首轮映射及 ChangeLog，运行必要 NPC 基础测试并留基准；不实施步骤 1–8，不修改生产代码、测试或库。
+- 当前授权：步骤 1 已获授权并完成；后续按用户确认逐步执行，当前不自动开始步骤 2。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
 - 拓扑 ID：拟定 `three_phase_three_level_t_type_inverter`；当前尚未注册。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
@@ -163,7 +163,9 @@
 - 插件按现有 `build_spec/synthesize/generate_waveforms/extract_stress/evaluate/build_report` 接口组织；尚未实施的 hook 明确不可用，不假装返回成功，也不注册到 GUI 供用户运行。
 - 拟新增 `tests/test_t_type_step1_contract.py`：身份唯一、3 相/12 位置、方向/互锁、默认 spec、单位转换、缺项/非法值；导入不得运行计算或写工件。
 - 验证：上述新测试在创建后显式执行；不执行真实选型或 GUI。完成：默认输入与错误输入契约通过，导入隔离通过；插件完整计算仍标为后续，Git 门槛满足。
-- 实际执行/Git 回执：待执行。
+- 实际执行：2026-10-12。新增 `topology_contract.py`、`input_schema.py` 和 `__init__.py`，建立独立拓扑 ID、三相/12 位置与 P/O/N 状态契约、首轮默认输入及 SI 规格解析，并提供 `build_spec/synthesize/generate_waveforms/extract_stress/evaluate/build_report` 插件接口骨架。未实现 hook 明确抛出 `NotImplementedError`；插件保持未注册、未接 GUI、未调用共享求解器或真实选型。
+- 测试：`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s1-final tests/test_t_type_step1_contract.py`；Python 3.12.10、pytest 9.1.1；63 passed，failed/errors/skipped/xfail 均为 0，耗时 8.13 s。既有 `cache_dir` 配置 warning 单列。测试覆盖默认/非法输入、有限值、端子/门极互锁、插件未注册及新进程导入隔离；未运行 GUI、完整设计链、真实库或步骤 2 以后测试。
+- Git 回执：步骤 1 源码/测试及本计划、ChangeLog 待本次独立提交推送并核实；步骤 2 不自动开始。
 
 ### 步骤 2：基础参数合成
 
@@ -459,7 +461,7 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 
 未支持入口保护归属：`FIRST_PASS_TOPOLOGY_ONLY_IDS` 只新增 T-type，full pipeline 与 refresh 复用已有 early return；`RunDesignController.run_active_capacitors/run_active_magnetics` 和 `EfficiencySweepController` 独立入口需检查同一能力。表单隐藏/禁用组件、磁件、效率按钮只是辅助，直接调用控制器仍须明确拒绝；T-type 测试断言真实选择器/损耗/热/几何调用为零，并确认旧 20 项能力 unchanged。波形失败在 WaveformController/current state 和 MainWindow 页面清除有效旧数据；保留固定 candidate 供恢复，不沿用旧图为当前成功。
 
-### 9.6 本步骤 Git 与收尾
+### 9.6 步骤 0 Git 与收尾
 
 文档/语义/引用/函数与节点存在性、生产源校验不变、ChangeLog append-only、定向/暂存 diff 和范围在提交前核对。仅提交三个文档至既有 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；不修改 master 或 origin，不纳入既有删除和本地证据。完成状态须在提交已推送并核实远端后同步；本轮不备份、不清理、不开始步骤 1。
 
@@ -467,3 +469,11 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 
 - 本步骤三文档提交 `f1dd748cafe052bab81f255dbefc5d193e12af07` 已推送；`git ls-remote pe-claw-1.1 refs/heads/codex/llc-waveform-operating-point-plan` 返回相同 SHA，步骤 0 本体门禁完成。
 - 完成状态以独立计划/ChangeLog 文档提交同步；该回执提交 SHA 与最终推送核实见本次完成报告及 Git 历史，不重复工程测试。步骤 1–8 仍待执行，计划保持 Active。
+
+### 9.7 步骤 1 实际执行与 Git 回执（2026-10-12）
+
+步骤 1 按本计划的拓扑局部范围执行，分类为拓扑插件/输入契约新增；没有修改 registry、GUI、共享模型、共享求解器、NPC 行为、库记录或用户结果。新增文件为 `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_t_type_inverter/topology_contract.py`、`input_schema.py`、`__init__.py`，以及 `tests/test_t_type_step1_contract.py`。契约固定三相、P/O/N 三状态、12 个开关位置、端子/反并联方向和互锁；输入层实现步骤 0 冻结的默认值、SI 转换、范围/有限性/频率整数比校验，并对非零死区、未知模型范围和非 PD-SPWM 请求 fail-closed；插件未注册且计算 hook 明确不可用。
+
+验证命令为 `python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s1-final tests/test_t_type_step1_contract.py`，解释器 Python 3.12.10、pytest 9.1.1，结果 63 passed、0 failed/errors/skipped/xfail，8.13 s；既有 `Unknown config option: cache_dir` warning 单列。专项测试实际检查默认/部分输入、非法和非有限输入、物理端子映射、门极互锁、未注册状态、hook fail-closed，以及新进程导入无计算/写入。未验证 GUI、完整 T-type 计算链、真实器件/选型、旧拓扑回归或步骤 2–8；`outputs/` 和 pytest 临时目录保留为本地工件，未纳入提交。
+
+本步骤的提交和远端核实待本次收尾完成；步骤 2 仍待用户确认，计划保持 Active。

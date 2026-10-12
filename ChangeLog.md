@@ -2008,3 +2008,10 @@ listed here.
 
 - 三文档提交 `f1dd748cafe052bab81f255dbefc5d193e12af07` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；`git ls-remote` 核实远端相同 SHA。本次仅更新计划完成状态/Git 回执并追加本日志，独立提交推送，不重复电气测试。
 - 步骤 0 完成范围为接口/模型/字段/共享提取边界/未来命令冻结及当前 NPC 28 项专项与本地抽取前快照，不代表 T-type 已跑通；步骤 1–8 待执行、计划 Active。状态/引用、日志 append-only、定向和暂存 diff/范围核对后提交；保留所有无关工作区改动与证据。最终状态回执提交 SHA/推送核实以本次完成报告及 Git 历史为准。
+
+## 2026-10-12 - T-type 步骤 1：建立独立拓扑身份、输入契约与插件骨架
+
+- 授权与分类：按用户要求执行实施计划步骤 1，属于拓扑插件/输入契约新增。新增 `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_t_type_inverter/topology_contract.py`、`input_schema.py`、`__init__.py` 和 `tests/test_t_type_step1_contract.py`；未修改 registry、GUI、共享模型/求解器、NPC 行为、库记录或用户结果。
+- 交付行为：固定 `three_phase_three_level_t_type_inverter` 独立 ID、三相/12 位置、P/O/N 状态、端子与反并联方向及互锁；实现步骤 0 冻结的默认输入、SI 规格转换、范围/有限性/`fsw/fline` 整数比校验。非零死区、未知模型范围和非 PD-SPWM 请求明确拒绝；插件保持未注册，尚未实现的计算 hooks 明确抛出 `NotImplementedError`，不伪造成功结果。
+- 实际验证：Python 3.12.10、pytest 9.1.1；`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s1-final tests/test_t_type_step1_contract.py`，63 passed，failed/errors/skipped/xfail 均为 0，8.13 s。专项覆盖输入、物理映射、互锁、未注册和导入隔离；既有 `cache_dir` 配置 warning 单列。未运行 GUI、完整设计链、真实选型、旧拓扑回归或步骤 2–8。
+- 维护与范围：保留 `outputs/`、pytest 临时目录及仓库原有无关 tracked 删除/untracked 文件，均未提交；步骤 2 不自动开始。计划实际回执同步于 `Plan/Active/three_phase_three_level_t_type_implementation_plan.md`，提交/推送 SHA 以本次 Git 回执为准。
