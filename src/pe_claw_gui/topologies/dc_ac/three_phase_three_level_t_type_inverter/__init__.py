@@ -21,6 +21,7 @@ from ...base.spec import TopologySpec
 from .input_schema import build_default_inputs, build_spec
 from .synthesizer import calculate_three_phase_three_level_t_type_inverter, synthesize
 from .topology_contract import DISPLAY_NAME, LEGACY_KEY, TOPOLOGY_ID
+from .waveform import generate_waveforms
 
 
 @dataclass(frozen=True)
@@ -43,7 +44,7 @@ class ThreePhaseThreeLevelTTypeInverterPlugin(TopologyPlugin):
         candidate: TopologyCandidate,
         operating_point: OperatingPoint | None = None,
     ) -> WaveformSet | None:
-        raise NotImplementedError("T-type waveform generation is planned for implementation step 3.")
+        return generate_waveforms(candidate, operating_point=operating_point)
 
     def extract_stress(
         self,
@@ -83,5 +84,6 @@ __all__ = [
     "build_default_inputs",
     "build_spec",
     "calculate_three_phase_three_level_t_type_inverter",
+    "generate_waveforms",
     "synthesize",
 ]

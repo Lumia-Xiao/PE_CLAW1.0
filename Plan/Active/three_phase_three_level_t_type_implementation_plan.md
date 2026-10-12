@@ -1,8 +1,8 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Active；步骤 0、步骤 1、步骤 2 已完成并推送；步骤 3–8 待执行。
+- 状态：Active；步骤 0、步骤 1、步骤 2、步骤 3 已完成并推送；步骤 4–8 待执行。
 - 创建日期：2026-10-12。
-- 当前授权：步骤 2 已获授权并完成；后续按用户确认逐步执行，当前不自动开始步骤 3。
+- 当前授权：步骤 3 已获授权并完成；后续按用户确认逐步执行，当前不自动开始步骤 4。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
 - 拓扑 ID：拟定 `three_phase_three_level_t_type_inverter`；当前尚未注册。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
@@ -184,7 +184,9 @@
 - 对不可达电压与周期未收敛给诊断，不通过端点硬修正或裁剪隐藏失败。求解器可以有参考电流跟踪策略，但要声明它是基础稳态求解而非真实闭环控制仿真。
 - 拟新增 `tests/test_t_type_step3_waveforms.py`：B1、B3/B4 可行点、B5；独立单段解析积分、KCL、事件连续性/周期、基础相位与实际 RMS；抽取前后 NPC 工程结果对比。
 - 验证：step1–3 + 第 7 节 NPC 求解回归组；如调用图影响更多拓扑，补对应消费者。完成：电压/电流可用、公用提取前后 NPC 可解释且无意外差异，Git 门槛满足。
-- 实际执行/Git 回执：待执行。
+- 实际执行：2026-10-12。新增 `waveform.py`，实现一线路周期、统一采样时间轴、三相 P/O/N 电平、事件分段理想 L 电流积分、周期稳态求解、共模消除、线电压和 T-type 四门极载荷；`PLUGIN.generate_waveforms` 已接通。运行点可读取实际 `vin_v`、load/PF 幅值并保留 candidate 电感；频率和交流电压不支持覆盖时明确报错。动态分裂电容和中点电压本步骤保持未建模。
+- 测试：步骤 1–3 专项测试和 NPC/注册回归均通过；具体命令、环境和边界见第 9.9 节。低母线命令保留 boundary/unreachable 诊断，不用裁剪隐藏失败。
+- Git 回执：步骤 3 源码/测试及本计划、ChangeLog 待本次独立提交推送并核实；步骤 4 不自动开始。
 
 ### 步骤 4：独立门极、导通和理想换流
 
@@ -488,4 +490,14 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 
 验证使用当前工作区源码，Python 3.12.10 / pytest 9.1.1：`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s2-final3 tests/test_t_type_step1_contract.py tests/test_t_type_step2_synthesis.py`，78 passed，failed/errors/skipped/xfail 均为 0，8.24 s；既有 `Unknown config option: cache_dir` warning 单列。独立参考覆盖 B1 标量、PF=0.8 超前/滞后、500 V 不可达、输入边界、candidate 映射、无硬件结果和元数据隔离。未验证波形、实际 PWM 纹波、GUI、完整设计链、真实选型、旧拓扑回归或步骤 3–8。
 
-实现提交 `87713671abd9ac42e703d0f6c3e190d3c185db58` 已完成并推送；本计划/ChangeLog 的状态回执随后以独立提交同步。步骤 3 仍待用户确认，计划保持 Active。
+实现提交 `87713671abd9ac42e703d0f6c3e190d3c185db58` 已完成并推送；本计划/ChangeLog 的状态回执随后以独立提交同步。步骤 3 当时仍待用户确认，计划保持 Active。
+
+### 9.9 步骤 3 实际执行与 Git 回执（2026-10-12）
+
+步骤 3 按输出侧波形范围执行，分类为 T-type 拓扑局部波形新增；未修改 NPC 波形文件、共享模型、registry、GUI、库、选型或公共字段。新增 `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_t_type_inverter/waveform.py` 和 `tests/test_t_type_step3_waveforms.py`，插件 `generate_waveforms` 已接通。实现复用 NPC 输出侧事件分段理想 L 积分核心作为临时局部依赖，T-type 在本地重建 P/O/N 门极 `(QP, QN, QA, QO)`，未引入 NPC clamp 角色；共享提取和 NPC 包装调整仍保留在后续边界内。
+
+波形结果覆盖完整线路周期、统一时间轴、三相极点/相电压/线电压、参考与实际电流、周期固定点残差、事件片段和诊断。三线 KCL、状态/互锁、PF=0.8 超前/滞后、固定 candidate 的 800 V/半载刷新、频率/交流电压覆盖拒绝和 500 V 不可达诊断均有专项断言。电容电流/动态中点电压、器件应力、有限死区、寄生和闭环硬件行为明确未建模。
+
+验证命令一：`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s3-a tests/test_t_type_step1_contract.py tests/test_t_type_step2_synthesis.py tests/test_t_type_step3_waveforms.py`，Python 3.12.10 / pytest 9.1.1，85 passed、0 failed/errors/skipped/xfail，10.68 s。验证命令二：`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s3-npc tests/test_npc_step2_current_reference.py tests/test_npc_step3_average_voltage_target.py tests/test_npc_step4_level_sequence.py tests/test_npc_step4_periodic_warm_start.py tests/test_npc_step5_event_segmented_current.py tests/test_npc_switching_loss_events.py tests/test_phase4_topology_contracts.py::test_phase4_registry_has_unique_ids_and_capabilities tests/test_phase4_topology_contracts.py::test_phase4_router_fails_closed_for_unknown_topology`，28 passed、0 failed/errors/skipped/xfail，10.43 s。既有 `cache_dir` warning 单列；未运行 GUI、完整设计链、真实选型或步骤 4–8。
+
+实现提交和远端核实待本次收尾完成；步骤 4 仍待用户确认，计划保持 Active。

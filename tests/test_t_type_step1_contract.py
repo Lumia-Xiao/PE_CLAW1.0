@@ -164,9 +164,9 @@ def test_t_type_plugin_is_isolated_from_registry_and_unimplemented_later_hooks_f
     assert candidate.topology_id == TOPOLOGY_ID
     assert candidate.inductance_h > 0.0
 
-    candidate = object()
-    with pytest.raises(NotImplementedError, match="step 3"):
-        PLUGIN.generate_waveforms(candidate)  # type: ignore[arg-type]
+    waveform = PLUGIN.generate_waveforms(candidate)
+    assert waveform is not None
+    assert waveform.metadata["three_phase_t_type_pd_spwm_waveforms"]["schema_version"] == 1
     with pytest.raises(NotImplementedError, match="step 5"):
         PLUGIN.extract_stress(candidate)  # type: ignore[arg-type]
     with pytest.raises(NotImplementedError, match="step 5"):

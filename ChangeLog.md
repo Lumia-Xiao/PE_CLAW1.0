@@ -2022,3 +2022,11 @@ listed here.
 - 交付行为：插件 `synthesize` 已接通。实现三相电压/电流、PF 超前/滞后有符号相量、独立三电平 `L=Vdc/(8*fsw*delta_I_target_pp)` 初值、含电感压降的 `m_command`、目标纹波、Ceq/Cbank 初始代理、CCM 启发式及 12 个物理位置的初始峰值电流估计。candidate 保留公式 ID、单位、模型范围和 target/achieved 语义；不生成器件、损耗、效率、热、磁件或几何结果。调制超限显式标记不可行并保留失败原因。
 - 实际验证：Python 3.12.10、pytest 9.1.1；`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s2-final3 tests/test_t_type_step1_contract.py tests/test_t_type_step2_synthesis.py`，78 passed，failed/errors/skipped/xfail 均为 0，8.24 s。覆盖 B1/B3 独立标量、超前/滞后 PF、低母线不可达、输入边界、candidate 映射、无硬件结果和元数据隔离；既有 `cache_dir` 配置 warning 单列。未运行波形、GUI、完整链、真实选型、旧拓扑回归或步骤 3–8。
 - Git 与维护：步骤 2 实现提交 `87713671abd9ac42e703d0f6c3e190d3c185db58` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，并由 `git ls-remote` 核实同 SHA；步骤 3 不自动开始。保留 `outputs/`、pytest 临时目录及原有无关工作区改动，未纳入提交。
+
+## 2026-10-12 - T-type 步骤 3：完成输出侧三相波形
+
+- 授权与分类：按用户要求执行实施计划步骤 3，属于 T-type 拓扑局部波形新增。新增 `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_t_type_inverter/waveform.py`、`tests/test_t_type_step3_waveforms.py`，并接通插件 `generate_waveforms`；未修改 NPC 波形、共享模型、registry、GUI、库、选型或公共字段。
+- 交付行为：生成完整线路周期的三相 P/O/N 状态、统一时间轴、极点/线电压、参考与事件分段实际电流、周期稳态诊断和 T-type 四门极载荷。复用 NPC 输出侧理想 L 事件积分核心作为局部依赖，在 T-type 层重建 QP/QN/QA/QO 门极，未引入 NPC clamp 角色。固定 candidate 支持实际运行母线和 load/PF 刷新；频率/交流电压覆盖显式拒绝。低母线保留 boundary/unreachable 诊断。
+- 范围：三线 KCL、周期残差、PF 超前/滞后和事件有限性已验证；动态分裂电容/中点电压、器件应力、死区/寄生、闭环硬件行为和 GUI/完整链仍未实现。
+- 实际验证：Python 3.12.10、pytest 9.1.1。T-type 累计命令 85 passed（10.68 s）；NPC/注册回归命令 28 passed（10.43 s）；两组均 0 failed/errors/skipped/xfail，既有 `cache_dir` warning 单列。未运行 GUI、完整设计链、真实选型或步骤 4–8。
+- Git 与维护：步骤 3 实现/测试及计划、日志的提交和推送核实以本次 Git 回执为准；步骤 4 不自动开始。保留 `outputs/`、pytest 临时目录及原有无关工作区改动，未纳入提交。
