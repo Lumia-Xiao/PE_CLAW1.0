@@ -2059,3 +2059,10 @@ listed here.
 - Git：步骤 3 dd81794cca50aa83f2f1e160207cf9530e29e842 已推送确认；步骤 5 沿用 codex/llc-waveform-operating-point-plan，提交/推送 SHA 随后追加。未触碰无关删除/用户结果/历史证据，没有生成文件暂存，无备份操作。
 
 步骤 5 最终 Git 回执（2026-10-12）：实现提交 `9e701f8d1cf00a2e4184c9b8254459897b7d64eb` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实同 SHA。步骤 3 补齐与步骤 5 已完成本轮授权门槛；此回执为文档更新，复用上述电气验证。步骤 6–8、GUI/注册/完整工程链保持待执行。
+
+## 2026-10-12 — T-type 步骤 6 注册与 GUI 集成
+
+- 行为：新增第 21 个注册项（DC-AC 第 4 项）、独立能力/表单/电路卡片，开放 Run Design/Generate Waveforms。Summary/Stress/Waveform 从 T-type 当前报告读取三相 V/I、12 门极及主/中点完整周期位置指标，标明每相 L/每银行 C 估算。未支持电容/磁件/效率按钮禁用且 controller 拒绝直接调用；Loss/Efficiency 明示 unavailable，避免空损耗假 100%。无效求解/解析清旧有效波形/应力并保留 candidate；复用滚动表单。
+- 分类/文件：共享注册和 GUI 集成；registry/capabilities/topology_capabilities、T-type plugin/form/card、category/assets、三个 controllers、shell/workspace、五个 result views、README/契约/计划；新增 step6_gui 测试、旧20项冻结 registry fixture 和 validate_t_type_step6_gui.py。全局计数消费者 phase2/3/4/10/11/12 及 DC-AC 测试精确更新；AC-DC 旧计数、Windows 测试工件路径及错误对话框诊断修复。物理公式、公共模型/schema、库记录和旧能力不改；影响与排除项、单位/数量/工况/缺数据语义见计划 9.12 和契约14。
+- 验证：累计 269 passed/2 failed（876.69 s），历史日志/根因保留：同进程第二 Tk 初始化、旧 AC-DC 卡片计数；修复扩展时 Windows CSV 长路径对话框阻塞，缩短测试根并保留断言。一次运行误判长计算而中断，明确不计通过。最终聚焦9 passed/0 failures/errors/skips（161.50 s），六份 NPC 完整 payload SHA 精确不变；真实页面数组/数字、默认及最小窗口、失败清理、下游入口保护、旧注册冻结、全表单/LLC窗口通过。完整旧 AC-DC 重跑结果及最终 Git 回执随后追加；既有 cache_dir warning 单列，不执行 full suite。
+- Git/工件：沿用 codex/llc-waveform-operating-point-plan，pe-claw-1.1 同名远端；提交/推送 SHA 收尾追加。只暂存本步源文件和 PNG 卡片，日志/证据/outputs/无关删除保留不提交；无备份操作。

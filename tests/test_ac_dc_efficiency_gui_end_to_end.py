@@ -44,7 +44,7 @@ def _run_isolated(code: str) -> subprocess.CompletedProcess[str]:
 
 
 def test_ac_dc_gui_forms_and_efficiency_result_view_end_to_end(tmp_path, monkeypatch) -> None:
-    monkeypatch.setenv("PE_CLAW_STEP12_GUI_OUTPUT_ROOT", str(tmp_path / "gui-output"))
+    monkeypatch.setenv("PE_CLAW_STEP12_GUI_OUTPUT_ROOT", str(tmp_path.parent / "ac-gui"))
     result = _run_isolated(
         r'''
 from pathlib import Path
@@ -53,6 +53,13 @@ from unittest.mock import patch
 import importlib
 
 from pe_claw_gui.app.shell.main_window import PEClawMainWindow
+from tkinter import messagebox
+
+def unexpected_dialog(title, message):
+    raise AssertionError(f"{title}: {message}")
+
+messagebox.showerror = unexpected_dialog
+messagebox.showwarning = unexpected_dialog
 
 
 EFFICIENCY_PIPELINE = importlib.import_module(
@@ -75,7 +82,10 @@ app.update_idletasks()
 try:
     app._on_category_selected("ac_dc")
     assert app.state_store.selected_category_id == "ac_dc"
-    assert len(app.workspace.active_page._topology_buttons) == 5
+    assert len(app.workspace.active_page._topology_buttons) == 6
+    assert set(app.workspace.active_page._topology_buttons) == set(TOPOLOGY_IDS) | {
+        'single_phase_interleaved_boost_pfc_diode_bridge',
+    }
 
     evidence_root = os.environ["PE_CLAW_STEP12_GUI_OUTPUT_ROOT"]
     output_root = Path(evidence_root)
@@ -88,8 +98,8 @@ try:
     ) as project_root, patch(
         "pe_claw_gui.models.design_run_context._default_output_root",
     ) as default_output_root:
-            for topology_id in TOPOLOGY_IDS:
-                run_root = output_root / topology_id
+            for index, topology_id in enumerate(TOPOLOGY_IDS):
+                run_root = output_root / f"t{index}"
                 project_root.return_value = run_root
                 default_output_root.return_value = run_root
                 app._on_topology_selected(topology_id)
@@ -197,7 +207,7 @@ try:
                     for path in sweep.artifact_paths.values()
                 )
                 assert all(
-                    Path(path).is_relative_to(output_root / topology_id)
+                    Path(path).is_relative_to(run_root)
                     for path in sweep.artifact_paths.values()
                 )
 

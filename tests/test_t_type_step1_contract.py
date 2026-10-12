@@ -152,12 +152,12 @@ def test_t_type_physical_connections_and_groups_follow_common_emitter_circuit() 
     assert contract.to_dict()["independent_clamp_diode_count"] == 0
 
 
-def test_t_type_plugin_is_isolated_from_registry_and_unimplemented_later_hooks_fail_closed() -> None:
+def test_t_type_plugin_is_registered_with_topology_only_hooks() -> None:
     registry = build_default_registry()
-    assert TOPOLOGY_ID not in {definition.topology_id for definition in registry.list_definitions()}
-    assert PLUGIN.implemented is False
+    assert TOPOLOGY_ID in {definition.topology_id for definition in registry.list_definitions()}
+    assert PLUGIN.implemented is True
     assert isinstance(PLUGIN, TopologyPlugin)
-    assert PLUGIN.legacy_key not in {definition.legacy_key for definition in registry.list_definitions()}
+    assert PLUGIN.legacy_key in {definition.legacy_key for definition in registry.list_definitions()}
     assert PLUGIN.build_spec(build_default_inputs()).topology_id == TOPOLOGY_ID
 
     candidate = PLUGIN.synthesize(PLUGIN.build_spec(build_default_inputs()))
@@ -194,7 +194,7 @@ def audit(event, args):
 sys.addaudithook(audit)
 import pe_claw_gui.topologies.dc_ac.three_phase_three_level_t_type_inverter as module
 assert [dataclasses.asdict(d) for d in build_default_registry().list_definitions()] == before
-assert not module.PLUGIN.implemented
+assert module.PLUGIN.implemented
 assert {name for name in sys.modules if name.startswith("pe_claw_gui.pipeline")} == before_pipeline
 payload = module.PLUGIN.build_spec({}).metadata["t_type_contract"]
 print(json.dumps(payload, allow_nan=False))

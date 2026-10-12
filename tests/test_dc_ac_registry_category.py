@@ -13,6 +13,7 @@ DC_AC_TOPOLOGY_IDS = (
     "single_phase_full_bridge_inverter",
     "three_phase_two_level_voltage_source_inverter",
     "three_phase_three_level_npc_inverter",
+    "three_phase_three_level_t_type_inverter",
 )
 
 

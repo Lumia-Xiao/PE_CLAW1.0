@@ -101,7 +101,7 @@ def test_all_registered_deterministic_topology_plugins_remain_loadable() -> None
         "from pe_claw_gui.topologies.base.registry import build_default_registry; "
         "registry = build_default_registry(); "
         "definitions = registry.list_definitions(); "
-        "assert len(definitions) == 20; "
+        "assert len(definitions) == 21; "
         "assert all(registry.get_plugin(item.topology_id) is not None for item in definitions)"
     )
     assert result.returncode == 0, result.stderr

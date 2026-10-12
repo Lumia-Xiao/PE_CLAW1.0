@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ...models.design_report import DesignReport
-from ...topology_capabilities import is_llc_resonant_topology
+from ...topology_capabilities import is_llc_resonant_topology, is_first_pass_topology_only
 from ..category_views import (
     ACACCategoryPage,
     ACDCCategoryPage,
@@ -170,8 +170,8 @@ class Workspace(ttk.Frame):
         form_host = ttk.Frame(content)
         form_host.grid(row=0, column=0, sticky="nsw")
         form_parent = form_host
-        if is_llc_resonant_topology(topology_id):
-            # LLC inputs exceed the default window height. Keep the waveform
+        if is_llc_resonant_topology(topology_id) or is_first_pass_topology_only(topology_id):
+            # These inputs exceed the default window height. Keep the waveform
             # controls reachable without increasing the window's minimum size.
             form_host.rowconfigure(0, weight=1)
             self.form_canvas = tk.Canvas(form_host, height=1, borderwidth=0, highlightthickness=0)

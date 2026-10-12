@@ -1,7 +1,7 @@
 """Input-contract and plugin skeleton for the first-round T-type inverter.
 
-All six first-pass hooks are implemented; the plugin remains unregistered
-until the registry and GUI integration step.
+All six first-pass hooks and the topology-only registry/GUI path are implemented.
+Component selection and loss/efficiency stages remain unavailable.
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ class ThreePhaseThreeLevelTTypeInverterPlugin(TopologyPlugin):
     topology_id: str = TOPOLOGY_ID
     display_name: str = DISPLAY_NAME
     legacy_key: str = LEGACY_KEY
-    implemented: bool = False
+    implemented: bool = True
 
     def build_spec(self, raw_input: Mapping[str, str]) -> TopologySpec:
         return build_spec(raw_input)

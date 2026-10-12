@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import tkinter as tk
+from dataclasses import replace
 from tkinter import messagebox, ttk
 
 from ...topologies.base import build_default_registry
-from ...topology_capabilities import is_llc_resonant_topology
+from ...topology_capabilities import is_llc_resonant_topology, is_first_pass_topology_only
 from ..controllers.device_controller import DeviceController
 from ..controllers.efficiency_sweep_controller import EfficiencySweepController
 from ..controllers.export_controller import ExportController
@@ -110,6 +111,8 @@ class PEClawMainWindow(tk.Tk):
         except RuntimeError as exc:  # pragma: no cover - GUI path
             messagebox.showwarning("Selection Required", str(exc))
         except Exception as exc:  # pragma: no cover - GUI path
+            if is_first_pass_topology_only(self.state_store.selected_topology_id or ""):
+                self.workspace.render_report(None)
             messagebox.showerror("Design Error", str(exc))
 
     def _on_run_magnetics(self) -> None:
@@ -156,7 +159,15 @@ class PEClawMainWindow(tk.Tk):
         except RuntimeError as exc:  # pragma: no cover - GUI path
             messagebox.showwarning("No Design", str(exc))
         except Exception as exc:  # pragma: no cover - GUI path
-            if is_llc_resonant_topology(self.state_store.selected_topology_id or ""):
+            if is_llc_resonant_topology(self.state_store.selected_topology_id or "") or is_first_pass_topology_only(self.state_store.selected_topology_id or ""):
+                if (is_first_pass_topology_only(self.state_store.selected_topology_id or "")
+                        and self.state_store.design_report is not None
+                        and self.state_store.design_report.waveform is not None):
+                    # Parsing can fail before the refresh controller runs.
+                    self.state_store.design_report = replace(
+                        self.state_store.design_report, operating_point=None,
+                        waveform=None, stress=None, topology_result=None,
+                    )
                 # Retain fixed hardware in state for recovery, but do not show
                 # the previous successful curves as an unreachable target.
                 self.workspace.render_report(None)

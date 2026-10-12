@@ -10,6 +10,11 @@ from ..topology_card_assets import DEFAULT_MAX_IMAGE_HEIGHT_PX, DEFAULT_MAX_IMAG
 
 _CARD_COLUMNS = 2
 _TOPOLOGY_HINTS = {
+    "three_phase_three_level_t_type_inverter": (
+        "Conventional three-phase T-type: ideal PD-SPWM design, three-phase waveforms, "
+        "12 gate signals and main/midpoint position stress. Component selection, "
+        "loss and efficiency stages are not connected in this first round."
+    ),
     "single_phase_full_bridge_inverter": (
         "Single-phase full-bridge voltage-source inverter. First-pass CCM unipolar-SPWM output "
         "inductor sizing and DC-link energy-balance capacitor sizing."

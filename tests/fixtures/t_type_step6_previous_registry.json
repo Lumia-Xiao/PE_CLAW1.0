@@ -1,0 +1,1157 @@
+{
+  "single_phase_diode_bridge_rectifier_capacitor_filter": {
+    "definition": {
+      "category_id": "ac_dc",
+      "category_display_name": "AC-DC",
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "display_name": "Single-Phase Diode Bridge Rectifier Capacitor Filter",
+      "module_path": "pe_claw_gui.topologies.ac_dc.single_phase_diode_bridge_rectifier_capacitor_filter",
+      "form_path": "pe_claw_gui.app.topology_forms.single_phase_diode_bridge_rectifier_capacitor_filter_form",
+      "form_class": "SinglePhaseDiodeBridgeRectifierCapacitorFilterForm",
+      "implemented": true,
+      "legacy_key": "SinglePhase_DiodeBridgeRectifier_CapacitorFilter"
+    },
+    "capability": {
+      "topology_id": "single_phase_diode_bridge_rectifier_capacitor_filter",
+      "capability_id": "ac_dc_single_phase_cap_filter",
+      "display_name": "Single-Phase AC-DC Capacitor Filter",
+      "category_id": "ac_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vac_rms_v",
+        "f_line_hz",
+        "pout_w",
+        "ripple_ratio",
+        "diode_forward_drop_v",
+        "diode_voltage_margin",
+        "source_resistance_ohm",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "f_line_hz",
+        "ripple_ratio",
+        "diode_forward_drop_v",
+        "diode_voltage_margin",
+        "source_resistance_ohm",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": false,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": false,
+      "has_magnetic_loss_path": false
+    }
+  },
+  "single_phase_diode_bridge_rectifier_dc_inductor_filter": {
+    "definition": {
+      "category_id": "ac_dc",
+      "category_display_name": "AC-DC",
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "display_name": "Single-Phase Diode Bridge Rectifier with DC-Side Inductor",
+      "module_path": "pe_claw_gui.topologies.ac_dc.single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "form_path": "pe_claw_gui.app.topology_forms.single_phase_diode_bridge_rectifier_dc_inductor_filter_form",
+      "form_class": "SinglePhaseDiodeBridgeRectifierDCInductorFilterForm",
+      "implemented": true,
+      "legacy_key": "SinglePhase_DiodeBridgeRectifier_DCInductorFilter"
+    },
+    "capability": {
+      "topology_id": "single_phase_diode_bridge_rectifier_dc_inductor_filter",
+      "capability_id": "ac_dc_single_phase_dc_inductor",
+      "display_name": "Single-Phase AC-DC DC-Side Inductor",
+      "category_id": "ac_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vac_rms_v",
+        "f_line_hz",
+        "pout_w",
+        "ripple_ratio",
+        "inductor_current_ripple_ratio",
+        "ccm_margin",
+        "diode_forward_drop_v",
+        "diode_voltage_margin",
+        "source_resistance_ohm",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "f_line_hz",
+        "ripple_ratio",
+        "inductor_current_ripple_ratio",
+        "ccm_margin",
+        "diode_forward_drop_v",
+        "diode_voltage_margin",
+        "source_resistance_ohm",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": false,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "three_phase_diode_bridge_rectifier_capacitor_filter": {
+    "definition": {
+      "category_id": "ac_dc",
+      "category_display_name": "AC-DC",
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "display_name": "Three-Phase Diode Bridge Rectifier Capacitor Filter",
+      "module_path": "pe_claw_gui.topologies.ac_dc.three_phase_diode_bridge_rectifier_capacitor_filter",
+      "form_path": "pe_claw_gui.app.topology_forms.three_phase_diode_bridge_rectifier_capacitor_filter_form",
+      "form_class": "ThreePhaseDiodeBridgeRectifierCapacitorFilterForm",
+      "implemented": true,
+      "legacy_key": "ThreePhase_DiodeBridgeRectifier_CapacitorFilter"
+    },
+    "capability": {
+      "topology_id": "three_phase_diode_bridge_rectifier_capacitor_filter",
+      "capability_id": "ac_dc_three_phase_cap_filter",
+      "display_name": "Three-Phase AC-DC Capacitor Filter",
+      "category_id": "ac_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vll_rms_v",
+        "f_line_hz",
+        "pout_w",
+        "dc_link_ripple_ratio",
+        "diode_forward_drop_v",
+        "diode_voltage_margin",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "f_line_hz",
+        "dc_link_ripple_ratio",
+        "diode_forward_drop_v",
+        "diode_voltage_margin",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": false,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": false,
+      "has_magnetic_loss_path": false
+    }
+  },
+  "single_phase_boost_pfc_diode_bridge": {
+    "definition": {
+      "category_id": "ac_dc",
+      "category_display_name": "AC-DC",
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "display_name": "Single-Phase Boost PFC Diode Bridge",
+      "module_path": "pe_claw_gui.topologies.ac_dc.single_phase_boost_pfc_diode_bridge",
+      "form_path": "pe_claw_gui.app.topology_forms.single_phase_boost_pfc_diode_bridge_form",
+      "form_class": "SinglePhaseBoostPFCDiodeBridgeForm",
+      "implemented": true,
+      "legacy_key": "SinglePhase_BoostPFC_DiodeBridge_FirstPass"
+    },
+    "capability": {
+      "topology_id": "single_phase_boost_pfc_diode_bridge",
+      "capability_id": "ac_dc_single_phase_boost_pfc",
+      "display_name": "Single-Phase Boost PFC Diode Bridge",
+      "category_id": "ac_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vac_min_v",
+        "vac_rms_v",
+        "vac_max_v",
+        "f_line_hz",
+        "vdc_target_v",
+        "pout_w",
+        "fsw_hz",
+        "dc_bus_ripple_percent",
+        "inductor_current_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "f_line_hz",
+        "dc_bus_ripple_percent",
+        "inductor_current_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "single_phase_totem_pole_bridgeless_pfc": {
+    "definition": {
+      "category_id": "ac_dc",
+      "category_display_name": "AC-DC",
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "display_name": "Single-Phase Totem-Pole Bridgeless PFC",
+      "module_path": "pe_claw_gui.topologies.ac_dc.single_phase_totem_pole_bridgeless_pfc",
+      "form_path": "pe_claw_gui.app.topology_forms.single_phase_totem_pole_bridgeless_pfc_form",
+      "form_class": "SinglePhaseTotemPoleBridgelessPFCForm",
+      "implemented": true,
+      "legacy_key": "SinglePhase_TotemPole_BridgelessPFC_FirstPass"
+    },
+    "capability": {
+      "topology_id": "single_phase_totem_pole_bridgeless_pfc",
+      "capability_id": "ac_dc_single_phase_totem_pole_pfc",
+      "display_name": "Single-Phase Totem-Pole Bridgeless PFC",
+      "category_id": "ac_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vac_min_v",
+        "vac_rms_v",
+        "vac_max_v",
+        "f_line_hz",
+        "vdc_target_v",
+        "pout_w",
+        "fsw_hz",
+        "dc_bus_ripple_percent",
+        "inductor_current_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "f_line_hz",
+        "dc_bus_ripple_percent",
+        "inductor_current_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "single_phase_interleaved_boost_pfc_diode_bridge": {
+    "definition": {
+      "category_id": "ac_dc",
+      "category_display_name": "AC-DC",
+      "topology_id": "single_phase_interleaved_boost_pfc_diode_bridge",
+      "display_name": "Single-Phase Interleaved Boost PFC Diode Bridge",
+      "module_path": "pe_claw_gui.topologies.ac_dc.single_phase_interleaved_boost_pfc_diode_bridge",
+      "form_path": "pe_claw_gui.app.topology_forms.single_phase_interleaved_boost_pfc_diode_bridge_form",
+      "form_class": "SinglePhaseInterleavedBoostPFCDiodeBridgeForm",
+      "implemented": true,
+      "legacy_key": "SinglePhase_InterleavedBoostPFC_DiodeBridge_FirstPass"
+    },
+    "capability": {
+      "topology_id": "single_phase_interleaved_boost_pfc_diode_bridge",
+      "capability_id": "ac_dc_single_phase_interleaved_boost_pfc",
+      "display_name": "Single-Phase Interleaved Boost PFC Diode Bridge",
+      "category_id": "ac_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vac_rms",
+        "vac_rms_min",
+        "vac_rms_max",
+        "f_line_hz",
+        "vdc_target_v",
+        "pout_w",
+        "fsw_hz",
+        "dc_bus_ripple_percent",
+        "inductor_current_ripple_ratio",
+        "power_factor_target",
+        "input_inductance_h",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "f_line_hz",
+        "dc_bus_ripple_percent",
+        "inductor_current_ripple_ratio",
+        "power_factor_target",
+        "input_inductance_h",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": [
+        "First-pass CCM design uses fixed two-phase, 180-degree interleaving and ideal 50/50 current sharing.",
+        "DCM, CrM, dynamic current-sharing control, phase mismatch, zero-crossing control dynamics, THD, EMI, and detailed parasitics are outside this capability.",
+        "Efficiency and loss results depend on selected bridge, four phase-position devices, two phase inductors, and shared DC-link capacitor hardware."
+      ]
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "single_phase_full_bridge_inverter": {
+    "definition": {
+      "category_id": "dc_ac",
+      "category_display_name": "DC-AC",
+      "topology_id": "single_phase_full_bridge_inverter",
+      "display_name": "Single-Phase Full-Bridge Inverter",
+      "module_path": "pe_claw_gui.topologies.dc_ac.single_phase_full_bridge_inverter",
+      "form_path": "pe_claw_gui.app.topology_forms.single_phase_full_bridge_inverter_form",
+      "form_class": "SinglePhaseFullBridgeInverterForm",
+      "implemented": true,
+      "legacy_key": "SinglePhase_FullBridge_Inverter"
+    },
+    "capability": {
+      "topology_id": "single_phase_full_bridge_inverter",
+      "capability_id": "dc_ac_single_phase_full_bridge",
+      "display_name": "Single-Phase DC-AC Full-Bridge Inverter",
+      "category_id": "dc_ac",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vdc_nom_v",
+        "vac_rms_v",
+        "f_line_hz",
+        "fsw_hz",
+        "pout_w",
+        "power_factor",
+        "inductor_current_ripple_ratio",
+        "dc_link_voltage_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "power_factor",
+        "inductor_current_ripple_ratio",
+        "dc_link_voltage_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "three_phase_two_level_voltage_source_inverter": {
+    "definition": {
+      "category_id": "dc_ac",
+      "category_display_name": "DC-AC",
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "display_name": "Three-Phase Two-Level Voltage-Source Inverter",
+      "module_path": "pe_claw_gui.topologies.dc_ac.three_phase_two_level_voltage_source_inverter",
+      "form_path": "pe_claw_gui.app.topology_forms.three_phase_two_level_voltage_source_inverter_form",
+      "form_class": "ThreePhaseTwoLevelVoltageSourceInverterForm",
+      "implemented": true,
+      "legacy_key": "ThreePhase_TwoLevel_VoltageSource_Inverter"
+    },
+    "capability": {
+      "topology_id": "three_phase_two_level_voltage_source_inverter",
+      "capability_id": "dc_ac_three_phase_two_level_vsi",
+      "display_name": "Three-Phase DC-AC Two-Level VSI",
+      "category_id": "dc_ac",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vdc_nom_v",
+        "vac_ll_rms_v",
+        "f_line_hz",
+        "fsw_hz",
+        "pout_w",
+        "power_factor",
+        "inductor_current_ripple_ratio",
+        "dc_link_voltage_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "power_factor",
+        "inductor_current_ripple_ratio",
+        "dc_link_voltage_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "three_phase_three_level_npc_inverter": {
+    "definition": {
+      "category_id": "dc_ac",
+      "category_display_name": "DC-AC",
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "display_name": "Three-Phase Three-Level NPC Inverter",
+      "module_path": "pe_claw_gui.topologies.dc_ac.three_phase_three_level_npc_inverter",
+      "form_path": "pe_claw_gui.app.topology_forms.three_phase_three_level_npc_inverter_form",
+      "form_class": "ThreePhaseThreeLevelNPCInverterForm",
+      "implemented": true,
+      "legacy_key": "ThreePhase_ThreeLevel_NPC_Inverter"
+    },
+    "capability": {
+      "topology_id": "three_phase_three_level_npc_inverter",
+      "capability_id": "dc_ac_three_phase_three_level_npc",
+      "display_name": "Three-Phase DC-AC Three-Level NPC Inverter",
+      "category_id": "dc_ac",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vdc_nom_v",
+        "vac_ll_rms_v",
+        "f_line_hz",
+        "fsw_hz",
+        "pout_w",
+        "power_factor",
+        "inductor_current_ripple_ratio",
+        "dc_link_voltage_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "power_factor",
+        "inductor_current_ripple_ratio",
+        "dc_link_voltage_ripple_ratio",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": true,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "buck_diode_rectified_unidirectional": {
+    "definition": {
+      "category_id": "dc_dc",
+      "category_display_name": "DC-DC",
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "display_name": "Buck Diode Rectified Unidirectional",
+      "module_path": "pe_claw_gui.topologies.dc_dc.buck_diode_rectified_unidirectional",
+      "form_path": "pe_claw_gui.app.topology_forms.buck_diode_rectified_unidirectional_form",
+      "form_class": "BuckDiodeRectifiedUnidirectionalForm",
+      "implemented": true,
+      "legacy_key": "Buck_CCM_DiodeRectified_Unidirectional"
+    },
+    "capability": {
+      "topology_id": "buck_diode_rectified_unidirectional",
+      "capability_id": "buck_diode",
+      "display_name": "Buck Diode",
+      "category_id": "dc_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vin_min_v",
+        "vin_nom_v",
+        "vin_max_v",
+        "vout_v",
+        "pout_w",
+        "fsw_hz",
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "buck_synchronous_rectified_unidirectional": {
+    "definition": {
+      "category_id": "dc_dc",
+      "category_display_name": "DC-DC",
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "display_name": "Buck Synchronous Rectified Unidirectional",
+      "module_path": "pe_claw_gui.topologies.dc_dc.buck_synchronous_rectified_unidirectional",
+      "form_path": "pe_claw_gui.app.topology_forms.buck_synchronous_rectified_unidirectional_form",
+      "form_class": "BuckSynchronousRectifiedUnidirectionalForm",
+      "implemented": true,
+      "legacy_key": "Buck_SynchronousRectified_Unidirectional"
+    },
+    "capability": {
+      "topology_id": "buck_synchronous_rectified_unidirectional",
+      "capability_id": "sync_buck",
+      "display_name": "Synchronous Buck",
+      "category_id": "dc_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vin_min_v",
+        "vin_nom_v",
+        "vin_max_v",
+        "vout_v",
+        "pout_w",
+        "fsw_hz",
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "buck_boost_diode_rectified_unidirectional": {
+    "definition": {
+      "category_id": "dc_dc",
+      "category_display_name": "DC-DC",
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "display_name": "Buck-Boost Diode Rectified Unidirectional",
+      "module_path": "pe_claw_gui.topologies.dc_dc.buck_boost_diode_rectified_unidirectional",
+      "form_path": "pe_claw_gui.app.topology_forms.buck_boost_diode_rectified_unidirectional_form",
+      "form_class": "BuckBoostDiodeRectifiedUnidirectionalForm",
+      "implemented": true,
+      "legacy_key": "BuckBoost_DiodeRectified_Unidirectional"
+    },
+    "capability": {
+      "topology_id": "buck_boost_diode_rectified_unidirectional",
+      "capability_id": "buck_boost_diode",
+      "display_name": "Buck-Boost Diode",
+      "category_id": "dc_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vin_min_v",
+        "vin_nom_v",
+        "vin_max_v",
+        "vout_v",
+        "pout_w",
+        "fsw_hz",
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": [
+        "This topology is treated as inverting; verify output polarity."
+      ]
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "four_switch_buck_boost_simplified_four_mode": {
+    "definition": {
+      "category_id": "dc_dc",
+      "category_display_name": "DC-DC",
+      "topology_id": "four_switch_buck_boost_simplified_four_mode",
+      "display_name": "Four-Switch Buck-Boost Simplified Four-Mode",
+      "module_path": "pe_claw_gui.topologies.dc_dc.four_switch_buck_boost_simplified_four_mode",
+      "form_path": "pe_claw_gui.app.topology_forms.four_switch_buck_boost_simplified_four_mode_form",
+      "form_class": "FourSwitchBuckBoostSimplifiedFourModeForm",
+      "implemented": true,
+      "legacy_key": "FourSwitchBuckBoost_SimplifiedFourMode"
+    },
+    "capability": {
+      "topology_id": "four_switch_buck_boost_simplified_four_mode",
+      "capability_id": "four_switch_buck_boost",
+      "display_name": "Four-Switch Buck-Boost",
+      "category_id": "dc_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vin_min_v",
+        "vin_nom_v",
+        "vin_max_v",
+        "vout_v",
+        "pout_w",
+        "fsw_hz",
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c",
+        "duty_clamp",
+        "transition_band_ratio"
+      ],
+      "default_fields": [
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c",
+        "duty_clamp",
+        "transition_band_ratio"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "three_level_tzcm_fixed_frequency": {
+    "definition": {
+      "category_id": "dc_dc",
+      "category_display_name": "DC-DC",
+      "topology_id": "three_level_tzcm_fixed_frequency",
+      "display_name": "Three-Level DC-DC TZCM Fixed Frequency",
+      "module_path": "pe_claw_gui.topologies.dc_dc.three_level_tzcm_fixed_frequency",
+      "form_path": "pe_claw_gui.app.topology_forms.three_level_tzcm_fixed_frequency_form",
+      "form_class": "ThreeLevelTZCMFixedFrequencyForm",
+      "implemented": true,
+      "legacy_key": "ThreeLevelTZCM_FixedFrequency"
+    },
+    "capability": {
+      "topology_id": "three_level_tzcm_fixed_frequency",
+      "capability_id": "three_level_tzcm",
+      "display_name": "Three-Level TZCM",
+      "category_id": "dc_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vin_nom_v",
+        "vout_v",
+        "pout_w",
+        "fsw_hz",
+        "izvs",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "izvs",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "boost_diode_rectified_unidirectional": {
+    "definition": {
+      "category_id": "dc_dc",
+      "category_display_name": "DC-DC",
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "display_name": "Boost Diode Rectified Unidirectional",
+      "module_path": "pe_claw_gui.topologies.dc_dc.boost_diode_rectified_unidirectional",
+      "form_path": "pe_claw_gui.app.topology_forms.boost_diode_rectified_unidirectional_form",
+      "form_class": "BoostDiodeRectifiedUnidirectionalForm",
+      "implemented": true,
+      "legacy_key": "Boost_DiodeRectified_Unidirectional"
+    },
+    "capability": {
+      "topology_id": "boost_diode_rectified_unidirectional",
+      "capability_id": "boost_preview",
+      "display_name": "Boost",
+      "category_id": "dc_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vin_min_v",
+        "vin_nom_v",
+        "vin_max_v",
+        "vout_v",
+        "pout_w",
+        "fsw_hz",
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "boost_synchronous_rectified_unidirectional": {
+    "definition": {
+      "category_id": "dc_dc",
+      "category_display_name": "DC-DC",
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "display_name": "Boost Synchronous Rectified Unidirectional",
+      "module_path": "pe_claw_gui.topologies.dc_dc.boost_synchronous_rectified_unidirectional",
+      "form_path": "pe_claw_gui.app.topology_forms.boost_synchronous_rectified_unidirectional_form",
+      "form_class": "BoostSynchronousRectifiedUnidirectionalForm",
+      "implemented": true,
+      "legacy_key": "Boost_SynchronousRectified_Unidirectional"
+    },
+    "capability": {
+      "topology_id": "boost_synchronous_rectified_unidirectional",
+      "capability_id": "sync_boost",
+      "display_name": "Synchronous Boost",
+      "category_id": "dc_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vin_min_v",
+        "vin_nom_v",
+        "vin_max_v",
+        "vout_v",
+        "pout_w",
+        "fsw_hz",
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "llc_resonant_converter_diode_rectifier": {
+    "definition": {
+      "category_id": "dc_dc",
+      "category_display_name": "DC-DC",
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "display_name": "LLC Resonant Converter Diode Rectifier",
+      "module_path": "pe_claw_gui.topologies.dc_dc.llc_resonant_converter_diode_rectifier",
+      "form_path": "pe_claw_gui.app.topology_forms.llc_resonant_converter_diode_rectifier_form",
+      "form_class": "LLCResonantConverterDiodeRectifierForm",
+      "implemented": true,
+      "legacy_key": "LLC_ResonantConverter_DiodeRectifier_Placeholder"
+    },
+    "capability": {
+      "topology_id": "llc_resonant_converter_diode_rectifier",
+      "capability_id": "llc_diode",
+      "display_name": "LLC Diode",
+      "category_id": "dc_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vin_min_v",
+        "vin_nom_v",
+        "vin_max_v",
+        "vout_v",
+        "pout_w",
+        "fs_min_hz",
+        "fs_max_hz",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "default_fields": [
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": [
+        "FHA-based isolated LLC first-pass path; verify resonant-tank and insulation margins."
+      ]
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "llc_resonant_converter_synchronous_rectifier": {
+    "definition": {
+      "category_id": "dc_dc",
+      "category_display_name": "DC-DC",
+      "topology_id": "llc_resonant_converter_synchronous_rectifier",
+      "display_name": "LLC Resonant Converter Synchronous Rectifier",
+      "module_path": "pe_claw_gui.topologies.dc_dc.llc_resonant_converter_synchronous_rectifier",
+      "form_path": "pe_claw_gui.app.topology_forms.llc_resonant_converter_synchronous_rectifier_form",
+      "form_class": "LLCResonantConverterSynchronousRectifierForm",
+      "implemented": true,
+      "legacy_key": "LLC_ResonantConverter_SynchronousRectifier_Placeholder"
+    },
+    "capability": {
+      "topology_id": "llc_resonant_converter_synchronous_rectifier",
+      "capability_id": "llc_synchronous_rectifier",
+      "display_name": "LLC Synchronous Rectifier",
+      "category_id": "dc_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vin_min_v",
+        "vin_nom_v",
+        "vin_max_v",
+        "vout_v",
+        "pout_w",
+        "fs_min_hz",
+        "fs_max_hz",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c",
+        "secondary_rectifier_type",
+        "primary_switch_device_type",
+        "primary_switch_manufacturer",
+        "secondary_sync_switch_device_type",
+        "secondary_sync_switch_manufacturer",
+        "synchronous_rectifier_timing_mode"
+      ],
+      "default_fields": [
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c",
+        "secondary_rectifier_type",
+        "primary_switch_device_type",
+        "primary_switch_manufacturer",
+        "secondary_sync_switch_device_type",
+        "secondary_sync_switch_manufacturer",
+        "synchronous_rectifier_timing_mode"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "flyback_diode_rectified_isolated": {
+    "definition": {
+      "category_id": "dc_dc",
+      "category_display_name": "DC-DC",
+      "topology_id": "flyback_diode_rectified_isolated",
+      "display_name": "Flyback Diode Rectified Isolated",
+      "module_path": "pe_claw_gui.topologies.dc_dc.flyback_diode_rectified_isolated",
+      "form_path": "pe_claw_gui.app.topology_forms.flyback_diode_rectified_isolated_form",
+      "form_class": "FlybackDiodeRectifiedIsolatedForm",
+      "implemented": true,
+      "legacy_key": "Flyback_DiodeRectified_Isolated_FirstPass"
+    },
+    "capability": {
+      "topology_id": "flyback_diode_rectified_isolated",
+      "capability_id": "flyback_diode",
+      "display_name": "Flyback Diode",
+      "category_id": "dc_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vin_min_v",
+        "vin_nom_v",
+        "vin_max_v",
+        "vout_v",
+        "pout_w",
+        "fsw_hz",
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c",
+        "target_duty",
+        "turns_ratio_ns_np",
+        "rectifier_diode_drop_v",
+        "clamp_spike_margin_v",
+        "flyback_mode"
+      ],
+      "default_fields": [
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c",
+        "target_duty",
+        "turns_ratio_ns_np",
+        "rectifier_diode_drop_v",
+        "clamp_spike_margin_v",
+        "flyback_mode"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  },
+  "phase_shifted_full_bridge_diode_rectifier_isolated": {
+    "definition": {
+      "category_id": "dc_dc",
+      "category_display_name": "DC-DC",
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "display_name": "Phase-Shifted Full-Bridge Diode Rectifier Isolated",
+      "module_path": "pe_claw_gui.topologies.dc_dc.phase_shifted_full_bridge_diode_rectifier_isolated",
+      "form_path": "pe_claw_gui.app.topology_forms.psfb_form",
+      "form_class": "PSFBTopologyForm",
+      "implemented": true,
+      "legacy_key": "PhaseShiftedFullBridge_DiodeRectifier_Isolated_FirstPass"
+    },
+    "capability": {
+      "topology_id": "phase_shifted_full_bridge_diode_rectifier_isolated",
+      "capability_id": "psfb_diode",
+      "display_name": "PSFB Diode",
+      "category_id": "dc_dc",
+      "support_status": "first-pass",
+      "required_fields": [
+        "vin_min_v",
+        "vin_nom_v",
+        "vin_max_v",
+        "vout_v",
+        "pout_w",
+        "fsw_hz",
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c",
+        "max_effective_duty",
+        "max_command_duty",
+        "deadtime_ns",
+        "zvs_load_ratio_min",
+        "target_bmax_t",
+        "turns_ratio_np_ns",
+        "leakage_inductance_target_h",
+        "magnetizing_inductance_h",
+        "rectifier_diode_drop_v",
+        "primary_switch_eoss_uj",
+        "primary_switch_qoss_nc",
+        "secondary_rectifier_type"
+      ],
+      "default_fields": [
+        "ripple_current_ratio",
+        "ripple_voltage_ratio_percent",
+        "ambient_temp_c",
+        "target_junction_temp_c",
+        "max_effective_duty",
+        "max_command_duty",
+        "deadtime_ns",
+        "zvs_load_ratio_min",
+        "target_bmax_t",
+        "turns_ratio_np_ns",
+        "leakage_inductance_target_h",
+        "magnetizing_inductance_h",
+        "rectifier_diode_drop_v",
+        "primary_switch_eoss_uj",
+        "primary_switch_qoss_nc",
+        "secondary_rectifier_type"
+      ],
+      "hooks": [
+        "build_spec",
+        "synthesize",
+        "generate_waveforms",
+        "extract_stress",
+        "evaluate",
+        "build_report"
+      ],
+      "boundary_notes": []
+    },
+    "helpers": {
+      "is_first_pass_topology_only": false,
+      "has_semiconductor_selection_path": true,
+      "has_split_dc_link_capacitor_bank": false,
+      "has_inductor_result_pages": true,
+      "has_magnetic_loss_path": true
+    }
+  }
+}

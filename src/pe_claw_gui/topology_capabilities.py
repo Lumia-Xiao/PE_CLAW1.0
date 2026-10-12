@@ -21,6 +21,7 @@ SPLIT_DC_LINK_CAPACITOR_BANK_TOPOLOGY_IDS = {
     "three_phase_three_level_npc_inverter",
 }
 FIRST_PASS_TOPOLOGY_ONLY_IDS: set[str] = {
+    "three_phase_three_level_t_type_inverter",
 }
 SINGLE_PHASE_FULL_BRIDGE_INVERTER_TOPOLOGY_ID = "single_phase_full_bridge_inverter"
 LLC_RESONANT_TOPOLOGY_IDS = {

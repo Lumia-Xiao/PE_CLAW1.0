@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from ...models.operating_point import OperatingPoint
+from ...topology_capabilities import is_first_pass_topology_only
 from ...pipeline import run_operating_point_refresh
 from ...pipeline.options import PipelineOptions
 from ...utils.ambient_temperature import (
@@ -30,12 +31,20 @@ class WaveformController:
             raise RuntimeError("Select a topology before generating waveforms.")
         plugin = self._state_store.active_plugin or self._state_store.registry.get_plugin(self._state_store.selected_topology_id)
         report = _apply_runtime_overrides(self._state_store.design_report, runtime_overrides)
-        report = run_operating_point_refresh(
-            report=report,
-            plugin=plugin,
-            operating_point=operating_point,
-            pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
-        )
+        try:
+            report = run_operating_point_refresh(
+                report=report,
+                plugin=plugin,
+                operating_point=operating_point,
+                pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
+            )
+        except Exception as exc:
+            if is_first_pass_topology_only(report.spec.topology_id):
+                self._state_store.design_report = replace(
+                    report, operating_point=operating_point, waveform=None, stress=None, topology_result=None,
+                    notes=[*report.notes, f"Waveform refresh failed: {exc}"],
+                )
+            raise
         self._state_store.active_plugin = plugin
         self._state_store.design_report = report
         if runtime_overrides:

@@ -18,6 +18,7 @@ EXPECTED_TOPOLOGY_IDS = {
     "single_phase_full_bridge_inverter",
     "three_phase_two_level_voltage_source_inverter",
     "three_phase_three_level_npc_inverter",
+    "three_phase_three_level_t_type_inverter",
     "buck_diode_rectified_unidirectional",
     "buck_synchronous_rectified_unidirectional",
     "buck_boost_diode_rectified_unidirectional",
@@ -38,7 +39,7 @@ def test_phase12_registry_is_unique_and_includes_interleaved_pfc() -> None:
     definitions = registry.list_definitions()
     topology_ids = [definition.topology_id for definition in definitions]
 
-    assert len(topology_ids) == 20
+    assert len(topology_ids) == 21
     assert len(topology_ids) == len(set(topology_ids))
     assert set(topology_ids) == EXPECTED_TOPOLOGY_IDS
     assert {definition.category_id for definition in definitions} == {"ac_dc", "dc_ac", "dc_dc"}

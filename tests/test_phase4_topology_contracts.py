@@ -38,9 +38,9 @@ MIGRATED_CASES = (
 def test_phase4_registry_has_unique_ids_and_capabilities() -> None:
     registry = build_default_registry()
     definitions = registry.list_definitions()
-    assert len(definitions) == 20
-    assert len({item.topology_id for item in definitions}) == 20
-    assert len({item.legacy_key for item in definitions}) == 20
+    assert len(definitions) == 21
+    assert len({item.topology_id for item in definitions}) == 21
+    assert len({item.legacy_key for item in definitions}) == 21
     migrated_ids = {topology_id for _, topology_id in MIGRATED_CASES}
     assert migrated_ids <= {item.topology_id for item in definitions}
     assert len(migrated_ids) == 16

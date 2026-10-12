@@ -40,6 +40,8 @@ def build_stress_summary_lines(
         return [fallback]
 
     stress = report.stress
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        return _t_type_stress_lines(report, include_notes=include_notes)
     switch_title = "Switch stress"
     switch_voltage_label = "V_SW_max"
     switch_peak_label = "I_SW_peak"
@@ -135,3 +137,31 @@ def _fmt_current(value: float | None) -> str:
     if value is None:
         return "N/A"
     return f"{value:.6f} A"
+
+
+def _t_type_stress_lines(report, *, include_notes):
+    """Read current position metrics; estimates are only for absent waveforms."""
+    if report.waveform is None:
+        from ...topologies.dc_ac.three_phase_three_level_t_type_inverter.stress import stress_readback
+        readback = stress_readback(report.candidate)
+    else:
+        readback = report.waveform.metadata["three_phase_t_type_pd_spwm_waveforms"]["stress"]
+    lines = [f"T-type stress basis = {readback['basis']}",
+             "Per-metric position envelopes; currents are not summed across devices.",
+             "Main switches (6 positions)", *_t_type_metric_lines(readback['main']),
+             "Midpoint switches (6 positions)", *_t_type_metric_lines(readback['midpoint']),
+             "12 position metrics (full line period)"]
+    for key, values in readback["positions"].items():
+        lines.extend([key, *_t_type_metric_lines(values)])
+    if include_notes:
+        lines.extend(["", *report.stress.notes])
+    return lines
+
+
+def _t_type_metric_lines(values):
+    lines = [f"  Static blocking maximum = {values['voltage_max_v']:.6f} V"]
+    for path in ("signed", "channel", "diode"):
+        lines.append(f"  {path}: peak={_fmt_current(values.get(path+'_peak_a'))}, "
+                     f"RMS={_fmt_current(values.get(path+'_rms_a'))}, "
+                     f"average={_fmt_current(values.get(path+'_avg_a'))}")
+    return lines

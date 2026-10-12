@@ -24,7 +24,7 @@ User specifications
 PE-Claw 1.0 focuses on a transparent engineering pipeline rather than a black-box optimizer. Each design stage is rule-based, auditable, and connected to concrete electrical equations, component libraries, and result views.
 
 > **Current release scope:** PE-Claw 1.0 provides a deterministic GUI and
-> backend flow for 20 registered converter topologies across AC-DC, DC-AC, and
+> backend flow for 21 registered converter topologies across AC-DC, DC-AC, and
 > DC-DC. AI Design, agentic execution, natural-language design intake, and
 > autonomous design loops are intentionally outside this release.
 
@@ -102,7 +102,7 @@ PE-Claw 1.0 is designed around three engineering libraries:
 | Rule Library | Requirement parsing, topology selection, parameter design, component filtering, Pareto ranking, reporting rules. |
 | Device Library | Semiconductor devices, magnetic cores and winding options, capacitor candidates, package geometry, thermal and mechanical data. |
 
-The current implementation provides three converter categories, 19 registered
+The current implementation provides three converter categories, 21 registered
 topology plugins, and an extensible deterministic topology-plugin architecture.
 Inputs are structured GUI fields; the current runtime does not require an AI,
 agentic, or natural-language processing dependency.
@@ -265,7 +265,7 @@ src/pe_claw_gui/
 ├── libraries/            # semiconductor, capacitor, magnetic, thermal, mechanical data
 ├── models/               # shared dataclasses and DesignReport handoff models
 ├── pipeline/             # staged design and operating-point pipelines
-├── topologies/           # topology registry and 19 active topology plugins
+├── topologies/           # topology registry and 21 active topology plugins
 ├── visualization/        # geometry and result artifact rendering
 └── tools/                # audit and maintenance utilities
 ```
@@ -311,6 +311,7 @@ inputs, workflow, result views, and model boundaries.
 | single_phase_full_bridge_inverter | Single-phase full-bridge inverter |
 | three_phase_two_level_voltage_source_inverter | Three-phase two-level voltage-source inverter |
 | three_phase_three_level_npc_inverter | Three-phase three-level NPC inverter |
+| three_phase_three_level_t_type_inverter | Three-phase three-level T-type inverter (topology-only) |
 
 ### DC-DC
 
@@ -328,11 +329,13 @@ inputs, workflow, result views, and model boundaries.
 | flyback_diode_rectified_isolated | Flyback diode rectified isolated |
 | phase_shifted_full_bridge_diode_rectifier_isolated | Phase-shifted full-bridge diode rectifier isolated |
 
-All 19 topology IDs are registered, form-accessible, and connected to the
+All 21 topology IDs are registered, form-accessible, and connected to the
 deterministic GUI/backend flow. Engineering maturity varies by topology: all
 paths are deterministic first-pass engineering implementations, while some
 LLC, Flyback, PSFB, PFC, rectifier, and inverter paths retain source-documented
 first-pass or gated limitations.
+
+T-type currently supports Run Design, Generate Waveforms, three-phase voltage/current and 12 gate plots, and main/midpoint position stress. Inductance and per-bank capacitance are initial estimates. Component selection, loss, thermal, geometry and efficiency stages are unavailable; their action buttons and controller entry points are protected. The model uses an ideal balanced split bus, zero dead time and an IGBT/antiparallel-diode current reference.
 
 ---
 
@@ -737,7 +740,7 @@ PE-Claw 1.0 is an engineering automation prototype. Current limitations include:
 - semiconductor heatsink sizing is proxy-based, not CFD or catalog-optimized;
 - cost, availability, and reliability/lifetime prediction are not fully integrated;
 - geometry is visualization-oriented and not a manufacturable CAD layout;
-- topology-specific physics coverage is not equally mature across all 19
+- topology-specific physics coverage is not equally mature across all 21
   paths; LLC-SR, Flyback, PSFB, PFC, rectifier, and inverter paths may retain
   first-pass or gated source-equivalent behavior;
 - AI/agentic execution is intentionally outside the current GUI/backend scope;

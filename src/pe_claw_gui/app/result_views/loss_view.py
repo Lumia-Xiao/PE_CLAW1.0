@@ -16,6 +16,7 @@ from ...engines.devices.loss_aggregation import semiconductor_losses_total_w
 from ...models.capacitor import capacitor_order_code_note, capacitor_part_reference, capacitor_series_display_name
 from ...pipeline.options import MAGNETIC_LOSS_DISABLED_NOTE, MAGNETIC_STAGE_DISABLED_NOTE
 from ...topology_capabilities import (
+    is_first_pass_topology_only,
     has_dc_link_output_capacitor_only,
     has_magnetic_loss_path,
     has_split_dc_link_capacitor_bank,
@@ -217,6 +218,14 @@ def _inverter_mixed_mode_segment_text(losses: dict) -> str:
 
 def build_system_loss_summary(report: DesignReport) -> list[str]:
     """Build unified semiconductor, magnetic, and capacitor loss summary lines."""
+
+    if is_first_pass_topology_only(report.spec.topology_id):
+        return [
+            "Topology-only result: component losses are unavailable.",
+            "Total estimated loss: unavailable",
+            "Estimated efficiency: unavailable",
+            "Semiconductor, capacitor and magnetic selection/loss stages have not run.",
+        ]
 
     if report.spec.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
         return _build_interleaved_boost_pfc_loss_summary(report)

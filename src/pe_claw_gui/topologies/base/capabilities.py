@@ -213,6 +213,20 @@ TOPOLOGY_CAPABILITIES = (
     ),
 )
 
+TOPOLOGY_CAPABILITIES += (
+    _capability(
+        "three_phase_three_level_t_type_inverter", "dc_ac_three_phase_three_level_t_type",
+        "Three-Phase DC-AC Three-Level T-type Inverter", "dc_ac",
+        ("vdc_nom_v", "vac_ll_rms_v", "f_line_hz", "fsw_hz", "pout_w",
+         "power_factor", "power_factor_phase", "inductor_current_ripple_ratio", "dc_link_voltage_ripple_ratio"),
+        ("power_factor", "power_factor_phase", "inductor_current_ripple_ratio", "dc_link_voltage_ripple_ratio"),
+        boundary_notes=(
+            "Topology-only PD-SPWM synthesis, ideal waveforms and IGBT-reference position stress.",
+            "Balanced split bus; no component selection, losses, efficiency or dynamic capacitor model.",
+        ),
+    ),
+)
+
 TOPOLOGY_CAPABILITY_BY_ID = {item.topology_id: item for item in TOPOLOGY_CAPABILITIES}
 
 

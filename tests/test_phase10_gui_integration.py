@@ -33,7 +33,7 @@ app = PEClawMainWindow()
 app.withdraw()
 app.update_idletasks()
 registry = app.state_store.registry
-assert len(registry.list_definitions()) == 20
+assert len(registry.list_definitions()) == 21
 expected = {
     "Summary", "Waveforms", "Stress", "Devices", "Capacitor PF", "Capacitors",
     "Inductor PF", "Inductor", "Magnetic", "Loss", "Thermal", "Geometry",

@@ -108,6 +108,32 @@ def _build_electrical_parameter_lines(report: DesignReport) -> list[str]:
     topology_id = report.spec.topology_id
     metadata = candidate.metadata
     waveform_metadata = report.waveform.metadata if report.waveform is not None else {}
+    if topology_id == "three_phase_three_level_t_type_inverter":
+        lines = [
+            "  Ideal T-type PD-SPWM; balanced split bus, zero dead time",
+            f"  Design DC bus = {candidate.vin_nom:.6f} V",
+            f"  Grid line-line RMS = {candidate.vout_target:.6f} V",
+            f"  L initial per phase = {candidate.inductance_h * 1e6:.6f} uH",
+            f"  C initial proxy per bank = {candidate.capacitance_f * 1e6:.6f} uF",
+            f"  Design PWM ripple target = {candidate.delta_il:.6f} A pp",
+            "  Component selection, losses and system efficiency unavailable",
+        ]
+        if report.waveform is None:
+            lines.append("  Stress basis = design_estimate; actual waveform not available" if report.stress is not None else "  Actual waveform/stress unavailable; see failure notes")
+        else:
+            data = waveform_metadata["three_phase_t_type_pd_spwm_waveforms"]
+            basis, stats = data["basis"], data["diagnostics"]["phase_statistics"]
+            lines.extend([
+                "  Stress basis = waveform_actual",
+                f"  Operating DC bus = {basis['vdc_v']:.6f} V",
+                f"  Operating load ratio = {basis['load_ratio']:.6f} pu",
+                f"  Operating PF = {basis['power_factor']:.6f} {basis['power_factor_phase']}",
+                f"  Operating active power = {basis['pout_w']:.6f} W",
+                f"  A-phase total RMS = {stats['a']['rms_a']:.6f} A",
+                f"  Actual PWM ripple maximum = {max(max(v['ripple_pp_by_switching_period_a']) for v in stats.values()):.6f} A pp",
+                "  Actual ripple = per-PWM peak-to-peak of current minus sinusoidal reference",
+            ])
+        return lines
     if topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
         phase_boost_inductance = metadata.get("phase_boost_inductance_h", {})
         phase_inductance = metadata.get("phase_total_series_inductance_h", {})

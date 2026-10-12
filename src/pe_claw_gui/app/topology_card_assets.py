@@ -11,6 +11,7 @@ DEFAULT_MAX_IMAGE_HEIGHT_PX = 360
 _MAX_SCALE_DENOMINATOR = 12
 
 TOPOLOGY_IMAGE_SUBDIRECTORIES: dict[str, str] = {
+    "three_phase_three_level_t_type_inverter": "dc_ac",
     "single_phase_diode_bridge_rectifier_capacitor_filter": "ac_dc",
     "single_phase_diode_bridge_rectifier_dc_inductor_filter": "ac_dc",
     "three_phase_diode_bridge_rectifier_capacitor_filter": "ac_dc",
@@ -34,6 +35,7 @@ TOPOLOGY_IMAGE_SUBDIRECTORIES: dict[str, str] = {
 }
 
 TOPOLOGY_IMAGE_FILENAMES: dict[str, str] = {
+    "three_phase_three_level_t_type_inverter": "three_phase_three_level_t_type_inverter.png",
     "single_phase_diode_bridge_rectifier_capacitor_filter": "single_phase_diode_bridge_rectifier_capacitor_filter.png",
     "single_phase_diode_bridge_rectifier_dc_inductor_filter": "single_phase_diode_bridge_rectifier_dc_inductor_filter.png",
     "three_phase_diode_bridge_rectifier_capacitor_filter": "three_phase_diode_bridge_rectifier_capacitor_filter.png",

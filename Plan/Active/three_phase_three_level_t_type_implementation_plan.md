@@ -1,10 +1,10 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Active；步骤 0–5 已验证并推送，步骤 3 缺口已补齐（9.11）；步骤 6–8 待执行。
+- 状态：Active；步骤 0–6 已完成其授权范围并推送，步骤 3 缺口已补齐（9.11）；步骤 7–8 待执行。
 - 创建日期：2026-10-12。
-- 当前授权：补齐步骤 3，再实施步骤 5；本轮不自动开始步骤 6。
+- 当前授权：步骤 6 已完成其授权范围；本轮不自动开始步骤 7–8。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
-- 拓扑 ID：拟定 `three_phase_three_level_t_type_inverter`；当前尚未注册。
+- 拓扑 ID：`three_phase_three_level_t_type_inverter`；步骤 6 已接入注册，待本轮验证与 Git 门槛。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
 - 撰写基准：`cf04284d4e8c966f57b537f7833c62f83b10c9e4`。
 - 当前特性分支：`codex/llc-waveform-operating-point-plan`；已配置上游及本次文档推送目标：`pe-claw-1.1/codex/llc-waveform-operating-point-plan`，远端 `https://github.com/Lumia-Xiao/PE-Claw_1.1.git`。
@@ -142,7 +142,7 @@
 | 3 | 三电平输出与三相电感电流 | 2 | 已实现并推送，见 9.9；共享提取仍待补齐 |
 | 4 | T-type 12 路门极、导通路径和理想事件 | 3 | 已完成并推送，见 9.10 |
 | 5 | 逐位置应力、报告及首次后端贯通 | 4 | 待执行 |
-| 6 | 注册/能力/GUI 接入与未接阶段保护 | 5 | 待执行 |
+| 6 | 注册/能力/GUI 接入与未接阶段保护 | 5 | 已完成（9.12） |
 | 7 | 固定参数运行点刷新 | 6 | 待执行 |
 | 8 | 首轮贯通、旧拓扑回归、隔离与收尾 | 7 | 待执行 |
 
@@ -552,3 +552,23 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 B1 当前数值：A 相完整周期 RMS 14.448204 A，最大实际参考减除 PWM 纹波 3.0507304 A pp；公共 switch 峰值 21.935572606 A/RMS 9.092248364 A/平均 4.761925899 A，diode 峰值 20.922636301 A/RMS 4.659004880 A/平均 1.735621294 A；各指标是不同位置可能取得的包络，不能解释为单个真实器件。静态主/中点 700/350 V。不宣称额定选型、损耗、效率或 GUI 验收；注册/能力/GUI/应用刷新留步骤 6–8，全套 pytest 未执行且当前影响已限定 NPC/T-type。步骤 5 Git 提交/推送 SHA 随后追加。
 
 步骤 5 最终 Git 回执（2026-10-12）：实现提交 `9e701f8d1cf00a2e4184c9b8254459897b7d64eb` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实同 SHA。步骤 3 补齐与步骤 5 已完成本轮授权门槛；此回执为文档更新，复用上述电气验证。步骤 6–8、GUI/注册/完整工程链保持待执行。
+
+### 9.12 步骤 6 执行范围（2026-10-12）
+
+用户授权步骤 6。分类共享集成：registry/capability/资源/表单、Summary/Stress/Waveform、独立 controller 保护，消费者为全部注册查询及 GUI、full/refresh 的 first-pass 能力入口。电气公式/公共模型/旧 ID 能力/库/选型与损耗算法不修改。旧 20 项 definition/capability/helper 输出在 tests/fixtures/t_type_step6_previous_registry.json 冻结并逐字段比较。首轮 T-type 单独进入 FIRST_PASS_TOPOLOGY_ONLY_IDS，未支持电容/磁件/效率入口必须在任何下游调用之前拒绝。
+
+GUI 源为当前 report；T-type waveform 的 basis/time_s/phases/positions/stress 独立载荷拥有瞬时 V/A 和完整周期 A 的 RMS/平均/peak，main/midpoint 为每指标最大包络，signed 与 channel/diode 分开。Summary 显示 per-phase L、per-bank C 估算、设计目标与实际 ripple；缺波形仅 design_estimate，失败不显示旧有效曲线/应力。设计字段变更沿既有失效策略；独立 operating_vdc_v/load/PF 不进入 raw。理想平衡母线、零死区、无能量/损耗/效率，后续固定参数矩阵留步骤 7。
+
+预检当前 Python/src/tests/Tk；先真实 Tk 两按钮与页面数组/6 位数值/独立阻断电压检查、绕过按钮保护及旧 20 项快照；再累计 steps1–6/common、NPC 六求解/事件、registry 两节点、dc_ac_registry_category、dc_ac_three_phase_three_level_npc_contract、dc_ac_operating_refresh_gui_chain。共享 shell 追加 packaged GUI 三旧 DC-AC 回归。专属新 .pytest-tmp-tt-r1-s6-* 证据/outputs，不覆盖历史数据。git diff --check/范围审查、ChangeLog、分别提交推送和回执后才能完成。
+
+消费者补充：全局精确计数更新 phase2/3/10/11/12 的注册查询测试，仍精确要求 21 项和唯一身份；phase12 遍历全部表单/插件。Loss/Efficiency 仅对 first-pass T-type 早返回 unavailable，避免空损耗产生假 100%；不改变旧拓扑损耗语义。Workspace 复用 LLC 的滚动布局；T-type Shell 同时清理解析失败前的旧当前波形/应力，保留固定 candidate，求解失败诊断由 WaveformController 保留。phase10 覆盖全部 21 表单和 LLC 默认/最小窗口；旧 DC-AC 三拓扑实际设计/波形/页面、NPC 损耗读回、交错 PFC 系统损耗和 AC-DC EfficiencyView 回归加入本轮。磁件/选型公式、报告 schema、库与普通输出策略未改变，不执行 full suite 或 T-type 实物链。
+
+失败历史：累计脚本 `python -B scripts/validate_t_type_step6_gui.py .pytest-tmp-tt-r1-s6-complete`，269 passed/2 failed/0 errors/skips，876.69 s。其一第二次同进程 Tk 初始化报 xpTheme.tcl 读取失败（文件实际存在），专项原先 7 项通过；窗口尺寸测试改为与 phase10 相同的独立进程执行相同 contained 断言，单独重跑 1 passed/11.95 s。其二 AC-DC 旧测试仍要求 5 卡片，现有交错 PFC 已使旧注册为 6；改为精确 6 和原 5+交错 PFC 身份集合，未改工程算法或缩减原五拓扑流程。修复重跑 `.pytest-tmp-tt-r1-s6-repair` 中 AC-DC 设计 CSV 超过 Windows 路径长度且错误对话框阻塞；manifest 保留具体 FileNotFoundError。停止该测试子进程，旧结果记录 8 passed/2 failed，330.63 s；不算通过。测试改为短输出根及 t0–t4 子目录，捕获错误对话框，导出归属仍严格比较。随后 `.tt6-final` 在最后一个磁件阶段被误判为超时而手动中断父/子进程，只有部分日志、无最终 JUnit，不算证据；没有删除工件。已重新单独执行完整 AC-DC 五拓扑流程，必须等待实际结果才能关闭本步。
+
+修复后聚焦命令：`python -B scripts/validate_t_type_step6_gui.py .tt6-verified tests/test_t_type_step6_gui.py tests/test_phase10_gui_integration.py tests/test_ac_dc_efficiency_gui_end_to_end.py::test_efficiency_sweep_controller_writes_result_and_timing_to_state tests/test_ac_dc_efficiency_gui_end_to_end.py::test_ac_dc_design_changes_invalidate_old_gui_results_but_operating_changes_do_not`，9 passed/0 failures/errors/skips，161.50 s；6 个 NPC 全 payload 原 SHA 与当前 SHA 精确一致。当前 Python 3.12.10/pytest 9.1.1、src/tests 来源和测试 SHA 见各 test_receipt.json。既有 cache_dir 警告每次 1；无 skip/xfail。新脚本只重定向测试默认输出，保留显式根与所有原工程阶段；新增执行前 preflight/source SHA，未来中断仍保留环境证据。
+
+独立证据：累计 steps1–5/common 的解析/分段积分/Simpson/加密与受控失败、实际基础 pipeline 及 NPC→T-type 双顺序重跑通过；旧 20 项注册/capability/helper 字段精确一致。真实 Tk 选卡、Run Design/Generate Waveforms、全部三相 V/I/12 门极数组及 6 位应力/汇总均从当前 report 读回；图像和 gui_readback.json 在 `.tt6-verified/temp/test_real_tk_card_buttons_curr0/`，已目视检查 6 行布局。500 V 不可达及 nan 解析失败保留 candidate、清当前结果，设计变化/切拓扑清报告。full/refresh 下游 forbidden 桩证明首轮入口未触达组件阶段，直接三个 controller 绕过调用拒绝且 stage_status 不变。无硬件总损耗/效率，系统合计不适用；完整应用刷新矩阵、最终导出验收、实物选型留步骤 7–8/后续工程轮。
+
+
+步骤 6 完成回执（2026-10-12）：实现范围已通过聚焦门槛。tt6-verified：9 passed；tt6-tooling：4 passed；六份 NPC 完整 payload SHA 全部精确一致。旧 AC-DC 五拓扑扩展回归在 Windows 磁件阶段耗时过长而停止，manifest 保留且未计为通过；步骤 7–8 仍未执行。
+

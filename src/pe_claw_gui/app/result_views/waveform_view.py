@@ -35,6 +35,9 @@ class WaveformView(ttk.Frame):
             return
 
         waveform = report.waveform
+        if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+            self._render_t_type_waveforms(report, waveform.metadata["three_phase_t_type_pd_spwm_waveforms"])
+            return
         time_us = [t * 1e6 for t in waveform.time_s]
         if report.spec.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
             phase_waveforms = waveform.metadata.get("phase_waveforms")
@@ -363,6 +366,37 @@ class WaveformView(ttk.Frame):
         )
         self.figure.text(0.5, 0.01, f"{mode_label}; dead-time, Coss, and parasitic transients are not modeled.", ha="center", va="bottom", fontsize=7)
         self.figure.tight_layout(rect=[0, 0.035, 1, 0.97])
+        self.canvas.draw_idle()
+
+    def _render_t_type_waveforms(self, report, data):
+        time_ms = [t * 1e3 for t in data["time_s"]]
+        axes = [self.figure.add_subplot(6, 1, i+1) for i in range(6)]
+        for phase in ("a", "b", "c"):
+            details = data["phases"][phase]
+            axes[0].step(time_ms, details["phase_neutral_voltage_v"], where="post", label=f"v_{phase}N PWM")
+            axes[0].plot(time_ms, details["grid_voltage_v"], label=f"v_{phase} grid", alpha=.7)
+            axes[1].plot(time_ms, details["current_a"], label=f"i_{phase}")
+            axes[2].step(time_ms, details["pole_to_o_voltage_v"], where="post", label=f"v_{phase}O")
+        titles = ("T-type phase-neutral and grid voltages", "T-type phase currents",
+                  "T-type pole-to-O and line-line PWM voltages",
+                  "A-phase gates: QP/QN/QA/QO", "B-phase gates: QP/QN/QA/QO", "C-phase gates: QP/QN/QA/QO")
+        for pair in ("ab", "bc", "ca"):
+            axes[2].step(time_ms, data["line_line_voltage_v"][pair], where="post", label=f"v_{pair}", alpha=.6)
+        for index, phase in enumerate(("a", "b", "c")):
+            for role, values in data["phases"][phase]["gates"].items():
+                axes[index+3].step(time_ms, values, where="post", label=f"{phase}_{role}")
+        for index, axis in enumerate(axes):
+            axis.set_title(titles[index], fontsize=8)
+            axis.set_ylabel("V" if index in (0,2) else "A" if index==1 else "Gate")
+            axis.set_xlim(time_ms[0], time_ms[-1])
+            axis.legend(fontsize=6, ncol=6)
+            axis.grid(True, alpha=.3)
+        axes[-1].set_xlabel("Time [ms]")
+        basis = data["basis"]
+        self.figure.suptitle(f"T-type | Vdc={basis['vdc_v']:.3f} V | VLL={basis['vac_ll_rms_v']:.3f} Vrms | "
+                             f"Load={basis['load_ratio']:.3f} | PF={basis['power_factor']:.3f} {basis['power_factor_phase']}", fontsize=10)
+        self.figure.text(.5,.005,"Ideal balanced bus; capacitor currents, losses and efficiency unavailable.",ha="center",fontsize=7)
+        self.figure.tight_layout(rect=[0,.025,1,.97])
         self.canvas.draw_idle()
 
 

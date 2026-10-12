@@ -235,6 +235,19 @@ def build_default_registry() -> TopologyRegistry:
             legacy_key="ThreePhase_ThreeLevel_NPC_Inverter",
         )
     )
+    registry.register(
+        TopologyDefinition(
+            category_id=dc_ac_category.category_id,
+            category_display_name=dc_ac_category.display_name,
+            topology_id="three_phase_three_level_t_type_inverter",
+            display_name="Three-Phase Three-Level T-type Inverter",
+            module_path="pe_claw_gui.topologies.dc_ac.three_phase_three_level_t_type_inverter",
+            form_path="pe_claw_gui.app.topology_forms.three_phase_three_level_t_type_inverter_form",
+            form_class="ThreePhaseThreeLevelTTypeInverterForm",
+            implemented=True,
+            legacy_key="ThreePhase_ThreeLevel_T_Type_Inverter",
+        )
+    )
     dc_dc_category = CONVERTER_CATEGORY_BY_ID["dc_dc"]
     registry.register(
         TopologyDefinition(
