@@ -1,0 +1,413 @@
+{
+  "artifact_paths": [
+    "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\hardware_overview_payload.json",
+    "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_semiconductor_2d.png",
+    "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_semiconductor_3d.png",
+    "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_inductor_2d.png",
+    "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_inductor_3d.png",
+    "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_capacitor_2d.png",
+    "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_capacitor_3d.png",
+    "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\hardware_volume_pie.png",
+    "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_hardware_2d.png",
+    "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_hardware_3d.png"
+  ],
+  "blocked_reason": null,
+  "component_groups": [
+    {
+      "bounding_box_mm": {
+        "depth_mm": 39.888519137178434,
+        "height_mm": 11.96655574115353,
+        "width_mm": 71.79933444692118
+      },
+      "child_entries": [
+        {
+          "bounding_box_mm": {
+            "depth_mm": 17.0,
+            "height_mm": 61.0,
+            "width_mm": 80.0
+          },
+          "display_name": "Main switch",
+          "entry_id": "main_switch",
+          "loss_w": 12.655518558364623,
+          "manufacturer": "Wolfspeed",
+          "metadata": {
+            "current_operating_role_total_loss_w": null,
+            "design_role_total_loss_w": 12.655518558364623,
+            "loss_basis_label": "design-point role total",
+            "loss_scope": "role total",
+            "parallel_per_position": 1,
+            "role_total_loss_w": 12.655518558364623,
+            "topology_position_count": 1,
+            "total_physical_device_count": 1
+          },
+          "notes": [
+            "Thermal source: wolfspeed_sic_module.",
+            "Loss scope: design-point role total."
+          ],
+          "part_number": "CAB011M12FM3",
+          "quantity": 1,
+          "recommended_name": "CAB011M12FM3",
+          "series": "wolfspeed_sic_half_bridge_module",
+          "shape_type": "semiconductor_module",
+          "volume_cm3": 72.08,
+          "warnings": []
+        },
+        {
+          "bounding_box_mm": {
+            "depth_mm": 17.0,
+            "height_mm": 61.0,
+            "width_mm": 80.0
+          },
+          "display_name": "Rectifier diode",
+          "entry_id": "rectifier_diode",
+          "loss_w": 41.52598267175555,
+          "manufacturer": "Wolfspeed",
+          "metadata": {
+            "current_operating_role_total_loss_w": null,
+            "design_role_total_loss_w": 41.52598267175555,
+            "loss_basis_label": "design-point role total",
+            "loss_scope": "role total",
+            "parallel_per_position": 1,
+            "role_total_loss_w": 41.52598267175555,
+            "topology_position_count": 1,
+            "total_physical_device_count": 1
+          },
+          "notes": [
+            "Thermal source: wolfspeed_module_diode.",
+            "Loss scope: design-point role total."
+          ],
+          "part_number": "CAB011M12FM3_BODY_DIODE",
+          "quantity": 1,
+          "recommended_name": "CAB011M12FM3_BODY_DIODE",
+          "series": "wolfspeed_sic_half_bridge_module",
+          "shape_type": "semiconductor_module",
+          "volume_cm3": 72.08,
+          "warnings": []
+        }
+      ],
+      "display_name": "Semiconductor",
+      "geometry_source": "regenerated_overview_artifact",
+      "group_id": "semiconductor",
+      "image_2d": {
+        "image_scale_type": "global_scale",
+        "path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_semiconductor_2d.png",
+        "recommended_for_overview": true
+      },
+      "image_2d_path_existing": null,
+      "image_3d": {
+        "image_scale_type": "global_scale",
+        "path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_semiconductor_3d.png",
+        "recommended_for_overview": true
+      },
+      "image_3d_path_existing": null,
+      "loss_w": 54.181501230120176,
+      "manufacturer": "Wolfspeed",
+      "metadata": {
+        "current_operating_losses_complete": true,
+        "device_only_volume_cm3": 144.16,
+        "efficiency_sweep_full_load_semiconductor_loss_w": null,
+        "efficiency_sweep_power_factor": null,
+        "heatsink_volume_cm3": 34.271846188689956,
+        "loss_basis_label": "current operating point semiconductor loss",
+        "loss_scope": "scheme total",
+        "recommended_scheme_id": "single",
+        "target_scheme_id": "single",
+        "topology_id": "buck_diode_rectified_unidirectional",
+        "total_volume_cm3": 178.43184618868995,
+        "voltage_checks": {}
+      },
+      "notes": [
+        "Semiconductor payload uses the recommended scheme geometry already attached to the design report.",
+        "Heatsink volume is included when available because overview size is physical hardware size.",
+        "Semiconductor package geometry is rendered as a first-pass overview visualization.",
+        "Loss basis: current operating point semiconductor loss."
+      ],
+      "overview_image_2d_path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_semiconductor_2d.png",
+      "overview_image_3d_path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_semiconductor_3d.png",
+      "part_number": "CAB011M12FM3",
+      "quantity": 2,
+      "recommended_name": "Single Device",
+      "series": "wolfspeed_sic_half_bridge_module",
+      "shape_type": "heatsink_plus_device",
+      "status": "available",
+      "volume_breakdown_cm3": {
+        "device_volume_cm3": 144.16,
+        "heatsink_volume_cm3": 34.271846188689956,
+        "total_volume_cm3": 178.43184618868995
+      },
+      "volume_cm3": 178.43184618868995,
+      "warnings": [
+        "Overview image uses global shared-scale proxy rendering."
+      ]
+    },
+    {
+      "bounding_box_mm": {
+        "depth_mm": null,
+        "height_mm": null,
+        "width_mm": null
+      },
+      "child_entries": [],
+      "display_name": "Inductor",
+      "geometry_source": "missing",
+      "group_id": "inductor",
+      "image_2d": {
+        "image_scale_type": "missing",
+        "path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_inductor_2d.png",
+        "recommended_for_overview": false
+      },
+      "image_2d_path_existing": null,
+      "image_3d": {
+        "image_scale_type": "missing",
+        "path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_inductor_3d.png",
+        "recommended_for_overview": false
+      },
+      "image_3d_path_existing": null,
+      "loss_w": null,
+      "manufacturer": null,
+      "metadata": {},
+      "notes": [
+        "Run Magnetics first to populate inductor overview."
+      ],
+      "overview_image_2d_path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_inductor_2d.png",
+      "overview_image_3d_path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_inductor_3d.png",
+      "part_number": null,
+      "quantity": null,
+      "recommended_name": "",
+      "series": null,
+      "shape_type": "unknown",
+      "status": "missing",
+      "volume_breakdown_cm3": {},
+      "volume_cm3": null,
+      "warnings": [
+        "Run Magnetics first to populate inductor overview.",
+        "Missing bounding box or group data; generated placeholder artifact."
+      ]
+    },
+    {
+      "bounding_box_mm": {
+        "depth_mm": null,
+        "height_mm": null,
+        "width_mm": null
+      },
+      "child_entries": [],
+      "display_name": "Capacitors",
+      "geometry_source": "missing",
+      "group_id": "capacitor",
+      "image_2d": {
+        "image_scale_type": "missing",
+        "path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_capacitor_2d.png",
+        "recommended_for_overview": false
+      },
+      "image_2d_path_existing": null,
+      "image_3d": {
+        "image_scale_type": "missing",
+        "path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_capacitor_3d.png",
+        "recommended_for_overview": false
+      },
+      "image_3d_path_existing": null,
+      "loss_w": null,
+      "manufacturer": null,
+      "metadata": {},
+      "notes": [
+        "Run Capacitor first to populate capacitor overview."
+      ],
+      "overview_image_2d_path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_capacitor_2d.png",
+      "overview_image_3d_path": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_capacitor_3d.png",
+      "part_number": null,
+      "quantity": null,
+      "recommended_name": "",
+      "series": null,
+      "shape_type": "unknown",
+      "status": "missing",
+      "volume_breakdown_cm3": {},
+      "volume_cm3": null,
+      "warnings": [
+        "Run Capacitor first to populate capacitor overview.",
+        "Missing bounding box or group data; generated placeholder artifact."
+      ]
+    }
+  ],
+  "dependency_diagnostics": {},
+  "global_geometry_scale": {
+    "all_components_bbox_mm": {
+      "semiconductor": {
+        "depth_mm": 39.888519137178434,
+        "height_mm": 11.96655574115353,
+        "width_mm": 71.79933444692118
+      }
+    },
+    "applies_to": [
+      "bridge_rectifier",
+      "semiconductor",
+      "transformer",
+      "inductor",
+      "capacitor"
+    ],
+    "common_2d_axis_limits_mm": {
+      "x_mm": [
+        -44.51558735709113,
+        44.51558735709113
+      ],
+      "y_mm": [
+        -44.51558735709113,
+        44.51558735709113
+      ]
+    },
+    "common_3d_axis_limits_mm": {
+      "x_mm": [
+        -44.51558735709113,
+        44.51558735709113
+      ],
+      "y_mm": [
+        -44.51558735709113,
+        44.51558735709113
+      ],
+      "z_mm": [
+        0.0,
+        14.838529119030376
+      ]
+    },
+    "max_dimension_mm": 71.79933444692118,
+    "notes": [
+      "Future overview 2D/3D rendering should use these global axis limits instead of individual-page auto-scaling.",
+      "Existing individual-page artifacts are marked local-scale fallback only.",
+      "Overview artifacts were generated with these common 2D/3D axis limits."
+    ],
+    "scale_mode": "global_bbox",
+    "unit": "mm",
+    "view_padding_fraction": 0.12
+  },
+  "integrated_layout": {
+    "artifact_paths": {
+      "hardware_2d": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_hardware_2d.png",
+      "hardware_3d": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_hardware_3d.png",
+      "volume_pie": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\hardware_volume_pie.png"
+    },
+    "capacitor_internal_spacing_mm": 10.0,
+    "common_2d_axis_limits_mm": {
+      "x_mm": [
+        -44.51558735709113,
+        44.51558735709113
+      ],
+      "y_mm": [
+        -24.73088186505063,
+        24.73088186505063
+      ]
+    },
+    "common_3d_axis_limits_mm": {
+      "x_mm": [
+        -44.51558735709113,
+        44.51558735709113
+      ],
+      "y_mm": [
+        -24.73088186505063,
+        24.73088186505063
+      ],
+      "z_mm": [
+        0.0,
+        13.402542430091954
+      ]
+    },
+    "global_bbox_mm": {
+      "depth_mm": 39.888519137178434,
+      "height_mm": 11.96655574115353,
+      "width_mm": 71.79933444692118
+    },
+    "group_spacing_mm": 20.0,
+    "groups": [
+      {
+        "bbox_mm": {
+          "depth_mm": 39.888519137178434,
+          "height_mm": 11.96655574115353,
+          "width_mm": 71.79933444692118
+        },
+        "display_name": "Semiconductor",
+        "footprint_mm": {
+          "depth_mm": 39.888519137178434,
+          "height_mm": null,
+          "width_mm": 71.79933444692118
+        },
+        "id": "semiconductor",
+        "layout_anchor": "center_bottom",
+        "layout_position_mm": {
+          "x_mm": 0.0,
+          "y_mm": 0.0,
+          "z_mm": 0.0
+        },
+        "loss_w": 54.181501230120176,
+        "manufacturer": "Wolfspeed",
+        "notes": [
+          "Semiconductor payload uses the recommended scheme geometry already attached to the design report.",
+          "Heatsink volume is included when available because overview size is physical hardware size.",
+          "Semiconductor package geometry is rendered as a first-pass overview visualization.",
+          "Loss basis: current operating point semiconductor loss."
+        ],
+        "part_number": "CAB011M12FM3",
+        "preferred_label": "Semiconductor",
+        "recommended_name": "Single Device",
+        "series": "wolfspeed_sic_half_bridge_module",
+        "shape_type": "heatsink_plus_device",
+        "source_group": "semiconductor",
+        "volume_cm3": 178.43184618868995,
+        "warnings": [
+          "Overview image uses global shared-scale proxy rendering."
+        ]
+      }
+    ],
+    "layout_mode": "engineering_overview_not_pcb",
+    "notes": [
+      "Integrated layout places recommended hardware in one shared coordinate system.",
+      "Layout rule, left to right: input capacitor, bridge rectifier when present, semiconductor, inductor, output capacitor.",
+      "Layout depth rule, back to front: input capacitor, bridge rectifier when present, semiconductor, inductor, output capacitor.",
+      "This is an engineering overview layout, not a PCB, package, or electrical placement."
+    ],
+    "unit": "mm",
+    "warnings": [
+      "Run Magnetics first to populate inductor overview."
+    ]
+  },
+  "integrated_overview_artifacts": {
+    "hardware_2d": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_hardware_2d.png",
+    "hardware_3d": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_hardware_3d.png",
+    "volume_pie": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\hardware_volume_pie.png"
+  },
+  "notes": [
+    "Hardware Overview payload is assembled from existing report results only.",
+    "Overview images are first-pass engineering visualizations.",
+    "Integrated hardware overview artifacts are the preferred system-level representation once generated.",
+    "Overview-specific 2D/3D artifacts use common global axis limits from the payload scale metadata.",
+    "Hardware volume pie uses positive top-level recommended group volumes.",
+    "Per-group overview artifacts still exist for debugging and legacy display.",
+    "Integrated hardware overview artifacts are the preferred system-level representation."
+  ],
+  "overview_artifacts": {
+    "capacitor_2d": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_capacitor_2d.png",
+    "capacitor_3d": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_capacitor_3d.png",
+    "inductor_2d": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_inductor_2d.png",
+    "inductor_3d": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_inductor_3d.png",
+    "semiconductor_2d": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_semiconductor_2d.png",
+    "semiconductor_3d": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\overview_semiconductor_3d.png",
+    "volume_pie": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_85f76721\\hardware_overview\\hardware_volume_pie.png"
+  },
+  "run_id": "85f7672116a8428a97a465a79d03cf4b",
+  "source_ids": {
+    "combined_magnetic_design_id": null,
+    "cr_design_id": null,
+    "device_design_id": null,
+    "external_lr_design_id": null,
+    "transformer_design_id": null
+  },
+  "status": "available",
+  "topology_id": "buck_diode_rectified_unidirectional",
+  "warnings": [
+    "Inductor overview data is missing.",
+    "Inductor: Run Magnetics first to populate inductor overview.",
+    "Capacitors overview data is missing.",
+    "Capacitors: Run Capacitor first to populate capacitor overview.",
+    "Run Magnetics first to populate inductor overview.",
+    "Semiconductor: overview image uses bounding-box/proxy rendering.",
+    "Inductor: missing data; placeholder overview artifact generated.",
+    "Capacitors: missing data; placeholder overview artifact generated.",
+    "Volume pie excludes missing or zero-volume groups: Inductor, Capacitors."
+  ]
+}

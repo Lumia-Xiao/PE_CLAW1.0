@@ -1,0 +1,20 @@
+{
+  "input_sha256": "3c294fc6275e62959069a7cbbd3b4d180cf048a853465dcc04d2064c3ebe44f0",
+  "raw_input": {
+    "ambient_temp_c": "25.0",
+    "diode_binding_policy": "auto",
+    "fs_khz": "50",
+    "main_switch_category": "Any active switch",
+    "pout": "2000",
+    "rectifier_diode_category": "Any diode",
+    "ripple_current_ratio": "0.30",
+    "ripple_voltage_ratio_percent": "0.2",
+    "semiconductor_manufacturer": "Any",
+    "target_junction_temp_c": "100.0",
+    "vin_max": "400",
+    "vin_min": "200",
+    "vout": "100"
+  },
+  "run_id": "85f7672116a8428a97a465a79d03cf4b",
+  "topology_id": "buck_diode_rectified_unidirectional"
+}

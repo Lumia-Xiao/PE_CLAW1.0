@@ -1,0 +1,136 @@
+{
+  "artifact_groups": {
+    "capacitor_design": [],
+    "design_request": [
+      {
+        "modified_at": "2026-10-12T12:28:52+00:00",
+        "path": "design_request/design_request.json",
+        "size_bytes": 654
+      }
+    ],
+    "efficiency_sweep": [
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "efficiency_sweep/efficiency_curve.png",
+        "size_bytes": 21070
+      },
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "efficiency_sweep/efficiency_sweep.csv",
+        "size_bytes": 2546
+      },
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "efficiency_sweep/loss_breakdown_stacked.png",
+        "size_bytes": 13212
+      }
+    ],
+    "hardware_overview": [
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "hardware_overview/hardware_overview_payload.json",
+        "size_bytes": 17077
+      },
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "hardware_overview/hardware_volume_pie.png",
+        "size_bytes": 21782
+      },
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "hardware_overview/overview_capacitor_2d.png",
+        "size_bytes": 7149
+      },
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "hardware_overview/overview_capacitor_3d.png",
+        "size_bytes": 7547
+      },
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "hardware_overview/overview_hardware_2d.png",
+        "size_bytes": 27955
+      },
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "hardware_overview/overview_hardware_3d.png",
+        "size_bytes": 88527
+      },
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "hardware_overview/overview_inductor_2d.png",
+        "size_bytes": 6671
+      },
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "hardware_overview/overview_inductor_3d.png",
+        "size_bytes": 7064
+      },
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "hardware_overview/overview_semiconductor_2d.png",
+        "size_bytes": 24518
+      },
+      {
+        "modified_at": "2026-10-12T12:30:06+00:00",
+        "path": "hardware_overview/overview_semiconductor_3d.png",
+        "size_bytes": 59718
+      }
+    ],
+    "inductor_design": [],
+    "logs": [],
+    "semiconductor_design": [],
+    "validation": []
+  },
+  "design_request": {
+    "path": null,
+    "sha256": null,
+    "status": "not_available"
+  },
+  "failure": {
+    "reason": null,
+    "stage": null
+  },
+  "manifest_version": 1,
+  "run": {
+    "created_at": "2026-10-12T12:28:52+00:00",
+    "input_sha256": "bad1b4d1ab25aa994e823a7612c6ebc33015c2b6713b7cc57f7917cbac8f1532",
+    "output_root": "D:\\PE_CLAW1.0\\outputs\\20261012_b_dr_u_9bf3ee07",
+    "raw_input_snapshot": {
+      "ambient_temp_c": "25.0",
+      "diode_binding_policy": "auto",
+      "fs_khz": "50",
+      "main_switch_category": "Any active switch",
+      "pout": "5000",
+      "rectifier_diode_category": "Any diode",
+      "ripple_current_ratio": "0.30",
+      "ripple_voltage_ratio_percent": "0.2",
+      "semiconductor_manufacturer": "Any",
+      "target_junction_temp_c": "100.0",
+      "vin_max": "600",
+      "vin_min": "400",
+      "vout": "300"
+    },
+    "run_id": "9bf3ee076e73441fa1571146aa63ea89",
+    "run_id_short": "9bf3ee07",
+    "topology_directory_alias": "b_dr_u",
+    "topology_id": "buck_diode_rectified_unidirectional",
+    "updated_at": "2026-10-12T12:30:06+00:00"
+  },
+  "software": {
+    "name": "pe-claw-gui",
+    "version": "0.1.0"
+  },
+  "stage_status": {
+    "capacitor_design": "not_started",
+    "design": "succeeded",
+    "efficiency_sweep": "succeeded",
+    "hardware_overview": "succeeded",
+    "inductor_design": "not_started",
+    "loss": "not_started",
+    "semiconductor_design": "not_started",
+    "thermal": "not_started",
+    "validation": "not_started"
+  },
+  "status": "running"
+}
