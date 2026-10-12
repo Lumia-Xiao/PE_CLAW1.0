@@ -165,7 +165,7 @@
 - 验证：上述新测试在创建后显式执行；不执行真实选型或 GUI。完成：默认输入与错误输入契约通过，导入隔离通过；插件完整计算仍标为后续，Git 门槛满足。
 - 实际执行：2026-10-12。新增 `topology_contract.py`、`input_schema.py` 和 `__init__.py`，建立独立拓扑 ID、三相/12 位置与 P/O/N 状态契约、首轮默认输入及 SI 规格解析，并提供 `build_spec/synthesize/generate_waveforms/extract_stress/evaluate/build_report` 插件接口骨架。未实现 hook 明确抛出 `NotImplementedError`；插件保持未注册、未接 GUI、未调用共享求解器或真实选型。
 - 测试：`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s1-final tests/test_t_type_step1_contract.py`；Python 3.12.10、pytest 9.1.1；63 passed，failed/errors/skipped/xfail 均为 0，耗时 8.13 s。既有 `cache_dir` 配置 warning 单列。测试覆盖默认/非法输入、有限值、端子/门极互锁、插件未注册及新进程导入隔离；未运行 GUI、完整设计链、真实库或步骤 2 以后测试。
-- Git 回执：步骤 1 源码/测试及本计划、ChangeLog 待本次独立提交推送并核实；步骤 2 不自动开始。
+- Git 回执：步骤 1 实现提交 `b32220dd4999fafb0203e55b06fa8aaa69c3366a` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实远端同 SHA；步骤 2 不自动开始。
 
 ### 步骤 2：基础参数合成
 
@@ -476,4 +476,4 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 
 验证命令为 `python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s1-final tests/test_t_type_step1_contract.py`，解释器 Python 3.12.10、pytest 9.1.1，结果 63 passed、0 failed/errors/skipped/xfail，8.13 s；既有 `Unknown config option: cache_dir` warning 单列。专项测试实际检查默认/部分输入、非法和非有限输入、物理端子映射、门极互锁、未注册状态、hook fail-closed，以及新进程导入无计算/写入。未验证 GUI、完整 T-type 计算链、真实器件/选型、旧拓扑回归或步骤 2–8；`outputs/` 和 pytest 临时目录保留为本地工件，未纳入提交。
 
-本步骤的提交和远端核实待本次收尾完成；步骤 2 仍待用户确认，计划保持 Active。
+实现提交 `b32220dd4999fafb0203e55b06fa8aaa69c3366a` 已完成并推送；本计划/ChangeLog 的状态回执随后以独立提交同步。步骤 2 仍待用户确认，计划保持 Active。
