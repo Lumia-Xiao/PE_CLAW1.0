@@ -2,7 +2,7 @@
 
 - 状态：Active；步骤 0、步骤 1、步骤 2、步骤 3 已完成并推送；步骤 4–8 待执行。
 - 创建日期：2026-10-12。
-- 当前授权：步骤 3 已获授权并完成；后续按用户确认逐步执行，当前不自动开始步骤 4。
+- 当前授权：执行步骤 4；导通/事件实现与验证已通过，待本次提交推送核实。不自动开始步骤 5。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
 - 拓扑 ID：拟定 `three_phase_three_level_t_type_inverter`；当前尚未注册。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
@@ -132,15 +132,15 @@
 
 ## 6. 分步骤实施与完成门槛
 
-步骤 0 已完成并推送，其余步骤待执行。每一步在其必要验证通过后更新 ChangeLog、检查 diff/暂存范围、独立 commit/push 并核实远端；随后才能标记完成。记录源码版本、解释器/包/测试来源、命令/退出码/耗时、证据与未验证范围。若完成状态回执另提交，记录两个 SHA；不得提前填写“通过”。
+步骤 0–3 的历史实现/推送回执见第 9 节；步骤 4 的实际范围及本次收尾见第 9.10 节。每一步在其必要验证通过后更新 ChangeLog、检查 diff/暂存范围、独立 commit/push 并核实远端；随后才能标记完成。记录源码版本、解释器/包/测试来源、命令/退出码/耗时、证据与未验证范围。若完成状态回执另提交，记录两个 SHA；不得提前填写“通过”。
 
 | 步骤 | 主要交付 | 依赖 | 当前状态 |
 |---|---|---|---|
 | 0 | 冻结首轮输入/输出映射、共用求解范围和验证基准 | 本计划 | 已完成并推送，见 9.6 |
-| 1 | 独立 T-type 契约、输入及插件骨架 | 0 | 待执行 |
-| 2 | 基础参数合成 | 1 | 待执行 |
-| 3 | 三电平输出与三相电感电流 | 2 | 待执行 |
-| 4 | T-type 12 路门极、导通路径和理想事件 | 3 | 待执行 |
+| 1 | 独立 T-type 契约、输入及插件骨架 | 0 | 已实现并推送，见 9.7 |
+| 2 | 基础参数合成 | 1 | 已实现并推送，见 9.8 |
+| 3 | 三电平输出与三相电感电流 | 2 | 已实现并推送，见 9.9；共享提取仍待补齐 |
+| 4 | T-type 12 路门极、导通路径和理想事件 | 3 | 验证通过，待本次提交推送 |
 | 5 | 逐位置应力、报告及首次后端贯通 | 4 | 待执行 |
 | 6 | 注册/能力/GUI 接入与未接阶段保护 | 5 | 待执行 |
 | 7 | 固定参数运行点刷新 | 6 | 待执行 |
@@ -195,7 +195,8 @@
 - 精确零电流和消失占空段应确定且无重复/非法跳变；不引入有限死区/短脉冲硬件策略。不得出现 NPC clamp 角色。
 - 拟新增 `tests/test_t_type_step4_paths_events.py`：B6/B7/B8 全部状态/方向、非法互锁/P↔N、事件时刻来源、逐位置电流独立路径计算。
 - 验证：step1–4；公用序列发生变化时重跑 NPC 求解/事件组。完成：波形、门极与物理路径一致，有限结果与独立路径预期通过；Git 门槛满足。
-- 实际执行/Git 回执：待执行。
+- 实际执行：2026-10-12，新增 `paths_events.py` 及步骤 4 专项测试，连接 12 位置局部电流/IGBT 通道/反并联二极管、状态阻断电压及精确积分边界换流记录；非法状态/直跳/不连续片段明确拒绝。162 项累计及 NPC/注册专项通过，见第 9.10 节。
+- Git 回执：验证通过，待本次独立实现提交与推送核实；不开始步骤 5。
 
 ### 步骤 5：应力、报告及首次后端贯通
 
@@ -501,3 +502,29 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 验证命令一：`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s3-a tests/test_t_type_step1_contract.py tests/test_t_type_step2_synthesis.py tests/test_t_type_step3_waveforms.py`，Python 3.12.10 / pytest 9.1.1，85 passed、0 failed/errors/skipped/xfail，10.68 s。验证命令二：`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s3-npc tests/test_npc_step2_current_reference.py tests/test_npc_step3_average_voltage_target.py tests/test_npc_step4_level_sequence.py tests/test_npc_step4_periodic_warm_start.py tests/test_npc_step5_event_segmented_current.py tests/test_npc_switching_loss_events.py tests/test_phase4_topology_contracts.py::test_phase4_registry_has_unique_ids_and_capabilities tests/test_phase4_topology_contracts.py::test_phase4_router_fails_closed_for_unknown_topology`，28 passed、0 failed/errors/skipped/xfail，10.43 s。既有 `cache_dir` warning 单列；未运行 GUI、完整设计链、真实选型或步骤 4–8。
 
 实现提交 `6cedc35f6d56c34b437222fe9b737b275880062a` 已完成并推送；本计划/ChangeLog 的状态回执随后以独立提交同步。步骤 4 仍待用户确认，计划保持 Active。
+
+### 9.10 步骤 4：导通路径与理想换流实际回执（2026-10-12）
+
+- 基准/影响：`d9e825dc4f47f0768b75c0d075623a5990ba59ff`，既有 `codex/llc-waveform-operating-point-plan` 分支及 `pe-claw-1.1` 同名上游。分类为拓扑局部变更：新增 `paths_events.py`、`tests/test_t_type_step4_paths_events.py`，修改 T-type `waveform.py` 及步骤 3 低母线负向测试；计划/日志同步。NPC、公用求解器、注册/能力、GUI、库、公共模型/报告未改变，旧拓扑没有新增调用或字段消费；不运行全套测试。既有无关删除、untracked 与用户结果均保留。
+- 物理/字段：按契约第 4/5/7/8/14 节，`three_phase_t_type_pd_spwm_waveforms.positions` 保留 12 个位置瞬时 `signed_current_a/channel_current_a/antiparallel_diode_current_a/reference_path/static_blocking_voltage_v`，单位 A/V，同当前母线/负载/PF/固定 L。O 状态 QA=-i、QO=i，P 状态 QP=i，N 状态 QN=-i，其余承载电流为零。采用 IGBT＋反并联二极管参考，不是 MOSFET 通道分流或型号选择；通道与二极管分解不重叠。位置周期 peak/RMS/average 与应力属于步骤 5，本步不使用等权样本冒充完整周期积分。
+- 事件：`events` 由积分片段相邻边界读取真实状态变化，包含相位/时刻 s/前后状态/相电流 A/局部电流 A/通道路径/两处门极翻转/前后阻断 V/带载边沿/潜在恢复二极管身份/半母线阶跃 V。原统一时间线保存为 `event_timeline`。没有能量、恢复能量或 ZVS 字段；ideal-clamped 开通不证明实物软开关。精确零电流记 no_current，不引入硬件阈值；零时长记录删除后仍检查真实相邻状态，不能靠虚假 O 区间合法化 P↔N。完整周期实际用例两端状态相同，无遗漏的周期接缝状态变化。
+- 所有权/兼容：`paths_events.py` 生产本地载荷，`waveform.py` 每次调用生成新数据；未来应力/视图/报告只读取当前载荷，当前尚未接通。固定 candidate 和旧结果不得原地修改；非法或缺失片段不返回有效事件。按冻结契约将 `WaveformSet.switch_current_a/diode_current_a` 从原三相最大值代理/空项改为 A_QP 非负通道/反并联电流；其他公共消费者仍因未注册而不触达。身份/状态/门极精确检查，时间容差 1e-12 s、电流连续性 1e-7 A。
+- 根因与兼容变化：首轮 126 项中 1 项失败，原步骤 3 的 500 V boundary 波形实际上包含饱和后 P→N 直跳（A 相，12.9 ms，约 −18.8623532 A）。本步按既有禁止直跳契约改为抛 `TTypeWaveformError`，保留原未裁剪调制命令、周期残差和具体相位/时间原因，不返回非法波形。步骤 3 测试加强为必须拒绝并保持 m>1/超限诊断；未增加 skip、放宽容差或构造假的 O 驻留，不修改 NPC 饱和策略。
+- 环境/命令：Python 3.12.10、pytest 9.1.1，`sys.executable` 为 `C:\Users\Lumia\AppData\Local\Programs\Python\Python312\python.exe`；显式 PYTHONPATH=本工作区 src;tests，PYTHONDONTWRITEBYTECODE=1、MPLBACKEND=Agg，包来源已 assert 为当前 src，测试来源为当前 tests。最终执行如下，exit 0，162 passed（累计 T-type 134、NPC/注册 28），failed/errors/skipped/xfail 均 0，pytest 22.92 s，1 条既有 cache_dir warning。
+
+```powershell
+python -B -m pytest -o addopts= -p no:cacheprovider -q `
+  --basetemp .pytest-tmp-tt-r1-s4/pytest-temp-final `
+  --junitxml .pytest-tmp-tt-r1-s4/junit-final.xml `
+  tests/test_t_type_step1_contract.py tests/test_t_type_step2_synthesis.py `
+  tests/test_t_type_step3_waveforms.py tests/test_t_type_step4_paths_events.py `
+  tests/test_npc_step2_current_reference.py tests/test_npc_step3_average_voltage_target.py `
+  tests/test_npc_step4_level_sequence.py tests/test_npc_step4_periodic_warm_start.py `
+  tests/test_npc_step5_event_segmented_current.py tests/test_npc_switching_loss_events.py `
+  tests/test_phase4_topology_contracts.py::test_phase4_registry_has_unique_ids_and_capabilities `
+  tests/test_phase4_topology_contracts.py::test_phase4_router_fails_closed_for_unknown_topology
+```
+
+- 分层证据：独立六导通情况、八非零换流、全部零电流换流、三状态阻断及门极互锁；实际事件电流用 `i_end=i_start+(v_phase*dt−Vgrid_pk/omega*(cos(theta0)−cos(theta1)))/L` 独立验证，abs=1e-7 A、rel=1e-8。B6/B7/B8 包括非法状态/直跳、非有限输入、不连续时间/电流和消失脉冲；B1/B3/B4/B2 实际覆盖 leading/lagging PF0.8、零/0.1/0.5/1 负载、700/800 V，以及之前累计用例。当前输入→插件→波形→位置/事件载荷真实执行；候选不可变、导入隔离和独立返回数据可审查。JUnit 及验证回执保留 `.pytest-tmp-tt-r1-s4/`，失败历史不覆盖，全不提交。
+- 未验证/后续：器件时间加权应力、完整后端报告、GUI、选型/损耗/效率、有限死区/恢复能量/寄生、NPC/T-type 双顺序隔离仍待后续步骤。步骤 3 未完成共享模块抽取、事件边界联合绘图时间轴等冻结目标，已明确留作后续修正，不能把本步 NPC 测试当作抽取前后全载荷比较。没有改公共求解/公式，本步无需重新生成 NPC 历史快照或全套回归。
+- Git：本次实现/文档暂存范围、ChangeLog append-only、diff --check 与远端 SHA 在收尾核实；推送前不标步骤 4 完成。

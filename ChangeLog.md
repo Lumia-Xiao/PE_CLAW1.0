@@ -2030,3 +2030,12 @@ listed here.
 - 范围：三线 KCL、周期残差、PF 超前/滞后和事件有限性已验证；动态分裂电容/中点电压、器件应力、死区/寄生、闭环硬件行为和 GUI/完整链仍未实现。
 - 实际验证：Python 3.12.10、pytest 9.1.1。T-type 累计命令 85 passed（10.68 s）；NPC/注册回归命令 28 passed（10.43 s）；两组均 0 failed/errors/skipped/xfail，既有 `cache_dir` warning 单列。未运行 GUI、完整设计链、真实选型或步骤 4–8。
 - Git 与维护：步骤 3 实现提交 `6cedc35f6d56c34b437222fe9b737b275880062a` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，并由 `git ls-remote` 核实同 SHA；步骤 4 不自动开始。保留 `outputs/`、pytest 临时目录及原有无关工作区改动，未纳入提交。
+
+## 2026-10-12 - T-type 步骤 4：逐位置导通与理想换流事件
+
+- 授权/范围：执行步骤 4，拓扑局部变更。新增 `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_t_type_inverter/paths_events.py`、`tests/test_t_type_step4_paths_events.py`，修改 T-type `waveform.py`、步骤 3 低母线失败用例、本计划及本日志；NPC/公用求解器、注册/GUI、公共模型、库和选型不变，不开始步骤 5。
+- 行为：12 位置的局部有符号电流、非负 IGBT 通道/反并联二极管电流、参考路径和瞬时静态阻断电压；O 状态 QA=-i、QO=i，保持开通但不承载的器件电流为零。事件直接取积分片段边界，给出八类非零相邻换流、两门极翻转、局部前后电流、半母线阶跃和理想带载/潜在恢复身份。精确零电流标 no_current；不填能量/恢复能量/ZVS，不冒充 MOSFET 分流或实物软开关。WaveformSet switch/diode 兼容数组按冻结契约改为 A_QP 通道/反并联电流，原时间线另保存 event_timeline。
+- 根因/诊断：初次累计 126 项中 1 项失败，500 V 已不可达的饱和解在 A 相 12.9 ms 出现 P→N 直跳。按契约改为 TTypeWaveformError，保留未裁剪 m>1、周期残差和相位/时刻原因，禁止返回非法波形；原低母线用例加强为必须拒绝，未宽容差、skip 或插入虚假 O 区间。零时长/重复无变化片段不生成事件；不连续时间/电流、非法状态、直跳及非有限输入明确拒绝。
+- 验证：基准 `d9e825dc4f47f0768b75c0d075623a5990ba59ff`，Python 3.12.10/pytest 9.1.1，显式本工作区 src/tests 来源核实。`python -B -m pytest -o addopts= -p no:cacheprovider -q --basetemp .pytest-tmp-tt-r1-s4/pytest-temp-final --junitxml .pytest-tmp-tt-r1-s4/junit-final.xml` 加计划 9.10 节四个 T-type 文件、六个 NPC 文件和两注册节点，exit 0：162 passed（T-type 134＋NPC/注册 28），0 failed/errors/skipped/xfail，22.92 s，1 个既有 cache_dir warning。六导通/八换流/零电流/互锁独立预期、正弦电网单片段解析事件电流、完整波形位置读回、候选不变及累计导入隔离均通过；JUnit/失败历史/回执本地保存且未提交。
+- 后续/限制：逐位置时间加权 peak/RMS/average、应力/完整报告、GUI、选型/损耗/效率和双顺序全流程隔离属于后续。步骤 3 共享求解模块抽取及事件边界联合绘图时间轴尚未补齐，本步没有执行抽取前后全载荷比较，不把 NPC 专项通过当作该项证明。计划实际状态同步；本步无器件或硬件验收声明。
+- Git/维护：沿用 `codex/llc-waveform-operating-point-plan`，仅上述六文件独立提交推送至 `pe-claw-1.1` 同名分支，具体 SHA 随完成回执同步。保留全部既有无关删除/untracked、用户 outputs 与测试生成物；不清理、不备份。提交前检查定向与暂存 diff、append-only、引用和范围，推送核实后才能标步骤 4 完成。

@@ -12,6 +12,7 @@ import math
 from ....models.operating_point import OperatingPoint
 from ....models.waveform import WaveformSet
 from ...base.candidate import TopologyCandidate
+from .paths_events import IllegalTransitionError, build_positions, extract_events, gate_vector
 from ..three_phase_three_level_npc_inverter.waveform import (
     SAMPLES_PER_SWITCHING_PERIOD,
     _mean,
@@ -22,12 +23,16 @@ from ..three_phase_three_level_npc_inverter.waveform import (
 )
 
 
-def _t_type_gate_state(state: float) -> tuple[float, float, float, float]:
-    if state > 0.5:
-        return (1.0, 0.0, 0.0, 1.0)
-    if state < -0.5:
-        return (0.0, 1.0, 1.0, 0.0)
-    return (0.0, 0.0, 1.0, 1.0)
+class TTypeWaveformError(ValueError):
+    """Rejected output with retained modulation and periodic-solver diagnostics."""
+
+    def __init__(self, reason: str, diagnostics: dict[str, object]):
+        super().__init__(reason)
+        self.diagnostics = {**diagnostics, "status": "invalid", "failure_reason": reason}
+
+
+def _t_type_gate_state(state: float) -> tuple[int, int, int, int]:
+    return gate_vector(state)
 
 
 def _operating_value(value: float | None, default: float) -> float:
@@ -150,6 +155,13 @@ def generate_waveforms(
         "event_segment_count": event_simulation["segment_count"],
         "waveform_model": "ideal three-phase T-type output-side event-segmented L integration; not closed-loop hardware simulation",
     }
+    positions = build_positions(phase_payload, vdc_v)
+    try:
+        events = extract_events(event_simulation["segments"], vdc_v)
+    except IllegalTransitionError as exc:
+        raise TTypeWaveformError(str(exc), diagnostics) from exc
+    diagnostics["commutation_event_count"] = len(events)
+    diagnostics["conduction_reference"] = "ideal_igbt_with_antiparallel_diode"
     waveform_payload = {
         "schema_version": 1,
         "basis": {
@@ -168,7 +180,9 @@ def generate_waveforms(
         "phases": phase_payload,
         "line_line_voltage_v": line_line,
         "segments": event_simulation["segments"],
-        "events": event_simulation["event_timeline"],
+        "event_timeline": event_simulation["event_timeline"],
+        "positions": positions,
+        "events": events,
         "diagnostics": diagnostics,
     }
     current_values = [*ia, *ib, *ic]
@@ -187,8 +201,8 @@ def generate_waveforms(
         inductor_current_min_a=min(current_values),
         inductor_current_max_a=max(current_values),
         mode="three-phase three-level T-type PD-SPWM first-pass preview",
-        switch_current_a=[max(abs(a), abs(b), abs(c)) for a, b, c in zip(ia, ib, ic, strict=True)],
-        diode_current_a=[],
+        switch_current_a=positions["a_QP"]["channel_current_a"],
+        diode_current_a=positions["a_QP"]["antiparallel_diode_current_a"],
         input_source_current_a=[],
         inductor_voltage_v=phase_payload["a"]["inductor_voltage_v"],
         output_ripple_v=[],
@@ -200,6 +214,7 @@ def generate_waveforms(
             "Three-phase conventional T-type PD-SPWM output waveform over one complete line cycle.",
             "Currents use exact event-segmented ideal-L integration with a periodic steady-state solve.",
             "T-type gate identities are reconstructed from P/O/N states; NPC clamp roles are not used.",
+            "Position currents use the IGBT/antiparallel-diode reference; MOSFET current sharing and event energies are unavailable.",
             "Split-bus capacitor current and dynamic midpoint voltage are intentionally not modeled in this step.",
             "Dead time, Coss, commutation overlap, parasitic ringing, and closed-loop hardware behavior are not modeled.",
         ],

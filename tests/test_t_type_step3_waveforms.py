@@ -17,6 +17,7 @@ from pe_claw_gui.topologies.dc_ac.three_phase_three_level_t_type_inverter import
     generate_waveforms,
     synthesize,
 )
+from pe_claw_gui.topologies.dc_ac.three_phase_three_level_t_type_inverter.waveform import TTypeWaveformError
 
 
 def _candidate(**overrides: str):
@@ -99,10 +100,13 @@ def test_unsupported_operating_overrides_fail_explicitly() -> None:
         generate_waveforms(candidate, OperatingPoint(vin_v=700.0, vout_v=380.0))
 
 
-def test_low_bus_waveform_retains_boundary_diagnostic_without_clipping_the_command() -> None:
-    waveform = generate_waveforms(_candidate(vdc_nom="500"))
-    diagnostics = waveform.metadata["three_phase_t_type_pd_spwm_waveforms"]["diagnostics"]
+def test_low_bus_waveform_rejects_illegal_saturated_sequence_with_diagnostic() -> None:
+    # At 500 V the saturated feedback sequence jumps P->N at 12.9 ms.
+    # Step 4 must reject that path while retaining the original unclipped command.
+    with pytest.raises(TTypeWaveformError, match="illegal transition P->N") as error:
+        generate_waveforms(_candidate(vdc_nom="500"))
+    diagnostics = error.value.diagnostics
     assert diagnostics["modulation_index_command"] > 1.0
     assert diagnostics["modulation_valid"] is False
-    assert diagnostics["status"] == "boundary"
-    assert waveform.metadata["t_type_modulation_command_status"] == "unreachable"
+    assert diagnostics["status"] == "invalid"
+    assert "0.0129 s" in diagnostics["failure_reason"]
