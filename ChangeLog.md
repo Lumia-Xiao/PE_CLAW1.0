@@ -2039,3 +2039,8 @@ listed here.
 - 验证：基准 `d9e825dc4f47f0768b75c0d075623a5990ba59ff`，Python 3.12.10/pytest 9.1.1，显式本工作区 src/tests 来源核实。`python -B -m pytest -o addopts= -p no:cacheprovider -q --basetemp .pytest-tmp-tt-r1-s4/pytest-temp-final --junitxml .pytest-tmp-tt-r1-s4/junit-final.xml` 加计划 9.10 节四个 T-type 文件、六个 NPC 文件和两注册节点，exit 0：162 passed（T-type 134＋NPC/注册 28），0 failed/errors/skipped/xfail，22.92 s，1 个既有 cache_dir warning。六导通/八换流/零电流/互锁独立预期、正弦电网单片段解析事件电流、完整波形位置读回、候选不变及累计导入隔离均通过；JUnit/失败历史/回执本地保存且未提交。
 - 后续/限制：逐位置时间加权 peak/RMS/average、应力/完整报告、GUI、选型/损耗/效率和双顺序全流程隔离属于后续。步骤 3 共享求解模块抽取及事件边界联合绘图时间轴尚未补齐，本步没有执行抽取前后全载荷比较，不把 NPC 专项通过当作该项证明。计划实际状态同步；本步无器件或硬件验收声明。
 - Git/维护：沿用 `codex/llc-waveform-operating-point-plan`，仅上述六文件独立提交推送至 `pe-claw-1.1` 同名分支，具体 SHA 随完成回执同步。保留全部既有无关删除/untracked、用户 outputs 与测试生成物；不清理、不备份。提交前检查定向与暂存 diff、append-only、引用和范围，推送核实后才能标步骤 4 完成。
+
+## 2026-10-12 - T-type 步骤 4 提交推送确认
+
+- 实现提交 `e04e0a0cbeace062b529d16a564e95b77973ccb3` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实同 SHA；仅六个目标文件，生成物和无关改动未提交。23 个本地引用、ChangeLog append-only、定向/暂存 diff --check 及范围检查通过。
+- 本次仅同步计划状态并追加日志，独立提交推送，不重复工程测试。步骤 4 完成范围为导通/理想事件及 162 项专项；步骤 3 的共享抽取等缺口继续显式保留，步骤 5–8 未执行，不声明完整拓扑/GUI/硬件链已跑通。
