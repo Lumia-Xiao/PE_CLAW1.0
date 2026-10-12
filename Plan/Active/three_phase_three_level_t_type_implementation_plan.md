@@ -1,10 +1,10 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Active；步骤 0–6 已完成其授权范围并推送，步骤 3 缺口已补齐（9.11）；步骤 7–8 待执行。
+- 状态：Active；步骤 0–6 已验证并推送，步骤 3 缺口已补齐（9.11）；步骤 7–8 待执行。
 - 创建日期：2026-10-12。
-- 当前授权：步骤 6 已完成其授权范围；本轮不自动开始步骤 7–8。
+- 当前授权：步骤 6 验证与实现推送已完成；本轮不自动开始步骤 7–8。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
-- 拓扑 ID：`three_phase_three_level_t_type_inverter`；步骤 6 已接入注册，待本轮验证与 Git 门槛。
+- 拓扑 ID：`three_phase_three_level_t_type_inverter`；步骤 6 已接入注册并验证，实现提交 `ba958e2` 已推送。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
 - 撰写基准：`cf04284d4e8c966f57b537f7833c62f83b10c9e4`。
 - 当前特性分支：`codex/llc-waveform-operating-point-plan`；已配置上游及本次文档推送目标：`pe-claw-1.1/codex/llc-waveform-operating-point-plan`，远端 `https://github.com/Lumia-Xiao/PE-Claw_1.1.git`。
@@ -139,10 +139,10 @@
 | 0 | 冻结首轮输入/输出映射、共用求解范围和验证基准 | 本计划 | 已完成并推送，见 9.6 |
 | 1 | 独立 T-type 契约、输入及插件骨架 | 0 | 已实现并推送，见 9.7 |
 | 2 | 基础参数合成 | 1 | 已实现并推送，见 9.8 |
-| 3 | 三电平输出与三相电感电流 | 2 | 已实现并推送，见 9.9；共享提取仍待补齐 |
+| 3 | 三电平输出与三相电感电流 | 2 | 已补齐并推送，见 9.11 |
 | 4 | T-type 12 路门极、导通路径和理想事件 | 3 | 已完成并推送，见 9.10 |
-| 5 | 逐位置应力、报告及首次后端贯通 | 4 | 待执行 |
-| 6 | 注册/能力/GUI 接入与未接阶段保护 | 5 | 已完成（9.12） |
+| 5 | 逐位置应力、报告及首次后端贯通 | 4 | 已完成并推送，见 9.11 |
+| 6 | 注册/能力/GUI 接入与未接阶段保护 | 5 | 已验证并推送（9.12） |
 | 7 | 固定参数运行点刷新 | 6 | 待执行 |
 | 8 | 首轮贯通、旧拓扑回归、隔离与收尾 | 7 | 待执行 |
 
@@ -205,7 +205,7 @@
 - 依据步骤 0 的兼容映射组装现有 DesignReport；未接硬件阶段为空/未运行且有原因；不创建新的共享字段语义。
 - 尽早调用 `run_topology_pipeline` 跑 B1，无波形和有波形两种入口均实际执行；这就是首轮早期代表案例，不以真实库为本轮前提。补充一次受控失败链，保留失败原因/run 归属。
 - 拟新增 `tests/test_t_type_step5_pipeline.py`：报告身份、B1 数值、12 位置、含纹波 RMS、估计/实际切换、空硬件/无效率、专属输出根。完成：首条后端完整基础链真实通过；Git 门槛满足。
-- 实际执行/Git 回执：待执行。
+- 实际执行/Git 回执：已完成并推送，见第 9.11 节。
 
 ### 步骤 6：注册、能力、GUI 与入口保护
 
@@ -214,7 +214,7 @@
 - 新增表单和最小准确卡片资源；复用 GUI 两按钮操作；波形页读取 T-type 独立载荷，显示三相电压电流及门极，不借用 NPC key。Stress 显示主/中点应力；Summary 标注理想模型、参数估计和实际运行点。
 - 拟新增 `tests/test_t_type_step6_gui.py`：真实 Tk 选拓扑、填输入、Run Design、Generate Waveforms 和当前页面数值/曲线数据；另测能力绕过保护与旧拓扑支持范围。
 - 更新 README 的当前计数与 T-type 首轮支持说明，历史 19 项迁移验收口径保留。完成：GUI 基础流程和未接阶段保护实际通过，必要注册/表单回归通过；Git 门槛满足。
-- 实际执行/Git 回执：待执行。
+- 实际执行/Git 回执：已完成并推送，见第 9.12 节。
 
 ### 步骤 7：固定 candidate 参数的运行点刷新
 
@@ -570,5 +570,6 @@ GUI 源为当前 report；T-type waveform 的 basis/time_s/phases/positions/stre
 独立证据：累计 steps1–5/common 的解析/分段积分/Simpson/加密与受控失败、实际基础 pipeline 及 NPC→T-type 双顺序重跑通过；旧 20 项注册/capability/helper 字段精确一致。真实 Tk 选卡、Run Design/Generate Waveforms、全部三相 V/I/12 门极数组及 6 位应力/汇总均从当前 report 读回；图像和 gui_readback.json 在 `.tt6-verified/temp/test_real_tk_card_buttons_curr0/`，已目视检查 6 行布局。500 V 不可达及 nan 解析失败保留 candidate、清当前结果，设计变化/切拓扑清报告。full/refresh 下游 forbidden 桩证明首轮入口未触达组件阶段，直接三个 controller 绕过调用拒绝且 stage_status 不变。无硬件总损耗/效率，系统合计不适用；完整应用刷新矩阵、最终导出验收、实物选型留步骤 7–8/后续工程轮。
 
 
-步骤 6 完成回执（2026-10-12）：实现范围已通过聚焦门槛。tt6-verified：9 passed；tt6-tooling：4 passed；六份 NPC 完整 payload SHA 全部精确一致。旧 AC-DC 五拓扑扩展回归在 Windows 磁件阶段耗时过长而停止，manifest 保留且未计为通过；步骤 7–8 仍未执行。
+步骤 6 实现回执（2026-10-12）：实现提交 `ba958e2de3e5659f38ac2bd3ddce27ba15bada0c` 已推送至 pe-claw-1.1/codex/llc-waveform-operating-point-plan，ls-remote 核实同 SHA。`.tt6-verified` 9 passed，`.tt6-tooling` 4 passed，六份 NPC 完整 payload SHA 精确一致。旧 AC-DC 五拓扑完整回归最终完整执行通过：`python -B scripts/validate_t_type_step6_gui.py .tt6-ac-pass tests/test_ac_dc_efficiency_gui_end_to_end.py::test_ac_dc_gui_forms_and_efficiency_result_view_end_to_end`，1 passed/0 failed/errors/skips，590.05 s；当前提交 ba958e2、环境/源文件 SHA、日志/JUnit/NPC 对比见该目录。没有缩减磁件搜索；此前多次误判长运行而中断的运行均保留且不计通过。`.tt6-ac-pass/aggregate_validation.json` 按 classname/name 合并原累计通过项及真实修复重跑，共 271 个不同测试最终均有通过证据，不宣称一次全通过运行。既有 cache_dir warning 单列，full suite 未执行。
 
+步骤 6 门槛已满足：真实 GUI 两按钮、当前数字/曲线、全部21表单/资源、默认/最小窗口、入口保护、失败清理、旧注册冻结、旧DC-AC及AC-DC页面回归均有实际证据；无待解决本步失败。契约13与计划23个本地链接有效，代码/暂存差异审查完成；实现提交末尾多余空行曾被 diff --check 报出，在本次文档回执修正并重新检查。此文档提交同步完成状态/ChangeLog，不重复已通过电气测试；最终 SHA 与远端核实见 Git 历史及完成报告。步骤 7–8 未执行，实物选型、损耗/效率模型和完整首轮终验仍未交付。
