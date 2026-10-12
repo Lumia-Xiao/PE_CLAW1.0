@@ -175,7 +175,7 @@
 - 验证：step1+step2；若修改共享合成函数，增加其实际旧消费者。完成：基本 candidate 可用于电流求解，参数与目标/估计语义清楚；Git 门槛满足。
 - 实际执行：2026-10-12。新增 `synthesizer.py`，实现独立 T-type 三相电压/电流、PF 超前/滞后相量、电感初值、调制命令、分裂母线电容代理和逐位置电流估计；`PLUGIN.synthesize` 已接通，未接下游波形/应力/选型。
 - 测试：步骤 1 与步骤 2 累计专项测试通过；具体命令、环境和边界见第 9.8 节。低母线不可达点保留显式 `feasible=False` 与原因，不通过裁剪伪造可行。
-- Git 回执：步骤 2 源码/测试及本计划、ChangeLog 待本次独立提交推送并核实；步骤 3 不自动开始。
+- Git 回执：步骤 2 实现提交 `87713671abd9ac42e703d0f6c3e190d3c185db58` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实远端同 SHA；步骤 3 不自动开始。
 
 ### 步骤 3：复用输出侧求解，生成三相波形
 
@@ -488,4 +488,4 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 
 验证使用当前工作区源码，Python 3.12.10 / pytest 9.1.1：`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s2-final3 tests/test_t_type_step1_contract.py tests/test_t_type_step2_synthesis.py`，78 passed，failed/errors/skipped/xfail 均为 0，8.24 s；既有 `Unknown config option: cache_dir` warning 单列。独立参考覆盖 B1 标量、PF=0.8 超前/滞后、500 V 不可达、输入边界、candidate 映射、无硬件结果和元数据隔离。未验证波形、实际 PWM 纹波、GUI、完整设计链、真实选型、旧拓扑回归或步骤 3–8。
 
-实现提交和远端核实待本次收尾完成；步骤 3 仍待用户确认，计划保持 Active。
+实现提交 `87713671abd9ac42e703d0f6c3e190d3c185db58` 已完成并推送；本计划/ChangeLog 的状态回执随后以独立提交同步。步骤 3 仍待用户确认，计划保持 Active。
