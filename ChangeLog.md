@@ -2044,3 +2044,9 @@ listed here.
 
 - 实现提交 `e04e0a0cbeace062b529d16a564e95b77973ccb3` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实同 SHA；仅六个目标文件，生成物和无关改动未提交。23 个本地引用、ChangeLog append-only、定向/暂存 diff --check 及范围检查通过。
 - 本次仅同步计划状态并追加日志，独立提交推送，不重复工程测试。步骤 4 完成范围为导通/理想事件及 162 项专项；步骤 3 的共享抽取等缺口继续显式保留，步骤 5–8 未执行，不声明完整拓扑/GUI/硬件链已跑通。
+
+## 2026-10-12 — T-type 步骤 3 补齐
+
+- 分类：NPC/T-type 输出侧共享集成；新增 three_level_common.py 并保留 NPC 私有签名/门极包装；T-type waveform/integration.py、common_solver 测试和 validate_t_type_step3_completion.py 接通中性求解、事件并集、实际命令/周期/平均电流拒绝、A 相字段和完整周期/实际纹波积分。计划 9.11 记录单位、所有权、刷新与未支持边界。公共模型、注册、GUI、库及用户文件不修改。
+- 验证：上述脚本在 .pytest-tmp-tt-r1-s3-complete-pass，171 passed，0 failures/errors/skips，33.79 s；既有 cache_dir 警告 1。六个 NPC 完整基准 SHA 精确不变；独立积分/加密/失败检查通过。前期失败与原因保留日志并记录在计划。git diff --check 和范围审查通过后提交；不执行全套或 GUI，后续门槛保留。
+- Git：codex/llc-waveform-operating-point-plan，上游 pe-claw-1.1 同名分支；实现与推送 SHA 随后追加。无需备份操作，未清理用户结果或证据。

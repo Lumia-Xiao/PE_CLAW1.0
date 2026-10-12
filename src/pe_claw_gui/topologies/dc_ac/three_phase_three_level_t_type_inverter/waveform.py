@@ -1,7 +1,6 @@
 """First-pass three-phase T-type output-side waveforms.
 
-The event-segmented ideal-L integrator is reused through the NPC output-side
-helper.  T-type state/gate identity is reconstructed locally, so NPC clamp
+The gate-neutral shared event-segmented ideal-L integrator is reused.  T-type state/gate identity is reconstructed locally, so NPC clamp
 roles never enter the T-type result.
 """
 
@@ -13,12 +12,11 @@ from ....models.operating_point import OperatingPoint
 from ....models.waveform import WaveformSet
 from ...base.candidate import TopologyCandidate
 from .paths_events import IllegalTransitionError, build_positions, extract_events, gate_vector
-from ..three_phase_three_level_npc_inverter.waveform import (
+from .integration import integral_metrics
+from ..three_level_common import (
     SAMPLES_PER_SWITCHING_PERIOD,
-    _mean,
-    _rms,
-    _simulate_npc_event_segmented_currents,
-    _switching_period_midpoints,
+    _simulate_three_level_event_segmented_currents,
+    _sample_three_level_event_segments,
     _time_average_by_switching_period,
 )
 
@@ -61,9 +59,8 @@ def generate_waveforms(
     ):
         raise ValueError("T-type first-round waveform refresh does not support AC-voltage override.")
     load_ratio = _operating_value(operating_point.load_ratio if operating_point else None, 1.0)
-    if not math.isfinite(load_ratio) or load_ratio < 0.0:
-        raise ValueError("T-type operating-point load ratio must be finite and non-negative.")
-    load_ratio = min(load_ratio, 1.0)
+    if not math.isfinite(load_ratio) or not 0.0 <= load_ratio <= 1.0:
+        raise ValueError("T-type operating-point load ratio must be finite and in [0, 1].")
     pf = _operating_value(operating_point.power_factor if operating_point else None, float(metadata["power_factor"]))
     if not 0.0 < pf <= 1.0:
         raise ValueError("T-type operating-point power factor must be in the range (0, 1].")
@@ -96,12 +93,11 @@ def generate_waveforms(
         [i_phase_peak_a * math.sin(omega * t + angle - phi_rad) for t in time_s]
         for angle in phase_angles
     )
-    reference_time_s = _switching_period_midpoints(time_s, SAMPLES_PER_SWITCHING_PERIOD)
     reference_average_a = {
         phase: _time_average_by_switching_period(time_s, phase_current_reference_a[index], SAMPLES_PER_SWITCHING_PERIOD)
         for index, phase in enumerate(("a", "b", "c"))
     }
-    event_simulation = _simulate_npc_event_segmented_currents(
+    event_simulation = _simulate_three_level_event_segmented_currents(
         time_s=time_s,
         phase_grid_voltage_v=phase_grid_voltage_v,
         phase_current_reference_a=phase_current_reference_a,
@@ -112,10 +108,39 @@ def generate_waveforms(
         half_bus_voltage_v=0.5 * vdc_v,
         samples_per_switching_period=SAMPLES_PER_SWITCHING_PERIOD,
     )
-    phase_currents = event_simulation["phase_currents_a"]
-    phase_states = event_simulation["phase_states"]
-    poles = event_simulation["pole_voltages_v"]
-    neutral = event_simulation["phase_neutral_pwm_v"]
+    solver = event_simulation["periodic_solver"]
+    errors = [abs(value) for values in event_simulation["current_average_error_a"].values() for value in values]
+    saturated = any(any(values) for values in event_simulation["average_current_correction_saturated"].values())
+    diagnostics = {
+        "modulation_index_command": modulation_index,
+        "modulation_valid": modulation_index <= 1.0,
+        "periodic_solver": solver,
+        "actual_command_saturated": saturated,
+        "current_average_error_max_a": max(errors, default=math.inf),
+        "current_average_tolerance_a": event_simulation["average_current_correction_tolerance_a"],
+    }
+    if modulation_index > 1.0:
+        raise TTypeWaveformError("T-type fundamental modulation command exceeds available bus voltage.", diagnostics)
+    if not solver["converged"] or not all(math.isfinite(x) and abs(x) <= 1e-8 for x in solver["residual_a"]):
+        raise TTypeWaveformError("T-type periodic current solve did not converge.", diagnostics)
+    if saturated:
+        raise TTypeWaveformError("T-type actual PWM average-voltage command saturated.", diagnostics)
+    if not errors or not all(math.isfinite(x) and x <= 1e-6 for x in errors):
+        raise TTypeWaveformError("T-type switching-period average current tracking failed.", diagnostics)
+    # The feedback solver groups a uniform grid by PWM periods. Display sampling
+    # is separate and contains every exact event boundary plus that uniform grid.
+    time_s = sorted(set(time_s) | {float(event["time_s"]) for event in event_simulation["event_timeline"]})
+    sampled = _sample_three_level_event_segments(
+        time_s=time_s, segments=event_simulation["segments"], inductance_h=l_phase_h,
+        grid_voltage_peak_v=vac_phase_peak_v, line_frequency_hz=f_line_hz,
+        phase_angles=phase_angles, half_bus_voltage_v=vdc_v / 2,
+    )
+    phase_grid_voltage_v = tuple([vac_phase_peak_v * math.sin(omega * t + angle) for t in time_s] for angle in phase_angles)
+    phase_current_reference_a = tuple([i_phase_peak_a * math.sin(omega * t + angle - phi_rad) for t in time_s] for angle in phase_angles)
+    phase_currents = sampled["phase_currents_a"]
+    phase_states = sampled["phase_states"]
+    poles = sampled["pole_voltages_v"]
+    neutral = sampled["phase_neutral_pwm_v"]
     gates = {
         phase: tuple(
             list(values)
@@ -146,6 +171,7 @@ def generate_waveforms(
             "gates": {key: list(values) for key, values in zip(("QP", "QN", "QA", "QO"), gates[phase], strict=True)},
         }
     diagnostics = {
+        **diagnostics,
         "status": "ok" if bool(event_simulation["periodic_solver"]["converged"]) and modulation_index <= 1.0 else "boundary",
         "modulation_index_command": modulation_index,
         "modulation_valid": modulation_index <= 1.0,
@@ -185,21 +211,25 @@ def generate_waveforms(
         "events": events,
         "diagnostics": diagnostics,
     }
-    current_values = [*ia, *ib, *ic]
+    statistics = integral_metrics(event_simulation["segments"], waveform_payload["basis"])
+    diagnostics["phase_statistics"] = statistics
+    diagnostics["ripple_definition"] = "per switching period peak-to-peak of actual current minus sinusoidal reference (A)"
+    diagnostics["statistics_method"] = "exact segment currents; adaptive time quadrature and analytic extrema"
+    diagnostics["ripple_design_target_pp_a"] = candidate.delta_il
     return WaveformSet(
         time_s=time_s,
-        switch_node_voltage_v=line_line["ab"],
+        switch_node_voltage_v=list(va_pole),
         inductor_current_a=list(ia),
         capacitor_current_a=[],
-        output_voltage_v=line_line["ab"],
+        output_voltage_v=list(phase_grid_voltage_v[0]),
         operating_vin_v=vdc_v,
         operating_vout_v=vac_ll_rms_v,
         duty=0.5,
         load_ratio=load_ratio,
         switching_period_s=1.0 / fsw_hz,
         time_span_s=line_period_s,
-        inductor_current_min_a=min(current_values),
-        inductor_current_max_a=max(current_values),
+        inductor_current_min_a=statistics["a"]["min_a"],
+        inductor_current_max_a=statistics["a"]["max_a"],
         mode="three-phase three-level T-type PD-SPWM first-pass preview",
         switch_current_a=positions["a_QP"]["channel_current_a"],
         diode_current_a=positions["a_QP"]["antiparallel_diode_current_a"],
@@ -247,8 +277,8 @@ def generate_waveforms(
             "t_type_periodic_solver_status": event_simulation["periodic_solver"]["status"],
             "t_type_periodic_solver_converged": event_simulation["periodic_solver"]["converged"],
             "t_type_periodic_solver_residual_a": event_simulation["periodic_solver"]["residual_a"],
-            "t_type_phase_current_rms_a": [_rms(ia), _rms(ib), _rms(ic)],
-            "t_type_phase_current_mean_a": [_mean(ia), _mean(ib), _mean(ic)],
+            "t_type_phase_current_rms_a": [statistics[phase]["rms_a"] for phase in ("a", "b", "c")],
+            "t_type_phase_current_mean_a": [statistics[phase]["mean_a"] for phase in ("a", "b", "c")],
             "t_type_capacitor_model_status": "not_modeled_in_step_3",
             "t_type_modulation_command_status": "pass" if modulation_index <= 1.0 else "unreachable",
         },

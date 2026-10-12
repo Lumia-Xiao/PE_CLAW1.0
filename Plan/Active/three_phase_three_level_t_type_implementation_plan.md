@@ -530,3 +530,13 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 - Git：本次实现/文档暂存范围、ChangeLog append-only、diff --check 与远端 SHA 在收尾核实；推送前不标步骤 4 完成。
 
 实现提交 `e04e0a0cbeace062b529d16a564e95b77973ccb3` 已推送并核实远端 SHA；六文件范围、23 个有效本地引用、ChangeLog append-only 与定向/暂存 diff --check 均通过。步骤 4 完成仅指第 9.10 节实际范围；步骤 3 已列缺口不因该回执视为通过。本次独立文档提交同步完成状态，不重复电气测试；其 SHA 和最终远端核实见 Git 历史与完成报告。
+
+### 9.11 步骤 3 补齐与步骤 5 执行范围（2026-10-12）
+
+当前授权：先补齐步骤 3，再实施步骤 5，分别验证、提交、推送。步骤 3 为共享集成，仅 NPC/T-type 输出侧消费 three_level_common；保留 NPC 私有签名和完整返回，独立于门极、器件、电容。公共模型、注册、GUI、库和其他拓扑不修改。完整 NPC 基准按原 SHA 校验后逐字段对比，不更新黄金值。T-type 显示采用均匀点与事件边界并集；实际电压命令饱和、周期失败、平均跟踪失败均拒绝，保存诊断；load_ratio 按契约 [0,1] 拒绝越界。A 相兼容电压/电流按第 14.3 节修正，周期统计按片段积分，纹波为每开关周期实际电流减基波参考的峰峰值 A。刷新重算但不改 candidate。
+
+步骤 5 为局部 hook/应力/报告接通，通过现有 run_topology_pipeline 的真实上下文执行；未注册故其他共享阶段不消费。12 位置静态 V 与完整周期 A 的 signed/channel/diode mean/RMS/peak 分开，main/midpoint 与公共 switch/rectifier 按各指标最大值聚合。无波形仅设计 peak 估算、RMS/average=None；无效波形拒绝。报告保留当前 basis 和 stages-not-run，损耗/效率/硬件均无结果。积分使用精确片段电流和过零/极值分段、时间积分，并以独立数值积分及加密验证。死区/换流能量继续不纳入。
+
+验证：先核验解释器、当前 src/tests 路径；累计 tests/test_t_type_step1_contract.py、test_t_type_step2_synthesis.py、test_t_type_step3_waveforms.py、test_t_type_step4_paths_events.py，加新增 common/step5 测试；NPC 六个求解/事件文件与 registry 两节点按 9.5。独立公式、受控非收敛/饱和/错误跟踪负例、完整快照、真实 pipeline/失败上下文、运行顺序隔离分别取证；GUI 留步骤 6–8。所有日志/JUnit/比较回执在新的 .pytest-tmp-tt-r1-s3-complete 与 s5 目录，既有证据不覆盖。
+
+步骤 3 补齐验证回执：`python -B scripts/validate_t_type_step3_completion.py .pytest-tmp-tt-r1-s3-complete-pass`，当前 Python 3.12.10/当前 src 与 tests，171 passed、0 failed/errors/skipped、1 项既有 cache_dir 配置警告，33.79 s。六个完整 NPC spec/candidate/OP/waveform/stress/result 快照经原始 SHA 检查后，当前 SHA 全部精确一致；不需要排除任何字段。独立分段正弦积分、半段加密、32 分点纹波参考、四类受控求解失败与字段/事件时间轴均通过。初跑两项旧断言因规定的新时间轴及提前失败机制更新；新增一次严格一致检查因测试电网峰值的浮点运算次序不同失败，统一相同输入构造后通过，没有改变数值门槛或生产公式。日志/JUnit/比较/环境回执在上述目录；历史证据保留。Git 实现提交与推送回执随后追加。

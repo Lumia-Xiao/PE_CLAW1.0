@@ -29,7 +29,9 @@ def _candidate(**overrides: str):
 def test_b1_waveform_has_one_line_cycle_finite_three_phase_payload_and_periodic_solution() -> None:
     waveform = generate_waveforms(_candidate())
     payload = waveform.metadata["three_phase_t_type_pd_spwm_waveforms"]
-    assert len(waveform.time_s) == 3201
+    assert len(waveform.time_s) > 3201
+    assert {i / 160000 for i in range(3201)} <= set(waveform.time_s)
+    assert {event["time_s"] for event in payload["event_timeline"]} <= set(waveform.time_s)
     assert waveform.time_s[0] == 0.0
     assert waveform.time_s[-1] == pytest.approx(0.02, abs=1e-15)
     assert payload["basis"]["vdc_v"] == 700.0
@@ -101,12 +103,12 @@ def test_unsupported_operating_overrides_fail_explicitly() -> None:
 
 
 def test_low_bus_waveform_rejects_illegal_saturated_sequence_with_diagnostic() -> None:
-    # At 500 V the saturated feedback sequence jumps P->N at 12.9 ms.
-    # Step 4 must reject that path while retaining the original unclipped command.
-    with pytest.raises(TTypeWaveformError, match="illegal transition P->N") as error:
+    # Reject the unreachable command before exposing invalid paths; retain the
+    # original modulation and actual solver diagnostics.
+    with pytest.raises(TTypeWaveformError, match="fundamental modulation command") as error:
         generate_waveforms(_candidate(vdc_nom="500"))
     diagnostics = error.value.diagnostics
     assert diagnostics["modulation_index_command"] > 1.0
     assert diagnostics["modulation_valid"] is False
     assert diagnostics["status"] == "invalid"
-    assert "0.0129 s" in diagnostics["failure_reason"]
+    assert diagnostics["actual_command_saturated"] is True
