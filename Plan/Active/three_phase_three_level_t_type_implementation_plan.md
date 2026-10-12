@@ -1,8 +1,8 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Active；步骤 0、步骤 1 已完成并推送；步骤 2–8 待执行。
+- 状态：Active；步骤 0、步骤 1、步骤 2 已完成并推送；步骤 3–8 待执行。
 - 创建日期：2026-10-12。
-- 当前授权：步骤 1 已获授权并完成；后续按用户确认逐步执行，当前不自动开始步骤 2。
+- 当前授权：步骤 2 已获授权并完成；后续按用户确认逐步执行，当前不自动开始步骤 3。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
 - 拓扑 ID：拟定 `three_phase_three_level_t_type_inverter`；当前尚未注册。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
@@ -173,7 +173,9 @@
 - 继承 NPC 数学基础时使用独立方程核对，不能继承 NPC 半母线器件耐压到主开关。按目标纹波计算 L 后，后续 waveform 单独报告实际纹波。
 - 拟新增 `tests/test_t_type_step2_synthesis.py`：B1/B3 代数、量纲、PF/相位、B5/B8 输入和不可达边界；验证不输出器件/效率假结果。
 - 验证：step1+step2；若修改共享合成函数，增加其实际旧消费者。完成：基本 candidate 可用于电流求解，参数与目标/估计语义清楚；Git 门槛满足。
-- 实际执行/Git 回执：待执行。
+- 实际执行：2026-10-12。新增 `synthesizer.py`，实现独立 T-type 三相电压/电流、PF 超前/滞后相量、电感初值、调制命令、分裂母线电容代理和逐位置电流估计；`PLUGIN.synthesize` 已接通，未接下游波形/应力/选型。
+- 测试：步骤 1 与步骤 2 累计专项测试通过；具体命令、环境和边界见第 9.8 节。低母线不可达点保留显式 `feasible=False` 与原因，不通过裁剪伪造可行。
+- Git 回执：步骤 2 源码/测试及本计划、ChangeLog 待本次独立提交推送并核实；步骤 3 不自动开始。
 
 ### 步骤 3：复用输出侧求解，生成三相波形
 
@@ -476,4 +478,14 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 
 验证命令为 `python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s1-final tests/test_t_type_step1_contract.py`，解释器 Python 3.12.10、pytest 9.1.1，结果 63 passed、0 failed/errors/skipped/xfail，8.13 s；既有 `Unknown config option: cache_dir` warning 单列。专项测试实际检查默认/部分输入、非法和非有限输入、物理端子映射、门极互锁、未注册状态、hook fail-closed，以及新进程导入无计算/写入。未验证 GUI、完整 T-type 计算链、真实器件/选型、旧拓扑回归或步骤 2–8；`outputs/` 和 pytest 临时目录保留为本地工件，未纳入提交。
 
-实现提交 `b32220dd4999fafb0203e55b06fa8aaa69c3366a` 已完成并推送；本计划/ChangeLog 的状态回执随后以独立提交同步。步骤 2 仍待用户确认，计划保持 Active。
+实现提交 `b32220dd4999fafb0203e55b06fa8aaa69c3366a` 已完成并推送；本计划/ChangeLog 的状态回执随后以独立提交同步。步骤 2 当时仍待用户确认，计划保持 Active。
+
+### 9.8 步骤 2 实际执行与 Git 回执（2026-10-12）
+
+步骤 2 按计划作为拓扑局部合成实现执行，没有修改共享合成函数、registry、GUI、共享模型、NPC 行为、库记录或用户结果。新增 `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_t_type_inverter/synthesizer.py`，并将插件 `synthesize` hook 接通；新增 `tests/test_t_type_step2_synthesis.py`，同时更新步骤 1 插件断言以反映步骤 2 已实现。
+
+合成输出包括三相相电压/基波电流、PF 相位有符号相量、独立 `L=Vdc/(8*fsw*delta_I_target_pp)` 初值、`m_command`（含电感压降相量）、目标纹波、`Ceq_proxy`/单银行 `Cbank_proxy`、CCM 启发式和 12 个物理位置的初始峰值电流估计。`candidate.inductance_h` 为每相 L，`candidate.capacitance_f` 为一个分裂母线银行的初始代理；设计估计、公式 ID、单位/模型范围和 target/achieved 语义均保存于 `candidate.metadata`。不产生器件、损耗、效率、热、磁件或几何选择结果。调制命令超限保留 candidate 数值但设置 `feasible=False` 和明确失败原因。
+
+验证使用当前工作区源码，Python 3.12.10 / pytest 9.1.1：`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s2-final3 tests/test_t_type_step1_contract.py tests/test_t_type_step2_synthesis.py`，78 passed，failed/errors/skipped/xfail 均为 0，8.24 s；既有 `Unknown config option: cache_dir` warning 单列。独立参考覆盖 B1 标量、PF=0.8 超前/滞后、500 V 不可达、输入边界、candidate 映射、无硬件结果和元数据隔离。未验证波形、实际 PWM 纹波、GUI、完整设计链、真实选型、旧拓扑回归或步骤 3–8。
+
+实现提交和远端核实待本次收尾完成；步骤 3 仍待用户确认，计划保持 Active。

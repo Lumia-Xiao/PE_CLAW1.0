@@ -2015,3 +2015,10 @@ listed here.
 - 交付行为：固定 `three_phase_three_level_t_type_inverter` 独立 ID、三相/12 位置、P/O/N 状态、端子与反并联方向及互锁；实现步骤 0 冻结的默认输入、SI 规格转换、范围/有限性/`fsw/fline` 整数比校验。非零死区、未知模型范围和非 PD-SPWM 请求明确拒绝；插件保持未注册，尚未实现的计算 hooks 明确抛出 `NotImplementedError`，不伪造成功结果。
 - 实际验证：Python 3.12.10、pytest 9.1.1；`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s1-final tests/test_t_type_step1_contract.py`，63 passed，failed/errors/skipped/xfail 均为 0，8.13 s。专项覆盖输入、物理映射、互锁、未注册和导入隔离；既有 `cache_dir` 配置 warning 单列。未运行 GUI、完整设计链、真实选型、旧拓扑回归或步骤 2–8。
 - Git 与维护：实现提交 `b32220dd4999fafb0203e55b06fa8aaa69c3366a` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，并由 `git ls-remote` 核实同 SHA。保留 `outputs/`、pytest 临时目录及仓库原有无关 tracked 删除/untracked 文件，均未提交；步骤 2 不自动开始。计划实际回执同步于 `Plan/Active/three_phase_three_level_t_type_implementation_plan.md`。
+
+## 2026-10-12 - T-type 步骤 2：完成基础参数合成
+
+- 授权与分类：按用户要求执行实施计划步骤 2，属于 T-type 拓扑局部合成新增。新增 `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_t_type_inverter/synthesizer.py`、`tests/test_t_type_step2_synthesis.py`，并更新步骤 1 插件断言；未修改共享合成、registry、GUI、公共模型、NPC 行为、库记录或用户结果。
+- 交付行为：插件 `synthesize` 已接通。实现三相电压/电流、PF 超前/滞后有符号相量、独立三电平 `L=Vdc/(8*fsw*delta_I_target_pp)` 初值、含电感压降的 `m_command`、目标纹波、Ceq/Cbank 初始代理、CCM 启发式及 12 个物理位置的初始峰值电流估计。candidate 保留公式 ID、单位、模型范围和 target/achieved 语义；不生成器件、损耗、效率、热、磁件或几何结果。调制超限显式标记不可行并保留失败原因。
+- 实际验证：Python 3.12.10、pytest 9.1.1；`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s2-final3 tests/test_t_type_step1_contract.py tests/test_t_type_step2_synthesis.py`，78 passed，failed/errors/skipped/xfail 均为 0，8.24 s。覆盖 B1/B3 独立标量、超前/滞后 PF、低母线不可达、输入边界、candidate 映射、无硬件结果和元数据隔离；既有 `cache_dir` 配置 warning 单列。未运行波形、GUI、完整链、真实选型、旧拓扑回归或步骤 3–8。
+- Git 与维护：步骤 2 实现/测试及计划、日志的提交和推送核实以本次 Git 回执为准；步骤 3 不自动开始。保留 `outputs/`、pytest 临时目录及原有无关工作区改动，未纳入提交。

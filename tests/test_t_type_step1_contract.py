@@ -152,7 +152,7 @@ def test_t_type_physical_connections_and_groups_follow_common_emitter_circuit() 
     assert contract.to_dict()["independent_clamp_diode_count"] == 0
 
 
-def test_t_type_plugin_is_isolated_from_registry_and_unimplemented_hooks_fail_closed() -> None:
+def test_t_type_plugin_is_isolated_from_registry_and_unimplemented_later_hooks_fail_closed() -> None:
     registry = build_default_registry()
     assert TOPOLOGY_ID not in {definition.topology_id for definition in registry.list_definitions()}
     assert PLUGIN.implemented is False
@@ -160,8 +160,9 @@ def test_t_type_plugin_is_isolated_from_registry_and_unimplemented_hooks_fail_cl
     assert PLUGIN.legacy_key not in {definition.legacy_key for definition in registry.list_definitions()}
     assert PLUGIN.build_spec(build_default_inputs()).topology_id == TOPOLOGY_ID
 
-    with pytest.raises(NotImplementedError, match="step 2"):
-        PLUGIN.synthesize(PLUGIN.build_spec(build_default_inputs()))
+    candidate = PLUGIN.synthesize(PLUGIN.build_spec(build_default_inputs()))
+    assert candidate.topology_id == TOPOLOGY_ID
+    assert candidate.inductance_h > 0.0
 
     candidate = object()
     with pytest.raises(NotImplementedError, match="step 3"):

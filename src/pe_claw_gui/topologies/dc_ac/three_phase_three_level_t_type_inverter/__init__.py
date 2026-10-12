@@ -19,6 +19,7 @@ from ...base.interface import TopologyPlugin
 from ...base.result import TopologyResult
 from ...base.spec import TopologySpec
 from .input_schema import build_default_inputs, build_spec
+from .synthesizer import calculate_three_phase_three_level_t_type_inverter, synthesize
 from .topology_contract import DISPLAY_NAME, LEGACY_KEY, TOPOLOGY_ID
 
 
@@ -35,7 +36,7 @@ class ThreePhaseThreeLevelTTypeInverterPlugin(TopologyPlugin):
         return build_spec(raw_input)
 
     def synthesize(self, spec: TopologySpec) -> TopologyCandidate:
-        raise NotImplementedError("T-type synthesis is planned for implementation step 2.")
+        return synthesize(spec)
 
     def generate_waveforms(
         self,
@@ -81,4 +82,6 @@ __all__ = [
     "ThreePhaseThreeLevelTTypeInverterPlugin",
     "build_default_inputs",
     "build_spec",
+    "calculate_three_phase_three_level_t_type_inverter",
+    "synthesize",
 ]
