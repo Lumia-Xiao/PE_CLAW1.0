@@ -1,6 +1,6 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Active；步骤 0–4 已推送，步骤 3 缺口已补齐（9.11）；步骤 5 实现及验证通过，等待本步 Git 回执；步骤 6–8 待执行。
+- 状态：Active；步骤 0–5 已验证并推送，步骤 3 缺口已补齐（9.11）；步骤 6–8 待执行。
 - 创建日期：2026-10-12。
 - 当前授权：补齐步骤 3，再实施步骤 5；本轮不自动开始步骤 6。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
@@ -550,3 +550,5 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 最终补充：NPC 空求解门极原四空数组兼容检查暴露包装边界并修复；此最小共享兼容修复与 step5 同提交。`python -B -m pytest -o addopts= -p no:cacheprovider -q tests/test_t_type_step5_pipeline.py::test_npc_empty_solver_retains_four_empty_gates tests/test_t_type_step5_pipeline.py::test_all_supported_operating_cases_have_complete_stress --basetemp .pytest-tmp-tt-r1-s5-final-boundaries --junitxml .pytest-tmp-tt-r1-s5-final-boundaries-junit.xml`：6 passed，29.29 s，0 failures/errors/skips，既有警告 1，覆盖零/0.1/满载、超前/滞后及 800 V/PF0.8 刷新。没有其他行为变更；累计与补充共覆盖 191 项。
 
 B1 当前数值：A 相完整周期 RMS 14.448204 A，最大实际参考减除 PWM 纹波 3.0507304 A pp；公共 switch 峰值 21.935572606 A/RMS 9.092248364 A/平均 4.761925899 A，diode 峰值 20.922636301 A/RMS 4.659004880 A/平均 1.735621294 A；各指标是不同位置可能取得的包络，不能解释为单个真实器件。静态主/中点 700/350 V。不宣称额定选型、损耗、效率或 GUI 验收；注册/能力/GUI/应用刷新留步骤 6–8，全套 pytest 未执行且当前影响已限定 NPC/T-type。步骤 5 Git 提交/推送 SHA 随后追加。
+
+步骤 5 最终 Git 回执（2026-10-12）：实现提交 `9e701f8d1cf00a2e4184c9b8254459897b7d64eb` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实同 SHA。步骤 3 补齐与步骤 5 已完成本轮授权门槛；此回执为文档更新，复用上述电气验证。步骤 6–8、GUI/注册/完整工程链保持待执行。

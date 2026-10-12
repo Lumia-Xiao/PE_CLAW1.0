@@ -2057,3 +2057,5 @@ listed here.
 - 分类/边界：T-type 局部基础链，加 NPC 私有输出兼容修复；公共模型/registry/GUI/库和其他拓扑不修改。计划 9.11 保留所有权、SI/统计、当前工况、失效与后续范围。死区/能量继续排除。
 - 验证：累计脚本 s5-complete，185 passed/155.60 s；最终补充 operating-case/empty-NPC 两节点，6 passed/29.29 s；零失败/errors/skips，既有 cache_dir 警告各 1。独立电路 Simpson 与两倍积分加密、真实 pipeline、失败/旧数据拒绝、顺序隔离通过；六 NPC 全 payload SHA 精确不变。初跑 manifest 测试层级问题及修复保留证据。git diff --check 及差异审查通过；GUI/full suite 留后续门槛。
 - Git：步骤 3 dd81794cca50aa83f2f1e160207cf9530e29e842 已推送确认；步骤 5 沿用 codex/llc-waveform-operating-point-plan，提交/推送 SHA 随后追加。未触碰无关删除/用户结果/历史证据，没有生成文件暂存，无备份操作。
+
+步骤 5 最终 Git 回执（2026-10-12）：实现提交 `9e701f8d1cf00a2e4184c9b8254459897b7d64eb` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实同 SHA。步骤 3 补齐与步骤 5 已完成本轮授权门槛；此回执为文档更新，复用上述电气验证。步骤 6–8、GUI/注册/完整工程链保持待执行。
