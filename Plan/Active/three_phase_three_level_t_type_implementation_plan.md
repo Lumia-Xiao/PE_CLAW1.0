@@ -186,7 +186,7 @@
 - 验证：step1–3 + 第 7 节 NPC 求解回归组；如调用图影响更多拓扑，补对应消费者。完成：电压/电流可用、公用提取前后 NPC 可解释且无意外差异，Git 门槛满足。
 - 实际执行：2026-10-12。新增 `waveform.py`，实现一线路周期、统一采样时间轴、三相 P/O/N 电平、事件分段理想 L 电流积分、周期稳态求解、共模消除、线电压和 T-type 四门极载荷；`PLUGIN.generate_waveforms` 已接通。运行点可读取实际 `vin_v`、load/PF 幅值并保留 candidate 电感；频率和交流电压不支持覆盖时明确报错。动态分裂电容和中点电压本步骤保持未建模。
 - 测试：步骤 1–3 专项测试和 NPC/注册回归均通过；具体命令、环境和边界见第 9.9 节。低母线命令保留 boundary/unreachable 诊断，不用裁剪隐藏失败。
-- Git 回执：步骤 3 源码/测试及本计划、ChangeLog 待本次独立提交推送并核实；步骤 4 不自动开始。
+- Git 回执：步骤 3 实现提交 `6cedc35f6d56c34b437222fe9b737b275880062a` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实远端同 SHA；步骤 4 不自动开始。
 
 ### 步骤 4：独立门极、导通和理想换流
 
@@ -500,4 +500,4 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 
 验证命令一：`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s3-a tests/test_t_type_step1_contract.py tests/test_t_type_step2_synthesis.py tests/test_t_type_step3_waveforms.py`，Python 3.12.10 / pytest 9.1.1，85 passed、0 failed/errors/skipped/xfail，10.68 s。验证命令二：`python -B -m pytest -q --basetemp .pytest-tmp-tt-r1-s3-npc tests/test_npc_step2_current_reference.py tests/test_npc_step3_average_voltage_target.py tests/test_npc_step4_level_sequence.py tests/test_npc_step4_periodic_warm_start.py tests/test_npc_step5_event_segmented_current.py tests/test_npc_switching_loss_events.py tests/test_phase4_topology_contracts.py::test_phase4_registry_has_unique_ids_and_capabilities tests/test_phase4_topology_contracts.py::test_phase4_router_fails_closed_for_unknown_topology`，28 passed、0 failed/errors/skipped/xfail，10.43 s。既有 `cache_dir` warning 单列；未运行 GUI、完整设计链、真实选型或步骤 4–8。
 
-实现提交和远端核实待本次收尾完成；步骤 4 仍待用户确认，计划保持 Active。
+实现提交 `6cedc35f6d56c34b437222fe9b737b275880062a` 已完成并推送；本计划/ChangeLog 的状态回执随后以独立提交同步。步骤 4 仍待用户确认，计划保持 Active。

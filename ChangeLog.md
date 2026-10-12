@@ -2029,4 +2029,4 @@ listed here.
 - 交付行为：生成完整线路周期的三相 P/O/N 状态、统一时间轴、极点/线电压、参考与事件分段实际电流、周期稳态诊断和 T-type 四门极载荷。复用 NPC 输出侧理想 L 事件积分核心作为局部依赖，在 T-type 层重建 QP/QN/QA/QO 门极，未引入 NPC clamp 角色。固定 candidate 支持实际运行母线和 load/PF 刷新；频率/交流电压覆盖显式拒绝。低母线保留 boundary/unreachable 诊断。
 - 范围：三线 KCL、周期残差、PF 超前/滞后和事件有限性已验证；动态分裂电容/中点电压、器件应力、死区/寄生、闭环硬件行为和 GUI/完整链仍未实现。
 - 实际验证：Python 3.12.10、pytest 9.1.1。T-type 累计命令 85 passed（10.68 s）；NPC/注册回归命令 28 passed（10.43 s）；两组均 0 failed/errors/skipped/xfail，既有 `cache_dir` warning 单列。未运行 GUI、完整设计链、真实选型或步骤 4–8。
-- Git 与维护：步骤 3 实现/测试及计划、日志的提交和推送核实以本次 Git 回执为准；步骤 4 不自动开始。保留 `outputs/`、pytest 临时目录及原有无关工作区改动，未纳入提交。
+- Git 与维护：步骤 3 实现提交 `6cedc35f6d56c34b437222fe9b737b275880062a` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，并由 `git ls-remote` 核实同 SHA；步骤 4 不自动开始。保留 `outputs/`、pytest 临时目录及原有无关工作区改动，未纳入提交。
