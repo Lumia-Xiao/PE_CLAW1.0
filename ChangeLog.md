@@ -1993,3 +1993,13 @@ listed here.
 - 实际文档检查：22 个本地链接有效；0–8 共 9 个实施步骤及实际/Git 回执均待执行；9 个拟新增 T-type 测试文件尚不存在且明确标注；9 个既有回归文件及 2 个精确注册节点静态核对，PF=0.8 标量参考复核；首轮模型/消费者/暂缓范围/命令语义交叉审查。首次数量检查误把拟新增测试文件期望记为 10，实际清单为 9，修正检查器计数后通过，计划文件无需变更。日志追加前匹配 HEAD；append-only、定向/暂存 diff 和 Git 范围检查随提交执行。
 - 未执行：没有 pytest、collect-only、设计链、GUI、选型、旧拓扑回归或任何步骤实施；文档检查不计为 T-type 通过。未实施项保持 Active/待执行，不提前宣称拓扑已注册或跑通。
 - Git 与维护：基准 `cf04284d4e8c966f57b537f7833c62f83b10c9e4`；当前分支 `codex/llc-waveform-operating-point-plan`，文档推送至已配置上游 `pe-claw-1.1` 同名分支，仅提交计划和日志，实际 SHA 见 Git 回执。保留既有 95 项 tracked 删除、2 项无关 untracked 和用户 outputs；不备份、不清理。
+
+## 2026-10-12 - T-type 步骤 0：冻结首轮接口、共享求解边界和 NPC 基准
+
+- 授权与分类：仅执行用户指定步骤 0，文档变更；修改 `Plan/Active/three_phase_three_level_t_type_implementation_plan.md`、`docs/three_phase_three_level_t_type_contract.md`（v0.2、第 14 节）并追加本日志。T-type 仍未实现/注册，步骤 1–8 待执行；生产代码、测试、公共模型/字段、NPC 行为、库和历史证据不变。
+- 冻结成果：明确 9 个首轮设计键及单位/默认/合法性、正 PF 幅值和独立 leading/lagging、运行点母线/load/PF 与固定 candidate 分离、拒绝未支持网压/频率覆盖；规定 candidate/WaveformSet/StressResult/DesignReport 兼容映射和 T-type 三相/12 位置本地载荷。rectifier 仅为反并联二极管，不冒充中点开关；无动态电容波形用明确空项，未接硬件/损耗/效率为 None。
+- 物理与复用：独立推导单极点 L 初值 `Vdc/(8*fsw*ΔI_target,pp)`，与 NPC 历史系数 16 区分，不承诺三相实际纹波达标；选择明确假设的 Cbank 标量代理。冻结 `three_level_common.py` 拟路径、实际函数依赖、NPC 私有接口包装及 gate-neutral 采样拆分；NPC 候选母线/频率来源和负 PF 行为保留，T-type 独立表达。后续命令、数值容差、能力入口和失败失效所有权列明。
+- 实际验证：生产基准 `7f96bbf4c2e41ec1fb59bcb8c5845badf4e35ef2`，当前 workspace/src/test 来源核实，Python 3.12.10 / pytest 9.1.1 / matplotlib 3.11.0 / Tk 8.6.15；注册 20/DC-AC 3。6 个 NPC 求解/事件文件 26 项 + 2 注册节点，共 28 passed、exit 0，无 failed/errors/skipped/xfail；pytest 21.44 s / 墙钟 23.15 s，既有 cache_dir 配置 warning 1 条单列，未修配置。
+- 基准证据：`.pytest-tmp-tt-r1-s0/` 保留来源/全生产 Python SHA、精确 argv/日志/JUnit/manifest、完整 spec/candidate/waveform/stress/result 快照 6 份（51,524,494 字节）。额定重复 hash 精确一致；半载 PF0.8、负 PF 兼容、实际设计 10 kHz 均收敛。运行点频率 10 kHz 请求被 NPC 忽略，诊断快照实际仍 20 kHz，另生成设计 10 kHz 快照证明实际频率，不替换/删除原诊断。全部本地未提交，不覆盖黄金/迁移 evidence 或 outputs。
+- 检查与限制：独立 B1/B3 标量、语义/引用、既有函数/测试节点、日志 append-only、源码不变、定向/暂存 diff 和范围随收尾核对。本步不是 T-type 实现、GUI、双顺序隔离、完整 NPC 硬件链或全量旧拓扑验收；真实器件/损耗/效率及用户五组暂缓项仍保留后续。
+- Git 与维护：分支 `codex/llc-waveform-operating-point-plan`，仅三文档提交推送至 `pe-claw-1.1` 同名分支，实际 SHA 在本步计划 Git 回执同步；验证完毕但提交推送核实前不标完成。保留原 95 tracked 删除、2 无关 untracked、用户结果和本地证据；不备份、不清理、不自动开始步骤 1。

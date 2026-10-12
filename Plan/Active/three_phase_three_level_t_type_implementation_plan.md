@@ -1,8 +1,8 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Active / 待实施；步骤 0–8 全部待执行。
+- 状态：Active；步骤 0 已核对并验证，待本步提交/推送回执；步骤 1–8 待执行。
 - 创建日期：2026-10-12。
-- 本轮授权：撰写本计划和追加 ChangeLog；不执行以下实施步骤，不修改生产代码、测试或拓扑契约。
+- 当前授权：执行步骤 0，更新本计划、契约首轮映射及 ChangeLog，运行必要 NPC 基础测试并留基准；不实施步骤 1–8，不修改生产代码、测试或库。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
 - 拓扑 ID：拟定 `three_phase_three_level_t_type_inverter`；当前尚未注册。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
@@ -46,7 +46,7 @@
 | 电流与功率 | 正向平均有功输出；支持正负瞬时电流；PF 幅值与超前/滞后语义分开 |
 | 导通路径 | 用契约的 IGBT 加反并联二极管理想方向表识别承载路径；这只是电路参考，不选择 IGBT 型号、不评估第三象限或器件损耗 |
 | 换流记录 | 位置、时刻、相/局部电流方向、前后状态及理想电平阶跃；只标理想换流类别，不给 Eon/Eoff/ZVS 结论 |
-| 电容 | 仅允许有依据且标注算法的标量初始估计；它不是已选银行或动态纹波结果；也允许首轮不交付该估计并按既有缺项契约表达 |
+| 电容 | 步骤 0 选定交付标量 Cbank_proxy，沿用明确标注假设的初始估算；不是已选银行、真实最小要求或动态纹波结果 |
 | 温度/效率 | 可以保留公共输入兼容性，但不计算温度、器件能量、系统损耗或效率；不能以理想无损假设显示 100% 系统效率 |
 
 实现前步骤 0 固定首轮最小输入键、兼容字段和报告映射。原则：以 NPC 的 `vdc_nom`、`vac_ll_rms`、`f_line_hz`、`fsw_hz`、`pout_w`、`power_factor`、纹波目标等现有表达为基础；为超前/滞后增加拓扑局部的明确选项，不更改旧 PF 符号契约。缺失相位选项的默认采用滞后，在 PF=1 时相位为 0。运行点接口若不能携带该选项，先将相位类型固定于该次设计，通过运行点 PF 幅值刷新；不因此修改公共 `OperatingPoint` 或宣称支持 GUI 中未提供的独立相位切换。
@@ -67,13 +67,13 @@
 
 ## 3. 分类、文件影响和复用原则
 
-当前写计划属于文档变更。后续新增 T-type 涉及注册、能力、共享求解与 GUI，因此按共享集成处理。下表是预定范围，步骤 0 按消费者核定；新路径均标为拟新增，不能当作已经存在。
+当前步骤 0 属于文档变更。后续新增 T-type 涉及注册、能力、共享求解与 GUI，因此按共享集成处理。下表是预定范围，步骤 0 已按消费者核定；新路径均标为拟新增，不能当作已经存在。
 
 | 路径/模块 | 预定工作 | 消费者与验证范围 |
 |---|---|---|
 | `src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_t_type_inverter/`（拟新增） | `__init__.py`、`topology_contract.py`、`input_schema.py`、`synthesizer.py`、`waveform.py`、`stress.py`、`evaluator.py`；必要的局部数据/读回模块 | T-type 基础链全部测试 |
 | [NPC waveform](../../src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_npc_inverter/waveform.py) | 界定并最小提取输出侧公用计算；保留原接口包装及结果 | NPC 电流参考、占空比、分段积分、周期求解及事件回归 |
-| 公用三电平计算模块（路径在步骤 0 确定） | 电平序列、三线共模、电感事件积分、周期求解；不混入 NPC/T-type 器件角色 | 仅有实际调用的拓扑；抽取前后 NPC 可比结果须核对 |
+| `src/pe_claw_gui/topologies/dc_ac/three_level_common.py`（拟新增，步骤 0 冻结） | 电平序列、三线共模、电感事件积分、周期求解；不混入 NPC/T-type 器件角色 | 仅 NPC/T-type；抽取前后 NPC 可比结果须核对 |
 | [注册表](../../src/pe_claw_gui/topologies/base/registry.py) / [能力声明](../../src/pe_claw_gui/topologies/base/capabilities.py) | 增加 T-type 独立 ID、插件/表单入口、首轮边界说明 | 注册/插件/输入路由测试；旧 20 个 ID 保留，新总数 21 |
 | [共享能力 helper](../../src/pe_claw_gui/topology_capabilities.py) | 优先利用 `FIRST_PASS_TOPOLOGY_ONLY_IDS` 表达 T-type 首轮状态，不沿用“所有已实现拓扑都可选器件”的默认推断 | full pipeline、refresh 和按钮支持范围；旧 ID 行为保持 |
 | [拓扑流水线](../../src/pe_claw_gui/pipeline/run_topology_pipeline.py) / [完整流水线](../../src/pe_claw_gui/pipeline/run_full_pipeline.py) / [刷新](../../src/pe_claw_gui/pipeline/run_operating_point_refresh.py) | 优先复用现有接口和 first-pass 返回；必要时仅补能力驱动的入口保护 | 基础贯通、固定 candidate、未接下游不被调用 |
@@ -91,7 +91,7 @@
 
 ## 4. 关键数据语义、所有权和失效条件
 
-具体连接/公式引用 T-type 契约第 2–5、8–9 节；本节仅限定首轮数据生命周期。新键名、数据类、兼容字段赋值在步骤 0 固定并补到契约首轮映射中，避免现在凭空承诺已有字段。
+具体连接/公式引用 T-type 契约第 2–5、8–9 节；本节限定首轮数据生命周期。步骤 0 已将输入键、局部载荷、兼容字段与缺项策略冻结于契约第 14 节；它们是未来实现约定，不是已有代码字段。
 
 | 数据 | 对象/单位/统计 | 基础生产者 → 消费者 | 刷新/缺项口径 |
 |---|---|---|---|
@@ -128,15 +128,15 @@
 
 公式参考必须独立于生产 helper：基础三相功率方程、单段电感 `di=(v_phase-v_grid)dt/L` 及正弦电网解析积分、三线 KCL、分段时间加权电流指标。相同电平/母线/L/工况的 NPC/T-type 输出波形一致性仅是复用回归，不代替器件路径正确性。
 
-首轮建议数值门槛在步骤 0 经量纲审查固定：纯代数参考 `rtol=1e-9`、V/A/H 分别 `atol=1e-8/1e-8/1e-12`；单段解析电流 `atol=1e-7 A, rtol=1e-8`；三线瞬时电流和 `atol=1e-7 A`；周期端点电流差 `atol=1e-4 A, rtol=1e-5`。完整周期数值指标需同时记录时间步/事件积分精度及收敛证据；不能用宽容差掩盖饱和或周期求解失败。位置、状态、ID 精确比较，GUI 按实际显示位数核对。
+首轮数值门槛已在步骤 0 固定，见第 9.3 节。完整周期指标必须记录时间步/事件积分精度及收敛证据；不能用宽容差掩盖饱和或周期失败。位置、状态、ID 精确比较，GUI 按实际显示位数核对。
 
 ## 6. 分步骤实施与完成门槛
 
-以下步骤当前均待执行。每一步在其必要验证通过后更新 ChangeLog、检查 diff/暂存范围、独立 commit/push 并核实远端；随后才能标记完成。记录源码版本、解释器/包/测试来源、命令/退出码/耗时、证据与未验证范围。若完成状态回执另提交，记录两个 SHA；不得提前填写“通过”。
+步骤 0 当前验证完毕、等待 Git 收尾，其余步骤待执行。每一步在其必要验证通过后更新 ChangeLog、检查 diff/暂存范围、独立 commit/push 并核实远端；随后才能标记完成。记录源码版本、解释器/包/测试来源、命令/退出码/耗时、证据与未验证范围。若完成状态回执另提交，记录两个 SHA；不得提前填写“通过”。
 
 | 步骤 | 主要交付 | 依赖 | 当前状态 |
 |---|---|---|---|
-| 0 | 冻结首轮输入/输出映射、共用求解范围和验证基准 | 本计划 | 待执行 |
+| 0 | 冻结首轮输入/输出映射、共用求解范围和验证基准 | 本计划 | 验证通过，待提交/推送 |
 | 1 | 独立 T-type 契约、输入及插件骨架 | 0 | 待执行 |
 | 2 | 基础参数合成 | 1 | 待执行 |
 | 3 | 三电平输出与三相电感电流 | 2 | 待执行 |
@@ -154,7 +154,8 @@
 - 明确 L 合成公式的三电平调制依据与 target/achieved 区别；电容初值若交付则写清仅估计、不接动态电容；记录首轮绕过下游选择以及按钮保护位置。
 - 文件：本计划、T-type 契约的首轮范围/字段映射（仅必要文档）；不提前修改生产代码。验证：来源预检；按将抽取的函数选择已有 NPC 基础测试执行并留基准；审查引用和 diff。
 - 完成：输入/映射、代表案例、容差、具体后续命令、共享消费者和未支持阶段均可判定；当前测试实际回执与提交/推送齐全。若基准失败先记录根因，不靠修改黄金值开工。
-- 实际执行/Git 回执：待执行。
+- 实际执行：2026-10-12，以 `7f96bbf` 为生产基准，来源/Tk 预检通过，NPC 六文件 26 项及注册两节点 2 项共 28 passed；完整插件快照 6 份保留，额定重复精确一致。契约第 14 节及本计划第 9 节为冻结成果和实际回执。
+- Git 回执：待本步文档提交、推送及远端核实后同步；步骤 1 不自动开始。
 
 ### 步骤 1：独立拓扑身份、输入与插件骨架
 
@@ -229,7 +230,7 @@
 
 ## 7. 验证命令、测试清单和执行环境
 
-本节命令是未来实施时的执行方案，本次写计划不执行电气测试。每步先核实当前解释器/包/测试来源；系统可能安装了另一份 PE-Claw，必须显式使用当前 `src`。例如在仓库根运行：
+本节命令用于后续实施；步骤 0 已执行的精确 argv 及结果见第 9.4 节。每步先核实当前解释器/包/测试来源；系统可能安装了另一份 PE-Claw，必须显式使用当前 `src`。例如在仓库根运行：
 
 ```powershell
 $env:PYTHONPATH = (Join-Path (Get-Location).Path 'src')
@@ -253,7 +254,7 @@ assert Path(pe_claw_gui.__file__).resolve().is_relative_to(root / 'src')
 | NPC 事件 | `tests/test_npc_switching_loss_events.py` | 输出事件或其时间轴受影响时及终验 |
 | 注册 | `tests/test_phase4_topology_contracts.py::test_phase4_registry_has_unique_ids_and_capabilities`、`::test_phase4_router_fails_closed_for_unknown_topology` | 步骤 6 和终验；需要外部历史请求文件的其他节点另审依赖，不隐含已通过 |
 | DC-AC 入口 | `tests/test_dc_ac_registry_category.py`、`tests/test_dc_ac_three_phase_three_level_npc_contract.py` | 注册/资源/表单/显示受影响时及终验 |
-| 共享流水线/控制器 | 步骤 0 按实际改动挑选现有节点并补本表 | 发生变更时；不得用全 test 目录收集冒充执行 |
+| 共享流水线/控制器 | `tests/test_dc_ac_operating_refresh_gui_chain.py`（3 个拓扑参数化显示、输入变化和固定硬件刷新） | 步骤 6/7/8 的受影响 DC-AC 消费者；新增 T-type 测试另检查旧 20 项 first-pass 能力不变；本步骤 0 未执行此文件 |
 
 注册节点命令示例（执行时使用全新临时路径）：
 
@@ -276,7 +277,7 @@ if (-not (Test-Path -LiteralPath 'tests/test_t_type_step1_contract.py')) { throw
 python -B -m pytest -q --basetemp $tTypeValidationTemp tests/test_t_type_step1_contract.py
 ```
 
-后续逐步替换/追加本计划中明确的文件，不用宽泛 glob 覆盖遗漏。步骤 0 把各步最终 argv 和消费者选择补齐；运行前检查节点存在，运行后记录通过/失败/errors/skipped/xfail/耗时，必要测试 skip/环境失败不算通过。
+后续逐步替换/追加本计划中明确的文件，不用宽泛 glob 覆盖遗漏。各步冻结命令及消费者选择见第 9.5 节；运行前检查节点存在，运行后记录通过/失败/errors/skipped/xfail/耗时，必要测试 skip/环境失败不算通过。
 
 ### 7.3 四类证据与成本
 
@@ -289,7 +290,7 @@ python -B -m pytest -q --basetemp $tTypeValidationTemp tests/test_t_type_step1_c
 
 所有工件写入本轮独占 run root/临时目录，测试将 output_root 显式传递；GUI 默认输出也需测试局部隔离。不得清理用户 outputs 或重用会被 pytest basetemp 删除的已有目录。Windows 输出根保持简短，避免嵌套长路径；记录实际工件路径但不提交。
 
-## 8. 当前文档检查与后续完成记录
+## 8. 计划创建的文档检查与后续完成记录（创建历史）
 
 本次实际范围仅新建本计划并追加 ChangeLog。文档门槛为：状态/授权一致，0–8 步完整且均待执行；引用路径和已有测试节点有效；待新增文件/命令与现有文件区分；用户暂缓五组不成为首轮门槛；电气语义与首轮理想模型无矛盾；ChangeLog append-only；`git -c core.longpaths=true diff --check`、定向/暂存差异及范围检查。
 
@@ -307,3 +308,162 @@ python -B -m pytest -q --basetemp $tTypeValidationTemp tests/test_t_type_step1_c
 | 实物选型、损耗效率/热/几何、完整导出、工程包络、硬件验收 | 用户已暂缓；不属于首轮完成声明 |
 
 本轮计划写作回执：计划结构、引用/既有节点、状态/范围、日志追加及 diff/暂存检查在提交前执行；实际提交和推送状态以 Git 回执为准。无生产行为变更，不执行备份或清理。
+
+## 9. 步骤 0 冻结成果及实际验证（2026-10-12）
+
+### 9.1 分类、输入输出和复用检查结论
+
+本次是文档变更：仅本计划、[T-type 契约](../../docs/three_phase_three_level_t_type_contract.md) 第 14 节及 ChangeLog。生产 Python、测试、公共模型/枚举、选择策略、库及历史黄金/迁移证据不变。后续共享集成的实际消费者为 NPC、T-type、registry/capability、DC-AC 视图、三个控制器及 full/refresh 的 first-pass 能力入口。其余拓扑没有新的电气计算调用；新增能力只标 T-type，旧 20 项支持结果必须精确保持。
+
+已核定完整路径：独立插件 → build_spec → synthesize → generate_waveforms → extract_stress/evaluate/build_report → 注册/表单 → RunDesignController/full pipeline → WaveformController/refresh → 当前 state report → Summary/Waveforms/Stress。GUI `MainWindow._on_generate_waveforms` 先用 `get_raw_input()` 检查设计变化，再读 `get_operating_point()`；因此运行点母线必须用独立控件，否则改母线会重新设计而不是固定 L 刷新。
+
+冻结输入/默认值、规格单位转换、candidate 全部必填字段、WaveformSet 兼容字段、StressResult 两类及 12 位置载荷以契约第 14.1–14.3 节为准。选定：正 PF 幅值加 `power_factor_phase`，运行点相位类型固定于设计；实际母线从 OperatingPoint.vin_v 读取；电容提供明确假设的每银行标量代理，动态电流数组为空；rectifier 为反并联二极管路径，主/中点应力从本拓扑载荷读回。既有公共模型不增字段，不把 midpoint 填进 rectifier。
+
+首轮不支持运行点改变网压/fsw：显式拒绝不相等覆盖；不静默忽略。支持设计 fsw/fline 正整数比，完整线路周期用于周期求解。表单仅给首轮输入，模型固定零死区/理想元件。温度、硬件曲线及器件筛选控件不进入首轮。
+
+合成采用独立 `L=Vdc/(8*fsw*ΔI_target,pp)` 单极点初值，与 NPC 历史系数 16 区分；不是三相去共模实际纹波上界。Ceq_proxy=2·Idc/(fsw·ΔVdc,pp)，每银行=2·Ceq_proxy，标注假设充电量尺度，不证明物理纹波要求。B1/B3 标量与 m_command 已独立计算并记录契约；实际分段命令可行性/纹波待步骤 3 验证。
+
+### 9.2 共享求解抽取清单和保留边界
+
+拟新增 `src/pe_claw_gui/topologies/dc_ac/three_level_common.py`，只由 NPC 和 T-type 输出侧 waveform 导入。命名去除 NPC 前缀；显式导入。以下函数当前均在 NPC waveform 中，名单及必要下游依赖已核对，**本步骤未移动任何函数**。
+
+| 当前函数 | 拟共用职责 / NPC 保留接口 |
+|---|---|
+| `_npc_level_duty_cycles`、`_center_aligned_npc_sequence`、`_sequence_state_at_time` | 对称三电平占空/中心对齐序列/序列采样；旧函数名和签名包装保留。T-type 在进入会裁剪的旧 helper 前验证实际命令并保留饱和诊断 |
+| `_sinusoidal_voltage_integral`、`_sinusoidal_voltage_weighted_integral`、`_sinusoidal_voltage_average` | 电网正弦解析积分；不复制数值近似公式 |
+| `_simulate_npc_cycle_segments` | 合并三相开关时刻，减共模、L 电流积分、每周期平均命令/电流 |
+| `_project_three_phase_current`、`_valid_three_phase_current`、`_empty_periodic_solver_result`、`_solve_periodic_initial_current` | 三线 KCL 投影、输入检查、周期固定点求解；保留 NPC 1e-8 A / 8 次迭代及 warm-start/fallback 行为 |
+| `_simulate_npc_event_segmented_currents` | 全周期事件分段求解；内部必须调用不带器件身份的采样核心，不依赖 NPC gate helper |
+| `_build_segment_time_index`、`_segment_index_for_current`、`_segment_index_for_state`、`_current_at_event_time`、`_states_at_event_time` | 统一时间索引、精确边界电流及状态；右/左连续策略保留以保持事件与门极一致 |
+| `_sample_npc_event_segments` | **只抽取**三相电流/state/pole/phase-neutral/line-line 采样核心；NPC 包装在返回结果上补原 `gates`，T-type 独立补 T-type gates。不能整函数搬迁后让共用模块调用 `_npc_gate_state` |
+| `_interpolate`、`_interpolate_series_at_time`、`_switching_period_midpoints`、`_time_average_by_switching_period`、`_required_average_inverter_voltage_by_switching_period` | 周期参考/平均命令和其实际调用的插值工具；保持旧平均定义及参考采样点 |
+| `_npc_operating_contract` | 共用理想 L 相量命令核心，显式 lag angle/功率方向参数；NPC 包装保留原返回键。PF 符号解释仍在各自拓扑，T-type 正有功使用符号 +1 和有符号 φ |
+
+不能抽取：`generate_waveforms` 顶层工况/metadata/电容组装，`_npc_phase_state/_npc_gate_state`，`_extract_npc_switching_events_from_segments`，`_npc_device_current_metrics/_current_metrics`，`_rail_current_for_state`，`_operating_power_factor/_clamp_load_ratio`，`_integrate_periodic_capacitor_voltage/_remove_average`。局部波形统计 helper 可保留，不能为了省几行把 NPC 动态电容/样本平均统计带入 T-type 的应力时间积分。
+
+经源码和实际基准确认：NPC `generate_waveforms` 从 candidate.metadata 取 vdc_nom_v/fsw_hz，不采用 OperatingPoint 的 vin_v/频率覆盖。本任务不修 NPC；NPC 原行为必须保留。T-type 明确采用实际 vin_v，拒绝本轮未支持的频率覆盖。负 PF 的 NPC 快照是反向有功兼容性，不是 T-type 超前相位证据。
+
+原私有接口被既有测试导入，抽取后继续保留包装。NPC 事件、角色、电容、元数据/诊断和值不应改变。共用核心导入不得做计算、写工件或缓存本次运行数据；所有片段、初值、结果为每次调用所有。若实际抽取扩大到其他调用者或共享模型，先更新消费者/必要门禁，不沿用“仅 NPC/T-type”声明。
+
+### 9.3 案例和冻结容差
+
+B1–B10 维持第 5 节矩阵，B2 包含额外零负载基础边界（不宣称硬件轻载性能）。B3 两次设计分别生成 leading/lagging；刷新相位固定，各自检查 0.8/1 的 PF 幅值。B4 同一 B1 candidate 的 700/800 V 保留 L=1.071651762 mH；B5 的 500 V 应不可达且旧图不得被当当前成功结果。可行案例需要实际周期平均命令检查，解析 m<1 不能单独验收。
+
+| 量/比较 | 冻结门槛与依据 |
+|---|---|
+| 三相功率/电压/电流/L/C 纯代数 | rtol=1e-9；V/A/H/F 的 atol=1e-8/1e-8/1e-12/1e-12；参考直接使用方程，不调用生产合成 helper |
+| 单段电感解析积分 | atol=1e-7 A、rtol=1e-8；常量相电压与正弦电网解析积分独立实现 |
+| KCL / 连续性 | max_abs(ia+ib+ic)≤1e-7 A；相邻片段电流端点差≤1e-7 A；不通过端点强制改写达标 |
+| 周期解 | solver residual≤1e-8 A 且收敛；完整周期实际端点差≤1e-7 A。较宽 1e-4 A 建议门槛不再采用 |
+| 状态/门极/角色/ID | 精确比较；12 位置和 P↔O/O↔N 八类方向完整；事件时间 atol=1e-12 s，电平阶跃 atol=1e-8 V |
+| 应力/纹波时间积分 | 时间权重而非等权样本；单段可独立积分；两倍采样/积分加密后指标 rtol≤1e-4，A 的 atol≤1e-6；先证明收敛，不能把精度门槛当作基波跟踪误差允许值 |
+| NPC 抽取前后 | 结构/key/角色/门极/状态/警告精确；V/A/H/F rtol=1e-10，atol=1e-8/1e-8/1e-12/1e-12；事件时间 atol=1e-12 s；周期迭代/诊断精确。任何差异记录字段、两值、误差、单位、basis、owner、容差和证据 |
+| GUI | 当前 state report 与同工况载荷；文字按实际格式化位数核对，曲线 data 数组按上列容差，不能仅看标签或按钮完成 |
+
+序列零时长段可以删除但不得形成 P↔N 或重复虚假事件；这是数学事件规范化，不是硬件最短脉冲模型。精确零局部电流标 no-current；不引入硬件阈值/ZVS。不可达/失败点先给具体原因，不能靠宽容差或裁剪隐藏。
+
+### 9.4 实际环境、命令和 NPC 基准回执
+
+生产源码版本 `7f96bbf4c2e41ec1fb59bcb8c5845badf4e35ef2`；分支 `codex/llc-waveform-operating-point-plan`。初始 95 tracked 删除、2 无关 untracked 全保留。解释器 `C:\Users\Lumia\AppData\Local\Programs\Python\Python312\python.exe`，Python 3.12.10 / pytest 9.1.1 / matplotlib 3.11.0 / Tk 8.6.15。包来源已 assert 属于当前 workspace/src；测试文件绝对来源及源码 SHA256 写入 preflight.json；registry=20、DC-AC=3。Tk 创建/销毁成功只证明环境，不是 GUI 流程通过。
+
+本次独占证据根 `.pytest-tmp-tt-r1-s0/`（保持本地未提交），pytest basetemp 为其全新子目录 `pytest-temp/`，JUnit 在父目录，不会被 pytest 清理。显式 `PYTHONPATH=当前src;当前tests`、`PYTHONDONTWRITEBYTECODE=1`、`MPLBACKEND=Agg`；脚本用 python -B 执行。编辑前已说明 NPC 求解/事件/注册专项范围，未执行全量或完整硬件链。
+
+实际测试 argv（在当前仓库根，python 为上列绝对解释器，证据路径在回执中为绝对路径）：
+
+```powershell
+python -B -m pytest -o addopts= -p no:cacheprovider -q `
+  --basetemp .pytest-tmp-tt-r1-s0/pytest-temp `
+  --junitxml .pytest-tmp-tt-r1-s0/junit.xml `
+  tests/test_npc_step2_current_reference.py `
+  tests/test_npc_step3_average_voltage_target.py `
+  tests/test_npc_step4_level_sequence.py `
+  tests/test_npc_step4_periodic_warm_start.py `
+  tests/test_npc_step5_event_segmented_current.py `
+  tests/test_npc_switching_loss_events.py `
+  tests/test_phase4_topology_contracts.py::test_phase4_registry_has_unique_ids_and_capabilities `
+  tests/test_phase4_topology_contracts.py::test_phase4_router_fails_closed_for_unknown_topology
+```
+
+结果：exit 0，28 passed（NPC 26 + registry 2）；failures/errors/skipped/xfail 均 0。pytest 21.44 s，含启动进程墙钟 23.15 s。1 条既有 `Unknown config option: cache_dir` warning 单列；不修改配置。负向边界/饱和、周期 warm-start、精确事件用例属于这 28 项已有覆盖，不是新增测试。
+
+本地 `validate_step0.py` 执行环境预检、pytest 并调用真实 NPC plugin 六 hook 中的 build_spec/synthesize/generate_waveforms/extract_stress/evaluate（不调用 full pipeline、选型或 GUI）；后续补充脚本生成真正 10 kHz 设计快照。快照采用完整 dataclasses.asdict 载荷，allow_nan=False；不归一化，不删字段；没有 run ID、时间戳或输出路径的 direct-plugin 快照。基准记录输入、spec、candidate、OperatingPoint、完整 WaveformSet（含门极、事件、器件指标、旧电容数组）、StressResult、TopologyResult。不是完整 DesignReport/GUI/硬件基准。
+
+| 文件 | 工况/实际行为 | SHA256 |
+|---|---|---|
+| `nominal.json` | 默认 700 V/400 V/10 kW/PF1/20 kHz；周期残差最大 2.941e-9 A | `c82774144d7b6638ad9f896e189a3c5989692dc42c37b4adac3a383127c10d70` |
+| `half_load_pf08.json` | 原 candidate，load0.5/PF0.8；700 V/20 kHz | `f030711f141d620062f90814df350c8be5f1cc4471b697dfa43781710c45cbc2` |
+| `reverse_pf08.json` | 原 candidate，load0.5/PF−0.8；保留 NPC 反向有功行为 | `7c231edc1c64daeaa6df3ce5934a8c8d1817db6faa250e935e2ca185ff5fdfb7` |
+| `fsw10k.json` | 请求 OperatingPoint 10 kHz，**实际仍 20 kHz**；诊断快照保留，不当 10 kHz 证据 | `014a186c00c4a81c36d104421ca34ff65295d99a82bcd420270a6951053d787f` |
+| `nominal_repeat.json` | 独立重新生成 nominal，全载荷 hash 精确相等 | `c82774144d7b6638ad9f896e189a3c5989692dc42c37b4adac3a383127c10d70` |
+| `design_fsw10k.json` | 原默认输入仅设计 fsw=10000；200 周期/实际 Ts=100 μs，收敛 | `635d033a8390d46f9faeb7934610cccd217def5ba41b4608e5047ce67ea1ddeb` |
+
+`preflight.json/test_receipt.json/pytest.log/junit.xml/baseline_manifest.json` 保存精确路径/命令/退出码/耗时和源码校验。前 5 次生成/序列化各约 1.05–1.17 s；补充设计 10 kHz 约 0.46 s，6 份共 51,524,494 字节，全部周期收敛。本地证据不纳入 Git，不覆盖 migration/evidence 或用户 outputs。实施步骤 3 前先核实 hash 和源码版本；若本地快照不可用，从本步明确生产基准在独立 checkout 重建并核实既有 hash，不能用抽取后的输出自称抽取前基准。
+
+本次证据分别支持：独立标量推导及字段语义审查、既有 NPC 求解/事件/注册专项、同工况 nominal 重复确定性。**不支持** T-type 数值正确性、T-type 后端贯通/GUI、跨拓扑双顺序隔离、全量旧拓扑验收或真实硬件/损耗/效率；对应必要门禁仍在步骤 1–8。
+
+### 9.5 冻结的逐步验证命令和未支持入口
+
+后续新增 `tests/test_t_type_step1_contract.py`、`test_t_type_step2_synthesis.py`、`test_t_type_step3_waveforms.py`、`test_t_type_step4_paths_events.py`、`test_t_type_step5_pipeline.py`、`test_t_type_step6_gui.py`、`test_t_type_step7_operating_point.py`、`test_t_type_step8_acceptance.py`、`test_t_type_step8_isolation.py`，当前均不存在。以下数组明确各步累计 argv，不执行 glob，也不把不存在文件视作通过；先完成本步实现与必要测试，再运行。
+
+```powershell
+$ttNewTests = @(
+  'tests/test_t_type_step1_contract.py',
+  'tests/test_t_type_step2_synthesis.py',
+  'tests/test_t_type_step3_waveforms.py',
+  'tests/test_t_type_step4_paths_events.py',
+  'tests/test_t_type_step5_pipeline.py',
+  'tests/test_t_type_step6_gui.py',
+  'tests/test_t_type_step7_operating_point.py',
+  'tests/test_t_type_step8_acceptance.py',
+  'tests/test_t_type_step8_isolation.py'
+)
+$ttNpcTests = @(
+  'tests/test_npc_step2_current_reference.py',
+  'tests/test_npc_step3_average_voltage_target.py',
+  'tests/test_npc_step4_level_sequence.py',
+  'tests/test_npc_step4_periodic_warm_start.py',
+  'tests/test_npc_step5_event_segmented_current.py',
+  'tests/test_npc_switching_loss_events.py'
+)
+$ttRoutingTests = @(
+  'tests/test_phase4_topology_contracts.py::test_phase4_registry_has_unique_ids_and_capabilities',
+  'tests/test_phase4_topology_contracts.py::test_phase4_router_fails_closed_for_unknown_topology',
+  'tests/test_dc_ac_registry_category.py',
+  'tests/test_dc_ac_three_phase_three_level_npc_contract.py',
+  'tests/test_dc_ac_operating_refresh_gui_chain.py'
+)
+# 每步执行一次；设为当前已实现步骤 1..8；retry 时更换专属目录名。
+$ttStepNumber = 1
+$ttValidationRoot = Join-Path (Get-Location).Path ".pytest-tmp-tt-r1-s$ttStepNumber"
+if (Test-Path -LiteralPath $ttValidationRoot) { throw 'Choose a fresh validation root.' }
+$ttTestCount = if ($ttStepNumber -eq 8) { 9 } else { $ttStepNumber }
+$ttSelectedTests = @($ttNewTests[0..($ttTestCount - 1)])
+if ($ttStepNumber -ge 3) { $ttSelectedTests += $ttNpcTests }
+if ($ttStepNumber -ge 6) { $ttSelectedTests += $ttRoutingTests }
+foreach ($ttNode in $ttSelectedTests) {
+  if (-not (Test-Path -LiteralPath ($ttNode.Split('::')[0]))) { throw "Missing test: $ttNode" }
+}
+$env:PYTHONPATH = (Join-Path (Get-Location).Path 'src') + ';' + (Join-Path (Get-Location).Path 'tests')
+$env:PYTHONDONTWRITEBYTECODE = '1'
+$env:MPLBACKEND = 'Agg'
+# 完成第 7 节来源/解释器/Tk 预检后，创建证据根。
+New-Item -ItemType Directory -Path $ttValidationRoot | Out-Null
+python -B -m pytest -o addopts= -p no:cacheprovider -q `
+  --basetemp (Join-Path $ttValidationRoot 'pytest-temp') `
+  --junitxml (Join-Path $ttValidationRoot 'junit.xml') @ttSelectedTests
+```
+
+步骤 1/2：累计新文件；步骤 3–5：累计新文件+NPC 求解/事件；步骤 6/7：累计新文件+NPC+注册/三个 DC-AC 消费者；步骤 8：全部 9 个新文件+相同旧组。每次记录日志/退出码/JUnit，pytest 不替代 GUI 当前数字的专门断言。抽取前后全 payload 比较纳入 step3 文件；双顺序独立重跑纳入 step8 isolation 文件，不共享可变 fixture 伪装重复。若实际改动导致更多 consumers，扩充清单而不是只沿用本矩阵。
+
+后续测试显式 scoped output_root/run context，GUI 控制器工件也进入专属根；已有测试若默认写全局 outputs，先核实或以适用测试 fixture 隔离输出，不能删除用户结果。`test_phase5_pipeline_closure.py` 的全部拓扑真实库链不属于本次冻结所需门禁；仅能力成员新增、NPC 输出侧抽取与 DC-AC 视图受影响时按上述组覆盖。如改公共模型、阶段次序、选择器或通用结果语义，增加对应所有消费者，影响无法界定才使用全量门禁。
+
+未支持入口保护归属：`FIRST_PASS_TOPOLOGY_ONLY_IDS` 只新增 T-type，full pipeline 与 refresh 复用已有 early return；`RunDesignController.run_active_capacitors/run_active_magnetics` 和 `EfficiencySweepController` 独立入口需检查同一能力。表单隐藏/禁用组件、磁件、效率按钮只是辅助，直接调用控制器仍须明确拒绝；T-type 测试断言真实选择器/损耗/热/几何调用为零，并确认旧 20 项能力 unchanged。波形失败在 WaveformController/current state 和 MainWindow 页面清除有效旧数据；保留固定 candidate 供恢复，不沿用旧图为当前成功。
+
+### 9.6 本步骤 Git 与收尾
+
+文档/语义/引用/函数与节点存在性、生产源校验不变、ChangeLog append-only、定向/暂存 diff 和范围在提交前核对。仅提交三个文档至既有 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；不修改 master 或 origin，不纳入既有删除和本地证据。完成状态须在提交已推送并核实远端后同步；本轮不备份、不清理、不开始步骤 1。
+
+实际静态检查：两文档 36 个本地引用有效，源函数清单与实际 AST 核对、两个注册节点存在、9 个实施步骤/9 个拟新增测试文件状态正确；651 个生产 Python 文件 SHA256 不变；6 个基准 payload hash 及字节数核实；ChangeLog 对 HEAD append-only；定向差异已审查，`git -c core.longpaths=true diff --check` exit 0。无电气行为变更，不重复 pytest；本地 `documentation_checks.json` 留回执。
+
+- 本步骤文档提交与远端 SHA：待填。
+- 状态同步提交：待提交本回执时另记录；其推送结果以实际远端核实为准。

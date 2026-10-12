@@ -1,15 +1,15 @@
 # 三相三电平 T-type：电路、状态、导通与换流契约
 
-- 日期：2026-10-12；版本：工作契约 v0.1。
+- 日期：2026-10-12；版本：工作契约 v0.2（步骤 0 首轮接口冻结）。
 - 状态：设计文档已形成，供后续实现和审查使用；T-type 尚未实现或通过工程验收。
-- 本轮授权：形成契约；不修改生产代码、测试、器件库、注册表或现有 NPC 行为。
+- 本轮授权：执行实施计划步骤 0，冻结首轮接口并保留 NPC 基准；不修改生产代码、测试、器件库、注册表或现有 NPC 行为。
 - 拟用拓扑 ID：`three_phase_three_level_t_type_inverter`，尚未注册。
 - 本契约选定常规 T-type、中点支路共源／共发射极连接；连接形式和驱动策略是本版明确的建模选择，不代表所有 T-type 变体。
 - 首版目标：三相三线并网逆变、分裂直流母线、固定频率三电平调制、正向有功输出；正负瞬时相电流及无功交换必须建模。有源整流、反向平均功率、离网负载、闭环中点平衡和故障运行不属于本版实现目标。
 
 ## 1. 文档边界、依据和变更影响
 
-本轮分类为文档变更，仅新增本文件并追加 `ChangeLog.md`。本文件定义拟实现的物理含义，不新增 Python 字段、公共状态或选型策略。所有下文所称 T-type 数据、检查和实现职责均为拟议契约，不是当前代码已支持的能力。
+本轮分类为文档变更，更新本文件、Active 实施计划并追加 `ChangeLog.md`。本文件定义拟实现的物理含义，不新增 Python 字段、公共状态或选型策略。所有下文所称 T-type 数据、检查和实现职责均为拟议契约，不是当前代码已支持的能力。
 
 遵循 [公共工程语义契约](engineering_contracts.md) 和 [拓扑变更计划模板](../Plan/templates/topology_change_plan_template.md)。当前 NPC 的 [拓扑契约](../src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_npc_inverter/topology_contract.py)、[波形模型](../src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_npc_inverter/waveform.py) 和 [事件损耗接口](../src/pe_claw_gui/engines/devices/loss_evaluator.py) 用于分析复用边界，不作为 T-type 导通或换流正确性的独立参考。
 
@@ -298,9 +298,108 @@ dW_L/dt = P_bridge - sum(v_grid,k*i_k)
 
 上述未决项不阻止形成此份电路与换流契约；相应数值实现、选型或工程结论必须在使用前落实，不得静默沿用 NPC 假设。
 
-## 13. 本轮文档检查与 Git 范围
+## 13. v0.1 契约撰写检查与 Git 范围（历史记录）
 
 - 基准：`6c6a1d81ea0471d9efbbd424280285e529fbcb04`；分支 `codex/llc-waveform-operating-point-plan`；沿用已配置上游 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`。
 - 初始工作区已有 95 项 tracked 删除及 2 项无关 untracked，均不纳入本次文档提交；保留用户 outputs、证据和库数据。
 - 文档检查：连接/状态/导通/死区/换流/耐压表交叉审查；独立 Python 标量复核第 12.1 节；本地 Markdown 链接存在性；ChangeLog append-only；定向及暂存 `git diff --check` 和差异审查。
 - 不运行 pytest、收集、电气链、GUI 或拓扑验收；本轮不生成工程黄金参考。提交/推送结果以实际 Git 回执为准。
+
+## 14. 步骤 0 冻结的第一轮实现接口
+
+本节与 [Active 实施计划](../Plan/Active/three_phase_three_level_t_type_implementation_plan.md) 共同规定第一轮子集；第 2–5 节电路与方向继续有效。第 6–10、12 节中有限死区、器件能量、动态电容、真实选型、系统效率及完整导出属于后续工程扩展，不作为第一轮门槛。新增基础代码的公式、契约、GUI 数字和隔离测试仍须执行。本节只冻结未来行为；步骤 0 的 NPC 回执不能证明 T-type 已实现。
+
+### 14.1 输入、规格与运行点
+
+拟定 `LEGACY_KEY=ThreePhase_ThreeLevel_T_Type_Inverter`，显示名称 `Three-Phase Three-Level T-type Inverter`。raw input 保持字符串映射，经本拓扑解析器生成有限 SI 数值；不调用 NPC 的完整 design-basis 解析器带入死区、过冲或器件默认值。
+
+| raw 键 | 默认值 / 单位 | 规范化及边界 |
+|---|---|---|
+| `vdc_nom` | 700 / 总母线 DC V | >0；首轮固定设计母线，无 min/max 工程包络 |
+| `vac_ll_rms` | 400 / 基波线电压 RMS V | >0；电网电压固定于该次设计 |
+| `f_line_hz` | 50 / Hz | >0；电网基频，不增加独立 `f_output_hz` |
+| `fsw_hz` | 20000 / Hz | >0；首轮要求 fsw/fline 为正整数，完整线路周期包含整数载波周期；非整数比显式拒绝，后续再扩展 |
+| `pout_w` | 10000 / 三相总有功 W | >0；不接受反向平均功率 |
+| `power_factor` | 1 / 幅值 | 0<PF≤1；负 PF 不表示超前，与 NPC 负 PF 反向功率兼容语义分开 |
+| `power_factor_phase` | `lagging` | 仅 `lagging` / `leading`；有符号滞后角 φ=+acos(PF) / −acos(PF)，PF=1 时 φ=0 |
+| `inductor_current_ripple_ratio` | 0.2 / ΔIpp/I1pk | 0<r<2；设计估算目标，不是实际纹波承诺 |
+| `dc_link_voltage_ripple_ratio` | 0.05 / ΔVdc,pp/Vdc | 0<r<1；仅用于标量电容估算，不模拟母线纹波 |
+
+原始输入缺项使用本表默认；格式错误、非有限或越界值用 `ValueError` 指明字段和原因。未知键不进入电气计算；不接受非零死区或其他非理想模型参数后仍声称支持。若调用者显式要求未支持模型，返回带原因的拒绝。首轮无器件筛选/温度输入控件，不复制 NPC 的隐藏工程参数。
+
+`TopologySpec`：`vin_min=vin_max=vdc_nom`，`vout=vac_ll_rms`，`pout=pout_w`，`fs_khz=fsw_hz/1000`，`ripple_current_ratio=r_i`，`ripple_voltage_ratio_percent=100*r_v`。`spec.metadata` 保留 `vdc_nom_v/vac_ll_rms_v/f_line_hz/fsw_hz/power_factor/power_factor_phase` 和两个 ratio；模型/范围与连接采用 `t_type_contract` 和 `t_type_model_scope` 局部键，不写 `npc_*`。
+
+沿用现有 `OperatingPoint`，不新增共享字段：
+
+- `vin_v` 是本次实际总母线 V；未提供 operating point 时采用 candidate 设计母线。>0 且有限，不用旧 nominal 覆盖它。
+- `load_ratio` 在 [0,1]；P_actual=P_design×load_ratio；超出拒绝，不静默裁剪。零负载只表示基波有功参考为零，PWM 电感电流仍可能有纹波。
+- `power_factor=None` 使用设计 PF，否则验证幅值；`power_factor_phase` 固定于 candidate，本轮换相位类型需要重新设计。
+- `vout_v=None` 或等于设计 VLL；`switching_frequency_hz=None` 或等于设计 fsw。改变网压/频率不属于首轮刷新，显式拒绝，不忽略覆盖请求。
+- 表单运行点母线使用独立控件 `operating_vdc_v`，默认 700；该控件及运行点 load/PF 不进入 `get_raw_input()`，只进入 `get_operating_point()`。改变设计字段触发重新合成，改变运行点控件保留 candidate 和 L。
+
+### 14.2 合成公式与候选映射
+
+独立参考：V1,rms=VLL/√3；I1,rms=P/(√3·VLL·PF)；I1,pk=√2·I1,rms；ΔI_target,pp=r_i·I1,pk。相邻 pole-to-O 电平阶跃 ΔV=Vdc/2，单个中心对齐脉冲在常量平均电压近似下有 ΔIpp=ΔV·d(1−d)/(fsw·L)，d=1/2 取最大，得到：
+
+```text
+L_initial = Vdc / (8 * fsw * ΔI_target,pp)
+I_phasor = I1,rms * (cos(φ) - j*sin(φ))
+V_inv,phasor = V_grid,phase,rms + j*2π*fline*L_initial*I_phasor
+m_command = 2*sqrt(2)*abs(V_inv,phasor)/Vdc
+```
+
+该 L 是单极点纹波初值。三线系统还有共模消除、其他相的切换和电网变化，因此不称它为三相实际纹波上界。NPC 当前保留历史 `Vdc/(16*fsw*ΔIpp)`，T-type 采用独立初值公式；本轮不修 NPC、不改变其快照。比较输出侧求解时必须显式令 L 相同，不能用相同设计输入推断 L 相同。基波 m_command≤1 只是必要可行性，分段求解实际平均命令仍须单独检查；饱和/未收敛点不得伪装达到目标。
+
+首轮选择交付电容标量代理，以满足既有 candidate 必填数值，采用并明确标注假设充电量尺度 Q_proxy=2·I_dc,avg/fsw：Ceq_proxy=Q_proxy/ΔVdc,pp，Cbank_proxy=2·Ceq_proxy；I_dc,avg=P/Vdc。该式是沿用 NPC 的初始估算政策，不是根据真实源电流积分得到的最低电容要求，不证明纹波达标。两个相等银行的串联关系可独立验证；不创建已选电容结果。GUI 仅显示“每银行初始估算”。
+
+| candidate 字段 | 首轮含义 / 所有者 |
+|---|---|
+| `vin_min/vin_max/vin_nom`、`vout_target/pout_target/fs_hz` | 设计母线、设计 VLL RMS、三相额定有功、设计 fsw；不随刷新改写 |
+| `inductance_h` | 每相 L_initial，3 个相同理想 L；不是三相总 L或实物磁件 |
+| `capacitance_f` | 一个银行 Cbank_proxy；2 银行；不是 Ceq 或银行之和 |
+| `iout` | 每相基波 I1,rms；不是系统 DC 输出电流 |
+| `delta_il`、`delta_vo/output_ripple_vpp_v` | 设计 ΔI_target,pp A、总母线纹波目标 Vpp；后者不是实际输出 AC 纹波 |
+| `il_peak/il_valley` | ±(I1,pk+ΔI_target,pp/2) 估算包络，不是刷新后的实际极值 |
+| `duty_nom` | 0.5 兼容载波中值；不能作为真实三相占空比展示，实际 d+/d0/d− 放局部载荷 |
+| `ccm_valid` | 与既有 AC 候选一致的 ΔI_target,pp<2·I1,pk 设计启发式；不证明交流过零时的 DC CCM，也不用于裁剪电流 |
+| `mode_capable`、`feasible` | 本拓扑理想 PD-SPWM 模型说明、当前可行性；feasible 不能替代完整波形检查 |
+
+`candidate.metadata["t_type_design_estimates"]` 保存上述估算、公式 ID、单位/数量、相位、主/中点静态电压及逐位置保守电流估计；刷新不修改该字典。`t_type_model_scope` 显式声明 ideal/zero-deadtime/balanced-bus/unselected-components/unmodeled-losses。
+
+B1 独立标量参考：L=1.071651762 mH/相，ΔI_target,pp=4.082482905 A，Ceq_proxy=40.816326531 μF，Cbank_proxy=81.632653061 μF，m_command≈0.933345504。B3 两次 PF=0.8 设计各自 L=0.857321410 mH，滞后/超前 m_command≈0.945050474/0.921491868。这些是解析参考，尚无 T-type 实现回执。
+
+### 14.3 波形、应力与报告字段
+
+`WaveformSet.metadata["three_phase_t_type_pd_spwm_waveforms"]` 是三相完整载荷的唯一绘图来源（拟本地类型结构，显式 `to_dict`；不改共享模型）：
+
+- `schema_version=1`；`basis` 含实际 `vdc_v/vac_ll_rms_v/pout_w/load_ratio/power_factor/power_factor_phase/fsw_hz/f_line_hz/inductance_h/model_scope`，全部单位固定；线路周期和窗口随载荷记录。
+- `time_s`；`phases.a/b/c` 各有 `state`（+1/0/−1）、`pole_to_o_voltage_v`、`phase_neutral_voltage_v`、`grid_voltage_v`、`current_a`、`reference_current_a`、`inductor_voltage_v`、`gates.QP/QN/QA/QO`；线电压在 `line_line_voltage_v.ab/bc/ca`。
+- `segments` 包含统一 t_start_s/t_end_s、三相 states、start/end currents、平均命令、占空序列；积分用精确事件片段，不把只采样 8 点当作事件积分。
+- `positions.a_QP` 等 12 项含局部有符号端子电流、非负 `channel_current_a/antiparallel_diode_current_a`、`static_blocking_voltage_v` 及完整周期 peak/RMS/average 指标。正局部电流走参考晶体管，负值走该位置反并联二极管；精确零值无承载路径。
+- `events` 含 time_s/phase/from_state/to_state、切换位置及 on/off、相电流/局部电流、方向/参考承载路径、半母线 level_step_v 和 ideal 类别；不填能量、恢复能量或 ZVS。逐位置翻转与相邻状态事件区分，禁止 P↔N。
+- `diagnostics` 含周期收敛/残差、实际命令可行性、目标/实际纹波与积分方法；`stress` 含 `basis=waveform_actual`、12 位置指标及 main/midpoint 两组逐指标最大值包络（非总电流）。任何缺项/非有限/未收敛使当前结果无效，不回填设计数组。
+
+电流 RMS/平均取完整线路周期时间权重，signed 平均与 channel/diode 非负平均分开。实际纹波按每周期电流减去基波参考后的 peak-to-peak 记录及其定义，不混成全周期最大减最小。展示采样点取统一事件边界加每载波 8 个均匀点；必要时加密并证明积分收敛。首轮不模拟电容电流/动态电压。
+
+| WaveformSet 兼容字段 | 精确映射 |
+|---|---|
+| `time_s` / `time_span_s` / `switching_period_s` | 同局部时间轴 / 1/fline / 1/fsw |
+| `switch_node_voltage_v` | A 相 pole-to-O 瞬时电压 |
+| `inductor_current_a`、`inductor_voltage_v` | A 相电感电流、去共模相电压减电网 A 相电压 |
+| `output_voltage_v` | A 相电网瞬时相电压；页面明确相电压，不能与线电压混用 |
+| `operating_vin_v/operating_vout_v` | 实际总母线 DC V / 固定电网 VLL RMS V；后者与瞬时数组统计类型不同 |
+| `inductor_current_min_a/max_a` | 当前 A 相完整周期实际极值 |
+| `switch_current_a/diode_current_a` | A_QP 非负 channel 电流 / 该位置 DP 非负承载电流；不代表 12 位置总量 |
+| `gate_s1/s2/s3/s4` | A 相 QP/QN/QA/QO；完整 12 路从本拓扑载荷读取 |
+| `load_ratio/duty/mode` | 实际负载 / 0.5 兼容载波中值 / 本拓扑三相理想周期模式，注释说明不作 DC 占空或 CCM 判据 |
+| `capacitor_current_a/input_source_current_a/output_ripple_v/vox_voltage_v` | 空列表并在 notes 明示未建模；不填全零假波形；T-type 专用视图跳过它们 |
+
+`StressResult.switch` 是 12 个参考晶体管位置各指标独立最大值包络；`rectifier` 是实际反并联二极管路径包络，**不改名中点开关、不创建 NPC clamp**。voltage_max_v 为相应位置静态阻断上限，main=Vdc、midpoint=Vdc/2；器件额定值/过冲未评估。首轮 `role_voltage_checks={}`，避免借 NPC 电压裕量类型伪造选型通过。无波形时电流 peak 仅给 I1pk+ΔI_target/2 保守估算，RMS/average=None，notes 标估计；有波形时从同一局部指标获得真实时间积分值。逐位置/主中点视图读取本地 `readback`：优先当前 waveform 的 stress，只有确实尚未生成波形时读取 candidate 的 design estimates；失效/失败波形不能回退冒充有效运行点。
+
+`DesignReport` 保持 spec/candidate/waveform/stress/topology_result/current operating_point；无波形也可给估算说明。`device/capacitor/magnetic/loss/thermal/geometry/semiconductor_geometry/bridge_rectifier/efficiency_sweep` 全为 None、阶段未运行有理由，不生成零损耗或 100% 效率。报告组装/evaluator 所有权在 T-type 包；GUI 从当前 state report 读回。运行点失败保留可恢复的固定 candidate，清除有效当前波形及页面；步骤 6/7 补所需局部能力保护，不修改旧拓扑失败语义。
+
+生命周期：设计输入改变使 candidate 与所有依赖数据失效；母线/load/PF 改变使当前 waveform/stress/topology_result 失效但保留 candidate；换拓扑清除本拓扑载荷。每次刷新生成新不可混用载荷，不原地修改旧 report/candidate。缺项、非法状态或不收敛保留具体原因，不声明有效/完整结果。
+
+### 14.4 验证来源与当前状态
+
+数值容差、后续逐步命令、NPC 共享抽取名单及实际 28 项专项/基准回执见 Active 计划步骤 0。NPC 基准保留旧器件角色、门极、事件、动态电容与负 PF 行为；只用于共享提取兼容性。T-type 的公式、内部路径、GUI 和双顺序隔离仍全部待实施与执行；暂无真实器件或硬件证据。
