@@ -2050,3 +2050,10 @@ listed here.
 - 分类：NPC/T-type 输出侧共享集成；新增 three_level_common.py 并保留 NPC 私有签名/门极包装；T-type waveform/integration.py、common_solver 测试和 validate_t_type_step3_completion.py 接通中性求解、事件并集、实际命令/周期/平均电流拒绝、A 相字段和完整周期/实际纹波积分。计划 9.11 记录单位、所有权、刷新与未支持边界。公共模型、注册、GUI、库及用户文件不修改。
 - 验证：上述脚本在 .pytest-tmp-tt-r1-s3-complete-pass，171 passed，0 failures/errors/skips，33.79 s；既有 cache_dir 警告 1。六个 NPC 完整基准 SHA 精确不变；独立积分/加密/失败检查通过。前期失败与原因保留日志并记录在计划。git diff --check 和范围审查通过后提交；不执行全套或 GUI，后续门槛保留。
 - Git：codex/llc-waveform-operating-point-plan，上游 pe-claw-1.1 同名分支；实现与推送 SHA 随后追加。无需备份操作，未清理用户结果或证据。
+
+## 2026-10-12 — T-type 步骤 5 应力与报告
+
+- 交付：stress.py/evaluator.py、waveform 逐位置 metrics 与六 hooks 接通，完整周期 signed/channel/diode peak/RMS/mean、main/midpoint 包络、估算与实际 readback、当前运行点和 report 校验。真实基础 pipeline 成功/失败 run 归属和未运行组件保护；不产生损耗/效率/实物选型。NPC 包装补保留空输入四空门极数组。测试 step1 随已实现 hooks 更新，新增 test_t_type_step5_pipeline.py。
+- 分类/边界：T-type 局部基础链，加 NPC 私有输出兼容修复；公共模型/registry/GUI/库和其他拓扑不修改。计划 9.11 保留所有权、SI/统计、当前工况、失效与后续范围。死区/能量继续排除。
+- 验证：累计脚本 s5-complete，185 passed/155.60 s；最终补充 operating-case/empty-NPC 两节点，6 passed/29.29 s；零失败/errors/skips，既有 cache_dir 警告各 1。独立电路 Simpson 与两倍积分加密、真实 pipeline、失败/旧数据拒绝、顺序隔离通过；六 NPC 全 payload SHA 精确不变。初跑 manifest 测试层级问题及修复保留证据。git diff --check 及差异审查通过；GUI/full suite 留后续门槛。
+- Git：步骤 3 dd81794cca50aa83f2f1e160207cf9530e29e842 已推送确认；步骤 5 沿用 codex/llc-waveform-operating-point-plan，提交/推送 SHA 随后追加。未触碰无关删除/用户结果/历史证据，没有生成文件暂存，无备份操作。

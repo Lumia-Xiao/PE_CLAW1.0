@@ -1,8 +1,7 @@
 """Input-contract and plugin skeleton for the first-round T-type inverter.
 
-Only ``build_spec`` is implemented in step 1. Calculation hooks raise an
-explicit ``NotImplementedError`` until their implementation steps complete;
-the plugin is deliberately not registered in the application yet.
+All six first-pass hooks are implemented; the plugin remains unregistered
+until the registry and GUI integration step.
 """
 
 from __future__ import annotations
@@ -22,6 +21,8 @@ from .input_schema import build_default_inputs, build_spec
 from .synthesizer import calculate_three_phase_three_level_t_type_inverter, synthesize
 from .topology_contract import DISPLAY_NAME, LEGACY_KEY, TOPOLOGY_ID
 from .waveform import generate_waveforms
+from .stress import extract_stress
+from .evaluator import evaluate, build_report
 
 
 @dataclass(frozen=True)
@@ -51,7 +52,7 @@ class ThreePhaseThreeLevelTTypeInverterPlugin(TopologyPlugin):
         candidate: TopologyCandidate,
         waveform_set: WaveformSet | None = None,
     ) -> StressResult:
-        raise NotImplementedError("T-type stress extraction is planned for implementation step 5.")
+        return extract_stress(candidate, waveform_set)
 
     def evaluate(
         self,
@@ -59,7 +60,7 @@ class ThreePhaseThreeLevelTTypeInverterPlugin(TopologyPlugin):
         waveform_set: WaveformSet | None = None,
         stress_result: StressResult | None = None,
     ) -> TopologyResult:
-        raise NotImplementedError("T-type evaluation is planned for implementation step 5.")
+        return evaluate(candidate, waveform_set, stress_result)
 
     def build_report(
         self,
@@ -70,7 +71,7 @@ class ThreePhaseThreeLevelTTypeInverterPlugin(TopologyPlugin):
         stress_result: StressResult | None = None,
         topology_result: TopologyResult | None = None,
     ) -> DesignReport:
-        raise NotImplementedError("T-type report assembly is planned for implementation step 5.")
+        return build_report(spec, candidate, operating_point, waveform_set, stress_result, topology_result)
 
 
 PLUGIN = ThreePhaseThreeLevelTTypeInverterPlugin()

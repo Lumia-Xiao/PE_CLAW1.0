@@ -13,6 +13,7 @@ from ....models.waveform import WaveformSet
 from ...base.candidate import TopologyCandidate
 from .paths_events import IllegalTransitionError, build_positions, extract_events, gate_vector
 from .integration import integral_metrics
+from .stress import calculate_position_stress
 from ..three_level_common import (
     SAMPLES_PER_SWITCHING_PERIOD,
     _simulate_three_level_event_segmented_currents,
@@ -216,6 +217,9 @@ def generate_waveforms(
     diagnostics["ripple_definition"] = "per switching period peak-to-peak of actual current minus sinusoidal reference (A)"
     diagnostics["statistics_method"] = "exact segment currents; adaptive time quadrature and analytic extrema"
     diagnostics["ripple_design_target_pp_a"] = candidate.delta_il
+    waveform_payload["stress"] = calculate_position_stress(event_simulation["segments"], waveform_payload["basis"])
+    for position, metrics in waveform_payload["stress"]["positions"].items():
+        positions[position]["metrics"] = dict(metrics)
     return WaveformSet(
         time_s=time_s,
         switch_node_voltage_v=list(va_pole),

@@ -771,7 +771,7 @@ def _simulate_npc_event_segmented_currents(
     """Compatibility wrapper for the shared output-side calculation."""
     result = _three_level_common._simulate_three_level_event_segmented_currents(time_s=time_s, phase_grid_voltage_v=phase_grid_voltage_v, phase_current_reference_a=phase_current_reference_a, phase_current_reference_average_a=phase_current_reference_average_a, inductance_h=inductance_h, grid_voltage_peak_v=grid_voltage_peak_v, line_frequency_hz=line_frequency_hz, half_bus_voltage_v=half_bus_voltage_v, samples_per_switching_period=samples_per_switching_period, periodic_initial_current_a=periodic_initial_current_a, _initial_current_a=_initial_current_a, _solve_periodic=_solve_periodic)
     result["gates"] = {
-        phase: tuple(list(values) for values in zip(*[_npc_gate_state(state) for state in result["phase_states"][index]], strict=True))
+        phase: tuple(list(values) for values in zip(*[_npc_gate_state(state) for state in result["phase_states"][index]], strict=True)) if result["phase_states"][index] else ([], [], [], [])
         for index, phase in enumerate(("a", "b", "c"))
     }
     return result
@@ -892,7 +892,7 @@ def _sample_npc_event_segments(
     """Compatibility wrapper for the shared output-side calculation."""
     result = _three_level_common._sample_three_level_event_segments(time_s=time_s, segments=segments, inductance_h=inductance_h, grid_voltage_peak_v=grid_voltage_peak_v, line_frequency_hz=line_frequency_hz, phase_angles=phase_angles, half_bus_voltage_v=half_bus_voltage_v)
     result["gates"] = {
-        phase: tuple(list(values) for values in zip(*[_npc_gate_state(state) for state in result["phase_states"][index]], strict=True))
+        phase: tuple(list(values) for values in zip(*[_npc_gate_state(state) for state in result["phase_states"][index]], strict=True)) if result["phase_states"][index] else ([], [], [], [])
         for index, phase in enumerate(("a", "b", "c"))
     }
     return result

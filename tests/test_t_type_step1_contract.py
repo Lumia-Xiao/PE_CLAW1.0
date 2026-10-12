@@ -167,12 +167,12 @@ def test_t_type_plugin_is_isolated_from_registry_and_unimplemented_later_hooks_f
     waveform = PLUGIN.generate_waveforms(candidate)
     assert waveform is not None
     assert waveform.metadata["three_phase_t_type_pd_spwm_waveforms"]["schema_version"] == 1
-    with pytest.raises(NotImplementedError, match="step 5"):
-        PLUGIN.extract_stress(candidate)  # type: ignore[arg-type]
-    with pytest.raises(NotImplementedError, match="step 5"):
-        PLUGIN.evaluate(candidate)  # type: ignore[arg-type]
-    with pytest.raises(NotImplementedError, match="step 5"):
-        PLUGIN.build_report(PLUGIN.build_spec(build_default_inputs()), candidate)  # type: ignore[arg-type]
+    stress = PLUGIN.extract_stress(candidate)
+    assert stress.switch.current_rms_a is None
+    assert PLUGIN.evaluate(candidate).topology_id == TOPOLOGY_ID
+    report = PLUGIN.build_report(PLUGIN.build_spec(build_default_inputs()), candidate)
+    assert report.stress == stress
+    assert report.loss is None
 
 
 def test_t_type_import_and_contract_serialization_do_not_write_or_mutate_runtime_state(tmp_path: Path) -> None:

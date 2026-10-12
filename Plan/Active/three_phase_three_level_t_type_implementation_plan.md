@@ -1,8 +1,8 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Active；步骤 0–3 实现已推送（步骤 3 共享提取等缺口见 9.10）；步骤 4 已完成并推送；步骤 5–8 待执行。
+- 状态：Active；步骤 0–4 已推送，步骤 3 缺口已补齐（9.11）；步骤 5 实现及验证通过，等待本步 Git 回执；步骤 6–8 待执行。
 - 创建日期：2026-10-12。
-- 当前授权：步骤 4 已实现、验证并推送；不自动开始步骤 5。
+- 当前授权：补齐步骤 3，再实施步骤 5；本轮不自动开始步骤 6。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
 - 拓扑 ID：拟定 `three_phase_three_level_t_type_inverter`；当前尚未注册。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
@@ -540,3 +540,13 @@ python -B -m pytest -o addopts= -p no:cacheprovider -q `
 验证：先核验解释器、当前 src/tests 路径；累计 tests/test_t_type_step1_contract.py、test_t_type_step2_synthesis.py、test_t_type_step3_waveforms.py、test_t_type_step4_paths_events.py，加新增 common/step5 测试；NPC 六个求解/事件文件与 registry 两节点按 9.5。独立公式、受控非收敛/饱和/错误跟踪负例、完整快照、真实 pipeline/失败上下文、运行顺序隔离分别取证；GUI 留步骤 6–8。所有日志/JUnit/比较回执在新的 .pytest-tmp-tt-r1-s3-complete 与 s5 目录，既有证据不覆盖。
 
 步骤 3 补齐验证回执：`python -B scripts/validate_t_type_step3_completion.py .pytest-tmp-tt-r1-s3-complete-pass`，当前 Python 3.12.10/当前 src 与 tests，171 passed、0 failed/errors/skipped、1 项既有 cache_dir 配置警告，33.79 s。六个完整 NPC spec/candidate/OP/waveform/stress/result 快照经原始 SHA 检查后，当前 SHA 全部精确一致；不需要排除任何字段。独立分段正弦积分、半段加密、32 分点纹波参考、四类受控求解失败与字段/事件时间轴均通过。初跑两项旧断言因规定的新时间轴及提前失败机制更新；新增一次严格一致检查因测试电网峰值的浮点运算次序不同失败，统一相同输入构造后通过，没有改变数值门槛或生产公式。日志/JUnit/比较/环境回执在上述目录；历史证据保留。Git 实现提交与推送回执随后追加。
+
+步骤 3 Git 回执：实现 `dd81794cca50aa83f2f1e160207cf9530e29e842` 已推送到 pe-claw-1.1/codex/llc-waveform-operating-point-plan，ls-remote 同 SHA。步骤 3 补齐门槛已满足。
+
+步骤 5 验证回执：新增 stress.py/evaluator.py，六 hooks 已接通，生成当前 waveform.stress 及 positions.metrics，不修改 candidate/旧 waveform。主/中点摘要为每指标独立最大值；switch 为 channel，rectifier 为 antiparallel diode；无波形 peak 估算，RMS/average=None。真实 run_topology_pipeline 的有/无波形入口、800 V/半载/PF0.8 固定参数刷新、受控 500 V 失败及 run 清单归属通过。非法/旧 basis、缺位置、非有限片段、非周期、公式不符、旧门极/统计/应力均拒绝，报告拒绝与请求不符的波形/应力。未运行硬件阶段均 None 并说明原因。
+
+累计命令：`python -B scripts/validate_t_type_step3_completion.py .pytest-tmp-tt-r1-s5-complete tests/test_t_type_step5_pipeline.py`，185 passed，0 failed/errors/skips，155.60 s，既有 cache_dir 警告 1。Python 3.12.10/当前 src/tests 来源及测试 SHA 在 test_receipt.json，日志/JUnit/NPC 比较在上述目录。六份 NPC 完整 SHA 仍精确不变。独立电路表＋129 点 Simpson 应力积分、两倍片段积分加密满足 rtol=1e-4/atol=1e-6 A；signed mean 与 channel-diode 及 RMS 平方和分别检查。NPC→T-type→NPC→T-type 重跑/目录/数组隔离通过。专项初跑 2 failed/9 passed：测试错误读取 manifest 顶层，改为原有 run/failure 层级后通过，未改流水线 schema。
+
+最终补充：NPC 空求解门极原四空数组兼容检查暴露包装边界并修复；此最小共享兼容修复与 step5 同提交。`python -B -m pytest -o addopts= -p no:cacheprovider -q tests/test_t_type_step5_pipeline.py::test_npc_empty_solver_retains_four_empty_gates tests/test_t_type_step5_pipeline.py::test_all_supported_operating_cases_have_complete_stress --basetemp .pytest-tmp-tt-r1-s5-final-boundaries --junitxml .pytest-tmp-tt-r1-s5-final-boundaries-junit.xml`：6 passed，29.29 s，0 failures/errors/skips，既有警告 1，覆盖零/0.1/满载、超前/滞后及 800 V/PF0.8 刷新。没有其他行为变更；累计与补充共覆盖 191 项。
+
+B1 当前数值：A 相完整周期 RMS 14.448204 A，最大实际参考减除 PWM 纹波 3.0507304 A pp；公共 switch 峰值 21.935572606 A/RMS 9.092248364 A/平均 4.761925899 A，diode 峰值 20.922636301 A/RMS 4.659004880 A/平均 1.735621294 A；各指标是不同位置可能取得的包络，不能解释为单个真实器件。静态主/中点 700/350 V。不宣称额定选型、损耗、效率或 GUI 验收；注册/能力/GUI/应用刷新留步骤 6–8，全套 pytest 未执行且当前影响已限定 NPC/T-type。步骤 5 Git 提交/推送 SHA 随后追加。
