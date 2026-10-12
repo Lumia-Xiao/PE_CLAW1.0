@@ -2003,3 +2003,8 @@ listed here.
 - 基准证据：`.pytest-tmp-tt-r1-s0/` 保留来源/全生产 Python SHA、精确 argv/日志/JUnit/manifest、完整 spec/candidate/waveform/stress/result 快照 6 份（51,524,494 字节）。额定重复 hash 精确一致；半载 PF0.8、负 PF 兼容、实际设计 10 kHz 均收敛。运行点频率 10 kHz 请求被 NPC 忽略，诊断快照实际仍 20 kHz，另生成设计 10 kHz 快照证明实际频率，不替换/删除原诊断。全部本地未提交，不覆盖黄金/迁移 evidence 或 outputs。
 - 检查与限制：独立 B1/B3 标量、语义/引用、既有函数/测试节点、日志 append-only、源码不变、定向/暂存 diff 和范围随收尾核对。本步不是 T-type 实现、GUI、双顺序隔离、完整 NPC 硬件链或全量旧拓扑验收；真实器件/损耗/效率及用户五组暂缓项仍保留后续。
 - Git 与维护：分支 `codex/llc-waveform-operating-point-plan`，仅三文档提交推送至 `pe-claw-1.1` 同名分支，实际 SHA 在本步计划 Git 回执同步；验证完毕但提交推送核实前不标完成。保留原 95 tracked 删除、2 无关 untracked、用户结果和本地证据；不备份、不清理、不自动开始步骤 1。
+
+## 2026-10-12 - T-type 步骤 0 提交推送确认与完成状态同步
+
+- 三文档提交 `f1dd748cafe052bab81f255dbefc5d193e12af07` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；`git ls-remote` 核实远端相同 SHA。本次仅更新计划完成状态/Git 回执并追加本日志，独立提交推送，不重复电气测试。
+- 步骤 0 完成范围为接口/模型/字段/共享提取边界/未来命令冻结及当前 NPC 28 项专项与本地抽取前快照，不代表 T-type 已跑通；步骤 1–8 待执行、计划 Active。状态/引用、日志 append-only、定向和暂存 diff/范围核对后提交；保留所有无关工作区改动与证据。最终状态回执提交 SHA/推送核实以本次完成报告及 Git 历史为准。
