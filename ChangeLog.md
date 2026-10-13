@@ -2101,3 +2101,11 @@ listed here.
 - 方法/范围：明确复用 NPC 的公共库、筛选/并联、磁件搜索与电容串并联流程；分步接入两角色器件、三相电感、上下银行、选定硬件回读、损耗/热/几何、固定硬件扫描及完整报告/GUI/导出。记录位置/封装数量、KCL 方向、实际 L/C、失效策略、系统所有权、必需组件及同工况来源。死区/换流能量继续暂缓，导通/磁件/电容范围效率及热结果明确模型边界，不宣称全物理效率。
 - 验证：文档语义/引用/既有测试文件与 append-only 检查，定向/暂存及完整 diff 检查；不运行 pytest 或真实电气设计。当前 Git 基准 622920211ffa1185799365d0f4d1f50e0119a521；历史首轮 426 项仅作历史来源，不算二轮验证。新实施测试/工具均标待建。
 - Git/维护：沿用 codex/llc-waveform-operating-point-plan，提交推送目标 pe-claw-1.1 同名上游，文档 SHA/远端确认见 Git 历史与本次完成报告。仅提交本计划与本条追加日志；既有 95 项 tracked 删除、用户 outputs、测试证据及其他 untracked 保留，未执行清理/备份。
+
+## 2026-10-13 - T-type 第二轮步骤 0 接口冻结与当前基线
+
+- 分类/交付：文档及测试工具变更。T-type 契约第 15 节冻结两角色、逐位置导通、typed hardware/basis/scope/system、三相磁件/上下银行请求、封装计数、硬件回读失效与逐阶段开放接口；计划第 10 节保存实际回执。新增 scripts/validate_t_type_engineering_step0.py 和 tests/test_t_type_engineering_step0_contract.py。生产源码、库记录、计算公式和 capability 未改，步骤 1 真实选型尚未实施；死区和换流能量继续排除。
+- 实际验证：Python 3.12.10/current src/tests，聚焦 13 passed/128.21 s；主组 241 passed/1114.14 s，补充 GUI/刷新/隔离 44 passed/947.93 s。两组 JUnit 核验 285 个不同通过项、0 failures/errors/skips，src/tests SHA 一致并覆盖最终显式清单；聚焦不重复计数。各组仅现有 cache_dir warning。实际波形超前/滞后各 12 点、共 24 点通过设计 envelope 检查，selector fixture 与真实库导通表探针分开。
+- 基线：.tt-r2-s0-baseline-fixed 全部三组 exit 0/409.42 s；六 NPC 全电气 payload SHA 精确一致，当前真实 NPC 器件/磁件/上下银行及 0.5/1 扫描、两电平/全桥器件链 report/structured/overview 保存，schema 无错误；扫描原 total/eta 加和恒等式通过。未过滤注册库 800 半导体/32910 电容及 fixed normalized-v2 来源/校验和保存。非有限值与旧状态字段保留，不当接受证据。
+- 工具失败：初次基线及主组进程加载的旧工具因两电平空输入缺 vdc_nom 失败，失败 JSON/原报告保留；改用既有默认输入后独立完整重跑成功。主组测试 exit 0 与整命令基线 exit 1 分别记录，未改生产或放宽门槛。
+- 审查/边界：AST、40 本地链接、ChangeLog 原文仅追加、longpaths diff 检查通过。不跑 full suite/完整旧家族/NPC step9 proxy，不宣称 T-type 真实组件、工程 GUI/export、全物理效率或硬件验收。五个任务文件提交至 codex/llc-waveform-operating-point-plan，目标 pe-claw-1.1 同名上游；SHA/推送收据后续追加。全部既有无关删除、outputs、生成证据保留不提交；无清理/备份。

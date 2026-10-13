@@ -411,3 +411,110 @@ T-type 表单的三个运行控件写入时，Workspace 立即清空 state repor
 ### 14.4 验证来源与当前状态
 
 数值容差、NPC 共享抽取名单及基准见实施计划步骤 0；步骤 1–5 的公式、导通/理想事件、实际波形、时间积分应力和基础报告回执见 9.7–9.11。步骤 6 GUI/注册证据记录于 9.12；步骤 7 刷新测试与实际回执记录于 9.13：累计 377 项、收尾 38 项及 candidate-only 来源保护补充 4 项均实际通过，且为不同修订的明确执行范围。步骤 8 聚焦 7 项、首组累计 283 项及补充旧消费者 143 项均实际通过，0 failures/errors/skips；两组共 426 个不同项覆盖最终默认清单，生产源码相同，非一次 full suite。NPC 六份完整 payload SHA 在各次运行中精确不变。GUI/报告证据只覆盖当前首轮的设计、波形、应力、运行点刷新和 bounded L/C 摘要；未覆盖真实器件、死区/换流能量、损耗/效率/热、完整工程导出或 full suite。初版收尾状态过早，已按补齐门禁后的实际结果修正，详见计划 9.14。
+
+## 15. 第二轮步骤 0 冻结的工程接口（2026-10-13）
+
+依据 [第二轮工程链接入计划](../Plan/Active/three_phase_three_level_t_type_engineering_integration_plan.md)。本节是实施合同，不代表以下新类型、字段、能力或选型已实现。步骤 0 仅核查现有接口、生成基线和执行合同探针；第 14 节首轮生产行为不变。
+
+### 15.1 模型范围和最小真实器件路径
+
+- 第二轮损耗范围 ID 冻结为 `t_type_conduction_magnetics_capacitors_v1`，与首轮电路 `model_scope` 分开。包含通道/反并联二极管导通、三相电感铜/磁芯、上/下银行既有 ESR 损耗。
+- `excluded_components` 精确记录 `switching_on`、`switching_off`、`reverse_recovery`、`output_capacitance`、`gate_drive`、`control_auxiliary`、`fan`、`snubber`、`equalizer`、`precharge`；状态 `not_modeled`，不报告物理零功耗。热和排名必须标相同范围；效率为范围内估算。
+- 两角色名 `t_type_main_switch`（QP/QN，各相 2 个，共 6）、`t_type_midpoint_switch`（QA/QO，共 6）。设计静态最大 main=Vdc,max、midpoint=Vdc,max/2；overshoot 未建模，沿用既有 20% 电压 margin 和 10% 电流 margin，不冒充实测过冲。额定电压不能用作事件能量电压。
+- 首个实物路径采用库内 ROHM RG 带 FRD 的离散 IGBT：同时要求 `RohmRGIGBTDevice.has_frd`、IGBT/FRD conduction table 存在、额定及热/结构过滤成立。不带 FRD 记录的 `frd_vf_V` 当前返回 0，该返回不能作为有效二极管模型；应排除并记录原因，不能补零通过。
+- 已核查 Mitsubishi `vce_sat_V` / `vec_V`、ROHM `vce_sat_V` / `frd_vf_V` 可独立访问导通表，不调用 `eon/eoff/err`。Mitsubishi 与模块 section 复用以终端映射已验证为条件；普通共集电极半桥不能直接组成共发射极中点支路。最小离散路径不等待模块组合；未验证模块须 `unsupported_package_connection`，不宣称所有模块可用。
+- 厂商过滤默认 Any，技术限定 IGBT；并联方案沿用每位置 n=1/2/3，同方案两组同 n，型号可分别选择。筛选/评分/方案优先级沿用公共政策；器件基础模型与库不改。
+
+### 15.2 类型化结果和物理字段字典
+
+拟新增 `models/t_type_engineering.py` 中冻结 dataclass，通过 `DesignReport.t_type_engineering: TTypeEngineeringResult | None` 承载（均待后续实现）。拓扑适配拥有 `topologies/dc_ac/three_phase_three_level_t_type_inverter/engineering_adapter.py`；公共模型仅放类型，不放公式。`engineering_result` 在第二轮 JSON 为顶层新节；旧 schema 必填/字段语义保持。字段均有明确 status/source，不靠自由 notes 承载完整性。
+
+| 拟定精确类型/路径 | 物理含义、单位/统计 | 来源、消费者、生命周期与缺项 |
+|---|---|---|
+| `TTypeEngineeringResult.schema_version` / `loss_scope_id` / `excluded_components` | 1 / 上述范围 ID / 排除项 tuple | adapter→全部组件/页面/导出；范围不匹配拒绝，不替代电路 waveform model_scope |
+| `.design_basis: TTypeDesignBasis` | topology/run/candidate fingerprint、额定 P/VLL、fline/fsw、phase、vdc_min/max、pf_min/max、load_min/max、temperature/margins、case tuple | spec/candidate＋工程输入→选择 envelope；设计输入改动整套失效；不得由运行点反写 |
+| `.hardware: TTypeHardwareSnapshot | None` | hardware_id、两角色 devices、三相 inductors、banks.upper/lower、packages | 已选组件→waveform/refresh/thermal/geometry；ID 由稳定工程内容哈希生成，排除 run 时间；缺实例不能生成完整快照 |
+| `TTypeSelectedDevice.role/part_number/parallel_count/position_ids` | 型号/n/6 个唯一位置；每角色物理 switch section=6n | selection→封装/逐位置损耗；数量与采购封装区分，FRD 已属位置、不增 clamp BOM |
+| `TTypeSelectedPackage.package_instance_id/part_number/member_position_ids/section_bindings` | 单采购封装、实际映射的 section/位置 | package adapter→geometry/BOM；离散每位置/n 各独立；模块终端映射缺失拒绝，不用 ceil(位置数/模块开关数) 推定 |
+| `TTypeSelectedInductor.phase/design_id/inductance_h/turns/parallel_bundles/stack_count` | a/b/c 三实例、实际每相 H/绕组；model 可相同，instance 不同 | MagneticResult.selected_design_id→硬件→刷新；库 virtual/catalog/source 逐项保留，选择后不能改变绕组 |
+| `TTypeSelectedBank.side/part_number/series_count/parallel_count/capacitance_f` | upper/lower 银行，S/P、实际每银行 F | CapacitorSelectionEntry→hardware→纹波/损耗/几何；C_U/C_L 独立，Ceq 仅派生，不重定义 candidate Cbank_proxy |
+| `.operating_basis: TTypeOperatingBasis | None` | topology/run/candidate fingerprint/hardware_id/scope、vdc_v/VLL/有功 W/load/PF magnitude/phase/fline/fsw/L_H/C_U_F/C_L_F | 当前求解与硬件快照→全下游；每次刷新新对象，任意来源不符清当前有效结果 |
+| `.position_losses: tuple[TTypePositionLoss,...]` | position_id、role、n、per_device_channel_w、per_device_diode_w、position_total_w、reference_tj_c/source/status | 完整线路周期逐位置积分→role/scope/thermal；position_total=n*(channel+diode)，12 唯一位置全覆盖 |
+| `.role_selection_reference: dict[str,TTypeRoleSelectionReference]` | 本设计 envelope 内最坏单器件导通 W/结温/位置/case，选型用包络 | selector callback→排名/设计页；不将最坏值×6当当前真实损耗；chosen envelope 来源必须保存 |
+| `.split_link: TTypeSplitLinkResult | None` | `time_s/j_p_a/j_o_a/j_n_a/source_current_a/i_cu_a/i_cl_a/upper_voltage_ripple_v/lower_voltage_ripple_v`，各 mean/RMS/q_drift_C | 当前状态/事件电流→两银行 selector/刷新；原始均值和漂移保留，缺时间/不周期不可用 |
+| `.system: TTypeScopeSystemResult | None` | `components_w/status/missing_components/total_loss_w/efficiency_ratio/output_power_w/basis/source` | 当前全部组件→Summary/Loss/Sweep/Export；完整才 total/eta；不借 report.loss 的磁件小计发布系统量 |
+| `.stage_status` / `.diagnostics` | device/magnetics/capacitors/hardware_refresh/system/thermal/geometry/sweep/export 的既有状态语义及原因 | pipeline→GUI/report；nonnull/complete 标志不代替检查；未开放阶段 not_started/blocked 有原因 |
+
+`hardware.inductors` 初版只接受三相相同 L 的设计（明确实例）。不相同 L 不属于现有 solver 模型，拒绝而非取平均。原 `report.candidate.inductance_h/capacitance_f` 和 design_estimates 保持首轮设计目标/初估；实际 L/C 只来自 hardware。step4 拟建内部 effective-candidate 视图供旧波形计算接口，禁止改原对象。报告/波形校验新增 hardware-aware 分支核查 effective 参数与 snapshot；不能沿用首轮“L 必须等于初始估算”的断言接受实际选后参数，也不能跳过来源检查。
+
+波形局部 `schema_version=1` 的电气字段保持兼容；工程模式新增 `basis.hardware_id/loss_scope_id`，basis.inductance_h 是实际求解 L，固定 candidate 本身仍是设计目标。纯首轮结果没有这些字段，不可冒充已选硬件报告。硬件读回先校验后原子发布，失败只保留选定硬件和诊断，清 operating/system/sweep/export。
+
+### 15.3 共享请求、回调与精确适配接口
+
+以下函数均为拟新增入口，步骤 0 不实现生产 adapter：
+
+```text
+engineering_adapter.build_device_selection_requests(report, design_basis)
+    -> tuple[SwitchStressCase,...] + 逐 case/位置非线性导通积分请求
+engineering_adapter.build_inductor_design_request(report, design_basis)
+    -> 现有 InductorDesignRequest
+engineering_adapter.build_inductor_operating_request(report, hardware, operating_basis)
+    -> 现有 InductorOperatingPointRequest
+engineering_adapter.build_split_link_result(report, hardware_or_design_capacitance)
+    -> TTypeSplitLinkResult
+engineering_adapter.build_capacitor_requests(report, split_link, design_basis)
+    -> (upper_CapacitorSizingRequest, lower_CapacitorSizingRequest)
+engineering_adapter.build_effective_waveform_candidate(report, hardware)
+    -> 私有只读参数视图（实际 L/C），不重选、不覆盖 design candidate
+engineering_adapter.validate_operating_sources(report, hardware, operating_basis)
+    -> 成功或字段/来源明确的 ValueError
+```
+
+- 公共 `SwitchStress` 角色选择字段冻结：`v_block_V` 为该组静态设计 envelope；`i_rms_A` 为每位置 channel/diode 所需连续电流保守包络，`i_avg_A` 为通道非负完整周期平均参考；`i_turn_on_A/i_turn_off_A` 在当前公共 filter 无独立 peak 字段的兼容桥中承载 peak 上限，mode/notes 明示 `selection_peak_bound_no_energy`，不作为事件能量依据。`body_diode_conduction_time_s` 是完整周期 diode 承载比例×Ts，不加有限死区；逐位置曲线积分不用这些代表量近似替代。
+- `selector.select_switch_device_with_audit(..., loss_evaluator=callback)` 的 callback 在 device engine 拟用 `evaluate_t_type_conduction_reference(device,stress,position_requests,scope)`，只通过上述厂商压降表积分，不能先调用 whole-loss evaluator 再减去能量项。能量接口测试设 forbidden；热复用 thermal_backsolve/interface，要求 finite/thermal_feasible。
+- callback 的 `DeviceLossResult` 是公共 selector 内部兼容视图，`mode/method/thermal_design_notes` 明示范围；`p_total_W=p_cond_W`，被排除项的数值 0 仅为结构兼容，并由 typed exclusions 和所有 GUI/export reader 屏蔽“物理零”结论。范围结果仅发布 TTypePositionLoss/System，不让通用无 scope 的全部损耗表误读。
+- 按设计 envelope 的每位置/每 case 求最坏单器件功耗及结温筛选/排名；最终当前工况逐位置求值后加和。保留电气/热过滤与现有排序，不能用组平均替代非线性积分。n 并联先缩放电流再按 n 汇总。
+- `InductorDesignRequest`：L=每相 target，i_avg=0（正负完整周期平均，不等于无励磁），i_rms/peak/valley/delta_i_pp 从实际事件波形；throughput=P_ac/3；metadata.phase_count=magnetic_quantity=3、system_pout_w、line_frequency_hz、current_basis、source/cases。`InductorOperatingPointRequest` 对应 current basis 及已选实际 L；保留初筛/allow/frontier/Pareto 原政策。
+- `CapacitorSizingRequest.side="upper"/"lower"`、role=dc_link、topology_id=T-type；dc_voltage=各银行当前/设计最坏电压，current_time/current/voltage 指向同源数据；capacitance_min_f 是工程最低要求，不自动拿首轮 proxy 冒充。最小 S 默认 1，最大 S/P 使用现有 DC-link 请求政策并在输入保存，不硬继承 NPC 2S；技术/温度/margin 与库 selection 同口径。
+- 现有 `CapacitorResult.input_selection/current_operating_input` 可作 upper 的兼容入口，`output_selection/current_operating_output` 可作 lower，必须显示实际银行标签并在 typed hardware 中映射；不能对外重定义为普通输入/输出电容。库推荐物理容量回写只进入 selected hardware。
+
+### 15.4 电容近似、工况包络与数值门槛
+
+三线 KCL 和方向严格使用第 10 节；`I_src=<V_U*J_P-V_L*J_N>/Vdc` 是完整周期常量，本轮 V_U=V_L=Vdc/2。记录 `<J_P>/-<J_N>` 的差异，不独立去均值改变中点电荷。上下 raw i_C 各积分得到 q_drift；若周期端点偏移显著，报告 `nonperiodic_split_link_charge`，不重置电压伪造稳态。周期均值消除仅作已有供电近似声明，不替代 KCL。附加 ripple 不反向改变极点电压，报告 `fixed_bus_ripple_estimate`；不宣称动态能量耦合已实现。
+
+拟新增设计工程输入键与 spec.metadata 同名：`engineering_vdc_min_v=700`、`engineering_vdc_max_v=800`、`engineering_pf_min=0.8`、`engineering_pf_max=1`、`engineering_load_min=0.1`、`engineering_load_max=1`、`engineering_ambient_temp_c=25`、`engineering_target_junction_temp_c=100`、`engineering_device_type=IGBT`、`engineering_device_implementation=Discrete`、`engineering_manufacturer=Any`。这些是后续最小工程默认值，不是当前 schema 接受的键；实施时接既有同义输入须显式映射，不引入两个不一致温度来源。温度在验证的库曲线范围内，case temperature 若未提供沿用公共 thermal reference/散热反求。完整性不能靠 input ignored 的现状判断。
+
+设计 envelope 固定本次 phase 类型，在同一 candidate L、VLL/fline/fsw/Pout 下枚举 bus={700,800}×load={0.1,0.5,1}×PF={0.8,1}；每 phase 家族 12 个实际波形点。默认 design PF1 对应 L=1.0716517624676405 mH，每次刷新不能改此目标。选后实际 L 改变时重新校核同 envelope（不是重新设计）；任一 envelope 点不可达不能宣称全部范围通过。超前/滞后不同设计族；PF1 等价作交叉检查；运行 load=0 为诊断点，eta 不可用；500 V 为受控失败，不算范围有效点。未来用户自定义设计范围需要独立边界检查，不用这 24 点证明全包络。
+
+| 指标 | 冻结容差/证据要求 |
+|---|---|
+| 稳态角色/位置/数量/ID/scope | 精确一致，无缺实例或错误位置 |
+| KCL、电流方向、signed=channel−diode | 绝对 1e-8 A；局部方向表独立参考 |
+| 电荷周期漂移 | abs(q_drift)≤max(1e-10 C, 1e-8*∫abs(i_C)dt)，分别上下；超限保留 raw 值和诊断 |
+| 标量 R*I²、C/ESR 串并联、相电压/基波功率 | 相对 1e-6；近零绝对：A/V 1e-8，W 1e-8，H/F 1e-12，C 1e-10 |
+| 非线性导通/电荷/励磁时间积分 | 对独立分段参考相对 1e-4；绝对 A/V/W 1e-6，电荷 1e-10 C；至少二倍加密并记录误差，非周期失败不能靠容差抹平 |
+| 系统 published 总量/效率恒等式 | W 相对 1e-9/绝对 1e-8；ratio 相对 1e-9/绝对 1e-12；检查原发布值非只重算显示 |
+| 热阻解析与近似 | Tj/温升解析比较绝对 1e-6 °C；模型精度另标 engineering proxy，数值一致不是实测精度 |
+| structured/GUI | 工程字段上述容差；GUI按实际 precision；IDs/provenance/basis 精确；missing/NaN/Inf 不补零 |
+
+### 15.5 阶段开放和消费者保护
+
+拟在现有 `topology_capabilities.py` 增加 `supports_engineering_stage(topology_id, stage)`，T-type 的 stage 取本拓扑已实施能力表；旧拓扑映射保持已实现路径。完整/刷新/独立控制器共用此入口。T-type 的 `is_first_pass_topology_only` 仅在至少 device 正式接通后为 False，随后仍逐 stage 检查；不能移出集合便调用整个旧默认链。
+
+| 完成步骤 | 新开放能力 | 仍必须保护 |
+|---|---|---|
+| 当前/step0 | 原基础设计/波形/应力/固定 candidate 刷新 | 所有工程组件/系统/sweep/export |
+| step1 | device、已支持封装参考几何 | magnetics/capacitors/system/thermal/system geometry/sweep/export |
+| step2 | magnetics、单磁件参考结果 | 未选银行与选后完整 closure；系统结果仍不可用 |
+| step3 | capacitors、bank selection/ripple diagnostics | 未完成硬件快照/全链刷新前不得系统合计 |
+| step4 | hardware_refresh/current component readback | scope 系统/热/整体几何及扫描仍待 step5/6 |
+| step5 | scope system/thermal/geometry/current component GUI | 固定硬件 sweep/完整工程 export 尚待 step6 |
+| step6 | sweep/engineering export | finite deadtime/energy/control 模型继续未开放 |
+
+拓扑声明、full/refresh、RunDesignController/WaveformController/EfficiencySweepController、组件 controller 入口和结果页均核查阶段，direct call 也不可绕过。首轮 forbidden-downstream 测试在以后已开放阶段更新为能力契约，未开放负例继续保留。公共模型/typed报告扩展时全家族 schema/contract 消费者回归，当前 step0 不修改这些生产文件。
+
+### 15.6 当前基线与实施边界
+
+本步工具 `scripts/validate_t_type_engineering_step0.py` 保存当前解释器/源码/测试 SHA、未过滤库记录与源文件 checksum、normalized-v2 固定库 provenance、六 NPC 电气快照、NPC 真实完整组件链及两点固定硬件扫描、旧两电平/全桥器件链 report/structured/overview。原始报告保持完整；归一化仅按工具显式 timing/run ID 清单和该 case 精确输出根替换，硬件/数值/状态/警告/source 不删除；非有限标记保留且不能算接受。
+
+NPC 当前工程链 baseline 是旧行为保护，不自动证明其全包络、原全部 proxy 精度或硬件验收。当前 T-type 只做真实基础 envelope 与 selector callback/导通表/失败接口探针；callback 受控热 fixture 不证明真实选型。实际命令、结果、证据、限制及 Git 回执记录在第二轮计划第 10 节。

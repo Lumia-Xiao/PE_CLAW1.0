@@ -1,8 +1,8 @@
 # 三相三电平 T-type 第二轮工程链接入计划
 
-- 状态：Active / 待实施；本次只建立计划，不实施步骤 0–7。
+- 状态：Active / 步骤 0 验证中；步骤 1–7 待实施。
 - 创建日期：2026-10-13。
-- 当前授权：撰写第二轮工程计划；用户认可接入顺序，生产代码实施尚未开始。
+- 当前授权：执行步骤 0，冻结接口/范围/阶段开放方案并保存当前基线；不提前实施步骤 1 的生产选型。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
 - 撰写基准：`622920211ffa1185799365d0f4d1f50e0119a521`；分支 `codex/llc-waveform-operating-point-plan`。
@@ -102,7 +102,7 @@
 
 | 步骤 | 交付 | 依赖 | 当前状态 |
 |---|---|---|---|
-| 0 | 冻结二轮接口、范围、基线和阶段开放方案 | 本计划 | 待实施 |
+| 0 | 冻结二轮接口、范围、基线和阶段开放方案 | 本计划 | 验证中，Git 回执待完成 |
 | 1 | 半导体两角色真实库选型 | 0 | 待实施 |
 | 2 | 三相电感接入 | 1 | 待实施 |
 | 3 | 上/下银行电流与真实电容选型 | 0、2 | 待实施 |
@@ -111,7 +111,7 @@
 | 6 | 固定硬件扫描、完整工程 GUI/报告/导出 | 5 | 待实施 |
 | 7 | 二轮完整验收、旧消费者回归、隔离与归档 | 6 | 待实施 |
 
-各步实施前写明本步影响与精确验证清单；必要验证通过、ChangeLog 追加、diff 检查、独立 commit/push 并核实远端后才能标完成。当前只是计划撰写授权；本计划不自动触发生产实施，也不新增逐步审批要求。
+各步实施前写明本步影响与精确验证清单；必要验证通过、ChangeLog 追加、diff 检查、独立 commit/push 并核实远端后才能标完成。当前授权止于步骤 0；本计划不自动触发后续生产实施，也不新增逐步审批要求。
 
 ### 步骤 0：冻结接口、损耗范围与基线
 
@@ -217,7 +217,7 @@
 
 ## 7. 验证入口、成本与回归范围
 
-本次仅文档审查，不运行电气链。以下为未来实施命令/清单；新增 step0–7 文件当前不存在，只有实际创建并审查后才能执行，不将收集当执行。
+步骤 0 已建立 `tests/test_t_type_engineering_step0_contract.py` 和 `scripts/validate_t_type_engineering_step0.py`，当前执行记录见第 10 节。步骤 1–7 新增测试仍待创建；以下为分步命令/清单，只有实际创建并审查后才能执行，不将收集当执行。
 
 实施前在仓库根设置当前 `src` 和仓库根的 PYTHONPATH，预检 `sys.executable`/版本、`pe_claw_gui.__file__`、pytest 与显式测试位置。示例（实际 argv 和路径写当步回执）：
 
@@ -267,3 +267,38 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-r2-s1 tests/test_t_type_enginee
 - 依据实际 NPC/T-type roles、selector callback、capability、full stage order、KCL 契约及旧测试文件建立方法；24 个本地链接和 47 个既有测试文件引用检查通过，ChangeLog 原有字节保持前缀、仅追加。语义审查覆盖暂缓能量、KCL 方向、逐位置数量、选后闭环和 scope 完整性；`git -c core.longpaths=true diff --check` 通过。普通全差异命令曾遇历史长路径，改用单次 longpaths 参数后检查完成，不修改仓库配置或历史文件。
 - 本次文档无电气行为改变，不运行 pytest/真实设计，不宣称第二轮验证通过；初始用户文件/95项删除/outputs/证据保留。
 - 文档提交使用上述特性分支并推送已核实上游；最终 SHA 与远端确认以本次完成报告和 Git 历史为准，本节不提前填写实施通过或推送成功。
+
+## 10. 第二轮步骤 0 执行回执（2026-10-13）
+
+### 10.1 授权、分类与冻结内容
+
+- 授权仅执行步骤 0；分类为文档/测试工具变更。新增验证工具和接口探针，扩充 T-type 契约第 15 节、更新本计划与 ChangeLog；未修改生产模型、角色注册、公共 dataclass、库记录、筛选政策或实际 capability。旧生产消费者仍使用原合同，其他 AC-DC/DC-DC 完整链不在本次验证范围。
+- [契约第 15 节](../../docs/three_phase_three_level_t_type_contract.md#15-第二轮步骤-0-冻结的工程接口2026-10-13) 冻结精确的拟新增类型/字段、adapter 请求、producer/consumer、单位/统计/实例计数、缺项/失效策略、阶段能力和数值容差。首个真实路径为注册库带 FRD 的 ROHM RG 离散 IGBT；模块终端组合未经验证不能视为可用。
+- 本轮范围 ID 为 `t_type_conduction_magnetics_capacitors_v1`，导通/三相磁件/上下银行损耗纳入；死区、开关/恢复能量等排除项按 not_modeled 标注。selector 使用现有 callback 读取导通曲线，禁止默认整套能量评价；逐位置实际损耗不能用组包络乘位置数替代。
+- 设计 candidate 保留原 L/C 目标，实际硬件进入拟建 typed snapshot/effective 参数视图；三个相实例、两银行、12 位置与采购封装分别计数。stage0 保留全部工程入口保护，steps1–6 逐项开放；步骤 1 尚未实施。
+
+### 10.2 环境与本次证据
+
+- 基准 HEAD `3bab9d13b08243ebf12764799032f08c031476c6`，当前 Python 3.12.10、工作区 src 和显式 tests；每次 preflight 保存解释器路径、package 路径、分支/dirty status、src/tests/scripts/docs SHA。95 项既有 tracked 删除、用户 outputs、既有证据均保留。
+- 工具 [validate_t_type_engineering_step0.py](../../scripts/validate_t_type_engineering_step0.py) 为当前运行建立独立输出根，保存完整原始/归一化 report、structured、overview 和库清单。只删除显式 timing/run-ID 键、替换当前精确 run root；NaN/Inf 保留标签，工程字段、硬件、警告、来源不隐藏。快照用于后续旧行为比较，不能替代物理正确性证明。
+- 聚焦命令：`python -B scripts/validate_t_type_engineering_step0.py .tt-r2-s0-focus tests/test_t_type_engineering_step0_contract.py`。13 passed、0 failures/errors/skips，128.21 s；现有 cache_dir 配置 warning 1。路径 `.tt-r2-s0-focus/{preflight.json,test_receipt.json,junit.xml,pytest.log}`。
+- 方向表 6 个独立正负电流例、真实 IGBT 导通表调用且禁止能量接口、selector callback 路由与电压/热受控拒绝、非有限保留探针通过。callback 的热/损耗数值是受控 fixture，不是 T-type 真实器件选型。
+- 两个实际 waveform 测试各生成 bus={700,800}×load={0.1,0.5,1}×PF={0.8,1} 的 12 点，超前/滞后共 24 点；同一 PF1 设计 L=1.0716517624676405 mH，candidate 不变，12 位置静态耐压及实际命令可调制性通过。`temp/**/envelope.json` 保存原指标；不是实物 L 选后范围验收。
+
+### 10.3 当前旧拓扑权威基线
+
+- 命令：`python -B scripts/validate_t_type_engineering_step0.py .tt-r2-s0-baseline-fixed --baseline-only`，exit 0，409.42 s。权威索引 `.tt-r2-s0-baseline-fixed/baseline_manifest.json`，环境/SHA 在 `preflight.json`，最终回执在 `completion.json`。生成物仅本地保留，不暂存。
+- NPC 六份当前完整电气 payload 与历史源 SHA 精确一致。另以当前真实注册库运行 NPC 完整器件/磁件/上下银行及 0.5/1.0 固定硬件扫描；必需损耗有限且非负，原发布 total 等于三类损耗之和，eta 等于 Pout/(Pout+total)，按冻结 W/ratio 容差验证。三个报告的 structured schema_errors=[]。
+- 器件读回：NPC outer/inner=`CAB011M12FM3`、clamp=`SCS320KN`；旧两电平=`SCT4018KR`；旧全桥=`SCT4045DLL`。后两组为默认输入的器件链，未启用其磁件/电容，不能宣称完整系统验收。
+- 归一化 SHA：NPC `912f3be557c22631b50ab3fafce35a09f08c7e94b428cc022f113d2214489739`；两电平 `4b60d4e2bd9663df925c502b24310f80a99b41312d91e0700b8294bec5655708`；全桥 `30d08447d1bea628ee434351e70369c7a87f897cc7ad497c0a7268b57920e074`。原始快照与字节数见 manifest；不删巨型报告以缩减证据。
+- 基线保存旧状态原值：NPC 调用扫描后 stage_status 仍为 not_started，两电平可有选中器件而状态仍为 not_started。这些字段不用于替代本次组件/数值检查，本步不修旧生产状态。未来 step4/6 来源与状态完善须分别审查。
+- 首次 `.tt-r2-s0-baseline` 已完成 NPC 部分，随后因工具给两电平传空输入缺少 vdc_nom 失败；保留 baseline_failure.json 和所有已生成证据。修正为插件现有 build_default_inputs 后在新目录重跑全部三组，不改生产代码或门槛。
+
+### 10.4 验证边界与 Git
+
+当前新增生产公式、物理系统总量、T-type 真实硬件选择均不适用本步骤；用户工作流/隔离以当前首轮基本链回归为限，真实工程 GUI/export 仍属后续步骤。本次不运行 full suite、完整旧家族矩阵或 NPC step9 proxy 验收；不宣称模型边界外物理精度/采购/硬件验收，不以历史 426 项替代。
+
+- 主组命令：`python -B scripts/validate_t_type_engineering_step0.py .tt-r2-s0-gate`，pytest 部分 241 passed，1114.14 s；测试 exit 0。进程在修正前已加载工具，后续基线仍因空输入失败（整个命令 exit 1），保留 `.tt-r2-s0-gate/baseline_failure.json`；不能宣称这条整命令成功。权威基线采用 10.3 的修正后独立运行。
+- 补充基础组命令：`python -B scripts/validate_t_type_engineering_step0.py .tt-r2-s0-basic-rest tests/test_t_type_step6_gui.py tests/test_t_type_step7_operating_point.py tests/test_t_type_step8_acceptance.py tests/test_t_type_step8_isolation.py`，exit 0，44 passed，947.93 s。覆盖真实基础 Tk/当前报告读回、不可达后恢复、固定 candidate 刷新与 NPC/T-type 双顺序重复隔离。
+- 两组各 0 failures/errors/skips，仅既有 cache_dir warning；JUnit 核对 241+44=285 个不同测试项，src/tests SHA 一致，节点文件集合覆盖工具最终显式清单。聚焦 13 项不重复计入 285。`.tt-r2-s0-baseline-fixed/aggregate_validation.json` 保存核对结果；不是一次全量 pytest。
+- 两个 Python 文件 AST 检查、40 个本地文档链接检查、ChangeLog 原文前缀（保留工作区 CRLF）和 `git -c core.longpaths=true diff --check` 通过。步骤 0 验证完成，Git 提交推送待回执；仅提交五个任务文件，运行证据/outputs/95 项既有删除不暂存。
