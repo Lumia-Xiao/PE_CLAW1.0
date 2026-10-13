@@ -1,8 +1,8 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Active；步骤 0–6 已验证并推送，步骤 3 缺口已补齐（9.11）；步骤 7 已验证待提交推送，步骤 8 待执行。
+- 状态：Active；步骤 0–7 已验证并推送，步骤 3 缺口已补齐（9.11）；步骤 8 待执行。
 - 创建日期：2026-10-12。
-- 当前授权：步骤 7 固定参数运行点刷新；步骤 8 不自动开始。
+- 当前授权：步骤 7 固定参数运行点刷新已验证并推送；步骤 8 不自动开始。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`；步骤 6 已接入注册并验证，实现提交 `ba958e2` 已推送。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
@@ -143,7 +143,7 @@
 | 4 | T-type 12 路门极、导通路径和理想事件 | 3 | 已完成并推送，见 9.10 |
 | 5 | 逐位置应力、报告及首次后端贯通 | 4 | 已完成并推送，见 9.11 |
 | 6 | 注册/能力/GUI 接入与未接阶段保护 | 5 | 已验证并推送（9.12） |
-| 7 | 固定参数运行点刷新 | 6 | 已验证，待提交推送（9.13） |
+| 7 | 固定参数运行点刷新 | 6 | 已验证并推送（9.13） |
 | 8 | 首轮贯通、旧拓扑回归、隔离与收尾 | 7 | 待执行 |
 
 ### 步骤 0：核对基础并冻结首轮接口
@@ -223,7 +223,7 @@
 - 当前 waveform/stress/topology_result 与报告工况一起更新；选择不同拓扑、失败刷新或变更设计参数时不显示旧有效结果。失败原因按现有控制器状态策略呈现；不能用旧设计数组补齐新点。
 - 拟新增 `tests/test_t_type_step7_operating_point.py`：所有首轮有限工况、局部方向、固定参数、合成/选型调用为零、旧报告不可变、不可达点/来源失配及 GUI 当前数值。
 - 验证：step1–7 +受影响 refresh/controller 旧消费者；完成：固定参数矩阵和状态失效通过，GUI 两次刷新数字匹配；Git 门槛满足。
-- 实际执行/Git 回执：必要验证已通过，见 9.13；提交推送后才能标完成。
+- 实际执行/Git 回执：已验证并推送，实现 8420ce1；见 9.13。
 
 ### 步骤 8：首轮贯通、隔离及收尾
 
@@ -593,3 +593,5 @@ GUI 源为当前 report；T-type waveform 的 basis/time_s/phases/positions/stre
 最后补充只收紧控制器失败清理判定：spec/所选拓扑/plugin/candidate 任一属于 T-type 时均清除错误来源当前结果，特别是 candidate-only 混用；不改求解、正常路由、GUI 回调或其他拓扑失败政策。python -B scripts/validate_t_type_step7_operating_point.py .tt7-source 'tests/test_t_type_step7_operating_point.py::test_mismatched_design_source_is_rejected[candidate_only]' tests/test_dc_ac_target_integration.py::test_controller_design_to_waveform_chain_reuses_candidate_and_selected_hardware：4 passed，0 failures/errors/skips，18.27 s，cache_dir 警告 1；六份 NPC 完整 SHA 精确不变。该次源码 SHA 是最终生产版本，前三个目录保留各自所验修订，不混称一次全通过运行。
 
 证据结论分别成立：物理公式为累计独立分段积分/应力 Simpson/加密及本步三相功率/PF 参考与局部端子表；契约为来源、固定参数、零合成/下游调用、非法/缺数据拒绝；用户链路为真实两按钮、即时失效、连续刷新六位数字/数组与失败恢复；隔离为旧报告/candidate 完整快照、刷新数组不共享和累计 NPC/T-type 双顺序重复。没有未解释必要失败；全量 pytest、步骤 8、实物器件/损耗/效率及完整工程导出未执行，不作为本步交付。日志/输出/历史删除均保留不暂存。Git 回执待追加。
+
+步骤 7 Git 回执（2026-10-13）：实现提交 8420ce1042e1fc7a33977f021408b67c2ce35c5f 已推送至 pe-claw-1.1/codex/llc-waveform-operating-point-plan，git ls-remote 核实同 SHA。仅 11 个目标源码/测试/工具/文档文件，没有暂存生成物或无关删除；全差异与暂存 diff --check 通过，ChangeLog 只追加。步骤 7 必要门槛已满足；本次完成状态/Git 回执为文档收尾提交，复用实际通过验证，不改生产代码。步骤 8 与后续实物工程范围未执行，计划保持 Active。
