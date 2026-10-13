@@ -4,13 +4,14 @@ from __future__ import annotations
 import os
 import sys
 
-from validate_t_type_step6_gui import ROOT, main
+from validate_t_type_step6_gui import ROOT, TESTS as STEP6_TESTS, main
+from validate_t_type_step7_operating_point import TESTS as STEP7_TESTS
 
 sys.path.insert(0, str(ROOT))
 os.environ["PYTHONPATH"] = os.pathsep.join((str(ROOT), os.environ.get("PYTHONPATH", "")))
 
 
-TESTS = [
+TESTS = list(dict.fromkeys([
     "tests/test_t_type_step8_acceptance.py",
     "tests/test_t_type_step8_isolation.py",
     "tests/test_t_type_step7_operating_point.py",
@@ -33,7 +34,9 @@ TESTS = [
     "tests/test_phase10_gui_integration.py",
     "tests/test_phase12_verification.py",
     "tests/test_design_run_output_isolation.py",
-]
+    *STEP6_TESTS,
+    *STEP7_TESTS,
+]))
 
 
 if __name__ == "__main__":

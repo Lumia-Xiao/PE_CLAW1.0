@@ -2086,3 +2086,10 @@ listed here.
 - 未执行：full suite、真实器件及数据手册曲线、有限死区/换流能量、损耗/效率/热/磁件、完整 JSON/CSV 工程导出和硬件验收。结论限定为“T-type 第一轮基础链路完成”。证据目录和 pytest 工件保留在本地且未提交；`outputs/`、无关 tracked 删除及其他用户文件未触碰。
 
 - Git/归档：步骤 8 实现、测试、契约、README、ChangeLog 与计划移动提交 `ed0440323cb4cef4861fcac517cac7911240ba62` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 已核实同 SHA。计划已从 `Plan/Active/` 移动至 `Plan/completed/`，移动后相对链接检查通过；本地无关删除、outputs、pytest 工件和其他 untracked 文件未暂存。
+
+## 2026-10-13 - T-type 步骤 8 补齐旧消费者门禁与最终回执
+
+- 根因/修正：收尾复核发现初版步骤 8 清单遗漏步骤 6/7 的部分旧消费者及 phase4 注册节点，初版完成/归档状态早于全部必要门禁。`scripts/validate_t_type_step8_acceptance.py` 改为合并步骤 6/7 清单并保序去重，补充执行遗漏的 16 个文件/节点；没有修改生产代码、工程公式、选择策略或库记录。契约修正历史状态、首轮已实现映射及实际局部字典载荷说明，README 和归档计划同步最终范围。
+- 实际验证：`.tt8-consumers` 当前 Python 3.12.10/src/tests，143 passed、0 failures/errors/skips，980.34 s，既有 cache_dir warning 1；六份 NPC 完整历史 payload SHA 精确一致。包含旧 AC-DC 五拓扑完整 GUI/组件/磁件/损耗/效率/导出、注册/表单/插件、PFC/NPC 页面和旧 DC-AC、LLC、PSFB 消费者。两组 JUnit 核验为 283＋143＝426 个不同通过项，节点集合覆盖最终默认清单，生产源码一致；aggregate_validation.json 为本地生成证据。聚焦 7 项另列，不重复计入 426。初次断言失败历史继续保留，不伪造一次全套通过。
+- 收尾：两个文档 36 个本地链接有效，当前 GUI 数字/六行图证据路径写入计划 9.14；日志仅追加。全量 pytest 与 T-type 真实组件、死区/能量、损耗效率/热及完整工程导出仍未执行。结论仅为第一轮基础链路完成。
+- Git/范围：沿用 `codex/llc-waveform-operating-point-plan` 及 `pe-claw-1.1` 同名上游，前序实现 `ed04403`、回执 `8bfdeac` 已推送核实；本修正仅提交验收脚本、契约、README、归档计划及日志，最终 SHA/远端核实见 Git 历史与完成报告。用户 outputs、全部既有无关删除和本地证据保留不提交；不执行清理或备份。

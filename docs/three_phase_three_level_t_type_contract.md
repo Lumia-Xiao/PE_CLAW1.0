@@ -274,7 +274,9 @@ dW_L/dt = P_bridge - sum(v_grid,k*i_k)
 
 ### 12.2 实现前和实现后的门槛
 
-| 证据类别 | 必需检查 | 本轮状态 |
+下表保留 v0.1 撰写时的完整工程门槛；当前首轮子集的实现和实际验证见第 14 节及实施计划 9.14。
+
+| 证据类别 | 必需检查 | v0.1 撰写时状态 |
 |---|---|---|
 | 公式/电路 | 端子表与连接图一致；3 状态×2 电流方向；8 种换流；局部符号；静态与事件电压；母线 KCL/能量 | 文档推导与数值复核；无生产实现验证 |
 | 独立参考 | 用手算分段解或独立开关电路模型核对事件时刻、换流对象、电压和电流；不只比较 NPC/T-type 同一个 helper | 待实现阶段执行 |
@@ -305,13 +307,13 @@ dW_L/dt = P_bridge - sum(v_grid,k*i_k)
 - 文档检查：连接/状态/导通/死区/换流/耐压表交叉审查；独立 Python 标量复核第 12.1 节；本地 Markdown 链接存在性；ChangeLog append-only；定向及暂存 `git diff --check` 和差异审查。
 - 不运行 pytest、收集、电气链、GUI 或拓扑验收；本轮不生成工程黄金参考。提交/推送结果以实际 Git 回执为准。
 
-## 14. 步骤 0 冻结的第一轮实现接口
+## 14. 步骤 0 冻结且首轮已实现的接口
 
-本节与 [已完成的实施计划](../Plan/completed/three_phase_three_level_t_type_implementation_plan.md) 共同规定第一轮子集；第 2–5 节电路与方向继续有效。第 6–10、12 节中有限死区、器件能量、动态电容、真实选型、系统效率及完整导出属于后续工程扩展，不作为第一轮门槛。新增基础代码的公式、契约、GUI 数字和隔离测试仍须执行。本节只冻结未来行为；步骤 0 的 NPC 回执不能证明 T-type 已实现。
+本节与 [实施计划](../Plan/completed/three_phase_three_level_t_type_implementation_plan.md) 共同规定第一轮子集；第 2–5 节电路与方向继续有效。第 6–10、12 节中有限死区、器件能量、动态电容、真实选型、系统效率及完整导出属于后续工程扩展，不作为第一轮门槛。本节输入、合成、波形、应力和刷新映射已实现；实际验收范围以 14.4 和计划回执为准，步骤 0 的 NPC 回执仍不能单独证明 T-type 正确性。
 
 ### 14.1 输入、规格与运行点
 
-拟定 `LEGACY_KEY=ThreePhase_ThreeLevel_T_Type_Inverter`，显示名称 `Three-Phase Three-Level T-type Inverter`。raw input 保持字符串映射，经本拓扑解析器生成有限 SI 数值；不调用 NPC 的完整 design-basis 解析器带入死区、过冲或器件默认值。
+已实现 `LEGACY_KEY=ThreePhase_ThreeLevel_T_Type_Inverter`，显示名称 `Three-Phase Three-Level T-type Inverter`。raw input 保持字符串映射，经本拓扑解析器生成有限 SI 数值；不调用 NPC 的完整 design-basis 解析器带入死区、过冲或器件默认值。
 
 | raw 键 | 默认值 / 单位 | 规范化及边界 |
 |---|---|---|
@@ -366,11 +368,11 @@ m_command = 2*sqrt(2)*abs(V_inv,phasor)/Vdc
 
 `candidate.metadata["t_type_design_estimates"]` 保存上述估算、公式 ID、单位/数量、相位、主/中点静态电压及逐位置保守电流估计；刷新不修改该字典。`t_type_model_scope` 显式声明 ideal/zero-deadtime/balanced-bus/unselected-components/unmodeled-losses。
 
-B1 独立标量参考：L=1.071651762 mH/相，ΔI_target,pp=4.082482905 A，Ceq_proxy=40.816326531 μF，Cbank_proxy=81.632653061 μF，m_command≈0.933345504。B3 两次 PF=0.8 设计各自 L=0.857321410 mH，滞后/超前 m_command≈0.945050474/0.921491868。解析参考及实际合成回执见 Active 计划 9.8/9.11。
+B1 独立标量参考：L=1.071651762 mH/相，ΔI_target,pp=4.082482905 A，Ceq_proxy=40.816326531 μF，Cbank_proxy=81.632653061 μF，m_command≈0.933345504。B3 两次 PF=0.8 设计各自 L=0.857321410 mH，滞后/超前 m_command≈0.945050474/0.921491868。解析参考及实际合成回执见实施计划 9.8/9.11。
 
 ### 14.3 波形、应力与报告字段
 
-`WaveformSet.metadata["three_phase_t_type_pd_spwm_waveforms"]` 是三相完整载荷的唯一绘图来源（拟本地类型结构，显式 `to_dict`；不改共享模型）：
+`WaveformSet.metadata["three_phase_t_type_pd_spwm_waveforms"]` 是三相完整载荷的唯一绘图来源；当前采用 `waveform.py` 生成的拓扑局部字典，`stress.py` 校验和读回，不改共享模型：
 
 - `schema_version=1`；`basis` 含实际 `vdc_v/vac_ll_rms_v/pout_w/load_ratio/power_factor/power_factor_phase/fsw_hz/f_line_hz/inductance_h/model_scope`，全部单位固定；线路周期和窗口随载荷记录。
 - `time_s`；`phases.a/b/c` 各有 `state`（+1/0/−1）、`pole_to_o_voltage_v`、`phase_neutral_voltage_v`、`grid_voltage_v`、`current_a`、`reference_current_a`、`inductor_voltage_v`、`gates.QP/QN/QA/QO`；线电压在 `line_line_voltage_v.ab/bc/ca`。
@@ -408,4 +410,4 @@ T-type 表单的三个运行控件写入时，Workspace 立即清空 state repor
 
 ### 14.4 验证来源与当前状态
 
-数值容差、NPC 共享抽取名单及基准见实施计划步骤 0；步骤 1–5 的公式、导通/理想事件、实际波形、时间积分应力和基础报告回执见 9.7–9.11。步骤 6 GUI/注册证据记录于 9.12；步骤 7 刷新测试与实际回执记录于 9.13：累计 377 项、收尾 38 项及 candidate-only 来源保护补充 4 项均实际通过，且为不同修订的明确执行范围。步骤 8 聚焦 7 项、累计 283 项均为当前工作区实际通过，0 failures/errors/skips；NPC 六份完整 payload SHA 在各次运行中精确不变。GUI/报告证据只覆盖当前首轮的设计、波形、应力、运行点刷新和 bounded L/C 摘要；未覆盖真实器件、死区/换流能量、损耗/效率/热、完整工程导出或 full suite。
+数值容差、NPC 共享抽取名单及基准见实施计划步骤 0；步骤 1–5 的公式、导通/理想事件、实际波形、时间积分应力和基础报告回执见 9.7–9.11。步骤 6 GUI/注册证据记录于 9.12；步骤 7 刷新测试与实际回执记录于 9.13：累计 377 项、收尾 38 项及 candidate-only 来源保护补充 4 项均实际通过，且为不同修订的明确执行范围。步骤 8 聚焦 7 项、首组累计 283 项及补充旧消费者 143 项均实际通过，0 failures/errors/skips；两组共 426 个不同项覆盖最终默认清单，生产源码相同，非一次 full suite。NPC 六份完整 payload SHA 在各次运行中精确不变。GUI/报告证据只覆盖当前首轮的设计、波形、应力、运行点刷新和 bounded L/C 摘要；未覆盖真实器件、死区/换流能量、损耗/效率/热、完整工程导出或 full suite。初版收尾状态过早，已按补齐门禁后的实际结果修正，详见计划 9.14。

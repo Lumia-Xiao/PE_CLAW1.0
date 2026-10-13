@@ -1,8 +1,8 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Completed；步骤 0–8 已验证并推送，步骤 3 缺口已补齐（9.11）。
+- 状态：Completed；步骤 0–8 已验证，步骤 3 缺口已补齐（9.11）；步骤 8 最终门禁为两组共 426 个不同测试项（9.14）。
 - 创建日期：2026-10-12。
-- 当前授权：步骤 8 首轮贯通、隔离及收尾已验证并推送；本轮基础链完成，后续真实工程范围另行立项。
+- 当前授权：步骤 8 首轮贯通、隔离及收尾；不扩展后续真实工程范围。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`；步骤 6 已接入注册并验证，实现提交 `ba958e2` 已推送。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
@@ -144,7 +144,7 @@
 | 5 | 逐位置应力、报告及首次后端贯通 | 4 | 已完成并推送，见 9.11 |
 | 6 | 注册/能力/GUI 接入与未接阶段保护 | 5 | 已验证并推送（9.12） |
 | 7 | 固定参数运行点刷新 | 6 | 已验证并推送（9.13） |
-| 8 | 首轮贯通、旧拓扑回归、隔离与收尾 | 7 | 已完成并推送（9.14） |
+| 8 | 首轮贯通、旧拓扑回归、隔离与收尾 | 7 | 已通过 283＋143 项；最终修正提交/推送以 9.14 及 Git 历史回执为准 |
 
 ### 步骤 0：核对基础并冻结首轮接口
 
@@ -233,7 +233,7 @@
 - 纯基础链不验收原始系统损耗/效率、实物硬件和完整工程导出，注明本轮未交付；全量 pytest/发布验收不默认执行，若共享影响不能界定先扩大门禁并记录原因。
 - 更新契约首轮实现映射、README 和计划状态，保留后续五组事项；全部本轮门槛通过且各步已推送后才归档到 `Plan/completed/`，核对移动后的相对链接。
 - 完成：首轮完整交付可复核、无未解释的必要失败、生成工件未暂存、ChangeLog/diff/Git 收尾通过。只称“第一轮基础链路完成”。
-- 实际执行/Git 回执：已完成，验证与文档收尾见 9.14；实现提交和计划归档提交的 SHA/远端核实以本次完成回执为准。
+- 实际执行/Git 回执：首轮门禁已通过；补充旧消费者门禁和最终 Git 回执见 9.14。
 
 ## 7. 验证命令、测试清单和执行环境
 
@@ -609,3 +609,9 @@ GUI 源为当前 report；T-type waveform 的 basis/time_s/phases/positions/stre
 步骤 8 还验证了 T-type/NPC/T-type 重复运行的独立输出目录、manifest、run ID、顶层 payload 键隔离，以及多次波形刷新不共享可变 payload；设计变化和拓扑切换都会清除旧报告，失败刷新保留可恢复 candidate。既有 `cache_dir` 配置 warning 单列。公式、契约、用户链路和隔离证据分别由步骤 1–7 与本步骤专项断言支撑，不把 NPC 复用一致性当作 T-type 器件路径证明。
 
 本步骤没有执行 full suite、真实器件选型、数据手册曲线、死区/换流能量、损耗/效率/热/磁件、完整工程 JSON/CSV 导出或硬件验收；这些仍是后续工程轮。步骤 8 完成声明限定为“**T-type 第一轮基础链路完成**”。ChangeLog、契约、README 和计划收尾后，计划移动至 `Plan/completed/`，并复核移动后的相对链接。
+
+最终收尾复核发现初版默认清单漏列部分步骤 6/7 的旧消费者和两个 phase4 注册节点，因此首版完成状态及归档早于全部必要门禁，不能单凭该状态视为完成。已将运行器清单改为首组清单与步骤 6/7 清单的保序去重并集；生产代码没有变化。按该并集扣除 `.tt8-pass` 已执行节点，补充执行余下 16 个文件/节点，精确 pytest argv、解释器、测试 SHA 和退出码见 `.tt8-consumers/test_receipt.json`。补充结果：143 passed，0 failures/errors/skips，980.34 s；1 条既有 cache_dir warning；六份 NPC 完整 SHA 精确一致。覆盖 packaged GUI、旧 AC-DC 五拓扑完整选型/磁件/效率/导出、两相 PFC 读回、注册/表单/插件、NPC 损耗页面，以及旧全桥/两电平、LLC、PSFB 的公式/运行点和控制器消费者。上述旧拓扑验收不扩展 T-type 组件阶段。
+
+`.tt8-consumers/aggregate_validation.json` 由本地核验生成：两组 JUnit 的 283＋143＝426 个不同测试项无重复且全部通过；两组节点集合恰好覆盖最终默认清单。两组验证基准至当前提交的生产源码无差异；步骤 8 测试文件只做末尾空白/换行收尾，已核验其测试逻辑未变。GUI 当前数值证据在 `.tt8-pass/temp/test_real_gui_first_pass_user_0/gui_readback.json`，运行点为 800 V、半载、PF=0.8 滞后；步骤 6/7 的读回证据分别在 `.tt8-pass/temp/test_real_tk_card_buttons_curr0/gui_readback.json` 和 `.tt8-pass/temp/test_real_gui_two_refreshes_cu0/gui_readback.json`。六行图在 `.tt8-pass/temp/test_real_tk_card_buttons_curr0/t_type_waveform.png`，已目视核对。两个文档 36 个本地链接均有效；日志 append-only、diff 与暂存范围在最终提交前复核。
+
+Git：初版实现/归档提交 `ed0440323cb4cef4861fcac517cac7911240ba62` 和回执提交 `8bfdeac0ca56f0edbc9cce99a347e21ef3f5a832` 已推送核实。上述补充门禁通过后才确认首轮完成；最终清单、契约及回执修正独立提交推送至同一特性分支，具体 SHA 和远端确认见 Git 历史及本次完成报告。归档路径保持 `Plan/completed/`，未暂存证据、用户输出或既有无关删除。

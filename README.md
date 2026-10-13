@@ -339,7 +339,7 @@ T-type currently supports Run Design, Generate Waveforms, three-phase voltage/cu
 
 T-type operating refresh accepts DC bus voltage, load ratio [0,1] and PF magnitude (0,1] while retaining the synthesized design, per-phase L, per-bank C estimate and design PF phase. Editing an operating input clears current results until waveforms are regenerated. Unsupported grid-voltage/frequency changes, inconsistent design sources and unreachable operating points are rejected; failed refreshes retain the candidate for recovery.
 
-The first-round T-type chain has been accepted through the real Run Design → operating-point edit → Generate Waveforms path, current Summary/Waveform/Stress readback, bounded L/C design-summary export, and NPC/T-type order-isolation checks. The bounded gate recorded 7 focused passes and 283 cumulative passes with zero failures, errors, or skips. This is a first-round topology chain result; it does not provide real device selection, dead-time or commutation-energy modeling, loss/efficiency/thermal design, full engineering export, or full-suite release acceptance.
+The first-round T-type chain has been accepted through the real Run Design → operating-point edit → Generate Waveforms path, current Summary/Waveform/Stress readback, bounded L/C design-summary export, and NPC/T-type order-isolation checks. The bounded gate recorded 7 focused passes and two separate acceptance runs of 283 and 143 different tests (426 total), with zero failures, errors, or skips. This is a first-round topology chain result; it does not provide real device selection, dead-time or commutation-energy modeling, loss/efficiency/thermal design, full engineering export, or full-suite release acceptance.
 
 ---
 
