@@ -1,8 +1,8 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Active；步骤 0–7 已验证并推送，步骤 3 缺口已补齐（9.11）；步骤 8 待执行。
+- 状态：Completed；步骤 0–8 已验证并推送，步骤 3 缺口已补齐（9.11）。
 - 创建日期：2026-10-12。
-- 当前授权：步骤 7 固定参数运行点刷新已验证并推送；步骤 8 不自动开始。
+- 当前授权：步骤 8 首轮贯通、隔离及收尾已验证并推送；本轮基础链完成，后续真实工程范围另行立项。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`；步骤 6 已接入注册并验证，实现提交 `ba958e2` 已推送。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
@@ -144,7 +144,7 @@
 | 5 | 逐位置应力、报告及首次后端贯通 | 4 | 已完成并推送，见 9.11 |
 | 6 | 注册/能力/GUI 接入与未接阶段保护 | 5 | 已验证并推送（9.12） |
 | 7 | 固定参数运行点刷新 | 6 | 已验证并推送（9.13） |
-| 8 | 首轮贯通、旧拓扑回归、隔离与收尾 | 7 | 待执行 |
+| 8 | 首轮贯通、旧拓扑回归、隔离与收尾 | 7 | 已完成并推送（9.14） |
 
 ### 步骤 0：核对基础并冻结首轮接口
 
@@ -233,7 +233,7 @@
 - 纯基础链不验收原始系统损耗/效率、实物硬件和完整工程导出，注明本轮未交付；全量 pytest/发布验收不默认执行，若共享影响不能界定先扩大门禁并记录原因。
 - 更新契约首轮实现映射、README 和计划状态，保留后续五组事项；全部本轮门槛通过且各步已推送后才归档到 `Plan/completed/`，核对移动后的相对链接。
 - 完成：首轮完整交付可复核、无未解释的必要失败、生成工件未暂存、ChangeLog/diff/Git 收尾通过。只称“第一轮基础链路完成”。
-- 实际执行/Git 回执：待执行。
+- 实际执行/Git 回执：已完成，验证与文档收尾见 9.14；实现提交和计划归档提交的 SHA/远端核实以本次完成回执为准。
 
 ## 7. 验证命令、测试清单和执行环境
 
@@ -595,3 +595,17 @@ GUI 源为当前 report；T-type waveform 的 basis/time_s/phases/positions/stre
 证据结论分别成立：物理公式为累计独立分段积分/应力 Simpson/加密及本步三相功率/PF 参考与局部端子表；契约为来源、固定参数、零合成/下游调用、非法/缺数据拒绝；用户链路为真实两按钮、即时失效、连续刷新六位数字/数组与失败恢复；隔离为旧报告/candidate 完整快照、刷新数组不共享和累计 NPC/T-type 双顺序重复。没有未解释必要失败；全量 pytest、步骤 8、实物器件/损耗/效率及完整工程导出未执行，不作为本步交付。日志/输出/历史删除均保留不暂存。Git 回执待追加。
 
 步骤 7 Git 回执（2026-10-13）：实现提交 8420ce1042e1fc7a33977f021408b67c2ce35c5f 已推送至 pe-claw-1.1/codex/llc-waveform-operating-point-plan，git ls-remote 核实同 SHA。仅 11 个目标源码/测试/工具/文档文件，没有暂存生成物或无关删除；全差异与暂存 diff --check 通过，ChangeLog 只追加。步骤 7 必要门槛已满足；本次完成状态/Git 回执为文档收尾提交，复用实际通过验证，不改生产代码。步骤 8 与后续实物工程范围未执行，计划保持 Active。
+
+### 9.14 步骤 8 首轮贯通、隔离及收尾（2026-10-13）
+
+本步骤按共享集成范围执行，覆盖 T-type 从 Run Design 到 Generate Waveforms、固定参数运行点刷新、当前报告/页面读回、未接组件阶段保护、NPC 旧消费者回归和跨拓扑隔离。新增 `tests/test_t_type_step8_acceptance.py`、`tests/test_t_type_step8_isolation.py` 及 `scripts/validate_t_type_step8_acceptance.py`；没有修改器件库、损耗/热模型或完整工程导出契约。步骤 8 的 GUI 证据来自真实 Tk 控制器链：设计后修改运行点，重新生成波形，再从当前 `state report` 读取 Summary、Waveform、Stress 和 bounded export；断言拓扑 ID、run/candidate 身份、三相数组、12 路门极、主/中点应力及 L/C 估算一致。导出检查只覆盖当前首轮已支持的 L/C 设计摘要，不宣称完整工程导出。
+
+验证使用当前工作区 Python 3.12.10、pytest 9.1.1、当前 `src`/`tests`，并保留独立输出根与 JUnit/manifest 工件：
+
+- 聚焦步骤 8：`python -B scripts/validate_t_type_step8_acceptance.py .tt8-focus2 tests/test_t_type_step8_acceptance.py tests/test_t_type_step8_isolation.py`，7 passed，0 failures/errors/skips，113.17 s；NPC 六份完整历史 payload SHA 精确一致。
+- 累计步骤 8 门禁：`python -B scripts/validate_t_type_step8_acceptance.py .tt8-pass`，283 passed，0 failures/errors/skips，865.32 s；NPC 六份完整历史 payload SHA 精确一致。
+- 首次聚焦运行曾因测试把 NPC metadata 键误写为 `npc` 而失败；实际键为 `three_phase_npc_pd_spwm_waveforms`，修正测试断言后在 `.tt8-focus2` 通过。该失败历史保留在 `.tt8-focus`，不计入通过数，也未修改生产代码或放宽门槛。
+
+步骤 8 还验证了 T-type/NPC/T-type 重复运行的独立输出目录、manifest、run ID、顶层 payload 键隔离，以及多次波形刷新不共享可变 payload；设计变化和拓扑切换都会清除旧报告，失败刷新保留可恢复 candidate。既有 `cache_dir` 配置 warning 单列。公式、契约、用户链路和隔离证据分别由步骤 1–7 与本步骤专项断言支撑，不把 NPC 复用一致性当作 T-type 器件路径证明。
+
+本步骤没有执行 full suite、真实器件选型、数据手册曲线、死区/换流能量、损耗/效率/热/磁件、完整工程 JSON/CSV 导出或硬件验收；这些仍是后续工程轮。步骤 8 完成声明限定为“**T-type 第一轮基础链路完成**”。ChangeLog、契约、README 和计划收尾后，计划移动至 `Plan/completed/`，并复核移动后的相对链接。

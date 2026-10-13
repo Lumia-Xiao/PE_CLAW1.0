@@ -2077,3 +2077,10 @@ listed here.
 - Git/维护：codex/llc-waveform-operating-point-plan，推送目标pe-claw-1.1同名分支；实现与推送SHA随后追加，推送前不标步骤完成。定向/全差异检查、暂存范围与append-only收尾后提交；测试证据/outputs/无关删除保留不提交，无备份操作。
 
 步骤 7 Git 回执（2026-10-13）：实现提交 8420ce1042e1fc7a33977f021408b67c2ce35c5f 已推送至 pe-claw-1.1/codex/llc-waveform-operating-point-plan，git ls-remote 核实同 SHA。11 个目标文件，生成物与无关删除未提交；git diff --check/暂存检查及追加日志范围审查通过。本次文档收尾只同步计划/契约的完成状态并追加回执，不改生产代码、不重复有效电气验证；文档提交 SHA 见 Git 历史及完成报告。步骤 7 完成范围为首轮固定参数运行点刷新与对应验证，步骤 8、full suite、实物/损耗/效率及完整工程导出仍未执行；未清理用户结果或历史证据，无备份操作。
+
+## 2026-10-13 - T-type 步骤 8 首轮贯通、隔离与收尾
+
+- 交付：新增 `tests/test_t_type_step8_acceptance.py`、`tests/test_t_type_step8_isolation.py` 和 `scripts/validate_t_type_step8_acceptance.py`。验证真实 Run Design → 运行点修改 → Generate Waveforms 链路，以及当前 state report 到 Summary/Waveform/Stress 和 bounded L/C 设计摘要的读回一致性；验证 T-type/NPC 双向重复运行、独立输出目录/manifest/run ID、payload 顶层键隔离、旧报告清理和波形载荷不共享。没有引入真实器件、损耗/效率/热、死区/换流能量或完整工程导出。
+- 分类与范围：共享集成收尾；生产链、公共字段、库记录和旧拓扑公式保持不变。步骤 8 断言只把当前首轮已实现的设计、波形、应力、GUI、固定参数刷新和未接阶段保护作为交付边界；导出只覆盖 L/C 设计摘要。
+- 验证：Python 3.12.10、pytest 9.1.1、当前 `src`/`tests`。`.tt8-focus2` 聚焦 7 passed、0 failures/errors/skips、113.17 s；`.tt8-pass` 累计 283 passed、0 failures/errors/skips、865.32 s；两次均核验 NPC 六份完整历史 payload SHA 精确一致。首次聚焦运行的错误 NPC metadata 键断言保留于 `.tt8-focus`，修正为实际 `three_phase_npc_pd_spwm_waveforms` 后通过；未改生产代码、未放宽门槛。只有既有 `cache_dir` warning。
+- 未执行：full suite、真实器件及数据手册曲线、有限死区/换流能量、损耗/效率/热/磁件、完整 JSON/CSV 工程导出和硬件验收。结论限定为“T-type 第一轮基础链路完成”。证据目录和 pytest 工件保留在本地且未提交；`outputs/`、无关 tracked 删除及其他用户文件未触碰。
