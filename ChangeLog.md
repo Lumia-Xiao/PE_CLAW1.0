@@ -2084,3 +2084,5 @@ listed here.
 - 分类与范围：共享集成收尾；生产链、公共字段、库记录和旧拓扑公式保持不变。步骤 8 断言只把当前首轮已实现的设计、波形、应力、GUI、固定参数刷新和未接阶段保护作为交付边界；导出只覆盖 L/C 设计摘要。
 - 验证：Python 3.12.10、pytest 9.1.1、当前 `src`/`tests`。`.tt8-focus2` 聚焦 7 passed、0 failures/errors/skips、113.17 s；`.tt8-pass` 累计 283 passed、0 failures/errors/skips、865.32 s；两次均核验 NPC 六份完整历史 payload SHA 精确一致。首次聚焦运行的错误 NPC metadata 键断言保留于 `.tt8-focus`，修正为实际 `three_phase_npc_pd_spwm_waveforms` 后通过；未改生产代码、未放宽门槛。只有既有 `cache_dir` warning。
 - 未执行：full suite、真实器件及数据手册曲线、有限死区/换流能量、损耗/效率/热/磁件、完整 JSON/CSV 工程导出和硬件验收。结论限定为“T-type 第一轮基础链路完成”。证据目录和 pytest 工件保留在本地且未提交；`outputs/`、无关 tracked 删除及其他用户文件未触碰。
+
+- Git/归档：步骤 8 实现、测试、契约、README、ChangeLog 与计划移动提交 `ed0440323cb4cef4861fcac517cac7911240ba62` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 已核实同 SHA。计划已从 `Plan/Active/` 移动至 `Plan/completed/`，移动后相对链接检查通过；本地无关删除、outputs、pytest 工件和其他 untracked 文件未暂存。
