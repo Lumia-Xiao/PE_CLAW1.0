@@ -458,3 +458,5 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 - 性能：同默认10kW/700V/400VLL/PF1/20kHz/Any库，普通完整backend6.216865 s，当前完整门禁GUI Run Design6.998/8.442/7.124 s；上轮77.773/81.038 s来自同工作区普通GUI，约9–12倍改善，仅为本环境个案不作普适保证。新case=(700,1,1)，main RGHX5TRX2DF、midpoint RGWX5TS65EHR，n1、main700V/midpoint350V，旧包络硬件虽此次相同但不能要求所有输入相同。
 - 剖析：`.tt-a2-design-point/design.prof/profile.json`，14.815780 s含剖析开销；build_device_selection_requests11.564367 s，一次波形generate9.328103 s、calculate_position_stress1次5.225893 s，stress_readback5次累计2.062230 s（有包含式时间不可相加）。相比旧12次波形/24次应力积分，已去多工况与重复积分；结构/物理验证依然执行，不关闭检查提速。
 - 审阅：所有变更Python AST、60本地链接、diff --check、定向差异和882源码SHA核验通过。95项既有删除、输出/日志/JUnit/剖析/历史证据保留不暂存。此子范围已实现验证；Git完成状态待commit/push核实后追加。A2有符号PF、A3及二轮工程步骤2–7仍待实施。
+
+- Git完成回执：实现 `50bc659cb400caf7673d6cbef87cd76e92114138` 已推送 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote同SHA。第14节授权的额定设计点与积分复用子范围完成；A2有符号PF/A3/工程步骤2–7仍未实施。状态提交只追加本回执与ChangeLog，无生产/测试变化，沿用359项最终实际验证；状态SHA见Git历史。
