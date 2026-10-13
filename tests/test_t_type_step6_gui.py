@@ -111,7 +111,11 @@ def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypa
         assert 'conduction only' in device_text
         assert all(part in device_text for part in report.device.selected_devices.values())
         summary = app.workspace.summary_view.text.get('1.0','end')
-        assert 'C initial proxy per bank = 81.632653 uF' in summary
+        assert 'Cdc per-bank proxy = 81.632653 uF' in summary
+        assert 'Vdc_nom = 700.000000 V' in summary
+        assert 'Pout = 10000.000000 W' in summary
+        assert 'Semiconductor selection = available (conduction only; see Devices).' in summary
+        assert 'Component selection, losses and system efficiency unavailable' not in summary
         assert 'design_estimate' in summary
         form.generate_waveforms_button.invoke()
         app.update_idletasks()
@@ -120,7 +124,10 @@ def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypa
         data = report.waveform.metadata[KEY]
         summary = app.workspace.summary_view.text.get('1.0','end')
         stress = app.workspace.stress_view.text.get('1.0','end')
-        assert f"A-phase total RMS = {data['diagnostics']['phase_statistics']['a']['rms_a']:.6f} A" in summary
+        assert f"Operating I_phase rms (A phase, including PWM ripple) = {data['diagnostics']['phase_statistics']['a']['rms_a']:.6f} A" in summary
+        assert '12 position metrics' not in summary
+        assert 'Topology evaluation' not in summary
+        assert len(summary.splitlines()) < 75
         assert 'Operating DC bus = 700.000000 V' in summary
         assert 'waveform_actual' in summary
         loss = app.workspace.loss_view.text.get('1.0','end')

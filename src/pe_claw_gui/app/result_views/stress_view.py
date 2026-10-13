@@ -33,6 +33,7 @@ def build_stress_summary_lines(
     fallback: str = "Stress results are not available.",
     *,
     include_notes: bool = True,
+    include_positions: bool = True,
 ) -> list[str]:
     """Build compact electrical stress summary lines."""
 
@@ -41,7 +42,9 @@ def build_stress_summary_lines(
 
     stress = report.stress
     if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
-        return _t_type_stress_lines(report, include_notes=include_notes)
+        return _t_type_stress_lines(
+            report, include_notes=include_notes, include_positions=include_positions,
+        )
     switch_title = "Switch stress"
     switch_voltage_label = "V_SW_max"
     switch_peak_label = "I_SW_peak"
@@ -139,7 +142,7 @@ def _fmt_current(value: float | None) -> str:
     return f"{value:.6f} A"
 
 
-def _t_type_stress_lines(report, *, include_notes):
+def _t_type_stress_lines(report, *, include_notes, include_positions):
     """Read current position metrics; estimates are only for absent waveforms."""
     if report.waveform is None:
         from ...topologies.dc_ac.three_phase_three_level_t_type_inverter.stress import stress_readback
@@ -149,10 +152,11 @@ def _t_type_stress_lines(report, *, include_notes):
     lines = [f"T-type stress basis = {readback['basis']}",
              "Per-metric position envelopes; currents are not summed across devices.",
              "Main switches (6 positions)", *_t_type_metric_lines(readback['main']),
-             "Midpoint switches (6 positions)", *_t_type_metric_lines(readback['midpoint']),
-             "12 position metrics (full line period)"]
-    for key, values in readback["positions"].items():
-        lines.extend([key, *_t_type_metric_lines(values)])
+             "Midpoint switches (6 positions)", *_t_type_metric_lines(readback['midpoint'])]
+    if include_positions:
+        lines.append("12 position metrics (full line period)")
+        for key, values in readback["positions"].items():
+            lines.extend([key, *_t_type_metric_lines(values)])
     if include_notes:
         lines.extend(["", *report.stress.notes])
     return lines

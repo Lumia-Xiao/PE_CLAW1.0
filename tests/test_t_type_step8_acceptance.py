@@ -121,6 +121,9 @@ def _run_real_gui_acceptance(root: Path) -> None:
                 assert "Operating load ratio = 0.500000 pu" in summary
                 assert "Operating PF = 0.800000 lagging" in summary
                 assert "Operating active power = 5000.000000 W" in summary
+                assert "12 position metrics" not in summary
+                assert "Topology evaluation" not in summary
+                assert len(summary.splitlines()) < 75
                 assert "Static blocking maximum = 700.000000 V" in stress
                 assert "Static blocking maximum = 350.000000 V" in stress
                 assert len(app.workspace.waveform_view.figure.axes) == 6

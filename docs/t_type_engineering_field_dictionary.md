@@ -58,3 +58,21 @@ current-zero intervals. They describe full-period conduction, with no dead-time
 addition; nonlinear power uses the complete arrays instead of these bounds.
 Package drawings retain 6n devices per role and no sink volume. A shared sink,
 system geometry or current hardware loss cannot be inferred from the drawing.
+
+
+## Summary-only presentation mappings (2026-10-13)
+
+These are GUI labels over existing fields; no structured schema or unit changes.
+
+| Display | Source / basis | Meaning / lifecycle |
+|---|---|---|
+| Vdc_nom / Vac line-line rms / Pout / PF / f_line / fsw | candidate + design metadata | V DC / V LL RMS / rated active W / PF / Hz; design changes invalidate report |
+| L_phase initial / Cdc per-bank proxy | candidate.inductance_h / capacitance_f | Display uH / uF; one of three equal ideal inductors / each of two split-bus bank proxies; not selected hardware |
+| I_phase rms/peak (fundamental) | candidate.metadata.i_phase_rms_a/i_phase_peak_a | A; design sinusoidal reference, separate from actual PWM current |
+| Operating I_phase rms (A phase, including PWM ripple) | current waveform payload.diagnostics.phase_statistics.a.rms_a | A RMS over full line period; never fill from design estimate when waveform absent |
+| Main / Midpoint switches (6 positions) | current payload.stress.main/midpoint; estimate only if waveform absent and stress present | V static maximum; signed/channel/diode A peak/RMS/avg maximum per metric across six positions, not summed; N/A for unknown estimate statistics |
+| Semiconductor selection | device.selected_devices + active_scheme_id | Both published roles and active scheme required; conduction-only selection reference, not complete system loss/thermal acceptance |
+
+Detailed 12-position stress remains in Stress and the original report/export.
+Known routine scope notes are grouped only for Summary; unknown warnings remain
+visible. See [contract section 18](three_phase_three_level_t_type_contract.md).

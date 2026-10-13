@@ -612,3 +612,18 @@ NPC 运行表单允许 PF=0，波形在幅值分母使用 `max(abs(PF),1e-6)`。
 运行母线取设计值，load/PF按NPC表单裁剪回写；GUI接受signed PF输入，但后台仍只支持正PF幅值，负/零PF尚有明确拒绝。A2有符号求解/额定选择basis、A3更多技术/封装导通支持及方案交互仍待实施。因此本次只完成界面与公共字段生效边界，不称后台完整一致；17.3/17.4目标合同仍为后续门槛。
 
 当前验证/失败历史/解释器/真实Tk截图/源码修订及Git回执见[计划12.5](../Plan/Active/three_phase_three_level_t_type_engineering_integration_plan.md)。其他拓扑代码与库记录未修改，也未执行其电气测试。
+
+
+## 18. Summary 展示合同（NPC 结构对齐，2026-10-13）
+
+本节只约束用户概要展示，不改变设计/运行电气模型、报告字段或选型政策。
+
+- Summary 沿用 NPC 的 Design summary / Electrical parameters / Stage runtime / Semiconductor stress summary / Notes 分区。T-type 不重复渲染 topology_result.summary_lines；该原始记录与导出保持完整。
+- 设计字段按母线、线/相 RMS 电压、额定有功、PF、线路/开关频率、调制、每相初始电感、每银行电容 proxy、母线/PWM 纹波目标、基波相电流 RMS/peak、两角色位置数量和可行性展示。L/C 明确是初始值/proxy，不冒充真实选型硬件；没有 NPC clamp diode。
+- 运行点母线/负载/PF/有功和 A 相含 PWM 全周期 RMS 来自当前 waveform payload.basis/diagnostics。实际 PWM 纹波是原求解器各相每 PWM 周期“电流减正弦参考”峰峰值的最大值，不重算或当成 sizing target。无 waveform 不显示运行数字；无 stress 显示不可用，不回填旧实际值。
+- 主开关与中点开关各六位置，仅显示逐指标包络的 static blocking V 与 signed/channel/diode peak/RMS/avg A。各项可能由不同位置取得，不能相加为系统电流；完整线路周期、design_estimate 与 waveform_actual 区分沿用原应力契约。无波形时未知 RMS/avg 显示 N/A。
+- 12 位置明细和常规应力说明留在 Stress；semiconductor selection 必须同时存在两个已发布角色及 active scheme 才显示 available，并标 conduction only。未接工程阶段合并为一条说明；系统损耗/效率仍不可用。已知流程提示去重，未知 report/stress warning 原样保留，部分硬件不能报 available。
+- 此显示精简不删改 DesignReport、typed 工程记录、应力或器件 audit/diagnostics，不改变 ExportController/结构导出的既有合同。GUI 用六位小数展示电压/运行电流等，设计 metadata 的简洁数值格式与 NPC 一致。
+- Run Design 当前仍使用旧 12 工况工程包络；改为 NPC 额定 design point 归第17节 A2，不能以 Summary 修复声称后台已一致或性能已优化。
+
+生产入口：[summary_view.py](../src/pe_claw_gui/app/result_views/summary_view.py)；明细入口：[stress_view.py](../src/pe_claw_gui/app/result_views/stress_view.py)。验证为 `tests/test_t_type_summary_view.py` 及步骤6/7/8真实GUI节点；实际回执见工程计划第13节。

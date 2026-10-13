@@ -253,7 +253,9 @@ def _run_gui_refresh_case(root):
                     summary = app.workspace.summary_view.text.get("1.0", "end")
                     stress = app.workspace.stress_view.text.get("1.0", "end")
                     assert f"Operating DC bus = {bus:.6f} V" in summary
-                    assert f"A-phase total RMS = {data['diagnostics']['phase_statistics']['a']['rms_a']:.6f} A" in summary
+                    assert f"Operating I_phase rms (A phase, including PWM ripple) = {data['diagnostics']['phase_statistics']['a']['rms_a']:.6f} A" in summary
+                    assert '12 position metrics' not in summary
+                    assert len(summary.splitlines()) < 75
                     assert f"Static blocking maximum = {bus:.6f} V" in stress
                     assert f"Static blocking maximum = {bus/2:.6f} V" in stress
                     for key, metrics in data["stress"]["positions"].items():

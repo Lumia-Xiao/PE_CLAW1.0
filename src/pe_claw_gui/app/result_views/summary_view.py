@@ -29,6 +29,7 @@ class SummaryView(ttk.Frame):
         lines = ["Run a topology design to view synthesized results."]
         if report is not None and report.candidate is not None:
             candidate = report.candidate
+            is_t_type = report.spec.topology_id == "three_phase_three_level_t_type_inverter"
             if report.spec.topology_id == "three_level_tzcm_fixed_frequency":
                 from ...models.operating_point import OperatingPoint
                 from ...topologies.dc_dc.three_level_tzcm_fixed_frequency.mode import build_operating_state
@@ -82,16 +83,20 @@ class SummaryView(ttk.Frame):
                     "Electrical parameters",
                     *_build_electrical_parameter_lines(report),
                 ]
-            if report.topology_result is not None and report.topology_result.summary_lines:
+            if not is_t_type and report.topology_result is not None and report.topology_result.summary_lines:
                 lines.extend(["", "Topology evaluation", *report.topology_result.summary_lines])
             runtime_lines = build_stage_runtime_lines(report)
             if runtime_lines:
                 lines.extend(["", "Stage runtime", *runtime_lines])
             lines.extend(["", "Semiconductor stress summary"])
-            lines.extend(build_stress_summary_lines(report, fallback="Stress results are not available for this report."))
-            if report.notes:
+            stress_options = {"include_positions": False, "include_notes": False} if is_t_type else {}
+            lines.extend(build_stress_summary_lines(
+                report, fallback="Stress results are not available for this report.", **stress_options,
+            ))
+            notes = _build_t_type_summary_notes(report) if is_t_type else report.notes
+            if notes:
                 lines.extend(["", "Notes / warnings"])
-                lines.extend(f"  {note}" for note in report.notes)
+                lines.extend(f"  {note}" for note in notes)
 
         self.text.configure(state="normal")
         self.text.delete("1.0", "end")
@@ -110,14 +115,25 @@ def _build_electrical_parameter_lines(report: DesignReport) -> list[str]:
     waveform_metadata = report.waveform.metadata if report.waveform is not None else {}
     if topology_id == "three_phase_three_level_t_type_inverter":
         lines = [
-            "  Ideal T-type PD-SPWM; balanced split bus, zero dead time",
-            f"  Design DC bus = {candidate.vin_nom:.6f} V",
-            f"  Grid line-line RMS = {candidate.vout_target:.6f} V",
-            f"  L initial per phase = {candidate.inductance_h * 1e6:.6f} uH",
-            f"  C initial proxy per bank = {candidate.capacitance_f * 1e6:.6f} uF",
+            f"  Vdc_nom = {candidate.vin_nom:.6f} V",
+            f"  Vac line-line rms = {candidate.vout_target:.6f} V",
+            f"  Vac phase rms = {_fmt_float(metadata.get('vac_phase_rms_v'))} V",
+            f"  Pout = {candidate.pout_target:.6f} W",
+            f"  PF = {_fmt_float(metadata.get('power_factor'))}",
+            f"  f_line / fsw = {_fmt_float(metadata.get('f_line_hz'))} / {candidate.fs_hz:.2f} Hz",
+            "  modulation scheme = PD level-shifted SPWM",
+            f"  modulation index = {_fmt_float(metadata.get('modulation_index'))}",
+            f"  L_phase initial = {candidate.inductance_h * 1e6:.6f} uH",
+            f"  Cdc per-bank proxy = {candidate.capacitance_f * 1e6:.6f} uF",
+            f"  DC-link ripple target = {candidate.delta_vo:.6f} Vpp",
             f"  Design PWM ripple target = {candidate.delta_il:.6f} A pp",
-            "  Component selection, losses and system efficiency unavailable",
+            f"  I_phase rms (fundamental) = {_fmt_float(metadata.get('i_phase_rms_a'))} A",
+            f"  I_phase peak (fundamental) = {_fmt_float(metadata.get('i_phase_peak_a'))} A",
+            "  main / midpoint switch positions = 6 / 6",
+            f"  CCM valid = {candidate.ccm_valid}; modulation valid = {metadata.get('modulation_valid')}",
         ]
+        if candidate.failure_reason:
+            lines.append(f"  Feasibility reason = {candidate.failure_reason}")
         if report.waveform is None:
             lines.append("  Stress basis = design_estimate; actual waveform not available" if report.stress is not None else "  Actual waveform/stress unavailable; see failure notes")
         else:
@@ -129,9 +145,8 @@ def _build_electrical_parameter_lines(report: DesignReport) -> list[str]:
                 f"  Operating load ratio = {basis['load_ratio']:.6f} pu",
                 f"  Operating PF = {basis['power_factor']:.6f} {basis['power_factor_phase']}",
                 f"  Operating active power = {basis['pout_w']:.6f} W",
-                f"  A-phase total RMS = {stats['a']['rms_a']:.6f} A",
+                f"  Operating I_phase rms (A phase, including PWM ripple) = {stats['a']['rms_a']:.6f} A",
                 f"  Actual PWM ripple maximum = {max(max(v['ripple_pp_by_switching_period_a']) for v in stats.values()):.6f} A pp",
-                "  Actual ripple = per-PWM peak-to-peak of current minus sinusoidal reference",
             ])
         return lines
     if topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":
@@ -254,6 +269,45 @@ def _build_electrical_parameter_lines(report: DesignReport) -> list[str]:
         f"  I_L_valley = {candidate.il_valley:.6f} A",
         f"  CCM valid = {candidate.ccm_valid}",
     ]
+
+
+def _build_t_type_summary_notes(report: DesignReport) -> list[str]:
+    """Group routine scope notes without truncating failure diagnostics."""
+    routine_notes = {
+        "Loss and system efficiency are unavailable.",
+        "Current waveform owns actual position stress; without waveforms stress remains at the design basis.",
+        "Design run context created with an isolated output directory.",
+        "T-type two-role semiconductor selection evaluated.",
+        "Generate Waveforms refreshed only operating-point-dependent outputs.",
+        "T-type stress basis=waveform_actual; each metric is a per-position maximum, not summed current.",
+        "T-type stress basis=design_estimate; each metric is a per-position maximum, not summed current.",
+        "rectifier is the antiparallel diode envelope; midpoint switches are in the local readback.",
+        "Ideal static blocking: main=Vdc, midpoint=Vdc/2; ratings and overshoot unassessed.",
+        "Complete-period time integrals include PWM ripple.",
+    }
+    stages = []
+    warnings = []
+    for note in report.notes:
+        stage, separator, detail = note.partition(": ")
+        if separator and detail == "stage not run; outside first-pass T-type scope.":
+            stages.append(stage)
+        elif note not in routine_notes:
+            warnings.append(note)
+    lines = []
+    if report.device is not None:
+        required = {"t_type_main_switch", "t_type_midpoint_switch"}
+        complete = required.issubset(report.device.selected_devices) and report.device.active_scheme_id is not None
+        lines.append(
+            "Semiconductor selection = available (conduction only; see Devices)."
+            if complete else "Semiconductor selection = unavailable; required two-role hardware incomplete (see Devices)."
+        )
+    if stages:
+        lines.append(f"Stages not run: {', '.join(stages)}.")
+    if report.loss is None:
+        lines.append("Loss and system efficiency are unavailable.")
+    if report.stress is not None:
+        warnings.extend(note for note in report.stress.notes if note not in routine_notes)
+    return list(dict.fromkeys([*lines, *warnings]))
 
 
 def _append_operating_readback(

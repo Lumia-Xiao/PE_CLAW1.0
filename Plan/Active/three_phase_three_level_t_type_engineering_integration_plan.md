@@ -414,3 +414,23 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 - 最终累计：`python -B scripts/validate_t_type_engineering_step1.py .tt-r2-s1-input-parity-final t_type`，318 passed/2 deselected/0 failures/errors/skips，pytest1857.46 s、整命令1858.141 s，exit0；JUnit tests=318/errors=0/failures=0/skipped=0。preflight/test_receipt保存最终src/tests/scripts SHA及精确argv，源文件与最终实现一致；新增测试、全部现T-type schema/synthesis/waveform/stress/边界/API运行点/真实库导通/GUI当前数值/导出/重复隔离通过，一次完整所选T-type累计通过，非full suite。历史失败均保留；pending A2/A3能力未被算成已支持。
 - 收尾：55个合同/计划本地引用有效、ChangeLog原文仅追加、AST/定向与暂存diff/任务范围检查。仅定向提交14个任务文件，95项既有删除及用户生成物全部保留；生成日志/截图/JUnit/临时工具不提交。A1实现与验证已交付，状态在提交推送核实后同步；A2/A3及步骤2–7仍待实施。
 - A1 Git/状态：实现提交`e81af2f03a35e966fab44257a32a6d5532fae937`已推送`pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote同SHA；873个src/tests/scripts checksum与最终验证回执相同。A1在上述用户界面/公共输入边界完成；本次状态提交只改计划与追加日志，不改实现或重跑电气链。A2/A3、全后台一致性和工程步骤2–7仍待实施，不能用318项建立未实现能力的完成结论。
+
+
+## 13. T-type Summary 展示修复与耗时核查（2026-10-13）
+
+- 授权/范围：按用户要求只读参考 NPC Summary，调整 T-type 概要展示并核查 Run Design 耗时；不执行 A2/A3、电气公式/选型政策/精度/缓存变更。
+- 基准：aefbeb76e73a86f27b32f3ffd6fd9f338a7267b1，codex/llc-waveform-operating-point-plan；推送 pe-claw-1.1 同名分支。保留 95 项既有删除、outputs 及未跟踪证据。
+- 分类：共享 GUI 文件中的 T-type 专用展示集成。summary_view 的 T-type 分支及 stress_view 可选位置明细参数；默认 Stress 和其他拓扑分支维持原行为。report/schema/导出/器件选择/波形求解不变；其他消费者无生产路径变化，依用户要求不执行其他拓扑测试。
+- 目标：设计电气字段顺序/命名参考 NPC；明确 L_phase 初始值、Cdc 每银行 proxy。运行点仅来自当前 waveform；无 waveform 不填实际 RMS/平均值。应力只显示两角色六位置逐指标包络，不相加为系统电流；完整 12 位置明细留在 Stress 与原 report。重复 Topology evaluation 不在 T-type Summary 再展示；常规阶段未接通说明合并，实际异常/未知 warning 必须保留。
+- 数据语义：candidate 的 Vdc/VLL/Pout/fsw/PF/L/C/ripple/基波 RMS/peak 为原设计值（V/W/Hz/H/F/A）；waveform.basis 的母线/负载/PF/有功 W 和 phase_statistics 的 a 相全周期 RMS/各相 PWM 残差峰峰值最大值为当前运行值。stress.main/midpoint 各六位置电压/电流逐指标最大值，signed/channel/diode 的 peak/RMS/avg 为完整线路周期 A，不能求和；无 waveform 的 RMS/avg 为 None/N/A。生产者与刷新/失败清理沿用契约，不引入新工程计算。
+- 发现：历史真实 GUI 回执 Summary 127 行；含 12 位置详细应力、重复电气说明及过时 component-selection unavailable 文案。Run Design 历史回执 79.284/86.004 s；adapter 仍枚举 2 母线×3 负载×2 PF=12 波形；NPC selector 使用 100% nominal design point。详细耗时归因以本轮计时/剖析为准，不能据此声称提速已完成；设计 basis 纠偏仍属 A2。
+- 环境：系统 Python 默认为另一工作区 editable install；所有当前验证显式设置 PYTHONPATH=<本工作区>/src（GUI 子进程按现测试设置），先核实 sys.executable、package 和 tests 绝对路径。Python3.12.10，不把历史回执当当前验证。
+- 验证计划：新增 T-type 概要/细节合同测试（数值来源、缺项 N/A、未知 warning、部分硬件拒绝、呈现不修改 report）；执行 test_t_type_summary_view.py；再执行步骤6真实GUI、步骤7两次连续刷新、步骤8真实GUI导出节点，保留全部数值、失败恢复与导出断言；只改对应展示 label 断言。用同一真实GUI设计取得 profile，不额外缩减选型。必要截图视觉检查、当前 readback、JUnit、profile 均留本地；diff --check/ChangeLog/定向提交与推送核实后收尾。
+- 电气公式验证不适用：无公式变更；数值来源/用户流程/同拓扑重复隔离由上述测试分别覆盖，完整应力既有断言不删除。当前验证结果与 Git 回执待追加。
+
+- 当前回执：显式 PYTHONPATH 指向本工作区，preflight.json 核验 Python3.12.10/本地 package/tests，并保存源码SHA。定向命令 `python -B -m pytest -o addopts= -p no:cacheprovider -q --basetemp .pytest-tmp-tt-summary-focus tests/test_t_type_summary_view.py --junitxml=.tt-summary-repair/focus.xml`：7 passed/16.04 s，exit0。
+- 真实GUI命令：同一解释器与 PYTHONPATH，`python -B .tt-summary-repair/run_gui_validation.py`（本地工具包装 pytest.main；精确节点为 test_t_type_step6_gui.py::test_real_tk_card_buttons_current_readback_and_failure_invalidation、test_t_type_step7_operating_point.py::test_real_gui_two_refreshes_current_numbers_and_invalidation、test_t_type_step8_acceptance.py::test_real_gui_first_pass_user_chain_and_current_readback；`-o addopts= -p no:cacheprovider -q --basetemp .pytest-tmp-tt-summary-gui --junitxml=.tt-summary-repair/gui.xml`）：3 passed/472.00 s，exit0。两组共10 passed、0 failed/errors/skipped；既有关闭cacheprovider后的cache_dir配置warning分别1条，非电气失败。没有执行NPC/其他拓扑/全suite。
+- GUI当前回执在 `.pytest-tmp-tt-summary-gui/*/gui_readback.json`；额定点、10%负载/PF1、50%负载/PF0.8均为50行（旧历史127行）。设计 Cbank proxy 81.632653 uF、当前母线700 V、相RMS/各位置三路径应力保持原report数值；连续刷新同run/candidate，失败清理与恢复、全部应力明细、导出原值断言通过。契约测试明确未知report/stress warning不隐藏、部分选型不报available、呈现不修改report；重复隔离为同T-type连续工况，不宣称跨拓扑隔离验收。
+- 视觉：`.tt-summary-repair/summary_preview.png`为当前真实T-type候选与50%/PF0.8波形渲染，已检查设计/实际字段分区和原滚动呈现。GUI/导出完整读回见上述真实链；预览不是额外真实器件选型验收。
+- 性能证据：步骤6同次设计插入cProfile，`.tt-summary-repair/run_design.prof`及`run_design_profile.json`；172.387 s含剖析开销，不能与普通运行79–86 s直接比较。build_device_selection_requests 164.959 s（95.7%）；12次generate_waveforms、24次calculate_position_stress累计114.436 s；实际候选筛选/导通参考约4.434 s。累计时间有嵌套不能相加。根因重点为旧12工况波形及重复应力计算，不是Summary排版或型号拒绝文本；改为额定设计basis归A2，去重复应力需保持来源验证，不以关闭校验换速度。本轮未实施性能优化。
+- 源码校验：验证期间任务源码SHA未变、AST有效、58个文档本地链接有效、diff --check干净；报告结构/公式/库/筛选/求解均无变更。生成物不提交，95项既有删除保持。本轮实现已验证，完成状态待本次commit/push核实后追加；A2/A3与工程步骤2–7仍待实施。
