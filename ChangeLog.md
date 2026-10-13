@@ -2121,3 +2121,5 @@ listed here.
 - 工程/用户证据：仿射/独立adaptive导通积分、曲线标量与8/16加密、热阻解析；额定/缺FRD/NaN/不完整方案/零能量调用负例；真实Tk型号/数字/曲线/连续刷新/清理恢复、来源拒绝、纯T-type数组/旧报告隔离。默认main RGHX5TRX2DF、midpoint RGWX5TS65EHR、n1/12封装；参考数值及readback/PNG路径写入计划，不当当前系统损耗。
 - 限制/历史：其他拓扑完整回归、跨拓扑隔离和full suite不作为本次门槛；已执行的旧基线/shared/consumer记录只作历史，不累入286。系统Temp权限和一次缺PYTHONPATH收集失败、中断运行保留且不计通过。步骤2–7、完整hardware/system/export、死区/能量、硬件验收未完成。
 - Git/维护：codex/llc-waveform-operating-point-plan，推送pe-claw-1.1同名分支；实现提交/远端核实后追加回执。只定向暂存任务文件，95项既有tracked删除、用户outputs与本地证据不提交；42链接/AST/差异检查及append-only收尾，无清理/备份操作。
+
+- 步骤1 Git/状态回执：实现提交 `facd572740aebdf9411d708aebb4e8810d364e01` 已推送 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote核实同SHA。44个任务文件，不含既有删除或生成物。按用户限定的T-type范围完成步骤1，286个不同所选节点均有实际通过记录；其他拓扑全面回归/跨拓扑隔离/full suite仍后续。此文档提交仅同步计划状态与Git回执，复用上述电气证据；最终文档SHA见Git历史及完成报告。步骤2–7未实施，无清理/备份操作。

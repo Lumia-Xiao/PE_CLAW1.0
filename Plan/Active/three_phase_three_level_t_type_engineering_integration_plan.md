@@ -1,6 +1,6 @@
 # 三相三电平 T-type 第二轮工程链接入计划
 
-- 状态：Active / 步骤 0 完成（验证及实现提交已推送核实）；步骤 1 实现及失败修复验证中，步骤 2–7 待实施。
+- 状态：Active / 步骤 0–1 完成（步骤1限用户授权的T-type验证范围，验证/实现已推送核实）；步骤 2–7 待实施。
 - 创建日期：2026-10-13。
 - 当前授权：解决步骤 1 剩余失败、补齐回执并提交推送；按用户最新指示仅关注 T-type 验证。步骤 2–7 不提前实施，死区及换流能量仍排除。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`。
@@ -103,7 +103,7 @@
 | 步骤 | 交付 | 依赖 | 当前状态 |
 |---|---|---|---|
 | 0 | 冻结二轮接口、范围、基线和阶段开放方案 | 本计划 | 已完成，见第 10 节 |
-| 1 | 半导体两角色真实库选型 | 0 | 失败修复验证中；未提交推送 |
+| 1 | 半导体两角色真实库选型 | 0 | 已完成并推送；限T-type验证范围，见11.2–11.3 |
 | 2 | 三相电感接入 | 1 | 待实施 |
 | 3 | 上/下银行电流与真实电容选型 | 0、2 | 待实施 |
 | 4 | 选定硬件回读、固定硬件刷新与全链来源校验 | 1–3 | 待实施 |
@@ -251,7 +251,7 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-r2-s1 tests/test_t_type_enginee
 
 | 完成门槛 | 当前状态 |
 |---|---|
-| 步骤0–7 全部必要验证、独立提交推送 | 步骤0完成；步骤1修复验证中；步骤2–7待实施 |
+| 步骤0–7 全部必要验证、独立提交推送 | 步骤0–1完成（步骤1限T-type）；步骤2–7待实施，全面回归仍后续 |
 | 真实库两角色、三相磁件、两银行、选后闭环 | 待实施 |
 | 同 scope/basis 的本轮损耗、热、几何、固定硬件扫描 | 待实施 |
 | 当前 GUI/report/JSON/CSV/BOM/overview 数值、来源与身份 | 待实施 |
@@ -305,7 +305,7 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-r2-s1 tests/test_t_type_enginee
 
 - Git 完成回执：实现/契约/工具/测试/日志提交 `9d8284f44df212af8525179a8e2a72c7cb9d7c81` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实远端同 SHA。步骤 0 必需验证及推送门槛已完成；本条状态回执另作文档提交并推送，最终回执提交以 Git 历史为准。后续步骤保持待实施，不重复运行未变的电气测试。
 
-## 11. 步骤 1 影响与执行记录（进行中）
+## 11. 步骤 1 影响与执行记录（T-type授权范围完成）
 
 - 用户授权步骤1；基准 `896ff1d871fdfc1bdb990b93a92aa7b2bad4fb39`，分支/远端沿用步骤0；95项既有 tracked 删除和用户输出保留。
 - 分类：共享集成。角色图/capability、可选 DesignReport typed 字段、full/refresh/controller/GUI/schema 消费者受影响。新增 T-type adapter、导通 engine 和选型 stage；旧模型/库/selector/ranking 公式不改。旧拓扑 stage 返回原路径；旧 report 新 optional None 字段属于明确兼容结构差异，旧 structured 不新增 engineering_result。
@@ -336,3 +336,9 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-r2-s1 tests/test_t_type_enginee
 - 数值读回：`.tt-r2-s1-t-type-final/temp/test_real_two_role_selection_a0/selection_readback.json`；最终GUI的readback/PNG在`.tt-r2-s1-gui-repair-final/temp/`各测试目录。schema与typed选择证据通过，但当前系统损耗/效率、完整硬件快照及完整工程导出不可用，不假定组件小计或空损耗为系统结果。
 - 历史失败/未执行：系统Temp WinError5及一次布局重跑缺PYTHONPATH收集错误分别保留，不计电气通过；所有中断的混合/旧GUI进程无完整回执。用户收窄前旧consumer为80 passed/1旧注册失败、shared34 passed及旧baseline工程差异0，仅记录历史，不纳入286，不宣称最终全面兼容。其他拓扑完整回归、跨拓扑隔离、full suite、步骤2–7、死区/换流能量、实物采购/硬件验收未执行。
 - 审查与Git：42本地链接、任务Python AST、定向及暂存diff检查通过；仅明确任务文件暂存，95项既有删除和outputs/本地证据保持。实现提交/推送及远端核实待实际完成后追加；此时步骤1仍未标完成，无清理或备份操作。
+
+### 11.3 步骤 1 Git 与状态回执
+
+- 实现提交 `facd572740aebdf9411d708aebb4e8810d364e01`，44个明确任务文件；已执行`git push pe-claw-1.1 codex/llc-waveform-operating-point-plan`并以`git ls-remote pe-claw-1.1 refs/heads/codex/llc-waveform-operating-point-plan`核实同SHA。
+- 步骤1在用户指定的T-type范围内完成：真实两角色选型、范围与数量合同、明确未接阶段、最终GUI失败修复及286个不同通过项成立。其他拓扑全面回归/跨拓扑隔离仍后续；不将本次收窄范围当全部旧拓扑兼容或发布验收。
+- 本次后续文档提交只同步计划状态与ChangeLog Git回执，复用11.2有效电气证据；不改生产/测试，无需重复电气链。最终文档SHA及远端核实见Git历史和完成报告。步骤2–7待实施；下一步是步骤2三相电感接入。
