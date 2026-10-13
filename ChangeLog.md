@@ -2152,3 +2152,5 @@ listed here.
 - 验证：本地Python3.12.10显式PYTHONPATH，概要合同7 passed/16.04 s；真实GUI按钮/连续刷新/失败恢复/导出3 passed/472.00 s，共10通过、无失败错误跳过。既有cache_dir配置warning单列。GUI回执127→50行，完整Stress与report数值保留；当前源码SHA/AST/58引用/diff检查通过。完整命令、preflight/JUnit/readback/视觉截图在工程计划第13节及本地.tt-summary-repair，生成物不提交。
 - 性能：同次真实设计cProfile 172.387 s（有额外开销）；选型请求构造164.959 s占95.7%，12波形/24次应力计算，筛选导通约4.434 s。本轮只诊断，未优化；NPC额定design basis纠偏为A2，重复应力复用需保留验证，A2/A3和工程步骤2–7未完成。
 - Git：基准aefbeb76e73a86f27b32f3ffd6fd9f338a7267b1；codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名分支；实现与状态SHA在后续Git回执追加。95项既有删除及outputs/历史证据保留。本次无备份操作。
+
+- Summary Git/状态回执：实现 `9d5013621d0d5ec9fafa77b54e47eae42391cd01` 已推送pe-claw-1.1同名分支并核实远端SHA。当前普通GUI设计81.038/77.773 s，耗时未优化。本状态提交仅追加计划/日志，修复与诊断范围完成；后台A2/A3及工程步骤2–7仍未完成，沿用上述10项实现验证，状态SHA见Git历史。

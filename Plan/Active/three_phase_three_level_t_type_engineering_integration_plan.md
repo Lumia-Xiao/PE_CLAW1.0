@@ -434,3 +434,5 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 - 视觉：`.tt-summary-repair/summary_preview.png`为当前真实T-type候选与50%/PF0.8波形渲染，已检查设计/实际字段分区和原滚动呈现。GUI/导出完整读回见上述真实链；预览不是额外真实器件选型验收。
 - 性能证据：步骤6同次设计插入cProfile，`.tt-summary-repair/run_design.prof`及`run_design_profile.json`；172.387 s含剖析开销，不能与普通运行79–86 s直接比较。build_device_selection_requests 164.959 s（95.7%）；12次generate_waveforms、24次calculate_position_stress累计114.436 s；实际候选筛选/导通参考约4.434 s。累计时间有嵌套不能相加。根因重点为旧12工况波形及重复应力计算，不是Summary排版或型号拒绝文本；改为额定设计basis归A2，去重复应力需保持来源验证，不以关闭校验换速度。本轮未实施性能优化。
 - 源码校验：验证期间任务源码SHA未变、AST有效、58个文档本地链接有效、diff --check干净；报告结构/公式/库/筛选/求解均无变更。生成物不提交，95项既有删除保持。本轮实现已验证，完成状态待本次commit/push核实后追加；A2/A3与工程步骤2–7仍待实施。
+
+- Git完成回执：实现提交 `9d5013621d0d5ec9fafa77b54e47eae42391cd01` 已推送 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote同SHA。本节Summary修复与耗时核查完成，性能优化未实施；A2/A3及工程步骤2–7状态保持待实施。两次未加剖析的当前GUI Run Design为81.038/77.773 s，仍慢，不能称已提速。本次状态回执只追加文档，无实现变化，沿用上述10项当前验证，不重跑电气链；状态提交SHA见Git历史。
