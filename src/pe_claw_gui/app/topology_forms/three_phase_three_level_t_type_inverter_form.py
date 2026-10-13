@@ -1,4 +1,4 @@
-"""Topology-only T-type form with separate design and operating inputs."""
+"""T-type input form using the NPC user-input contract."""
 from __future__ import annotations
 
 import math
@@ -14,75 +14,67 @@ class ThreePhaseThreeLevelTTypeInverterForm(BaseTopologyForm):
     display_name = "Three-Phase Three-Level T-type Inverter"
     implemented = True
     design_fields = (
-        TopologyField("vdc_nom", "Design DC bus [V]", "700"),
-        TopologyField("vac_ll_rms", "Grid line-line RMS [V]", "400"),
+        TopologyField("vdc_nom", "Vdc nominal [V]", "700"),
+        TopologyField("vac_ll_rms", "Vac line-line rms [V]", "400"),
         TopologyField("f_line_hz", "Line frequency [Hz]", "50"),
         TopologyField("fsw_hz", "Switching frequency [Hz]", "20000"),
-        TopologyField("pout_w", "Total active power [W]", "10000"),
-        TopologyField("power_factor", "Design PF magnitude (0,1]", "1"),
-        TopologyField("power_factor_phase", "PF phase", "lagging", ("lagging", "leading")),
-        TopologyField("inductor_current_ripple_ratio", "Inductor target ripple [pp/Ipk]", "0.2"),
-        TopologyField("dc_link_voltage_ripple_ratio", "DC bus target ripple [pp/Vdc]", "0.05"),
-        TopologyField("engineering_vdc_min_v", "Selection minimum bus [V]", "700"),
-        TopologyField("engineering_vdc_max_v", "Selection maximum bus [V]", "800"),
-        TopologyField("engineering_pf_min", "Selection minimum PF", "0.8"),
-        TopologyField("engineering_pf_max", "Selection maximum PF", "1"),
-        TopologyField("engineering_load_min", "Selection minimum load", "0.1"),
-        TopologyField("engineering_load_max", "Selection maximum load", "1"),
-        TopologyField("engineering_ambient_temp_c", "Selection ambient [C]", "25"),
-        TopologyField("engineering_target_junction_temp_c", "Target junction [C]", "100"),
-        TopologyField("engineering_manufacturer", "IGBT manufacturer", "Any", ("Any","ROHM","Mitsubishi")),
+        TopologyField("pout_w", "Pout [W]", "10000"),
+        TopologyField("power_factor", "Power factor", "1.0"),
+        TopologyField("inductor_current_ripple_ratio", "Inductor ripple ratio [pp/Ipk]", "0.2"),
+        TopologyField("dc_link_voltage_ripple_ratio", "DC-link ripple ratio [pp/Vdc]", "0.05"),
+        TopologyField("ambient_temp_c", "Ambient temperature [C]", "25"),
+        TopologyField("target_junction_temp_c", "Target junction temperature [C]", "100"),
     )
-
-    @classmethod
-    def get_semiconductor_design_fields(cls):
-        return ()
 
     def __init__(self, parent, **callbacks):
         super().__init__(parent, **callbacks)
         self.columnconfigure(0, weight=1)
-        ttk.Label(self, text=self.display_name, style="Header.TLabel").grid(row=0, column=0, sticky="w")
-        design = ttk.LabelFrame(self, text="Design Inputs")
-        design.grid(row=1, column=0, sticky="ew", pady=8)
+        ttk.Label(self, text=self.display_name, style="Header.TLabel").grid(row=0, column=0, sticky="w", pady=(0, 8))
+        design = ttk.LabelFrame(self, text="Design Inputs", style="Section.TLabelframe")
+        design.grid(row=1, column=0, sticky="ew")
         design.columnconfigure(1, weight=1)
-        self.build_design_input_rows(design, self.design_fields)
-        # Keep the design action visible above the fold with the engineering envelope rows.
-        for widget in design.grid_slaves():
-            widget.grid_configure(pady=4)
-        self.build_design_action_buttons(design, row=len(self.design_fields))
+        fields = self.get_design_fields()
+        self.build_design_input_rows(design, fields)
+        self.build_design_action_buttons(design, row=len(fields))
         self.run_capacitor_button.configure(state="disabled")
         self.run_magnetics_button.configure(state="disabled")
-        op = ttk.LabelFrame(self, text="Waveform Operating Point")
-        op.grid(row=2, column=0, sticky="ew")
+        op = ttk.LabelFrame(self, text="Waveform Operating Point", style="Section.TLabelframe")
+        op.grid(row=2, column=0, sticky="ew", pady=(12, 0))
         op.columnconfigure(1, weight=1)
-        self.operating_vars = {"operating_vdc_v": tk.StringVar(value="700"),
-                               "load_ratio": tk.StringVar(value="1"),
-                               "power_factor": tk.StringVar(value="1")}
-        for row, (key, label) in enumerate((("operating_vdc_v", "Operating DC bus [V]"),
-                                           ("load_ratio", "Load ratio [0,1]"),
-                                           ("power_factor", "Operating PF magnitude (0,1]"))):
+        self.operating_vars = {"load_ratio": tk.StringVar(value="1.0"),
+                               "power_factor": tk.StringVar(value=self.design_vars["power_factor"].get())}
+        for row, (key, label) in enumerate((("load_ratio", "Load ratio [0-1]"),
+                                           ("power_factor", "PF [-1..1]"))):
             ttk.Label(op, text=label).grid(row=row, column=0, sticky="w", padx=6, pady=6)
-            ttk.Entry(op, textvariable=self.operating_vars[key]).grid(row=row, column=1, sticky="ew", padx=6)
+            ttk.Entry(op, textvariable=self.operating_vars[key]).grid(row=row, column=1, sticky="ew", padx=6, pady=6)
         self.generate_waveforms_button = ttk.Button(op, text="Generate Waveforms", command=self._trigger_waveforms)
-        self.generate_waveforms_button.grid(row=3, column=0, columnspan=2, sticky="ew", padx=6, pady=6)
-        self.build_efficiency_sweep_button(op, row=4, state="disabled")
-        ttk.Label(self, wraplength=360, justify="left", text=(
+        self.generate_waveforms_button.grid(row=2, column=0, columnspan=2, sticky="ew", padx=6, pady=(10, 6))
+        self.build_efficiency_sweep_button(op, row=3, state="disabled")
+        notes = ttk.LabelFrame(self, text="Notes", style="Section.TLabelframe")
+        notes.grid(row=3, column=0, sticky="nsew", pady=(12, 0))
+        ttk.Label(notes, wraplength=360, justify="left", text=(
             "Ideal balanced split bus and zero dead time. L is an initial estimate per phase; "
-            "C is a proxy per bank. PF phase stays at the design setting during waveform refresh. "
+            "C is a proxy per bank. "
             "IGBT/FRD conduction-only device selection; system losses and efficiency unavailable."
-        )).grid(row=3, column=0, sticky="ew", pady=12)
+        )).pack(anchor="nw", padx=10, pady=10)
 
     def get_operating_point(self):
-        bus = self._parse_operating_float("operating_vdc_v", "Operating DC bus")
+        bus = self._parse_design_float("vdc_nom", "DC bus nominal [V]")
         load = self._parse_operating_float("load_ratio", "Load ratio")
         pf = self._parse_operating_float("power_factor", "Power factor")
         if not math.isfinite(bus) or bus <= 0:
             raise ValueError("Operating DC bus must be finite and positive.")
-        if not math.isfinite(load) or not 0 <= load <= 1:
-            raise ValueError("Load ratio must be finite and in [0,1].")
-        if not math.isfinite(pf) or not 0 < pf <= 1:
-            raise ValueError("Power factor must be finite and in (0,1].")
-        return OperatingPoint(vin_v=bus, load_ratio=load, power_factor=pf)
+        if not math.isfinite(load):
+            raise ValueError("Load ratio must be finite.")
+        if not math.isfinite(pf):
+            raise ValueError("Power factor must be finite.")
+        clamped_load = min(max(load, 0.0), 1.0)
+        clamped_pf = min(max(pf, -1.0), 1.0)
+        if clamped_load != load:
+            self.operating_vars["load_ratio"].set(f"{clamped_load:.3g}")
+        if clamped_pf != pf:
+            self.operating_vars["power_factor"].set(f"{clamped_pf:.3g}")
+        return OperatingPoint(vin_v=bus, load_ratio=clamped_load, power_factor=clamped_pf)
 
     def set_operating_input_change_handler(self, handler):
         """Invalidate only current results while keeping the synthesized design."""

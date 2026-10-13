@@ -2131,3 +2131,13 @@ listed here.
 - 计划：保留步骤0/1历史实现与286项旧验收；明确旧独立engineering/phase输入、24点默认包络、ROHM-only及无条件三方案已被新合同覆盖；新增A1输入→A2有符号PF/basis→A3两角色选择→A4 T-type验收前置，再恢复步骤2–7。
 - 验证范围：只读源码交叉核对、文档语义/引用和冲突优先级、日志append-only、定向/暂存diff与范围检查。不跑pytest、电气链、GUI或NPC/其他拓扑测试；无新工程通过证据，后台仍待适配。
 - Git/维护：基准d1ac433610d0d4af37b092d5ece2ba90dab9bf36，分支codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名上游；仅四个文档定向提交，实际SHA/推送核实见Git历史及完成报告。保留95项既有tracked删除、outputs和本地生成证据；无清理/备份。
+
+## 2026-10-13 - T-type NPC一致用户界面与公共输入接入
+
+- 分类/授权：用户指出界面未改变，实施计划A1；共享集成的T-type专用表单/schema/device适配。改T-type form/input_schema/run_t_type_device_pipeline、验证脚本/新增test_t_type_input_parity及已有contract/GUI/刷新/接受测试、契约17.7/字段字典/计划12.5和本追加日志；NPC/其他拓扑生产代码、库、公共helper及电气公式不改。
+- 行为：精确NPC同12设计＋2运行字段、label/order/default/choices/公共行距和三个分区；去掉独立engineering/phase/运行母线控件，运行bus从设计值读取；保留滚动可达与未接按钮保护。公共温度/类型/厂家实际进入schema/metadata/过滤及typed参考；旧温度/厂家别名映射、冲突/非有限拒绝；采用公共scheme variants，IGBT只single，其他1/2/3。无兼容技术/厂家保留明确model诊断，不回退用户筛选。
+- 剩余：旧内部选择包络、正PF电路solver、ROHM RG IGBT/FRD-only导通、更多技术/模块及完整方案交互仍待A2/A3；不称后台合同全部一致。死区/换流能量及其他拓扑测试继续排除。GUI取消独立bus后改用低PF不可调制负例保留失败清理恢复，API700/800母线刷新矩阵保留。
+- 验证：当前Python3.12.10/current src/tests；最终聚焦命令见计划12.5，149 passed/155.06 s、0 failures/errors/skips，真实IGBT＋ROHM/30°C/110°C单方案两角色12封装通过。默认/最小窗口截图和raw/运行readback保存在.tt-input-parity-ui。首轮聚焦4失败/1 Tk错误和别名诊断补充10失败保留，修复测试调用/单Tk fixture及原字段诊断后重跑，未放宽断言。累计T-type结果和Git收据收尾记录于计划12.5；既有cache_dir warning单列。
+- Git/维护：基准b8f07a0e0441936376f300749a493b457bcfba8b，codex/llc-waveform-operating-point-plan，推送pe-claw-1.1同名分支；定向提交任务文件，实际SHA/远端核实见Git历史和完成报告。保留95项既有删除、outputs、临时GUI工具/截图/日志/JUnit，生成物不提交；无清理/备份。
+
+- 本次收尾追加：共享waveform_controller仅T-type分支补同温度覆盖保留原spec、变温需重新设计守卫。累计初次274 passed/2 GUI失败/2 deselected保留，修复设计来源及GUI导出外层旧800 V断言后，最终`python -B scripts/validate_t_type_engineering_step1.py .tt-r2-s1-input-parity-final t_type`实际318 passed/2 deselected/0 failures/errors/skips、1857.46 s、exit0；JUnit与最终源码checksum核实，2 deselected为用户排除的NPC节点。其他拓扑/full suite未执行。GUI重跑2 passed/248.80 s、连续刷新1 passed/256.65 s、温度守卫1 passed/5.27 s均单列不重复累计。55本地引用/append-only/AST/diff及14文件范围检查；状态在push核实后同步。

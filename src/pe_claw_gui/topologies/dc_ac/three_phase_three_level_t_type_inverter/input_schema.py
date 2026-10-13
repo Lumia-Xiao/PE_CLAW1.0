@@ -6,6 +6,15 @@ import math
 from collections.abc import Mapping
 from types import MappingProxyType
 
+from ....libraries.semiconductors.metadata import (
+    merge_semiconductor_filter_metadata,
+    normalize_semiconductor_manufacturer,
+)
+from ....utils.ambient_temperature import (
+    merge_ambient_metadata,
+    parse_ambient_temperature_c,
+    parse_target_junction_temperature_c,
+)
 from ...base.spec import TopologySpec
 from .topology_contract import CONVENTIONAL_T_TYPE_CONTRACT, DISPLAY_NAME, LEGACY_KEY, MODEL_SCOPE, TOPOLOGY_ID
 
@@ -16,10 +25,17 @@ _DEFAULT_INPUTS: Mapping[str, str] = MappingProxyType({
     "f_line_hz": "50",
     "fsw_hz": "20000",
     "pout_w": "10000",
-    "power_factor": "1",
-    "power_factor_phase": "lagging",
+    "power_factor": "1.0",
     "inductor_current_ripple_ratio": "0.2",
     "dc_link_voltage_ripple_ratio": "0.05",
+    "ambient_temp_c": "25",
+    "target_junction_temp_c": "100",
+    "semiconductor_device_type": "Any",
+    "semiconductor_manufacturer": "Any",
+})
+# Internal engineering inputs remain on the original model until A2/A3 adaptation.
+_INTERNAL_DEFAULTS: Mapping[str, str] = MappingProxyType({
+    "power_factor_phase": "lagging",
     "engineering_vdc_min_v": "700",
     "engineering_vdc_max_v": "800",
     "engineering_pf_min": "0.8",
@@ -32,13 +48,14 @@ _DEFAULT_INPUTS: Mapping[str, str] = MappingProxyType({
     "engineering_device_implementation": "Discrete",
     "engineering_manufacturer": "Any",
 })
-_NUMERIC_FIELDS = tuple(key for key in _DEFAULT_INPUTS if key not in {
-    "power_factor_phase", "engineering_device_type", "engineering_device_implementation", "engineering_manufacturer"})
+_NUMERIC_FIELDS = tuple(key for key in {**_DEFAULT_INPUTS, **_INTERNAL_DEFAULTS} if key not in {
+    "power_factor_phase", "engineering_device_type", "engineering_device_implementation", "engineering_manufacturer",
+    "semiconductor_device_type", "semiconductor_manufacturer"})
 _POSITIVE_FIELDS = ("vdc_nom", "vac_ll_rms", "f_line_hz", "fsw_hz", "pout_w")
 
 
 def build_default_inputs() -> dict[str, str]:
-    """Return a fresh string-valued copy of the first-round design defaults."""
+    """Return the same public design-input defaults as the NPC form."""
 
     return dict(_DEFAULT_INPUTS)
 
@@ -65,7 +82,27 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
 
     if not isinstance(raw_input, Mapping):
         raise ValueError("T-type raw input must be a mapping of field names to values.")
-    merged: dict[str, object] = {**_DEFAULT_INPUTS, **dict(raw_input)}
+    for key in _NUMERIC_FIELDS:
+        if key in raw_input:
+            _parse_finite_number(raw_input, key)
+    normalized_input = dict(raw_input)
+    aliases = (
+        ("ambient_temp_c", "engineering_ambient_temp_c", parse_ambient_temperature_c),
+        ("target_junction_temp_c", "engineering_target_junction_temp_c", parse_target_junction_temperature_c),
+        ("semiconductor_manufacturer", "engineering_manufacturer", normalize_semiconductor_manufacturer),
+    )
+    for public_key, legacy_key, normalize in aliases:
+        if legacy_key in raw_input:
+            if public_key in raw_input and normalize(raw_input[public_key]) != normalize(raw_input[legacy_key]):
+                raise ValueError(f"Conflicting input fields '{public_key}' and '{legacy_key}'.")
+            normalized_input.setdefault(public_key, raw_input[legacy_key])
+    merged: dict[str, object] = {**_INTERNAL_DEFAULTS, **_DEFAULT_INPUTS, **normalized_input}
+    for key in _NUMERIC_FIELDS:
+        _parse_finite_number(merged, key)
+    public_metadata = merge_semiconductor_filter_metadata(merge_ambient_metadata({}, merged), merged)
+    for public_key, legacy_key, _ in aliases:
+        merged[public_key] = public_metadata[public_key]
+        merged[legacy_key] = public_metadata[public_key]
     if "dead_time_ns" in raw_input and _parse_finite_number(raw_input, "dead_time_ns") != 0.0:
         raise ValueError("Input field 'dead_time_ns': only zero dead time is supported in the first-round model.")
     supported_policies = {
@@ -80,7 +117,7 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
         if values[key] <= 0:
             raise ValueError(f"Input field '{key}' must be positive.")
     if not 0 < values["power_factor"] <= 1:
-        raise ValueError("Input field 'power_factor' must be in the range (0, 1].")
+        raise ValueError("Input field 'power_factor' must be in the range (0, 1]; reverse-power T-type adaptation is pending.")
     # Omitted engineering boundaries include the existing design point.
     for key, value in (("engineering_vdc_min_v",min(700.,values["vdc_nom"])),
                        ("engineering_vdc_max_v",max(800.,values["vdc_nom"])),
@@ -90,7 +127,6 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
     for key, required in (("engineering_device_type", "IGBT"), ("engineering_device_implementation", "Discrete")):
         if merged[key] != required:
             raise ValueError(f"{key}: only {required} is supported.")
-    from ....libraries.semiconductors.metadata import normalize_semiconductor_manufacturer
     manufacturer = normalize_semiconductor_manufacturer(merged["engineering_manufacturer"])
     for prefix, minimum, maximum in (("vdc",0.,float("inf")),("pf",0.,1.),("load",0.,1.)):
         lo,hi=(values[f"engineering_{prefix}_{suffix}"] for suffix in (("min_v","max_v") if prefix=="vdc" else ("min","max")))
@@ -132,8 +168,9 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
         fs_khz=values["fsw_hz"] / 1000.0,
         ripple_current_ratio=values["inductor_current_ripple_ratio"],
         ripple_voltage_ratio_percent=100.0 * values["dc_link_voltage_ripple_ratio"],
-        raw_input={key: str(value) for key, value in merged.items() if key in _DEFAULT_INPUTS},
+        raw_input={key: str(value) for key, value in merged.items() if key in _DEFAULT_INPUTS or key in raw_input and key in _INTERNAL_DEFAULTS},
         metadata={
+            **public_metadata,
             "legacy_key": LEGACY_KEY,
             "vdc_nom_v": values["vdc_nom"],
             "vac_ll_rms_v": values["vac_ll_rms"],

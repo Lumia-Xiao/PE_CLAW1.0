@@ -80,4 +80,9 @@ def _apply_runtime_overrides(report, runtime_overrides: dict[str, str] | None):
 
     if ambient_raw_value is None and target_junction_raw_value is None:
         return report
+    if report.spec.topology_id == T_TYPE_TOPOLOGY_ID:
+        if metadata == report.spec.metadata:
+            return report
+        # These temperatures own the immutable T-type selection reference.
+        raise ValueError("T-type temperature changes require Run Design before waveform refresh.")
     return replace(report, spec=replace(report.spec, raw_input=raw_input, metadata=metadata))

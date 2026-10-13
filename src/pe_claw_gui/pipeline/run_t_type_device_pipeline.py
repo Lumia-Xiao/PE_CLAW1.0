@@ -11,6 +11,7 @@ from ..engines.devices.t_type_conduction import (
     evaluate_t_type_conduction_reference,
 )
 from ..libraries.semiconductors.registry import build_default_semiconductor_registry
+from ..libraries.semiconductors.metadata import SemiconductorLibraryFilter
 from ..models.device_result import (
     DeviceSelectionResult,
     SemiconductorRoleSchemeResult,
@@ -32,6 +33,7 @@ def run_t_type_device_pipeline(report, plugin):
     from .run_device_pipeline import (
         scale_switch_stress_for_parallel,
         _select_active_semiconductor_scheme,
+        _resolve_scheme_variants,
     )
     from ..models.design_run_context import update_design_run
 
@@ -42,9 +44,13 @@ def run_t_type_device_pipeline(report, plugin):
     basis = build_design_basis(report)
     stresses, requests = build_device_selection_requests(report, basis, plugin)
     registry = build_default_semiconductor_registry()
-    registered = registry.list_devices("IGBT")
+    library_filter = SemiconductorLibraryFilter.from_raw(
+        device_type=report.spec.metadata.get("semiconductor_device_type"),
+        manufacturer=report.spec.metadata.get("semiconductor_manufacturer"),
+    )
+    registered = registry.list_devices()
     library = registry.search(
-        device_type="IGBT", vendor=report.spec.metadata["engineering_manufacturer"]
+        device_type=library_filter.device_type, vendor=library_filter.manufacturer,
     )
     prefilter = {
         d.part_number: model_rejection(d) for d in library if model_rejection(d)
@@ -52,11 +58,7 @@ def run_t_type_device_pipeline(report, plugin):
     candidates = [d for d in library if d.part_number not in prefilter]
     schemes = []
     references = {}
-    for scheme_id, label, n in (
-        ("single", "Single Device", 1),
-        ("parallel_2", "2 Devices in Parallel", 2),
-        ("parallel_3", "3 Devices in Parallel", 3),
-    ):
+    for scheme_id, label, n in _resolve_scheme_variants(library_filter):
         selected = {}
         losses = {}
         per_stresses = {}
@@ -168,7 +170,7 @@ def run_t_type_device_pipeline(report, plugin):
                 rejection_breakdowns={
                     r: {
                         "model_or_package_rejected": len(prefilter),
-                        "manufacturer_rejected": len(registered) - len(library),
+                        "library_filter_rejected": len(registered) - len(library),
                     }
                     for r in ROLE_POSITIONS
                 },
@@ -229,8 +231,8 @@ def run_t_type_device_pipeline(report, plugin):
         diagnostics=tuple(f"{part}: {reason}" for part, reason in prefilter.items()),
     )
     result = DeviceSelectionResult(
-        selected_device_type_filter="IGBT",
-        selected_manufacturer_filter=report.spec.metadata["engineering_manufacturer"],
+        selected_device_type_filter=library_filter.device_type,
+        selected_manufacturer_filter=library_filter.manufacturer,
         selected_devices=selected,
         selected_device_vendors={
             r: registry.get_device(p).vendor for r, p in selected.items()
@@ -252,6 +254,8 @@ def run_t_type_device_pipeline(report, plugin):
         selection_summaries=active.selection_summaries,
         candidate_traces=active.candidate_traces,
         notes=[
+            f"Semiconductor library filter: {library_filter.describe()}.",
+            f"Registered semiconductor candidates: {len(registered)} total; {len(library)} remain after the library prefilter.",
             "Design envelope conduction-only selection; thermal result is sink-reference screening.",
             "Excluded switching/recovery energies are not modeled; current/system losses unavailable.",
             *engineering.diagnostics,

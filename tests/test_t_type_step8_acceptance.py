@@ -106,7 +106,6 @@ def _run_real_gui_acceptance(root: Path) -> None:
                 design = app.state_store.design_report
                 assert design is not None and design.waveform is None
                 assert app.workspace.waveform_view.figure.axes
-                form.operating_vars["operating_vdc_v"].set("800")
                 form.operating_vars["load_ratio"].set("0.5")
                 form.operating_vars["power_factor"].set("0.8")
                 assert app.state_store.design_report.candidate is design.candidate
@@ -118,12 +117,12 @@ def _run_real_gui_acceptance(root: Path) -> None:
                 data = current.waveform.metadata[PAYLOAD_KEY]
                 summary = app.workspace.summary_view.text.get("1.0", "end")
                 stress = app.workspace.stress_view.text.get("1.0", "end")
-                assert "Operating DC bus = 800.000000 V" in summary
+                assert "Operating DC bus = 700.000000 V" in summary
                 assert "Operating load ratio = 0.500000 pu" in summary
                 assert "Operating PF = 0.800000 lagging" in summary
                 assert "Operating active power = 5000.000000 W" in summary
-                assert "Static blocking maximum = 800.000000 V" in stress
-                assert "Static blocking maximum = 400.000000 V" in stress
+                assert "Static blocking maximum = 700.000000 V" in stress
+                assert "Static blocking maximum = 350.000000 V" in stress
                 assert len(app.workspace.waveform_view.figure.axes) == 6
                 assert all(len(axis.lines) > 0 for axis in app.workspace.waveform_view.figure.axes)
                 export = ExportController(app.state_store).export_summary()
@@ -146,6 +145,6 @@ def test_real_gui_first_pass_user_chain_and_current_readback(tmp_path):
                             capture_output=True, text=True, encoding="utf-8", timeout=900)
     assert result.returncode == 0, result.stderr or result.stdout
     readback = json.loads((tmp_path / "gui_readback.json").read_text(encoding="utf-8"))
-    assert readback["basis"]["vdc_v"] == 800
+    assert readback["basis"]["vdc_v"] == 700
     assert readback["basis"]["pout_w"] == 5000
     assert "Efficiency unavailable" in readback["summary"] or "unavailable" in readback["summary"].lower()

@@ -17,6 +17,14 @@ Backend and typed-result adaptation are pending. Discrete package count is
 12n; module procurement count must follow actual section bindings. No field or
 schema is changed by this documentation update.
 
+Subsequent A1 implementation now exposes the NPC 12+2 user controls and routes
+public temperature/type/manufacturer through the T-type schema and selector.
+Public type filters and shared scheme variants are effective; unsupported
+conduction models block selection without a filter fallback. The original
+internal envelope, positive-PF solver and ROHM RG conduction model remain until
+A2/A3. See [contract 17.7](three_phase_three_level_t_type_contract.md) for the
+implemented boundary. The typed-result table retains the existing schema.
+
 | Path | Meaning / Unit / Count | Producer / Consumers / Lifecycle |
 |---|---|---|
 | design_basis | topology/run/candidate SHA; rated output W, VLL RMS V, fline/fsw Hz, target L H, phase, tuple of bus V/load ratio/PF magnitude cases, temperatures C; voltage/current margins 0.20/0.10 | topology adapter -> selector/audit/UI; design input changes invalidate; missing source rejects |

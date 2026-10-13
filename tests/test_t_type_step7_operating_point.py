@@ -236,8 +236,8 @@ def _run_gui_refresh_case(root):
                 source = app.state_store.design_report
                 frozen = copy.deepcopy(asdict(source.candidate))
                 snapshots = []
-                for bus, load, pf in ((700, .1, 1), (800, .5, .8)):
-                    for key, value in (("operating_vdc_v", bus), ("load_ratio", load), ("power_factor", pf)):
+                for bus, load, pf in ((700, .1, 1), (700, .5, .8)):
+                    for key, value in (("load_ratio", load), ("power_factor", pf)):
                         form.operating_vars[key].set(str(value))
                     pending = app.state_store.design_report
                     assert pending.candidate is source.candidate
@@ -274,13 +274,13 @@ def _run_gui_refresh_case(root):
                     assert run.call_count == 1
                 assert all(asdict(report) == snapshot for report, snapshot in snapshots)
                 app.workspace.waveform_view.figure.savefig(root/"second_refresh.png")
-                form.operating_vars["operating_vdc_v"].set("500")
+                form.operating_vars["power_factor"].set("0.01")
                 form.generate_waveforms_button.invoke()
                 assert "modulation command" in errors[-1]
                 assert app.state_store.design_report.candidate is source.candidate
                 assert app.state_store.design_report.waveform is None
                 assert all(not axis.lines for axis in app.workspace.waveform_view.figure.axes)
-                form.operating_vars["operating_vdc_v"].set("800")
+                form.operating_vars["power_factor"].set("0.8")
                 form.generate_waveforms_button.invoke()
                 assert app.state_store.design_report.waveform is not None
                 form.operating_vars["power_factor"].set("nan")
@@ -288,7 +288,7 @@ def _run_gui_refresh_case(root):
                 assert "finite" in errors[-1]
                 assert app.state_store.design_report.waveform is None
                 assert run.call_count == 1
-                form.design_vars["power_factor_phase"].set("leading")
+                form.design_vars["semiconductor_manufacturer"].set("ROHM")
                 assert app.state_store.design_report is None
                 app._on_topology_selected("three_phase_three_level_npc_inverter")
                 assert app.state_store.design_report is None
@@ -308,7 +308,9 @@ def test_real_gui_two_refreshes_current_numbers_and_invalidation(tmp_path):
     assert len(records) == 2
     assert records[0]["run_id"] == records[1]["run_id"]
     assert records[0]["basis"]["vdc_v"] == 700
-    assert records[1]["basis"]["vdc_v"] == 800
+    assert records[1]["basis"]["vdc_v"] == 700
+    assert records[1]["basis"]["load_ratio"] == 0.5
+    assert records[1]["basis"]["power_factor"] == 0.8
 
 
 def test_equal_fixed_voltage_frequency_requests_use_waveform_tolerances(designs, no_redesign):

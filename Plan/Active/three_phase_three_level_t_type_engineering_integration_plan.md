@@ -395,3 +395,21 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 前置纠偏通过并提交推送后，依次步骤2三相电感、步骤3上下银行、步骤4真实硬件回读、步骤5损耗热几何、步骤6扫描完整导出、步骤7收尾。所有阶段读取新公共字段和已冻结选择政策，不再引入独立用户输入。反向有功下的组件方向和效率口径应在相应步骤明确；旧正功率公式不自动适用。
 
 死区/换流能量继续排除；其他拓扑测试继续按用户限定不执行。共享集成未验证消费者、技术模型缺口和系统尚未开放范围需保留，不因文档冻结宣称实现、全面回归或硬件验收完成。
+
+### 12.5 A1 用户界面实际实施（2026-10-13，实施中）
+
+- 用户指出界面尚未改变，本次执行A1：NPC一致12设计/2运行字段、公共样式/行距/按钮/Notes分区；保留现有滚动宿主以确保最小窗口控件可达。T-type表单/schema及专用device pipeline变化，另在共享waveform_controller增加仅T-type来源守卫；公共NPC表单、库和公共选择helper不改。
+- 分类：共享集成的T-type专用输入/选择适配。公共温度/类型/厂家由表单→schema→spec.raw_input/metadata→器件过滤/typed设计reference/报告读取；映射旧温度/厂家API别名，同传冲突拒绝。公共runtime overrides读取同温度来源，设计改变仍使整份报告失效。
+- 输入选择不可忽略：使用公共filter与scheme variants；尚未支持的技术/封装给出model拒绝并阻止发布，不回退其他厂家/类型。本次不改电路公式、负PF求解或旧内部工程包络，A2/A3技术模型剩余仍待实施；GUI接受signed PF后未支持点有明确后台诊断，不能认定全合同完成。
+- 验证计划：新增T-type输入/控件/实际库筛选负例；运行schema/synthesis、现有T-type GUI/刷新/真实器件测试，更新已取消独立母线控件的GUI动作，用低PF不可调制测试保留失败清理恢复断言，API母线刷新矩阵保留。只执行T-type节点，不执行NPC电气链/其他拓扑测试；当前Python/src/tests来源核验，实际命令/结果及GUI截图追加回执。
+- 原模型电压/电流/导通积分与数量未变，沿用其定义；新增字段无电气公式，本次公式证据限现有T-type标量/导通测试。真实GUI当前数字与report来源、温度/过滤有效性和仅T-type重复隔离分别验证。diff/ChangeLog/定向提交推送核实后才标A1完成。
+
+- 环境/命令：Python3.12.10 `C:/Users/Lumia/AppData/Local/Programs/Python/Python312/python.exe`，包为本工作区src/pe_claw_gui/__init__.py，测试为当前tests；基准`b8f07a0e0441936376f300749a493b457bcfba8b`加本次工作区。累计命令`python -B scripts/validate_t_type_engineering_step1.py .tt-r2-s1-input-parity t_type`记录精确argv/current源码checksum，274 passed/2 failed/2 deselected，1946.03 s、exit1；2 deselected为明确不执行的NPC电气节点，不算通过。各pytest组只有既有cache_dir warning，errors/skips为0。
+- 最终聚焦：`python -B -m pytest -o addopts= -p no:cacheprovider -q --basetemp .pytest-tmp-tt-input-parity-final-focus tests/test_t_type_input_parity.py tests/test_t_type_step1_contract.py tests/test_t_type_step2_synthesis.py --junitxml=.tt-input-parity-final-focus.xml`，149 passed/155.06 s；公共字段有效、所有保留旧numeric负例、真实IGBT+ROHM/30°C/110°C单方案两角色12封装通过。初始4失败来自新增测试错误调用plugin.build_default_inputs、1 Tk错误因反复建Tk；改为模块级单Tk fixture与模块入口。别名诊断组10失败保留，schema先验证原始字段后重跑148项通过；最后149项增加真实单方案接受，不把历史失败改为通过。
+- 累计GUI失败：公共runtime温度值未变仍复制spec导致固定来源断言失败；waveform_controller仅T-type分支在值未变时保留原report，真实温度变化需Run Design，其他拓扑分支不变。专项`tests/test_t_type_input_parity.py::test_runtime_temperature_readback_preserves_design_identity_and_requires_redesign`以`.pytest-tmp-tt-input-parity-runtime/.tt-input-parity-runtime.xml`运行1 passed/5.27 s；连续刷新节点以`.pytest-tmp-tt-input-parity-gui-refresh/.tt-input-parity-gui-refresh.xml`运行1 passed/256.65 s。GUI导出子进程通过后外层仍期待旧800 V，改为GUI设计700 V，保留API母线矩阵及当前数字/导出断言，最终GUI组结果待本节收尾追加。
+- 当前GUI截图：`.tt-input-parity-ui/t_type_input_1400x860.png`、`t_type_input_1240x760.png`及对应`t_type_operating_*`；实际Tk/ImageGrab读回`.tt-input-parity-ui/input_readback.json`，视觉检查12字段/完整厂家类型选择/两个运行字段/Notes、禁用按钮。截图捕获在临时工具中声明DPI awareness，生产DPI/公共窗口不改。未运行NPC设计/测试。
+- 补充controller影响：共享文件只增加T-type温度来源守卫，旧拓扑执行分支保持原逻辑；当前未测其他拓扑/跨拓扑电气链，不宣称完整兼容。设计改变使报告全失效，运行改变保留硬件来源；该守卫阻止绕过GUI失效用旧工程温度刷新。A2有符号PF及设计点basis、A3更广技术模型与交互仍未完成，步骤2–7暂不恢复。
+- 重跑回执：修复后连续GUI刷新独立1 passed/256.65 s；GUI导出首个独立重跑1 failed/149.46 s，子进程操作/读回通过，但外层残留800 V断言，修正为设计700 V。最终controller读回＋GUI导出命令`python -B -m pytest -o addopts= -p no:cacheprovider -q --basetemp .pytest-tmp-tt-input-parity-gui-final tests/test_t_type_step8_acceptance.py::test_real_gui_first_pass_user_chain_and_current_readback tests/test_t_type_step6_gui.py::test_real_tk_card_buttons_current_readback_and_failure_invalidation --junitxml=.tt-input-parity-gui-final.xml`为2 passed/248.80 s。API固定母线矩阵仍通过，GUI展示/结构report按700 V新设计basis。
+- 累计提交门槛：修改后的最终T-type suite重新执行，按实际JUnit核对所选节点/2个NPC exclusion，结果收尾追加。先前274通过保留为修复前累计，不冒充最终全套通过；不运行旧拓扑测试。
+- 最终累计：`python -B scripts/validate_t_type_engineering_step1.py .tt-r2-s1-input-parity-final t_type`，318 passed/2 deselected/0 failures/errors/skips，pytest1857.46 s、整命令1858.141 s，exit0；JUnit tests=318/errors=0/failures=0/skipped=0。preflight/test_receipt保存最终src/tests/scripts SHA及精确argv，源文件与最终实现一致；新增测试、全部现T-type schema/synthesis/waveform/stress/边界/API运行点/真实库导通/GUI当前数值/导出/重复隔离通过，一次完整所选T-type累计通过，非full suite。历史失败均保留；pending A2/A3能力未被算成已支持。
+- 收尾：55个合同/计划本地引用有效、ChangeLog原文仅追加、AST/定向与暂存diff/任务范围检查。仅定向提交14个任务文件，95项既有删除及用户生成物全部保留；生成日志/截图/JUnit/临时工具不提交。A1实现与验证已交付，状态在提交推送核实后同步；A2/A3及步骤2–7仍待实施。

@@ -602,3 +602,13 @@ NPC 运行表单允许 PF=0，波形在幅值分母使用 `max(abs(PF),1e-6)`。
 后台纠偏按[工程链计划第 12 节](../Plan/Active/three_phase_three_level_t_type_engineering_integration_plan.md)先行实施。验收包括 12+2 字段精确比较、公共筛选真实生效、IGBT 单方案与其他三方案、额定设计点而非旧包络、正/负/零 PF、旧字段冲突、无候选与不支持连接、当前硬件/页面/报告来源和仅 T-type 重复运行隔离。至少保留真实库 IGBT 及 MOSFET 路径，厂家无匹配有诊断；尚缺真实技术模型时不得宣布选择一致性完成。
 
 本次为文档变更，只检查源码参照、语义冲突、本地链接、ChangeLog 追加及 diff，不运行 pytest/电气链，不修改 Python、GUI、库或生成证据。第 16 节的 286 项属于旧合同历史，不能计入本节验收。其他拓扑测试按用户要求不执行；共享改动若不能限定影响须如实记录未验证消费者。
+
+### 17.7 A1 界面与公共输入实际接入边界（2026-10-13）
+
+17.6最后一段记录文档冻结时的范围；此后按用户“界面还是没有改成一致”实施A1。T-type现使用与NPC精确相同的12设计字段及2运行字段，复用公共筛选控件/行构造，分区/标签/默认值/选项/行距对齐；保留原滚动宿主保证最小窗口可达。未接电容/磁件/扫描按钮仍禁用，拓扑名称及模型说明按T-type实际能力。
+
+`build_default_inputs()`只返回12个公共用户字段；旧phase和engineering包络暂为内部/API输入，尚未执行A2迁移。公共温度/厂家归一化映射到现有工程consumer，同传别名冲突拒绝，有限值诊断保留实际字段。`spec.raw_input`记录公共字段和显式旧API字段，内部默认由metadata/basis保留。公共device filter/manufacturer及公共scheme variants已进入T-type专用pipeline，真实过滤并保留库计数/model拒绝；当前仅ROHM RG IGBT+FRD导通分支可发布，其他技术有明确unsupported诊断，绝不回退用户类型或厂家。
+
+运行母线取设计值，load/PF按NPC表单裁剪回写；GUI接受signed PF输入，但后台仍只支持正PF幅值，负/零PF尚有明确拒绝。A2有符号求解/额定选择basis、A3更多技术/封装导通支持及方案交互仍待实施。因此本次只完成界面与公共字段生效边界，不称后台完整一致；17.3/17.4目标合同仍为后续门槛。
+
+当前验证/失败历史/解释器/真实Tk截图/源码修订及Git回执见[计划12.5](../Plan/Active/three_phase_three_level_t_type_engineering_integration_plan.md)。其他拓扑代码与库记录未修改，也未执行其电气测试。

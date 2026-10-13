@@ -97,8 +97,8 @@ def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypa
         app.update_idletasks()
         form = app.workspace.active_form
         assert form.topology_id == ID
-        assert set(form.design_vars) == {f.key for f in form.design_fields}
-        assert form.get_runtime_overrides() == {}
+        assert set(form.design_vars) == {f.key for f in form.get_design_fields()}
+        assert form.get_runtime_overrides() == {'ambient_temp_c': '25', 'target_junction_temp_c': '100'}
         for button in (form.run_capacitor_button,form.run_magnetics_button,form.run_efficiency_sweep_button):
             assert str(button.cget('state')) == 'disabled'
         assert 'operating_vdc_v' not in form.get_raw_input()
@@ -154,7 +154,7 @@ def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypa
         (tmp_path/'gui_readback.json').write_text(json.dumps({'summary':summary,'stress':stress,'basis':data['basis'],'run_id':report.run_context.run_id}),encoding='utf-8')
         # A failed point must retain the candidate for recovery and clear current results.
         saved_candidate = report.candidate
-        form.operating_vars['operating_vdc_v'].set('500')
+        form.operating_vars['power_factor'].set('0.01')
         form.generate_waveforms_button.invoke()
         app.update_idletasks()
         assert errors and 'modulation' in errors[-1][1]
@@ -163,7 +163,7 @@ def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypa
         assert app.state_store.design_report.stress is None
         assert all(not axis.lines for axis in app.workspace.waveform_view.figure.axes)
         assert '21.935573 A' not in app.workspace.stress_view.text.get('1.0','end')
-        form.operating_vars['operating_vdc_v'].set('700')
+        form.operating_vars['power_factor'].set('1.0')
         form.generate_waveforms_button.invoke()
         assert app.state_store.design_report.waveform is not None
         form.operating_vars['load_ratio'].set('nan')
