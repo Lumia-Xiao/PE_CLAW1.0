@@ -196,8 +196,13 @@ def _build_t_type_selection_text(report):
     result=report.device
     engineering=report.t_type_engineering
     lines=["T-type semiconductor selection",f"Active scheme: {result.active_scheme_id or 'unavailable'}",
-        "Design envelope reference; conduction only.","Current/system losses and efficiency: unavailable."]
+        "Current/system losses and efficiency: unavailable."]
     if engineering:
+        lines.append(
+            "Nominal design-point reference (100% load, design DC bus/PF); conduction only."
+            if engineering.design_basis.selection_policy == "nominal_design_point"
+            else "Legacy design envelope reference; conduction only."
+        )
         lines.extend([f"Scope: {engineering.loss_scope_id}","Excluded losses: "+", ".join(engineering.excluded_components)])
         for role,reference in engineering.role_selection_reference.items():
             lines.extend([f"{role}: {reference.part_number}",

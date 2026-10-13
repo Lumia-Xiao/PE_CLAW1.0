@@ -149,7 +149,7 @@ def run_t_type_device_pipeline(report, plugin):
                         total_physical_device_count=6 * n,
                         target_junction_feasible=loss.thermal_feasible,
                         notes=[
-                            "Design envelope reference; role total unavailable until current-position evaluation."
+                            "Nominal design-point reference; role total unavailable until current-position evaluation."
                         ],
                     )
                 )
@@ -256,7 +256,7 @@ def run_t_type_device_pipeline(report, plugin):
         notes=[
             f"Semiconductor library filter: {library_filter.describe()}.",
             f"Registered semiconductor candidates: {len(registered)} total; {len(library)} remain after the library prefilter.",
-            "Design envelope conduction-only selection; thermal result is sink-reference screening.",
+            "Nominal design-point conduction-only selection (100% load, design DC bus/PF); thermal result is sink-reference screening.",
             "Excluded switching/recovery energies are not modeled; current/system losses unavailable.",
             *engineering.diagnostics,
         ],

@@ -2154,3 +2154,13 @@ listed here.
 - Git：基准aefbeb76e73a86f27b32f3ffd6fd9f338a7267b1；codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名分支；实现与状态SHA在后续Git回执追加。95项既有删除及outputs/历史证据保留。本次无备份操作。
 
 - Summary Git/状态回执：实现 `9d5013621d0d5ec9fafa77b54e47eae42391cd01` 已推送pe-claw-1.1同名分支并核实远端SHA。当前普通GUI设计81.038/77.773 s，耗时未优化。本状态提交仅追加计划/日志，修复与诊断范围完成；后台A2/A3及工程步骤2–7仍未完成，沿用上述10项实现验证，状态SHA见Git历史。
+
+
+## 2026-10-13 — T-type A2 额定设计点与应力积分复用
+
+- 原因/分类：用户要求处理Run Design主要耗时；T-type专用共享集成，默认选择从旧12工况包络改为额定母线/100%负载/设计PF单点。schema撤销隐藏包络默认，显式旧六字段给迁移诊断；adapter核验spec/candidate/basis来源。typed TTypeDesignBasis增加nominal_design_point政策标识，默认legacy_envelope保持旧历史区别；结构验证器与Devices说明同步。
+- 复用：T-type私有WaveformSet子类型保存运行期源/结果SHA，生成时只积分一次；每次consumer仍完整验证物理/结构/统计，源或stress改变重新积分比较，缺项/篡改负例拒绝。receipt不进入dataclass/metadata/JSON，无全局缓存；readback独立copy。电气公式/quad精度/Gauss8节点/库/公共selector/热/并联政策不改，死区/换流能量仍排除。
+- 文件：T-type input_schema/engineering_adapter/waveform/stress、models/t_type_engineering、pipeline/run_t_type_device_pipeline、engine t_type_conduction、Devices标签、scripts/report_schema_validation与T-type门禁清单；新增test_t_type_design_point，调整step1选型物理断言与step2/3低母线API输入；契约19/字段字典/工程计划14。旧拓扑执行分支不变，用户要求不执行其他拓扑。
+- 验证：聚焦初始81通过/1新增tuple夹具错误，保持KCL改受控列表后9负例通过；最终聚焦82 passed/2排除、输入/综合/波形157 passed、真实GUI3 passed，均明确单列不重复累计。最终`python -B scripts/validate_t_type_engineering_step1.py .tt-r2-s1-a2-full t_type`实际359 passed/2 deselected/0 failures/errors/skips、766.64 s、exit0；2为NPC排除，cache_dir既有warning另列。882当前源码SHA/本工作区Python3.12.10、独立物理积分/契约/GUI导出/同T-type隔离、AST/60引用/diff均核实。首个错误证据目录启动拒绝不算测试通过，历史证据保留。
+- 性能/边界：普通backend6.216865 s、实际GUI6.998–8.442 s，之前77.773–81.038 s；含剖析14.815780 s，一次波形/一次应力积分，旧为12/24。真实库main RGHX5TRX2DF/midpoint RGWX5TS65EHR，n1，额定阻断700/350V。仅本环境个案；有符号PF/A3/组件和完整系统工程步骤2–7未做，本轮A2仅子范围。
+- Git：基准ee856deb4c73026c8f03d9234b3108a2fc12e42e，codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名分支；实现/推送SHA后续回执追加。95项既有删除/outputs/本地生成证据保留，本次无备份操作。

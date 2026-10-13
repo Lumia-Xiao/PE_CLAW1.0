@@ -69,10 +69,11 @@ def test_real_two_role_selection_and_physical_count(report, tmp_path):
         )
         assert role.total_loss_w is None
         assert role.per_device_stress.v_block_V == (
-            800 if role.role == "t_type_main_switch" else 400
+            700 if role.role == "t_type_main_switch" else 350
         )
     assert report.t_type_engineering.loss_scope_id == LOSS_SCOPE_ID
-    assert len(report.t_type_engineering.design_basis.cases) == 12
+    assert report.t_type_engineering.design_basis.cases == ((700, 1.0, 1.0),)
+    assert report.t_type_engineering.design_basis.selection_policy == "nominal_design_point"
     basis = report.t_type_engineering.design_basis
     assert (
         basis.rated_output_power_w,

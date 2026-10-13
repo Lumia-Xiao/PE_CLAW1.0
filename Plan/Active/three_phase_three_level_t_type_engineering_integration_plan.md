@@ -436,3 +436,25 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 - 源码校验：验证期间任务源码SHA未变、AST有效、58个文档本地链接有效、diff --check干净；报告结构/公式/库/筛选/求解均无变更。生成物不提交，95项既有删除保持。本轮实现已验证，完成状态待本次commit/push核实后追加；A2/A3与工程步骤2–7仍待实施。
 
 - Git完成回执：实现提交 `9d5013621d0d5ec9fafa77b54e47eae42391cd01` 已推送 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote同SHA。本节Summary修复与耗时核查完成，性能优化未实施；A2/A3及工程步骤2–7状态保持待实施。两次未加剖析的当前GUI Run Design为81.038/77.773 s，仍慢，不能称已提速。本次状态回执只追加文档，无实现变化，沿用上述10项当前验证，不重跑电气链；状态提交SHA见Git历史。
+
+
+## 14. A2 额定选型设计点与应力积分复用（2026-10-13，实施中）
+
+- 授权：用户要求“处理 A2 的额定设计点策略和应力计算复用”。本轮不实施有符号PF/A3/工程步骤2–7，A2仅此子范围；死区/换流能量继续排除。
+- 基准 ee856deb4c73026c8f03d9234b3108a2fc12e42e；分支codex/llc-waveform-operating-point-plan、远端pe-claw-1.1同名分支。95项既有删除和全部输出/历史证据保留。
+- 分类：T-type专用共享集成。schema→candidate→adapter额定工况→波形/应力→两角色选择→typed basis/结构报告/验证器/Devices。公共selector/库/求解/电气公式和其他拓扑路径不变；T-type typed model增加默认legacy政策标识，旧实例/历史缺标识仍按原包络，不重标。GUI/报告消费者均明确nominal design point。其他拓扑依用户要求不测；共享模型WaveformSet不改。
+- 设计数据：cases=((candidate.vin_nom,1.0,candidate.metadata.power_factor),)，V DC/满载ratio/PF正幅值；VLL RMS V/总额定有功W/fline与fsw Hz/L每相H/phase/温度C/20%耐压和10%电流裕量沿用原源。main六位置全母线、midpoint六位置半母线；电流peak/RMS/avg/导通占比取自己完整线路周期逐位置包络，八Gauss节点积分/原热筛选/并联政策不变。运行点改变不重选、不更改设计basis；设计输入变动整套失效。选择basis非法/陈旧/无完整硬件继续拒绝。
+- 输入兼容：退出隐藏bus/PF/load包络默认元数据；显式旧六个包络字段给迁移诊断，非有限仍报实际字段，不接受后静默忽略。温度/厂家兼容别名及leading API沿现合同，本轮不改正/负PF物理边界。500V不可调制测试移除旧包络输入仍保留相同电气失败断言。
+- 复用：拓扑私有WaveformSet子类型保存仅运行期的源摘要和积分结果摘要，不进入dataclass字段/metadata/JSON；无全局cache、不写文件、不按候选ID复用跨工况。producer计算一次；consumer仍执行完整validate_waveform（KCL/时间/公式/采样/gates/统计/周期/来源），来源及应力摘要相同才用已计算结果。摘要失配/无运行记录时走原重新积分和比较；metric篡改/缺项/非有限/陈旧必须报错，深拷贝/replace/旧报告不得串数据。独立参考和加密测试保留。
+- 验证计划：先新增test_t_type_design_point.py（额定PF/母线/满载、旧字段诊断、basis来源拒绝、应力调用次数、修改与伪造negative、无receipt回退、序列化不含cache、同拓扑隔离）；step1真实库的旧800/400V及12case断言按新物理设计合同改700/350V及单case，不降低裕量或容差。执行新测试+step1器件+step5契约/独立积分，再用validate_t_type_engineering_step1.py t_type全相关节点（显式排除2NPC，加入新概要和设计点文件）。当前解释器/import/test SHA、JUnit/GUI当前数值/导出/隔离实际回执；不跑其他拓扑/full suite。
+- 性能对比：保存旧实际GUI77.773/81.038 s为上轮同工作区普通运行；本轮记录相同输入/库普通Run Design耗时及cProfile（带开销分列）。旧12工况排名与新额定点硬件可能不同，不能把应有工程差异当性能误差；在同额定点以旧单点独立公式/标量积分对照数值。完整验证/ChangeLog/diff/提交推送核实才标本子范围完成，signed PF仍待实施。
+
+- 当前环境与源码：Python3.12.10 `C:/Users/Lumia/AppData/Local/Programs/Python/Python312/python.exe`，显式PYTHONPATH本工作区src；累计脚本preflight/test_receipt核验本地package/tests、基准ee856de＋本轮源码，882项src/tests/scripts/docs SHA全部与最终验证一致。输出当前目录为`.tt-r2-s1-a2-full`，不改系统安装或用户文件。
+- 聚焦：`python -B -m pytest -o addopts= -p no:cacheprovider -q --basetemp .pytest-tmp-tt-a2-focus tests/test_t_type_design_point.py tests/test_t_type_engineering_step1_devices.py tests/test_t_type_step5_pipeline.py --deselect=tests/test_t_type_step5_pipeline.py::test_npc_t_type_order_repeat_isolation --deselect=tests/test_t_type_step5_pipeline.py::test_npc_empty_solver_retains_four_empty_gates --junitxml=.tt-a2-design-point/focus.xml`，81 passed/1 failed/2 deselected、161.37 s。失败为新增negative测试直接修改tuple，生产检查未运行；改为新列表且相1/2等量反向修改保持KCL，仍要求formula诊断。单独负例9 passed/23.25 s；相同3文件最终以`.pytest-tmp-tt-a2-engineering/.tt-a2-design-point/engineering.xml`重跑82 passed/2 deselected、183.14 s。未隐藏历史失败或放宽断言。
+- 输入/综合/波形及公共筛选：相同pytest options，`.pytest-tmp-tt-a2-contract`，test_t_type_input_parity/step1_contract/step2_synthesis/step3_waveforms，`.tt-a2-design-point/contracts.xml`，157 passed/43.82 s。真实GUI3节点（step6按钮/step7连续刷新/step8导出），`.pytest-tmp-tt-a2-gui/.tt-a2-design-point/gui.xml`，3 passed/121.89 s。均exit0；每组既有cache_dir配置warning单列。
+- 最终累计命令：`python -B scripts/validate_t_type_engineering_step1.py .tt-r2-s1-a2-full t_type`，359 passed/2 deselected/0 failed/errors/skips，pytest766.64 s、整命令767.297 s、exit0；JUnit tests359/errors0/failures0/skipped0。所选T-type全部schema/synthesis/波形/路径/应力/边界/真实选型/导通独立公式/API运行点/GUI/报告导出/仅T-type重复隔离执行通过，新增概要和design-point文件已加入工具清单。2排除明确为NPC电气节点，不算通过；未执行其他拓扑/full suite。
+- 工具启动错误单列：首次使用`.tt-a2-design-point/full`违反既有脚本`.tt-r2-s1-*`证据目录门槛，启动即拒绝、未收集/执行；随后使用正确新目录，不改脚本门槛。历史聚焦失败与此启动错误保留，不并入通过结果。
+- 四类证据：物理公式沿step1_devices独立库标量adaptive积分/仿射解析/Gauss8与16和step5独立dense Simpson/加密；源/consumer为单case20%/10%裕量、两组12n封装、来源/政策/导出negative与复用调用次数；真实GUI固定来源/当前数值/缺项/恢复/导出；隔离为仅T-type重复报告/数组不共享和cache不导出/readback深拷贝。系统loss/eta仍不可用，不因导通参考发布不完整系统总量。
+- 性能：同默认10kW/700V/400VLL/PF1/20kHz/Any库，普通完整backend6.216865 s，当前完整门禁GUI Run Design6.998/8.442/7.124 s；上轮77.773/81.038 s来自同工作区普通GUI，约9–12倍改善，仅为本环境个案不作普适保证。新case=(700,1,1)，main RGHX5TRX2DF、midpoint RGWX5TS65EHR，n1、main700V/midpoint350V，旧包络硬件虽此次相同但不能要求所有输入相同。
+- 剖析：`.tt-a2-design-point/design.prof/profile.json`，14.815780 s含剖析开销；build_device_selection_requests11.564367 s，一次波形generate9.328103 s、calculate_position_stress1次5.225893 s，stress_readback5次累计2.062230 s（有包含式时间不可相加）。相比旧12次波形/24次应力积分，已去多工况与重复积分；结构/物理验证依然执行，不关闭检查提速。
+- 审阅：所有变更Python AST、60本地链接、diff --check、定向差异和882源码SHA核验通过。95项既有删除、输出/日志/JUnit/剖析/历史证据保留不暂存。此子范围已实现验证；Git完成状态待commit/push核实后追加。A2有符号PF、A3及二轮工程步骤2–7仍待实施。

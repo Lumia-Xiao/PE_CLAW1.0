@@ -187,7 +187,7 @@ def evaluate_t_type_conduction_reference(
         sink_volume_model=sink.sink_volume_model,
         thermal_design_notes=[
             LOSS_SCOPE_ID,
-            "Design envelope reference only; excluded energies are not modeled.",
+            "Selection-case reference only; excluded energies are not modeled.",
             "Curve evaluated at target junction temperature; conservative combined IGBT/FRD package Rth screening.",
             f"Worst case={request.case}, position={request.position_id}",
             sink.sink_requirement_label,

@@ -33,21 +33,19 @@ _DEFAULT_INPUTS: Mapping[str, str] = MappingProxyType({
     "semiconductor_device_type": "Any",
     "semiconductor_manufacturer": "Any",
 })
-# Internal engineering inputs remain on the original model until A2/A3 adaptation.
+# Legacy temperature/filter aliases remain; selection uses the nominal design point.
 _INTERNAL_DEFAULTS: Mapping[str, str] = MappingProxyType({
     "power_factor_phase": "lagging",
-    "engineering_vdc_min_v": "700",
-    "engineering_vdc_max_v": "800",
-    "engineering_pf_min": "0.8",
-    "engineering_pf_max": "1",
-    "engineering_load_min": "0.1",
-    "engineering_load_max": "1",
     "engineering_ambient_temp_c": "25",
     "engineering_target_junction_temp_c": "100",
     "engineering_device_type": "IGBT",
     "engineering_device_implementation": "Discrete",
     "engineering_manufacturer": "Any",
 })
+_RETIRED_ENVELOPE_FIELDS = (
+    "engineering_vdc_min_v", "engineering_vdc_max_v", "engineering_pf_min",
+    "engineering_pf_max", "engineering_load_min", "engineering_load_max",
+)
 _NUMERIC_FIELDS = tuple(key for key in {**_DEFAULT_INPUTS, **_INTERNAL_DEFAULTS} if key not in {
     "power_factor_phase", "engineering_device_type", "engineering_device_implementation", "engineering_manufacturer",
     "semiconductor_device_type", "semiconductor_manufacturer"})
@@ -85,6 +83,13 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
     for key in _NUMERIC_FIELDS:
         if key in raw_input:
             _parse_finite_number(raw_input, key)
+    for key in _RETIRED_ENVELOPE_FIELDS:
+        if key in raw_input:
+            _parse_finite_number(raw_input, key)
+            raise ValueError(
+                f"Input field '{key}' is retired: selection uses the nominal DC bus, "
+                "100% load and design PF; migrate envelope checks to fixed-hardware operating points."
+            )
     normalized_input = dict(raw_input)
     aliases = (
         ("ambient_temp_c", "engineering_ambient_temp_c", parse_ambient_temperature_c),
@@ -118,24 +123,10 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
             raise ValueError(f"Input field '{key}' must be positive.")
     if not 0 < values["power_factor"] <= 1:
         raise ValueError("Input field 'power_factor' must be in the range (0, 1]; reverse-power T-type adaptation is pending.")
-    # Omitted engineering boundaries include the existing design point.
-    for key, value in (("engineering_vdc_min_v",min(700.,values["vdc_nom"])),
-                       ("engineering_vdc_max_v",max(800.,values["vdc_nom"])),
-                       ("engineering_pf_min",min(.8,values["power_factor"]))):
-        if key not in raw_input:
-            values[key]=value; merged[key]=str(value)
     for key, required in (("engineering_device_type", "IGBT"), ("engineering_device_implementation", "Discrete")):
         if merged[key] != required:
             raise ValueError(f"{key}: only {required} is supported.")
     manufacturer = normalize_semiconductor_manufacturer(merged["engineering_manufacturer"])
-    for prefix, minimum, maximum in (("vdc",0.,float("inf")),("pf",0.,1.),("load",0.,1.)):
-        lo,hi=(values[f"engineering_{prefix}_{suffix}"] for suffix in (("min_v","max_v") if prefix=="vdc" else ("min","max")))
-        if not minimum < lo <= hi <= maximum:
-            raise ValueError(f"engineering_{prefix}: invalid design envelope")
-    if not values["engineering_vdc_min_v"] <= values["vdc_nom"] <= values["engineering_vdc_max_v"]:
-        raise ValueError("Design bus outside engineering envelope")
-    if not values["engineering_pf_min"] <= values["power_factor"] <= values["engineering_pf_max"]:
-        raise ValueError("Design PF outside engineering envelope")
     if not values["engineering_ambient_temp_c"] < values["engineering_target_junction_temp_c"] <= 150:
         raise ValueError("Invalid engineering ambient/target temperature")
     phase = str(merged["power_factor_phase"]).strip().casefold()

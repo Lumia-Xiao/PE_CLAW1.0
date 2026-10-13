@@ -627,3 +627,26 @@ NPC 运行表单允许 PF=0，波形在幅值分母使用 `max(abs(PF),1e-6)`。
 - Run Design 当前仍使用旧 12 工况工程包络；改为 NPC 额定 design point 归第17节 A2，不能以 Summary 修复声称后台已一致或性能已优化。
 
 生产入口：[summary_view.py](../src/pe_claw_gui/app/result_views/summary_view.py)；明细入口：[stress_view.py](../src/pe_claw_gui/app/result_views/stress_view.py)。验证为 `tests/test_t_type_summary_view.py` 及步骤6/7/8真实GUI节点；实际回执见工程计划第13节。
+
+
+## 19. A2 额定设计点策略与应力积分复用（2026-10-13）
+
+本节覆盖第16/17.7/18节中的旧包络待迁移状态，范围仅为用户授权的设计点与积分复用；17.3有符号PF仍待实施，正PF及旧leading API物理模型不变。
+
+### 19.1 额定选择来源
+
+`build_design_basis`使用spec/candidate一致的额定母线、100%负载、设计PF，cases精确为一个 `(Vdc_nom,1.0,PF_design)`，其余额定总有功W、VLL RMS V、fline/fsw Hz、每相L H、phase和公共温度C沿原source。20%耐压/10%电流裕量不变。静态阻断main=额定Vdc、midpoint=额定Vdc/2；逐位置完整线路周期peak/RMS/avg和导通占比沿原模型。额定工况之外的实际刷新不改变选型basis/硬件，不能认定额定选择证明了旧700/800×负载×PF全包络。
+
+`TTypeDesignBasis.selection_policy="nominal_design_point"`明确新basis；该新增字段默认`legacy_envelope`以保持旧构造合同，历史JSON缺字段按旧政策处理，不能重标。原cases字段仍是真实选择工况列表，语义/单位不变。schema validator对新政策检查单case与原输入母线/PF/满载一致，role reference.case必须属于它；旧缺字段政策仍不改变历史数据。
+
+六个旧`engineering_vdc_min_v/max_v、engineering_pf_min/max、engineering_load_min/max`不再是内部默认或接受的扩展API；显式传入给出字段名及retired迁移说明，非有限值先给有限值诊断。公共温度/厂家别名仍保留。旧leading/独立技术连接边界本轮未扩展。真实候选可能因旧最坏包络转为额定点而不同，属于本次授权的选择政策变化，不能用旧硬件作为不变断言。
+
+### 19.2 波形级应力复用与安全边界
+
+T-type producer使用拓扑私有`_PositionStressWaveform`（继承公共WaveformSet，未改公共模型）。每份实例保存仅运行期的`_position_stress_key`，以完整segments/basis及已计算stress的规范JSON SHA256关联原计算。它不进入dataclass fields/asdict/metadata/JSON，不是可从结构报告恢复的可信token；无全局状态、跨设计缓存或持久文件。
+
+生成波形仍以原adaptive quadrature求完整线路周期逐位置应力一次并记录摘要。每次stress_readback仍执行原validate_waveform的来源/完整周期/有限值/KCL/连续性/精确电流公式/事件/采样/gates/相统计校验；摘要一致才复用积分。任意source或stress改变则沿原计算重新积分并比较；缺stress/NaN/Inf/未知数据类型有明确错误。位置metrics副本每次与原stress比较。无运行receipt的普通/导入WaveformSet走重新积分验证；dataclasses.replace产生无receipt的新实例，验证通过后才能记下该实例结果。deepcopy保持独立数据，摘要变化仍拒绝。readback返回独立深拷贝，不让caller修改payload或其他报告。
+
+这不是新增物理公式，也不降低原quad精度、Gauss节点、完整周期采样或任何工程容差。导通engine/库筛选/方案数/热筛选仍原方法，死区/换流能量继续不计算。结构报告的工程basis增加政策字段，历史和新报告分别识别；内部运行receipt绝不导出。
+
+验证包括旧应力独立dense Simpson/加密、真实库标量adaptive导通、篡改source/stress/metrics/统计/gates负例、无receipt fallback、调用次数、真实GUI/导出/固定来源及同T-type重复隔离。当前运行回执与性能证据以[计划第14节](../Plan/Active/three_phase_three_level_t_type_engineering_integration_plan.md)为准，未验证门禁不提前宣称完成。

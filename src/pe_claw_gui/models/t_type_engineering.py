@@ -35,6 +35,7 @@ class TTypeDesignBasis:
     design_inductance_h: float
     voltage_margin_ratio: float
     current_margin_ratio: float
+    selection_policy: str = "legacy_envelope"
 
 
 @dataclass(frozen=True)

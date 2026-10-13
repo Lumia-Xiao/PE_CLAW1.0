@@ -57,6 +57,21 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
                 errors.append("engineering_result.topology")
             if engineering.get("schema_version") != 1 or engineering.get("loss_scope_id") != "t_type_conduction_magnetics_capacitors_v1":
                 errors.append("engineering_result.scope")
+            basis = engineering.get("design_basis", {})
+            policy = basis.get("selection_policy", "legacy_envelope") if isinstance(basis, dict) else None
+            if not isinstance(policy, str) or policy not in {"legacy_envelope", "nominal_design_point"}:
+                errors.append("engineering_result.selection_policy")
+            if policy == "nominal_design_point":
+                try:
+                    raw = payload["request"]["raw_input"]
+                    expected = (float(raw["vdc_nom"]), 1.0, float(raw["power_factor"]))
+                    cases = basis["cases"]
+                    if (len(cases) != 1 or tuple(cases[0]) != expected
+                            or not all(math.isfinite(v) and v > 0 for v in expected)
+                            or expected[2] > 1):
+                        errors.append("engineering_result.design_point")
+                except (KeyError, TypeError, ValueError, OverflowError):
+                    errors.append("engineering_result.design_point")
             if not isinstance(engineering.get("excluded_components"),(list,tuple)) or "switching_on" not in engineering.get("excluded_components",()):
                 errors.append("engineering_result.excluded_components")
             roles = {"t_type_main_switch","t_type_midpoint_switch"}
@@ -81,6 +96,13 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
                 errors.append("engineering_result.reference")
                 references = {}
             for reference in references.values():
+                if policy == "nominal_design_point" and isinstance(reference, dict):
+                    case = reference.get("case")
+                    cases = basis.get("cases")
+                    if (not isinstance(case, (list, tuple)) or not isinstance(cases, (list, tuple))
+                            or len(cases) != 1 or not isinstance(cases[0], (list, tuple))
+                            or tuple(case) != tuple(cases[0])):
+                        errors.append("engineering_result.reference_case")
                 if not isinstance(reference,dict) or any(not isinstance(reference.get(key),(int,float)) or not math.isfinite(reference[key])
                         for key in ("per_device_channel_w","per_device_diode_w","reference_tj_c")):
                     errors.append("engineering_result.reference")

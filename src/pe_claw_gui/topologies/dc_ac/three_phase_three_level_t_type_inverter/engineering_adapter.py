@@ -1,9 +1,8 @@
-"""Topology-owned design envelope and direction-aware conduction requests."""
+"""Topology-owned nominal design point and direction-aware conduction requests."""
 
 from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
-import itertools
 import json
 import math
 import numpy as np
@@ -46,18 +45,12 @@ def build_design_basis(report):
     ):
         raise ValueError("T-type design source identity mismatch")
     m = report.spec.metadata
-    cases = tuple(
-        itertools.product(
-            sorted(set((m["engineering_vdc_min_v"], m["engineering_vdc_max_v"]))),
-            sorted(set((m["engineering_load_min"], 0.5, m["engineering_load_max"]))),
-            sorted(set((m["engineering_pf_min"], m["engineering_pf_max"]))),
-        )
-    )
-    cases = tuple(
-        c
-        for c in cases
-        if m["engineering_load_min"] <= c[1] <= m["engineering_load_max"]
-    )
+    if (any(report.candidate.metadata.get(key) != value for key, value in m.items())
+            or any(getattr(report.candidate, field) != m[key] for field, key in (
+                ("vin_nom", "vdc_nom_v"), ("vout_target", "vac_ll_rms_v"),
+                ("pout_target", "pout_w"), ("fs_hz", "fsw_hz")))):
+        raise ValueError("T-type design source metadata mismatch")
+    cases = ((report.candidate.vin_nom, 1.0, m["power_factor"]),)
     return TTypeDesignBasis(
         TOPOLOGY_ID,
         getattr(report.run_context, "run_id", None),
@@ -74,6 +67,7 @@ def build_design_basis(report):
         report.candidate.inductance_h,
         0.20,
         0.10,
+        selection_policy="nominal_design_point",
     )
 
 
@@ -143,6 +137,7 @@ def build_device_selection_requests(report, design_basis, plugin):
     if (
         plugin.topology_id != TOPOLOGY_ID
         or candidate_fingerprint(report.candidate) != design_basis.candidate_fingerprint
+        or design_basis != build_design_basis(report)
     ):
         raise ValueError("T-type design request source mismatch")
     requests = []

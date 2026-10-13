@@ -18,7 +18,7 @@ from validate_t_type_engineering_step0 import (
 )
 
 TOPOLOGY_TESTS = list(
-    dict.fromkeys(["tests/test_t_type_input_parity.py", "tests/test_t_type_engineering_step1_devices.py", *TESTS])
+    dict.fromkeys(["tests/test_t_type_design_point.py", "tests/test_t_type_summary_view.py", "tests/test_t_type_input_parity.py", "tests/test_t_type_engineering_step1_devices.py", *TESTS])
 )
 CONSUMER_TESTS = [
     "tests/test_semiconductor_package_library.py",

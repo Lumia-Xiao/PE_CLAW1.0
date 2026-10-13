@@ -76,3 +76,27 @@ These are GUI labels over existing fields; no structured schema or unit changes.
 Detailed 12-position stress remains in Stress and the original report/export.
 Known routine scope notes are grouped only for Summary; unknown warnings remain
 visible. See [contract section 18](three_phase_three_level_t_type_contract.md).
+
+
+## A2 nominal selection policy and integral reuse (2026-10-13)
+
+This section supersedes the earlier default envelope for new selections.
+`design_basis.cases` now contains exactly `(nominal DC bus V,1.0,design PF)`;
+PF remains a supported positive magnitude in this substep. Other basis values,
+20%/10% voltage/current margins and per-position statistics retain their units.
+`design_basis.selection_policy` is `nominal_design_point` for new selections,
+with `legacy_envelope` as the typed compatibility default; absent historical
+JSON fields retain their old basis. Structured validation checks nominal cases
+against input values and checks each role reference case. Devices labels the
+policy; current operating refresh retains it and never reselects hardware.
+
+Retired hidden voltage/PF/load envelope inputs are explicitly rejected with
+migration diagnostics, rather than accepted and ignored. Existing public
+12+2 GUI fields, temperature/manufacturer aliases and selection filters remain.
+
+The topology-only waveform subtype's private runtime receipt is a SHA256 of
+segments/basis/stress. It is not a public model field or exported metadata.
+Every readback still validates source/time/KCL/formulas/gates/statistics and
+position metric copies. Digest mismatch or absent receipt recomputes the exact
+integral; invalid data is rejected. Independent returned stress dictionaries
+preserve isolation. See [contract section 19](three_phase_three_level_t_type_contract.md).

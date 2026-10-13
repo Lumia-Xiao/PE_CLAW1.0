@@ -3,16 +3,36 @@
 from __future__ import annotations
 
 import math
+import hashlib
+import json
+from copy import deepcopy
 
 from scipy.integrate import quad
 
 from ....models.stress_result import StressMetric, StressResult
+from ....models.waveform import WaveformSet
 from .integration import current_zero_times, segment_current
 from .paths_events import conduction_currents, extract_events, gate_vector
 from .topology_contract import TOPOLOGY_ID
 
 PAYLOAD_KEY = "three_phase_t_type_pd_spwm_waveforms"
 ROLES = ("QP", "QN", "QA", "QO")
+
+
+def _stress_source_key(payload):
+    return hashlib.sha256(json.dumps(
+        (payload["segments"], payload["basis"], payload["stress"]),
+        sort_keys=True, allow_nan=False, separators=(",", ":"),
+    ).encode()).digest()
+
+
+class _PositionStressWaveform(WaveformSet):
+    """Runtime-only integral receipt; inherited dataclass/export fields stay unchanged."""
+
+    __slots__ = ("_position_stress_key",)
+
+    def _remember_position_stress(self):
+        object.__setattr__(self, "_position_stress_key", _stress_source_key(self.metadata[PAYLOAD_KEY]))
 
 
 def _envelope(positions):
@@ -161,12 +181,21 @@ def stress_readback(candidate, waveform=None):
                 "main": _envelope({k:v for k,v in positions.items() if k.endswith(("QP","QN"))}),
                 "midpoint": _envelope({k:v for k,v in positions.items() if k.endswith(("QA","QO"))})}
     payload = validate_waveform(candidate,waveform)
-    current = calculate_position_stress(payload["segments"],payload["basis"])
+    # Structural/physical validation above still runs even when the integral is reused.
+    try:
+        reusable = isinstance(waveform, _PositionStressWaveform) and (
+            getattr(waveform, "_position_stress_key", None) == _stress_source_key(payload)
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError(f"T-type actual stress payload missing or stale: {exc}") from exc
+    current = payload["stress"] if reusable else calculate_position_stress(payload["segments"],payload["basis"])
     if payload.get("stress") != current:
         raise ValueError("T-type actual stress payload missing or stale.")
     if any(payload["positions"][key].get("metrics") != metrics for key,metrics in current["positions"].items()):
         raise ValueError("T-type position stress metrics missing or stale.")
-    return current
+    if not reusable and isinstance(waveform, _PositionStressWaveform):
+        waveform._remember_position_stress()
+    return deepcopy(current)
 
 
 def extract_stress(candidate, waveform_set=None):

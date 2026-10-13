@@ -106,7 +106,7 @@ def test_low_bus_waveform_rejects_illegal_saturated_sequence_with_diagnostic() -
     # Reject the unreachable command before exposing invalid paths; retain the
     # original modulation and actual solver diagnostics.
     with pytest.raises(TTypeWaveformError, match="fundamental modulation command") as error:
-        generate_waveforms(_candidate(vdc_nom="500", engineering_vdc_min_v="500"))
+        generate_waveforms(_candidate(vdc_nom="500"))
     diagnostics = error.value.diagnostics
     assert diagnostics["modulation_index_command"] > 1.0
     assert diagnostics["modulation_valid"] is False
