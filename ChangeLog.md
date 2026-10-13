@@ -2141,3 +2141,5 @@ listed here.
 - Git/维护：基准b8f07a0e0441936376f300749a493b457bcfba8b，codex/llc-waveform-operating-point-plan，推送pe-claw-1.1同名分支；定向提交任务文件，实际SHA/远端核实见Git历史和完成报告。保留95项既有删除、outputs、临时GUI工具/截图/日志/JUnit，生成物不提交；无清理/备份。
 
 - 本次收尾追加：共享waveform_controller仅T-type分支补同温度覆盖保留原spec、变温需重新设计守卫。累计初次274 passed/2 GUI失败/2 deselected保留，修复设计来源及GUI导出外层旧800 V断言后，最终`python -B scripts/validate_t_type_engineering_step1.py .tt-r2-s1-input-parity-final t_type`实际318 passed/2 deselected/0 failures/errors/skips、1857.46 s、exit0；JUnit与最终源码checksum核实，2 deselected为用户排除的NPC节点。其他拓扑/full suite未执行。GUI重跑2 passed/248.80 s、连续刷新1 passed/256.65 s、温度守卫1 passed/5.27 s均单列不重复累计。55本地引用/append-only/AST/diff及14文件范围检查；状态在push核实后同步。
+
+- A1 Git/状态回执：实现提交`e81af2f03a35e966fab44257a32a6d5532fae937`已推送pe-claw-1.1同名分支，ls-remote核实；873个src/tests/scripts SHA与最终验证回执一致。本状态提交仅计划与追加日志，标A1界面/公共字段接入完成，保留A2/A3后台与步骤2–7未实施、其他拓扑未测。无生产变化/无需重跑电气链，最终文档SHA见Git历史及完成报告；既有删除与生成物保留。

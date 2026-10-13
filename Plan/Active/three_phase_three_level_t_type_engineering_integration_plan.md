@@ -1,8 +1,8 @@
 # 三相三电平 T-type 第二轮工程链接入计划
 
-- 状态：Active / 步骤 0–1 的原合同实现已推送，历史回执保留；新增 NPC 输入/半导体一致性纠偏前置，尚未适配验收；步骤 2–7 待实施。
+- 状态：Active / 步骤 0–1 原合同历史保留；NPC一致输入前置A1已实现验证并推送，A2/A3后台完整适配与总体验收待实施；步骤 2–7 待实施。
 - 创建日期：2026-10-13。
-- 当前授权：先冻结与 NPC 完全一致的用户输入及半导体选择合同，再调整 T-type 后台，随后继续工程链。本次执行文档冻结与计划纠偏，生产代码留待下一步；仅关注 T-type 验证，死区及换流能量仍排除。
+- 当前授权：先冻结与 NPC 完全一致的用户输入及半导体选择合同，再调整 T-type 后台，随后继续工程链。本次按用户反馈执行A1实际界面与公共输入适配；仅关注 T-type 验证，死区及换流能量仍排除。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
 - 撰写基准：`622920211ffa1185799365d0f4d1f50e0119a521`；分支 `codex/llc-waveform-operating-point-plan`。
@@ -108,7 +108,7 @@ NPC 一致用户输入及半导体选择合同冻结
 |---|---|---|---|
 | 0 | 冻结二轮接口、范围、基线和阶段开放方案 | 本计划 | 已完成，见第 10 节 |
 | 1 | 半导体两角色真实库选型 | 0 | 原合同已推送，见11.2–11.3；新一致性要求需先纠偏 |
-| 前置纠偏 | NPC 输入/选择合同及 T-type 后台适配 | 0–1 历史实现 | 合同本次冻结；适配/新验收待实施，见12 |
+| 前置纠偏 | NPC 输入/选择合同及 T-type 后台适配 | 0–1 历史实现 | 合同已冻结；A1完成并推送，A2/A3及总体验收待实施，见12.5 |
 | 2 | 三相电感接入 | 1、前置纠偏验收 | 待实施 |
 | 3 | 上/下银行电流与真实电容选型 | 0、2 | 待实施 |
 | 4 | 选定硬件回读、固定硬件刷新与全链来源校验 | 1–3 | 待实施 |
@@ -116,7 +116,7 @@ NPC 一致用户输入及半导体选择合同冻结
 | 6 | 固定硬件扫描、完整工程 GUI/报告/导出 | 5 | 待实施 |
 | 7 | 二轮完整验收、旧消费者回归、隔离与归档 | 6 | 待实施 |
 
-各步实施前写明本步影响与精确验证清单；必要验证通过、ChangeLog 追加、diff 检查、独立 commit/push 并核实远端后才能标完成。本次只执行第 12.1 节文档冻结，不触发后续生产实施。
+各步实施前写明本步影响与精确验证清单；必要验证通过、ChangeLog 追加、diff 检查、独立 commit/push 并核实远端后才能标完成。12.1记录历史文档冻结，本次实际生产实施边界见12.5。
 
 ### 步骤 0：冻结接口、损耗范围与基线
 
@@ -396,7 +396,7 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 
 死区/换流能量继续排除；其他拓扑测试继续按用户限定不执行。共享集成未验证消费者、技术模型缺口和系统尚未开放范围需保留，不因文档冻结宣称实现、全面回归或硬件验收完成。
 
-### 12.5 A1 用户界面实际实施（2026-10-13，实施中）
+### 12.5 A1 用户界面实际实施（2026-10-13，已验证并推送）
 
 - 用户指出界面尚未改变，本次执行A1：NPC一致12设计/2运行字段、公共样式/行距/按钮/Notes分区；保留现有滚动宿主以确保最小窗口控件可达。T-type表单/schema及专用device pipeline变化，另在共享waveform_controller增加仅T-type来源守卫；公共NPC表单、库和公共选择helper不改。
 - 分类：共享集成的T-type专用输入/选择适配。公共温度/类型/厂家由表单→schema→spec.raw_input/metadata→器件过滤/typed设计reference/报告读取；映射旧温度/厂家API别名，同传冲突拒绝。公共runtime overrides读取同温度来源，设计改变仍使整份报告失效。
@@ -413,3 +413,4 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 - 累计提交门槛：修改后的最终T-type suite重新执行，按实际JUnit核对所选节点/2个NPC exclusion，结果收尾追加。先前274通过保留为修复前累计，不冒充最终全套通过；不运行旧拓扑测试。
 - 最终累计：`python -B scripts/validate_t_type_engineering_step1.py .tt-r2-s1-input-parity-final t_type`，318 passed/2 deselected/0 failures/errors/skips，pytest1857.46 s、整命令1858.141 s，exit0；JUnit tests=318/errors=0/failures=0/skipped=0。preflight/test_receipt保存最终src/tests/scripts SHA及精确argv，源文件与最终实现一致；新增测试、全部现T-type schema/synthesis/waveform/stress/边界/API运行点/真实库导通/GUI当前数值/导出/重复隔离通过，一次完整所选T-type累计通过，非full suite。历史失败均保留；pending A2/A3能力未被算成已支持。
 - 收尾：55个合同/计划本地引用有效、ChangeLog原文仅追加、AST/定向与暂存diff/任务范围检查。仅定向提交14个任务文件，95项既有删除及用户生成物全部保留；生成日志/截图/JUnit/临时工具不提交。A1实现与验证已交付，状态在提交推送核实后同步；A2/A3及步骤2–7仍待实施。
+- A1 Git/状态：实现提交`e81af2f03a35e966fab44257a32a6d5532fae937`已推送`pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote同SHA；873个src/tests/scripts checksum与最终验证回执相同。A1在上述用户界面/公共输入边界完成；本次状态提交只改计划与追加日志，不改实现或重跑电气链。A2/A3、全后台一致性和工程步骤2–7仍待实施，不能用318项建立未实现能力的完成结论。
