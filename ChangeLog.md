@@ -2109,3 +2109,5 @@ listed here.
 - 基线：.tt-r2-s0-baseline-fixed 全部三组 exit 0/409.42 s；六 NPC 全电气 payload SHA 精确一致，当前真实 NPC 器件/磁件/上下银行及 0.5/1 扫描、两电平/全桥器件链 report/structured/overview 保存，schema 无错误；扫描原 total/eta 加和恒等式通过。未过滤注册库 800 半导体/32910 电容及 fixed normalized-v2 来源/校验和保存。非有限值与旧状态字段保留，不当接受证据。
 - 工具失败：初次基线及主组进程加载的旧工具因两电平空输入缺 vdc_nom 失败，失败 JSON/原报告保留；改用既有默认输入后独立完整重跑成功。主组测试 exit 0 与整命令基线 exit 1 分别记录，未改生产或放宽门槛。
 - 审查/边界：AST、40 本地链接、ChangeLog 原文仅追加、longpaths diff 检查通过。不跑 full suite/完整旧家族/NPC step9 proxy，不宣称 T-type 真实组件、工程 GUI/export、全物理效率或硬件验收。五个任务文件提交至 codex/llc-waveform-operating-point-plan，目标 pe-claw-1.1 同名上游；SHA/推送收据后续追加。全部既有无关删除、outputs、生成证据保留不提交；无清理/备份。
+
+- 步骤0 Git/状态回执：实现提交 `9d8284f44df212af8525179a8e2a72c7cb9d7c81` 已推送 pe-claw-1.1 同名上游并由 ls-remote 核实。计划同步步骤0完成、步骤1–7待实施；仅计划与本追加回执另作文档提交，最终 SHA 见 Git 历史及完成报告。原验证范围和失败历史保留，未改生产/测试或重跑电气链。

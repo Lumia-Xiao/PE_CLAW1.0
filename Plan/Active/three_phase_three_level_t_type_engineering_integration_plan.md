@@ -1,6 +1,6 @@
 # 三相三电平 T-type 第二轮工程链接入计划
 
-- 状态：Active / 步骤 0 验证中；步骤 1–7 待实施。
+- 状态：Active / 步骤 0 完成（验证及实现提交已推送核实）；步骤 1–7 待实施。
 - 创建日期：2026-10-13。
 - 当前授权：执行步骤 0，冻结接口/范围/阶段开放方案并保存当前基线；不提前实施步骤 1 的生产选型。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`。
@@ -102,7 +102,7 @@
 
 | 步骤 | 交付 | 依赖 | 当前状态 |
 |---|---|---|---|
-| 0 | 冻结二轮接口、范围、基线和阶段开放方案 | 本计划 | 验证中，Git 回执待完成 |
+| 0 | 冻结二轮接口、范围、基线和阶段开放方案 | 本计划 | 已完成，见第 10 节 |
 | 1 | 半导体两角色真实库选型 | 0 | 待实施 |
 | 2 | 三相电感接入 | 1 | 待实施 |
 | 3 | 上/下银行电流与真实电容选型 | 0、2 | 待实施 |
@@ -251,13 +251,13 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-r2-s1 tests/test_t_type_enginee
 
 | 完成门槛 | 当前状态 |
 |---|---|
-| 步骤0–7 全部必要验证、独立提交推送 | 待实施 |
+| 步骤0–7 全部必要验证、独立提交推送 | 步骤0完成；步骤1–7待实施 |
 | 真实库两角色、三相磁件、两银行、选后闭环 | 待实施 |
 | 同 scope/basis 的本轮损耗、热、几何、固定硬件扫描 | 待实施 |
 | 当前 GUI/report/JSON/CSV/BOM/overview 数值、来源与身份 | 待实施 |
 | 独立公式、producer/consumer、真实工作流、双顺序隔离 | 待实施 |
 | NPC baseline 与所有受影响旧消费者 gate，无遗漏或隐藏失败 | 待实施 |
-| 文档/ChangeLog、diff 检查、无生成物暂存、Git 回执 | 仅本次文档创建检查，实施回执待后续 |
+| 文档/ChangeLog、diff 检查、无生成物暂存、Git 回执 | 步骤0已核实；后续步骤待实施 |
 
 完成声明限定本轮工程链与损耗范围；完整物理效率、有限死区/换流能量、不平衡控制、采购/装配/硬件验收继续未验证。范围内 gate 失败不归档；后续范围不会因未做而自动阻塞本轮。完成时移动到 `Plan/completed/` 并复核链接，第一轮归档保持原样。
 
@@ -302,3 +302,5 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-r2-s1 tests/test_t_type_enginee
 - 补充基础组命令：`python -B scripts/validate_t_type_engineering_step0.py .tt-r2-s0-basic-rest tests/test_t_type_step6_gui.py tests/test_t_type_step7_operating_point.py tests/test_t_type_step8_acceptance.py tests/test_t_type_step8_isolation.py`，exit 0，44 passed，947.93 s。覆盖真实基础 Tk/当前报告读回、不可达后恢复、固定 candidate 刷新与 NPC/T-type 双顺序重复隔离。
 - 两组各 0 failures/errors/skips，仅既有 cache_dir warning；JUnit 核对 241+44=285 个不同测试项，src/tests SHA 一致，节点文件集合覆盖工具最终显式清单。聚焦 13 项不重复计入 285。`.tt-r2-s0-baseline-fixed/aggregate_validation.json` 保存核对结果；不是一次全量 pytest。
 - 两个 Python 文件 AST 检查、40 个本地文档链接检查、ChangeLog 原文前缀（保留工作区 CRLF）和 `git -c core.longpaths=true diff --check` 通过。步骤 0 验证完成，Git 提交推送待回执；仅提交五个任务文件，运行证据/outputs/95 项既有删除不暂存。
+
+- Git 完成回执：实现/契约/工具/测试/日志提交 `9d8284f44df212af8525179a8e2a72c7cb9d7c81` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实远端同 SHA。步骤 0 必需验证及推送门槛已完成；本条状态回执另作文档提交并推送，最终回执提交以 Git 历史为准。后续步骤保持待实施，不重复运行未变的电气测试。
