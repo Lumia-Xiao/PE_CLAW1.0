@@ -2093,3 +2093,11 @@ listed here.
 - 实际验证：`.tt8-consumers` 当前 Python 3.12.10/src/tests，143 passed、0 failures/errors/skips，980.34 s，既有 cache_dir warning 1；六份 NPC 完整历史 payload SHA 精确一致。包含旧 AC-DC 五拓扑完整 GUI/组件/磁件/损耗/效率/导出、注册/表单/插件、PFC/NPC 页面和旧 DC-AC、LLC、PSFB 消费者。两组 JUnit 核验为 283＋143＝426 个不同通过项，节点集合覆盖最终默认清单，生产源码一致；aggregate_validation.json 为本地生成证据。聚焦 7 项另列，不重复计入 426。初次断言失败历史继续保留，不伪造一次全套通过。
 - 收尾：两个文档 36 个本地链接有效，当前 GUI 数字/六行图证据路径写入计划 9.14；日志仅追加。全量 pytest 与 T-type 真实组件、死区/能量、损耗效率/热及完整工程导出仍未执行。结论仅为第一轮基础链路完成。
 - Git/范围：沿用 `codex/llc-waveform-operating-point-plan` 及 `pe-claw-1.1` 同名上游，前序实现 `ed04403`、回执 `8bfdeac` 已推送核实；本修正仅提交验收脚本、契约、README、归档计划及日志，最终 SHA/远端核实见 Git 历史与完成报告。用户 outputs、全部既有无关删除和本地证据保留不提交；不执行清理或备份。
+
+
+## 2026-10-13 - T-type 第二轮工程链接入计划创建
+
+- 分类/授权：文档变更；用户授权在 Plan/Active 新建第二轮计划。新增 three_phase_three_level_t_type_engineering_integration_plan.md，保留第一轮 Completed plan 和生产代码/库/测试，步骤 0–7 全部待实施。
+- 方法/范围：明确复用 NPC 的公共库、筛选/并联、磁件搜索与电容串并联流程；分步接入两角色器件、三相电感、上下银行、选定硬件回读、损耗/热/几何、固定硬件扫描及完整报告/GUI/导出。记录位置/封装数量、KCL 方向、实际 L/C、失效策略、系统所有权、必需组件及同工况来源。死区/换流能量继续暂缓，导通/磁件/电容范围效率及热结果明确模型边界，不宣称全物理效率。
+- 验证：文档语义/引用/既有测试文件与 append-only 检查，定向/暂存及完整 diff 检查；不运行 pytest 或真实电气设计。当前 Git 基准 622920211ffa1185799365d0f4d1f50e0119a521；历史首轮 426 项仅作历史来源，不算二轮验证。新实施测试/工具均标待建。
+- Git/维护：沿用 codex/llc-waveform-operating-point-plan，提交推送目标 pe-claw-1.1 同名上游，文档 SHA/远端确认见 Git 历史与本次完成报告。仅提交本计划与本条追加日志；既有 95 项 tracked 删除、用户 outputs、测试证据及其他 untracked 保留，未执行清理/备份。
