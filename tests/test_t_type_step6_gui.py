@@ -34,8 +34,8 @@ def test_previous_twenty_registry_and_capability_contracts_unchanged():
                    'capability':dataclasses.asdict(registry.get_capability(topology_id)),
                    'helpers':{n:getattr(capabilities,n)(topology_id) for n in record['helpers']}}
         assert json.loads(json.dumps(current)) == record
-    assert capabilities.FIRST_PASS_TOPOLOGY_ONLY_IDS == {ID}
-    assert not capabilities.has_semiconductor_selection_path(ID)
+    assert ID not in capabilities.FIRST_PASS_TOPOLOGY_ONLY_IDS
+    assert capabilities.has_semiconductor_selection_path(ID)
     assert registry.resolve_topology_id(PLUGIN.legacy_key) == ID
 
 
@@ -43,10 +43,11 @@ def test_full_pipeline_and_direct_controller_guards_skip_downstream(monkeypatch,
     def forbidden(*a,**kw):
         pytest.fail('T-type must not execute unconnected component or loss stages')
     full = import_module('pe_claw_gui.pipeline.run_full_pipeline')
-    for name in ('run_device_pipeline','run_semiconductor_geometry_pipeline','run_capacitor_pipeline','run_magnetic_pipeline','run_loss_pipeline','run_thermal_pipeline','run_geometry_pipeline'):
+    for name in ('run_capacitor_pipeline','run_magnetic_pipeline','run_loss_pipeline','run_thermal_pipeline','run_geometry_pipeline'):
         monkeypatch.setattr(full,name,forbidden)
     report = run_full_pipeline(PLUGIN,{},include_waveforms=False,output_root=tmp_path)
-    assert report.device is report.loss is report.capacitor is report.magnetic is None
+    assert report.device is not None and report.device.selected_devices
+    assert report.loss is report.capacitor is report.magnetic is None
     refresh = import_module('pe_claw_gui.pipeline.run_operating_point_refresh')
     from pe_claw_gui.models.operating_point import OperatingPoint
     for name in ('run_device_operating_point_refresh','run_capacitor_operating_point_refresh','run_loss_pipeline','run_thermal_pipeline'):
@@ -54,7 +55,8 @@ def test_full_pipeline_and_direct_controller_guards_skip_downstream(monkeypatch,
     refreshed = refresh.run_operating_point_refresh(report,PLUGIN,OperatingPoint(vin_v=700,load_ratio=1,power_factor=1))
     assert refreshed.candidate is report.candidate
     assert refreshed.waveform is not None
-    assert refreshed.device is refreshed.capacitor is refreshed.magnetic is refreshed.loss is None
+    assert refreshed.device is report.device
+    assert refreshed.capacitor is refreshed.magnetic is refreshed.loss is None
     store = AppStateStore(registry=build_default_registry(),selected_topology_id=ID,active_plugin=PLUGIN,design_report=report)
     controller = RunDesignController(store)
     mod = import_module('pe_claw_gui.app.controllers.run_design_controller')
@@ -67,7 +69,8 @@ def test_full_pipeline_and_direct_controller_guards_skip_downstream(monkeypatch,
         with pytest.raises(RuntimeError,match='unavailable'):
             call()
         assert store.design_report is report
-        assert all(s=='not_started' for k,s in report.run_context.stage_status.items() if k!='design')
+        assert report.run_context.stage_status['semiconductor_design']=='succeeded'
+        assert all(s=='not_started' for k,s in report.run_context.stage_status.items() if k not in ('design','semiconductor_design'))
 
 
 def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypatch,tmp_path):
@@ -94,7 +97,7 @@ def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypa
         app.update_idletasks()
         form = app.workspace.active_form
         assert form.topology_id == ID
-        assert len(form.design_vars) == 9
+        assert set(form.design_vars) == {f.key for f in form.design_fields}
         assert form.get_runtime_overrides() == {}
         for button in (form.run_capacitor_button,form.run_magnetics_button,form.run_efficiency_sweep_button):
             assert str(button.cget('state')) == 'disabled'
@@ -104,6 +107,9 @@ def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypa
         report = app.state_store.design_report
         assert report.candidate.inductance_h == pytest.approx(1.0716517624676405e-3,rel=1e-9)
         assert report.stress.switch.current_rms_a is None
+        device_text=app.workspace.device_view.summary_text.get('1.0','end')
+        assert 'conduction only' in device_text
+        assert all(part in device_text for part in report.device.selected_devices.values())
         summary = app.workspace.summary_view.text.get('1.0','end')
         assert 'C initial proxy per bank = 81.632653 uF' in summary
         assert 'design_estimate' in summary

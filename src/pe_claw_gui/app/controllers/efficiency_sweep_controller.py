@@ -7,7 +7,7 @@ from dataclasses import replace
 from time import perf_counter
 
 from ...models.operating_point import OperatingPoint
-from ...topology_capabilities import is_first_pass_topology_only
+from ...topology_capabilities import supports_engineering_stage
 from ...models.design_run_context import update_design_run
 from ...pipeline import run_efficiency_sweep
 from ...pipeline.run_manifest_pipeline import write_llc_manifest
@@ -30,7 +30,7 @@ class EfficiencySweepController:
             raise RuntimeError("Run Design before running Efficiency Sweep.")
         if self._state_store.selected_topology_id is None:
             raise RuntimeError("Select a topology before running Efficiency Sweep.")
-        if is_first_pass_topology_only(report.spec.topology_id):
+        if not supports_engineering_stage(report.spec.topology_id, "sweep"):
             raise RuntimeError("Efficiency Sweep is unavailable: component selection and losses are not connected.")
         plugin = self._state_store.active_plugin or self._state_store.registry.get_plugin(self._state_store.selected_topology_id)
         sweep_report = replace(report, operating_point=operating_point) if operating_point is not None else report

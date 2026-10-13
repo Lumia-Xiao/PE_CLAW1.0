@@ -111,7 +111,7 @@ class PEClawMainWindow(tk.Tk):
         except RuntimeError as exc:  # pragma: no cover - GUI path
             messagebox.showwarning("Selection Required", str(exc))
         except Exception as exc:  # pragma: no cover - GUI path
-            if is_first_pass_topology_only(self.state_store.selected_topology_id or ""):
+            if is_first_pass_topology_only(self.state_store.selected_topology_id or "") or self.state_store.selected_topology_id == "three_phase_three_level_t_type_inverter":
                 self.workspace.render_report(None)
             messagebox.showerror("Design Error", str(exc))
 
@@ -159,8 +159,8 @@ class PEClawMainWindow(tk.Tk):
         except RuntimeError as exc:  # pragma: no cover - GUI path
             messagebox.showwarning("No Design", str(exc))
         except Exception as exc:  # pragma: no cover - GUI path
-            if is_llc_resonant_topology(self.state_store.selected_topology_id or "") or is_first_pass_topology_only(self.state_store.selected_topology_id or ""):
-                if (is_first_pass_topology_only(self.state_store.selected_topology_id or "")
+            if is_llc_resonant_topology(self.state_store.selected_topology_id or "") or is_first_pass_topology_only(self.state_store.selected_topology_id or "") or self.state_store.selected_topology_id == "three_phase_three_level_t_type_inverter":
+                if ((is_first_pass_topology_only(self.state_store.selected_topology_id or "") or self.state_store.selected_topology_id == "three_phase_three_level_t_type_inverter")
                         and self.state_store.design_report is not None
                         and self.state_store.design_report.waveform is not None):
                     # Parsing can fail before the refresh controller runs.

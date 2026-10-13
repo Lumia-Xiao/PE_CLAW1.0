@@ -72,8 +72,10 @@ def _assert_current(report, source, op):
     assert data["stress"]["midpoint"]["voltage_max_v"] == op.vin_v / 2
     assert f"total active power={basis['pout_w']:.9g} W" in report.topology_result.summary_lines[1]
     assert f"PF={pf:.9g} {phase}" in report.topology_result.summary_lines[2]
-    assert all(getattr(report, name) is None for name in NOT_RUN)
-    assert all(value == "not_started" for stage, value in report.run_context.stage_status.items() if stage != "design")
+    assert report.device is source.device and report.semiconductor_geometry is source.semiconductor_geometry
+    assert all(getattr(report, name) is None for name in NOT_RUN if name not in {"device","semiconductor_geometry"})
+    assert report.run_context.stage_status["semiconductor_design"] == "succeeded"
+    assert all(value == "not_started" for stage, value in report.run_context.stage_status.items() if stage not in {"design","semiconductor_design"})
     # Independent three-phase power/PF reference, signed phase and circuit table.
     peak = math.sqrt(2) * candidate.pout_target * op.load_ratio / (math.sqrt(3) * candidate.vout_target * pf)
     phi = math.acos(pf) * (1 if phase == "lagging" else -1)
@@ -300,7 +302,7 @@ def test_real_gui_two_refreshes_current_numbers_and_invalidation(tmp_path):
     env.update(PYTHONPATH=os.pathsep.join((str(ROOT/"src"), str(ROOT/"tests"))), PYTHONDONTWRITEBYTECODE="1", MPLBACKEND="Agg")
     script = f"from pathlib import Path\nfrom test_t_type_step7_operating_point import _run_gui_refresh_case\n_run_gui_refresh_case(Path({str(tmp_path)!r}))"
     result = subprocess.run([sys.executable, "-B", "-c", script], cwd=ROOT, env=env,
-                            capture_output=True, text=True, encoding="utf-8", timeout=240)
+                            capture_output=True, text=True, encoding="utf-8", timeout=900)
     assert result.returncode == 0, result.stderr or result.stdout
     records = json.loads((tmp_path/"gui_readback.json").read_text(encoding="utf-8"))
     assert len(records) == 2

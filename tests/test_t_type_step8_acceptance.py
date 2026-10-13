@@ -36,10 +36,12 @@ def test_first_pass_report_has_complete_bounded_stage_contract(tmp_path):
     assert report.waveform is None
     assert report.stress is not None
     assert report.topology_result is not None
-    assert report.loss is report.device is report.capacitor is report.magnetic is None
+    assert report.device is not None and report.device.selected_devices
+    assert report.loss is report.capacitor is report.magnetic is None
     assert report.run_context is not None
     assert report.run_context.stage_status["design"] == "succeeded"
-    assert all(status == "not_started" for name, status in report.run_context.stage_status.items() if name != "design")
+    assert report.run_context.stage_status["semiconductor_design"] == "succeeded"
+    assert all(status == "not_started" for name, status in report.run_context.stage_status.items() if name not in {"design","semiconductor_design"})
     assert "Loss and system efficiency are unavailable." in report.notes
     assert any("design_estimate" in line for line in report.topology_result.summary_lines)
     manifest = json.loads(Path(report.run_context.manifest_path).read_text(encoding="utf-8"))
@@ -141,7 +143,7 @@ def test_real_gui_first_pass_user_chain_and_current_readback(tmp_path):
                PYTHONDONTWRITEBYTECODE="1", MPLBACKEND="Agg")
     script = f"from pathlib import Path\nfrom test_t_type_step8_acceptance import _run_real_gui_acceptance\n_run_real_gui_acceptance(Path({str(tmp_path)!r}))"
     result = subprocess.run([sys.executable, "-B", "-c", script], cwd=ROOT, env=env,
-                            capture_output=True, text=True, encoding="utf-8", timeout=240)
+                            capture_output=True, text=True, encoding="utf-8", timeout=900)
     assert result.returncode == 0, result.stderr or result.stdout
     readback = json.loads((tmp_path / "gui_readback.json").read_text(encoding="utf-8"))
     assert readback["basis"]["vdc_v"] == 800

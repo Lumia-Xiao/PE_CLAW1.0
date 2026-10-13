@@ -16,7 +16,7 @@ from ...pipeline.options import (
 )
 from ...models.llc_run_context import is_llc_topology
 from ...models.design_run_context import update_design_run
-from ...topology_capabilities import is_first_pass_topology_only
+from ...topology_capabilities import is_first_pass_topology_only, supports_engineering_stage
 from ..shell.state_store import AppStateStore
 
 
@@ -90,7 +90,7 @@ class RunDesignController:
             raise RuntimeError("Please run design before running capacitors.")
 
         plugin = self._state_store.active_plugin
-        if is_first_pass_topology_only(report.spec.topology_id):
+        if not supports_engineering_stage(report.spec.topology_id, "capacitors"):
             raise RuntimeError("Capacitor selection is unavailable for this topology-only implementation.")
         if plugin is None and self._state_store.selected_topology_id is not None:
             plugin = self._state_store.registry.get_plugin(self._state_store.selected_topology_id)
@@ -126,7 +126,7 @@ class RunDesignController:
             raise RuntimeError("Please run design before running magnetics.")
 
         options = PipelineOptions(enable_magnetic_design=True)
-        if is_first_pass_topology_only(report.spec.topology_id):
+        if not supports_engineering_stage(report.spec.topology_id, "magnetics"):
             raise RuntimeError("Magnetic design is unavailable for this topology-only implementation.")
         started_at = _utc_timestamp()
         start_s = time.perf_counter()

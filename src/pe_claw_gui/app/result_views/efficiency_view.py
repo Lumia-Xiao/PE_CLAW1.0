@@ -12,7 +12,7 @@ from matplotlib.image import imread
 
 from ...models.design_report import DesignReport
 from ...models.efficiency_sweep import EfficiencySweepResult
-from ...topology_capabilities import is_first_pass_topology_only
+from ...topology_capabilities import supports_engineering_stage
 
 
 class EfficiencyView(ttk.Frame):
@@ -78,8 +78,8 @@ class EfficiencyView(ttk.Frame):
     def render(self, report: DesignReport | None) -> None:
         """Render the current efficiency sweep result."""
         self._clear_images()
-        if report is not None and is_first_pass_topology_only(report.spec.topology_id):
-            message = "Efficiency unavailable: this topology-only result has no component loss model."
+        if report is not None and not supports_engineering_stage(report.spec.topology_id, "sweep"):
+            message = "Efficiency unavailable: current component losses and fixed-hardware sweep are not connected."
             self.message.configure(text=message)
             self._set_summary_text(message)
             self._configure_pf_sweep_layout(False)

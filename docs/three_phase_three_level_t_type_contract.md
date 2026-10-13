@@ -518,3 +518,16 @@ engineering_adapter.validate_operating_sources(report, hardware, operating_basis
 本步工具 `scripts/validate_t_type_engineering_step0.py` 保存当前解释器/源码/测试 SHA、未过滤库记录与源文件 checksum、normalized-v2 固定库 provenance、六 NPC 电气快照、NPC 真实完整组件链及两点固定硬件扫描、旧两电平/全桥器件链 report/structured/overview。原始报告保持完整；归一化仅按工具显式 timing/run ID 清单和该 case 精确输出根替换，硬件/数值/状态/警告/source 不删除；非有限标记保留且不能算接受。
 
 NPC 当前工程链 baseline 是旧行为保护，不自动证明其全包络、原全部 proxy 精度或硬件验收。当前 T-type 只做真实基础 envelope 与 selector callback/导通表/失败接口探针；callback 受控热 fixture 不证明真实选型。实际命令、结果、证据、限制及 Git 回执记录在第二轮计划第 10 节。
+
+## 16. 第二轮步骤 1 的实际接入边界（2026-10-13）
+
+第15节保留步骤0冻结时的规划记录。本节和[当前字段字典](t_type_engineering_field_dictionary.md)记录步骤1已接入的生产接口；验证/Git状态以第二轮计划第11节实际回执为准。
+
+- 新建 `models/t_type_engineering.py` 的 design basis、selected devices/packages 和 role selection reference，添加 optional `DesignReport.t_type_engineering`；结构报告仅有本结果时添加 `engineering_result`。完整 hardware/operating/position losses/split-link/system 类型仍属后续步骤，当前不存在这些已完成结果。
+- `engineering_adapter.build_design_basis(report)`保存额定P/VLL/fline/fsw、设计L、phase、temperature、20%/10%裕量和实际case清单；`build_device_selection_requests(report, design_basis, plugin)`返回两组case stresses及每case/12位置导通请求。不可达或来源不符拒绝；显式包络必须包含设计点，未给包络时扩展默认值纳入该点。
+- ROHM RG IGBT/FRD表在目标结温作双线性查表，按完整线路周期分段积分。FRD连续/脉冲额定与表的电流/温度覆盖另校验，不调用能量接口或静默clamp。主/中点分别全母线/半母线电压；peak桥mode为selection_peak_bound_no_energy。channel/diode占比用实际过零区间，不把diode time留假零，也不加死区。
+- 导通engine拥有非线性积分与保守封装热反求；pipeline拥有两角色选择/审计和n=1/2/3比较，公共selector/排序/库不改。公共IGBT默认单方案政策不改，T-type按冻结合同显式创建三个方案。排名/拒绝/电压电流热过滤记录均保留。模块或无FRD不可用原因保留，不用零压降补齐。
+- 最坏单封装channel/diode W与bare reference Tj用于选型，不能当当前功耗；组合功耗配max(IGBT/FRD Rth_jc)和既有TIM/backsolve进行保守散热参考。角色/方案总量为None，当前/系统损耗与效率不可用。complete且feasible才发布两个角色和12n离散采购封装，FRD不增加clamp计数。
+- T-type只开放device和package reference geometry；磁件/电容/系统损耗/热/系统几何/扫描仍保护direct/controller入口。封装页面无共享sink体积且明确范围。固定candidate刷新保留设计选型、不重选、不改为当前损耗；实际L/C硬件回读仍待步骤4。
+- 结构validator核查scope/exclusions、两角色/位置、封装绑定与数量、参考身份及finite损耗；缺项不能发布成功。旧拓扑optional字段为None，旧structured没有新节；原始dataclass增加None是明确的兼容结构差异，工程基线比较只可按记录政策忽略此一空字段。
+- 效率页以sweep阶段能力判断，不能因device开放而提示可运行效率扫描。T-type设计输入行间距为4 px，保证1240×760最小窗口的顶部Run Design和滚动后的波形控件可达。按用户最新指示，本次收尾验证限定T-type；其他拓扑全面回归及跨拓扑隔离不作为已完成结论。

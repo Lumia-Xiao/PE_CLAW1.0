@@ -171,7 +171,7 @@ class Workspace(ttk.Frame):
         form_host = ttk.Frame(content)
         form_host.grid(row=0, column=0, sticky="nsw")
         form_parent = form_host
-        if is_llc_resonant_topology(topology_id) or is_first_pass_topology_only(topology_id):
+        if is_llc_resonant_topology(topology_id) or is_first_pass_topology_only(topology_id) or topology_id == "three_phase_three_level_t_type_inverter":
             # These inputs exceed the default window height. Keep the waveform
             # controls reachable without increasing the window's minimum size.
             form_host.rowconfigure(0, weight=1)
@@ -228,7 +228,7 @@ class Workspace(ttk.Frame):
             on_run_efficiency_sweep=self._on_run_efficiency_sweep,
         )
         self.active_form.set_design_input_change_handler(self._on_design_input_changed)
-        if is_first_pass_topology_only(topology_id):
+        if is_first_pass_topology_only(topology_id) or topology_id == "three_phase_three_level_t_type_inverter":
             self.active_form.set_operating_input_change_handler(self._on_operating_input_changed)
         if self.form_canvas is None:
             self.active_form.grid(row=0, column=0, sticky="nsew")

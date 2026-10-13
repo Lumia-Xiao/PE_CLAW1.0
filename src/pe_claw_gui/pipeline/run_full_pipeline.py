@@ -12,7 +12,7 @@ from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
 from ..engines.devices.loss_aggregation import semiconductor_losses_total_w
 from ..topologies.base import TopologyPlugin
-from ..topology_capabilities import has_semiconductor_selection_path, is_first_pass_topology_only
+from ..topology_capabilities import has_semiconductor_selection_path, is_first_pass_topology_only, supports_engineering_stage
 from .run_bridge_rectifier_pipeline import (
     SUPPORTED_BRIDGE_RECTIFIER_TOPOLOGIES,
     run_bridge_rectifier_pipeline,
@@ -99,6 +99,8 @@ def _run_full_pipeline_in_context(
                 {"semiconductor_design": "succeeded" if report.device is not None else "blocked"},
                 reason=("NPC semiconductor selection is unavailable." if report.device is None else None),
             )
+    if not supports_engineering_stage(report.spec.topology_id, "system"):
+        return report
     if uses_semiconductor_selector and report.waveform is not None and report.operating_point is not None:
         report = run_device_operating_point_refresh(report, plugin=plugin)
     if report.spec.topology_id in SELECTION_ONLY_TOPOLOGIES and (

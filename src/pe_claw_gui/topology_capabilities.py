@@ -20,9 +20,20 @@ DC_LINK_OUTPUT_CAPACITOR_ONLY_TOPOLOGY_IDS = AC_DC_BRIDGE_RECTIFIER_TOPOLOGY_IDS
 SPLIT_DC_LINK_CAPACITOR_BANK_TOPOLOGY_IDS = {
     "three_phase_three_level_npc_inverter",
 }
-FIRST_PASS_TOPOLOGY_ONLY_IDS: set[str] = {
-    "three_phase_three_level_t_type_inverter",
-}
+FIRST_PASS_TOPOLOGY_ONLY_IDS: set[str] = set()
+T_TYPE_TOPOLOGY_ID = "three_phase_three_level_t_type_inverter"
+
+
+def supports_engineering_stage(topology_id: str, stage: str) -> bool:
+    """Gate incremental engineering integration without changing old topology paths."""
+    if topology_id == T_TYPE_TOPOLOGY_ID:
+        return stage in {"device", "device_geometry"}
+    return not is_first_pass_topology_only(topology_id)
+
+
+def require_engineering_stage(topology_id: str, stage: str) -> None:
+    if not supports_engineering_stage(topology_id, stage):
+        raise RuntimeError(f"{stage} stage is unavailable for {topology_id}.")
 SINGLE_PHASE_FULL_BRIDGE_INVERTER_TOPOLOGY_ID = "single_phase_full_bridge_inverter"
 LLC_RESONANT_TOPOLOGY_IDS = {
     "llc_resonant_converter_diode_rectifier",

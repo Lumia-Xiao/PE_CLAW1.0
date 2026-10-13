@@ -2111,3 +2111,13 @@ listed here.
 - 审查/边界：AST、40 本地链接、ChangeLog 原文仅追加、longpaths diff 检查通过。不跑 full suite/完整旧家族/NPC step9 proxy，不宣称 T-type 真实组件、工程 GUI/export、全物理效率或硬件验收。五个任务文件提交至 codex/llc-waveform-operating-point-plan，目标 pe-claw-1.1 同名上游；SHA/推送收据后续追加。全部既有无关删除、outputs、生成证据保留不提交；无清理/备份。
 
 - 步骤0 Git/状态回执：实现提交 `9d8284f44df212af8525179a8e2a72c7cb9d7c81` 已推送 pe-claw-1.1 同名上游并由 ls-remote 核实。计划同步步骤0完成、步骤1–7待实施；仅计划与本追加回执另作文档提交，最终 SHA 见 Git 历史及完成报告。原验证范围和失败历史保留，未改生产/测试或重跑电气链。
+
+## 2026-10-13 - T-type 第二轮步骤 1 两角色器件接入与失败修复
+
+- 交付：采用现有半导体注册库、selector回调/评分/审计与热接口，接入6主＋6中点角色、真实设计包络导通积分和1/2/3并联方案。typed设计basis/器件/12n离散封装/最坏单封装参考及optional结构输出保存来源和scope；完整且feasible才发布active。FRD归属封装，不新增clamp；不调用开关/恢复能量。角色/当前/系统损耗与效率不可用，磁件/银行/系统/扫描入口仍保护。
+- 分类/文件：共享集成；新models/t_type_engineering.py、topology engineering_adapter.py、engines/devices/t_type_conduction.py、pipeline/run_t_type_device_pipeline.py、step1测试与验证/比较脚本、字段字典；修改角色/报告/schema、stage能力及pipeline/controllers、T-type form与结果页、首轮测试/计划/契约。库记录、公共selector/排名与旧拓扑公式不改；影响与单位/数量/依据/缺项/失效详见计划11和契约16。
+- 失败修复：效率页错误使用首轮集合，改为sweep阶段能力；新增工程输入导致1240×760下顶部Run Design越界6 px，仅压缩T-type设计行pady6→4。低母线物理边界测试显式指定工程包络，保留原失败断言；旧注册精确计数修为21。真实选型fixture241.648 s超过首轮GUI240 s，测试等待预算改900 s，全部电气/页面断言保留。
+- 实际验证：按用户最新指示只关注T-type。Python3.12.10/current src/tests；.tt-r2-s1-t-type-final累计285 passed/1布局失败/0 errors/skips、2227.42 s，修复后.tt-r2-s1-gui-repair-final为6 passed/0 failures/errors/skips、830.95 s；aggregate核验286个不同所选节点全部有通过记录，不宣称一次全suite通过。2 deselected是排除NPC执行节点，既有cache_dir警告各1；聚焦30 passed/328.026 s与布局1 passed/15.89 s不重复累加。最终计算源码一致，仅form布局由修复组覆盖。
+- 工程/用户证据：仿射/独立adaptive导通积分、曲线标量与8/16加密、热阻解析；额定/缺FRD/NaN/不完整方案/零能量调用负例；真实Tk型号/数字/曲线/连续刷新/清理恢复、来源拒绝、纯T-type数组/旧报告隔离。默认main RGHX5TRX2DF、midpoint RGWX5TS65EHR、n1/12封装；参考数值及readback/PNG路径写入计划，不当当前系统损耗。
+- 限制/历史：其他拓扑完整回归、跨拓扑隔离和full suite不作为本次门槛；已执行的旧基线/shared/consumer记录只作历史，不累入286。系统Temp权限和一次缺PYTHONPATH收集失败、中断运行保留且不计通过。步骤2–7、完整hardware/system/export、死区/能量、硬件验收未完成。
+- Git/维护：codex/llc-waveform-operating-point-plan，推送pe-claw-1.1同名分支；实现提交/远端核实后追加回执。只定向暂存任务文件，95项既有tracked删除、用户outputs与本地证据不提交；42链接/AST/差异检查及append-only收尾，无清理/备份操作。

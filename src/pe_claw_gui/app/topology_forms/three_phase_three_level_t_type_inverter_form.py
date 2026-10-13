@@ -23,6 +23,15 @@ class ThreePhaseThreeLevelTTypeInverterForm(BaseTopologyForm):
         TopologyField("power_factor_phase", "PF phase", "lagging", ("lagging", "leading")),
         TopologyField("inductor_current_ripple_ratio", "Inductor target ripple [pp/Ipk]", "0.2"),
         TopologyField("dc_link_voltage_ripple_ratio", "DC bus target ripple [pp/Vdc]", "0.05"),
+        TopologyField("engineering_vdc_min_v", "Selection minimum bus [V]", "700"),
+        TopologyField("engineering_vdc_max_v", "Selection maximum bus [V]", "800"),
+        TopologyField("engineering_pf_min", "Selection minimum PF", "0.8"),
+        TopologyField("engineering_pf_max", "Selection maximum PF", "1"),
+        TopologyField("engineering_load_min", "Selection minimum load", "0.1"),
+        TopologyField("engineering_load_max", "Selection maximum load", "1"),
+        TopologyField("engineering_ambient_temp_c", "Selection ambient [C]", "25"),
+        TopologyField("engineering_target_junction_temp_c", "Target junction [C]", "100"),
+        TopologyField("engineering_manufacturer", "IGBT manufacturer", "Any", ("Any","ROHM","Mitsubishi")),
     )
 
     @classmethod
@@ -37,6 +46,9 @@ class ThreePhaseThreeLevelTTypeInverterForm(BaseTopologyForm):
         design.grid(row=1, column=0, sticky="ew", pady=8)
         design.columnconfigure(1, weight=1)
         self.build_design_input_rows(design, self.design_fields)
+        # Keep the design action visible above the fold with the engineering envelope rows.
+        for widget in design.grid_slaves():
+            widget.grid_configure(pady=4)
         self.build_design_action_buttons(design, row=len(self.design_fields))
         self.run_capacitor_button.configure(state="disabled")
         self.run_magnetics_button.configure(state="disabled")
@@ -57,7 +69,7 @@ class ThreePhaseThreeLevelTTypeInverterForm(BaseTopologyForm):
         ttk.Label(self, wraplength=360, justify="left", text=(
             "Ideal balanced split bus and zero dead time. L is an initial estimate per phase; "
             "C is a proxy per bank. PF phase stays at the design setting during waveform refresh. "
-            "Component selection, losses and efficiency are unavailable in this first round."
+            "IGBT/FRD conduction-only device selection; system losses and efficiency unavailable."
         )).grid(row=3, column=0, sticky="ew", pady=12)
 
     def get_operating_point(self):

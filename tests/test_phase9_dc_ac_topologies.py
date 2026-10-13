@@ -23,9 +23,10 @@ def test_phase9_topologies_are_registered_with_runtime_gui_forms() -> None:
     registry = build_default_registry()
     definitions = {definition.topology_id: definition for definition in registry.list_topologies("dc_ac")}
 
-    assert set(definitions) == set(PHASE9_TOPOLOGY_IDS)
-    assert len(registry.list_definitions()) == 19
-    for topology_id in PHASE9_TOPOLOGY_IDS:
+    current_ids = (*PHASE9_TOPOLOGY_IDS, "three_phase_three_level_t_type_inverter")
+    assert set(definitions) == set(current_ids)
+    assert len(registry.list_definitions()) == 21
+    for topology_id in current_ids:
         definition = definitions[topology_id]
         plugin = registry.get_plugin(topology_id)
         form_class = registry.get_form_class(topology_id)

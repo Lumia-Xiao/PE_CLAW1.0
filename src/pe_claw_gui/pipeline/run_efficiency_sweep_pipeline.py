@@ -57,6 +57,8 @@ def run_efficiency_sweep(
     output_dir: str | Path | None = None,
 ) -> EfficiencySweepResult:
     """Evaluate efficiency over load using the existing selected hardware."""
+    from ..topology_capabilities import require_engineering_stage
+    require_engineering_stage(report.spec.topology_id, "sweep")
 
     load_grid = _normalize_load_grid(load_points)
     warnings: list[str] = []

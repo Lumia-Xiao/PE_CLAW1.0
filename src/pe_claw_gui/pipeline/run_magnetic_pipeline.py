@@ -120,6 +120,8 @@ def run_magnetic_pipeline(
     llc_geometry_roles: tuple[str, ...] | None = None,
 ) -> DesignReport:
     """Attach magnetic design plus a shadow-only core-loss excitation audit."""
+    from ..topology_capabilities import require_engineering_stage
+    require_engineering_stage(report.spec.topology_id, "magnetics")
 
     from ..engines.magnetics.core_loss_excitation_integration import (
         attach_core_loss_excitation_audit,

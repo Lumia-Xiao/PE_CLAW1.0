@@ -77,7 +77,8 @@ def test_t_type_invalid_input_is_rejected_with_field_diagnostic(field: str, valu
     assert field in str(error.value)
 
 
-@pytest.mark.parametrize("field", tuple(key for key in build_default_inputs() if key != "power_factor_phase"))
+@pytest.mark.parametrize("field", tuple(key for key in build_default_inputs() if key not in {
+    "power_factor_phase","engineering_device_type","engineering_device_implementation","engineering_manufacturer"}))
 @pytest.mark.parametrize("value", ["nan", "inf", "-inf", "invalid", ""])
 def test_every_t_type_numeric_input_requires_a_finite_number(field: str, value: str) -> None:
     with pytest.raises(ValueError, match=field):

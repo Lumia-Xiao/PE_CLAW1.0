@@ -781,6 +781,7 @@ def build_structured_report(report: DesignReport) -> dict[str, Any]:
         simulated_ripple = max(report.waveform.output_voltage_v) - min(report.waveform.output_voltage_v)
     payload = {
         "schema_version": REPORT_SCHEMA_VERSION,
+        **({"engineering_result": asdict(report.t_type_engineering)} if report.t_type_engineering is not None else {}),
         "report_kind": "design_report",
         "topology": {"id": spec.topology_id, "display_name": spec.display_name},
         "request": {

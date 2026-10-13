@@ -20,6 +20,7 @@ from .operating_point import OperatingPoint
 from .semiconductor_geometry_result import SemiconductorGeometryResult
 from .stress_result import StressResult
 from .thermal_result import ThermalResult
+from .t_type_engineering import TTypeEngineeringResult
 from .waveform import WaveformSet
 
 if TYPE_CHECKING:
@@ -60,3 +61,4 @@ class DesignReport:
     notes: list[str] = field(default_factory=list)
     run_context: DesignRunContext | None = None
     llc_run_context: LlcRunContext | None = None
+    t_type_engineering: TTypeEngineeringResult | None = None

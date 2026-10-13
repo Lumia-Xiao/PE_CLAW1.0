@@ -55,6 +55,8 @@ def run_capacitor_pipeline(
     output_root: str | Path | None = None,
 ) -> DesignReport:
     """Attach first-pass registered capacitor selection results to a design report."""
+    from ..topology_capabilities import require_engineering_stage
+    require_engineering_stage(report.spec.topology_id, "capacitors")
 
     pipeline_start_s = time.perf_counter()
     notes = [
@@ -614,6 +616,8 @@ def _refresh_selected_npc_inverter(
 
 def run_capacitor_operating_point_refresh(report: DesignReport) -> DesignReport:
     """Refresh current operating-point capacitor losses without changing design-point selection or geometry."""
+    from ..topology_capabilities import require_engineering_stage
+    require_engineering_stage(report.spec.topology_id, "capacitors")
 
     if report.capacitor is None or report.waveform is None or report.candidate is None:
         return report

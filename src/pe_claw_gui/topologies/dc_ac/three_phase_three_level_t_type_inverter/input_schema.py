@@ -20,8 +20,20 @@ _DEFAULT_INPUTS: Mapping[str, str] = MappingProxyType({
     "power_factor_phase": "lagging",
     "inductor_current_ripple_ratio": "0.2",
     "dc_link_voltage_ripple_ratio": "0.05",
+    "engineering_vdc_min_v": "700",
+    "engineering_vdc_max_v": "800",
+    "engineering_pf_min": "0.8",
+    "engineering_pf_max": "1",
+    "engineering_load_min": "0.1",
+    "engineering_load_max": "1",
+    "engineering_ambient_temp_c": "25",
+    "engineering_target_junction_temp_c": "100",
+    "engineering_device_type": "IGBT",
+    "engineering_device_implementation": "Discrete",
+    "engineering_manufacturer": "Any",
 })
-_NUMERIC_FIELDS = tuple(key for key in _DEFAULT_INPUTS if key != "power_factor_phase")
+_NUMERIC_FIELDS = tuple(key for key in _DEFAULT_INPUTS if key not in {
+    "power_factor_phase", "engineering_device_type", "engineering_device_implementation", "engineering_manufacturer"})
 _POSITIVE_FIELDS = ("vdc_nom", "vac_ll_rms", "f_line_hz", "fsw_hz", "pout_w")
 
 
@@ -64,6 +76,32 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
         if key in raw_input and raw_input[key] != supported:
             raise ValueError(f"Input field '{key}': only '{supported}' is supported in the first-round model.")
     values = {key: _parse_finite_number(merged, key) for key in _NUMERIC_FIELDS}
+    for key in _POSITIVE_FIELDS:
+        if values[key] <= 0:
+            raise ValueError(f"Input field '{key}' must be positive.")
+    if not 0 < values["power_factor"] <= 1:
+        raise ValueError("Input field 'power_factor' must be in the range (0, 1].")
+    # Omitted engineering boundaries include the existing design point.
+    for key, value in (("engineering_vdc_min_v",min(700.,values["vdc_nom"])),
+                       ("engineering_vdc_max_v",max(800.,values["vdc_nom"])),
+                       ("engineering_pf_min",min(.8,values["power_factor"]))):
+        if key not in raw_input:
+            values[key]=value; merged[key]=str(value)
+    for key, required in (("engineering_device_type", "IGBT"), ("engineering_device_implementation", "Discrete")):
+        if merged[key] != required:
+            raise ValueError(f"{key}: only {required} is supported.")
+    from ....libraries.semiconductors.metadata import normalize_semiconductor_manufacturer
+    manufacturer = normalize_semiconductor_manufacturer(merged["engineering_manufacturer"])
+    for prefix, minimum, maximum in (("vdc",0.,float("inf")),("pf",0.,1.),("load",0.,1.)):
+        lo,hi=(values[f"engineering_{prefix}_{suffix}"] for suffix in (("min_v","max_v") if prefix=="vdc" else ("min","max")))
+        if not minimum < lo <= hi <= maximum:
+            raise ValueError(f"engineering_{prefix}: invalid design envelope")
+    if not values["engineering_vdc_min_v"] <= values["vdc_nom"] <= values["engineering_vdc_max_v"]:
+        raise ValueError("Design bus outside engineering envelope")
+    if not values["engineering_pf_min"] <= values["power_factor"] <= values["engineering_pf_max"]:
+        raise ValueError("Design PF outside engineering envelope")
+    if not values["engineering_ambient_temp_c"] < values["engineering_target_junction_temp_c"] <= 150:
+        raise ValueError("Invalid engineering ambient/target temperature")
     phase = str(merged["power_factor_phase"]).strip().casefold()
     if phase not in {"lagging", "leading"}:
         raise ValueError("Input field 'power_factor_phase' must be 'lagging' or 'leading'.")
@@ -108,5 +146,9 @@ def build_spec(raw_input: Mapping[str, str]) -> TopologySpec:
             "dc_link_voltage_ripple_ratio": values["dc_link_voltage_ripple_ratio"],
             "t_type_model_scope": MODEL_SCOPE,
             "t_type_contract": CONVENTIONAL_T_TYPE_CONTRACT.to_dict(),
+            **{key:value for key,value in values.items() if key.startswith("engineering_")},
+            "engineering_device_type": "IGBT",
+            "engineering_device_implementation": "Discrete",
+            "engineering_manufacturer": manufacturer,
         },
     )

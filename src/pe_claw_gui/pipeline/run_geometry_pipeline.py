@@ -33,6 +33,8 @@ _LLC_EXTERNAL_LR_GEOMETRY_ROLES = ("min-volume", "min-loss", "recommended")
 
 def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOptions | None = None) -> DesignReport:
     """Attach first-pass engineering geometry view models to a design report."""
+    from ..topology_capabilities import require_engineering_stage
+    require_engineering_stage(report.spec.topology_id, "geometry")
     options = resolve_pipeline_options(pipeline_options)
     if not options.enable_magnetic_design:
         geometry_result = GeometryResult(

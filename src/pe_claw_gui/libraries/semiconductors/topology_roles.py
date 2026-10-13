@@ -370,6 +370,11 @@ _THREE_PHASE_NPC_INVERTER_ROLE_SPECS: tuple[SemiconductorRoleSpec, ...] = (
 )
 
 _ROLE_MAP: dict[str, tuple[SemiconductorRoleSpec, ...]] = {
+    "three_phase_three_level_t_type_inverter": tuple(
+        SemiconductorRoleSpec(role, label, ("IGBT",), "active_switch", "Discrete IGBT", 6,
+            True, False, False, "Antiparallel FRD is part of each discrete position; no clamp role.")
+        for role,label in (("t_type_main_switch","T-type main switch"),("t_type_midpoint_switch","T-type midpoint switch"))
+    ),
     "buck_diode_rectified_unidirectional": _DIODE_RECTIFIED_ROLE_SPECS,
     "boost_diode_rectified_unidirectional": _DIODE_RECTIFIED_ROLE_SPECS,
     "buck_boost_diode_rectified_unidirectional": _DIODE_RECTIFIED_ROLE_SPECS,

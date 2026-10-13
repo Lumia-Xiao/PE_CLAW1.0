@@ -479,6 +479,9 @@ def _format_allowed_device_types(allowed_types: set[str]) -> str:
 
 def run_device_pipeline(report: DesignReport, plugin: TopologyPlugin | None = None) -> DesignReport:
     """Attach the semiconductor design-point selection stage to a design report."""
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        from .run_t_type_device_pipeline import run_t_type_device_pipeline
+        return run_t_type_device_pipeline(report, plugin)
 
     if report.candidate is None or report.stress is None:
         device_result = DeviceSelectionResult(
@@ -2276,6 +2279,10 @@ def run_device_operating_point_refresh(
     plugin: TopologyPlugin | None = None,
 ) -> DesignReport:
     """Reevaluate semiconductor losses at the current operating point without reselection."""
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        # Step 1 preserves selection references; current-position hardware
+        # evaluation belongs to the selected-hardware refresh step.
+        return report
 
     device_result = report.device
     is_npc = report.spec.topology_id == "three_phase_three_level_npc_inverter"

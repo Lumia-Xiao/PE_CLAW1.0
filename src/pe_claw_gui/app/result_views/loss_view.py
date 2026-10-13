@@ -219,12 +219,12 @@ def _inverter_mixed_mode_segment_text(losses: dict) -> str:
 def build_system_loss_summary(report: DesignReport) -> list[str]:
     """Build unified semiconductor, magnetic, and capacitor loss summary lines."""
 
-    if is_first_pass_topology_only(report.spec.topology_id):
+    if is_first_pass_topology_only(report.spec.topology_id) or report.spec.topology_id == "three_phase_three_level_t_type_inverter":
         return [
             "Topology-only result: component losses are unavailable.",
             "Total estimated loss: unavailable",
             "Estimated efficiency: unavailable",
-            "Semiconductor, capacitor and magnetic selection/loss stages have not run.",
+            "Complete current-hardware component loss evaluation has not run.",
         ]
 
     if report.spec.topology_id == "single_phase_interleaved_boost_pfc_diode_bridge":

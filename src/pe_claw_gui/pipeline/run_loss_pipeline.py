@@ -35,6 +35,8 @@ def run_loss_pipeline(
     mode used by NPC efficiency sweep.  It keeps the existing selection and
     refreshes only the selected inductor's operating-point loss.
     """
+    from ..topology_capabilities import require_engineering_stage
+    require_engineering_stage(report.spec.topology_id, "system")
 
     from ..engines.magnetics.core_loss_excitation_integration import (
         attach_core_loss_excitation_audit,

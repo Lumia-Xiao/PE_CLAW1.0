@@ -8,7 +8,7 @@ from ..models.design_report import DesignReport
 from ..models.design_run_context import call_with_report_run
 from ..models.operating_point import OperatingPoint
 from ..topologies.base import TopologyPlugin
-from ..topology_capabilities import has_semiconductor_selection_path, is_first_pass_topology_only
+from ..topology_capabilities import has_semiconductor_selection_path, is_first_pass_topology_only, T_TYPE_TOPOLOGY_ID
 from .run_capacitor_pipeline import run_capacitor_operating_point_refresh
 from .run_device_pipeline import run_device_operating_point_refresh
 from .run_loss_pipeline import run_loss_pipeline
@@ -31,9 +31,9 @@ def run_operating_point_refresh(
     options = resolve_pipeline_options(pipeline_options)
     if report.candidate is None:
         raise RuntimeError("Run Design first before generating waveforms.")
-    first_pass = is_first_pass_topology_only(report.spec.topology_id)
+    first_pass = is_first_pass_topology_only(report.spec.topology_id) or report.spec.topology_id == T_TYPE_TOPOLOGY_ID
     identities = (report.spec.topology_id, report.candidate.topology_id, plugin.topology_id)
-    if any(is_first_pass_topology_only(identity) for identity in identities) and len(set(identities)) != 1:
+    if any(is_first_pass_topology_only(identity) or identity == T_TYPE_TOPOLOGY_ID for identity in identities) and len(set(identities)) != 1:
         raise ValueError("First-pass refresh topology identity mismatch.")
 
     waveform_kwargs = {"operating_point": operating_point}

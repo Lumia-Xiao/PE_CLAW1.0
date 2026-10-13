@@ -109,11 +109,19 @@ def run_semiconductor_geometry_pipeline(report: DesignReport) -> DesignReport:
         notes.append(topology_note)
     for target in targets:
         notes.extend(target.notes[:3])
+    selection_only = report.t_type_engineering is not None
+    if selection_only:
+        notes = [
+            "Discrete package reference geometry only; 12n packages across two roles.",
+            "Shared heatsink and system geometry are unavailable at this stage.",
+            *[note for target in targets for note in target.notes[:3]],
+        ]
 
     return replace(
         report,
         semiconductor_geometry=SemiconductorGeometryResult(
             summary=(
+                "T-type package reference geometry; no shared-heatsink or system sizing." if selection_only else
                 "Semiconductor geometry comparison prepared for the single, 2-parallel, and 3-parallel "
                 "device schemes using all selected semiconductor roles for each topology."
             ),

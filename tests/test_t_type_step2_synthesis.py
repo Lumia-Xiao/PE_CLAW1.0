@@ -83,6 +83,7 @@ def test_synthesize_maps_estimates_to_candidate_without_hardware_results() -> No
 def test_low_bus_design_is_explicitly_unreachable_without_clipping() -> None:
     raw = build_default_inputs()
     raw["vdc_nom"] = "500"
+    raw["engineering_vdc_min_v"] = "500"
     candidate = synthesize(build_spec(raw))
     assert candidate.feasible is False
     assert candidate.failure_reason is not None

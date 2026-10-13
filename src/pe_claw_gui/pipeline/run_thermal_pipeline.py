@@ -41,6 +41,8 @@ def _optional_float(value) -> float | None:
 
 def run_thermal_pipeline(report: DesignReport, pipeline_options: PipelineOptions | None = None) -> DesignReport:
     """Attach a first-pass magnetic thermal estimate and close LLC lifecycle state."""
+    from ..topology_capabilities import require_engineering_stage
+    require_engineering_stage(report.spec.topology_id, "thermal")
 
     result = _run_thermal_pipeline(report, pipeline_options=pipeline_options)
     return _finalize_llc_thermal_stage(result)

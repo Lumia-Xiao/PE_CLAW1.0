@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 from typing import Any
+import math
 
 
 REQUIRED = ("schema_version", "report_kind", "topology", "request", "candidate", "operating_point", "waveform", "stress", "magnetic", "capacitor", "thermal", "hardware", "ripple", "status", "audit")
@@ -47,6 +48,79 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
     for key in ("request", "candidate", "operating_point", "waveform", "stress", "magnetic", "capacitor", "thermal", "ripple", "audit"):
         if not isinstance(payload.get(key), dict):
             errors.append(f"section:{key}")
+    if "engineering_result" in payload:
+        engineering = payload["engineering_result"]
+        if not isinstance(engineering, dict):
+            errors.append("section:engineering_result")
+        else:
+            if payload.get("topology",{}).get("id") != "three_phase_three_level_t_type_inverter":
+                errors.append("engineering_result.topology")
+            if engineering.get("schema_version") != 1 or engineering.get("loss_scope_id") != "t_type_conduction_magnetics_capacitors_v1":
+                errors.append("engineering_result.scope")
+            if not isinstance(engineering.get("excluded_components"),(list,tuple)) or "switching_on" not in engineering.get("excluded_components",()):
+                errors.append("engineering_result.excluded_components")
+            roles = {"t_type_main_switch","t_type_midpoint_switch"}
+            devices = engineering.get("selected_devices",())
+            if not isinstance(devices,(list,tuple)):
+                errors.append("engineering_result.device")
+                devices = ()
+            selected_roles={d.get("role") for d in devices if isinstance(d,dict)}
+            stage_status = engineering.get("stage_status",{})
+            if not isinstance(stage_status,dict):
+                errors.append("engineering_result.stage_status")
+                stage_status = {}
+            if stage_status.get("device") == "succeeded" and selected_roles != roles:
+                errors.append("engineering_result.required_roles")
+            for device in devices:
+                if (not isinstance(device,dict) or device.get("role") not in roles or not device.get("part_number")
+                        or device.get("parallel_count") not in (1,2,3) or not isinstance(device.get("position_ids"),(list,tuple))
+                        or any(not isinstance(p,str) for p in device["position_ids"]) or len(set(device["position_ids"])) != 6):
+                    errors.append("engineering_result.device")
+            references = engineering.get("role_selection_reference",{})
+            if not isinstance(references,dict):
+                errors.append("engineering_result.reference")
+                references = {}
+            for reference in references.values():
+                if not isinstance(reference,dict) or any(not isinstance(reference.get(key),(int,float)) or not math.isfinite(reference[key])
+                        for key in ("per_device_channel_w","per_device_diode_w","reference_tj_c")):
+                    errors.append("engineering_result.reference")
+                elif reference["per_device_channel_w"]<0 or reference["per_device_diode_w"]<0:
+                    errors.append("engineering_result.negative_loss")
+            if stage_status.get("device") == "succeeded":
+                if len(devices) != 2 or set(references) != roles:
+                    errors.append("engineering_result.required_roles")
+                expected_packages = {}
+                for device in devices:
+                    if not isinstance(device,dict) or device.get("role") not in roles:
+                        continue
+                    role = device["role"]
+                    positions = {f"{p}_{r}" for p in "abc" for r in (("QP","QN") if role == "t_type_main_switch" else ("QA","QO"))}
+                    actual_positions = device.get("position_ids",())
+                    if not isinstance(actual_positions,(list,tuple)) or any(not isinstance(p,str) for p in actual_positions) or set(actual_positions) != positions:
+                        errors.append("engineering_result.position_ids")
+                    n = device.get("parallel_count")
+                    if n not in (1,2,3):
+                        continue
+                    for position in positions:
+                        for index in range(n):
+                            expected_packages[f"{position}_{index+1}"] = (device.get("part_number"),[position])
+                    ref = references.get(role,{})
+                    if not isinstance(ref,dict) or ref.get("part_number") != device.get("part_number") or ref.get("parallel_count") != n or ref.get("position_id") not in positions:
+                        errors.append("engineering_result.reference_identity")
+                packages = engineering.get("packages",())
+                if not isinstance(packages,(list,tuple)):
+                    packages = ()
+                ids = [p.get("package_instance_id") for p in packages if isinstance(p,dict) and isinstance(p.get("package_instance_id"),str)]
+                if len(ids) != len(packages) or len(set(ids)) != len(ids) or set(ids) != set(expected_packages):
+                    errors.append("engineering_result.packages")
+                for package in packages:
+                    if not isinstance(package,dict):
+                        continue
+                    expected = expected_packages.get(package.get("package_instance_id"))
+                    members = package.get("member_position_ids",())
+                    sections = package.get("section_bindings",())
+                    if expected is None or not isinstance(members,(list,tuple)) or not isinstance(sections,(list,tuple)) or (package.get("part_number"),list(members)) != expected or tuple(sections) != ("discrete_IGBT_FRD",):
+                        errors.append("engineering_result.package_binding")
     return errors
 
 

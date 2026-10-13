@@ -192,6 +192,27 @@ class DeviceView(ttk.Frame):
         self._default_split_applied = True
 
 
+def _build_t_type_selection_text(report):
+    result=report.device
+    engineering=report.t_type_engineering
+    lines=["T-type semiconductor selection",f"Active scheme: {result.active_scheme_id or 'unavailable'}",
+        "Design envelope reference; conduction only.","Current/system losses and efficiency: unavailable."]
+    if engineering:
+        lines.extend([f"Scope: {engineering.loss_scope_id}","Excluded losses: "+", ".join(engineering.excluded_components)])
+        for role,reference in engineering.role_selection_reference.items():
+            lines.extend([f"{role}: {reference.part_number}",
+                f"  6 positions x {reference.parallel_count} devices; {6*reference.parallel_count} discrete packages",
+                f"  Worst position: {reference.position_id}; bus/load/PF={reference.case}",
+                f"  Per-device channel/diode reference: {reference.per_device_channel_w:.6f} / {reference.per_device_diode_w:.6f} W",
+                f"  Bare reference Tj: {reference.reference_tj_c:.3f} C; sink screening only",
+                f"  Source: {reference.source}"])
+    for scheme in result.scheme_results:
+        lines.append(f"{scheme.label}: complete={scheme.complete}, feasible={scheme.feasible}")
+        lines.extend(f"  {r}: {s}" for r,s in scheme.selection_summaries.items())
+    lines.extend(result.notes)
+    return "\n".join(lines)
+
+
 def build_device_summary_text(report: DesignReport | None) -> str:
     """Build the compact Device-window summary text."""
 
@@ -207,6 +228,8 @@ def build_device_summary_text(report: DesignReport | None) -> str:
         ])
     if report.device is None:
         return "Device selection has not run yet."
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        return _build_t_type_selection_text(report)
 
     device_result = report.device
     lines: list[str] = []

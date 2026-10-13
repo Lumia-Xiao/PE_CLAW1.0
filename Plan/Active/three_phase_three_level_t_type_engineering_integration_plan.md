@@ -1,8 +1,8 @@
 # 三相三电平 T-type 第二轮工程链接入计划
 
-- 状态：Active / 步骤 0 完成（验证及实现提交已推送核实）；步骤 1–7 待实施。
+- 状态：Active / 步骤 0 完成（验证及实现提交已推送核实）；步骤 1 实现及失败修复验证中，步骤 2–7 待实施。
 - 创建日期：2026-10-13。
-- 当前授权：执行步骤 0，冻结接口/范围/阶段开放方案并保存当前基线；不提前实施步骤 1 的生产选型。
+- 当前授权：解决步骤 1 剩余失败、补齐回执并提交推送；按用户最新指示仅关注 T-type 验证。步骤 2–7 不提前实施，死区及换流能量仍排除。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
 - 撰写基准：`622920211ffa1185799365d0f4d1f50e0119a521`；分支 `codex/llc-waveform-operating-point-plan`。
@@ -15,7 +15,7 @@
 
 第一轮已经实现独立拓扑、参数合成、三相事件积分、12 门极、方向路径、逐位置应力、GUI 和固定 candidate 参数刷新。首轮 426 个不同测试项及 NPC 六份完整快照回执是历史证据，不能代替第二轮当前版本的工程验收。第一轮归档保持原范围和历史回执。
 
-当前 T-type 属于 `FIRST_PASS_TOPOLOGY_ONLY_IDS`；完整流水线及刷新提前返回，组件/扫描入口被保护。真实选型、两银行电流模型、磁件适配、损耗、热、几何、扫描和完整工程导出尚未接通。
+计划创建时 T-type 属于 `FIRST_PASS_TOPOLOGY_ONLY_IDS`，全部工程入口被保护。步骤1接入两角色真实选型和封装参考后，按逐阶段capability继续保护两银行/磁件/当前系统损耗热几何/扫描；完整工程导出仍待后续步骤。
 
 第二轮交付顺序：
 
@@ -103,7 +103,7 @@
 | 步骤 | 交付 | 依赖 | 当前状态 |
 |---|---|---|---|
 | 0 | 冻结二轮接口、范围、基线和阶段开放方案 | 本计划 | 已完成，见第 10 节 |
-| 1 | 半导体两角色真实库选型 | 0 | 待实施 |
+| 1 | 半导体两角色真实库选型 | 0 | 失败修复验证中；未提交推送 |
 | 2 | 三相电感接入 | 1 | 待实施 |
 | 3 | 上/下银行电流与真实电容选型 | 0、2 | 待实施 |
 | 4 | 选定硬件回读、固定硬件刷新与全链来源校验 | 1–3 | 待实施 |
@@ -251,7 +251,7 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-r2-s1 tests/test_t_type_enginee
 
 | 完成门槛 | 当前状态 |
 |---|---|
-| 步骤0–7 全部必要验证、独立提交推送 | 步骤0完成；步骤1–7待实施 |
+| 步骤0–7 全部必要验证、独立提交推送 | 步骤0完成；步骤1修复验证中；步骤2–7待实施 |
 | 真实库两角色、三相磁件、两银行、选后闭环 | 待实施 |
 | 同 scope/basis 的本轮损耗、热、几何、固定硬件扫描 | 待实施 |
 | 当前 GUI/report/JSON/CSV/BOM/overview 数值、来源与身份 | 待实施 |
@@ -304,3 +304,35 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-r2-s1 tests/test_t_type_enginee
 - 两个 Python 文件 AST 检查、40 个本地文档链接检查、ChangeLog 原文前缀（保留工作区 CRLF）和 `git -c core.longpaths=true diff --check` 通过。步骤 0 验证完成，Git 提交推送待回执；仅提交五个任务文件，运行证据/outputs/95 项既有删除不暂存。
 
 - Git 完成回执：实现/契约/工具/测试/日志提交 `9d8284f44df212af8525179a8e2a72c7cb9d7c81` 已推送至 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote` 核实远端同 SHA。步骤 0 必需验证及推送门槛已完成；本条状态回执另作文档提交并推送，最终回执提交以 Git 历史为准。后续步骤保持待实施，不重复运行未变的电气测试。
+
+## 11. 步骤 1 影响与执行记录（进行中）
+
+- 用户授权步骤1；基准 `896ff1d871fdfc1bdb990b93a92aa7b2bad4fb39`，分支/远端沿用步骤0；95项既有 tracked 删除和用户输出保留。
+- 分类：共享集成。角色图/capability、可选 DesignReport typed 字段、full/refresh/controller/GUI/schema 消费者受影响。新增 T-type adapter、导通 engine 和选型 stage；旧模型/库/selector/ranking 公式不改。旧拓扑 stage 返回原路径；旧 report 新 optional None 字段属于明确兼容结构差异，旧 structured 不新增 engineering_result。
+- 字段含义/单位/设计与运行依据/数量/缺项/失效见 [当前字段字典](../../docs/t_type_engineering_field_dictionary.md) 和契约第15节；步骤1只发布器件/离散封装与设计包络参考，完整 hardware/system 字段留后续实现。不将包络参考×6当当前损耗。每角色6n位置设备、12n采购封装，FRD无新增clamp。
+- 最小真实路径采用 ROHM RG IGBT+FRD，二维导通表范围明确检查；曲线按 target Tj 计算，组合功耗和 max(IGBT/FRD Rth_jc)进行保守TIM/sink反求，thermal feasible是选型参考非共享散热器验收。保留公共额定/热过滤和评分及优先最少并联完整可行方案；本拓扑按步骤0约定显式比较1/2/3并联，旧公共IGBT单方案策略保持不改。
+- 默认 envelope 700/800×0.1/0.5/1×0.8/1，每phase实际12点；省略工程包络输入时纳入首轮设计母线/PF，显式边界不包含设计点则拒绝，不改变首轮电路公式。用户自定义范围仍按实际可调制性检查。
+- 先执行 `python -B -m pytest -o addopts= -p no:cacheprovider -q --basetemp .pytest-tmp-tt-r2-s1-focus --junitxml .tt-r2-s1-focus.xml tests/test_t_type_engineering_step1_devices.py`；后执行显式累计T-type、devices组、registry/forms/structured/controller及旧DC-AC/PFC/LLC消费者。独立公式：仿射曲线解析、库标量查表、8/16点加密；契约：范围/峰值/缺FRD/NaN/额定负例；用户链：实际Tk按钮/当前报告数值；隔离：双顺序重复和当前NPC旧基线。
+- 公共模型和报告增加optional合同，schema/报告消费者必须广泛回归；stage guard只针对T-type，旧families返回原值，不通过削弱旧断言处理失败。最终测试命令/环境/SHA/结果及Git收据实际执行后追加；本节不提前声明完成。
+
+### 11.1 剩余失败修复与验证范围
+
+- 用户授权：解决步骤1剩余失败，补齐回执并提交推送；不实施步骤2。此前完成说法早于必要门禁，本节以实际结果纠正，不复用失败命令作为通过回执。
+- GUI 根因：开放 device 后，`EfficiencyView.render` 仍用 first-pass 集合判断，误显示可运行扫描。改用 `supports_engineering_stage(topology_id, "sweep")`；T-type 显示明确 unavailable，旧拓扑能力返回原值。受影响消费者为效率页、当前 GUI 读回和旧 AC-DC 完整效率页面，追加真实 GUI 验证。系统损耗、效率、磁件/电容、散热器与固定硬件扫描尚未开放。
+- 旧注册断言须冻结为实际 21 项及 DC-AC 四项；旧三拓扑完整链仍独立验证。低母线边界案例显式指定工程母线下界，保留原可调制性失败断言，避免新输入包络验证抢先覆盖原物理边界。
+- 测试工具只在专属输出目录复制 Git HEAD 中历史证据，保存来源提交/路径/SHA 并临时重定向测试的 PLAN/EVIDENCE；保留用户工作区删除，不修改历史文件、断言或生产路径。累计运行追加每项 setup/call/teardown 实时记录，失败历史保留。
+- 当前环境误用系统 Temp 的一次运行为 18 passed/15 errors（WinError 5），单列环境错误；已改回工作区专属 basetemp。之前被中断的两个长期验证进程无完整回执，不计通过。最终所选节点覆盖、实际结果和源文件关联待收尾记录。
+- 新真实选型执行12个设计包络工况，最新聚焦完整设计 fixture 为241.648 s；首轮两项真实 GUI 子进程240 s预算不足，改为900 s等待上限，全部电气、当前页面数字、来源、失效及恢复断言保留。此改动是测试执行预算扩展，不是放宽工程容差或减少搜索。追加 gui_repair 显式6项和 gui_consumers 显式3文件，重跑失败节点并保存新源码回执。
+- 用户最新收窄：“现在就只关注T-Type变换器，不需要对其他拓扑做测试”。已停止旧 GUI 消费者及混合累计运行，保留日志且不计完整通过。最终门禁改用 `python -B scripts/validate_t_type_engineering_step1.py .tt-r2-s1-t-type-final t_type`：只选T-type文件及纯T-type重复刷新隔离节点，显式不选NPC电气/双拓扑隔离节点；注册与切换清理仍是T-type接入契约。其他拓扑回归、跨拓扑隔离和full suite保留后续，不声称本次全面兼容验收。原已执行旧基线/测试仅作历史记录，不扩展本次结论。
+- 专属累计发现最小窗口可达性失败。尺寸诊断表明1240×760可视高693 px，顶部Run Design位于y=668、高31，越界6 px；底部波形/扫描按钮滚动后可达。只在T-type表单将设计输入行pady从6缩为4，保留公共表单及原窗口/可达性断言。此修复为GUI布局，不改变工程数据或计算；追加当前布局重跑和真实GUI读回，原失败保留。
+
+### 11.2 步骤 1 实际验证回执
+
+- 环境：Python 3.12.10，`C:\Users\Lumia\AppData\Local\Programs\Python\Python312\python.exe`；实际包为当前工作区`src/pe_claw_gui/__init__.py`，测试来自当前`tests/`，基准HEAD `896ff1d871fdfc1bdb990b93a92aa7b2bad4fb39`＋本步工作区源码。各脚本preflight/test_receipt保存解释器、精确pytest argv和src/scripts/tests逐文件SHA；输出、basetemp均在本步专属目录。
+- 累计命令：`python -B scripts/validate_t_type_engineering_step1.py .tt-r2-s1-t-type-final t_type`，285 passed/1 failed/0 errors/skips，2227.42 s，exit1；2 deselected为明确排除的NPC执行节点，不算通过。唯一失败为修复前的最小窗口Run Design越界。GUI修复命令：`python -B scripts/validate_t_type_engineering_step1.py .tt-r2-s1-gui-repair-final gui_repair`，6 passed/0 failures/errors/skips，830.95 s，exit0。两组各1条既有Unknown config option: cache_dir警告，单列非工程失败。
+- `.tt-r2-s1-t-type-final/aggregate_validation.json`核验286个不同所选节点全部有实际通过记录，修复组覆盖原失败；不是一次全通过suite。累计开始后唯一代码变化为T-type表单pady，修复组preflight的src/tests/scripts与最终源码全部相同，原公式/契约/全部运行点通过证据保持适用。聚焦最新30 passed/328.026 s和布局独立1 passed/15.89 s另列，不重复累加。
+- 真实库案例：默认10 kW/400 VLL/50 Hz/20 kHz，固定L=1.0716517624676405 mH，700/800 V×0.1/0.5/1×PF0.8/1；main=`RGHX5TRX2DF`、midpoint=`RGWX5TS65EHR`，n=1，共12离散IGBT＋FRD封装。选型channel/diode参考分别6.497900187793574/0.2021854536400135 W（700 V/满载/PF0.8，b_QP）与4.061070808431853/3.7695404600459197 W（800 V/满载/PF0.8，c_QA）；属于最坏单封装参考，不是角色/当前/系统损耗。
+- 四类证据：公式为独立仿射积分、8/16点加密、库标量查表和实际分段独立adaptive积分（rel1e-4/abs1e-6 W）、热阻解析；契约为角色/位置/12n封装、零能量接口调用、曲线范围/额定/NaN/缺FRD、无完整可行方案不发布及direct-stage保护；用户链为真实Tk按钮→当前report的型号、数字、全部曲线、连续刷新、清理恢复和bounded导出；隔离为纯T-type重复刷新数组独立、旧报告不变及来源拒绝。对应源测试为step1_devices、step5_pipeline、step6_gui、step7_operating_point、step8_acceptance和选定step8_isolation节点。
+- 数值读回：`.tt-r2-s1-t-type-final/temp/test_real_two_role_selection_a0/selection_readback.json`；最终GUI的readback/PNG在`.tt-r2-s1-gui-repair-final/temp/`各测试目录。schema与typed选择证据通过，但当前系统损耗/效率、完整硬件快照及完整工程导出不可用，不假定组件小计或空损耗为系统结果。
+- 历史失败/未执行：系统Temp WinError5及一次布局重跑缺PYTHONPATH收集错误分别保留，不计电气通过；所有中断的混合/旧GUI进程无完整回执。用户收窄前旧consumer为80 passed/1旧注册失败、shared34 passed及旧baseline工程差异0，仅记录历史，不纳入286，不宣称最终全面兼容。其他拓扑完整回归、跨拓扑隔离、full suite、步骤2–7、死区/换流能量、实物采购/硬件验收未执行。
+- 审查与Git：42本地链接、任务Python AST、定向及暂存diff检查通过；仅明确任务文件暂存，95项既有删除和outputs/本地证据保持。实现提交/推送及远端核实待实际完成后追加；此时步骤1仍未标完成，无清理或备份操作。
