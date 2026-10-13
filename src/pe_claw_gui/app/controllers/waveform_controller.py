@@ -31,7 +31,13 @@ class WaveformController:
             raise RuntimeError("Select a topology before generating waveforms.")
         plugin = self._state_store.active_plugin or self._state_store.registry.get_plugin(self._state_store.selected_topology_id)
         report = _apply_runtime_overrides(self._state_store.design_report, runtime_overrides)
+        first_pass = any(is_first_pass_topology_only(identity) for identity in (
+            report.spec.topology_id, report.candidate.topology_id,
+            self._state_store.selected_topology_id, plugin.topology_id,
+        ))
         try:
+            if first_pass and self._state_store.selected_topology_id != report.spec.topology_id:
+                raise ValueError("First-pass refresh selected topology does not match design source.")
             report = run_operating_point_refresh(
                 report=report,
                 plugin=plugin,
@@ -39,7 +45,7 @@ class WaveformController:
                 pipeline_options=PipelineOptions(enable_magnetic_design=False, enable_capacitor_design=False),
             )
         except Exception as exc:
-            if is_first_pass_topology_only(report.spec.topology_id):
+            if first_pass:
                 self._state_store.design_report = replace(
                     report, operating_point=operating_point, waveform=None, stress=None, topology_result=None,
                     notes=[*report.notes, f"Waveform refresh failed: {exc}"],

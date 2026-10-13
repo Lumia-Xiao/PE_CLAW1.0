@@ -2068,3 +2068,10 @@ listed here.
 - Git/工件：沿用 codex/llc-waveform-operating-point-plan，pe-claw-1.1 同名远端；提交/推送 SHA 收尾追加。只暂存本步源文件和 PNG 卡片，日志/证据/outputs/无关删除保留不提交；无备份操作。
 
 步骤 6 最终验证与 Git 回执（2026-10-12）：实现提交 ba958e2de3e5659f38ac2bd3ddce27ba15bada0c 已推送至 pe-claw-1.1/codex/llc-waveform-operating-point-plan，ls-remote 同 SHA。最终旧 AC-DC 五拓扑完整 GUI/选型/磁件/效率/图像导出回归在 .tt6-ac-pass 实际通过：1 passed、0 failures/errors/skips，590.05 s；原磁件搜索保持完整。此前多次长运行误判/中断均未计通过，日志和 manifest 保留。聚焦 .tt6-verified 9 passed/161.50 s，工具 .tt6-tooling 4 passed/1.92 s；六份 NPC 完整快照 SHA 精确不变。aggregate_validation.json 合并原累计通过项与实际修复重跑，271 个不同所选测试均有通过结果；不是一次全通过 suite，也不是 full suite。每次既有 cache_dir warning 单列。步骤 6 必要范围已验证，实现 commit 已推送；本次文档回执同步计划/契约状态并修正实现提交中的计划 EOF 空行，最终 diff --check 重新核实。步骤 7–8、T-type 实物组件及损耗/效率保持未执行。未触碰无关删除或用户结果，无备份操作。
+
+## 2026-10-13 - T-type 步骤 7 固定参数运行点刷新
+
+- 行为：first-pass 刷新通过拓扑 build_report 校验当前请求/波形/应力/评估及 spec/candidate/plugin 来源，仅刷新运行点相关结果，保留固定每相 L/每银行 C 初估、设计身份、run_context 和设计计时；控制器按全部参与身份拒绝混用并清无效当前结果。空当前波形不能回退为设计估算；T-type 表单运行控件变化立即清页面与有效结果但保留 candidate，支持失败后的恢复。PF 幅值可变，相位仍由设计确定；VLL/fsw 等值容差与波形入口一致。
+- 分类/文件：共享集成，run_operating_point_refresh.py、waveform_controller.py、workspace.py、T-type form/evaluator；新增 test_t_type_step7_operating_point.py 与复用现有证据运行器的 validate_t_type_step7_operating_point.py；README、契约14、Active 计划9.13 同步语义与回执。first-pass 当前仅 T-type，旧拓扑正常路径与能力保持；公共模型/schema、物理公式、库、选型及损耗/热不修改，死区/能量/完整实物链不加入本轮。
+- 验证：当前 Python 3.12.10/src/tests 的显式脚本回执，.tt7-focus 27 passed/277.28 s；.tt7-pass2 累计377 passed/1059.80 s；收尾 .tt7-final 全部step7与受影响controller/first-pass/report节点38 passed/349.48 s；最后candidate-only清理条件及旧三DC-AC真实刷新 .tt7-source 4 passed/18.27 s。所有通过运行0 failures/errors/skips，各有既有cache_dir警告1；六份NPC完整SHA每次精确不变。不同修订分别记录，不能宣称一次全套通过。原 .tt7-pass 收集失败2项为旧LLC导入scripts需要仓库根，修正运行器路径后实际重跑通过，历史错误保留。独立公式/局部方向/KCL、固定参数/零调用/缺数据与来源负例、GUI连续两次数字/曲线、即时失效/恢复、旧报告与数组隔离均有证据；full suite/步骤8/完整工程导出未执行。
+- Git/维护：codex/llc-waveform-operating-point-plan，推送目标pe-claw-1.1同名分支；实现与推送SHA随后追加，推送前不标步骤完成。定向/全差异检查、暂存范围与append-only收尾后提交；测试证据/outputs/无关删除保留不提交，无备份操作。

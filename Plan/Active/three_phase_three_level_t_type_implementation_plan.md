@@ -1,8 +1,8 @@
 # 三相三电平 T-type 实施计划：第一轮基础链路跑通
 
-- 状态：Active；步骤 0–6 已验证并推送，步骤 3 缺口已补齐（9.11）；步骤 7–8 待执行。
+- 状态：Active；步骤 0–6 已验证并推送，步骤 3 缺口已补齐（9.11）；步骤 7 已验证待提交推送，步骤 8 待执行。
 - 创建日期：2026-10-12。
-- 当前授权：步骤 6 验证与实现推送已完成；本轮不自动开始步骤 7–8。
+- 当前授权：步骤 7 固定参数运行点刷新；步骤 8 不自动开始。
 - 后续实施目标：按照已讨论的首轮范围，跑通 T-type 参数计算、波形、门极/路径、应力、GUI 和固定参数运行点刷新。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`；步骤 6 已接入注册并验证，实现提交 `ba958e2` 已推送。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
@@ -143,7 +143,7 @@
 | 4 | T-type 12 路门极、导通路径和理想事件 | 3 | 已完成并推送，见 9.10 |
 | 5 | 逐位置应力、报告及首次后端贯通 | 4 | 已完成并推送，见 9.11 |
 | 6 | 注册/能力/GUI 接入与未接阶段保护 | 5 | 已验证并推送（9.12） |
-| 7 | 固定参数运行点刷新 | 6 | 待执行 |
+| 7 | 固定参数运行点刷新 | 6 | 已验证，待提交推送（9.13） |
 | 8 | 首轮贯通、旧拓扑回归、隔离与收尾 | 7 | 待执行 |
 
 ### 步骤 0：核对基础并冻结首轮接口
@@ -223,7 +223,7 @@
 - 当前 waveform/stress/topology_result 与报告工况一起更新；选择不同拓扑、失败刷新或变更设计参数时不显示旧有效结果。失败原因按现有控制器状态策略呈现；不能用旧设计数组补齐新点。
 - 拟新增 `tests/test_t_type_step7_operating_point.py`：所有首轮有限工况、局部方向、固定参数、合成/选型调用为零、旧报告不可变、不可达点/来源失配及 GUI 当前数值。
 - 验证：step1–7 +受影响 refresh/controller 旧消费者；完成：固定参数矩阵和状态失效通过，GUI 两次刷新数字匹配；Git 门槛满足。
-- 实际执行/Git 回执：待执行。
+- 实际执行/Git 回执：必要验证已通过，见 9.13；提交推送后才能标完成。
 
 ### 步骤 8：首轮贯通、隔离及收尾
 
@@ -573,3 +573,23 @@ GUI 源为当前 report；T-type waveform 的 basis/time_s/phases/positions/stre
 步骤 6 实现回执（2026-10-12）：实现提交 `ba958e2de3e5659f38ac2bd3ddce27ba15bada0c` 已推送至 pe-claw-1.1/codex/llc-waveform-operating-point-plan，ls-remote 核实同 SHA。`.tt6-verified` 9 passed，`.tt6-tooling` 4 passed，六份 NPC 完整 payload SHA 精确一致。旧 AC-DC 五拓扑完整回归最终完整执行通过：`python -B scripts/validate_t_type_step6_gui.py .tt6-ac-pass tests/test_ac_dc_efficiency_gui_end_to_end.py::test_ac_dc_gui_forms_and_efficiency_result_view_end_to_end`，1 passed/0 failed/errors/skips，590.05 s；当前提交 ba958e2、环境/源文件 SHA、日志/JUnit/NPC 对比见该目录。没有缩减磁件搜索；此前多次误判长运行而中断的运行均保留且不计通过。`.tt6-ac-pass/aggregate_validation.json` 按 classname/name 合并原累计通过项及真实修复重跑，共 271 个不同测试最终均有通过证据，不宣称一次全通过运行。既有 cache_dir warning 单列，full suite 未执行。
 
 步骤 6 门槛已满足：真实 GUI 两按钮、当前数字/曲线、全部21表单/资源、默认/最小窗口、入口保护、失败清理、旧注册冻结、旧DC-AC及AC-DC页面回归均有实际证据；无待解决本步失败。契约13与计划23个本地链接有效，代码/暂存差异审查完成；实现提交末尾多余空行曾被 diff --check 报出，在本次文档回执修正并重新检查。此文档提交同步完成状态/ChangeLog，不重复已通过电气测试；最终 SHA 与远端核实见 Git 历史及完成报告。步骤 7–8 未执行，实物选型、损耗/效率模型和完整首轮终验仍未交付。
+
+### 9.13 步骤 7 执行范围（2026-10-13）
+
+分类共享集成：run_operating_point_refresh 的 first-pass 分支、WaveformController、Workspace 和独立 T-type 表单，加拓扑局部报告来源校验。first-pass 能力目前仅 T-type；旧拓扑保持原刷新路径及输入失效政策。公共模型、物理公式、注册/能力、库、器件/磁件/损耗/热阶段不修改。保留已有无关删除和全部历史工件。
+
+契约沿用第 4 节及契约 14：candidate 保存每相 L（H）、每银行 C 初估（F）、设计总有功（W）、VLL RMS（V）和频率（Hz）；刷新不得合成/选型或更改这些数值。实际母线（V）、负载比例与 PF 幅值由 OperatingPoint 提供，相位类型来自本次设计。waveform/stress/evaluate 生产当前三相瞬时 V/A、12 位置完整周期 peak/RMS/average A 和主/中点静态 V；report 与 GUI 只消费同一当前来源。运行控件写入立即清除当前波形/应力/评估并保留 candidate，页面等待重新生成；错误来源、不可达或非法输入显式拒绝并清旧有效结果，旧报告保持不可变。未建模电容波形/硬件损耗/效率不得补零。
+
+拟验证命令：python -B scripts/validate_t_type_step7_operating_point.py .tt7-focus tests/test_t_type_step7_operating_point.py；通过后 python -B scripts/validate_t_type_step7_operating_point.py .tt7-pass。脚本复用步骤 6 的当前 src/tests 预检、独立输出根、JUnit/源码 SHA 和六份 NPC 完整基准比较。累计 steps1–7/common/NPC 求解与受影响旧 DC-AC refresh/controller、LLC/PSFB refresh、全部表单及 GUI 窗口消费者；不重跑未受影响的真实 AC-DC 选型/磁件链，不默认 full suite。独立三相功率/有符号 PF 参考、三线 KCL/局部端子表、固定参数/零调用、失败恢复、两次真实 GUI 数字/数组及旧报告隔离分别取证。通过后更新日志、检查差异、提交推送，再登记完成。
+
+聚焦初验：.tt7-focus 的 27 项实际通过，277.28 s，0 failures/errors/skips；六份 NPC 完整 SHA 精确不变，既有 cache_dir 警告 1。随后审查补保留设计计时及 L/C 来源验证，新增对应断言与等值请求容差测试。累计 .tt7-pass 收集阶段 2 errors：旧 LLC 测试需要仓库根 scripts 包，步骤 7 运行器只继承了 src/tests/scripts 路径；增加仓库根到 sys.path/PYTHONPATH 后在新 .tt7-pass2 重跑。收集失败不计通过，历史证据保留。旧 DC-AC target_integration 仅选择实际 controller 刷新节点，注册冻结与精确 21 项仍由 step6/phase12 验证。
+
+当前 GUI 读回：.tt7-pass2/temp/test_real_gui_two_refreshes_cu0/gui_readback.json 保存同一 run 的两次实际按钮结果。PowerShell ConvertFrom-Json 按 basis 与 Summary 的六位显示精度逐项比较 bus/load/PF/三相有功以及固定 L/C，两个点各 6 项匹配：700 V/0.1/PF1/1000 W 与 800 V/0.5/PF0.8/5000 W；L=1.0716517624676405 mH/相，C 初估=81.632653 uF/银行保持固定。pytest 另精确核对三相电流与 12 门极数组、毫秒时间轴、逐位置 signed/channel/diode 九个指标及 main/midpoint 静态阻断六位数值。second_refresh.png 已目视检查当前 800 V/0.5/PF0.8 的六轴图，没有布局重叠。该读回/PNG 只证明当前 GUI 与报告一致，不宣称完整工程导出或系统损耗/效率验收。
+
+累计回执：python -B scripts/validate_t_type_step7_operating_point.py .tt7-pass2，377 passed，0 failures/errors/skips，1059.80 s；Python 3.12.10、当前 src/tests、源码/测试 SHA、argv/日志/JUnit 在该目录；六份 NPC 完整 SHA 精确不变。单列既有 cache_dir 警告 1；不是 full suite。末次审查补充双向 spec/candidate/plugin 身份混用拒绝与空 waveform 拒绝，防止丢失当前波形后以设计估计冒充刷新成功；正常旧拓扑路径与电气公式不变。最终修补验证在新的 .tt7-final，选择全部 step7 测试、first-pass 下游零调用、真实 T-type 基础报告及旧 DC-AC 固定硬件 refresh/controller 节点；实际结果待记录。
+
+收尾回执：python -B scripts/validate_t_type_step7_operating_point.py .tt7-final tests/test_t_type_step7_operating_point.py tests/test_t_type_step6_gui.py::test_full_pipeline_and_direct_controller_guards_skip_downstream tests/test_t_type_step5_pipeline.py::test_real_pipeline_report_and_run_identity tests/test_dc_ac_operating_refresh_gui_chain.py::test_runtime_refresh_keeps_fixed_hardware_and_updates_operating_point tests/test_dc_ac_target_integration.py::test_controller_design_to_waveform_chain_reuses_candidate_and_selected_hardware：38 passed，0 failures/errors/skips，349.48 s；六份 NPC 完整 SHA 精确不变，cache_dir 警告 1。覆盖新增反向 spec 身份混用、空当前波形、全部 10 个有限运行点、非法请求、报告隔离、两次 GUI 刷新与恢复以及旧三拓扑真实控制器链。
+
+最后补充只收紧控制器失败清理判定：spec/所选拓扑/plugin/candidate 任一属于 T-type 时均清除错误来源当前结果，特别是 candidate-only 混用；不改求解、正常路由、GUI 回调或其他拓扑失败政策。python -B scripts/validate_t_type_step7_operating_point.py .tt7-source 'tests/test_t_type_step7_operating_point.py::test_mismatched_design_source_is_rejected[candidate_only]' tests/test_dc_ac_target_integration.py::test_controller_design_to_waveform_chain_reuses_candidate_and_selected_hardware：4 passed，0 failures/errors/skips，18.27 s，cache_dir 警告 1；六份 NPC 完整 SHA 精确不变。该次源码 SHA 是最终生产版本，前三个目录保留各自所验修订，不混称一次全通过运行。
+
+证据结论分别成立：物理公式为累计独立分段积分/应力 Simpson/加密及本步三相功率/PF 参考与局部端子表；契约为来源、固定参数、零合成/下游调用、非法/缺数据拒绝；用户链路为真实两按钮、即时失效、连续刷新六位数字/数组与失败恢复；隔离为旧报告/candidate 完整快照、刷新数组不共享和累计 NPC/T-type 双顺序重复。没有未解释必要失败；全量 pytest、步骤 8、实物器件/损耗/效率及完整工程导出未执行，不作为本步交付。日志/输出/历史删除均保留不暂存。Git 回执待追加。

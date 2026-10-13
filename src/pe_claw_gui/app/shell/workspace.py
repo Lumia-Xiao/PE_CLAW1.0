@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tkinter as tk
+from dataclasses import replace
 from tkinter import ttk
 
 from ...models.design_report import DesignReport
@@ -227,6 +228,8 @@ class Workspace(ttk.Frame):
             on_run_efficiency_sweep=self._on_run_efficiency_sweep,
         )
         self.active_form.set_design_input_change_handler(self._on_design_input_changed)
+        if is_first_pass_topology_only(topology_id):
+            self.active_form.set_operating_input_change_handler(self._on_operating_input_changed)
         if self.form_canvas is None:
             self.active_form.grid(row=0, column=0, sticky="nsew")
         else:
@@ -236,6 +239,15 @@ class Workspace(ttk.Frame):
             form.bind("<Configure>", lambda _event: canvas.configure(
                 width=form.winfo_reqwidth(), scrollregion=canvas.bbox("all"),
             ))
+        self.render_report(None)
+
+    def _on_operating_input_changed(self) -> None:
+        """Keep the fixed design but stop presenting a previous operating point."""
+        report = self._state_store.design_report
+        if report is not None:
+            self._state_store.design_report = replace(
+                report, operating_point=None, waveform=None, stress=None, topology_result=None,
+            )
         self.render_report(None)
 
     def _on_design_input_changed(self) -> None:

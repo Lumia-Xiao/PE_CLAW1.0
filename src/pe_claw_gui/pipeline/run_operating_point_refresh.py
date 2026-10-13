@@ -31,11 +31,17 @@ def run_operating_point_refresh(
     options = resolve_pipeline_options(pipeline_options)
     if report.candidate is None:
         raise RuntimeError("Run Design first before generating waveforms.")
+    first_pass = is_first_pass_topology_only(report.spec.topology_id)
+    identities = (report.spec.topology_id, report.candidate.topology_id, plugin.topology_id)
+    if any(is_first_pass_topology_only(identity) for identity in identities) and len(set(identities)) != 1:
+        raise ValueError("First-pass refresh topology identity mismatch.")
 
     waveform_kwargs = {"operating_point": operating_point}
     if report.spec.topology_id == "three_phase_three_level_npc_inverter" and npc_periodic_initial_current_a is not None:
         waveform_kwargs["_periodic_initial_current_a"] = npc_periodic_initial_current_a
     waveform_set = call_with_report_run(report, plugin.generate_waveforms, report.candidate, **waveform_kwargs)
+    if first_pass and waveform_set is None:
+        raise ValueError("First-pass waveform refresh returned no current waveform.")
     stress_result = call_with_report_run(report, plugin.extract_stress, report.candidate, waveform_set=waveform_set)
     topology_result = call_with_report_run(
         report,
@@ -44,6 +50,20 @@ def run_operating_point_refresh(
         waveform_set=waveform_set,
         stress_result=stress_result,
     )
+    if first_pass:
+        # Topology-owned assembly checks the request against the actual waveform,
+        # rather than assigning an unverified operating point to valid old data.
+        validated = call_with_report_run(
+            report, plugin.build_report, report.spec, report.candidate,
+            operating_point=operating_point, waveform_set=waveform_set,
+            stress_result=stress_result, topology_result=topology_result,
+        )
+        return replace(
+            report, operating_point=validated.operating_point,
+            waveform=validated.waveform, stress=validated.stress,
+            topology_result=validated.topology_result,
+            notes=[*report.notes, "Generate Waveforms refreshed only operating-point-dependent outputs."],
+        )
 
     refreshed_report = replace(
         report,
@@ -63,10 +83,6 @@ def run_operating_point_refresh(
             "Generate Waveforms refreshed only operating-point-dependent outputs.",
         ],
     )
-    if is_first_pass_topology_only(refreshed_report.spec.topology_id):
-        if refreshed_report.capacitor is not None:
-            refreshed_report = run_capacitor_operating_point_refresh(refreshed_report)
-        return refreshed_report
     uses_semiconductor_selector = has_semiconductor_selection_path(refreshed_report.spec.topology_id)
     # A refresh is deliberately not allowed to promote a missing device
     # result into a new selection run.  The caller must supply a report whose

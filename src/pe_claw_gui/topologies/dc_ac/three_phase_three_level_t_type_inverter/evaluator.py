@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 from ....models.design_report import DesignReport
 from ...base.result import TopologyResult
 from .stress import PAYLOAD_KEY, extract_stress
@@ -39,6 +41,14 @@ def evaluate(candidate, waveform_set=None, stress_result=None):
 def build_report(spec, candidate, operating_point=None, waveform_set=None, stress_result=None, topology_result=None):
     if spec.topology_id != TOPOLOGY_ID or candidate.topology_id != TOPOLOGY_ID:
         raise ValueError("T-type report topology identity mismatch.")
+    design_fields = {"vin_nom": "vdc_nom_v", "vout_target": "vac_ll_rms_v",
+                     "fs_hz": "fsw_hz", "pout_target": "pout_w"}
+    estimates = candidate.metadata.get("t_type_design_estimates", {})
+    if (any(candidate.metadata.get(key) != value for key, value in spec.metadata.items())
+            or any(getattr(candidate, field) != spec.metadata[key] for field, key in design_fields.items())
+            or candidate.inductance_h != estimates.get("l_phase_initial_h")
+            or candidate.capacitance_f != estimates.get("cbank_proxy_f")):
+        raise ValueError("T-type report candidate does not match design source.")
     expected_stress = extract_stress(candidate, waveform_set)
     if stress_result is not None and stress_result != expected_stress:
         raise ValueError("T-type report stress is stale.")
@@ -53,7 +63,9 @@ def build_report(spec, candidate, operating_point=None, waveform_set=None, stres
                 value = getattr(operating_point, field)
                 if value is not None:
                     requested[target] = value
-            if operating_point.vout_v not in (None, candidate.vout_target) or operating_point.switching_frequency_hz not in (None, candidate.fs_hz):
+            if any(value is not None and not math.isclose(value, target, rel_tol=0., abs_tol=tolerance)
+                   for value, target, tolerance in ((operating_point.vout_v, candidate.vout_target, 1e-9),
+                                                     (operating_point.switching_frequency_hz, candidate.fs_hz, 1e-12))):
                 raise ValueError("T-type report unsupported operating request.")
         if any(basis[k] != value for k,value in requested.items()):
             raise ValueError("T-type report waveform does not match requested operating point.")

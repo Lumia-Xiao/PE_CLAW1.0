@@ -400,6 +400,12 @@ B1 独立标量参考：L=1.071651762 mH/相，ΔI_target,pp=4.082482905 A，Ceq
 
 生命周期：设计输入改变使 candidate 与所有依赖数据失效；母线/load/PF 改变使当前 waveform/stress/topology_result 失效但保留 candidate；换拓扑清除本拓扑载荷。每次刷新生成新不可混用载荷，不原地修改旧 report/candidate。缺项、非法状态或不收敛保留具体原因，不声明有效/完整结果。
 
+步骤 7 实现：first-pass 刷新先检查 spec/candidate/plugin 标识，生成后调用拓扑的 build_report 核验请求与当前载荷，再仅替换原报告的运行点/波形/应力/评估。原 run_context、设计计时和设计估算保留；控制器检查所选拓扑与报告来源。T-type 报告校验 candidate 与 spec 的规范化设计数据，并核对 L/C 与原设计估算；不能混入另一设计或手改参数的来源。电网 VLL 与开关频率仍固定，等值请求的绝对容差分别为 1e-9 V 和 1e-12 Hz，与波形入口一致。
+
+身份检查覆盖双向混用，只要 spec/candidate/plugin 任一是 first-pass T-type，就不能在三者身份不一致时进入求解或下游。运行点刷新要求非空当前 waveform；缺失时明确拒绝，不能使用 Run Design 的无波形估算报告作为刷新成功结果。
+
+T-type 表单的三个运行控件写入时，Workspace 立即清空 state report 的 operating_point/waveform/stress/topology_result，并清空页面，保留 spec/candidate/run_context/设计记录；随后 Generate Waveforms 只刷新运行点。失败保留具体错误，仍可使用原 candidate 恢复。该失效回调仅接入 first-pass T-type，旧拓扑沿用原交互。
+
 ### 14.4 验证来源与当前状态
 
-数值容差、NPC 共享抽取名单及基准见 Active 计划步骤 0；步骤 1–5 的公式、导通/理想事件、实际波形、时间积分应力、真实基础报告与双顺序隔离回执见 9.7–9.11。步骤 6 GUI/注册证据记录于 9.12。NPC 基准保留旧角色、门极、事件、动态电容与负 PF 行为，只证明兼容性。固定参数应用刷新完整矩阵及最终验收留步骤 7–8；暂无真实器件或硬件证据。
+数值容差、NPC 共享抽取名单及基准见 Active 计划步骤 0；步骤 1–5 的公式、导通/理想事件、实际波形、时间积分应力、真实基础报告与双顺序隔离回执见 9.7–9.11。步骤 6 GUI/注册证据记录于 9.12。步骤 7 刷新测试与实际回执记录于 9.13：累计 377 项、收尾 38 项及 candidate-only 来源保护补充 4 项均实际通过；它们是不同修订的明确执行范围，非一次全套运行。NPC 六份完整 SHA 精确不变，只证明旧行为兼容；本步必要验证已通过，完成还需 Git 推送回执。最终首轮验收留步骤 8；暂无真实器件或硬件证据。

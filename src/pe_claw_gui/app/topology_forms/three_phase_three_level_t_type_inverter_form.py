@@ -71,3 +71,13 @@ class ThreePhaseThreeLevelTTypeInverterForm(BaseTopologyForm):
         if not math.isfinite(pf) or not 0 < pf <= 1:
             raise ValueError("Power factor must be finite and in (0,1].")
         return OperatingPoint(vin_v=bus, load_ratio=load, power_factor=pf)
+
+    def set_operating_input_change_handler(self, handler):
+        """Invalidate only current results while keeping the synthesized design."""
+        for variable, trace_id in getattr(self, "_operating_input_trace_ids", []):
+            variable.trace_remove("write", trace_id)
+        self._operating_input_trace_ids = []
+        if handler is not None:
+            for variable in self.operating_vars.values():
+                trace_id = variable.trace_add("write", lambda *_args: handler())
+                self._operating_input_trace_ids.append((variable, trace_id))

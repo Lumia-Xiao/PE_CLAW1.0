@@ -337,6 +337,8 @@ first-pass or gated limitations.
 
 T-type currently supports Run Design, Generate Waveforms, three-phase voltage/current and 12 gate plots, and main/midpoint position stress. Inductance and per-bank capacitance are initial estimates. Component selection, loss, thermal, geometry and efficiency stages are unavailable; their action buttons and controller entry points are protected. The model uses an ideal balanced split bus, zero dead time and an IGBT/antiparallel-diode current reference.
 
+T-type operating refresh accepts DC bus voltage, load ratio [0,1] and PF magnitude (0,1] while retaining the synthesized design, per-phase L, per-bank C estimate and design PF phase. Editing an operating input clears current results until waveforms are regenerated. Unsupported grid-voltage/frequency changes, inconsistent design sources and unreachable operating points are rejected; failed refreshes retain the candidate for recovery.
+
 ---
 
 ## Case Study: Buck Synchronous Rectified Unidirectional Converter
