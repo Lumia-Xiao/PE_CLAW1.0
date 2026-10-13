@@ -5,6 +5,18 @@ JSON path `engineering_result`. Schema 1 is optional for old topology reports;
 it is selection evidence, not complete engineering export. Later full-hardware
 fields remain pending under the round-two plan.
 
+Input and semiconductor policy authority for the next implementation is
+[contract section 17](three_phase_three_level_t_type_contract.md). The table
+below describes the implemented step-one schema under its original contract;
+its PF-magnitude/phase envelope, unconditional n=1/2/3 and discrete IGBT+FRD
+restriction are historical implementation limits, not the new input policy.
+The new policy uses the same 12 design fields and two operating fields as NPC,
+signed PF, public temperature/type/manufacturer keys, nominal/full-load design
+selection, and public scheme variants (IGBT filter: single; otherwise 1/2/3).
+Backend and typed-result adaptation are pending. Discrete package count is
+12n; module procurement count must follow actual section bindings. No field or
+schema is changed by this documentation update.
+
 | Path | Meaning / Unit / Count | Producer / Consumers / Lifecycle |
 |---|---|---|
 | design_basis | topology/run/candidate SHA; rated output W, VLL RMS V, fline/fsw Hz, target L H, phase, tuple of bus V/load ratio/PF magnitude cases, temperatures C; voltage/current margins 0.20/0.10 | topology adapter -> selector/audit/UI; design input changes invalidate; missing source rejects |

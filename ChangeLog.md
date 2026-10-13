@@ -2123,3 +2123,11 @@ listed here.
 - Git/维护：codex/llc-waveform-operating-point-plan，推送pe-claw-1.1同名分支；实现提交/远端核实后追加回执。只定向暂存任务文件，95项既有tracked删除、用户outputs与本地证据不提交；42链接/AST/差异检查及append-only收尾，无清理/备份操作。
 
 - 步骤1 Git/状态回执：实现提交 `facd572740aebdf9411d708aebb4e8810d364e01` 已推送 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote核实同SHA。44个任务文件，不含既有删除或生成物。按用户限定的T-type范围完成步骤1，286个不同所选节点均有实际通过记录；其他拓扑全面回归/跨拓扑隔离/full suite仍后续。此文档提交仅同步计划状态与Git回执，复用上述电气证据；最终文档SHA见Git历史及完成报告。步骤2–7未实施，无清理/备份操作。
+
+## 2026-10-13 - T-type NPC一致输入与半导体选择合同冻结
+
+- 分类/授权：文档。按用户最新要求先冻结NPC一致用户输入及半导体选择，再后台适配、随后工程链。本次只改docs/three_phase_three_level_t_type_contract.md第17节、docs/t_type_engineering_field_dictionary.md、Plan/Active/three_phase_three_level_t_type_engineering_integration_plan.md第12节及本日志；生产/GUI/库/公式/测试和报告schema未改。
+- 合同：精确12设计＋2运行字段、公共类型/厂家完整选项与唯一温度来源；负PF沿用NPC反向有功语义；选择依据为标称/满载设计点，IGBT过滤只single、其他按公共1/2/3；沿用同库/筛选/排名/审计和方案机制，T-type仍两角色各6位置。MOSFET/其他厂家/连接兼容模型待真实后台接入；不显示无效选择或静默回退ROHM。死区及能量继续排除。
+- 计划：保留步骤0/1历史实现与286项旧验收；明确旧独立engineering/phase输入、24点默认包络、ROHM-only及无条件三方案已被新合同覆盖；新增A1输入→A2有符号PF/basis→A3两角色选择→A4 T-type验收前置，再恢复步骤2–7。
+- 验证范围：只读源码交叉核对、文档语义/引用和冲突优先级、日志append-only、定向/暂存diff与范围检查。不跑pytest、电气链、GUI或NPC/其他拓扑测试；无新工程通过证据，后台仍待适配。
+- Git/维护：基准d1ac433610d0d4af37b092d5ece2ba90dab9bf36，分支codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名上游；仅四个文档定向提交，实际SHA/推送核实见Git历史及完成报告。保留95项既有tracked删除、outputs和本地生成证据；无清理/备份。

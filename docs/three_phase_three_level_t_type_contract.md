@@ -531,3 +531,74 @@ NPC 当前工程链 baseline 是旧行为保护，不自动证明其全包络、
 - T-type只开放device和package reference geometry；磁件/电容/系统损耗/热/系统几何/扫描仍保护direct/controller入口。封装页面无共享sink体积且明确范围。固定candidate刷新保留设计选型、不重选、不改为当前损耗；实际L/C硬件回读仍待步骤4。
 - 结构validator核查scope/exclusions、两角色/位置、封装绑定与数量、参考身份及finite损耗；缺项不能发布成功。旧拓扑optional字段为None，旧structured没有新节；原始dataclass增加None是明确的兼容结构差异，工程基线比较只可按记录政策忽略此一空字段。
 - 效率页以sweep阶段能力判断，不能因device开放而提示可运行效率扫描。T-type设计输入行间距为4 px，保证1240×760最小窗口的顶部Run Design和滚动后的波形控件可达。按用户最新指示，本次收尾验证限定T-type；其他拓扑全面回归及跨拓扑隔离不作为已完成结论。
+
+## 17. NPC 一致用户输入与半导体选择冻结合同（2026-10-13）
+
+用户要求先冻结输入合同，再调整后台，随后继续工程链；半导体选择也与 NPC 一致。本节是后续实施的权威合同，覆盖第 14–16 节中冲突的输入、PF、选型工况、技术/厂家及并联策略。历史实现和验证回执保留，不能证明本节已实现。本次只改文档，生产界面和后台仍待适配。
+
+### 17.1 实际参考与一致性边界
+
+以 [NPC 表单](../src/pe_claw_gui/app/topology_forms/three_phase_three_level_npc_inverter_form.py)、[公共表单](../src/pe_claw_gui/app/topology_forms/base_form.py)、[筛选 metadata](../src/pe_claw_gui/libraries/semiconductors/metadata.py)、[NPC 输入解析](../src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_npc_inverter/input_schema.py)、[应力适配](../src/pe_claw_gui/engines/devices/stress_adapter.py) 和 [公共器件流水线](../src/pe_claw_gui/pipeline/run_device_pipeline.py) 在 `d1ac433610d0d4af37b092d5ece2ba90dab9bf36` 的实际行为为参考。只读核对 NPC，不执行 NPC 测试或电气链。
+
+一致范围包括用户字段、顺序、标签、单位、默认值、选项、输入作用、公共库、筛选、方案生成、排名和审计机制。T-type 仍拥有自己的电路、门极、方向、逐位置应力与导通损耗适配；同输入不意味着相同 L、应力、型号或损耗。拓扑名称/示意图/模型说明与能力状态按实际 T-type 显示，不把 NPC 的 clamp 或能量模型复制进来。
+
+### 17.2 设计输入：精确 12 字段
+
+以下为 GUI 顺序；文本框的 raw 值保持字符串，经过归一化后形成有限 SI 数值。两个公共半导体控件使用只读选项框。
+
+| 顺序 | raw key | 标签 | 默认 raw 值 | 对象、单位及含义 |
+|---|---|---|---|---|
+| 1 | `vdc_nom` | `Vdc nominal [V]` | `700` | 总母线 DC V；设计标称母线 |
+| 2 | `vac_ll_rms` | `Vac line-line rms [V]` | `400` | 基波线间电压 RMS V，不是相电压 |
+| 3 | `f_line_hz` | `Line frequency [Hz]` | `50` | 电网基频 Hz |
+| 4 | `fsw_hz` | `Switching frequency [Hz]` | `20000` | 开关频率 Hz |
+| 5 | `pout_w` | `Pout [W]` | `10000` | 三相额定有功功率幅值 W，不是每相功率 |
+| 6 | `power_factor` | `Power factor` | `1.0` | 设计 PF；符号按 17.3 |
+| 7 | `inductor_current_ripple_ratio` | `Inductor ripple ratio [pp/Ipk]` | `0.2` | 每相目标电流峰峰纹波/基波电流峰值，无量纲 |
+| 8 | `dc_link_voltage_ripple_ratio` | `DC-link ripple ratio [pp/Vdc]` | `0.05` | 总母线目标电压峰峰纹波/Vdc，无量纲 |
+| 9 | `ambient_temp_c` | `Ambient temperature [C]` | `25` | 环境温度 °C，供选择及热计算 |
+| 10 | `target_junction_temp_c` | `Target junction temperature [C]` | `100` | 目标结温 °C，供选择及热约束 |
+| 11 | `semiconductor_device_type` | `Semiconductor device type` | `Any` | 按公共类型过滤 |
+| 12 | `semiconductor_manufacturer` | `Semiconductor manufacturer` | `Any` | 按公共厂家过滤 |
+
+- 类型选项及顺序精确为 `Any, MOSFET, IGBT, Diode`；厂家为 `Any, Infineon, Navitas, Mitsubishi, ROHM, Wolfspeed`。不要改成 Switch category，也不减少为 IGBT。
+- 基础正值、设计 PF 幅值 `(0,1]`、有限值与温度/额定前置约束从实际解析及公共消费者对齐；输入合法与电路可调制性、库曲线/额定覆盖分别判定，不以统一报错掩盖模型限制。设计 PF=0 拒绝。
+- 不再显示 `power_factor_phase`、`operating_vdc_v` 或任何独立 `engineering_*` 输入；不另设高级输入页保留第二套字段。公共温度和厂家是唯一用户来源。
+- 布局沿用 `Design Inputs`、`Waveform Operating Point`、`Notes` 及公共行/按钮构造。Run Capacitor、Run Magnetics、效率扫描按钮按当前 T-type 能力禁用，完成相应工程步骤后再开放。
+
+### 17.3 运行输入、PF 语义与来源
+
+| 顺序 | key | 标签 | 初始值 | 读取及处理 |
+|---|---|---|---|---|
+| 1 | `load_ratio` | `Load ratio [0-1]` | `1.0` | GUI 有限数值裁剪到 [0,1] 并回写，与 NPC 表单一致 |
+| 2 | `power_factor` | `PF [-1..1]` | 取设计 PF，默认 `1.0` | GUI 有限数值裁剪到 [-1,1] 并回写，与 NPC 表单一致 |
+
+运行母线来自设计 `vdc_nom`，不增加独立控件。运行字段只进入 `OperatingPoint`，不混入 `get_raw_input()`；运行 PF 与设计 PF 分别保存。API 固定硬件刷新仍可显式传实际 `vin_v`，但这不属于 GUI 用户字段，且不代表扩大硬件覆盖。
+
+[NPC 波形](../src/pe_claw_gui/topologies/dc_ac/three_phase_three_level_npc_inverter/waveform.py) 的 `active_power_sign=-1 if PF<0 else +1`、`phi=acos(abs(PF))` 为符号参考：负 PF 表示反向有功，不表示超前。当前 T-type 的正幅值加 leading/lagging 输入必须在后台纠偏；不能把负 PF 映射成 leading，也不能丢弃符号。P_actual 的有符号基波目标为 `active_power_sign*P_rated*load_ratio`，电流幅值使用绝对功率及 PF 幅值；零负载仍可有 PWM 纹波。
+
+NPC 运行表单允许 PF=0，波形在幅值分母使用 `max(abs(PF),1e-6)`。此为现有数值兼容行为，不能称作有限有功的物理零 PF 解。T-type 保留相同输入可提交行为；后台须保留该兼容依据并检查命令可达性/有限值，失败时给具体诊断，不宣称 PF=0 正常运行。负功率系统效率口径在工程链恢复前必须单独明确，不能直接套正功率效率公式。
+
+### 17.4 半导体选择：公共流程与 T-type 适配
+
+1. 使用同一 `build_default_semiconductor_registry`，由公共 `merge_semiconductor_filter_metadata` / `SemiconductorLibraryFilter.from_raw` 归一化并实施用户筛选，保留候选计数、数据来源和淘汰审计。`Any` 不强制回退 ROHM/IGBT；指定厂家/类型必须实际作用于选择。
+2. NPC 公共 `build_design_point_switch_stress_cases` 生成额定母线、100% 负载的 `design_point`，PF 由 candidate 设计值取得。T-type 采用相同选型工况政策，电流取自己的完整线路周期逐位置数据。GUI 未提供 min/max 时母线为固定标称值；隐藏 NPC PF/负载默认并不代表 selector 实际枚举了它们。旧 700/800×负载×超前/滞后 24 点不得作为新默认选型包络。
+3. 保留 T-type 主开关、中点开关两角色，各 6 位置，主阻断全母线、中点半母线；每角色可选不同型号。电气/热过滤、公共 selector 评分与排序沿用现有方法。NPC 的独立 clamp diode 不属于 T-type；公共 `Diode` 选项不能把二极管当成可控开关，没有兼容主动角色时明确报告无候选。
+4. 技术范围对齐 NPC 主动开关的 MOSFET/IGBT 候选，离散/模块使用同库和角色兼容过滤。T-type adapter 校核真实终端连接、反向导通及模型覆盖：模块共发射极映射缺失、无有效曲线等须记录明确原因。当前 ROHM RG IGBT+FRD 特例不是完成合同；MOSFET、其他厂家和可适配模块的导通接口仍待接入。技术模型缺口需作为实施缺口解决，不以缩减下拉框或忽略筛选来完成一致性。
+5. 并联方案调用公共 `_resolve_scheme_variants` 的同一政策：用户类型过滤为 `IGBT` 时只有 `single`，其余过滤比较 `single/parallel2/parallel3`。同方案每位置 n 个并联，耐压不缩放、电流按 i/n 后计算；数量 6n/角色。采购封装由真实 section 绑定计数，离散为 12n，模块不能沿用离散采购数量。
+6. 方案使用公共 `_select_active_semiconductor_scheme`：完整且 feasible 优先，并联数优先，其后为当前模型范围损耗；无可行方案的完整/单管 fallback 仅供诊断，不发布成功硬件。用户可比较/选择的方案及其切换读回均沿用公共机制，缺角色不得发布总量。
+7. 保留公共筛选/热方法，损耗回调使用 T-type 导通范围；不调用 NPC 整套能量模型。死区、Eon/Eoff/恢复/Coss 等仍排除。器件和方案损耗不同于 NPC 是电路及模型范围差异，不是选择机制不一致；每次评分/热结果标明 scope。
+
+### 17.5 输入适配、兼容与失效
+
+生产路径为公共 raw 字段→T-type schema→spec/candidate→T-type 电路波形/逐位置应力→两角色选择请求→公共筛选/方案→typed 结果/GUI/导出。不直接调用 NPC 完整 design-basis 解析带入死区、50 V 过冲或中点偏差假设；公共同义字段明确映射，T-type 物理公式和排除范围另行保留。
+
+旧 `engineering_ambient_temp_c/engineering_target_junction_temp_c/engineering_manufacturer` 仅可作为旧 API 兼容别名：公共字段缺失时映射，二者同传且归一化冲突则拒绝并说明字段，不能形成双来源。旧独立技术/封装、bus/PF/load 包络及 phase 输入不得静默改变新 GUI 合同；非默认旧扩展请求显式报告需迁移，尤其 leading 不能换成负 PF。历史报告保持其原始 basis，不能重标为新合同结果。确需保留扩展 API 时先另写明确合同与证据。
+
+设计字段、温度、厂家或类型改变使 candidate、选择和所有下游结果失效；运行 load/PF 改变保留所选硬件并使当前波形/应力/损耗/热/扫描失效。刷新失败清除有效当前数据，不借旧设计参考冒充当前值。每份结果保存规范化用户输入、选择工况、候选/筛选/方案、硬件身份、库来源及模型范围；缺角色/曲线/来源时保留原因并阻止成功与系统总量。
+
+### 17.6 纠偏验收与当前文档范围
+
+后台纠偏按[工程链计划第 12 节](../Plan/Active/three_phase_three_level_t_type_engineering_integration_plan.md)先行实施。验收包括 12+2 字段精确比较、公共筛选真实生效、IGBT 单方案与其他三方案、额定设计点而非旧包络、正/负/零 PF、旧字段冲突、无候选与不支持连接、当前硬件/页面/报告来源和仅 T-type 重复运行隔离。至少保留真实库 IGBT 及 MOSFET 路径，厂家无匹配有诊断；尚缺真实技术模型时不得宣布选择一致性完成。
+
+本次为文档变更，只检查源码参照、语义冲突、本地链接、ChangeLog 追加及 diff，不运行 pytest/电气链，不修改 Python、GUI、库或生成证据。第 16 节的 286 项属于旧合同历史，不能计入本节验收。其他拓扑测试按用户要求不执行；共享改动若不能限定影响须如实记录未验证消费者。
