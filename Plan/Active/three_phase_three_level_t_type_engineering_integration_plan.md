@@ -1,6 +1,6 @@
 # 三相三电平 T-type 第二轮工程链接入计划
 
-- 状态：Active / 步骤 0–1 原合同历史保留；NPC一致输入A1、Summary及A2额定设计点/应力复用子范围已推送；步骤2三相磁件已实现验证、待Git推送，步骤3–7、有符号PF/A3及总体验收待实施。
+- 状态：Active / 步骤 0–1 原合同历史保留；NPC一致输入A1、Summary及A2额定设计点/应力复用子范围已推送；步骤2三相磁件在T-type授权范围完成并推送，步骤3–7、有符号PF/A3及总体验收待实施。
 - 创建日期：2026-10-13。
 - 当前授权：执行步骤2三相电感代码修改，沿用已冻结的NPC一致用户字段和当前额定设计点策略；仅关注T-type验证，死区及换流能量仍排除。有符号PF/A3的未完成范围保留，不视作本步已实现。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`。
@@ -265,10 +265,10 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-r2-s1 tests/test_t_type_enginee
 
 | 完成门槛 | 当前状态 |
 |---|---|
-| 步骤0–7 全部必要验证、独立提交推送 | 步骤0–1完成（步骤1限T-type）；步骤2–7待实施，全面回归仍后续 |
-| 真实库两角色、三相磁件、两银行、选后闭环 | 待实施 |
+| 步骤0–7 全部必要验证、独立提交推送 | 步骤0–2完成（步骤1/2限T-type授权范围）；步骤3–7待实施，全面回归仍后续 |
+| 真实库两角色、三相磁件、两银行、选后闭环 | 两角色及三相磁件已接入；两银行与完整选后闭环待实施 |
 | 同 scope/basis 的本轮损耗、热、几何、固定硬件扫描 | 待实施 |
-| 当前 GUI/report/JSON/CSV/BOM/overview 数值、来源与身份 | 待实施 |
+| 当前 GUI/report/JSON/CSV/BOM/overview 数值、来源与身份 | 器件及磁件GUI/结构报告已有范围通过；完整系统导出/BOM/overview待实施 |
 | 独立公式、producer/consumer、真实工作流、双顺序隔离 | 待实施 |
 | NPC baseline 与所有受影响旧消费者 gate，无遗漏或隐藏失败 | 待实施 |
 | 文档/ChangeLog、diff 检查、无生成物暂存、Git 回执 | 步骤0已核实；后续步骤待实施 |
@@ -496,3 +496,5 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 - 真实案例：默认10kW/700V/400VLL/PF1/20kHz，basic37048→allow81，20个seed生成40个stack竞争项，最终allow/compression121/121、Pareto7、representatives5。共同推荐`E_100_60_21_FT-3M_Litz_60x0.12_-_Grade_1_-_Single_Served_N73_P6`，原目标及实际L均0.0010716517624676405 H；三相published magnetic loss=26.693673414435615 W，volume=0.0006570466041821171 m3。三实例来源/virtual区别与库版本校验和保留；不是物理可采购或完整系统效率验收。
 - 分离证据：公式为独立dense事件ODE RMS、解析volt-second、独立铜损/Bpeak标量与NumPy完整shadow数组；契约为来源/run/L、3实例计数、有限/缺项和原published小计/schema；用户链为真实Tk按钮/当前report/磁件读回/刷新失效恢复，JSON严格roundtrip；隔离为同T-type重复刷新与原报告/硬件不变，未做跨拓扑运行。完整系统total/eta不适用本步，保持unavailable。
 - 审阅：最终preflight的886项源码SHA全部与验证后文件一致；21个任务Python AST、64个本地链接、ChangeLog原文前缀/append-only、定向diff和diff --check通过。Git只暂存25个任务文件，排除95项既有删除及用户/运行生成物；实现与验证已完成，步骤完成状态等待commit/push核实。
+
+- Git完成回执：实现/契约/测试/工具/日志提交`5008031423ca2fbbaeb4213f01dcb3ed11ed8f82`已推送`pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote`核实远端同SHA；暂存区为空、95项既有删除未变化。步骤2在上述T-type磁件范围完成；本次状态回执仅更新计划与追加ChangeLog，另作doc提交推送，不重跑未变电气链。步骤3上/下电容银行为下一步，步骤4统一选定硬件、步骤5系统工程及其后扫描/完整导出仍未实施；旧消费者全面回归、有符号PF/A3不由本次完成状态推定。

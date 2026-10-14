@@ -2176,3 +2176,5 @@ listed here.
 - 最终`python -B scripts/validate_t_type_engineering_step2.py .tt-r2-s2-final-verified focus`为46 passed/0 failures/errors/skips、413.38 s、exit0；两组去重405项，不宣称一次当前全量。全部10个选定磁件运行点、真实unity/lagging/leading、受控search耗尽/恢复、三实例小计、schema负例、真实Tk读回/失效/恢复、仅T-type重复隔离通过。独立ODE RMS、解析电压伏秒、铜损/Bpeak/完整flux参考分开；886源码SHA一致、21 AST/64本地链接/diff --check通过。每组1个既有cache_dir配置warning单列；依用户要求未跑其他拓扑/full suite。
 - 真实库：normalized_v2 production，637 cores/160 materials/1628 wires；推荐virtual E100/60/21 FT-3M、Litz60x0.12、73匝/6并绕，每相L=1.071651762 mH；三相建模磁件loss26.693673414 W、volume657.046604182 cm3。来源版本/校验和与搜索数量保存typed result和计划；不当作可采购catalog或系统效率。主Waveform/Stress仍target L，统一硬件回读归步骤4；死区/换流能量、有符号PF/A3及步骤3–7未实施。
 - Git：基准1c4ddb0fa6347eb6e1c7af9c61365596a618b1ea，分支codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名分支；仅25任务文件，95项既有删除/outputs/本地证据不暂存。本次无备份操作。实现/推送SHA在核实后追加；步骤不提前标完成。
+
+- 步骤2Git/状态回执：实现`5008031423ca2fbbaeb4213f01dcb3ed11ed8f82`已推送pe-claw-1.1同名feature分支，ls-remote同SHA。步骤2在T-type磁件授权范围完成，步骤3–7/有符号PF/A3/其他拓扑全面回归仍后续。状态提交仅更新计划与追加本日志，复用最终46项及累计386项分离回执，无生产变化，不重跑电气链；状态SHA以Git历史为准。95项既有删除、全部用户/生成文件保留。
