@@ -2203,3 +2203,5 @@ listed here.
 
 - 实际归档/验证：5071源文件→2571 unique objects，原6025953677 bytes、去重内容2958669976 bytes、ZIP305277165 bytes（291.13 MiB），ZIP SHA256=2d90caacabbbb1078cd3ed307e8b6e04a6690b326bb1ff398f63e146a9ee4871。每个原path独立manifest保存；128 roots已迁到archives/validation/20261014/staging并逐SHA/大小/mtime/mode/空目录校验一致。移动后Windows路径变长触发检查限制，新增extended paths及真实长路径回归，最终11 passed/2.17 s；原失败情况在索引说明，不跳过校验。步骤3Summary实际恢复5文件/1目录并逐字节核对；2530 protected文件和95既有缺失均未变化，根条目154→27。
 - 清理阻塞：自动审批拒绝删除已完整验证的staging副本，理由仅blocked by policy。未绕过，staging约5.61 GiB完整保留，cleanup_receipt记录blocked；归档去重/根目录整理完成，但不能宣称已释放磁盘空间。后续若删除经验证副本，主payload预计净减约5.33 GiB；compressed archive/manifest/receipt必须保留。实际恢复副本/工具JUnit留pytest_temp，outputs/周备份/电气验证不在范围。提交推送及最终diff/范围核验随后记录。
+
+- 归档Git回执：实现a95c65d4fa19c7fc5ec019fd56e9a608445f8ac9已推送pe-claw-1.1/codex/llc-waveform-operating-point-plan，ls-remote同SHA；5任务文件定向暂存，无生成物/已有删除。AST/append-only/ignore政策/定向diff检查通过。文档回执单独提交，复用11项工具与真实5071文件/保护/恢复验证，不重跑未变工具或电气链；后续SHA见Git历史。staging删除仍因自动审批blocked by policy未执行，不能称磁盘清理全部完成。

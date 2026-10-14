@@ -116,3 +116,11 @@ not a whole-project weekly backup, which is outside this request.
 - Final source/docs review: no electrical changes, so no electrical runs;
   actual validation covers archive bytes, restoration, protection and tool
   boundaries only. Commit/push receipts follow in the ChangeLog and Git history.
+
+- Git receipt: tooling/tests/index/ignore rules/ChangeLog implementation commit
+  `a95c65d4fa19c7fc5ec019fd56e9a608445f8ac9` pushed to
+  `pe-claw-1.1/codex/llc-waveform-operating-point-plan`; remote SHA verified.
+  Only five task files were staged; archive payloads and existing deletions
+  were excluded. This receipt-only follow-up changes no tool or validation
+  bytes, so the final 11 tests and real archive verification remain applicable.
+  Staging cleanup remains blocked; this status is not changed by the push.
