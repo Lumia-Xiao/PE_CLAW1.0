@@ -19,6 +19,7 @@ DC_LINK_OUTPUT_CAPACITOR_ONLY_TOPOLOGY_IDS = AC_DC_BRIDGE_RECTIFIER_TOPOLOGY_IDS
 }
 SPLIT_DC_LINK_CAPACITOR_BANK_TOPOLOGY_IDS = {
     "three_phase_three_level_npc_inverter",
+    "three_phase_three_level_t_type_inverter",
 }
 FIRST_PASS_TOPOLOGY_ONLY_IDS: set[str] = set()
 T_TYPE_TOPOLOGY_ID = "three_phase_three_level_t_type_inverter"
@@ -27,7 +28,7 @@ T_TYPE_TOPOLOGY_ID = "three_phase_three_level_t_type_inverter"
 def supports_engineering_stage(topology_id: str, stage: str) -> bool:
     """Gate incremental engineering integration without changing old topology paths."""
     if topology_id == T_TYPE_TOPOLOGY_ID:
-        return stage in {"device", "device_geometry", "magnetics"}
+        return stage in {"device", "device_geometry", "magnetics", "capacitors"}
     return not is_first_pass_topology_only(topology_id)
 
 

@@ -680,3 +680,33 @@ T-type producer使用拓扑私有`_PositionStressWaveform`（继承公共Wavefor
 ### 20.3 交付/验证边界
 
 GUI开放磁件按钮并沿现有磁件/Pareto页面读回；结构报告序列化三实例、小计、硬件身份与provenance。新增schema校验缺相/非有限/总量/来源/L/运行依据及unavailable总量负例。独立exact-ODE dense积分、`Babsolute`与铜损标量参考、真实库接受、控制allow/frontier耗尽、L改变可调制边界、固定硬件不重选、真实Tk刷新/失败恢复及同T-type隔离分别留证。当前结果以[计划步骤2回执](../Plan/Active/three_phase_three_level_t_type_engineering_integration_plan.md)为准；不运行NPC/其他拓扑及full suite，不能将本轮结果当旧家族回归或完整系统验收。
+
+## 21. 第二轮步骤 3：上下电容银行（2026-10-14）
+
+本节覆盖历史电容未接入状态。GUI Run Design 保持快速器件路径；Run Capacitors 单独执行真实库选型与银行形状导出。full pipeline 不传 options 时保持 T-type 快速默认；显式 enable_capacitor_design=True 才接两银行。系统损耗/热/几何/效率与全链实际硬件 closure 留步骤4/5，银行小计不是系统总量。
+
+### 21.1 端口与数值模型
+
+三线相电流正向母线→相，状态P/O/N分别累加带符号电流为 J_P/J_O/J_N，KCL=0（A）。VU=VL=Vdc/2，源模型为完整线路周期桥功率均值/Vdc，即 Isrc=(mean(J_P)-mean(J_N))/2。正向给电容正端充电：iCU=Isrc-J_P，iCL=Isrc+J_N，iCU-iCL=J_O。exact ideal-L事件电流用8点Gauss积分取得raw mean/RMS/drift/absolute charge，先按第15节 max(1e-10 C,1e-8*absolute_charge) 检查原始漂移，再交公共selector去均值。不能独立去均值隐藏中点漂移。
+
+默认案例独立quad/Gauss都发现原始漂移2.7286e-8 C（非积分误差）。根因为逐PWM平均电流反馈的弱阻尼交替初始分量，整线路首尾残差未限定平衡正弦稳态。T-type局部producer在偶数fsw/fline时按 i(Tline/2)+i(0)=0 shooting更新初值并重跑原共享求解，最多4次；不改事件/样本/端点电流，不修改共享three_level_common。默认raw drift降到约3.3e-14 C，实际half-period残差保留。奇数载波周期沿原求解，银行仍必须通过raw drift门禁；未证明任意频率比都支持银行。
+
+银行步骤3使用原candidate L的完整事件波形；步骤4才统一selected-L全链。设计是额定母线/满载/设计PF，当前刷新是当前Vdc/load/PF；source/run/candidate/selected hardware/waveform basis不一致拒绝。两电流数组在独立request中，公共单银行WaveformSet槽保持空。
+
+Q_U/Q_L由解析电流primitive分段累加，DeltaVU=Q_U/Cu、DeltaVL=Q_L/Cl分别计算，支持不等C；Ceq=Cu*Cl/(Cu+Cl)。fixed_bus_ripple_estimate不反馈开关电压，不是动态中点能量闭环。共享selector用严格递增时间和梯形积分，事件左右值由相邻浮点时刻保留，每事件32细分；raw证据和微小离散DC correction独立记录。KCL绝对1e-8 A；独立ODE/trapezoid双分辨率参考RMS/Qswing相对1e-4、Q绝对1e-10 C、电压绝对1e-6 V，不能去均值代替原始门禁。
+
+### 21.2 选型、刷新与物理计数
+
+独立upper/lower CapacitorSizingRequest：每银行Vdc/2，输入纹波百分比乘该银行电压（两银行同百分比），min C=原candidate每银行proxy，ambient=公共温度，margin=1.2；铝电解、既有inverter_electrolytic_dc_link类型。显式S=1..4/P=1..5，不复制NPC固定minS2。复用list_registered_capacitors（32910 records）、现有过滤/压缩/S-P/Pareto/volume-loss-compromise推荐，保留全记录SHA256/每型号source/实际搜索及耗尽诊断，无库修改。
+
+Count=Ns*Np，Cbank=Cpart*Np/Ns，ESRbank=ESRpart*Ns/Np，Irms_percap=Irms_bank/Np，PJoule=Irms_bank²*ESRbank；铝电解沿原ESR loss model，不额外重复计dielectric。原p_total必须等于两损耗项，per-cap loss*count必须等于bank total。Ripple_C=Qswing/Cbank，Ripple_ESR=Ipp*ESRbank，total是既有保守和。热点=ambient+per-cap loss*Rth，仅银行筛查；几何为原银行形状/排列，不是系统装配。
+
+700 V默认真实推荐每银行B43703A5568M600，450 V、5600 uF、1S1P，满足420 V设计margin；800 V当前点要求480 V，固定银行必须拒绝。额定700 V选型不是800 V包络证明；独立800 V额定/PF0.8另有真实库接受测试，不改margin/库/选型政策凑成功。
+
+刷新仅evaluate_capacitor_bank，不搜索/改型号/S/P；保留nominal selection。缺任何银行、耗尽、无效波形/source、当前margin/纹波/热点不满足，清空current banks/Ceq/两银行损耗与体积，保留硬件历史和具体原因。运行输入编辑/解析或波形失败同样失效；恢复重新计算。设计容器兼容input_selection=upper/output_selection=lower，request.side保持物理身份，npc_design为空。
+
+### 21.3 报告与验证边界
+
+engineering_result.capacitors为schema1可选扩展，owner为T-type capacitor stage。GUI上下银行当前数字来自当前快照；unavailable不回填设计损耗。结构capacitor.upper/lower及兼容input/output均当前读回，bank_subtotal保留单位/来源；hardware部分只是设计型号身份。系统阶段仍被能力门禁阻止，新增split capability仅供物理命名/页面路由；依赖NPC专有公式的系统consumer留步骤5适配。
+
+Schema分别检查来源/数量/单位/公式、原发布小计、raw charge门禁、当前basis与public读回。真实Tk/库/搜索耗尽、独立公式、T-type隔离回执见工程计划16节。其他拓扑/full suite不执行。ExportController轻量摘要仍是原candidate初始L/C；银行JSON/Pareto CSV与形状工件是本步产物，完整系统导出留后续。

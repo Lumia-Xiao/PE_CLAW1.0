@@ -159,12 +159,24 @@ NPC 一致用户输入及半导体选择合同冻结
 
 ### 步骤 3：上/下银行模型与真实电容选型
 
+#### 2026-10-14 实施影响与验证约定（执行中）
+
+- 分类：T-type 工程链接入；新增拓扑端口 adapter/类型化银行快照及限定路由，复用且不修改公共电容库、选型公式、Pareto 和几何算法。其他拓扑路由提前返回之前保持原逻辑；按用户要求仅运行 T-type 测试，不据此宣称其他拓扑回归通过。
+- 两个物理银行 upper/lower 各自承受 Vdc/2；电流 A 正向定义为给对应电容正端充电，Q 为 C，容量 F，ESR ohm，损耗 W，体积 cm3。设计选型取额定母线/满载/PF，步骤 3 使用原综合 L 的事件波形；步骤 4 再统一选定 L 的全链读回。固定银行刷新保持型号/S/P，更新当前 Vdc/load/PF 电流、纹波、损耗；不重新搜索。
+- 精确段电流及 Gauss 积分产生 J_P/J_O/J_N 和原始银行 mean/charge drift；先独立检查 KCL 与冻结的电荷容差，再交给现有去均值选型器。事件左右两侧采用相邻浮点时间保留跳变，段内细分采样；记录离散积分的微小去均值量，不用独立去均值掩盖真实漂移。
+- 显式策略：铝电解、既有 inverter_electrolytic_dc_link 语义、每银行 S=1..4/P=1..5、voltage margin=1.2、最小容量采用原 candidate 每银行容量、纹波比例沿用输入值。推荐沿用既有 volume-loss compromise；拒绝/耗尽保留库过滤及 S/P 诊断，不继承 NPC 固定 2S。
+- 银行快照由 T-type capacitor pipeline 所有；页面/结构化输出读取当前快照，设计历史保留在 input_selection=upper/output_selection=lower 兼容槽。缺任何银行/无效来源/非有限值/非周期漂移使当前两银行总损耗、Ceq、体积不可用；输入编辑/刷新失败清空当前读回。Ceq=Cu*Cl/(Cu+Cl)，电压积分分别用 Cu/Cl；fixed_bus_ripple_estimate 不反馈开关电压、不宣称动态中点平衡。
+- GUI Run Design 保持禁用磁件/电容搜索的快速路径；Run Capacitors 单独启用。完整流水线显式启用电容选项时接入两银行。公共电容形状/单银行几何复用，系统热/几何/效率仍留步骤 5。
+- 验证：新增 tests/test_t_type_engineering_step3_capacitors.py，独立段内 ODE/trapezoid 双分辨率参考，KCL/积分方向/不等 C/漂移/NaN/时间/来源/缺银行/耗尽/真实库 S/P/固定硬件/GUI/严格结构化输出/运行隔离；随后 scripts/validate_t_type_engineering_step3.py 的 focus 与 t_type 累计组，执行前记录解释器、源码和测试路径。Git 回执齐备前不标记完成。
+
 - 文件：T-type 端口/波形 adapter、run_capacitor_pipeline、split-link capability、必要电容报告/页面；同一 registered capacitor 库与串并联 selection，不将上/下假称 input/output 普通储能对象。
 - 按第 4 节 KCL 建立 T-type 有符号端口电流，保存供电常值、mean、charge drift 和时间积分；输出每银行 current/voltage ripple 与方向。母线依旧平衡给定，电压积分标为估计，不新增完整前级/控制仿真。
 - 独立构建上下 `CapacitorSizingRequest`，技术/最小容量/电压 margin/纹波/温度及 S/P 限制来自实际设计。NPC 当前 split request 有 min_series_count=2；T-type 不直接继承固定 2S 或 B43705 基准，明确参数后使用同算法。
 - 保留 Nmax/Smax、优化/推荐、初筛不足/上限耗尽诊断。选中 C_U/C_L 后计算 Ceq，回读预测每只/银行电流、ESR/纹波、loss、体积和来源；均压寿命等 NPC 近似可作为明示附加审查，不能称闭环中点控制通过。
 - 新增 `tests/test_t_type_engineering_step3_capacitors.py`：三线 KCL、两银行电流差、正确积分符号、相等/不等 C、非零平均漂移拒绝/诊断、真实 S/P、缺上/下银行、NaN/错时间轴/错误来源；至少真实库两银行案例。
 - 完成：真实两银行有效，端口公式与原始电荷证据独立通过；第 7 节 capacitors 组＋累计测试，Git 回执完成。
+
+- 本步实施差异：T-type full pipeline 不传 options 时继续快速路径；显式 enable_capacitor_design=True 才进入银行搜索。默认700 V库推荐450 V/1S1P银行满足420 V裕量，但不能覆盖800 V的480 V要求；独立800 V额定案例验证另一个真实库选型。原始漂移调查及半周期初值修复详见契约21/回执16，不修改公共求解器或去均值掩盖漂移。
 
 ### 步骤 4：选定硬件回读与固定硬件刷新
 
@@ -498,3 +510,20 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 - 审阅：最终preflight的886项源码SHA全部与验证后文件一致；21个任务Python AST、64个本地链接、ChangeLog原文前缀/append-only、定向diff和diff --check通过。Git只暂存25个任务文件，排除95项既有删除及用户/运行生成物；实现与验证已完成，步骤完成状态等待commit/push核实。
 
 - Git完成回执：实现/契约/测试/工具/日志提交`5008031423ca2fbbaeb4213f01dcb3ed11ed8f82`已推送`pe-claw-1.1/codex/llc-waveform-operating-point-plan`，`git ls-remote`核实远端同SHA；暂存区为空、95项既有删除未变化。步骤2在上述T-type磁件范围完成；本次状态回执仅更新计划与追加ChangeLog，另作doc提交推送，不重跑未变电气链。步骤3上/下电容银行为下一步，步骤4统一选定硬件、步骤5系统工程及其后扫描/完整导出仍未实施；旧消费者全面回归、有符号PF/A3不由本次完成状态推定。
+
+## 16. 步骤3上下电容银行实施与验证回执（2026-10-14）
+
+- 授权/分类：T-type工程链共享集成，影响范围和数据语义见本计划步骤3影响记录、[契约21节](../../docs/three_phase_three_level_t_type_contract.md)及[字段字典](../../docs/t_type_engineering_field_dictionary.md)。基准3762a9c061e1d89a692f11c0841d6f3107529120；分支codex/llc-waveform-operating-point-plan，推送pe-claw-1.1同名分支。公共库/selector/three_level_common内容不改；共享入口均限定T-type路径，其他消费者依用户要求不执行，不能宣称旧拓扑全面回归。
+- 交付：signed P/O/N端口→原始电荷门禁→上下独立真实库选择→公共Pareto/compromise/CSV/几何工件→typed当前银行与结构报告。GUI开放Run Capacitors，Run Design默认仍只做快速器件选择；固定银行刷新不搜索，身份/来源/工况/不可行或缺项失败清当前银行及小计，保留设计硬件以便恢复。银行体积与损耗只为两银行小计；系统loss/eta仍不可用。
+- 原始漂移调查：默认完整周期Gauss与独立quad均得2.7286e-8 C，排除积分误差；T-type局部初值shooting消除弱阻尼PWM交替分量，重跑原共享模型，不改端点/样本、不去均值隐藏漂移。默认raw drift约3.3e-14 C；half-period残差与原charge gate保存，奇数载波周期不能推定全部可行。有限正L前置诊断避免空事件StopIteration。
+- 环境：Python3.12.10，解释器C:/Users/Lumia/AppData/Local/Programs/Python/Python312/python.exe；所有runner显式把本工作区src放在sys.path首位，preflight记录解释器/package/tests路径和源码SHA。生成目录只在本地，不提交。
+- 初始focus：34 passed/2 failed，测试把700 V额定选出的450 V银行错误地当成800 V可用。800 V按1.2裕量要求480 V，应拒绝；修正为独立450/420/480 V负例及800 V额定真实设计接受，未改裕量/库/断言精度。修后focus46 passed/321.94 s，历史失败保留。
+- 累计命令：`python -B scripts/validate_t_type_engineering_step3.py .tt-r2-s3-cumulative t_type`，440 passed/2 failed/7 setup errors/2 NPC deselected，1948.67 s、exit1。两失败是负L空事件和shooting后旧RMS基准；7错误均为Summary模块Tk初始化读text.tcl失败。此组不算通过，启动后的局部源码变更与其验证上下文保留，不能当最终版本一次全量通过。
+- 两失败补验：有限正L诊断修复后waveform组20 passed/114.03 s；RMS期望从9.092248363573049改为9.092247650500525 A，原因是新平衡初值，保持原rel1e-9并保留独立逐位置积分，pipeline组18 passed/2 NPC deselected/134.91 s。没有以放宽容差或跳过替代修复。
+- 环境错误补验：安装目录text.tcl实际存在，独立新进程未改TCL/TK环境、未改测试fixture，`summary`组7 passed/5.59 s。原错误未复现，根因未进一步确定；原累计setup错误完整保留，不计通过。runner增加summary分组便于复核。
+- 最终分组命令均为`python -B scripts/validate_t_type_engineering_step3.py <新目录> <group>`：`.tt-r2-s3-final-focus focus`47 passed/578.58 s；`.tt-r2-s3-waveform-final waveform`20 passed/114.03 s；`.tt-r2-s3-pipeline-final pipeline`18 passed/134.91 s；`.tt-r2-s3-gui-final gui`1 passed/249.05 s；`.tt-r2-s3-summary-final summary`7 passed/5.59 s。各组exit0，无failures/errors/skips，每组关闭cacheprovider的既有cache_dir配置warning单列。真实GUI包含card→Run Design实际选型→Run Capacitors→Pareto/上下命名→编辑失效→当前读回/导出→坏母线失败→恢复。
+- 回执核对：`.tt-r2-s3-verified-receipt.json`已纠正早期只统计call阶段的错误汇总；现逐节点核对setup/call/teardown与JUnit，累计及最终分组去重450个所选节点都有实际通过回执，9个原失败/错误节点逐项关联后续通过，unresolved为空。这是分组补验结论，非一次当前版本450项全量运行。原累计exit1和所有错误保留；其他拓扑/full suite/跨拓扑双顺序隔离不在本次执行范围。
+- 真实库：32910 records，canonical SHA256=5767617c0591aab7eb6ce6d596c6723b34d18021bd324c7341fe5bdb9a5673a8。700 V/PF1每银行B43703A5568M600、450 V、5600 uF、1S1P，Irms8.020957636 A、total ripple2.273677005 Vpp；两银行loss2.316087410 W、volume930.004052180 cm3、Ceq2800 uF。800 V/PF0.8独立额定设计每银行B43703A6398M600/3900 uF/1S1P，固定低负载800 V/20%/PF1两银行loss0.171157662 W。额定700 V硬件在800 V拒绝是实际耐压边界，不是搜索失败。
+- 独立证据：事件ODE密集积分/双分辨率、解析Q/C方向和不等C、KCL/source与3相功率；真实型号count/C/ESR/铜损/热点/体积公式；原published小计与schema/public units/source；负例raw drift/缺项/nonfinite/source/搜索耗尽及失败恢复。真实工作流与同T-type重复运行单独验证，GUI按显示精度、structured按合同容差核对；系统total/eta因未接入不适用。
+- 收尾审阅：最终summary preflight全部src/tests/scripts/docs SHA与补验后文件一致；25任务Python AST、64本地引用、ChangeLog append-only核实，定向diff及diff --check在提交前检查。29任务文件明确暂存，95项既有删除、outputs和所有本地证据不提交。
+- 未交付：步骤4才统一selected L/C全链readback，步骤5才接系统loss/thermal/geometry；轻量ExportController仍原candidate L/C，银行JSON/CSV/形状工件已接，不冒充完整系统导出。A2 signed PF/A3、完整扫描/导出及旧消费者验证保持后续；死区/换流能量继续排除。步骤3完成状态待本次commit/push核实后追加。

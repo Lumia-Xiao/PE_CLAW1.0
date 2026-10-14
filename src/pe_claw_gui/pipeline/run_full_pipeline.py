@@ -52,6 +52,10 @@ def run_full_pipeline(
 ) -> DesignReport:
     """Run the currently supported runtime stages through a design report."""
     options = resolve_pipeline_options(pipeline_options)
+    if plugin.topology_id == "three_phase_three_level_t_type_inverter" and pipeline_options is None:
+        # Staged T-type Run Design stays a quick semiconductor-only action;
+        # bank search is an explicit option or the separate Run Capacitors action.
+        options = replace(options, enable_capacitor_design=False)
     bundle = run_topology_pipeline(
         plugin=plugin,
         raw_input=raw_input,
@@ -102,6 +106,8 @@ def _run_full_pipeline_in_context(
     if not supports_engineering_stage(report.spec.topology_id, "system"):
         if options.enable_magnetic_design and supports_engineering_stage(report.spec.topology_id, "magnetics"):
             report = run_magnetic_pipeline(report, backend_config=magnetic_backend_config or get_production_magnetic_backend_config())
+        if options.enable_capacitor_design and supports_engineering_stage(report.spec.topology_id, "capacitors"):
+            report = run_capacitor_pipeline(report, plugin=plugin, output_root=get_run_output_root(report))
         return report
     if uses_semiconductor_selector and report.waveform is not None and report.operating_point is not None:
         report = run_device_operating_point_refresh(report, plugin=plugin)

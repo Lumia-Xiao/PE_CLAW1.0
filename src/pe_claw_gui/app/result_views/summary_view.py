@@ -303,6 +303,9 @@ def _build_t_type_summary_notes(report: DesignReport) -> list[str]:
         )
     if stages:
         lines.append(f"Stages not run: {', '.join(stages)}.")
+    capacitors = getattr(report.t_type_engineering, "capacitors", None)
+    if capacitors is not None:
+        lines.append(f"Capacitor banks = {capacitors.status}; see Capacitors.")
     if report.loss is None:
         lines.append("Loss and system efficiency are unavailable.")
     if report.stress is not None:

@@ -248,6 +248,8 @@ class Workspace(ttk.Frame):
             if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
                 from ...pipeline.run_t_type_magnetic_pipeline import invalidate_t_type_magnetics
                 report = invalidate_t_type_magnetics(report, "Operating inputs changed; regenerate current magnetic results.")
+                from ...pipeline.run_t_type_capacitor_pipeline import invalidate_t_type_capacitors
+                report = invalidate_t_type_capacitors(report, "Operating inputs changed; regenerate current capacitor results.")
             self._state_store.design_report = replace(
                 report, operating_point=None, waveform=None, stress=None, topology_result=None,
             )

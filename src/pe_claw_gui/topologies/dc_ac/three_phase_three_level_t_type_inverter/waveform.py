@@ -75,6 +75,8 @@ def generate_waveforms(
     i_phase_peak_a = math.sqrt(2.0) * i_phase_rms_a
     omega = 2.0 * math.pi * f_line_hz
     l_phase_h = float(candidate.inductance_h)
+    if not math.isfinite(l_phase_h) or l_phase_h <= 0:
+        raise ValueError("T-type phase inductance must be finite and positive.")
     current_real_a = i_phase_rms_a * math.cos(phi_rad)
     current_imag_a = -i_phase_rms_a * math.sin(phi_rad)
     inverter_real_v = vac_phase_rms_v - omega * l_phase_h * current_imag_a
@@ -98,7 +100,7 @@ def generate_waveforms(
         phase: _time_average_by_switching_period(time_s, phase_current_reference_a[index], SAMPLES_PER_SWITCHING_PERIOD)
         for index, phase in enumerate(("a", "b", "c"))
     }
-    event_simulation = _simulate_three_level_event_segmented_currents(
+    simulation_args = dict(
         time_s=time_s,
         phase_grid_voltage_v=phase_grid_voltage_v,
         phase_current_reference_a=phase_current_reference_a,
@@ -109,6 +111,28 @@ def generate_waveforms(
         half_bus_voltage_v=0.5 * vdc_v,
         samples_per_switching_period=SAMPLES_PER_SWITCHING_PERIOD,
     )
+    event_simulation = _simulate_three_level_event_segmented_currents(**simulation_args)
+    if cycles % 2 == 0:
+        # Average-current control has a weakly damped PWM-to-PWM alternating
+        # mode. A full-period endpoint alone can accept its arbitrary initial
+        # amplitude. Select the balanced sinusoidal steady state by shooting
+        # for i(t+Tline/2)=-i(t), without changing any segment/endpoint currents.
+        for _ in range(4):
+            segments = event_simulation["segments"]
+            half = next(s["end_currents_a"] for s in segments
+                        if math.isclose(s["end_time_s"], line_period_s / 2, rel_tol=0, abs_tol=1e-14))
+            initial = segments[0]["start_currents_a"]
+            residual = [a + b for a, b in zip(initial, half)]
+            if max(map(abs, residual)) <= 1e-9:
+                break
+            warm = [a - b / 2 for a, b in zip(initial, residual)]
+            event_simulation = _simulate_three_level_event_segmented_currents(
+                **simulation_args, periodic_initial_current_a=warm)
+        segments = event_simulation["segments"]
+        half = next(s["end_currents_a"] for s in segments
+                    if math.isclose(s["end_time_s"], line_period_s / 2, rel_tol=0, abs_tol=1e-14))
+        event_simulation["half_period_symmetry_residual_a"] = [
+            a + b for a, b in zip(segments[0]["start_currents_a"], half)]
     solver = event_simulation["periodic_solver"]
     errors = [abs(value) for values in event_simulation["current_average_error_a"].values() for value in values]
     saturated = any(any(values) for values in event_simulation["average_current_correction_saturated"].values())
@@ -119,6 +143,7 @@ def generate_waveforms(
         "actual_command_saturated": saturated,
         "current_average_error_max_a": max(errors, default=math.inf),
         "current_average_tolerance_a": event_simulation["average_current_correction_tolerance_a"],
+        "half_period_symmetry_residual_a": event_simulation.get("half_period_symmetry_residual_a"),
     }
     if modulation_index > 1.0:
         raise TTypeWaveformError("T-type fundamental modulation command exceeds available bus voltage.", diagnostics)

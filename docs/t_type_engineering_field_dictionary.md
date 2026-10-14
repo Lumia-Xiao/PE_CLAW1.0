@@ -133,3 +133,27 @@ Shadow flux uses the shared builder's linear resampling of irregular event
 current samples onto a uniform full-line-period grid. Its sampled peak is
 distinct from the exact event-current peak used by the production saturation
 evaluation; neither is silently substituted for the other.
+
+## Step 3 split-link fields (2026-10-14)
+
+Authority: contract section21; optional engineering_result.capacitors extends
+historical step-one/two availability descriptions.
+
+| Path | Object / meaning / unit | Owner / readback / lifecycle |
+|---|---|---|
+| selected_upper/selected_lower | Two nominal bank recommendations; Ns*Np physical capacitors per bank | T-type capacitor stage + unchanged selector; reference retained on refresh |
+| current_upper/current_lower | Fixed hardware evaluated at current Vdc/load/PF: bank F/ohm/A RMS/Vpp/W/cm3, per-cap A/W | evaluator -> GUI/structured; any missing/invalid/infeasible bank clears both |
+| equivalent_link_capacitance_f | Cu*Cl/(Cu+Cl), F | adapter; needs both physical banks |
+| total_loss_w/total_volume_cm3 | Complete two-bank subtotal W/cm3; never system loss/efficiency | stage validates original published totals before consumers |
+| operating_basis | Candidate-L waveform bus V/load/PF/fline/fsw Hz/L H; nominal vs actual explicit | source-validated waveform; selected-L closure at step4 |
+| port_metrics | Isrc and Jp/Jo/Jn mean/RMS A; raw bank mean/RMS A; drift/absolute/limit/Qswing C; numerical selector DC correction A | exact event currents/Gauss/analytic charge; raw drift gate precedes shared DC removal |
+| voltage_ripple | Upper/lower/link/midpoint-difference capacitive Vpp, signed bank drift V, equivalent F | Q/C supports unequal banks; fixed_bus_ripple_estimate has no voltage feedback |
+| library_provenance | Registered source,32910 records,canonical record SHA256,aluminum,S1..4/P1..5,existing ranking | unchanged catalog plus each selected entry datasheet source |
+| status/diagnostics/ripple_model | available/unavailable,explicit prerequisite/search/current failure; fixed_bus_ripple_estimate | edits/failures invalidate current; selected hardware survives |
+| capacitor.upper/lower + input/output | Current quantities with unit/source; compatibility input=upper/output=lower | structured builder; unavailable has no current values |
+| capacitor.bank_subtotal | Current bank loss W,volume cm3,equivalent F | builder -> structural export; not system total |
+| capacitor.input_selection/output_selection | Nominal upper/lower requests,Pareto,filter/exhaustion diagnostics | existing container; request.side physical identity; npc_design absent |
+
+Shared library/engine/selection formulas and ordering unchanged. Run Capacitors
+and explicit full-pipeline option enabled; implicit T-type pipeline/GUI Run
+Design remain quick. System/thermal/geometry/sweep gates remain closed.

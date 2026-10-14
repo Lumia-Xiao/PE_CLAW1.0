@@ -3,6 +3,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from .inductor import FixedInductorDesignCandidate, InductorDesignRequest, InductorOperatingPointRequest, InductorOperatingEvaluation
+from .capacitor import CapacitorSelectionEntry
 
 LOSS_SCOPE_ID = "t_type_conduction_magnetics_capacitors_v1"
 EXCLUDED_COMPONENTS = (
@@ -99,6 +100,26 @@ class TTypeMagneticResult:
 
 
 @dataclass(frozen=True)
+class TTypeCapacitorResult:
+    candidate_fingerprint: str
+    run_id: str | None
+    status: str = "unavailable"
+    selected_upper: CapacitorSelectionEntry | None = None
+    selected_lower: CapacitorSelectionEntry | None = None
+    current_upper: CapacitorSelectionEntry | None = None
+    current_lower: CapacitorSelectionEntry | None = None
+    equivalent_link_capacitance_f: float | None = None
+    total_loss_w: float | None = None
+    total_volume_cm3: float | None = None
+    operating_basis: dict[str, float | str] = field(default_factory=dict)
+    port_metrics: dict[str, object] = field(default_factory=dict)
+    voltage_ripple: dict[str, object] = field(default_factory=dict)
+    library_provenance: dict[str, object] = field(default_factory=dict)
+    diagnostics: tuple[str, ...] = ()
+    ripple_model: str = "fixed_bus_ripple_estimate"
+
+
+@dataclass(frozen=True)
 class TTypeEngineeringResult:
     design_basis: TTypeDesignBasis
     schema_version: int = 1
@@ -112,3 +133,4 @@ class TTypeEngineeringResult:
     stage_status: dict[str, str] = field(default_factory=dict)
     diagnostics: tuple[str, ...] = ()
     magnetics: TTypeMagneticResult | None = None
+    capacitors: TTypeCapacitorResult | None = None

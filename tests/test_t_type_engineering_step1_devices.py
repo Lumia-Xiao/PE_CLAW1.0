@@ -253,7 +253,7 @@ def test_missing_invalid_and_out_of_range_models_rejected(library, kind):
 
 
 @pytest.mark.parametrize(
-    "stage", ["capacitors", "system", "thermal", "geometry", "sweep"]
+    "stage", ["system", "thermal", "geometry", "sweep"]
 )
 def test_unopened_stages_protected_on_direct_calls(report, stage):
     from pe_claw_gui.pipeline.run_magnetic_pipeline import run_magnetic_pipeline

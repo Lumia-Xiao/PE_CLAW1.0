@@ -67,6 +67,8 @@ def run_operating_point_refresh(
         if report.spec.topology_id == T_TYPE_TOPOLOGY_ID:
             from .run_t_type_magnetic_pipeline import refresh_t_type_magnetics
             refreshed = refresh_t_type_magnetics(refreshed, operating_point)
+            if getattr(refreshed.t_type_engineering, "capacitors", None) is not None:
+                refreshed = run_capacitor_operating_point_refresh(refreshed)
         return refreshed
 
     refreshed_report = replace(

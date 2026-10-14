@@ -172,6 +172,9 @@ class PEClawMainWindow(tk.Tk):
                         from ...pipeline.run_t_type_magnetic_pipeline import invalidate_t_type_magnetics
                         self.state_store.design_report = invalidate_t_type_magnetics(
                             self.state_store.design_report, f"Operating request parsing failed: {exc}")
+                        from ...pipeline.run_t_type_capacitor_pipeline import invalidate_t_type_capacitors
+                        self.state_store.design_report = invalidate_t_type_capacitors(
+                            self.state_store.design_report, f"Operating request parsing failed: {exc}")
                 # Retain fixed hardware in state for recovery, but do not show
                 # the previous successful curves as an unreachable target.
                 self.workspace.render_report(None)

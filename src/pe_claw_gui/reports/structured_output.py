@@ -267,6 +267,10 @@ def _hardware_payload(report: DesignReport) -> dict[str, Any]:
     }
     if llc_contract is not None:
         payload["magnetic"]["llc_magnetic_contract"] = llc_contract.to_dict()
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        banks = (getattr(capacitor, "input_selection", None), getattr(capacitor, "output_selection", None))
+        payload["capacitor"].update(input_role="upper", output_role="lower",
+            selection_status="pass" if all(b is not None and b.recommended is not None and b.recommended.feasible for b in banks) else "not_evaluated")
     return payload
 
 
@@ -361,6 +365,19 @@ def _capacitor_payload(report: DesignReport) -> dict[str, Any]:
             },
             "selection_status": "pass" if entry is not None else "not_evaluated",
         }
+
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        snapshot = getattr(report.t_type_engineering, "capacitors", None)
+        available = snapshot is not None and snapshot.status == "available"
+        upper = side_payload(capacitor.current_operating_input if available else None, "engineering_result.capacitors.current_upper")
+        lower = side_payload(capacitor.current_operating_output if available else None, "engineering_result.capacitors.current_lower")
+        return {"available": available, "input": upper, "output": lower, "upper": upper, "lower": lower,
+            "llc_resonant": {}, "metadata": {"input_role": "upper", "output_role": "lower",
+                "ripple_model": "fixed_bus_ripple_estimate", "basis": getattr(snapshot, "operating_basis", {}),
+                "diagnostics": getattr(snapshot, "diagnostics", ())},
+            "bank_subtotal": {"loss": _metric(getattr(snapshot, "total_loss_w", None), "W", "engineering_result.capacitors"),
+                "volume": _metric(getattr(snapshot, "total_volume_cm3", None), "cm3", "engineering_result.capacitors"),
+                "equivalent_link_capacitance": _metric(getattr(snapshot, "equivalent_link_capacitance_f", None), "F", "engineering_result.capacitors")}}
 
     llc_search = getattr(capacitor, "llc_resonant_capacitor_search_result", None)
     llc_request = getattr(llc_search, "request", None) if llc_search is not None else None

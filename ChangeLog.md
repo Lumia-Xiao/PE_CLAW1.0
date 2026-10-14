@@ -2178,3 +2178,15 @@ listed here.
 - Git：基准1c4ddb0fa6347eb6e1c7af9c61365596a618b1ea，分支codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名分支；仅25任务文件，95项既有删除/outputs/本地证据不暂存。本次无备份操作。实现/推送SHA在核实后追加；步骤不提前标完成。
 
 - 步骤2Git/状态回执：实现`5008031423ca2fbbaeb4213f01dcb3ed11ed8f82`已推送pe-claw-1.1同名feature分支，ls-remote同SHA。步骤2在T-type磁件授权范围完成，步骤3–7/有符号PF/A3/其他拓扑全面回归仍后续。状态提交仅更新计划与追加本日志，复用最终46项及累计386项分离回执，无生产变化，不重跑电气链；状态SHA以Git历史为准。95项既有删除、全部用户/生成文件保留。
+
+## 2026-10-14 — T-type 第二轮步骤3上下电容银行接入
+
+- 原因/分类：用户授权步骤3，T-type工程链集成。新增capacitor_adapter与run_t_type_capacitor_pipeline/typed banks，限定capacitor/full/refresh路由、GUI按钮/Pareto/当前读回、structured builder与schema；契约21/字段字典/工程计划步骤3同步。公共电容库、selection/evaluate/Pareto/loss/geometry算法和其他拓扑执行分支不改；依用户要求只验证T-type。
+- 物理：signed Jp/Jo/Jn三线KCL，恒定源为完整周期桥功率均值/Vdc；iCU=Isrc-Jp、iCL=Isrc+Jn。Gauss8原始电荷门禁先于原selector DC removal；解析Q/C支持不等银行。真实周期漂移调查找到PWM交替初始模式，T-type局部半周期反对称shooting重跑原共享模型、不改任何电流端点；默认raw drift从2.7286e-8 C降为约3.3e-14 C。波形入口补有限正L诊断，避免空片段产生StopIteration；共享three_level_common内容不变。
+- 选型/读回：铝电解、既有inverter design_type、S1..4/P1..5、margin1.2；库32910 records，规范SHA256=5767617c0591aab7eb6ce6d596c6723b34d18021bd324c7341fe5bdb9a5673a8。上下各独立volume-loss compromise/Pareto/CSV/形状工件；默认700 V各B43703A5568M600/5600uF/450V/1S1P，两银行loss2.316087410 W、volume930.004052180 cm3、Ceq2800uF。800 V当前点不满足480 V裕量明确拒绝；独立800 V额定PF0.8推荐B43703A6398M600/3900uF/1S1P。固定银行刷新不搜索，当前缺项/非有限/source/工况/不可行清小计，保留设计历史。
+- GUI Run Design/implicit full保持快速器件路径，Run Capacitors或explicit enable_capacitor_design开启两银行；Summary只增一条状态，Capacitors读当前basis/数值，PF/geometry标额定设计点。工程银行JSON与schema包含物理count/单位/source/原小计/原始电荷；轻量ExportController仍是初始L/C，步骤4选定L全链与步骤5系统loss/eta/热/geometry及后续完整export/sweep未做，死区/换流能量仍排除。
+- 验证执行中回执：当前Python3.12.10/current workspace src/source SHA；初始focus34 pass/2错误测试把700 V额定硬件当800 V包络，保留失败，改为独立450/420/480 V物理负例与800 V额定真实库接受。repaired focus46 pass/321.94 s；最终focus47 pass/578.58 s，waveform/invalid-L repair20 pass/114.03 s，完整GUI action1 pass/249.05 s，均exit0/无skips；每组既有cache_dir warning另列。累计仍执行，实际完整结果与修复关联另追加，不提前声明步骤完成。
+- Git：基准3762a9c061e1d89a692f11c0841d6f3107529120，feature codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名分支。仅任务文件明确暂存；95既有删除/用户outputs/历史及本地生成证据保持，无备份操作。完成验证/commit/push receipts后再标步骤3完成。
+
+- 步骤3最终验证回执：累计440 passed/2 failed/7 Summary setup errors/2 NPC deselected、1948.67 s、exit1原记录保留；有限正L修复及独立积分支持的平衡初值RMS基准更新（同rel1e-9）分别补验20/18 passed。Tk读text.tcl错误在独立新进程7 passed/5.59 s未复现，文件存在，无环境/fixture修改；不宣称根因已确定。最终银行focus47 passed/578.58 s、完整GUI1 passed/249.05 s；各最终组exit0/无失败错误跳过，既有cache_dir warning另列。早期call-only汇总已纠正，setup/call/teardown与JUnit去重450所选节点均有通过回执，9原失败/错误全部关联补验；不是一次最终全量运行。
+- 步骤3验收边界：独立物理公式、raw charge门禁、真实库搜索与固定硬件负例、published银行小计/schema/单位来源、真实GUI当前读回/失效恢复/导出及同T-type隔离分别支持交付。全源码SHA与最终summary preflight一致，25 AST/64引用/append-only检查通过；命令/环境/证据在计划16节。仅T-type执行，其他拓扑/完整系统效率/selected L全链closure仍未验证。本次29任务文件定向提交，提交推送状态稍后追加。

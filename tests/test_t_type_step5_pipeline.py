@@ -41,7 +41,9 @@ def test_real_pipeline_report_and_run_identity(actual):
     assert report.stress.role_voltage_checks == {}
     assert report.stress.switch.voltage_max_v == 700
     assert report.stress.rectifier.voltage_max_v == 700
-    assert report.stress.switch.current_rms_a == pytest.approx(9.092248363573049, rel=1e-9)
+    # Half-period shooting removes the weak alternating initial-current mode;
+    # independent dense position integration below checks the new steady state.
+    assert report.stress.switch.current_rms_a == pytest.approx(9.092247650500525, rel=1e-9)
     payload = report.waveform.metadata[PAYLOAD_KEY]
     assert payload["stress"]["basis"] == "waveform_actual"
     assert len(payload["stress"]["positions"]) == 12

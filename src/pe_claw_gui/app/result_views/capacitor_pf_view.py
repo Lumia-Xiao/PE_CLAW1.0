@@ -25,6 +25,7 @@ _SIDE_LABELS = {
     "llc_resonant": "LLC resonant capacitor (Cr)",
 }
 _NPC_TOPOLOGY_ID = "three_phase_three_level_npc_inverter"
+_T_TYPE_TOPOLOGY_ID = "three_phase_three_level_t_type_inverter"
 _NPC_SIDE_LABELS = {
     "input": "Upper DC-link capacitor",
     "output": "Lower DC-link capacitor",
@@ -205,6 +206,8 @@ def build_capacitor_pf_side_summary(report: DesignReport | None, side: str, plot
         "",
         "Representatives",
     ]
+    if report.spec.topology_id == _T_TYPE_TOPOLOGY_ID:
+        lines.insert(1, "  Nominal design-point Pareto; current evaluation is on the Capacitors page.")
     for label, entry in (
         ("recommended", side_result.recommended),
         ("min-volume", side_result.min_volume),
@@ -329,15 +332,19 @@ def _find_side_artifact(report: DesignReport, side: str, *, suffix: str) -> Path
 
 
 def _artifact_side(report: DesignReport | None, display_side: str) -> str:
-    """Map generic PF display sides to the physical NPC split-link banks."""
+    """Map generic PF display sides to the physical split-link banks."""
 
     if report is not None and report.spec.topology_id == _NPC_TOPOLOGY_ID:
+        return {"input": "upper", "output": "lower"}.get(display_side, display_side)
+    if report is not None and report.spec.topology_id == _T_TYPE_TOPOLOGY_ID:
         return {"input": "upper", "output": "lower"}.get(display_side, display_side)
     return display_side
 
 
 def _side_label(report: DesignReport | None, side: str) -> str:
     if report is not None and report.spec.topology_id == _NPC_TOPOLOGY_ID:
+        return _NPC_SIDE_LABELS.get(side, _SIDE_LABELS[side])
+    if report is not None and report.spec.topology_id == _T_TYPE_TOPOLOGY_ID:
         return _NPC_SIDE_LABELS.get(side, _SIDE_LABELS[side])
     return _SIDE_LABELS[side]
 

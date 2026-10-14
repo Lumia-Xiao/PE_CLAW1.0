@@ -115,7 +115,9 @@ class RunDesignController:
             raise
         if report.llc_run_context is not None:
             report = replace(report, llc_run_context=report.llc_run_context.transition("capacitors", "succeeded"))
-        report = update_design_run(report, {"capacitor_design": "succeeded"})
+        report = update_design_run(report, {"capacitor_design": (
+            report.t_type_engineering.stage_status.get("capacitors", "blocked")
+            if report.spec.topology_id == "three_phase_three_level_t_type_inverter" else "succeeded")})
         self._state_store.design_report = report
         return report
 

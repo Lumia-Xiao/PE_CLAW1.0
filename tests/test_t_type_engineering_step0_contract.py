@@ -39,7 +39,7 @@ def test_staged_integration_keeps_unimplemented_engineering_routes_protected():
     from pe_claw_gui.topology_capabilities import supports_engineering_stage
     assert not is_first_pass_topology_only(PLUGIN.topology_id)
     assert has_semiconductor_selection_path(PLUGIN.topology_id)
-    assert not has_split_dc_link_capacitor_bank(PLUGIN.topology_id)
+    assert has_split_dc_link_capacitor_bank(PLUGIN.topology_id)
     assert get_semiconductor_roles_for_topology(PLUGIN.topology_id) == ["t_type_main_switch","t_type_midpoint_switch"]
     assert not supports_engineering_stage(PLUGIN.topology_id,"system")
 

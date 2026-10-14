@@ -83,6 +83,8 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
             stage_status = engineering.get("stage_status",{})
             if engineering.get("magnetics") is not None:
                 errors.extend(_validate_t_type_magnetics(engineering["magnetics"], basis))
+            if engineering.get("capacitors") is not None:
+                errors.extend(_validate_t_type_capacitors(engineering["capacitors"], basis, payload.get("capacitor", {}), payload.get("operating_point", {})))
             if not isinstance(stage_status,dict):
                 errors.append("engineering_result.stage_status")
                 stage_status = {}
@@ -217,6 +219,81 @@ def _validate_t_type_magnetics(magnetic, design_basis):
     for key, value in sums.items():
         if not finite(magnetic.get(key)) or not math.isclose(magnetic[key], value, rel_tol=1e-9, abs_tol=1e-12):
             errors.append(prefix + "." + key)
+    return errors
+
+
+def _validate_t_type_capacitors(snapshot, basis, public, operating):
+    errors = []
+    prefix = "engineering_result.capacitors"
+    if not isinstance(snapshot, dict):
+        return [prefix]
+    try:
+        if snapshot["candidate_fingerprint"] != basis["candidate_fingerprint"] or snapshot["run_id"] != basis["run_id"]:
+            errors.append(prefix + ".source")
+        if snapshot["ripple_model"] != "fixed_bus_ripple_estimate":
+            errors.append(prefix + ".scope")
+        totals = ("equivalent_link_capacitance_f", "total_loss_w", "total_volume_cm3")
+        if snapshot["status"] != "available":
+            if snapshot["status"] != "unavailable" or any(snapshot[k] is not None for k in (*totals, "current_upper", "current_lower")) or public.get("available"):
+                errors.append(prefix + ".unavailable")
+            return errors
+        if not public.get("available"):
+            errors.append(prefix + ".public_availability")
+        expected_basis = {"vdc_v": basis["cases"][0][0], "load_ratio": 1., "power_factor": basis["cases"][0][2],
+            "vac_ll_rms_v": basis["vac_ll_rms_v"], "f_line_hz": basis["f_line_hz"],
+            "fsw_hz": basis["fsw_hz"], "inductance_h": basis["design_inductance_h"], "power_factor_phase": basis["phase"]}
+        for key, field in (("vdc_v", "input_voltage"), ("load_ratio", "load_ratio"), ("power_factor", "power_factor")):
+            value = operating.get(field, {}).get("value")
+            if operating.get("available") and value is not None:
+                expected_basis[key] = value
+        if any(snapshot["operating_basis"].get(k) != v for k, v in expected_basis.items()):
+            errors.append(prefix + ".operating_basis")
+        entries = []
+        for side in ("upper", "lower"):
+            entry, selected = snapshot[f"current_{side}"], snapshot[f"selected_{side}"]
+            c = entry["candidate"]
+            ns, np = entry["series_count"], entry["parallel_count"]
+            if (not entry["feasible"] or not c["source"] or ns not in range(1, 5) or np not in range(1, 6)
+                    or any(entry[k] != selected[k] for k in ("candidate", "series_count", "parallel_count"))):
+                errors.append(prefix + f".{side}.hardware")
+            expected = {"equivalent_capacitance_f": c["capacitance_f"] * np / ns,
+                "equivalent_rs_ohm": c["rs_ohm"] * ns / np,
+                "p_total_w": entry["p_joule_w"] + entry["p_dielectric_w"],
+                "p_total_per_cap_w": entry["p_total_w"] / (ns * np),
+                "p_joule_w": entry["capacitor_current_rms_total_a"] ** 2 * entry["equivalent_rs_ohm"],
+                "capacitor_current_rms_per_cap_a": entry["capacitor_current_rms_total_a"] / np,
+                "ripple_capacitive_pp_v": entry["q_swing_c"] / entry["equivalent_capacitance_f"],
+                "ripple_esr_pp_v": entry["capacitor_current_pp_total_a"] * entry["equivalent_rs_ohm"],
+                "ripple_total_pp_v": entry["ripple_capacitive_pp_v"] + entry["ripple_esr_pp_v"]}
+            for key, value in expected.items():
+                if not math.isfinite(entry[key]) or entry[key] < 0 or not math.isclose(entry[key], value, rel_tol=1e-10, abs_tol=1e-12):
+                    errors.append(prefix + f".{side}.{key}")
+            evidence = snapshot["port_metrics"]["banks"][side]
+            limit = max(1e-10, 1e-8 * evidence["absolute_charge_c"])
+            if (not math.isfinite(evidence["raw_charge_drift_c"]) or abs(evidence["raw_charge_drift_c"]) > limit
+                    or not math.isclose(evidence["charge_drift_limit_c"], limit, rel_tol=1e-12, abs_tol=1e-15)):
+                errors.append(prefix + f".{side}.raw_charge")
+            for key, field in (("capacitance", "equivalent_capacitance_f"), ("ripple_total", "ripple_total_pp_v"),
+                               ("current_rms", "capacitor_current_rms_total_a"), ("hotspot_temperature", "hotspot_temp_c")):
+                if public[side]["metrics"][key]["value"] != entry[field]:
+                    errors.append(prefix + f".{side}.public_readback")
+                unit = {"capacitance": "F", "ripple_total": "V", "current_rms": "A", "hotspot_temperature": "degC"}[key]
+                if public[side]["metrics"][key]["unit"] != unit or public[side]["metrics"][key]["source"] != f"engineering_result.capacitors.current_{side}":
+                    errors.append(prefix + f".{side}.public_units_source")
+            entries.append(entry)
+        cu, cl = [e["equivalent_capacitance_f"] for e in entries]
+        expected_totals = (cu * cl / (cu + cl), sum(e["p_total_w"] for e in entries), sum(e["total_volume_cm3"] for e in entries))
+        for key, expected in zip(totals, expected_totals):
+            if not math.isfinite(snapshot[key]) or not math.isclose(snapshot[key], expected, rel_tol=1e-12, abs_tol=1e-12):
+                errors.append(prefix + "." + key)
+        if public["metadata"]["basis"] != snapshot["operating_basis"]:
+            errors.append(prefix + ".public_basis")
+        for key, value in (("loss", snapshot["total_loss_w"]), ("volume", snapshot["total_volume_cm3"]),
+                           ("equivalent_link_capacitance", snapshot["equivalent_link_capacitance_f"])):
+            if public["bank_subtotal"][key]["value"] != value:
+                errors.append(prefix + ".public_total")
+    except (KeyError, TypeError, ValueError, ZeroDivisionError, OverflowError):
+        errors.append(prefix + ".incomplete")
     return errors
 
 

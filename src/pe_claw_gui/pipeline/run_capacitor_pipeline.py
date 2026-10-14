@@ -58,6 +58,10 @@ def run_capacitor_pipeline(
     from ..topology_capabilities import require_engineering_stage
     require_engineering_stage(report.spec.topology_id, "capacitors")
 
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        from .run_t_type_capacitor_pipeline import run_t_type_capacitor_pipeline
+        return run_t_type_capacitor_pipeline(report, output_root)
+
     pipeline_start_s = time.perf_counter()
     notes = [
         "Capacitor stage uses registered capacitor series.",
@@ -618,6 +622,10 @@ def run_capacitor_operating_point_refresh(report: DesignReport) -> DesignReport:
     """Refresh current operating-point capacitor losses without changing design-point selection or geometry."""
     from ..topology_capabilities import require_engineering_stage
     require_engineering_stage(report.spec.topology_id, "capacitors")
+
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        from .run_t_type_capacitor_pipeline import refresh_t_type_capacitors
+        return refresh_t_type_capacitors(report)
 
     if report.capacitor is None or report.waveform is None or report.candidate is None:
         return report

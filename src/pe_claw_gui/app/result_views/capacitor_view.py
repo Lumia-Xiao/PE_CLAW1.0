@@ -117,6 +117,8 @@ class CapacitorView(ttk.Frame):
             self._set_all_geometry_placeholders("Capacitor bank geometry is unavailable until capacitor selection has run.")
             return
         self.message.configure(text="First-pass registered capacitor selection and bank geometry summary.")
+        if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+            self.message.configure(text="Current split-link bank summary; geometry representatives retain the nominal design-point basis.")
         self._set_summary_text(build_capacitor_summary_text(report))
         self._configure_side_tabs(report)
         self._render_geometry(report)
@@ -258,6 +260,8 @@ def _build_duplicate_note(target: CapacitorGeometryTarget) -> str:
 def build_capacitor_summary_text(report: DesignReport) -> str:
     """Build a compact capacitor-stage summary."""
 
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        return _t_type_summary(report)
     result = report.capacitor
     if result is None:
         return "Capacitor selection has not run yet."
@@ -286,6 +290,31 @@ def build_capacitor_summary_text(report: DesignReport) -> str:
     lines.extend(["", _side_section_label(report, "output")])
     lines.extend(_side_lines(result.output_selection, display_label=_side_section_label(report, "output")))
     lines.extend(_current_operating_lines(result.current_operating_output))
+    return "\n".join(lines)
+
+
+def _t_type_summary(report):
+    snapshot = getattr(report.t_type_engineering, "capacitors", None)
+    if snapshot is None:
+        return "Capacitor selection has not run yet."
+    lines = [f"T-type upper/lower split-link capacitors: {snapshot.status}",
+             "fixed_bus_ripple_estimate; candidate L; bank subtotal only"]
+    if snapshot.status != "available":
+        return "\n".join([*lines, *snapshot.diagnostics, "Current bank results unavailable; design hardware retained."])
+    basis = snapshot.operating_basis
+    lines.append(f"Current basis: Vdc={basis['vdc_v']:.3f} V, load={basis['load_ratio']:.3f}, PF={basis['power_factor']:.3f}")
+    for side in ("upper", "lower"):
+        entry = getattr(snapshot, f"current_{side}")
+        if entry is None:
+            return "T-type current capacitor results unavailable: missing physical bank."
+        evidence = snapshot.port_metrics["banks"][side]
+        lines.extend([f"{side.title()}: {entry.candidate.part_number}, {entry.series_count}S{entry.parallel_count}P ({entry.total_capacitor_count} capacitors)",
+            f"  C={entry.equivalent_capacitance_f * 1e6:.3f} uF, ESR={entry.equivalent_rs_ohm:.6f} ohm",
+            f"  Irms bank/per-cap={entry.capacitor_current_rms_total_a:.3f}/{entry.capacitor_current_rms_per_cap_a:.3f} A",
+            f"  Ripple C/ESR/total={entry.ripple_capacitive_pp_v:.3f}/{entry.ripple_esr_pp_v:.3f}/{entry.ripple_total_pp_v:.3f} Vpp",
+            f"  Loss bank/per-cap={entry.p_total_w:.3f}/{entry.p_total_per_cap_w:.3f} W; volume={entry.total_volume_cm3:.3f} cm3",
+            f"  Raw charge drift={evidence['raw_charge_drift_c']:.6g} C; source={entry.candidate.source}"])
+    lines.append(f"Two-bank subtotal: loss={snapshot.total_loss_w:.3f} W, volume={snapshot.total_volume_cm3:.3f} cm3, Ceq={snapshot.equivalent_link_capacitance_f * 1e6:.3f} uF")
     return "\n".join(lines)
 
 
