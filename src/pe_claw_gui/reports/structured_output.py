@@ -291,6 +291,11 @@ def _magnetic_payload(report: DesignReport) -> dict[str, Any]:
         },
     }
     npc_audit = getattr(magnetic, "npc_output_filter_audit", None)
+    t_type_magnetics = getattr(getattr(report, "t_type_engineering", None), "magnetics", None)
+    if t_type_magnetics is not None:
+        payload["available"] = t_type_magnetics.status == "available"
+        payload["chosen_design_ids"] = [item.candidate_id for item in chosen]
+        payload["metadata"]["basis"] = "T-type magnetic subsystem; not complete system loss or efficiency"
     if npc_audit is not None and hasattr(npc_audit, "to_dict"):
         payload["npc_output_filter_audit"] = npc_audit.to_dict()
     llc_summary = getattr(magnetic, "llc_result_summary", None)

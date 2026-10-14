@@ -100,3 +100,36 @@ Every readback still validates source/time/KCL/formulas/gates/statistics and
 position metric copies. Digest mismatch or absent receipt recomputes the exact
 integral; invalid data is rejected. Independent returned stress dictionaries
 preserve isolation. See [contract section 19](three_phase_three_level_t_type_contract.md).
+
+## Step-two magnetic subsystem fields (2026-10-13)
+
+Optional `engineering_result.magnetics`, owned by `TTypeMagneticResult` and the
+T-type magnetic pipeline; historical schema-1 payloads may omit it.
+
+| Path | Object / unit / basis | Producer / consumer / lifecycle |
+|---|---|---|
+| candidate_fingerprint / run_id | Original design SHA and run identity | topology adapter -> requests/schema/refresh; mismatch rejects |
+| target_inductance_h / selected_inductance_h | Per-phase original target / chosen fixed hardware H | candidate / selected library design -> local effective waveform; original candidate stays unchanged |
+| selected_library_design_id | Common virtual or catalog model identity | existing search -> three instance records/refresh; no reselection on refresh |
+| phase_instances | Exactly phase_a/b/c; library ID plus physical suffix | pipeline -> magnetic view/structured/schema; missing any phase blocks subtotal |
+| phase_instances.design_request | Original-L rated actual current mean/RMS/absolute peak/valley A, local ripple App, actual voltage volt-second proxy V, fs Hz, Ptotal/3 W | exact event topology adapter -> shared fixed engine; original target and waveform source retained |
+| phase_instances.design | Fixed physical core/material/wire/turns/gap/L/resistance/volume and source | shared library engine -> refresh/BOM reference; virtual explicitly not procurement evidence |
+| phase_instances.operating_request / evaluation | Selected-L current bus/load/PF; actual RMS/peak/ripple A, copper/core/total W, Babsolute T, current density A/mm2 | topology + fixed engine -> magnetic view/export; cleared on input changes/failure |
+| phase_instances.reference_request / reference_evaluation | Selected-L rated per-instance request and magnetic result; separate from original-L target request | initial local evaluation -> audit; immutable across operating refresh |
+| total_copper_loss_w / total_core_loss_w / total_loss_w / total_volume_m3 | Three-instance magnetic subtotal W / m3 | independently evaluated instances -> magnetic view/schema; all required finite components must be present, tolerance 1e-9 relative / 1e-12 absolute for exported totals |
+| operating_basis | Current selected-L local waveform bus V, VLL RMS V, Ptotal W, load/PF/phase, fs/fline Hz, L H, scope | waveform -> refresh/export/schema; initial Waveform/Stress pages retain target L until step4 full closure |
+| library_provenance | Production authority/version/commits/checksums/engine row counts/filter/ranking, virtual/catalog distinction | existing verified backend -> report/evidence; unavailable backend never silently changes mode |
+| status / diagnostics | available only with three complete phase results; unavailable otherwise | pipeline -> GUI/schema/manifest; no partial totals or stale current fallback |
+
+`MagneticResult.evaluations` contains three separate selected physical results;
+`chosen_designs` remains the existing common-model Pareto representatives for
+the shared PF page. Magnetic subtotal stays outside `report.loss`; no system
+efficiency is published. `core_loss_excitation_audit` has three physical full-line
+current-reconstructed flux records (shadow only). Existing engine local PWM
+Steinmetz and copper approximations are retained. See
+[contract section 20](three_phase_three_level_t_type_contract.md).
+
+Shadow flux uses the shared builder's linear resampling of irregular event
+current samples onto a uniform full-line-period grid. Its sampled peak is
+distinct from the exact event-current peak used by the production saturation
+evaluation; neither is silently substituted for the other.

@@ -46,6 +46,9 @@ class WaveformController:
             )
         except Exception as exc:
             if first_pass:
+                if report.spec.topology_id == T_TYPE_TOPOLOGY_ID:
+                    from ...pipeline.run_t_type_magnetic_pipeline import invalidate_t_type_magnetics
+                    report = invalidate_t_type_magnetics(report, f"Waveform refresh failed: {exc}")
                 self._state_store.design_report = replace(
                     report, operating_point=operating_point, waveform=None, stress=None, topology_result=None,
                     notes=[*report.notes, f"Waveform refresh failed: {exc}"],

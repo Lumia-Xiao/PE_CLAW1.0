@@ -58,12 +58,16 @@ def run_operating_point_refresh(
             operating_point=operating_point, waveform_set=waveform_set,
             stress_result=stress_result, topology_result=topology_result,
         )
-        return replace(
+        refreshed = replace(
             report, operating_point=validated.operating_point,
             waveform=validated.waveform, stress=validated.stress,
             topology_result=validated.topology_result,
             notes=[*report.notes, "Generate Waveforms refreshed only operating-point-dependent outputs."],
         )
+        if report.spec.topology_id == T_TYPE_TOPOLOGY_ID:
+            from .run_t_type_magnetic_pipeline import refresh_t_type_magnetics
+            refreshed = refresh_t_type_magnetics(refreshed, operating_point)
+        return refreshed
 
     refreshed_report = replace(
         report,

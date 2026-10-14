@@ -169,9 +169,10 @@ class RunDesignController:
                     run_magnetics_runtime_seconds=time.perf_counter() - start_s,
                 )
                 return self._state_store.design_report
-            report = run_loss_pipeline(report, pipeline_options=options)
-            report = run_thermal_pipeline(report, pipeline_options=options)
-            report = run_geometry_pipeline(report, pipeline_options=options)
+            if supports_engineering_stage(report.spec.topology_id, "system"):
+                report = run_loss_pipeline(report, pipeline_options=options)
+                report = run_thermal_pipeline(report, pipeline_options=options)
+                report = run_geometry_pipeline(report, pipeline_options=options)
         except Exception as exc:
             if report.llc_run_context is not None:
                 report = replace(
@@ -205,10 +206,15 @@ class RunDesignController:
         report = update_design_run(
             report,
             {
-                "inductor_design": "succeeded",
+                "inductor_design": (
+                    report.t_type_engineering.stage_status.get("magnetics", "blocked")
+                    if report.spec.topology_id == "three_phase_three_level_t_type_inverter" else "succeeded"
+                ),
                 "loss": "succeeded" if report.loss is not None else "not_started",
                 "thermal": "succeeded" if report.thermal is not None else "not_started",
             },
+            reason=(getattr(report.run_context, "failure_reason", None)
+                    if report.spec.topology_id == "three_phase_three_level_t_type_inverter" else None),
         )
         self._state_store.design_report = report
         return report

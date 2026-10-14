@@ -65,8 +65,9 @@ def test_public_defaults_and_real_widgets_match_npc_input_definitions(form):
     assert list(form.operating_vars) == ["load_ratio", "power_factor"]
     assert [panels[1].grid_slaves(row=row, column=0)[0].cget("text") for row in (0, 1)] == ["Load ratio [0-1]", "PF [-1..1]"]
     assert form.get_runtime_overrides() == {"ambient_temp_c": "25", "target_junction_temp_c": "100"}
-    for button in (form.run_capacitor_button, form.run_magnetics_button, form.run_efficiency_sweep_button):
+    for button in (form.run_capacitor_button, form.run_efficiency_sweep_button):
         assert str(button.cget("state")) == "disabled"
+    assert str(form.run_magnetics_button.cget("state")) == "normal"
 
 
 @pytest.mark.parametrize(("load", "pf", "expected"), [(1.2, -1.2, (1, -1)), (-0.2, 1.2, (0, 1)), (0.5, -0.8, (0.5, -0.8)), (0, 0, (0, 0))])

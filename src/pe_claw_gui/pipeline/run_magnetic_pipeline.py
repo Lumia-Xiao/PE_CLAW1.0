@@ -134,6 +134,8 @@ def run_magnetic_pipeline(
         llc_debug_outputs=llc_debug_outputs,
         llc_geometry_roles=llc_geometry_roles,
     )
+    if completed.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        return completed
     return attach_core_loss_excitation_audit(completed)
 
 
@@ -156,6 +158,10 @@ def _run_magnetic_pipeline_without_excitation_audit(
         return replace(report, magnetic=magnetic_result, geometry=geometry_result)
 
     resolved_backend_config = backend_config or get_production_magnetic_backend_config()
+
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        from .run_t_type_magnetic_pipeline import run_t_type_magnetic_pipeline
+        return run_t_type_magnetic_pipeline(report, resolved_backend_config)
 
     if report.spec.topology_id in LLC_TRANSFORMER_TOPOLOGY_IDS:
         return _run_llc_transformer_magnetic_pipeline(
@@ -194,6 +200,11 @@ def _run_magnetic_pipeline_without_excitation_audit(
         )
         return replace(report, magnetic=magnetic_result, geometry=geometry_result)
 
+    return _run_fixed_inductor_request(report, geometry_result, resolved_backend_config, request)
+
+
+def _run_fixed_inductor_request(report, geometry_result, resolved_backend_config, request, *, expand_empty_shortlist=False):
+    """Run the existing fixed-inductor search policy for a normalized request."""
     notes = list(request.notes)
     design_requirements = build_design_requirements_dict(request)
     allow_profile = get_default_allow_profile(request.fs_hz)
@@ -218,7 +229,7 @@ def _run_magnetic_pipeline_without_excitation_audit(
             request,
             resolved_backend_config,
         )
-        if not basic_feasible_candidates:
+        if not basic_feasible_candidates and not expand_empty_shortlist:
             magnetic_result = MagneticResult(
                 summary="No feasible fixed inductor candidates were found for the synthesized design.",
                 design_requirements=design_requirements,

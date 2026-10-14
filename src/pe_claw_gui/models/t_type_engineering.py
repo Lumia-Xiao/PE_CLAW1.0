@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass, field
+from .inductor import FixedInductorDesignCandidate, InductorDesignRequest, InductorOperatingPointRequest, InductorOperatingEvaluation
 
 LOSS_SCOPE_ID = "t_type_conduction_magnetics_capacitors_v1"
 EXCLUDED_COMPONENTS = (
@@ -69,6 +70,35 @@ class TTypeRoleSelectionReference:
 
 
 @dataclass(frozen=True)
+class TTypePhaseInductor:
+    instance_id: str
+    design: FixedInductorDesignCandidate
+    design_request: InductorDesignRequest
+    operating_request: InductorOperatingPointRequest | None
+    reference_evaluation: InductorOperatingEvaluation
+    evaluation: InductorOperatingEvaluation | None
+    reference_request: InductorOperatingPointRequest | None = None
+
+
+@dataclass(frozen=True)
+class TTypeMagneticResult:
+    candidate_fingerprint: str
+    run_id: str | None
+    target_inductance_h: float
+    selected_inductance_h: float | None = None
+    selected_library_design_id: str | None = None
+    status: str = "unavailable"
+    phase_instances: tuple[TTypePhaseInductor, ...] = ()
+    total_copper_loss_w: float | None = None
+    total_core_loss_w: float | None = None
+    total_loss_w: float | None = None
+    total_volume_m3: float | None = None
+    operating_basis: dict[str, float | str] = field(default_factory=dict)
+    library_provenance: dict[str, object] = field(default_factory=dict)
+    diagnostics: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class TTypeEngineeringResult:
     design_basis: TTypeDesignBasis
     schema_version: int = 1
@@ -81,3 +111,4 @@ class TTypeEngineeringResult:
     )
     stage_status: dict[str, str] = field(default_factory=dict)
     diagnostics: tuple[str, ...] = ()
+    magnetics: TTypeMagneticResult | None = None

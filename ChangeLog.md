@@ -2166,3 +2166,13 @@ listed here.
 - Git：基准ee856deb4c73026c8f03d9234b3108a2fc12e42e，codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名分支；实现/推送SHA后续回执追加。95项既有删除/outputs/本地生成证据保留，本次无备份操作。
 
 - A2子范围Git/状态回执：实现 `50bc659cb400caf7673d6cbef87cd76e92114138` 已推送pe-claw-1.1同名分支并核实远端SHA。359项T-type最终验证支持额定点策略/复用完成；有符号PF/A3/步骤2–7仍待实施。本状态提交仅追加文档，无实现变化，状态SHA见Git历史。
+
+## 2026-10-14 — T-type 第二轮步骤2三相磁件接入
+
+- 原因/分类：用户授权步骤2并继续收尾；T-type专用共享集成。新增拓扑magnetic_adapter和run_t_type_magnetic_pipeline，扩展typed磁件结果；共享inductor_adapter分派、magnetic原搜索helper抽取、full/capability/controller/refresh、GUI磁件入口与报告/validator同步。旧库记录、数值引擎及allow/compression/frontier/stacks/Pareto政策不改；T-type空初筛显式进入既有bounded frontier，其他消费者保留默认原路径。
+- 行为：额定母线/满载/设计PF的完整event波形生成三相实际电流/纹波/volt-second请求，以逐指标最坏值搜索共同型号。3个物理相电感分别计算损耗/体积及shadow励磁；原target L保留，选定L局部重求波形/调制。固定硬件刷新不重新搜索；额定reference与当前request/evaluation分开，输入改变/失败清当前数据，缺项/非有限/来源不符不发布subtotal。Run Magnetics开放，Run Design默认仍不启动磁件搜索，系统loss/eta、银行、热/几何和扫描仍未开放。
+- 文件：topology magnetic_adapter、models/t_type_engineering、engines/magnetics/inductor_adapter、pipeline磁件/full/operating-refresh、capability、app两个controllers/shell/forms/inductor_view、reports/structured_output、scripts/report_schema_validation；新增validate_t_type_engineering_step2与step2磁件测试，调整step1/input-parity/step6原未开放断言；契约20/字段字典/工程计划15同步。
+- 验证：Python3.12.10/current workspace src预检。初次28 passed/228.27 s；累计`python -B scripts/validate_t_type_engineering_step2.py .tt-r2-s2-cumulative t_type`为386 passed/2 NPC deselected/1291.04 s/exit0，启动后有局部差异，明确只支持该版本。中断final-focus无完整回执，不算通过；resume-focus为45 passed/1新增shadow峰值参考基准失败/391.74 s，保留失败。根因是非均匀原始采样和公共均匀重采样混比，改用独立NumPy完整flux数组与1e-12严格容差，同时保留生产event精确Bpeak核对，未放宽断言或修改生产模型。
+- 最终`python -B scripts/validate_t_type_engineering_step2.py .tt-r2-s2-final-verified focus`为46 passed/0 failures/errors/skips、413.38 s、exit0；两组去重405项，不宣称一次当前全量。全部10个选定磁件运行点、真实unity/lagging/leading、受控search耗尽/恢复、三实例小计、schema负例、真实Tk读回/失效/恢复、仅T-type重复隔离通过。独立ODE RMS、解析电压伏秒、铜损/Bpeak/完整flux参考分开；886源码SHA一致、21 AST/64本地链接/diff --check通过。每组1个既有cache_dir配置warning单列；依用户要求未跑其他拓扑/full suite。
+- 真实库：normalized_v2 production，637 cores/160 materials/1628 wires；推荐virtual E100/60/21 FT-3M、Litz60x0.12、73匝/6并绕，每相L=1.071651762 mH；三相建模磁件loss26.693673414 W、volume657.046604182 cm3。来源版本/校验和与搜索数量保存typed result和计划；不当作可采购catalog或系统效率。主Waveform/Stress仍target L，统一硬件回读归步骤4；死区/换流能量、有符号PF/A3及步骤3–7未实施。
+- Git：基准1c4ddb0fa6347eb6e1c7af9c61365596a618b1ea，分支codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名分支；仅25任务文件，95项既有删除/outputs/本地证据不暂存。本次无备份操作。实现/推送SHA在核实后追加；步骤不提前标完成。

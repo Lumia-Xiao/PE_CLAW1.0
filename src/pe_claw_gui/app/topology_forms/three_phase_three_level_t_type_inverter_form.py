@@ -37,7 +37,7 @@ class ThreePhaseThreeLevelTTypeInverterForm(BaseTopologyForm):
         self.build_design_input_rows(design, fields)
         self.build_design_action_buttons(design, row=len(fields))
         self.run_capacitor_button.configure(state="disabled")
-        self.run_magnetics_button.configure(state="disabled")
+        self.run_magnetics_button.configure(state="normal")
         op = ttk.LabelFrame(self, text="Waveform Operating Point", style="Section.TLabelframe")
         op.grid(row=2, column=0, sticky="ew", pady=(12, 0))
         op.columnconfigure(1, weight=1)
@@ -55,7 +55,8 @@ class ThreePhaseThreeLevelTTypeInverterForm(BaseTopologyForm):
         ttk.Label(notes, wraplength=360, justify="left", text=(
             "Ideal balanced split bus and zero dead time. L is an initial estimate per phase; "
             "C is a proxy per bank. "
-            "IGBT/FRD conduction-only device selection; system losses and efficiency unavailable."
+            "IGBT/FRD conduction-only device selection; Run Magnetics selects three phase inductors. "
+            "System losses and efficiency unavailable."
         )).pack(anchor="nw", padx=10, pady=10)
 
     def get_operating_point(self):

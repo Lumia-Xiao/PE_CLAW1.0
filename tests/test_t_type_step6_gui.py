@@ -65,7 +65,7 @@ def test_full_pipeline_and_direct_controller_guards_skip_downstream(monkeypatch,
     sweep = import_module('pe_claw_gui.app.controllers.efficiency_sweep_controller')
     monkeypatch.setattr(sweep,'run_efficiency_sweep',forbidden)
     monkeypatch.setattr(sweep,'build_and_generate_hardware_overview',forbidden)
-    for call in (controller.run_active_capacitors,controller.run_active_magnetics,EfficiencySweepController(store).run_active_efficiency_sweep):
+    for call in (controller.run_active_capacitors,EfficiencySweepController(store).run_active_efficiency_sweep):
         with pytest.raises(RuntimeError,match='unavailable'):
             call()
         assert store.design_report is report
@@ -99,8 +99,9 @@ def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypa
         assert form.topology_id == ID
         assert set(form.design_vars) == {f.key for f in form.get_design_fields()}
         assert form.get_runtime_overrides() == {'ambient_temp_c': '25', 'target_junction_temp_c': '100'}
-        for button in (form.run_capacitor_button,form.run_magnetics_button,form.run_efficiency_sweep_button):
+        for button in (form.run_capacitor_button,form.run_efficiency_sweep_button):
             assert str(button.cget('state')) == 'disabled'
+        assert str(form.run_magnetics_button.cget('state')) == 'normal'
         assert 'operating_vdc_v' not in form.get_raw_input()
         form.run_design_button.invoke()
         assert not errors

@@ -98,6 +98,23 @@ def build_inductor_summary_text(report: DesignReport | None) -> str:
     if has_llc_display_summary(report):
         return build_llc_magnetic_summary_text(report)
     lines: list[str] = [magnetic.summary or "Magnetic design has not run yet."]
+    t_type_magnetics = getattr(getattr(report, "t_type_engineering", None), "magnetics", None)
+    if t_type_magnetics is not None:
+        lines.extend(["", "T-type three physical phase inductors",
+                      f"  status: {t_type_magnetics.status}",
+                      f"  target L: {_fmt_si(t_type_magnetics.target_inductance_h, 1e6, 'uH')}",
+                      f"  selected L: {_fmt_si(t_type_magnetics.selected_inductance_h, 1e6, 'uH')}",
+                      "  Magnetic subtotal only; system losses/efficiency unavailable."])
+        for phase in t_type_magnetics.phase_instances:
+            evaluation = phase.evaluation
+            lines.append(f"  {phase.instance_id}: {phase.design.candidate_id}")
+            if evaluation is not None:
+                lines.append(f"    RMS={_fmt_float(evaluation.i_rms_a)} A, peak={_fmt_float(evaluation.i_peak_a)} A, "
+                             f"ripple={_fmt_float(evaluation.delta_il_pp_a)} A pp, "
+                             f"copper={_fmt_float(evaluation.copper_loss_w)} W, core={_fmt_float(evaluation.core_loss_w)} W")
+        lines.extend([f"  Three-phase magnetic loss: {_fmt_float(t_type_magnetics.total_loss_w)} W",
+                      f"  Three-phase magnetic volume: {_fmt_si(t_type_magnetics.total_volume_m3, 1e6, 'cm^3')}",
+                      *t_type_magnetics.diagnostics])
     lines.extend(
         [
             "",

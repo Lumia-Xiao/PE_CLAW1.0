@@ -1724,6 +1724,16 @@ def _operating_power_factor(report: DesignReport, metadata: dict) -> float:
         return 1.0
 
 
+def _build_t_type_design_request(report: DesignReport) -> InductorDesignRequest:
+    from ...topologies.dc_ac.three_phase_three_level_t_type_inverter.magnetic_adapter import build_design_request
+    return build_design_request(report)
+
+
+def _build_t_type_operating_request(report: DesignReport) -> InductorOperatingPointRequest:
+    from ...topologies.dc_ac.three_phase_three_level_t_type_inverter.magnetic_adapter import build_operating_request
+    return build_operating_request(report)
+
+
 _DESIGN_REQUEST_BUILDERS: dict[str, Callable[[DesignReport], InductorDesignRequest]] = {
     "buck_diode_rectified_unidirectional": _build_buck_design_request,
     "buck_synchronous_rectified_unidirectional": _build_buck_sr_design_request,
@@ -1735,6 +1745,7 @@ _DESIGN_REQUEST_BUILDERS: dict[str, Callable[[DesignReport], InductorDesignReque
     "single_phase_full_bridge_inverter": _build_single_phase_full_bridge_inverter_design_request,
     "three_phase_two_level_voltage_source_inverter": _build_three_phase_two_level_inverter_design_request,
     "three_phase_three_level_npc_inverter": _build_three_phase_three_level_npc_inverter_design_request,
+    "three_phase_three_level_t_type_inverter": _build_t_type_design_request,
     "single_phase_boost_pfc_diode_bridge": _build_single_phase_boost_pfc_design_request,
     "single_phase_interleaved_boost_pfc_diode_bridge": _build_interleaved_boost_pfc_design_request,
     "single_phase_totem_pole_bridgeless_pfc": _build_single_phase_totem_pole_pfc_design_request,
@@ -1751,6 +1762,7 @@ _OPERATING_REQUEST_BUILDERS: dict[str, Callable[[DesignReport], InductorOperatin
     "single_phase_full_bridge_inverter": _build_single_phase_full_bridge_inverter_operating_request,
     "three_phase_two_level_voltage_source_inverter": _build_three_phase_two_level_inverter_operating_request,
     "three_phase_three_level_npc_inverter": _build_three_phase_three_level_npc_inverter_operating_request,
+    "three_phase_three_level_t_type_inverter": _build_t_type_operating_request,
     "single_phase_boost_pfc_diode_bridge": _build_single_phase_boost_pfc_operating_request,
     "single_phase_interleaved_boost_pfc_diode_bridge": _build_interleaved_boost_pfc_operating_request,
     "single_phase_totem_pole_bridgeless_pfc": _build_single_phase_totem_pole_pfc_operating_request,

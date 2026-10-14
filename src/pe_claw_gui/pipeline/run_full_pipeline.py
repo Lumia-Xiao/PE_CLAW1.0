@@ -100,6 +100,8 @@ def _run_full_pipeline_in_context(
                 reason=("NPC semiconductor selection is unavailable." if report.device is None else None),
             )
     if not supports_engineering_stage(report.spec.topology_id, "system"):
+        if options.enable_magnetic_design and supports_engineering_stage(report.spec.topology_id, "magnetics"):
+            report = run_magnetic_pipeline(report, backend_config=magnetic_backend_config or get_production_magnetic_backend_config())
         return report
     if uses_semiconductor_selector and report.waveform is not None and report.operating_point is not None:
         report = run_device_operating_point_refresh(report, plugin=plugin)

@@ -650,3 +650,33 @@ T-type producer使用拓扑私有`_PositionStressWaveform`（继承公共Wavefor
 这不是新增物理公式，也不降低原quad精度、Gauss节点、完整周期采样或任何工程容差。导通engine/库筛选/方案数/热筛选仍原方法，死区/换流能量继续不计算。结构报告的工程basis增加政策字段，历史和新报告分别识别；内部运行receipt绝不导出。
 
 验证包括旧应力独立dense Simpson/加密、真实库标量adaptive导通、篡改source/stress/metrics/统计/gates负例、无receipt fallback、调用次数、真实GUI/导出/固定来源及同T-type重复隔离。当前运行回执与性能证据以[计划第14节](../Plan/Active/three_phase_three_level_t_type_engineering_integration_plan.md)为准，未验证门禁不提前宣称完成。
+
+## 20. 第二轮步骤 2：三相磁件接口（2026-10-13）
+
+本节覆盖第16节磁件未开放的历史状态，保留步骤4完整硬件closure、电容、热/几何、系统损耗/效率和扫描暂缓。Run Design仍按原按钮路径只做电气/器件；Run Magnetics独立执行真实磁件搜索。full pipeline显式`enable_magnetic_design=True`才接磁件。其他拓扑生产路径、库和筛选政策不变。
+
+### 20.1 请求来源与公式
+
+`magnetic_adapter.py`拥有设计/运行请求：额定bus、满载、设计PF生成完整线路周期事件波形；a/b/c分别取exact statistics mean/RMS/min/max，peak为max(abs(min),abs(max))，ripple为每载波电流减基波参考后的最大App。共同型号请求使用三相逐指标最坏值，不取一相直接代表另外两相，不以`candidate.delta_il`目标填实际纹波。每相吞吐=Ptotal/3 W，系统对象为3个独立电感，双向AC电流；`mode=CCM`仅为既有固定磁件引擎兼容标识，说明AC过零，不声称DC恒正CCM。
+
+当前电感电压`vL=vphase_neutral−vgrid`。在每个事件片段用8点Gauss积分，按PWM周期分别累计正/负volt-second，再取最大局部正向激励`A+=max_k integral_k(max(vL,0))`。规范请求保留原字段含义：`duty=0.5`、`v_l_on=2*fsw*A+`，因此既有引擎`Bpp=v_l_on*duty/(fsw*N*Ae)=A+/(N*Ae)`；负向字段同样保留对应负激励。这是当前PWM局部excursion的筛查/Steinmetz近似，不是全线路Bpp，也不是半母线固定电压。`Babsolute=Lactual*Ipeak/(N*Ae)`独立用于饱和，不能因signed平均为0判无励磁。铜损仍用现有`Irms²*Rdc*Fac`；磁芯损耗沿既有normalized-v2模型/单位转换和局部Bpp入口，完整线路/次回线物理损耗精度没有新增承诺。
+
+设计请求→原fixed-inductor搜索、allow、压缩、allow-aware bounded frontier、same-core stacks、Pareto及middle representative。公共helper只抽取现有实现；旧消费者默认保持空初筛立即返回政策，T-type显式`expand_empty_shortlist=True`让有效请求的空shortlist也经过原完整配置frontier后再判耗尽。默认normalized-v2 production目前仅virtual；catalog请求按后端原诊断拒绝，不能把虚拟推荐写为可采购catalog型号。cache/source identity、MAS/MKF commit、版本、可用引擎记录数量、过滤/排序政策及checksums保留。
+
+### 20.2 三实例、选定L与运行点
+
+`engineering_result.magnetics`是可选schema-1扩展。`target_inductance_h`来自原candidate；`selected_inductance_h`来自推荐库设计。a/b/c以`library_candidate_id::phase_a/b/c`记录物理身份，分别调用原fixed evaluation，保存per-phase request、reference/current evaluation、实际L和volume。三相subtotal只在全部必需铜损、磁芯损耗、total、B、J、volume有限/非负且原total与组件相符时发布；不是系统效率分母。
+
+选定L通过内部effective candidate重新生成完整三相waveform、调制/周期/局部纹波校核，原candidate与initial estimates不改。不支持三个不同L；物理实例共用同一型号和L。步骤2磁件结果拥有选定L的局部waveform基准，现有主Waveform/Stress页仍读原candidate的初始L；这一区别显式记录在两个L和magnetic operating_basis中，步骤4才接完整当前硬件的统一电气回读。
+
+固定硬件刷新不搜索、不改额定器件/磁件选择，按当前bus/load/PF重新做选定L局部校核与三相评价。输入改变/失败清除current request/evaluation和小计、audit，保留设计身份及额定reference；恢复重新积分。候选指纹/run/库推荐ID/L/物理设计不符拒绝，缺任一相不得发布subtotal。
+
+在已有运行点报告上点击Run Magnetics，先按额定点搜索并保存独立`reference_request/reference_evaluation`，再沿同一已选硬件回到报告当前工况评价，不把额定点参考写成低负载的当前结果。原`design_request`保留初始L目标请求，reference request拥有选定L的额定点基准；二者的L和电流差异显式保留。
+
+三相各自使用共享core-loss excitation builder，以实际电流与L/N/Ae重建包含PWM的完整线路B(t)，frequency=fline，明确shadow-only，不替换生产Steinmetz loss或假称已接全物理效率。每个record拥有自己的instance ID与电压/电流来源路径；初始半母线proxy不填为实际励磁。
+
+该公共builder将非均匀事件采样电流线性插值到完整线路周期均匀网格，闭合周期端点；shadow flux peak是该重采样网格的峰值，可能低于原始事件采样峰值，不能冒充精确连续极值。生产饱和评价仍独立使用event统计的精确Ipeak与`L*Ipeak/(N*Ae)`，不使用shadow峰值代填。独立验证在审计实际网格以NumPy插值核对完整B(t)及峰值，另核对生产精确峰值，容差1e-12相对。
+
+### 20.3 交付/验证边界
+
+GUI开放磁件按钮并沿现有磁件/Pareto页面读回；结构报告序列化三实例、小计、硬件身份与provenance。新增schema校验缺相/非有限/总量/来源/L/运行依据及unavailable总量负例。独立exact-ODE dense积分、`Babsolute`与铜损标量参考、真实库接受、控制allow/frontier耗尽、L改变可调制边界、固定硬件不重选、真实Tk刷新/失败恢复及同T-type隔离分别留证。当前结果以[计划步骤2回执](../Plan/Active/three_phase_three_level_t_type_engineering_integration_plan.md)为准；不运行NPC/其他拓扑及full suite，不能将本轮结果当旧家族回归或完整系统验收。

@@ -1,8 +1,8 @@
 # 三相三电平 T-type 第二轮工程链接入计划
 
-- 状态：Active / 步骤 0–1 原合同历史保留；NPC一致输入前置A1已实现验证并推送，A2/A3后台完整适配与总体验收待实施；步骤 2–7 待实施。
+- 状态：Active / 步骤 0–1 原合同历史保留；NPC一致输入A1、Summary及A2额定设计点/应力复用子范围已推送；步骤2三相磁件已实现验证、待Git推送，步骤3–7、有符号PF/A3及总体验收待实施。
 - 创建日期：2026-10-13。
-- 当前授权：先冻结与 NPC 完全一致的用户输入及半导体选择合同，再调整 T-type 后台，随后继续工程链。本次按用户反馈执行A1实际界面与公共输入适配；仅关注 T-type 验证，死区及换流能量仍排除。
+- 当前授权：执行步骤2三相电感代码修改，沿用已冻结的NPC一致用户字段和当前额定设计点策略；仅关注T-type验证，死区及换流能量仍排除。有符号PF/A3的未完成范围保留，不视作本步已实现。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
 - 撰写基准：`622920211ffa1185799365d0f4d1f50e0119a521`；分支 `codex/llc-waveform-operating-point-plan`。
@@ -139,6 +139,15 @@ NPC 一致用户输入及半导体选择合同冻结
 - 完成：真实库两角色有效选中或真实搜索失败根因明确并解决到代表案例可用；至少一个真实案例通过，不能用 mock 成功代替。验证第 7 节 devices 组和累计 T-type；Git 回执完成。
 
 ### 步骤 2：三相电感接入
+
+#### 2026-10-13 本次实施边界（执行回执见第15节）
+
+- 分类：共享入口集成，T-type 专用类型化适配。共享请求分派、magnetic/full/refresh capability、GUI 磁件入口和结构校验受影响；既有拓扑搜索、库记录、排序、公式及执行路径不变。按用户要求只执行 T-type 测试，旧拓扑回归和 full suite 不作为本次完成声明。
+- 设计基准：Vdc_nom、额定负载、设计 PF；从完整线路周期 event waveform 分别读三相 mean/RMS/正负极值及逐 PWM reference-subtracted ripple。共同型号搜索使用三相逐指标上界，不以额定基波或目标纹波替代实际值。
+- 对象：3 个独立物理相电感，共同实际 L（H）；电流 A，局部纹波 App，单实例铜损/磁芯损耗 W、体积 m3。磁件选择参考和当前运行值分开；每相分别调用原固定磁件评价，缺失/非有限任一必需项不发布磁件合计。
+- 所有者：拓扑 magnetic adapter 生成请求与选定 L 局部波形，既有磁件引擎搜索/评价，T-type magnetic pipeline 建立三实例结果；report/磁件页/导出读取当前结果。candidate L 和 design estimates 不改；固定硬件刷新不搜索，改变 PF/母线/负载重新积分与评价，来源不匹配拒绝。
+- 本次不使用半母线proxy作为磁件请求电压；设计和当前请求均由实际电感电压积分得到局部PWM励磁。core-loss excitation audit 为shadow，不替换既有Steinmetz估算。热、完整系统损耗/效率、银行、完整硬件closure、扫描仍暂缓。
+- 验证命令：当前 workspace Python/package 预检；`python -B -m pytest tests/test_t_type_engineering_step2_magnetics.py -q`；随后累计 T-type gate（排除明确 NPC 节点），GUI/结构回读及 `git diff --check`。真实 normalized-v2 provenance、数量、过滤/排序和校验和写入步骤回执。
 
 - 文件：T-type adapter、inductor_adapter、run_magnetic_pipeline、core-loss excitation 适配、必要磁件 view/能力；不复制 NPC 固定 E80/FT-3M/匝数或 Litz 参考损耗。
 - 设计请求用每相 L、实际 waveform RMS/peak/local ripple、双向电流、fline/fsw、每相吞吐与 quantity=3；运行请求用当前 PF/母线/负载及同一硬件。
@@ -460,3 +469,30 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 - 审阅：所有变更Python AST、60本地链接、diff --check、定向差异和882源码SHA核验通过。95项既有删除、输出/日志/JUnit/剖析/历史证据保留不暂存。此子范围已实现验证；Git完成状态待commit/push核实后追加。A2有符号PF、A3及二轮工程步骤2–7仍待实施。
 
 - Git完成回执：实现 `50bc659cb400caf7673d6cbef87cd76e92114138` 已推送 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote同SHA。第14节授权的额定设计点与积分复用子范围完成；A2有符号PF/A3/工程步骤2–7仍未实施。状态提交只追加本回执与ChangeLog，无生产/测试变化，沿用359项最终实际验证；状态SHA见Git历史。
+
+## 15. 步骤2三相电感执行回执（2026-10-13）
+
+- 授权：用户要求“执行步骤2的代码修改”；基准`1c4ddb0fa6347eb6e1c7af9c61365596a618b1ea`，沿用当前feature分支和pe-claw-1.1同名推送目标。95项既有tracked删除、用户输出及历史证据全部保留，不纳入提交。实施前影响/单位/所有者/失效和验证范围记录在步骤2实施边界；精确合同见[T-type契约第20节](../../docs/three_phase_three_level_t_type_contract.md)和[字段字典](../../docs/t_type_engineering_field_dictionary.md)。
+- 交付：拓扑磁件adapter、共享inductor请求分派及原搜索helper抽取、T-type三实例pipeline和typed结果、固定硬件刷新/失效、capability/full/controller、磁件按钮/页面和结构报告/validator。既有库、数值引擎、allow/压缩/frontier/stacks/Pareto/代表点排序不改；旧消费者保持默认原路径。T-type显式允许空初筛进入既有完整配置frontier，受控失败/恢复与真实成功分别验证，不缩搜索范围。
+- 物理对象与计算：3个独立相电感共用推荐型号，分别评价完整线路mean/RMS/正负极值/局部PWM纹波；逐指标最坏值搜索共同型号。局部实际vL积分给等效电压，沿原Steinmetz模型；完整线路电流重建B(t)各保存独立shadow audit。单相铜/芯损与原published total分别校验后求三相小计，体积按3实例相加；缺项/NaN/非正体积/来源错配不发布小计。额定选择reference_request/evaluation与当前operating_request/evaluation分开，低负载之后Run Magnetics先保存额定参考再刷新实际工况。
+- 选定L与边界：原candidate/目标L不变；选定L局部重求波形、调制和纹波并校验。主Waveform/Stress页仍以初始candidate L为基准，磁件页以所选L为基准；步骤4才完成全硬件统一电气回读。无系统损耗/效率、上下银行、热/几何或扫描；死区/换流能量/全线路磁芯损耗高精度模型未实施。A2有符号PF/A3仍保留后续；leading为既有API，不扩展GUI合同。
+- 来源：normalized_v2_production / packaged_normalized_v2，virtual；engine cores/materials/wires=637/160/1628。cache identity=`B434F64A3E56B7EE96AE21F6AA11A8193AB08D690A5ED8287067CEE540764D6D`；source manifest SHA=`D053E7B5D332FF25E3187C5A9A36837CD52F9E62D72CCAE808A09F7F5E1F18CF`；cache audit SHA=`476B514179B907A6D4CDA6F75DDE81BE4FC108CA2D00F845551FC2E6089233DE`。MAS=`881cceaf1d91ee88c8c5b5b611a0703e6126e825`，MKF=`8d3bad38297ddca92a2aafe9c88a4fc93ef75d5b`，pyopenmagnetics=`1.6.2+b960e88109a12c4455bbded5d11bb80c9d8fc114`。commercial/stock请求沿后端原限制明确拒绝，不声称virtual推荐可采购。
+- 环境：Python3.12.10，`C:/Users/Lumia/AppData/Local/Programs/Python/Python312/python.exe`；当前src/package/test位置由runner预检，886项源码SHA留在每次preflight/test_receipt。使用工作区独立basetemp和run outputs，不改变安装环境或用户输出。
+- 初次聚焦命令：`python -B -m pytest tests/test_t_type_engineering_step2_magnetics.py -q -o addopts= -p no:cacheprovider --basetemp .pytest-tmp-tt-r2-s2-focus --junitxml .tt-r2-s2-focus.xml`，28 passed、228.27 s、exit0。其后补充额定/当前request分离、volume/reference/basis校验和完整选定磁件运行矩阵，初次回执不当作最终版本验收。
+- 累计命令：`python -B scripts/validate_t_type_engineering_step2.py .tt-r2-s2-cumulative t_type`，386 passed、2 deselected、0 failed/errors/skips、pytest1291.04 s、exit0。2项为明确排除的NPC电气节点；不执行其他拓扑/full suite。累计启动之后修改了磁件pipeline/model、controller失败原因保留、validator和步骤2测试/合同，累计回执只支持其启动版本；最终聚焦覆盖这些差异，不将旧回执冒充当前SHA全部匹配。
+- 路由补充：`.tt-r2-s2-final-focus/routing.json`记录实际T-type设计链的default与显式enable_magnetic_design=True两个入口；磁件stage使用spy，默认0次、显式1次，系统阶段仍未开放。这只证明开关分派，真实选型由独立真实库和GUI用例证明，二者不互换。
+- 最终聚焦、审阅和Git回执在执行完成后追加；当前不提前标记步骤2完成。
+
+### 15.1 2026-10-14 继续执行与中断记录
+
+- 用户再次授权继续步骤2。上次`.tt-r2-s2-final-focus`在leading/800V/50%负载/PF0.9节点setup后中断，无JUnit及test_receipt，不能计完整通过；保留progress/log和独立补充证据，不覆盖原目录。
+- 继续前核对当前分支/HEAD/工作区；Python源码与上次final-focus preflight完全一致，既有95项删除仍保留、暂存区为空。本次在新目录执行`python -B scripts/validate_t_type_engineering_step2.py .tt-r2-s2-resume-focus focus`，完成后补实际回执。累计386项门禁启动后差异仍按第15节说明，最终聚焦覆盖改动，不重复运行已完成且未受差异影响的其他用例。
+- 独立伏秒证据：`.tt-r2-s2-final-focus/voltage_reference.json`，使用电感电压解析零点分段及原函数`V*dt + Vgrid_pk/omega*(cos(end)-cos(start))`，不调用生产Gauss积分。三相每PWM正/负面积最大值与请求等效电压换算值在1e-5相对/1e-12 V·s绝对容差内一致；额定点约0.00325–0.00329 V·s。源码未变化，该独立证据继续有效，不把影子励磁审计当生产磁芯损耗物理精度验收。
+- 继续执行的首个完整聚焦为45 passed/1 failed、391.74 s、exit1，证据`.tt-r2-s2-resume-focus`全部保留。失败根因是新增flux测试把不规则事件采样峰值和公共builder均匀网格重采样峰值混比：实测shadow0.5800448006 T、原始采样参考0.5832375982 T。公共builder既有插值/周期闭合策略不改；独立测试改为在审计的真实时间网格以NumPy插值核对全部B(t)和peak（1e-12相对/绝对），并另核对生产精确Ipeak的饱和B值。没有放宽容差、跳过或弱化失败；合同/字典补齐两种峰值语义。
+- 修正后最终聚焦使用新目录：`python -B scripts/validate_t_type_engineering_step2.py .tt-r2-s2-final-verified focus`。只改独立测试及合同说明，生产Python未变化；最终结果、源码核对及Git回执随后追加。
+
+- 最终结果：46 passed、0 failures/errors/skips，pytest413.38 s、exit0；46项含全部10个T-type选定磁件运行点、unity/lagging/leading真实选型、三实例/小计、GUI按钮/当前读回/失效恢复、schema负例、原始报告不变和独立完整flux数组参考。既有关闭cacheprovider后cache_dir配置warning为1条，单列非电气失败。`.tt-r2-s2-final-verified/preflight.json/test_receipt.json/junit.xml/progress.jsonl/pytest.log/review.json`保留本地，不提交生成物。
+- 两组结论：累计386项与最终46项去重共405项，不把重复执行计新增覆盖。累计启动之后7个源码/文档差异逐项列在review.json；最终聚焦覆盖4个生产Python和步骤2测试变化，其他累计测试文件未改，未受该磁件optional子结果路径影响的旧T-type用例沿用其回执。不宣称一次当前版本405项全量运行，也不宣称其他拓扑/跨拓扑电气隔离/full suite已验证。
+- 真实案例：默认10kW/700V/400VLL/PF1/20kHz，basic37048→allow81，20个seed生成40个stack竞争项，最终allow/compression121/121、Pareto7、representatives5。共同推荐`E_100_60_21_FT-3M_Litz_60x0.12_-_Grade_1_-_Single_Served_N73_P6`，原目标及实际L均0.0010716517624676405 H；三相published magnetic loss=26.693673414435615 W，volume=0.0006570466041821171 m3。三实例来源/virtual区别与库版本校验和保留；不是物理可采购或完整系统效率验收。
+- 分离证据：公式为独立dense事件ODE RMS、解析volt-second、独立铜损/Bpeak标量与NumPy完整shadow数组；契约为来源/run/L、3实例计数、有限/缺项和原published小计/schema；用户链为真实Tk按钮/当前report/磁件读回/刷新失效恢复，JSON严格roundtrip；隔离为同T-type重复刷新与原报告/硬件不变，未做跨拓扑运行。完整系统total/eta不适用本步，保持unavailable。
+- 审阅：最终preflight的886项源码SHA全部与验证后文件一致；21个任务Python AST、64个本地链接、ChangeLog原文前缀/append-only、定向diff和diff --check通过。Git只暂存25个任务文件，排除95项既有删除及用户/运行生成物；实现与验证已完成，步骤完成状态等待commit/push核实。

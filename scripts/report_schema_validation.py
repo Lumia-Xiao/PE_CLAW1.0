@@ -81,6 +81,8 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
                 devices = ()
             selected_roles={d.get("role") for d in devices if isinstance(d,dict)}
             stage_status = engineering.get("stage_status",{})
+            if engineering.get("magnetics") is not None:
+                errors.extend(_validate_t_type_magnetics(engineering["magnetics"], basis))
             if not isinstance(stage_status,dict):
                 errors.append("engineering_result.stage_status")
                 stage_status = {}
@@ -143,6 +145,78 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
                     sections = package.get("section_bindings",())
                     if expected is None or not isinstance(members,(list,tuple)) or not isinstance(sections,(list,tuple)) or (package.get("part_number"),list(members)) != expected or tuple(sections) != ("discrete_IGBT_FRD",):
                         errors.append("engineering_result.package_binding")
+    return errors
+
+
+def _validate_t_type_magnetics(magnetic, design_basis):
+    """Validate the optional step-two physical-instance subtotal contract."""
+    prefix = "engineering_result.magnetics"
+    if not isinstance(magnetic, dict):
+        return [prefix]
+    errors = []
+    finite = lambda value: isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value >= 0
+    totals = ("total_copper_loss_w", "total_core_loss_w", "total_loss_w", "total_volume_m3")
+    status = magnetic.get("status")
+    if status not in {"available", "unavailable"}:
+        errors.append(prefix + ".status")
+    if not isinstance(design_basis, dict) or any(magnetic.get(k) != design_basis.get(k) for k in ("candidate_fingerprint", "run_id")):
+        errors.append(prefix + ".source_identity")
+    target = magnetic.get("target_inductance_h")
+    if not finite(target) or target <= 0 or not isinstance(design_basis, dict) or target != design_basis.get("design_inductance_h"):
+        errors.append(prefix + ".target_inductance")
+    if status != "available":
+        if any(magnetic.get(k) is not None for k in totals):
+            errors.append(prefix + ".unavailable_totals")
+        return errors
+    selected_l = magnetic.get("selected_inductance_h")
+    if not finite(selected_l) or selected_l <= 0 or not magnetic.get("selected_library_design_id"):
+        errors.append(prefix + ".selection")
+    phases = magnetic.get("phase_instances", ())
+    if not isinstance(phases, (list, tuple)) or len(phases) != 3 or {p.get("instance_id") for p in phases if isinstance(p, dict)} != {"phase_a", "phase_b", "phase_c"}:
+        return errors + [prefix + ".required_phases"]
+    sums = {key: 0. for key in totals}
+    operating_basis = magnetic.get("operating_basis", {})
+    for phase in phases:
+        design, evaluation, request = phase.get("design", {}), phase.get("evaluation", {}), phase.get("operating_request", {})
+        if not all(isinstance(x, dict) for x in (design, evaluation, request, operating_basis)):
+            errors.append(prefix + ".phase_data")
+            continue
+        expected_id = f"{magnetic.get('selected_library_design_id')}::{phase.get('instance_id')}"
+        if design.get("candidate_id") != expected_id or evaluation.get("design_id") != expected_id or design.get("inductance_h") != selected_l:
+            errors.append(prefix + ".phase_identity")
+        required = (evaluation.get("copper_loss_w"), evaluation.get("core_loss_w"), evaluation.get("total_loss_w"), design.get("total_volume_m3"))
+        if not all(finite(v) for v in required):
+            errors.append(prefix + ".finite_components")
+            continue
+        if required[3] <= 0:
+            errors.append(prefix + ".physical_volume")
+        if not math.isclose(required[0] + required[1], required[2], rel_tol=1e-9, abs_tol=1e-9):
+            errors.append(prefix + ".phase_total")
+        metadata = request.get("metadata", {})
+        if (not isinstance(metadata, dict) or request.get("operating_vin_v") != operating_basis.get("vdc_v")
+                or request.get("operating_vout_v") != operating_basis.get("vac_ll_rms_v")
+                or request.get("load_ratio") != operating_basis.get("load_ratio")
+                or metadata.get("operating_power_factor") != operating_basis.get("power_factor")
+                or metadata.get("actual_inductance_h") != selected_l):
+            errors.append(prefix + ".operating_basis")
+        if any(evaluation.get(k) != request.get(k) for k in ("operating_vin_v", "fs_hz", "i_rms_a", "i_peak_a")):
+            errors.append(prefix + ".evaluation_basis")
+        reference = phase.get("reference_request")
+        if reference is not None:
+            cases = design_basis.get("cases", ())
+            nominal_case = cases[0] if isinstance(cases, (list, tuple)) and cases else None
+            reference_metadata = reference.get("metadata", {}) if isinstance(reference, dict) else None
+            if (not isinstance(reference, dict) or not isinstance(nominal_case, (list, tuple)) or len(nominal_case) != 3
+                    or not isinstance(reference_metadata, dict)
+                    or reference.get("operating_vin_v") != nominal_case[0]
+                    or reference.get("load_ratio") != 1
+                    or reference_metadata.get("operating_power_factor") != nominal_case[2]):
+                errors.append(prefix + ".reference_basis")
+        for key, value in zip(totals, required):
+            sums[key] += value
+    for key, value in sums.items():
+        if not finite(magnetic.get(key)) or not math.isclose(magnetic[key], value, rel_tol=1e-9, abs_tol=1e-12):
+            errors.append(prefix + "." + key)
     return errors
 
 
