@@ -1,6 +1,6 @@
 # 三相三电平 T-type 第二轮工程链接入计划
 
-- 状态：Active / 步骤 0–1 原合同历史保留；NPC一致输入A1、Summary及A2额定设计点/应力复用子范围已推送；步骤2三相磁件在T-type授权范围完成并推送，步骤3–7、有符号PF/A3及总体验收待实施。
+- 状态：Active / 步骤 0–1 原合同历史保留；NPC一致输入A1、Summary及A2额定设计点/应力复用子范围已推送；步骤2三相磁件、步骤3上下电容银行在T-type授权范围完成并推送，步骤4–7、有符号PF/A3及总体验收待实施。
 - 创建日期：2026-10-13。
 - 当前授权：执行步骤2三相电感代码修改，沿用已冻结的NPC一致用户字段和当前额定设计点策略；仅关注T-type验证，死区及换流能量仍排除。有符号PF/A3的未完成范围保留，不视作本步已实现。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`。
@@ -109,8 +109,8 @@ NPC 一致用户输入及半导体选择合同冻结
 | 0 | 冻结二轮接口、范围、基线和阶段开放方案 | 本计划 | 已完成，见第 10 节 |
 | 1 | 半导体两角色真实库选型 | 0 | 原合同已推送，见11.2–11.3；新一致性要求需先纠偏 |
 | 前置纠偏 | NPC 输入/选择合同及 T-type 后台适配 | 0–1 历史实现 | 合同已冻结；A1完成并推送，A2/A3及总体验收待实施，见12.5 |
-| 2 | 三相电感接入 | 1、前置纠偏验收 | 待实施 |
-| 3 | 上/下银行电流与真实电容选型 | 0、2 | 待实施 |
+| 2 | 三相电感接入 | 1、前置纠偏验收 | T-type授权范围完成并推送，见15节；前置signed PF/A3保留后续 |
+| 3 | 上/下银行电流与真实电容选型 | 0、2 | T-type授权范围完成并推送，见16节 |
 | 4 | 选定硬件回读、固定硬件刷新与全链来源校验 | 1–3 | 待实施 |
 | 5 | 本轮损耗、热、几何及最早真实工程贯通 | 4 | 待实施 |
 | 6 | 固定硬件扫描、完整工程 GUI/报告/导出 | 5 | 待实施 |
@@ -277,13 +277,13 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-r2-s1 tests/test_t_type_enginee
 
 | 完成门槛 | 当前状态 |
 |---|---|
-| 步骤0–7 全部必要验证、独立提交推送 | 步骤0–2完成（步骤1/2限T-type授权范围）；步骤3–7待实施，全面回归仍后续 |
-| 真实库两角色、三相磁件、两银行、选后闭环 | 两角色及三相磁件已接入；两银行与完整选后闭环待实施 |
+| 步骤0–7 全部必要验证、独立提交推送 | 步骤0–3完成（步骤1–3限T-type授权范围）；步骤4–7待实施，全面回归仍后续 |
+| 真实库两角色、三相磁件、两银行、选后闭环 | 两角色、三相磁件及两银行已接入；完整选后闭环待步骤4 |
 | 同 scope/basis 的本轮损耗、热、几何、固定硬件扫描 | 待实施 |
-| 当前 GUI/report/JSON/CSV/BOM/overview 数值、来源与身份 | 器件及磁件GUI/结构报告已有范围通过；完整系统导出/BOM/overview待实施 |
+| 当前 GUI/report/JSON/CSV/BOM/overview 数值、来源与身份 | 器件/磁件/银行GUI与结构报告、银行CSV/形状工件已有范围通过；完整系统导出/BOM/overview待实施 |
 | 独立公式、producer/consumer、真实工作流、双顺序隔离 | 待实施 |
 | NPC baseline 与所有受影响旧消费者 gate，无遗漏或隐藏失败 | 待实施 |
-| 文档/ChangeLog、diff 检查、无生成物暂存、Git 回执 | 步骤0已核实；后续步骤待实施 |
+| 文档/ChangeLog、diff 检查、无生成物暂存、Git 回执 | 步骤0–3已核实；后续步骤待实施 |
 
 完成声明限定本轮工程链与损耗范围；完整物理效率、有限死区/换流能量、不平衡控制、采购/装配/硬件验收继续未验证。范围内 gate 失败不归档；后续范围不会因未做而自动阻塞本轮。完成时移动到 `Plan/completed/` 并复核链接，第一轮归档保持原样。
 
@@ -527,3 +527,6 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 - 独立证据：事件ODE密集积分/双分辨率、解析Q/C方向和不等C、KCL/source与3相功率；真实型号count/C/ESR/铜损/热点/体积公式；原published小计与schema/public units/source；负例raw drift/缺项/nonfinite/source/搜索耗尽及失败恢复。真实工作流与同T-type重复运行单独验证，GUI按显示精度、structured按合同容差核对；系统total/eta因未接入不适用。
 - 收尾审阅：最终summary preflight全部src/tests/scripts/docs SHA与补验后文件一致；25任务Python AST、64本地引用、ChangeLog append-only核实，定向diff及diff --check在提交前检查。29任务文件明确暂存，95项既有删除、outputs和所有本地证据不提交。
 - 未交付：步骤4才统一selected L/C全链readback，步骤5才接系统loss/thermal/geometry；轻量ExportController仍原candidate L/C，银行JSON/CSV/形状工件已接，不冒充完整系统导出。A2 signed PF/A3、完整扫描/导出及旧消费者验证保持后续；死区/换流能量继续排除。步骤3完成状态待本次commit/push核实后追加。
+
+- Git完成回执：实现/契约/测试/工具/日志提交`cf54eaed5a8aa93f15e693a5309466672323de65`已推送`pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote核实同SHA。29任务文件定向提交；95项既有删除未暂存、用户和生成证据保留。Windows历史长路径导致一次普通worktree diff报Filename too long，改用`git -c core.longpaths=true diff --check`及cached检查均exit0，无文件或Git全局配置修改。步骤3在上述授权范围完成；本次状态提交只更新计划/追加日志，沿用已执行验证，不重跑未变电气链。下一步4统一selected L/C硬件回读；系统工程/后续验收未完成。
+- 最终文档核对：新增本地引用使本轮有效链接数从64增至66；均存在，历史ChangeLog内容仅追加。早期SHA校验在追加收尾文档之前成立；文档追加未改生产/tests/scripts，不能把文档SHA变化说成再次电气验证。状态提交SHA和推送结果以Git历史及完成报告为准。

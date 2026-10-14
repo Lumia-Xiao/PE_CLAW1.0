@@ -2190,3 +2190,5 @@ listed here.
 
 - 步骤3最终验证回执：累计440 passed/2 failed/7 Summary setup errors/2 NPC deselected、1948.67 s、exit1原记录保留；有限正L修复及独立积分支持的平衡初值RMS基准更新（同rel1e-9）分别补验20/18 passed。Tk读text.tcl错误在独立新进程7 passed/5.59 s未复现，文件存在，无环境/fixture修改；不宣称根因已确定。最终银行focus47 passed/578.58 s、完整GUI1 passed/249.05 s；各最终组exit0/无失败错误跳过，既有cache_dir warning另列。早期call-only汇总已纠正，setup/call/teardown与JUnit去重450所选节点均有通过回执，9原失败/错误全部关联补验；不是一次最终全量运行。
 - 步骤3验收边界：独立物理公式、raw charge门禁、真实库搜索与固定硬件负例、published银行小计/schema/单位来源、真实GUI当前读回/失效恢复/导出及同T-type隔离分别支持交付。全源码SHA与最终summary preflight一致，25 AST/64引用/append-only检查通过；命令/环境/证据在计划16节。仅T-type执行，其他拓扑/完整系统效率/selected L全链closure仍未验证。本次29任务文件定向提交，提交推送状态稍后追加。
+
+- 步骤3Git/状态回执：实现`cf54eaed5a8aa93f15e693a5309466672323de65`已推送pe-claw-1.1同名feature分支，ls-remote核实。95项既有删除/用户输出/本地证据保留，29任务文件无生成物；Windows历史长路径由单次core.longpaths=true diff检查核实，不修改Git配置或历史文件。66有效本地引用及append-only核对通过。步骤3上下银行在T-type授权范围完成；状态提交仅本计划/日志，不重跑电气链，状态SHA见Git历史。步骤4全选定L/C回读与后续系统工程、signed PF/A3和其他拓扑验证保留后续。
