@@ -5,3 +5,10 @@ pytest_temp/
 __pycache__/
 *.egg-info/
 pe_claw_jobs.db
+
+# Local design results and validation evidence; never source-controlled.
+/outputs/
+/.tt*
+/.pytest-*
+/archives/
+*.py[cod]

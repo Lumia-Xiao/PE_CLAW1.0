@@ -2192,3 +2192,14 @@ listed here.
 - 步骤3验收边界：独立物理公式、raw charge门禁、真实库搜索与固定硬件负例、published银行小计/schema/单位来源、真实GUI当前读回/失效恢复/导出及同T-type隔离分别支持交付。全源码SHA与最终summary preflight一致，25 AST/64引用/append-only检查通过；命令/环境/证据在计划16节。仅T-type执行，其他拓扑/完整系统效率/selected L全链closure仍未验证。本次29任务文件定向提交，提交推送状态稍后追加。
 
 - 步骤3Git/状态回执：实现`cf54eaed5a8aa93f15e693a5309466672323de65`已推送pe-claw-1.1同名feature分支，ls-remote核实。95项既有删除/用户输出/本地证据保留，29任务文件无生成物；Windows历史长路径由单次core.longpaths=true diff检查核实，不修改Git配置或历史文件。66有效本地引用及append-only核对通过。步骤3上下银行在T-type授权范围完成；状态提交仅本计划/日志，不重跑电气链，状态SHA见Git历史。步骤4全选定L/C回读与后续系统工程、signed PF/A3和其他拓扑验证保留后续。
+
+## 2026-10-14 — 根目录验收证据归档与内容去重
+
+- 原因/分类：用户授权先归档验收证据并去重、保留源码/库/迁移证据/已完成计划。本次是维护工具与文档变更，不改电气模型/库数据/选择政策/公共报告。范围仅根目录.tt*和.pytest-*，128条目/102目录/5071文件/6025953677逻辑字节；成功、失败、中断与GUI当前数值均保留，不能按verdict丢弃证据。
+- 方法/文件：新增scripts/archive_validation_evidence.py、tests/test_validation_evidence_archive.py、docs/validation_evidence_archive.md；.gitignore补本地outputs/archives/验证目录/字节码。archives/validation/20261014/evidence.zip用SHA256唯一对象去重压缩，manifest保留每个原路径/大小/时间/模式及空目录；工具只创建/校验/恢复，不删除来源。PowerShell只在完整校验后移动枚举根路径至明确staging、再次核验后移除该保存副本，不操作其他文件。
+- 保留边界：src含工程库、migration、Plan/completed、顶层outputs/migrations摘要前后核对；pytest_temp/数据库不清理；95项既有tracked缺失状态保持，不纳入提交。旧完成计划和原始证据路径不重写，新增索引提供恢复位置。归档包与验证JSON都是本地生成物，不提交；Git只记录工具/测试/说明/忽略规则/日志。
+- 验证计划/初始回执：Python3.12.10，python -B -m pytest -o addopts= -p no:cacheprovider -q --basetemp pytest_temp/evidence-archive-tool-20261014 tests/test_validation_evidence_archive.py --junitxml=pytest_temp/evidence-archive-tool-20261014.xml，10 passed/2.23 s，无失败错误跳过；既有cache_dir warning单列。覆盖exact roundtrip/去重/失败记录/Unicode/空文件目录/mtime/source变化/tracked拒绝/traversal/篡改/禁止覆盖。实际5071文件全SHA/大小/source-tree校验、真实部分恢复、保护目录及删除状态核验执行后追加；无电气消费者变化，不跑电气链。
+- Git/备份：基准0c3138eeccb2b84a43021452c0dca4ecc86b7649，沿feature codex/llc-waveform-operating-point-plan及pe-claw-1.1同名远端，精确定向暂存。本归档为本次局部清理保存副本，不代替全工程周备份，本次不执行周备份。完成状态等待实际归档/移出/核验及commit/push。
+
+- 实际归档/验证：5071源文件→2571 unique objects，原6025953677 bytes、去重内容2958669976 bytes、ZIP305277165 bytes（291.13 MiB），ZIP SHA256=2d90caacabbbb1078cd3ed307e8b6e04a6690b326bb1ff398f63e146a9ee4871。每个原path独立manifest保存；128 roots已迁到archives/validation/20261014/staging并逐SHA/大小/mtime/mode/空目录校验一致。移动后Windows路径变长触发检查限制，新增extended paths及真实长路径回归，最终11 passed/2.17 s；原失败情况在索引说明，不跳过校验。步骤3Summary实际恢复5文件/1目录并逐字节核对；2530 protected文件和95既有缺失均未变化，根条目154→27。
+- 清理阻塞：自动审批拒绝删除已完整验证的staging副本，理由仅blocked by policy。未绕过，staging约5.61 GiB完整保留，cleanup_receipt记录blocked；归档去重/根目录整理完成，但不能宣称已释放磁盘空间。后续若删除经验证副本，主payload预计净减约5.33 GiB；compressed archive/manifest/receipt必须保留。实际恢复副本/工具JUnit留pytest_temp，outputs/周备份/电气验证不在范围。提交推送及最终diff/范围核验随后记录。
