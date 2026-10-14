@@ -1,8 +1,8 @@
 # 三相三电平 T-type 第二轮工程链接入计划
 
-- 状态：Active / 步骤 0–1 原合同历史保留；NPC一致输入A1、Summary及A2额定设计点/应力复用子范围已推送；步骤2三相磁件、步骤3上下电容银行已完成并推送；步骤4代码/验证完成，等待Git回执；步骤5–7、有符号PF/A3及总体验收待实施。
+- 状态：Active / 步骤 0–1 原合同历史保留；NPC一致输入A1、Summary及A2额定设计点/应力复用子范围已推送；步骤2三相磁件、步骤3上下电容银行、步骤4代码/验证均在T-type限定范围完成并推送；步骤5–7、有符号PF/A3及总体验收待实施。
 - 创建日期：2026-10-13。
-- 当前授权：步骤4选定硬件统一回读/刷新收尾，沿用已冻结NPC一致字段、额定选择与步骤2/3组件合同；仅验证T-type，死区/换流能量排除，signed PF/A3及系统步骤5–7保留后续。
+- 当前授权：步骤4选定硬件统一回读/刷新已完成，沿用已冻结NPC一致字段、额定选择与步骤2/3组件合同；仅验证T-type，死区/换流能量排除，signed PF/A3及系统步骤5–7保留后续。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
 - 撰写基准：`622920211ffa1185799365d0f4d1f50e0119a521`；分支 `codex/llc-waveform-operating-point-plan`。
@@ -543,3 +543,4 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 - 分阶段GUI组：磁件动作通过；随后电容Tk创建时报init.tcl读取错误，原失败保存，尚未进入电气动作；文件确实存在，未修改TCL环境/fixture，独立capacitor_gui复验待回执。最初直接pytest重现命令缺PYTHONPATH导致collection环境错误（不是电气失败/通过），使用本地src后复现原device对象回归并修复。全部测试结果按setup/call/teardown与JUnit核对；runner源码增分组不改变电气算法。
 
 - 收尾回执：独立capacitor_gui1 passed/98.07s/exit0；最终legacy_gui再验1 passed/47.53s/exit0。分组全阶段去重498节点都有实际通过回执，早期累计与Tk失败已关联补验，无未解决失败；这是分组修复验证，不是一次最终全量。汇总pytest_temp/tt-r2-s4-verified-receipt.json；生产代码与最新失效组source SHA一致（仅runner增分组）。28任务文件明确暂存，67本地引用、AST、ChangeLog只追加、diff --check核实，95既有删除与本地产物保留。
+- 步骤4 Git回执：实现提交`8e5abd0d8fc6ba54e9c7dfd45f6f05b05773deda`已推送`pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote核实同SHA；28个授权文件定向提交，不含验证/outputs/archives和95项既有删除。状态仅更新计划/日志，沿用已完成分组回执，不重跑电气链；步骤4在所述T-type范围关闭。

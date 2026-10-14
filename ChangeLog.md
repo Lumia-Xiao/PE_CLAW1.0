@@ -2221,3 +2221,4 @@ listed here.
 - 最新失效补验11 passed/188.47s/exit0、Summary7 passed、legacy_gui1 passed/47.69s/exit0；独立电容GUI复验1 passed/98.07s/exit0。最终失效逻辑仍清分阶段磁件/银行current，未完整时保留无current的device对象，修复初版过宽no-op。分阶段组合GUI组的电容子用例曾因Tk创建时init.tcl读取错误失败，独立新进程复验通过；未修改环境、跳过或降低断言。
 
 - 收尾回执：独立capacitor_gui1 passed/98.07s/exit0；最终legacy_gui再验1 passed/47.53s/exit0。分组全阶段去重498节点都有实际通过回执，早期累计与Tk失败已关联补验，无未解决失败；这是分组修复验证，不是一次最终全量。汇总pytest_temp/tt-r2-s4-verified-receipt.json；生产代码与最新失效组source SHA一致（仅runner增分组）。28任务文件明确暂存，67本地引用、AST、ChangeLog只追加、diff --check核实，95既有删除与本地产物保留。
+- 步骤4 Git回执：实现`8e5abd0d8fc6ba54e9c7dfd45f6f05b05773deda`已推送`pe-claw-1.1/codex/llc-waveform-operating-point-plan`并核实ls-remote同SHA。实现28个任务文件精准提交；文档状态回执随后独立提交。95项既有删除、用户未跟踪文件、outputs、archives及pytest_temp均未纳入。
