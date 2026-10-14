@@ -36,6 +36,14 @@ def run_operating_point_refresh(
     if any(is_first_pass_topology_only(identity) or identity == T_TYPE_TOPOLOGY_ID for identity in identities) and len(set(identities)) != 1:
         raise ValueError("First-pass refresh topology identity mismatch.")
 
+    if report.spec.topology_id == T_TYPE_TOPOLOGY_ID:
+        from .run_t_type_hardware_refresh import refresh_t_type_hardware
+        from ..topologies.dc_ac.three_phase_three_level_t_type_inverter.hardware_adapter import has_complete_selection
+        if has_complete_selection(report) or getattr(report.t_type_engineering, "hardware", None) is not None:
+            refreshed = call_with_report_run(report, refresh_t_type_hardware, report, operating_point)
+            if refreshed.t_type_engineering.refresh_status != "available":
+                raise ValueError("; ".join(refreshed.t_type_engineering.refresh_diagnostics))
+            return refreshed
     waveform_kwargs = {"operating_point": operating_point}
     if report.spec.topology_id == "three_phase_three_level_npc_inverter" and npc_periodic_initial_current_a is not None:
         waveform_kwargs["_periodic_initial_current_a"] = npc_periodic_initial_current_a

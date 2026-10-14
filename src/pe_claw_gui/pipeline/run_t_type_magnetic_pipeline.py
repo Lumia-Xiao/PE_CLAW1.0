@@ -47,6 +47,9 @@ def _store(report, snapshot, *, audit=None):
 
 def run_t_type_magnetic_pipeline(report, config):
     from .run_magnetic_pipeline import _run_fixed_inductor_request
+    from .run_t_type_hardware_refresh import invalidate_t_type_hardware, close_t_type_hardware_if_ready
+    if getattr(report.t_type_engineering, "hardware", None) is not None:
+        report = invalidate_t_type_hardware(report, "T-type magnetic selection updated")
     snapshot = _new_snapshot(report, {})
     try:
         request = build_design_request(report)
@@ -60,14 +63,17 @@ def run_t_type_magnetic_pipeline(report, config):
                 "frontier_executed": False, "selected_stage": "baseline_core_14" if report.magnetic.chosen_designs else None}))
         selected = next((d for d in report.magnetic.chosen_designs if d.candidate_id == report.magnetic.selected_design_id), None)
         if selected is None:
-            return _store(report, replace(snapshot, diagnostics=(report.magnetic.summary,)))
+            return close_t_type_hardware_if_ready(_store(report, replace(snapshot, diagnostics=(report.magnetic.summary,))))
         snapshot = replace(snapshot, selected_inductance_h=selected.inductance_h, selected_library_design_id=selected.candidate_id)
         completed = _evaluate_instances(report, snapshot, selected, None, design=True)
         if completed.t_type_engineering.magnetics.status == "available" and report.operating_point is not None:
             completed = refresh_t_type_magnetics(completed, report.operating_point)
-        return completed
+        from .run_t_type_hardware_refresh import close_t_type_hardware_if_ready
+        return close_t_type_hardware_if_ready(completed)
     except (ValueError, RuntimeError, OSError) as exc:
-        return _store(report, replace(snapshot, diagnostics=(f"T-type magnetic prerequisite/readback failed: {type(exc).__name__}: {exc}",)))
+        reason = f"T-type magnetic prerequisite/readback failed: {type(exc).__name__}: {exc}"
+        failed = _store(report, replace(snapshot, diagnostics=(reason,)))
+        return invalidate_t_type_hardware(failed, reason) if failed.t_type_engineering.hardware else failed
 
 
 def refresh_t_type_magnetics(report, operating_point):
@@ -108,7 +114,13 @@ def _evaluate_instances(report, snapshot, selected, operating_point, *, design):
     try:
         nominal = OperatingPoint(vin_v=report.candidate.vin_nom, load_ratio=1., power_factor=report.spec.metadata["power_factor"])
         point = nominal if design else operating_point
-        effective, wave = selected_l_waveform(report, selected.inductance_h, point)
+        if (not design and getattr(report.t_type_engineering, "current_hardware_id", None)
+                and report.waveform is not None):
+            from ..topologies.dc_ac.three_phase_three_level_t_type_inverter.hardware_adapter import current_waveform_candidate
+            effective = current_waveform_candidate(report)
+            wave = report.waveform
+        else:
+            effective, wave = selected_l_waveform(report, selected.inductance_h, point)
         actual_requests = phase_requests(report, waveform=wave, effective_candidate=effective)
         initial_requests = phase_requests(report, design=True) if design else {p.instance_id[-1]: p.design_request for p in snapshot.phase_instances}
         if set(initial_requests) != set("abc"):

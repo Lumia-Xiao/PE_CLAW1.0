@@ -710,3 +710,32 @@ Count=Ns*Np，Cbank=Cpart*Np/Ns，ESRbank=ESRpart*Ns/Np，Irms_percap=Irms_bank/
 engineering_result.capacitors为schema1可选扩展，owner为T-type capacitor stage。GUI上下银行当前数字来自当前快照；unavailable不回填设计损耗。结构capacitor.upper/lower及兼容input/output均当前读回，bank_subtotal保留单位/来源；hardware部分只是设计型号身份。系统阶段仍被能力门禁阻止，新增split capability仅供物理命名/页面路由；依赖NPC专有公式的系统consumer留步骤5适配。
 
 Schema分别检查来源/数量/单位/公式、原发布小计、raw charge门禁、当前basis与public读回。真实Tk/库/搜索耗尽、独立公式、T-type隔离回执见工程计划16节。其他拓扑/full suite不执行。ExportController轻量摘要仍是原candidate初始L/C；银行JSON/Pareto CSV与形状工件是本步产物，完整系统导出留后续。
+
+
+## 22. 第二轮步骤4：完整选定硬件与原子当前刷新
+
+本节接续步骤2/3的分阶段结果。尚未完整选型的报告允许原综合参数预览；第一次拥有两器件角色、三物理电感和上下银行后，必须统一闭合，缺失组件不能再回退为预览成功。系统loss/eta、系统热/装配几何仍属步骤5，死区/换流能量继续排除。
+
+### 22.1 身份、参数与物理数量
+
+`hardware_adapter.build_hardware_snapshot`验证run、原candidate fingerprint、scope、当前active scheme、两角色各六位置及每位置n=1/2/3、12n离散IGBT/FRD封装、三相同型号磁件的model/winding/actual L、上下型号/S/P/actual C/ESR和温度/器件热配置。完整选定记录规范JSON的SHA256形成hardware_id；运行bus/load/PF不进入ID。型号文字相同但绕组/库记录不同不能混用。
+
+原`report.candidate.inductance_h`/`capacitance_f`仍为H/F设计综合目标。内部effective candidate以selected L覆盖电感，metadata保留parent fingerprint、磁件ID和参数来源，仅用于生成/应力/评价，不替换原report candidate；当前波形metadata另有hardware_id和parent fingerprint。硬件snapshot保存选定参数，current_hardware_id仅在本次完整刷新成功时有效。Cu/Cl各自为物理银行F，ESR为ohm；Ceq=Cu*Cl/(Cu+Cl)。三相每相一物理电感，H不乘三；两角色各六电气位置，每位置n包。
+
+### 22.2 顺序与当前量
+
+完整闭合顺序为snapshot→selected-L完整事件波形→12位置实际stress/调制可行→固定型号导通曲线评价→同一波形三电感评价→同一波形上下银行评价→原子发布。库/selector/ODE/铜损/磁芯/ESR模型保持原方法。C仅用于既有fixed-bus Q/C估计，不反馈调制电压，不声称动态中点闭环。
+
+12位置current_positions保存每器件channel/diode W，position_loss_w=n*(channel+diode)，仅乘n一次。Device兼容current_operating_losses是每角色当前最坏位置的每器件W，不是角色或系统总量。导通沿既有目标温度表格/热阻参考筛查，未调用任何开关/恢复能量。磁件current小计是三相铜/磁芯W及m3，银行current小计是上下W/cm3；均拥有相同current_basis：Vdc V、VLL RMS V、load pu、PF magnitude/phase、Pout W、fline/fsw Hz、actual L H。当前量不回填设计reference。
+
+### 22.3 更新、失效与恢复
+
+`refresh_t_type_hardware`只评价已选硬件，不综合、不搜索；已有快照与当前记录不同必须拒绝。组件选择动作通过限定closure或显式`update_t_type_selected_hardware`建立新快照，并清旧current/sweep/export。普通运行bus/load/PF刷新hardware_id不变；设计VLL/fsw/相位/温度继续遵守现有重新设计合同。
+
+缺任何角色/相/银行，run/scope/identity错配、非有限值、不可调制、实际器件/银行额定裕量或曲线范围失败，都清current waveform/stress/topology result、12位置导通、器件current、磁件/银行current及小计、系统/热/装配/扫描；保留选型硬件和额定reference供修复后重算。已完整报告失效不能改成初估成功。GUI编辑、解析失败和WaveformController失败调用统一失效。
+
+Summary短文本保留初估并补selected L/C与refresh status；Device区分当前12位置导通与额定reference；轻量export区分selected参数与current available/unavailable。structured `engineering_result.hardware/current_*`保留typed身份、basis和来源；validator检查selected L、同basis、12位置数量/功耗和失效无current。完整CSV/BOM/system export仍归步骤6。
+
+### 22.4 验证边界
+
+独立事件ODE/RMS与解析Q/C、独立标量双线性导通积分验证公式；真实库完整闭合/反向组件选择顺序、无重选、硬件编辑/身份注入、失效恢复验证契约；真实Tk当前数字/编辑失效/结构导出验证用户链；同T-type A→B→A与反序验证隔离。controlled selected-L变更仅验证实际参数读回，不宣称改后的磁件是可采购实物。仅执行T-type测试；其他拓扑共享消费者回归未执行，保留后续集成gate。当前实际回执见工程计划17节，收集/历史回执不作为本版通过依据。

@@ -81,10 +81,11 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
                 devices = ()
             selected_roles={d.get("role") for d in devices if isinstance(d,dict)}
             stage_status = engineering.get("stage_status",{})
+            errors.extend(_validate_t_type_hardware(engineering, payload.get("waveform", {})))
             if engineering.get("magnetics") is not None:
                 errors.extend(_validate_t_type_magnetics(engineering["magnetics"], basis))
             if engineering.get("capacitors") is not None:
-                errors.extend(_validate_t_type_capacitors(engineering["capacitors"], basis, payload.get("capacitor", {}), payload.get("operating_point", {})))
+                errors.extend(_validate_t_type_capacitors(engineering["capacitors"], {**basis, "effective_inductance_h": (engineering.get("hardware") or {}).get("inductance_h", basis.get("design_inductance_h"))}, payload.get("capacitor", {}), payload.get("operating_point", {})))
             if not isinstance(stage_status,dict):
                 errors.append("engineering_result.stage_status")
                 stage_status = {}
@@ -147,6 +148,72 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
                     sections = package.get("section_bindings",())
                     if expected is None or not isinstance(members,(list,tuple)) or not isinstance(sections,(list,tuple)) or (package.get("part_number"),list(members)) != expected or tuple(sections) != ("discrete_IGBT_FRD",):
                         errors.append("engineering_result.package_binding")
+    return errors
+
+
+def _validate_t_type_hardware(engineering, waveform):
+    prefix = "engineering_result.hardware"
+    h = engineering.get("hardware")
+    status = engineering.get("refresh_status", "not_started")
+    errors = []
+    if status not in {"not_started", "available", "unavailable"}:
+        errors.append(prefix + ".status")
+    if status != "available":
+        if engineering.get("current_hardware_id") or engineering.get("current_positions") or engineering.get("current_basis"):
+            errors.append(prefix + ".stale_current")
+        return errors
+    try:
+        basis = engineering["design_basis"]
+        if (not h["hardware_id"] or h["hardware_id"] != engineering["current_hardware_id"]
+                or any(h[k] != basis[k] for k in ("run_id", "candidate_fingerprint"))
+                or h["loss_scope_id"] != engineering["loss_scope_id"]
+                or h["devices"] != engineering["selected_devices"] and sorted(h["devices"], key=lambda d:d["role"]) != sorted(engineering["selected_devices"], key=lambda d:d["role"])):
+            errors.append(prefix + ".identity")
+        import hashlib
+        data = {**h, "hardware_id": "", "upper_record": engineering["capacitors"]["selected_upper"]["candidate"],
+            "lower_record": engineering["capacitors"]["selected_lower"]["candidate"]}
+        digest = hashlib.sha256(json.dumps(data, sort_keys=True, allow_nan=False, separators=(",", ":")).encode()).hexdigest()
+        if digest != h["hardware_id"]:
+            errors.append(prefix + ".fingerprint")
+        if (h["magnetic_design_id"] != engineering["magnetics"]["selected_library_design_id"]
+                or h["inductance_h"] != engineering["magnetics"]["selected_inductance_h"]
+                or sorted(h["packages"], key=lambda p:p["package_instance_id"]) != sorted(engineering["packages"], key=lambda p:p["package_instance_id"])):
+            errors.append(prefix + ".selection")
+        for side in ("upper", "lower"):
+            entry = engineering["capacitors"]["selected_"+side]
+            if (h[side+"_part_number"] != entry["candidate"]["part_number"]
+                    or tuple(h[side+"_series_parallel"]) != (entry["series_count"], entry["parallel_count"])
+                    or h[side+"_capacitance_f"] != entry["equivalent_capacitance_f"]
+                    or h[side+"_esr_ohm"] != entry["equivalent_rs_ohm"]):
+                errors.append(prefix + ".banks")
+        current = engineering["current_basis"]
+        source = waveform.get("t_type_hardware_source", {})
+        if (not waveform.get("available") or source.get("hardware_id") != h["hardware_id"]
+                or source.get("candidate_fingerprint") != h["candidate_fingerprint"]
+                or source.get("basis") != current):
+            errors.append(prefix + ".waveform_source")
+        for key in ("inductance_h", "upper_capacitance_f", "lower_capacitance_f", "upper_esr_ohm", "lower_esr_ohm"):
+            if not math.isfinite(h[key]) or h[key] < 0 or ("esr" not in key and h[key] == 0):
+                errors.append(prefix + ".finite")
+        if current["inductance_h"] != h["inductance_h"]:
+            errors.append(prefix + ".inductance")
+        for stage in ("magnetics", "capacitors"):
+            if engineering[stage]["status"] != "available" or engineering[stage]["operating_basis"] != current:
+                errors.append(prefix + ".basis")
+        positions = engineering["current_positions"]
+        expected = {p for d in h["devices"] for p in d["position_ids"]}
+        if len(positions) != 12 or {p["position_id"] for p in positions} != expected:
+            errors.append(prefix + ".positions")
+        for p in positions:
+            d = next(d for d in h["devices"] if p["position_id"] in d["position_ids"])
+            if any(p[k] != d[k] for k in ("role", "part_number", "parallel_count")):
+                errors.append(prefix + ".position_identity")
+            values = [p[k] for k in ("per_device_channel_w", "per_device_diode_w", "position_loss_w")]
+            if (any(not math.isfinite(v) or v < 0 for v in values)
+                    or not math.isclose(values[2], sum(values[:2]) * p["parallel_count"], rel_tol=1e-12, abs_tol=1e-12)):
+                errors.append(prefix + ".position_loss")
+    except (KeyError, TypeError, ValueError, StopIteration):
+        errors.append(prefix + ".incomplete")
     return errors
 
 
@@ -241,7 +308,7 @@ def _validate_t_type_capacitors(snapshot, basis, public, operating):
             errors.append(prefix + ".public_availability")
         expected_basis = {"vdc_v": basis["cases"][0][0], "load_ratio": 1., "power_factor": basis["cases"][0][2],
             "vac_ll_rms_v": basis["vac_ll_rms_v"], "f_line_hz": basis["f_line_hz"],
-            "fsw_hz": basis["fsw_hz"], "inductance_h": basis["design_inductance_h"], "power_factor_phase": basis["phase"]}
+            "fsw_hz": basis["fsw_hz"], "inductance_h": basis.get("effective_inductance_h", basis["design_inductance_h"]), "power_factor_phase": basis["phase"]}
         for key, field in (("vdc_v", "input_voltage"), ("load_ratio", "load_ratio"), ("power_factor", "power_factor")):
             value = operating.get(field, {}).get("value")
             if operating.get("available") and value is not None:

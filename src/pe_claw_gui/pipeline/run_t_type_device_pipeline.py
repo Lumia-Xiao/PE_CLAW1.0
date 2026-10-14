@@ -30,6 +30,10 @@ from ..topologies.dc_ac.three_phase_three_level_t_type_inverter.engineering_adap
 
 
 def run_t_type_device_pipeline(report, plugin):
+    from .run_t_type_hardware_refresh import invalidate_t_type_hardware, close_t_type_hardware_if_ready
+    previous = report.t_type_engineering
+    if getattr(previous, "hardware", None) is not None:
+        report = invalidate_t_type_hardware(report, "T-type semiconductor selection updated")
     from .run_device_pipeline import (
         scale_switch_stress_for_parallel,
         _select_active_semiconductor_scheme,
@@ -230,6 +234,10 @@ def run_t_type_device_pipeline(report, plugin):
         stage_status={"device": "succeeded" if valid else "blocked"},
         diagnostics=tuple(f"{part}: {reason}" for part, reason in prefilter.items()),
     )
+    if previous is not None:
+        engineering = replace(engineering, magnetics=report.t_type_engineering.magnetics,
+            capacitors=report.t_type_engineering.capacitors, hardware=previous.hardware,
+            stage_status={**report.t_type_engineering.stage_status, **engineering.stage_status})
     result = DeviceSelectionResult(
         selected_device_type_filter=library_filter.device_type,
         selected_manufacturer_filter=library_filter.manufacturer,
@@ -257,7 +265,7 @@ def run_t_type_device_pipeline(report, plugin):
             f"Semiconductor library filter: {library_filter.describe()}.",
             f"Registered semiconductor candidates: {len(registered)} total; {len(library)} remain after the library prefilter.",
             "Nominal design-point conduction-only selection (100% load, design DC bus/PF); thermal result is sink-reference screening.",
-            "Excluded switching/recovery energies are not modeled; current/system losses unavailable.",
+            "Excluded switching/recovery energies are not modeled; system losses unavailable.",
             *engineering.diagnostics,
         ],
     )
@@ -268,8 +276,9 @@ def run_t_type_device_pipeline(report, plugin):
         notes=[s for s in report.notes if not s.startswith("device: stage not run")]
         + ["T-type two-role semiconductor selection evaluated."],
     )
-    return update_design_run(
+    updated = update_design_run(
         updated,
         {"semiconductor_design": "succeeded" if valid else "blocked"},
         reason=None if valid else "No complete feasible T-type semiconductor scheme",
     )
+    return close_t_type_hardware_if_ready(updated)

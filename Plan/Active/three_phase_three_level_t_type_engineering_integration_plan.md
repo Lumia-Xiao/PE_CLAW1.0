@@ -1,8 +1,8 @@
 # 三相三电平 T-type 第二轮工程链接入计划
 
-- 状态：Active / 步骤 0–1 原合同历史保留；NPC一致输入A1、Summary及A2额定设计点/应力复用子范围已推送；步骤2三相磁件、步骤3上下电容银行在T-type授权范围完成并推送，步骤4–7、有符号PF/A3及总体验收待实施。
+- 状态：Active / 步骤 0–1 原合同历史保留；NPC一致输入A1、Summary及A2额定设计点/应力复用子范围已推送；步骤2三相磁件、步骤3上下电容银行已完成并推送；步骤4代码/验证完成，等待Git回执；步骤5–7、有符号PF/A3及总体验收待实施。
 - 创建日期：2026-10-13。
-- 当前授权：执行步骤2三相电感代码修改，沿用已冻结的NPC一致用户字段和当前额定设计点策略；仅关注T-type验证，死区及换流能量仍排除。有符号PF/A3的未完成范围保留，不视作本步已实现。
+- 当前授权：步骤4选定硬件统一回读/刷新收尾，沿用已冻结NPC一致字段、额定选择与步骤2/3组件合同；仅验证T-type，死区/换流能量排除，signed PF/A3及系统步骤5–7保留后续。
 - 拓扑 ID：`three_phase_three_level_t_type_inverter`。
 - 工作区：`C:\Users\Lumia\OneDrive - Nanyang Technological University\PE-Claw1.1\PE_Claw_1.1_260928`。
 - 撰写基准：`622920211ffa1185799365d0f4d1f50e0119a521`；分支 `codex/llc-waveform-operating-point-plan`。
@@ -530,3 +530,16 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 
 - Git完成回执：实现/契约/测试/工具/日志提交`cf54eaed5a8aa93f15e693a5309466672323de65`已推送`pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote核实同SHA。29任务文件定向提交；95项既有删除未暂存、用户和生成证据保留。Windows历史长路径导致一次普通worktree diff报Filename too long，改用`git -c core.longpaths=true diff --check`及cached检查均exit0，无文件或Git全局配置修改。步骤3在上述授权范围完成；本次状态提交只更新计划/追加日志，沿用已执行验证，不重跑未变电气链。下一步4统一selected L/C硬件回读；系统工程/后续验收未完成。
 - 最终文档核对：新增本地引用使本轮有效链接数从64增至66；均存在，历史ChangeLog内容仅追加。早期SHA校验在追加收尾文档之前成立；文档追加未改生产/tests/scripts，不能把文档SHA变化说成再次电气验证。状态提交SHA和推送结果以Git历史及完成报告为准。
+
+## 17. 步骤4实施影响与验证合同（2026-10-14，实施中）
+
+- 分类：T-type限定共享集成；生产者为拓扑hardware_adapter与pipeline选后closure，消费者为waveform/stress/evaluate、固定device/magnetic/capacitor刷新、GUI/controllers/export与structured/schema。不重排旧拓扑阶段，不改库/公式/选择政策；其他拓扑依用户要求不执行，未验证共享旧消费者仍作为后续gate。基准9fe86e9，沿现feature与pe-claw-1.1同名分支；95既有删除及归档/staging不动。
+- 硬件合同：snapshot保存run/parent candidate/scope、两角色及n/12位置封装、同型号三相绕组/L、上下型号/S/P/C/ESR、温度配置；canonical SHA为硬件ID，运行bus/load/PF不进入ID。原candidate L/H与C/F始终初始设计目标，effective L来自所选磁件，Cu/Cl/Ceq来自银行，内部effective candidate仅有parent/selected身份，不替换原报告candidate。
+- 当前数据：完整硬件使用同一selected-L事件波形，C只用于既有fixed-bus Q/C估计，不假称开关电压动态反馈。波形、12位置stress、12位置导通W（per-device channel/diode，乘每位置n一次）、三相magnetic W/volume m3、上下bank W/cm3及纹波Vpp拥有同current basis与hardware ID。器件只沿已选型号查询库与既有积分/thermal-reference模型，不搜索；系统total/eta/热/装配geometry仍未发布。
+- 失效：完整硬件closure先清旧当前值，在局部report生成/校验，成功才发布；缺角色/相/银行、非finite/source/run/scope/identity、不可调制或组件不可行清current waveform/stress/device/magnetic/capacitor和小计/扫描，保留所有设计选择与额定参考供恢复。只有从未完整选择过的分阶段报告可继续初始参数预览；不将缺项已选硬件回退成初始参数成功。
+- 最终验证：`tt-r2-s4-focus-final2` 30 passed / 374.24 s / exit0；`tt-r2-s4-matrix-final` 16 passed / 441.81 s / exit0；`tt-r2-s4-banks-final` 2 passed / 284.73 s / exit0；`tt-r2-s4-source-negative-final` 4 passed / 143.27 s / exit0；历史步骤7真实GUI修复单测 1 passed / 49.69 s / exit0。累计早期474 passed/1历史GUI失败已保留；根因为无完整硬件首轮刷新误清device对象，修复为无hardware no-op后单独复验通过，不将早期累计冒充最终全量通过。全系统loss/eta不适用本步；旧拓扑/full suite不执行。提交推送后才标完成。
+
+- 最新失效补验：`python -B scripts/validate_t_type_engineering_step4.py pytest_temp/tt-r2-s4-invalidation-final invalidation` 11 passed/188.47s/exit0，覆盖完整链failure/recovery/公共入口/真实Tk；Summary组7 passed/exit0；legacy_gui组1 passed/47.69s/exit0。最终实现对分阶段磁件/银行仍清current，只在器件没有current时保留同一device对象，不使用笼统no-op跳过分阶段失效。
+- 分阶段GUI组：磁件动作通过；随后电容Tk创建时报init.tcl读取错误，原失败保存，尚未进入电气动作；文件确实存在，未修改TCL环境/fixture，独立capacitor_gui复验待回执。最初直接pytest重现命令缺PYTHONPATH导致collection环境错误（不是电气失败/通过），使用本地src后复现原device对象回归并修复。全部测试结果按setup/call/teardown与JUnit核对；runner源码增分组不改变电气算法。
+
+- 收尾回执：独立capacitor_gui1 passed/98.07s/exit0；最终legacy_gui再验1 passed/47.53s/exit0。分组全阶段去重498节点都有实际通过回执，早期累计与Tk失败已关联补验，无未解决失败；这是分组修复验证，不是一次最终全量。汇总pytest_temp/tt-r2-s4-verified-receipt.json；生产代码与最新失效组source SHA一致（仅runner增分组）。28任务文件明确暂存，67本地引用、AST、ChangeLog只追加、diff --check核实，95既有删除与本地产物保留。

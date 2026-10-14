@@ -21,10 +21,11 @@ def evaluate(candidate, waveform_set=None, stress_result=None):
     basis = waveform_set.metadata[PAYLOAD_KEY]["basis"] if actual else candidate.metadata
     vdc = basis["vdc_v"] if actual else candidate.vin_nom
     power = basis["pout_w"] if actual else candidate.pout_target
+    inductance_basis = "selected" if "t_type_effective_parameter_source" in candidate.metadata else "initial"
     lines = [f"T-type stress basis={'waveform_actual' if actual else 'design_estimate'}.",
              f"Vdc={vdc:.9g} V; grid line-line RMS={candidate.vout_target:.9g} V; total active power={power:.9g} W.",
              f"PF={basis['power_factor']:.9g} {basis['power_factor_phase']}; fsw={candidate.fs_hz:.9g} Hz.",
-             f"Per-phase initial inductance={candidate.inductance_h:.9g} H; per-bank capacitance proxy={candidate.capacitance_f:.9g} F.",
+             f"Per-phase {inductance_basis} inductance={candidate.inductance_h:.9g} H; per-bank capacitance proxy={candidate.capacitance_f:.9g} F.",
              "12 ideal IGBT-reference positions; main static blocking=Vdc, midpoint=Vdc/2."]
     if actual:
         payload = waveform_set.metadata[PAYLOAD_KEY]

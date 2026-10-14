@@ -130,6 +130,12 @@ def _waveform_payload(report: DesignReport) -> dict[str, Any]:
         "series": series,
         "metadata": {key: metadata[key] for key in sorted(metadata_keys) if key in metadata},
     }
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter" and "t_type_hardware_id" in metadata:
+        payload["t_type_hardware_source"] = {
+            "hardware_id": metadata["t_type_hardware_id"],
+            "candidate_fingerprint": metadata.get("t_type_parent_candidate_fingerprint"),
+            "basis": dict(metadata["three_phase_t_type_pd_spwm_waveforms"]["basis"]),
+        }
     npc_validation = _npc_waveform_validation_payload(report)
     if npc_validation:
         payload["npc_current_validation"] = npc_validation

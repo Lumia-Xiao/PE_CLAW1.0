@@ -130,10 +130,21 @@ def voltage_ripple(wave, upper_f, lower_f):
 def build_capacitor_requests(report, *, design=False):
     from .engineering_adapter import build_design_basis
     build_design_basis(report)
-    wave = nominal_waveform(report) if design else report.waveform
+    from .hardware_adapter import effective_candidate, current_waveform_candidate
+    effective = effective_candidate(report)
+    if design and getattr(report.t_type_engineering, "magnetics", None) and report.t_type_engineering.magnetics.selected_library_design_id:
+        from .magnetic_adapter import selected_l_waveform
+        from ....models.operating_point import OperatingPoint
+        _, wave = selected_l_waveform(report, effective.inductance_h, OperatingPoint(
+            vin_v=report.candidate.vin_nom, load_ratio=1., power_factor=report.spec.metadata["power_factor"]))
+    elif design:
+        wave = nominal_waveform(report)
+    else:
+        wave = report.waveform
+        effective = current_waveform_candidate(report)
     if wave is None:
         raise ValueError("T-type capacitor actual event waveform is missing")
-    stress_readback(report.candidate, wave)
+    stress_readback(effective, wave)
     if not design:
         expected = {"vdc_v": report.candidate.vin_nom, "load_ratio": 1., "power_factor": report.spec.metadata["power_factor"]}
         if report.operating_point is not None:
@@ -155,3 +166,26 @@ def build_capacitor_requests(report, *, design=False):
         pout_design_w=basis["pout_w"], vac_rms_v=basis["vac_ll_rms_v"], f_line_hz=basis["f_line_hz"],
         allowed_capacitor_technologies=("aluminum_electrolytic",)) for side in ("upper", "lower")}
     return requests, ports
+
+
+def validate_bank_entry(entry, side):
+    if entry is None:
+        raise ValueError(f"T-type {side} physical bank is missing")
+    positive = (entry.equivalent_capacitance_f, entry.total_volume_cm3, entry.bank_voltage_rating_dc_v)
+    nonnegative = (entry.equivalent_rs_ohm, entry.capacitor_current_rms_total_a, entry.capacitor_current_rms_per_cap_a,
+        entry.ripple_capacitive_pp_v, entry.ripple_esr_pp_v, entry.ripple_total_pp_v,
+        entry.p_total_w, entry.p_joule_w, entry.p_dielectric_w, entry.p_total_per_cap_w)
+    if (any(v is None or not math.isfinite(v) or v <= 0 for v in positive)
+            or any(v is None or not math.isfinite(v) or v < 0 for v in nonnegative)
+            or entry.hotspot_temp_c is None or not math.isfinite(entry.hotspot_temp_c) or not entry.feasible):
+        raise ValueError(f"T-type {side} bank incomplete/nonfinite/infeasible: {entry.rejection_reasons}")
+    c = entry.candidate
+    if (entry.series_count not in range(1, 5) or entry.parallel_count not in range(1, 6)
+            or not math.isclose(entry.equivalent_capacitance_f, c.capacitance_f * entry.parallel_count / entry.series_count, rel_tol=1e-12)
+            or not math.isclose(entry.equivalent_rs_ohm, c.rs_ohm * entry.series_count / entry.parallel_count, rel_tol=1e-12)
+            or not math.isclose(entry.capacitor_current_rms_per_cap_a * entry.parallel_count, entry.capacitor_current_rms_total_a, rel_tol=1e-12, abs_tol=1e-12)
+            or not math.isclose(entry.p_joule_w, entry.capacitor_current_rms_total_a ** 2 * entry.equivalent_rs_ohm, rel_tol=1e-12, abs_tol=1e-12)
+            or not math.isclose(entry.ripple_total_pp_v, entry.ripple_capacitive_pp_v + entry.ripple_esr_pp_v, rel_tol=1e-12, abs_tol=1e-12)
+            or not math.isclose(entry.p_total_w, entry.p_joule_w + entry.p_dielectric_w, rel_tol=1e-12, abs_tol=1e-12)
+            or not math.isclose(entry.p_total_per_cap_w * entry.total_capacitor_count, entry.p_total_w, rel_tol=1e-12, abs_tol=1e-12)):
+        raise ValueError(f"T-type {side} bank published physical count/capacitance/ESR/current/ripple/loss mismatch")

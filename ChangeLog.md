@@ -2205,3 +2205,19 @@ listed here.
 - 清理阻塞：自动审批拒绝删除已完整验证的staging副本，理由仅blocked by policy。未绕过，staging约5.61 GiB完整保留，cleanup_receipt记录blocked；归档去重/根目录整理完成，但不能宣称已释放磁盘空间。后续若删除经验证副本，主payload预计净减约5.33 GiB；compressed archive/manifest/receipt必须保留。实际恢复副本/工具JUnit留pytest_temp，outputs/周备份/电气验证不在范围。提交推送及最终diff/范围核验随后记录。
 
 - 归档Git回执：实现a95c65d4fa19c7fc5ec019fd56e9a608445f8ac9已推送pe-claw-1.1/codex/llc-waveform-operating-point-plan，ls-remote同SHA；5任务文件定向暂存，无生成物/已有删除。AST/append-only/ignore政策/定向diff检查通过。文档回执单独提交，复用11项工具与真实5071文件/保护/恢复验证，不重跑未变工具或电气链；后续SHA见Git历史。staging删除仍因自动审批blocked by policy未执行，不能称磁盘清理全部完成。
+
+
+## 2026-10-14 — T-type 第二轮步骤4选定硬件统一回读
+
+- 原因/分类：用户授权步骤4，T-type限定工程链集成；snapshot/effective adapter、固定device/magnetic/bank刷新、controllers/summary/device/export与structured/schema受影响。共享入口仅T-type分支，库/公式/selection排序及旧拓扑阶段不改；依用户要求其他拓扑电气回归/full suite不执行，保留后续集成gate。
+- 行为：硬件身份含run/parent/scope、两角色n与12n封装、三相绕组/选定L、上下型号S/P/C/ESR和温度/热参考配置；bus/load/PF不入ID。原candidate初始L/C及额定reference保持，内部selected-L视图带parent/selected来源。完整链统一当前事件波形→stress→12位置导通→三磁件→上下银行；每位置W只乘n一次。C仅用于fixed-bus Q/C/ESR模型。系统loss/eta/thermal/装配geometry/扫描保持不可用，步骤5后续，死区/换流能量排除。
+- 更新/失效：明确组件选择更新重建快照，普通运行点拒绝硬件记录变化；缺项/非有限/来源错配/不可行清全部current及小计、保留设计硬件供恢复。GUI编辑/解析/波形失败统一失效。Summary与轻量export区分初估/selected/当前status；Device分离额定reference和12位置当前导通；structured保存硬件与波形source/basis，schema拒绝混用。
+- 文件：新增topology hardware_adapter、pipeline run_t_type_hardware_refresh、tests step4_refresh/matrix、scripts validate_t_type_engineering_step4；调整T-type typed models、magnetic/capacitor adapter、T-type stages与共享限定路由、app controllers/views/shell、reports structured_output、schema；契约22/字段字典/工程计划17同步。电容entry validator原逻辑移至topology adapter供同层复用，未改计算。
+- 验证中回执：Python3.12.10，current workspace src预检及源SHA/JUnit全阶段记录。初始focus14 passed/1测试fixture遗漏registry失败保留；修正后focus18 passed/303.12s，无失败错误跳过。完整滞后/超前矩阵16 passed/441.81s，涵盖固定银行800V拒绝及坏参数恢复。后续公共入口/显示文本/结构source核对新增补验，累计与最终完整回执完成后追加，不提前标完成。
+- Git/保护：基准9fe86e9beebe4f12c3d810a9f83bdc4b8c08055d，分支codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名分支；95既有tracked删除和用户文件、archives/staging/outputs/pytest_temp不动、不暂存。本次无周备份操作。提交推送与最终验证待追加。
+- 最终分组回执：最新focus30 passed/374.24s；滞后/超前PF固定硬件矩阵16 passed/441.81s；不等上下银行显式更新2 passed/284.73s；waveform source/schema负例4 passed/143.27s；历史步骤7真实GUI修复1 passed/49.69s；均exit0、无失败/错误/跳过，cache_dir配置warning单列。早期累计474 passed/1历史GUI失败已保留；无完整硬件首轮刷新误清device对象，修复为no-op后历史GUI单测通过，不把早期累计冒充最终全量通过。Python3.12.10/current src，仅T-type；其他拓扑/full suite未执行。
+- 步骤4在上述范围完成：选定L/C全链当前回读、固定硬件刷新、身份/来源/原子失效恢复、GUI/结构报告完成；步骤5系统loss/eta/thermal/geometry、步骤6扫描/完整导出仍未开始。提交/推送回执随后追加。
+
+- 最新失效补验11 passed/188.47s/exit0、Summary7 passed、legacy_gui1 passed/47.69s/exit0；独立电容GUI复验1 passed/98.07s/exit0。最终失效逻辑仍清分阶段磁件/银行current，未完整时保留无current的device对象，修复初版过宽no-op。分阶段组合GUI组的电容子用例曾因Tk创建时init.tcl读取错误失败，独立新进程复验通过；未修改环境、跳过或降低断言。
+
+- 收尾回执：独立capacitor_gui1 passed/98.07s/exit0；最终legacy_gui再验1 passed/47.53s/exit0。分组全阶段去重498节点都有实际通过回执，早期累计与Tk失败已关联补验，无未解决失败；这是分组修复验证，不是一次最终全量。汇总pytest_temp/tt-r2-s4-verified-receipt.json；生产代码与最新失效组source SHA一致（仅runner增分组）。28任务文件明确暂存，67本地引用、AST、ChangeLog只追加、diff --check核实，95既有删除与本地产物保留。

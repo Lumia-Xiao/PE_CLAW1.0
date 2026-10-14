@@ -298,7 +298,7 @@ def _t_type_summary(report):
     if snapshot is None:
         return "Capacitor selection has not run yet."
     lines = [f"T-type upper/lower split-link capacitors: {snapshot.status}",
-             "fixed_bus_ripple_estimate; candidate L; bank subtotal only"]
+             "fixed_bus_ripple_estimate; waveform L; bank subtotal only"]
     if snapshot.status != "available":
         return "\n".join([*lines, *snapshot.diagnostics, "Current bank results unavailable; design hardware retained."])
     basis = snapshot.operating_basis

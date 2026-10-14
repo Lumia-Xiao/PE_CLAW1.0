@@ -2280,8 +2280,9 @@ def run_device_operating_point_refresh(
 ) -> DesignReport:
     """Reevaluate semiconductor losses at the current operating point without reselection."""
     if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
-        # Step 1 preserves selection references; current-position hardware
-        # evaluation belongs to the selected-hardware refresh step.
+        from .run_t_type_hardware_refresh import refresh_t_type_hardware
+        if getattr(report.t_type_engineering, "hardware", None) is not None:
+            return refresh_t_type_hardware(report)
         return report
 
     device_result = report.device

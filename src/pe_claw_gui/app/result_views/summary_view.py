@@ -132,6 +132,12 @@ def _build_electrical_parameter_lines(report: DesignReport) -> list[str]:
             "  main / midpoint switch positions = 6 / 6",
             f"  CCM valid = {candidate.ccm_valid}; modulation valid = {metadata.get('modulation_valid')}",
         ]
+        engineering = report.t_type_engineering
+        if engineering and engineering.hardware:
+            h = engineering.hardware
+            lines.extend([f"  Hardware refresh = {engineering.refresh_status}",
+                f"  L_phase selected = {h.inductance_h * 1e6:.6f} uH",
+                f"  C_upper / C_lower selected = {h.upper_capacitance_f * 1e6:.6f} / {h.lower_capacitance_f * 1e6:.6f} uF"])
         if candidate.failure_reason:
             lines.append(f"  Feasibility reason = {candidate.failure_reason}")
         if report.waveform is None:

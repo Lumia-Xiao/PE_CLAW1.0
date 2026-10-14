@@ -120,6 +120,42 @@ class TTypeCapacitorResult:
 
 
 @dataclass(frozen=True)
+class TTypeHardwareSnapshot:
+    hardware_id: str
+    run_id: str | None
+    candidate_fingerprint: str
+    loss_scope_id: str
+    devices: tuple[TTypeSelectedDevice, ...]
+    packages: tuple[TTypeSelectedPackage, ...]
+    magnetic_design_id: str
+    magnetic_design_fingerprint: str
+    inductance_h: float
+    upper_part_number: str
+    lower_part_number: str
+    upper_series_parallel: tuple[int, int]
+    lower_series_parallel: tuple[int, int]
+    upper_capacitance_f: float
+    lower_capacitance_f: float
+    upper_esr_ohm: float
+    lower_esr_ohm: float
+    ambient_temp_c: float
+    reference_curve_temp_c: float
+    thermal_configuration_fingerprint: str
+
+
+@dataclass(frozen=True)
+class TTypePositionOperatingResult:
+    position_id: str
+    role: str
+    part_number: str
+    parallel_count: int
+    per_device_channel_w: float
+    per_device_diode_w: float
+    position_loss_w: float
+    source: str
+
+
+@dataclass(frozen=True)
 class TTypeEngineeringResult:
     design_basis: TTypeDesignBasis
     schema_version: int = 1
@@ -134,3 +170,9 @@ class TTypeEngineeringResult:
     diagnostics: tuple[str, ...] = ()
     magnetics: TTypeMagneticResult | None = None
     capacitors: TTypeCapacitorResult | None = None
+    hardware: TTypeHardwareSnapshot | None = None
+    current_hardware_id: str | None = None
+    current_basis: dict[str, float | str] = field(default_factory=dict)
+    current_positions: tuple[TTypePositionOperatingResult, ...] = ()
+    refresh_status: str = "not_started"
+    refresh_diagnostics: tuple[str, ...] = ()

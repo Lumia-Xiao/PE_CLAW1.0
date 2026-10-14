@@ -625,6 +625,9 @@ def run_capacitor_operating_point_refresh(report: DesignReport) -> DesignReport:
 
     if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
         from .run_t_type_capacitor_pipeline import refresh_t_type_capacitors
+        from .run_t_type_hardware_refresh import refresh_t_type_hardware
+        if getattr(report.t_type_engineering, "hardware", None) is not None:
+            return refresh_t_type_hardware(report)
         return refresh_t_type_capacitors(report)
 
     if report.capacitor is None or report.waveform is None or report.candidate is None:

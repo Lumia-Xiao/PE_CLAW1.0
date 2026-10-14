@@ -17,7 +17,7 @@ from .waveform import generate_waveforms
 def nominal_waveform(report):
     basis = build_design_basis(report)
     case = basis.cases[0]
-    if report.waveform is not None:
+    if report.waveform is not None and "t_type_hardware_id" not in report.waveform.metadata:
         stress_readback(report.candidate, report.waveform)
         actual = report.waveform.metadata[PAYLOAD_KEY]["basis"]
         if (actual["vdc_v"], actual["load_ratio"], actual["power_factor"]) == case:

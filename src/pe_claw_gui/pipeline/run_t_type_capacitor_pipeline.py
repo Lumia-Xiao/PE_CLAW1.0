@@ -13,7 +13,7 @@ from ..models.capacitor import CapacitorResult, CapacitorSideResult
 from ..models.design_run_context import get_run_output_root, update_design_run
 from ..models.t_type_engineering import TTypeCapacitorResult, TTypeEngineeringResult
 from ..topologies.dc_ac.three_phase_three_level_t_type_inverter.engineering_adapter import build_design_basis, candidate_fingerprint
-from ..topologies.dc_ac.three_phase_three_level_t_type_inverter.capacitor_adapter import build_capacitor_requests, voltage_ripple
+from ..topologies.dc_ac.three_phase_three_level_t_type_inverter.capacitor_adapter import build_capacitor_requests, voltage_ripple, validate_bank_entry as _valid_entry
 
 
 def _store(report, snapshot, capacitor=None):
@@ -43,28 +43,6 @@ def invalidate_t_type_capacitors(report, reason):
     return _store(report, snapshot, capacitor)
 
 
-def _valid_entry(entry, side):
-    if entry is None:
-        raise ValueError(f"T-type {side} physical bank is missing")
-    positive = (entry.equivalent_capacitance_f, entry.total_volume_cm3, entry.bank_voltage_rating_dc_v)
-    nonnegative = (entry.equivalent_rs_ohm, entry.capacitor_current_rms_total_a, entry.capacitor_current_rms_per_cap_a,
-        entry.ripple_capacitive_pp_v, entry.ripple_esr_pp_v, entry.ripple_total_pp_v,
-        entry.p_total_w, entry.p_joule_w, entry.p_dielectric_w, entry.p_total_per_cap_w)
-    if (any(v is None or not math.isfinite(v) or v <= 0 for v in positive)
-            or any(v is None or not math.isfinite(v) or v < 0 for v in nonnegative)
-            or entry.hotspot_temp_c is None or not math.isfinite(entry.hotspot_temp_c) or not entry.feasible):
-        raise ValueError(f"T-type {side} bank incomplete/nonfinite/infeasible: {entry.rejection_reasons}")
-    c = entry.candidate
-    if (entry.series_count not in range(1, 5) or entry.parallel_count not in range(1, 6)
-            or not math.isclose(entry.equivalent_capacitance_f, c.capacitance_f * entry.parallel_count / entry.series_count, rel_tol=1e-12)
-            or not math.isclose(entry.equivalent_rs_ohm, c.rs_ohm * entry.series_count / entry.parallel_count, rel_tol=1e-12)
-            or not math.isclose(entry.capacitor_current_rms_per_cap_a * entry.parallel_count, entry.capacitor_current_rms_total_a, rel_tol=1e-12, abs_tol=1e-12)
-            or not math.isclose(entry.p_joule_w, entry.capacitor_current_rms_total_a ** 2 * entry.equivalent_rs_ohm, rel_tol=1e-12, abs_tol=1e-12)
-            or not math.isclose(entry.ripple_total_pp_v, entry.ripple_capacitive_pp_v + entry.ripple_esr_pp_v, rel_tol=1e-12, abs_tol=1e-12)
-            or not math.isclose(entry.p_total_w, entry.p_joule_w + entry.p_dielectric_w, rel_tol=1e-12, abs_tol=1e-12)
-            or not math.isclose(entry.p_total_per_cap_w * entry.total_capacitor_count, entry.p_total_w, rel_tol=1e-12, abs_tol=1e-12)):
-        raise ValueError(f"T-type {side} bank published physical count/capacitance/ESR/current/ripple/loss mismatch")
-
 
 def _snapshot_values(snapshot, entries, ports):
     for side, entry in entries.items():
@@ -79,11 +57,14 @@ def _snapshot_values(snapshot, entries, ports):
 
 
 def run_t_type_capacitor_pipeline(report, output_root=None):
+    from .run_t_type_hardware_refresh import invalidate_t_type_hardware
+    if getattr(report.t_type_engineering, "hardware", None) is not None:
+        report = invalidate_t_type_hardware(report, "T-type capacitor selection updated")
     started = time.perf_counter()
     snapshot = TTypeCapacitorResult(candidate_fingerprint(report.candidate), getattr(report.run_context, "run_id", None))
     capacitor = CapacitorResult(notes=[
         "Upper/lower physical split-link banks; nominal full-load design selection; S=1..4, P=1..5.",
-        "Fixed-bus ripple estimate; candidate L until step 4 chosen-hardware closure.",
+        "Fixed-bus ripple estimate; selected physical L after hardware closure.",
         "Existing tabulated ESR/Irms loss model; equalizers, precharge and dynamic midpoint control excluded."])
     try:
         requests, ports = build_capacitor_requests(report, design=True)
@@ -107,13 +88,16 @@ def run_t_type_capacitor_pipeline(report, output_root=None):
         report = _store(report, snapshot, capacitor)
         from .run_capacitor_geometry_pipeline import run_capacitor_geometry_pipeline
         report = run_capacitor_geometry_pipeline(report, output_root=root)
-        if report.operating_point is not None:
+        if report.operating_point is not None and not report.t_type_engineering.magnetics:
             report = refresh_t_type_capacitors(report)
+        from .run_t_type_hardware_refresh import close_t_type_hardware_if_ready
+        report = close_t_type_hardware_if_ready(report)
         return replace(report, capacitor=replace(report.capacitor, diagnostics={
             **report.capacitor.diagnostics, "total_run_capacitor_time_s": time.perf_counter() - started}))
     except (ValueError, KeyError, RuntimeError, OSError) as exc:
         reason = f"T-type capacitor prerequisite/selection failed: {type(exc).__name__}: {exc}"
-        return _store(report, replace(snapshot, status="unavailable", diagnostics=(reason,)), capacitor)
+        failed = _store(report, replace(snapshot, status="unavailable", diagnostics=(reason,)), capacitor)
+        return invalidate_t_type_hardware(failed, reason) if failed.t_type_engineering.hardware else failed
 
 
 def refresh_t_type_capacitors(report):

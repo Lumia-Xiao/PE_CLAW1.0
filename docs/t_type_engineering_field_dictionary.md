@@ -157,3 +157,28 @@ historical step-one/two availability descriptions.
 Shared library/engine/selection formulas and ordering unchanged. Run Capacitors
 and explicit full-pipeline option enabled; implicit T-type pipeline/GUI Run
 Design remain quick. System/thermal/geometry/sweep gates remain closed.
+
+
+## Step 4 selected hardware and current refresh
+
+Authority: [contract section 22](three_phase_three_level_t_type_contract.md).
+Earlier step2/3 candidate-L readback and pending-closure statements describe their historical stages; complete hardware now follows this section.
+
+| Field | Meaning / unit / physical quantity | Producer, consumers, invalidation |
+|---|---|---|
+| hardware.hardware_id | Canonical SHA256 of complete selected records/run/parent/scope/config; no operating point | hardware_adapter; ordinary refresh rejects changed records; explicit selection update rebuilds |
+| hardware.devices/packages | Two roles, 6 positions each, n per position; 12n discrete packages | selected roles/scheme and physical bindings validated |
+| hardware.magnetic_design_id/fingerprint/inductance_h | Common library model/winding and per-phase L H; three separate physical records | actual selected record, internal effective candidate; original candidate remains target |
+| hardware.upper/lower_part_number/series_parallel | Physical banks, (Ns,Np), each count Ns*Np | immutable nominal selection; no fixed-refresh search |
+| hardware.upper/lower_capacitance_f/esr_ohm | Each selected physical bank F/ohm; Ceq separate | library count conversion; bank Q/C and ESR evaluation |
+| hardware.run_id/candidate_fingerprint/loss_scope_id | Selected parent and model scope | source validation; mismatch clears current, retains selection |
+| hardware.ambient_temp_c/reference_curve_temp_c/thermal_configuration_fingerprint | Celsius and hash of design temperatures/package/per-device thermal stress configuration | immutable design config; changed temperatures require new design |
+| current_hardware_id | Current complete hardware ID; None on failure/edit | atomic pipeline, waveform metadata/GUI/export |
+| current_basis | Vdc/VLL V, load pu, PF magnitude/phase, Pout W, fline/fsw Hz, actual L H | same current event waveform feeds all stages |
+| current_positions | Twelve electrical positions; channel/diode per-device W, position W=n*(channel+diode), selected role/part/n/source | existing conduction tables/thermal reference; no switching energy; clear all on failure |
+| refresh_status/refresh_diagnostics | not_started / available / unavailable and explicit cause | complete chain succeeds atomically; partial staged reports keep not_started |
+| device.current_operating_losses | Per-role worst position per-device current W, not role/system total | twelve physical-position evaluation; invalidation clears, no reference fallback |
+| topology_result.candidate | Internal selected-L view with parent/selected source metadata | electrical evaluation only; report.candidate stays original synthesis |
+| waveform.metadata.t_type_hardware_id/t_type_parent_candidate_fingerprint | Actual waveform hardware and original parent identities | validate before current device/magnetic/bank consumers |
+
+System loss/eta/assembly thermal/geometry/sweep remain unavailable. Selected L/C may still be displayed as hardware identity after failure; current numeric export is explicitly unavailable. Step4 evidence is scoped to T-type.
