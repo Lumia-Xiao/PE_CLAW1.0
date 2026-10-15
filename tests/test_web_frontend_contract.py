@@ -8,7 +8,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from pe_claw_web.schemas import BuckDesignRequest, DesignResultResponse
+from pe_claw_web.schemas import BuckDesignRequest, DesignError, DesignResultResponse
 
 FIXTURES = Path(__file__).resolve().parents[1] / 'web/frontend/tests/fixtures'
 API_EXAMPLE = Path(__file__).resolve().parents[1] / 'docs/web-api-v1-buck-request.json'
@@ -69,6 +69,46 @@ def test_real_buck_sync_http_matches_topology_fixture(api, tmp_path, monkeypatch
     for key, value in golden['summary']['request']['raw_input'].items():
         assert float(raw[key]) == float(value) if key in INPUT else raw[key] == value
 
+    # Step 6 freezes the synchronous Web route to the same report contract as
+    # the GUI Run Design action, including devices, units, and status fields.
+    for key in (
+        'schema_version',
+        'topology',
+        'candidate',
+        'ripple',
+        'status',
+    ):
+        assert result.summary[key] == golden['summary'][key]
+    assert result.summary['semiconductor_voltage_checks'] == {}
+    semiconductor = result.summary['hardware']['semiconductor']
+    assert semiconductor['selection_status'] == 'pass'
+    assert set(semiconductor['selected_devices']) == {'main_switch', 'rectifier_diode'}
+    assert result.summary['candidate']['inductance']['unit'] == 'H'
+    assert result.summary['candidate']['capacitance']['unit'] == 'F'
+    assert result.summary['candidate']['switching_frequency']['unit'] == 'Hz'
+    for key in ('available', 'switch', 'rectifier'):
+        assert result.summary['stress'][key] == golden['summary']['stress'][key]
+
+
+def test_sync_pipeline_failure_is_sanitized(api, monkeypatch):
+    main, _, _ = api
+    private_detail = r'C:\\private\\student\\design.py API_TOKEN=do-not-leak'
+
+    def fail(_request):
+        raise RuntimeError(private_detail)
+
+    monkeypatch.setattr(main, 'run_buck_design', fail)
+    response = call(main, 'POST', '/api/v1/design/buck', json=INPUT)
+
+    assert response.status_code == 500
+    error = DesignError.model_validate(response.json())
+    assert error.code == 'DESIGN_FAILED'
+    assert error.message == 'Design calculation failed.'
+    assert error.correlation_id
+    assert private_detail not in response.text
+    assert 'RuntimeError' not in response.text
+    assert 'Traceback' not in response.text
+
 
 def test_job_worker_result_download_across_store_instances(api, tmp_path, monkeypatch):
     main, tasks, store = api
@@ -118,6 +158,9 @@ def test_queue_failure_and_invalid_request_have_http_errors(api, monkeypatch):
     missing = dict(INPUT)
     missing.pop('pout')
     response = call(main, 'POST', '/api/v1/design/buck', json=missing)
+    assert response.status_code == 422
+    assert response.json()['detail'][0]['loc'] == ['body', 'pout']
+    response = call(main, 'POST', '/api/v1/design/buck', json={**INPUT, 'pout': 0})
     assert response.status_code == 422
     assert response.json()['detail'][0]['loc'] == ['body', 'pout']
     response = call(main, 'POST', '/api/v1/design/buck', json={**INPUT, 'topology': 'unsupported'})

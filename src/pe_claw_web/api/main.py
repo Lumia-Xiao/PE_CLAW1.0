@@ -1,5 +1,8 @@
+import logging
+from uuid import UUID, uuid4
+
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from kombu.exceptions import OperationalError
 from pe_claw_web.schemas import *
 from pe_claw_web.jobs.store import store
@@ -8,15 +11,31 @@ from pe_claw_web.workers.tasks import design_buck_task
 from pe_claw_web.workers.action_tasks import run_action_task
 from .runner import run_buck_design
 from .catalog import topology_catalog
-from uuid import UUID
 from pe_claw_web.workers.celery_app import celery_app
+
+logger = logging.getLogger(__name__)
 app=FastAPI(title='PE-Claw Design API',version='0.1.0')
 @app.get('/api/v1/health')
 def health(): return {'status':'ok'}
 @app.get('/api/v1/topologies')
 def topologies(): return topology_catalog()
-@app.post('/api/v1/design/buck', response_model=DesignResultResponse)
-def design_buck(request: BuckDesignRequest): return run_buck_design(request)
+@app.post(
+    '/api/v1/design/buck',
+    response_model=DesignResultResponse,
+    responses={500: {'model': DesignError}},
+)
+def design_buck(request: BuckDesignRequest):
+    correlation_id = uuid4().hex
+    try:
+        return run_buck_design(request)
+    except Exception:
+        logger.exception('Synchronous Buck design failed; correlation_id=%s', correlation_id)
+        error = DesignError(
+            code='DESIGN_FAILED',
+            message='Design calculation failed.',
+            correlation_id=correlation_id,
+        )
+        return JSONResponse(status_code=500, content=error.model_dump(mode='json'))
 @app.post('/api/v1/design-jobs',response_model=DesignJobResponse,status_code=202)
 def create_job(payload: DesignJobCreate):
     try:

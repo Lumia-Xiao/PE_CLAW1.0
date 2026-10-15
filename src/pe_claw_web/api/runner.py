@@ -1,5 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from pe_claw_gui.pipeline.run_full_pipeline import run_full_pipeline
 from pe_claw_gui.pipeline.options import PipelineOptions
 from pe_claw_gui.reports import build_structured_report
@@ -12,9 +13,31 @@ def run_buck_design(request: BuckDesignRequest, *, output_root: Path | None = No
     plugin = registry.get_plugin(request.topology)
     raw = build_default_inputs()
     raw.update({key: str(value) for key, value in request.pipeline_input().items()})
-    report = run_full_pipeline(plugin, raw_input=raw, include_waveforms=include_waveforms, output_root=output_root, pipeline_options=PipelineOptions(enable_magnetic_design=enable_magnetic_design), llc_search_mode=llc_search_mode)
-    payload = build_structured_report(report)
-    return DesignResultResponse(job_id="sync", topology=request.topology, summary=payload, warnings=list(report.notes))
+
+    def execute(isolated_output_root: Path) -> DesignResultResponse:
+        report = run_full_pipeline(
+            plugin,
+            raw_input=raw,
+            include_waveforms=include_waveforms,
+            output_root=isolated_output_root,
+            pipeline_options=PipelineOptions(
+                enable_magnetic_design=enable_magnetic_design,
+                enable_capacitor_design=False,
+            ),
+            llc_search_mode=llc_search_mode,
+        )
+        payload = build_structured_report(report)
+        return DesignResultResponse(
+            job_id="sync",
+            topology=request.topology,
+            summary=payload,
+            warnings=list(report.notes),
+        )
+
+    if output_root is not None:
+        return execute(output_root)
+    with TemporaryDirectory(prefix="pe-claw-sync-buck-") as temporary_directory:
+        return execute(Path(temporary_directory))
 
 def run_complete_buck_design(request: BuckDesignRequest, *, output_root: Path | None = None, operating_point: dict[str, float] | None = None) -> DesignResultResponse:
     from .complete import run_complete
