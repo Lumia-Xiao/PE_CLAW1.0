@@ -226,6 +226,7 @@ NPC 一致用户输入及半导体选择合同冻结
 - 已开放 T-type `sweep`/`hardware_overview` capability 和 GUI 按钮；Efficiency 页面明确不显示 NPC 负 PF 或 ZVS 诊断。T-type Overview 从 typed system 读取两角色、12 个封装、3 个电感、2 个银行和共享 sink 的 hardware/scope/数量/损耗来源。
 - 已输出 run-local `efficiency_sweep.csv`、`efficiency_sweep_result.json`、效率/损耗曲线、`t_type_bom.csv` 与 `t_type_structured_report.json`；结构化 sweep payload 保留点级 breakdown、warnings、hardware/basis/scope、excluded components 和来源身份。
 - 当前验证：真实库 0/0.5/1.0 p.u. sweep 三点通过，满载范围损耗 84.48030783996289 W、eta 0.9916227405616246；T-type 步骤6 sweep/export 测试 3 passed。步骤7最终回归、旧拓扑回归、跨拓扑隔离和完整发布门禁仍未执行；死区/换流能量及完整物理损耗继续排除。
+- Git 回执：实现提交 `418008ad78c91915435f95efa41a1d43d06ad4e1` 已推送并核验于 `origin/codex/llc-waveform-operating-point-plan` 与 `pe-claw-1.1/codex/llc-waveform-operating-point-plan`；仅 15 个步骤 6 授权文件入提交，既有删除和本地产物保留。
 
 ### 步骤 7：最终回归、隔离与归档
 
