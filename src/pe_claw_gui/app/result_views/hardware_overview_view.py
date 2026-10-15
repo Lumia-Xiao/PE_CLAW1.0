@@ -311,6 +311,20 @@ def _group_summary_lines(group: HardwareOverviewComponentGroup) -> list[str]:
         if warnings:
             lines.append("  warnings: " + "; ".join(warnings[:3]))
         return lines
+    if topology_id == "three_phase_three_level_t_type_inverter":
+        lines.extend([
+            f"  quantity: {_fmt_int(group.quantity)}",
+            f"  total volume: {_fmt_float(group.volume_cm3)} cm^3",
+            f"  scoped loss: {_fmt_float(group.loss_w)} W",
+            f"  hardware: {group.metadata.get('hardware_id') or '-'}",
+            f"  loss scope: {group.metadata.get('loss_scope_id') or '-'}",
+        ])
+        for child in group.child_entries:
+            lines.append(
+                f"  {child.display_name}: {child.part_number or '-'}, "
+                f"qty={_fmt_int(child.quantity)}, loss={_fmt_float(child.loss_w)} W"
+            )
+        return lines
     if group.group_id == "semiconductor" and topology_id == "three_phase_three_level_npc_inverter":
         return _npc_semiconductor_summary_lines(group, lines)
     if group.group_id == "inductor" and topology_id == "three_phase_three_level_npc_inverter":

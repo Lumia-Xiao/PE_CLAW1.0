@@ -99,11 +99,19 @@ class EfficiencyView(ttk.Frame):
             return
 
         result = report.efficiency_sweep
-        self.message.configure(text="Fixed selected hardware load sweep and inverter PF diagnostics.")
+        is_t_type = report.spec.topology_id == "three_phase_three_level_t_type_inverter"
+        self.message.configure(
+            text=("Fixed selected T-type hardware load sweep; PF/ZVS diagnostics are not applicable."
+                  if is_t_type else "Fixed selected hardware load sweep and inverter PF diagnostics.")
+        )
         self._set_summary_text(build_efficiency_summary_text(result))
         self._show_artifact(self.curve_frame, result.artifact_paths.get("efficiency_curve"))
         self._show_artifact(self.breakdown_frame, result.artifact_paths.get("loss_breakdown_stacked"))
-        self._configure_pf_sweep_layout(_pf_sweep_zvs_applicable(result))
+        self._configure_pf_sweep_layout(False if is_t_type else _pf_sweep_zvs_applicable(result))
+        if is_t_type:
+            self._show_placeholder(self.pf_loss_frame, "PF sweep is not applicable for the T-type load scan.")
+            self._show_placeholder(self.pf_efficiency_frame, "PF sweep is not applicable for the T-type load scan.")
+            return
         self._show_artifact(self.pf_loss_frame, result.pf_sweep_artifact_paths.get("semiconductor_loss_vs_pf"))
         if _pf_sweep_zvs_applicable(result):
             self._show_artifact(self.pf_zvs_frame, result.pf_sweep_artifact_paths.get("zvs_segments_vs_pf"))

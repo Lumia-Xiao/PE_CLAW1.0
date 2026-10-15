@@ -24,6 +24,7 @@ from ..models.efficiency_sweep import EfficiencySweepPoint, EfficiencySweepResul
 from ..models.llc_run_context import is_llc_topology
 from ..models.operating_point import OperatingPoint
 from ..models.waveform import WaveformSet
+from ..models.t_type_engineering import EXCLUDED_COMPONENTS, LOSS_SCOPE_ID
 from ..libraries.semiconductors.topology_roles import get_semiconductor_roles_for_topology
 from ..engines.devices.loss_aggregation import (
     npc_current_role_loss_totals,
@@ -48,6 +49,7 @@ DEFAULT_INVERTER_PF_POINTS: tuple[float, ...] = tuple(round(index / 10.0, 1) for
 SINGLE_PHASE_BOOST_PFC_TOPOLOGY_ID = "single_phase_boost_pfc_diode_bridge"
 SINGLE_PHASE_TOTEM_POLE_PFC_TOPOLOGY_ID = "single_phase_totem_pole_bridgeless_pfc"
 INTERLEAVED_BOOST_PFC_TOPOLOGY_ID = "single_phase_interleaved_boost_pfc_diode_bridge"
+T_TYPE_TOPOLOGY_ID = "three_phase_three_level_t_type_inverter"
 
 
 def run_efficiency_sweep(
@@ -64,6 +66,8 @@ def run_efficiency_sweep(
     warnings: list[str] = []
     signature = _build_signature(report, load_grid)
     run_context = get_run_context(report)
+    if report.spec.topology_id == T_TYPE_TOPOLOGY_ID:
+        return _run_t_type_efficiency_sweep(report, plugin, load_grid, signature, output_dir)
     llc_validation = _validate_llc_efficiency_dependencies(report)
     if llc_validation is not None:
         output_root = _resolve_efficiency_output_dir(report, output_dir)
@@ -192,6 +196,182 @@ def run_efficiency_sweep(
             encoding="utf-8",
         )
     return completed_result
+
+
+def _run_t_type_efficiency_sweep(
+    report: DesignReport,
+    plugin: TopologyPlugin | None,
+    load_grid: tuple[float, ...],
+    signature: str,
+    output_dir: str | Path | None,
+) -> EfficiencySweepResult:
+    """Run a T-type sweep through the selected-hardware refresh contract."""
+
+    artifact_dir = _resolve_efficiency_output_dir(report, output_dir)
+    cached = report.efficiency_sweep
+    if _can_reuse_sweep_result(cached, signature, artifact_dir):
+        return cached
+    blocking = _t_type_sweep_blocking_warning(report, plugin)
+    context = get_run_context(report)
+    common = {
+        "signature": signature,
+        "run_id": getattr(context, "run_id", None),
+        "topology_id": report.spec.topology_id,
+        "input_sha256": getattr(context, "input_sha256", None),
+    }
+    if blocking is not None:
+        result = EfficiencySweepResult(
+            load_grid=load_grid,
+            warnings=(blocking,),
+            status="blocked",
+            blocked_reason=blocking,
+            sweep_basis=_t_type_sweep_basis(report, load_grid, ()),
+            **common,
+        )
+        return _write_t_type_diagnostic(result, artifact_dir)
+
+    points: list[EfficiencySweepPoint] = []
+    warnings: list[str] = []
+    for load_pu in load_grid:
+        point, point_warnings = _evaluate_t_type_load_point(report, load_pu)
+        points.append(point)
+        warnings.extend(point_warnings)
+    result = _build_result(points, load_grid, warnings, signature, report)
+    result = replace(
+        result,
+        status="available" if any(point.efficiency is not None for point in points) else "blocked",
+        blocked_reason=(None if any(point.efficiency is not None for point in points)
+                        else "T-type fixed-hardware sweep produced no valid operating points."),
+        sweep_basis=_t_type_sweep_basis(report, load_grid, points),
+        **common,
+    )
+    artifacts = _write_artifacts(result, artifact_dir, include_csv=True)
+    result = replace(result, artifact_paths=artifacts)
+    json_path = artifact_dir / "efficiency_sweep_result.json"
+    json_path.write_text(json.dumps(result.to_dict(), indent=2, sort_keys=True, default=str), encoding="utf-8")
+    result = replace(result, artifact_paths={**artifacts, "result_json": str(json_path)})
+    json_path.write_text(json.dumps(result.to_dict(), indent=2, sort_keys=True, default=str), encoding="utf-8")
+    return result
+
+
+def _t_type_sweep_blocking_warning(report: DesignReport, plugin: TopologyPlugin | None) -> str | None:
+    if plugin is None:
+        return "T-type efficiency sweep requires the active topology plugin."
+    engineering = report.t_type_engineering
+    if engineering is None or engineering.hardware is None:
+        return "T-type efficiency sweep requires selected fixed hardware from Run Magnetics and Run Capacitor."
+    if engineering.refresh_status != "available" or engineering.system is None:
+        return "T-type efficiency sweep requires an available current hardware/system result."
+    if engineering.system.loss_status != "available":
+        return "T-type efficiency sweep requires complete scoped system losses."
+    if engineering.hardware.loss_scope_id != LOSS_SCOPE_ID or engineering.excluded_components != EXCLUDED_COMPONENTS:
+        return "T-type efficiency sweep requires the current T-type loss scope."
+    return None
+
+
+def _evaluate_t_type_load_point(
+    base_report: DesignReport,
+    load_pu: float,
+) -> tuple[EfficiencySweepPoint, list[str]]:
+    warnings: list[str] = []
+    operating_point = _sweep_operating_point(base_report, load_pu)
+    try:
+        from .run_t_type_hardware_refresh import refresh_t_type_hardware
+
+        refreshed = call_with_report_run(base_report, refresh_t_type_hardware, base_report, operating_point)
+        engineering = refreshed.t_type_engineering
+        hardware = base_report.t_type_engineering.hardware
+        system = engineering.system if engineering is not None else None
+        if engineering is None or hardware is None or engineering.hardware != hardware:
+            raise ValueError("fixed hardware identity changed during refresh")
+        if engineering.refresh_status != "available" or system is None or system.loss_status != "available":
+            diagnostics = getattr(engineering, "refresh_diagnostics", ()) or getattr(system, "diagnostics", ())
+            raise ValueError("; ".join(str(item) for item in diagnostics) or "scoped system result unavailable")
+        output_power = float(system.output_power_w)
+        total_loss = float(system.total_loss_w)
+        semiconductor = float(sum(system.role_losses_w.values()))
+        magnetic = float(engineering.magnetics.total_loss_w)
+        capacitor = float(engineering.capacitors.total_loss_w)
+        values = (output_power, total_loss, semiconductor, magnetic, capacitor)
+        if any(not math.isfinite(value) or value < 0.0 for value in values):
+            raise ValueError("T-type sweep result contains a non-finite or negative value")
+        efficiency = None if output_power <= 0.0 else output_power / (output_power + total_loss)
+        breakdown = dict(system.loss_components_w)
+        breakdown.update({"semiconductor_total": semiconductor, "magnetic_total": magnetic, "capacitor_total": capacitor})
+        audit = {
+            "hardware_id": system.hardware_id,
+            "run_id": system.run_id,
+            "candidate_fingerprint": system.candidate_fingerprint,
+            "loss_scope_id": system.loss_scope_id,
+            "excluded_components": list(system.excluded_components),
+            "operating_basis": dict(system.operating_basis),
+            "position_count": len(engineering.current_positions),
+            "magnetic_instance_count": len(engineering.magnetics.phase_instances),
+            "capacitor_bank_count": 2,
+        }
+        return EfficiencySweepPoint(
+            load_pu=load_pu,
+            output_power_w=output_power,
+            total_loss_w=total_loss,
+            efficiency=efficiency,
+            semiconductor_loss_w=semiconductor,
+            magnetic_loss_w=magnetic,
+            capacitor_loss_w=capacitor,
+            other_loss_w=0.0,
+            loss_breakdown_w=breakdown,
+            switching_loss_audit=audit,
+        ), warnings
+    except Exception as exc:
+        warning = f"T-type efficiency sweep failed at {load_pu:.1f} p.u.: {type(exc).__name__}: {exc}"
+        warnings.append(warning)
+        return EfficiencySweepPoint(
+            load_pu=load_pu,
+            output_power_w=0.0,
+            total_loss_w=None,
+            efficiency=None,
+            semiconductor_loss_w=None,
+            magnetic_loss_w=None,
+            capacitor_loss_w=None,
+            other_loss_w=None,
+            warnings=(warning,),
+        ), warnings
+
+
+def _t_type_sweep_basis(
+    report: DesignReport,
+    load_grid: tuple[float, ...],
+    points: Sequence[EfficiencySweepPoint],
+) -> dict[str, object]:
+    engineering = report.t_type_engineering
+    hardware = getattr(engineering, "hardware", None)
+    basis = getattr(engineering, "current_basis", {}) or {}
+    full = _point_at(points, 1.0)
+    return {
+        "load_grid": tuple(load_grid),
+        "operating_power_factor": basis.get("power_factor"),
+        "power_factor_phase": basis.get("power_factor_phase"),
+        "fixed_hardware": "selected T-type main/midpoint devices, 3 phase inductors, upper/lower capacitor banks",
+        "fixed_hardware_id": getattr(hardware, "hardware_id", None),
+        "run_id": getattr(hardware, "run_id", None),
+        "candidate_fingerprint": getattr(hardware, "candidate_fingerprint", None),
+        "included_losses": ("12 semiconductor positions", "3 phase inductors", "2 capacitor banks"),
+        "loss_scope_id": LOSS_SCOPE_ID,
+        "excluded_components": list(EXCLUDED_COMPONENTS),
+        "component_counts": {"semiconductor_positions": 12, "phase_inductors": 3, "capacitor_banks": 2,
+                              "packages": len(getattr(engineering, "packages", ()) or ())},
+        "loss_breakdown": dict(full.loss_breakdown_w) if full is not None else {},
+        "loss_labels": {"semiconductor": "T-type semiconductor positions", "magnetic": "3 phase inductors",
+                        "capacitor": "upper/lower capacitor banks", "other": "excluded from scope"},
+        "pf_sweep_mode": "not_applicable_t_type",
+        "pf_sweep_current_basis": "T-type signed phase current; no NPC negative-PF or ZVS convention",
+    }
+
+
+def _write_t_type_diagnostic(result: EfficiencySweepResult, output_dir: Path) -> EfficiencySweepResult:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path = output_dir / "efficiency_sweep_result.json"
+    path.write_text(json.dumps(result.to_dict(), indent=2, sort_keys=True, default=str), encoding="utf-8")
+    return replace(result, artifact_paths={"diagnostic_json": str(path)})
 
 
 def _validate_llc_efficiency_dependencies(report: DesignReport) -> str | None:
@@ -1525,7 +1705,12 @@ def _efficiency_at(points: list[EfficiencySweepPoint], load_pu: float) -> float 
     return None
 
 
-def _write_artifacts(result: EfficiencySweepResult, output_dir: str | Path | None) -> dict[str, str]:
+def _write_artifacts(
+    result: EfficiencySweepResult,
+    output_dir: str | Path | None,
+    *,
+    include_csv: bool = False,
+) -> dict[str, str]:
     directory = Path(output_dir) if output_dir is not None else _project_root() / "outputs" / "efficiency_sweep"
     directory.mkdir(parents=True, exist_ok=True)
     csv_path = directory / "efficiency_sweep.csv"
@@ -1534,12 +1719,13 @@ def _write_artifacts(result: EfficiencySweepResult, output_dir: str | Path | Non
     _write_sweep_csv(result, csv_path)
     _write_efficiency_curve(result, efficiency_path)
     _write_loss_breakdown(result, loss_path)
-    # Keep the public artifact contract stable: CSV remains an on-disk audit
-    # artifact, while the result view exposes the two plotted artifacts.
-    return {
+    artifacts = {
         "efficiency_curve": str(efficiency_path),
         "loss_breakdown_stacked": str(loss_path),
     }
+    if include_csv:
+        artifacts["csv"] = str(csv_path)
+    return artifacts
 
 
 def _write_sweep_csv(result: EfficiencySweepResult, path: Path) -> None:
@@ -1852,6 +2038,14 @@ def _build_signature(report: DesignReport, load_grid: tuple[float, ...]) -> str:
         "load_grid": load_grid,
         "operating_vin": report.operating_point.vin_v if report.operating_point is not None else None,
         "operating_power_factor": report.operating_point.power_factor if report.operating_point is not None else None,
+        "t_type_hardware_id": (
+            getattr(getattr(report.t_type_engineering, "hardware", None), "hardware_id", None)
+            if report.spec.topology_id == T_TYPE_TOPOLOGY_ID else None
+        ),
+        "t_type_current_basis": (
+            dict(getattr(report.t_type_engineering, "current_basis", {}) or {})
+            if report.spec.topology_id == T_TYPE_TOPOLOGY_ID else None
+        ),
     }
     encoded = json.dumps(payload, sort_keys=True, default=str).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()

@@ -718,6 +718,8 @@ def _should_include_semiconductor_group(report: DesignReport) -> bool:
 
 
 def _build_semiconductor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    if _is_t_type_report(report):
+        return _build_t_type_semiconductor_group(report)
     display_name = _semiconductor_group_display_name(report)
     if report.device is None:
         return _missing_group("semiconductor", display_name, "Run Design first to populate semiconductor overview.")
@@ -1217,6 +1219,8 @@ def _box_height(box: HardwareIntegratedBox) -> float:
 
 
 def _build_inductor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    if _is_t_type_report(report):
+        return _build_t_type_inductor_group(report)
     if is_llc_topology(report.spec.topology_id) and report.llc_run_context is not None:
         return _build_llc_external_lr_group(report)
     if report.magnetic is None:
@@ -1559,6 +1563,8 @@ def _inductor_group_display_name(topology_id: str) -> str:
 
 
 def _build_capacitor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    if _is_t_type_report(report):
+        return _build_t_type_capacitor_group(report)
     if is_llc_topology(report.spec.topology_id) and report.llc_run_context is not None:
         return _build_llc_resonant_capacitor_group(report)
     if report.capacitor is None:
@@ -2288,6 +2294,126 @@ def _is_three_phase_two_level_inverter(report: DesignReport) -> bool:
 
 def _is_three_phase_npc_inverter(report: DesignReport) -> bool:
     return report.spec.topology_id == "three_phase_three_level_npc_inverter"
+
+
+def _is_t_type_report(report: DesignReport) -> bool:
+    return report.spec.topology_id == "three_phase_three_level_t_type_inverter"
+
+
+def _t_type_volume_bbox(volume_cm3: float | None) -> HardwareOverviewBoundingBox:
+    value = _positive_or_none(volume_cm3)
+    if value is None:
+        return HardwareOverviewBoundingBox()
+    edge = (value * 1000.0) ** (1.0 / 3.0)
+    return HardwareOverviewBoundingBox(edge, edge, edge)
+
+
+def _build_t_type_semiconductor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    engineering = report.t_type_engineering
+    hardware = getattr(engineering, "hardware", None)
+    system = getattr(engineering, "system", None)
+    if engineering is None or hardware is None or system is None or system.loss_status != "available":
+        return _missing_group("semiconductor", "T-type Semiconductors", "Current T-type system result is unavailable.")
+    role_labels = {
+        "t_type_main_switch": "Main switch positions",
+        "t_type_midpoint_switch": "Midpoint switch positions",
+    }
+    children = []
+    for device in hardware.devices:
+        volume = sum(float(system.component_volumes_cm3.get(package.package_instance_id, 0.0))
+                     for package in hardware.packages if package.part_number == device.part_number)
+        loss = float(system.role_losses_w.get(device.role, 0.0))
+        children.append(HardwareOverviewChildEntry(
+            entry_id=device.role,
+            display_name=role_labels.get(device.role, device.role),
+            part_number=device.part_number,
+            quantity=len(device.position_ids) * device.parallel_count,
+            volume_cm3=volume,
+            loss_w=loss,
+            bounding_box_mm=_t_type_volume_bbox(volume),
+            shape_type="semiconductor_package",
+            metadata={"position_count": len(device.position_ids), "parallel_per_position": device.parallel_count,
+                      "loss_scope_id": system.loss_scope_id, "hardware_id": hardware.hardware_id},
+        ))
+    volume = sum(child.volume_cm3 or 0.0 for child in children)
+    volume += float(system.component_volumes_cm3.get("shared_sink", 0.0) or 0.0)
+    return HardwareOverviewComponentGroup(
+        group_id="semiconductor", display_name="T-type Semiconductors", status="available",
+        recommended_name="main / midpoint discrete IGBT+FRD", quantity=len(hardware.packages),
+        volume_cm3=volume, loss_w=sum(children_item.loss_w or 0.0 for children_item in children),
+        geometry_source="t_type_engineering.system", bounding_box_mm=_t_type_volume_bbox(volume),
+        shape_type="semiconductor_package", child_entries=children,
+        metadata={"topology_id": report.spec.topology_id, "hardware_id": hardware.hardware_id,
+                  "loss_scope_id": system.loss_scope_id, "excluded_components": list(system.excluded_components),
+                  "position_count": 12, "package_count": len(hardware.packages),
+                  "shared_sink_volume_cm3": system.component_volumes_cm3.get("shared_sink")},
+        notes=["Two selected semiconductor roles cover six main and six midpoint positions; FRD remains inside each package."],
+    )
+
+
+def _build_t_type_inductor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    engineering = report.t_type_engineering
+    hardware = getattr(engineering, "hardware", None)
+    magnetic = getattr(engineering, "magnetics", None)
+    system = getattr(engineering, "system", None)
+    if hardware is None or magnetic is None or system is None or magnetic.status != "available":
+        return _missing_group("inductor", "T-type Phase Inductors", "Current T-type magnetic result is unavailable.")
+    children = []
+    for phase in magnetic.phase_instances:
+        volume = float(phase.design.total_volume_m3) * 1e6
+        loss = phase.evaluation.total_loss_w if phase.evaluation is not None else None
+        children.append(HardwareOverviewChildEntry(
+            entry_id=phase.instance_id, display_name=phase.instance_id.replace("_", " ").title(),
+            recommended_name=phase.design.candidate_id, part_number=phase.design.candidate_id,
+            quantity=1, volume_cm3=volume, loss_w=loss, bounding_box_mm=_t_type_volume_bbox(volume),
+            shape_type="magnetic_core_assembly", metadata={"hardware_id": hardware.hardware_id},
+        ))
+    return HardwareOverviewComponentGroup(
+        group_id="inductor", display_name="T-type Phase Inductors", status="available",
+        recommended_name=hardware.magnetic_design_id, part_number=hardware.magnetic_design_id,
+        quantity=3, volume_cm3=sum(child.volume_cm3 or 0.0 for child in children),
+        loss_w=magnetic.total_loss_w, geometry_source="t_type_engineering.system",
+        bounding_box_mm=_t_type_volume_bbox(sum(child.volume_cm3 or 0.0 for child in children)),
+        shape_type="magnetic_core_assembly", child_entries=children,
+        metadata={"topology_id": report.spec.topology_id, "hardware_id": hardware.hardware_id,
+                  "phase_count": 3, "loss_scope_id": system.loss_scope_id},
+        notes=["Three physical phase inductors are retained as separate BOM entries; displayed loss is their total."],
+    )
+
+
+def _build_t_type_capacitor_group(report: DesignReport) -> HardwareOverviewComponentGroup:
+    engineering = report.t_type_engineering
+    hardware = getattr(engineering, "hardware", None)
+    capacitors = getattr(engineering, "capacitors", None)
+    system = getattr(engineering, "system", None)
+    if hardware is None or capacitors is None or system is None or capacitors.status != "available":
+        return _missing_group("capacitor", "T-type Split DC-link Capacitors", "Current T-type capacitor result is unavailable.")
+    children = []
+    for side, entry in (("upper", capacitors.current_upper), ("lower", capacitors.current_lower)):
+        if entry is None:
+            continue
+        volume = float(entry.total_volume_cm3)
+        children.append(HardwareOverviewChildEntry(
+            entry_id=side, display_name=f"{side.title()} DC-link bank",
+            recommended_name=f"{entry.candidate.part_number} S={entry.series_count} P={entry.parallel_count}",
+            part_number=entry.candidate.part_number, quantity=entry.total_capacitor_count,
+            volume_cm3=volume, loss_w=entry.p_total_w, bounding_box_mm=_t_type_volume_bbox(volume),
+            shape_type=entry.candidate.package_shape or "capacitor_bank",
+            metadata={"series_count": entry.series_count, "parallel_count": entry.parallel_count,
+                      "hardware_id": hardware.hardware_id},
+        ))
+    total_volume = sum(child.volume_cm3 or 0.0 for child in children)
+    return HardwareOverviewComponentGroup(
+        group_id="capacitor", display_name="T-type Split DC-link Capacitors", status="available",
+        recommended_name="upper / lower selected banks", quantity=sum(child.quantity or 0 for child in children),
+        volume_cm3=total_volume, loss_w=sum(child.loss_w or 0.0 for child in children),
+        geometry_source="t_type_engineering.system", bounding_box_mm=_t_type_volume_bbox(total_volume),
+        shape_type="capacitor_bank", child_entries=children,
+        metadata={"topology_id": report.spec.topology_id, "hardware_id": hardware.hardware_id,
+                  "bank_count": 2, "loss_scope_id": system.loss_scope_id,
+                  "loss_basis_label": "current operating point upper/lower bank ESR loss"},
+        notes=["Upper and lower capacitor banks remain separate physical entries."],
+    )
 
 
 def _is_three_phase_per_phase_inductor_report(report: DesignReport) -> bool:

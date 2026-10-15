@@ -15,6 +15,14 @@
 
 # Change Log
 
+## 2026-10-15 - Implement T-type Step 6 Fixed-Hardware Sweep and Exports
+
+- Added a T-type-specific fixed-hardware efficiency sweep that refreshes the existing selected hardware at each load point, preserving hardware/run/candidate/scope identity and keeping failed points diagnostic-only.
+- Added T-type sweep basis and point-level scope metadata, CSV/JSON/curve artifacts, structured report and physical BOM exports, and typed Hardware Overview groups for 12 semiconductor positions, 3 phase inductors, 2 capacitor banks, and the shared sink proxy.
+- Enabled the T-type sweep and Hardware Overview capabilities and updated the GUI to state that PF/ZVS diagnostics are not applicable to this load scan. Existing topology sweep artifact contracts remain unchanged.
+- Validation: real T-type library sweep at 0/0.5/1.0 p.u. completed with fixed hardware and 84.48030783996289 W full-load scoped loss; `tests/test_t_type_engineering_step6_sweep_export.py` passed 3 tests. T-type-only validation was used; Step 7 cross-topology and full-suite gates remain pending.
+- Affected files: `src/pe_claw_gui/pipeline/run_efficiency_sweep_pipeline.py`, `src/pe_claw_gui/pipeline/t_type_export.py`, T-type capability/controller/forms/views, `src/pe_claw_gui/engines/hardware_overview.py`, `src/pe_claw_gui/reports/structured_output.py`, the Step 6 tests, and the Active plan.
+
 ## 2026-10-10 Archive Two-Phase Interleaved Boost PFC Plan
 
 - Marked `two_phase_interleaved_boost_pfc_plan.md` Completed at the user's direction and moved it from `Plan/Active/` to `Plan/completed/`.

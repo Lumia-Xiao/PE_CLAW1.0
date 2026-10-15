@@ -100,7 +100,7 @@ def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypa
         assert set(form.design_vars) == {f.key for f in form.get_design_fields()}
         assert form.get_runtime_overrides() == {'ambient_temp_c': '25', 'target_junction_temp_c': '100'}
         assert str(form.run_capacitor_button.cget('state')) == 'normal'
-        assert str(form.run_efficiency_sweep_button.cget('state')) == 'disabled'
+        assert str(form.run_efficiency_sweep_button.cget('state')) == 'normal'
         assert str(form.run_magnetics_button.cget('state')) == 'normal'
         assert 'operating_vdc_v' not in form.get_raw_input()
         form.run_design_button.invoke()
@@ -135,7 +135,7 @@ def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypa
         assert 'T-type scoped system unavailable' in loss
         assert report.t_type_engineering.system is None and report.loss is None
         assert '100%' not in loss and '100.0' not in loss
-        assert 'Efficiency unavailable' in app.workspace.efficiency_view.message.cget('text')
+        assert 'Run Efficiency Sweep' in app.workspace.efficiency_view.message.cget('text')
         assert 'Main switches (6 positions)' in stress and 'Midpoint switches (6 positions)' in stress
         assert 'Static blocking maximum = 700.000000 V' in stress
         assert 'Static blocking maximum = 350.000000 V' in stress

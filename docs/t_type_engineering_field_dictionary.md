@@ -205,4 +205,4 @@ Authority: contract section23. Earlier “system unavailable” statements are h
 | loss.total_loss_w | Three-phase magnetic subtotal W (unchanged meaning) | Generic magnetic contract; report metadata points to engineering_result.system for system totals |
 | geometry.targets | Three physical phase-inductor layouts | Existing layout engine, current selected design, phases A/B/C; no fabricated system placement |
 
-Switching/recovery/Coss/auxiliary powers remain excluded. Full sweep, Overview/BOM and CSV/export integration are step6; other-topology electrical regression remains an explicit unverified gate under current user scope.
+Switching/recovery/Coss/auxiliary powers remain excluded. Step6 now provides the T-type fixed-hardware load sweep, run-local Overview/BOM and CSV/JSON exports; other-topology electrical regression remains an explicit unverified gate under current user scope.

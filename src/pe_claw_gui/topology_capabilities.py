@@ -28,7 +28,15 @@ T_TYPE_TOPOLOGY_ID = "three_phase_three_level_t_type_inverter"
 def supports_engineering_stage(topology_id: str, stage: str) -> bool:
     """Gate incremental engineering integration without changing old topology paths."""
     if topology_id == T_TYPE_TOPOLOGY_ID:
-        return stage in {"device", "device_geometry", "magnetics", "capacitors", "scoped_system"}
+        return stage in {
+            "device",
+            "device_geometry",
+            "magnetics",
+            "capacitors",
+            "scoped_system",
+            "sweep",
+            "hardware_overview",
+        }
     return not is_first_pass_topology_only(topology_id)
 
 

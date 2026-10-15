@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from dataclasses import replace
+import json
+from pathlib import Path
 from time import perf_counter
 
 from ...models.operating_point import OperatingPoint
@@ -32,6 +34,13 @@ class EfficiencySweepController:
             raise RuntimeError("Select a topology before running Efficiency Sweep.")
         if not supports_engineering_stage(report.spec.topology_id, "sweep"):
             raise RuntimeError("Efficiency Sweep is unavailable: component selection and losses are not connected.")
+        if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+            engineering = report.t_type_engineering
+            if (engineering is None or engineering.hardware is None or engineering.system is None
+                    or engineering.refresh_status != "available"):
+                raise RuntimeError(
+                    "Efficiency Sweep is unavailable: complete selected T-type hardware and current system losses first."
+                )
         plugin = self._state_store.active_plugin or self._state_store.registry.get_plugin(self._state_store.selected_topology_id)
         sweep_report = replace(report, operating_point=operating_point) if operating_point is not None else report
         if sweep_report.llc_run_context is not None:
@@ -128,6 +137,38 @@ class EfficiencySweepController:
                 ),
             )
             updated_report, _ = write_llc_manifest(updated_report, hardware_overview=overview)
+        if updated_report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+            from ...pipeline.t_type_export import write_t_type_bom_csv, write_t_type_structured_report
+            from ...pipeline.run_efficiency_sweep_pipeline import _resolve_efficiency_output_dir
+            export_dir = _resolve_efficiency_output_dir(updated_report, None)
+            bom_path = write_t_type_bom_csv(updated_report, export_dir)
+            current_result = updated_report.efficiency_sweep
+            if current_result is not None:
+                artifact_paths = {
+                    **current_result.artifact_paths,
+                    "bom_csv": str(bom_path),
+                }
+                updated_report = replace(
+                    updated_report,
+                    efficiency_sweep=replace(current_result, artifact_paths=artifact_paths),
+                )
+                structured_path = write_t_type_structured_report(updated_report, export_dir)
+                updated_report = replace(
+                    updated_report,
+                    efficiency_sweep=replace(
+                        updated_report.efficiency_sweep,
+                        artifact_paths={**artifact_paths, "structured_report_json": str(structured_path)},
+                    ),
+                )
+                # Rewrite once after the final artifact map is attached so the
+                # structured export is self-describing and matches the GUI result.
+                write_t_type_structured_report(updated_report, export_dir)
+                result_json = updated_report.efficiency_sweep.artifact_paths.get("result_json")
+                if result_json:
+                    Path(result_json).write_text(
+                        json.dumps(updated_report.efficiency_sweep.to_dict(), indent=2, sort_keys=True),
+                        encoding="utf-8",
+                    )
         self._state_store.active_plugin = plugin
         self._state_store.design_report = updated_report
         return updated_report

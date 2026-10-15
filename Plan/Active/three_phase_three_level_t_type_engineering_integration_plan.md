@@ -220,6 +220,13 @@ NPC 一致用户输入及半导体选择合同冻结
 - 新增 `tests/test_t_type_engineering_step6_sweep_export.py`、`tests/test_t_type_engineering_step6_gui.py`：真实 Tk 按钮、同硬件扫点/负例、原 report totals 与 JSON/CSV/页面、默认/最小窗口及无旧文件冒充。
 - 完成：全部必验点与缺项/失败行为、当前 GUI 数字及产物一致；第 7 节 sweep/report/gui 组＋累计测试，Git 回执完成。
 
+#### 步骤 6 当前实施回执（2026-10-15）
+
+- 已接入 T-type 专用固定硬件 load sweep：每个负载点调用 `refresh_t_type_hardware`，保留同一 `hardware_id`、run/candidate/scope/basis；不重新综合、选型或搜索。有效点发布 12 个半导体位置、3 个相电感、2 个电容银行范围内的 total/eta；零负载效率保持不可用；失败点保留诊断且不进入效率曲线。
+- 已开放 T-type `sweep`/`hardware_overview` capability 和 GUI 按钮；Efficiency 页面明确不显示 NPC 负 PF 或 ZVS 诊断。T-type Overview 从 typed system 读取两角色、12 个封装、3 个电感、2 个银行和共享 sink 的 hardware/scope/数量/损耗来源。
+- 已输出 run-local `efficiency_sweep.csv`、`efficiency_sweep_result.json`、效率/损耗曲线、`t_type_bom.csv` 与 `t_type_structured_report.json`；结构化 sweep payload 保留点级 breakdown、warnings、hardware/basis/scope、excluded components 和来源身份。
+- 当前验证：真实库 0/0.5/1.0 p.u. sweep 三点通过，满载范围损耗 84.48030783996289 W、eta 0.9916227405616246；T-type 步骤6 sweep/export 测试 3 passed。步骤7最终回归、旧拓扑回归、跨拓扑隔离和完整发布门禁仍未执行；死区/换流能量及完整物理损耗继续排除。
+
 ### 步骤 7：最终回归、隔离与归档
 
 - 汇总当前实际修改消费者，显式列出 cumulative T-type 和受影响旧拓扑全部节点；不能把前序计划清单遗漏解释为无影响。

@@ -921,7 +921,12 @@ def _efficiency_sweep_payload(report: DesignReport) -> dict[str, Any]:
                 "output_power": _metric(point.output_power_w, "W", "efficiency_sweep.result"),
                 "total_loss": _metric(point.total_loss_w, "W", "efficiency_sweep.result"),
                 "semiconductor_loss": _metric(point.semiconductor_loss_w, "W", "efficiency_sweep.result"),
+                "magnetic_loss": _metric(point.magnetic_loss_w, "W", "efficiency_sweep.result"),
+                "capacitor_loss": _metric(point.capacitor_loss_w, "W", "efficiency_sweep.result"),
+                "other_loss": _metric(point.other_loss_w, "W", "efficiency_sweep.result"),
                 "efficiency": _metric(point.efficiency, "ratio", "efficiency_sweep.result"),
+                "loss_breakdown": dict(point.loss_breakdown_w),
+                "warnings": list(point.warnings),
                 "switching_loss_audit": dict(point.switching_loss_audit),
             }
             for point in sweep.points
@@ -939,6 +944,12 @@ def _efficiency_sweep_payload(report: DesignReport) -> dict[str, Any]:
             "sweep_basis": dict(sweep.sweep_basis),
             "artifact_paths": {**sweep.artifact_paths, **sweep.pf_sweep_artifact_paths},
             "warnings": list(sweep.warnings),
+            "run_id": sweep.run_id,
+            "topology_id": sweep.topology_id,
+            "input_sha256": sweep.input_sha256,
+            "source_ids": dict(sweep.source_ids),
+            "fixed_parameters": dict(sweep.fixed_parameters),
+            "blocked_reason": sweep.blocked_reason,
         },
     }
     return payload

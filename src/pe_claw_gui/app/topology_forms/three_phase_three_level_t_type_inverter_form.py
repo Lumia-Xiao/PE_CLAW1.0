@@ -49,14 +49,14 @@ class ThreePhaseThreeLevelTTypeInverterForm(BaseTopologyForm):
             ttk.Entry(op, textvariable=self.operating_vars[key]).grid(row=row, column=1, sticky="ew", padx=6, pady=6)
         self.generate_waveforms_button = ttk.Button(op, text="Generate Waveforms", command=self._trigger_waveforms)
         self.generate_waveforms_button.grid(row=2, column=0, columnspan=2, sticky="ew", padx=6, pady=(10, 6))
-        self.build_efficiency_sweep_button(op, row=3, state="disabled")
+        self.build_efficiency_sweep_button(op, row=3, state="normal")
         notes = ttk.LabelFrame(self, text="Notes", style="Section.TLabelframe")
         notes.grid(row=3, column=0, sticky="nsew", pady=(12, 0))
         ttk.Label(notes, wraplength=360, justify="left", text=(
             "Ideal balanced split bus and zero dead time. L is an initial estimate per phase; "
             "Run Capacitors selects independent upper/lower split-link banks. "
             "IGBT/FRD conduction-only device selection; Run Magnetics selects three phase inductors. "
-            "System losses and efficiency unavailable."
+            "Efficiency Sweep uses the selected hardware and does not reselect components."
         )).pack(anchor="nw", padx=10, pady=10)
 
     def get_operating_point(self):

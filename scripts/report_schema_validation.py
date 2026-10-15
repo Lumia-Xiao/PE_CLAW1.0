@@ -83,6 +83,7 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
             stage_status = engineering.get("stage_status",{})
             errors.extend(_validate_t_type_hardware(engineering, payload.get("waveform", {})))
             errors.extend(_validate_t_type_system(engineering))
+            errors.extend(_validate_t_type_sweep(payload.get("efficiency_sweep"), engineering))
             if engineering.get("magnetics") is not None:
                 errors.extend(_validate_t_type_magnetics(engineering["magnetics"], basis))
             if engineering.get("capacitors") is not None:
@@ -150,6 +151,58 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
                     if expected is None or not isinstance(members,(list,tuple)) or not isinstance(sections,(list,tuple)) or (package.get("part_number"),list(members)) != expected or tuple(sections) != ("discrete_IGBT_FRD",):
                         errors.append("engineering_result.package_binding")
     return errors
+
+
+def _validate_t_type_sweep(sweep, engineering):
+    """Validate T-type sweep identity and point-level scope metadata."""
+
+    if not isinstance(sweep, dict) or not sweep.get("available"):
+        return []
+    errors = []
+    prefix = "efficiency_sweep"
+    metadata = sweep.get("metadata", {})
+    basis = metadata.get("sweep_basis", {}) if isinstance(metadata, dict) else {}
+    hardware = engineering.get("hardware") or {}
+    if not isinstance(basis, dict):
+        return [prefix + ".basis"]
+    if (basis.get("loss_scope_id") != engineering.get("loss_scope_id")
+            or basis.get("fixed_hardware_id") != hardware.get("hardware_id")
+            or basis.get("run_id") != hardware.get("run_id")):
+        errors.append(prefix + ".source")
+    counts = basis.get("component_counts", {})
+    if (not isinstance(counts, dict) or counts.get("semiconductor_positions") != 12
+            or counts.get("phase_inductors") != 3 or counts.get("capacitor_banks") != 2):
+        errors.append(prefix + ".component_counts")
+    points = sweep.get("points", [])
+    if not isinstance(points, list) or not points:
+        errors.append(prefix + ".points")
+        return errors
+    for point in points:
+        if not isinstance(point, dict):
+            errors.append(prefix + ".point")
+            continue
+        load = _quantity_value(point.get("load_ratio"))
+        total = _quantity_value(point.get("total_loss"))
+        eta = _quantity_value(point.get("efficiency"))
+        if load is None or not math.isfinite(load) or load < 0 or load > 1:
+            errors.append(prefix + ".load_ratio")
+        if total is not None and (not math.isfinite(total) or total < 0):
+            errors.append(prefix + ".total_loss")
+        if eta is not None and (not math.isfinite(eta) or eta < 0 or eta > 1):
+            errors.append(prefix + ".efficiency")
+        audit = point.get("switching_loss_audit", {})
+        if isinstance(audit, dict) and audit:
+            if (audit.get("hardware_id") != hardware.get("hardware_id")
+                    or audit.get("loss_scope_id") != engineering.get("loss_scope_id")):
+                errors.append(prefix + ".point_source")
+    return errors
+
+
+def _quantity_value(value):
+    if not isinstance(value, dict):
+        return None
+    raw = value.get("value")
+    return raw if isinstance(raw, (int, float)) and not isinstance(raw, bool) else None
 
 
 def _validate_t_type_system(e):
