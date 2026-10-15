@@ -45,8 +45,7 @@ def run_complete(request, *, output_root: Path, operating_point=None, checkpoint
             on_stage(stage, 5 + i * 13)
         if stage == 'topology':
             raw = build_default_inputs()
-            raw.update({k: str(v) for k, v in request.model_dump(exclude={'topology', 'options'}).items()})
-            raw.update({k: str(v) for k, v in request.options.items()})
+            raw.update({k: str(v) for k, v in request.pipeline_input().items()})
             report = run_topology_pipeline(plugin, raw_input=raw, include_waveforms=False, output_root=output_root).report
         else:
             with activate_report_run(report):

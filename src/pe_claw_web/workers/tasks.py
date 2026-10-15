@@ -71,7 +71,10 @@ def design_buck_task(self, job_id):
             raise LeaseLost(job_id)
         def publish():
             artifacts = save_result(job_id, result)
-            return result.model_copy(update={'artifacts': artifacts}).model_dump(mode='json')
+            return type(result).model_validate({
+                **result.model_dump(mode='json', exclude={'artifacts'}),
+                'artifacts': artifacts,
+            }).model_dump(mode='json')
         return store.publish(job_id, token, publish)
     except LeaseLost:
         log.warning('Job %s lease lost; this attempt cannot publish', job_id)

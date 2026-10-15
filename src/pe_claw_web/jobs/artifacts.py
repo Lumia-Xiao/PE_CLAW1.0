@@ -16,7 +16,11 @@ def save_result(job_id,result: DesignResultResponse):
             path=folder/'exports'/name,stage=stage,url=f"/api/v1/design-jobs/{job_id}/artifacts/{artifact_id}"))
     # The report lists all other artifacts. Its own hash lives in the API manifest
     # to avoid a self-referential checksum. Never rewrite it after hashing.
-    payload=result.model_copy(update={'job_id':job_id,'artifacts':exported})
+    payload=DesignResultResponse.model_validate({
+        **result.model_dump(mode='json', exclude={'artifacts'}),
+        'job_id':job_id,
+        'artifacts':exported,
+    })
     path=folder/'result.json'; path.write_text(payload.model_dump_json(indent=2),encoding='utf-8')
     return [_manifest_entry(artifact_id="result-json",name="result.json",media_type="application/json",path=path,stage="report",url=f"/api/v1/design-jobs/{job_id}/artifacts/result-json"), *exported]
 

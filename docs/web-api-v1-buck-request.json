@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "topology": "buck_diode_rectified_unidirectional",
+  "vin_min": 36.0,
+  "vin_max": 60.0,
+  "vout": 12.0,
+  "pout": 120.0,
+  "fs_khz": 100.0,
+  "ripple_current_ratio": 0.3,
+  "ripple_voltage_ratio_percent": 1.0,
+  "options": {
+    "main_switch_category": "Any active switch",
+    "rectifier_diode_category": "Any diode",
+    "semiconductor_manufacturer": "Any",
+    "ambient_temp_c": 25.0,
+    "target_junction_temp_c": 100.0
+  }
+}

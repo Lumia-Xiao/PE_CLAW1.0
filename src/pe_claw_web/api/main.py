@@ -15,7 +15,7 @@ app=FastAPI(title='PE-Claw Design API',version='0.1.0')
 def health(): return {'status':'ok'}
 @app.get('/api/v1/topologies')
 def topologies(): return topology_catalog()
-@app.post('/api/v1/design/buck')
+@app.post('/api/v1/design/buck', response_model=DesignResultResponse)
 def design_buck(request: BuckDesignRequest): return run_buck_design(request)
 @app.post('/api/v1/design-jobs',response_model=DesignJobResponse,status_code=202)
 def create_job(payload: DesignJobCreate):

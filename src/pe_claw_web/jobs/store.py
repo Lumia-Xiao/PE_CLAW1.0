@@ -59,8 +59,12 @@ class JobStore:
             status='queued', progress=0, stage='queued', attempt=0, created_at=utcnow())
 
     def create_complete(self, payload):
-        execution = {'profile': payload.execution_profile, 'operating_point': payload.operating_point or {
-            'vin_v': (payload.request.vin_min + payload.request.vin_max) / 2, 'load_ratio': 1.0}}
+        operating_point = (
+            payload.operating_point.model_dump(mode='json')
+            if payload.operating_point is not None
+            else {'vin_v': (payload.request.vin_min + payload.request.vin_max) / 2, 'load_ratio': 1.0}
+        )
+        execution = {'profile': payload.execution_profile, 'operating_point': operating_point}
         key = digest({'request': payload.request.model_dump(mode='json'), 'execution': execution})
         with self.Session() as s:
             if payload.client_request_id:

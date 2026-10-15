@@ -11,6 +11,7 @@ import pytest
 from pe_claw_web.schemas import BuckDesignRequest, DesignResultResponse
 
 FIXTURES = Path(__file__).resolve().parents[1] / 'web/frontend/tests/fixtures'
+API_EXAMPLE = Path(__file__).resolve().parents[1] / 'docs/web-api-v1-buck-request.json'
 INPUT = dict(vin_min=36, vin_max=60, vout=12, pout=120, fs_khz=100,
              ripple_current_ratio=.3, ripple_voltage_ratio_percent=1)
 
@@ -53,7 +54,7 @@ def test_real_buck_sync_http_matches_topology_fixture(api, tmp_path, monkeypatch
     main, _, _ = api
     from pe_claw_web.api.runner import run_buck_design
     monkeypatch.setattr(main, 'run_buck_design', lambda request: run_buck_design(request, output_root=tmp_path / 'pipeline'))
-    response = call(main, 'POST', '/api/v1/design/buck', json=INPUT)
+    response = call(main, 'POST', '/api/v1/design/buck', json=json.loads(API_EXAMPLE.read_text(encoding='utf-8')))
     assert response.status_code == 200, response.text
     result = DesignResultResponse.model_validate(response.json())
     golden = json.loads((FIXTURES / 'result.json').read_text(encoding='utf-8'))
@@ -114,6 +115,14 @@ def test_queue_failure_and_invalid_request_have_http_errors(api, monkeypatch):
     assert 'internal broker address' not in response.text
     response = call(main, 'POST', '/api/v1/design-jobs', json={'request': {**INPUT, 'vin_min': 80}})
     assert response.status_code == 422
+    missing = dict(INPUT)
+    missing.pop('pout')
+    response = call(main, 'POST', '/api/v1/design/buck', json=missing)
+    assert response.status_code == 422
+    assert response.json()['detail'][0]['loc'] == ['body', 'pout']
+    response = call(main, 'POST', '/api/v1/design/buck', json={**INPUT, 'topology': 'unsupported'})
+    assert response.status_code == 422
+    assert response.json()['detail'][0]['loc'] == ['body', 'topology']
     assert call(main, 'GET', '/api/v1/design-jobs/not-a-job/artifacts/result-json').status_code == 422
 
 
@@ -148,7 +157,11 @@ def test_unified_exports_download_bytes_and_isolation(api):
     }
     result = DesignResultResponse(job_id=item.job_id, topology=item.topology, summary=summary)
     files = save_result(item.job_id, result)
-    store.update(item.job_id, status='succeeded', result_json=result.model_copy(update={'artifacts': files}).model_dump(mode='json'))
+    result_with_artifacts = DesignResultResponse.model_validate({
+        **result.model_dump(mode='json', exclude={'artifacts'}),
+        'artifacts': files,
+    })
+    store.update(item.job_id, status='succeeded', result_json=result_with_artifacts.model_dump(mode='json'))
     assert {f['id'] for f in files} == {'result-json', 'capacitor-csv', 'waveform-csv', 'efficiency_sweep-csv', 'waveform-png', 'efficiency-png'}
     for entry in files:
         downloaded = call(main, 'GET', entry['download_url'])

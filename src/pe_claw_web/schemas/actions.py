@@ -13,7 +13,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from .design import DesignError
+from .design import DesignError, OperatingPointRequest
 
 
 class DesignAction(StrEnum):
@@ -30,15 +30,6 @@ class ActionStatus(StrEnum):
     failed = "failed"
     cancelled = "cancelled"
     expired = "expired"
-
-
-class OperatingPointRequest(BaseModel):
-    """Operating-point inputs used by waveform refresh."""
-
-    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
-
-    vin_v: float = Field(gt=0, description="Operating input voltage, V")
-    load_ratio: float = Field(ge=0, description="Per-unit load ratio")
 
 
 class DesignActionRequest(BaseModel):
