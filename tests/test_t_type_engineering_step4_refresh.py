@@ -40,7 +40,10 @@ def check_current(report):
     assert e.magnetics.operating_basis == e.capacitors.operating_basis == e.current_basis
     assert e.current_basis["inductance_h"] == e.hardware.inductance_h
     assert len(e.current_positions) == 12
-    assert report.loss is report.thermal is report.geometry is report.efficiency_sweep is None
+    assert report.efficiency_sweep is None  # Step 6 remains closed.
+    assert e.system.loss_status == "available", e.system.diagnostics
+    assert report.loss.total_loss_w == e.magnetics.total_loss_w  # Magnetic subtotal contract.
+    assert e.system.total_loss_w > report.loss.total_loss_w
     payload = build_structured_report(report)
     assert payload["waveform"]["t_type_hardware_source"]["hardware_id"] == e.hardware.hardware_id
     assert not validate_report(payload)
@@ -322,6 +325,13 @@ def test_real_Tk_complete_hardware_current_numbers_invalidation_export(selected,
         summary = app.workspace.summary_view.text.get("1.0", "end")
         assert "Operating load ratio = 0.500000 pu" in summary
         assert f"L_phase selected = {refreshed.t_type_engineering.hardware.inductance_h * 1e6:.6f} uH" in summary
+        system = refreshed.t_type_engineering.system
+        assert f"Scoped total loss = {system.total_loss_w:.6f} W" in summary
+        assert f"Scoped total loss: {system.total_loss_w:.6f} W" in app.workspace.loss_view.text.get("1.0", "end")
+        assert f"Scoped efficiency: {system.efficiency_ratio * 100:.6f} %" in app.workspace.loss_view.text.get("1.0", "end")
+        for position in system.position_thermal:
+            assert f"{position.position_id}: Tj={position.junction_temp_c:.6f} C" in app.workspace.thermal_view.text.get("1.0", "end")
+        assert f"Component model volume: {system.total_component_volume_cm3:.6f} cm3" in app.workspace.geometry_view.message.cget("text")
         bank_text = app.workspace.capacitor_view.summary_text.get("1.0", "end")
         assert f"loss={refreshed.t_type_engineering.capacitors.total_loss_w:.3f} W" in bank_text
         assert "load=0.500" in bank_text

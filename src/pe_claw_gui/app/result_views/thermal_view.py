@@ -25,6 +25,10 @@ class ThermalView(ttk.Frame):
         self.render(None)
 
     def render(self, report: DesignReport | None) -> None:
+        if report is not None and report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+            from .t_type_system_view import system_lines
+            self._set_text("\n".join(system_lines(report, "thermal")))
+            return
         if report is None or report.thermal is None:
             self._set_text("Thermal evaluation has not run yet.")
             return

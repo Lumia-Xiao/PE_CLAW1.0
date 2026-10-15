@@ -255,7 +255,7 @@ def test_missing_invalid_and_out_of_range_models_rejected(library, kind):
 @pytest.mark.parametrize(
     "stage", ["system", "thermal", "geometry", "sweep"]
 )
-def test_unopened_stages_protected_on_direct_calls(report, stage):
+def test_scoped_system_requires_complete_hardware_and_sweep_stays_closed(report, stage):
     from pe_claw_gui.pipeline.run_magnetic_pipeline import run_magnetic_pipeline
     from pe_claw_gui.pipeline.run_capacitor_pipeline import run_capacitor_pipeline
     from pe_claw_gui.pipeline.run_loss_pipeline import run_loss_pipeline
@@ -272,8 +272,16 @@ def test_unopened_stages_protected_on_direct_calls(report, stage):
         "sweep": run_efficiency_sweep,
     }[stage]
     assert not supports_engineering_stage(PLUGIN.topology_id, stage)
-    with pytest.raises(RuntimeError, match="stage is unavailable"):
-        function(report)
+    if stage == "sweep":
+        with pytest.raises(RuntimeError, match="stage is unavailable"):
+            function(report)
+    else:
+        assert supports_engineering_stage(PLUGIN.topology_id, "scoped_system")
+        actual = function(report)
+        system = actual.t_type_engineering.system
+        assert system.loss_status == "unavailable" and system.diagnostics
+        assert system.total_loss_w is system.efficiency_ratio is system.total_component_volume_cm3 is None
+        assert actual.loss is actual.thermal is actual.geometry is None
 
 
 def test_fixed_candidate_refresh_retains_selection_without_reselect(

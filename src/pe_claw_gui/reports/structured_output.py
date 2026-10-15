@@ -567,6 +567,9 @@ def _loss_payload(report: DesignReport) -> dict[str, Any]:
         },
         "metadata": {"core_loss_status": getattr(loss, "core_loss_status", "not_evaluated")},
     }
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        payload["metadata"].update(basis="three physical phase inductors; magnetic subtotal only",
+            system_owner="engineering_result.system")
     npc_audit = _npc_switching_audit_payload(report)
     if npc_audit:
         payload["npc_switching"] = npc_audit

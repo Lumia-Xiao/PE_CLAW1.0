@@ -2222,3 +2222,12 @@ listed here.
 
 - 收尾回执：独立capacitor_gui1 passed/98.07s/exit0；最终legacy_gui再验1 passed/47.53s/exit0。分组全阶段去重498节点都有实际通过回执，早期累计与Tk失败已关联补验，无未解决失败；这是分组修复验证，不是一次最终全量。汇总pytest_temp/tt-r2-s4-verified-receipt.json；生产代码与最新失效组source SHA一致（仅runner增分组）。28任务文件明确暂存，67本地引用、AST、ChangeLog只追加、diff --check核实，95既有删除与本地产物保留。
 - 步骤4 Git回执：实现`8e5abd0d8fc6ba54e9c7dfd45f6f05b05773deda`已推送`pe-claw-1.1/codex/llc-waveform-operating-point-plan`并核实ls-remote同SHA。实现28个任务文件精准提交；文档状态回执随后独立提交。95项既有删除、用户未跟踪文件、outputs、archives及pytest_temp均未纳入。
+
+
+## 2026-10-15 T-type第二轮步骤5：当前范围系统损耗、热与组件几何
+
+- 原因/分类：限定T-type的共享集成；完整硬件已能刷新但缺系统总量。新增models/t_type_engineering系统/配置、topology system_adapter、pipeline/run_t_type_system_pipeline，选后closure接入；公共loss/thermal/geometry入口仅增加T-type委派，其他拓扑算法/库/公式/选型策略不变。LossResult保留三磁件小计，typed system是范围总量唯一所有者。
+- 行为：12位置导通W按n计一次，3电感当前铜/芯W及2银行当前W完整有限非负且同hardware/run/basis/scope才发布total/eta；零输出eta不可用。复用公共TIM、磁件热与forced-air sink代理，显式NPC同方法工程配置按当前T-type功耗重算并纳入硬件ID；12n封装/3磁件/2银行/1sink模型体积和，缺尺寸禁total volume。子结果更新/失败清旧system及依赖状态，保留名义选择参考。
+- 相关文件/消费者：T-type硬件adapter与device/magnetic/capacitor/refresh stages、基础Summary/Device/Loss/Thermal/Geometry页面、structured_output与validator；新增step5测试/runner，更新step1未完整硬件入口合同和step4完整GUI系统读回，契约23/字段字典/Active计划18同步。scoped_system开放而旧system总开关关闭；保持快速Run Design与NPC输入/半导体UI一致。扫描、完整Overview/BOM/CSV留步骤6；死区/换流能量/Coss/辅助损耗继续排除。
+- 验证：首轮电容容器读取错误16失败回执保留，修正recommended后focus16 passed/90.34s；扩展focus28 passed/115.67s。最终focus30、固定刷新30、矩阵18、热边界1、独立GUI1、入口合同5、历史按钮GUI1均通过；累计启动版本516 passed/10 failed/2 deselected，10个失败均已由修正后的独立补验覆盖，去重通过节点529、未解决0。工程公式/当前来源/用户GUI/同拓扑隔离分开记录；其他拓扑/full suite/跨拓扑隔离未执行。
+- Git/保护：基准8684b781f881203d8d19be9e5739fec77f3055e8；codex/llc-waveform-operating-point-plan，目标pe-claw-1.1同名分支。95既有tracked删除、用户未跟踪文档及outputs/archives/pytest_temp不暂存；本次无备份操作。步骤5提交与推送回执随后追加。

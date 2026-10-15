@@ -108,6 +108,15 @@ class GeometryView(ttk.Frame):
 
         geometry = report.geometry
         target_by_role = {target.role: target for target in geometry.targets}
+        t_type = report.spec.topology_id == "three_phase_three_level_t_type_inverter"
+        labels = dict(_TARGET_LABELS)
+        if t_type:
+            labels = dict(zip(_TARGET_ORDER, ("Phase A", "Phase B", "Phase C")))
+            target_by_role = {role: target_by_role.get(phase) for role, phase in
+                zip(_TARGET_ORDER, ("phase_a", "phase_b", "phase_c"))}
+        for mode in ("2D", "3D"):
+            for role in _TARGET_ORDER:
+                self._section_widgets[(mode, role)]["section"].configure(text=labels[role])
         is_llc_external_lr = geometry.component_type == "external_resonant_inductor"
         self.message.configure(
             text=(
@@ -116,6 +125,9 @@ class GeometryView(ttk.Frame):
                 else "Geometry comparison page uses fixed targets: Min-volume, Min-loss, Recommended."
             )
         )
+        if t_type:
+            from .t_type_system_view import system_lines
+            self.message.configure(text="\n".join(system_lines(report, "geometry")[:3]))
         self.mode_tabs.grid()
         self._clear_canvases()
         comparison_layouts = [target.layout for target in geometry.targets if target.layout is not None]
@@ -143,7 +155,7 @@ class GeometryView(ttk.Frame):
         lines = [
             geometry.summary or "Geometry comparison view is ready.",
             "",
-            "LLC external resonant-inductor targets" if is_llc_external_lr else "Fixed targets",
+            "Three physical phase inductors" if t_type else "LLC external resonant-inductor targets" if is_llc_external_lr else "Fixed targets",
         ]
         for role in _TARGET_ORDER:
             target = target_by_role.get(role)
@@ -152,7 +164,7 @@ class GeometryView(ttk.Frame):
                 continue
             duplicate_text = f"  same as {_TARGET_LABELS.get(target.duplicate_of, target.duplicate_of)}" if target.duplicate_of else ""
             lines.append(
-                f"  {_TARGET_LABELS[role]}: {target.design_id or '-'}"
+                f"  {labels[role]}: {target.design_id or '-'}"
                 f"  volume={_fmt_si(target.volume_m3, 1e6, 'cm^3')}"
                 f"  loss={_fmt_float(target.loss_w)} W"
                 f"{duplicate_text}"

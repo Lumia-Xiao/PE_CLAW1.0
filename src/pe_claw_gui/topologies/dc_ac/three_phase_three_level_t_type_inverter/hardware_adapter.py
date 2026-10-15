@@ -93,6 +93,7 @@ def build_hardware_snapshot(report):
             raise ValueError("T-type capacitor hardware identity mismatch")
     u, l = c.selected_upper, c.selected_lower
     thermal = {"ambient": basis.ambient_temp_c, "target": basis.target_junction_temp_c,
+        "configuration": asdict(e.thermal_configuration),
         "curve": basis.reference_curve_temp_c, "packages": actual_packages,
         "device_stresses": {k: asdict(v) for k, v in scheme.per_device_selection_stresses.items()}}
     snapshot = TTypeHardwareSnapshot("", basis.run_id, basis.candidate_fingerprint, e.loss_scope_id,

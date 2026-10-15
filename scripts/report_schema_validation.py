@@ -82,6 +82,7 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
             selected_roles={d.get("role") for d in devices if isinstance(d,dict)}
             stage_status = engineering.get("stage_status",{})
             errors.extend(_validate_t_type_hardware(engineering, payload.get("waveform", {})))
+            errors.extend(_validate_t_type_system(engineering))
             if engineering.get("magnetics") is not None:
                 errors.extend(_validate_t_type_magnetics(engineering["magnetics"], basis))
             if engineering.get("capacitors") is not None:
@@ -148,6 +149,72 @@ def validate_report(payload: dict[str, Any]) -> list[str]:
                     sections = package.get("section_bindings",())
                     if expected is None or not isinstance(members,(list,tuple)) or not isinstance(sections,(list,tuple)) or (package.get("part_number"),list(members)) != expected or tuple(sections) != ("discrete_IGBT_FRD",):
                         errors.append("engineering_result.package_binding")
+    return errors
+
+
+def _validate_t_type_system(e):
+    """Validate published scope totals against current physical component records."""
+    s = e.get("system")
+    if s is None:
+        return []
+    prefix = "engineering_result.system"
+    errors = []
+    try:
+        if s["loss_status"] != "available":
+            if any(s.get(k) is not None for k in ("total_loss_w", "efficiency_ratio", "total_component_volume_cm3")):
+                errors.append(prefix + ".unavailable_totals")
+            return errors
+        if (e["refresh_status"] != "available" or s["hardware_id"] != e["current_hardware_id"]
+                or s["run_id"] != e["design_basis"]["run_id"]
+                or s["candidate_fingerprint"] != e["design_basis"]["candidate_fingerprint"]
+                or s["operating_basis"] != e["current_basis"] or s["loss_scope_id"] != e["loss_scope_id"]
+                or s["excluded_components"] != e["excluded_components"]):
+            errors.append(prefix + ".source")
+        components = {p["position_id"]: p["position_loss_w"] for p in e["current_positions"]}
+        for p in e["magnetics"]["phase_instances"]:
+            for key in ("copper", "core"):
+                components[p["instance_id"] + "." + key] = p["evaluation"][key + "_loss_w"]
+        for side in ("upper", "lower"):
+            components[side + ".capacitor"] = e["capacitors"]["current_" + side]["p_total_w"]
+        if (len(components) != 20 or components != s["loss_components_w"]
+                or any(not math.isfinite(v) or v < 0 for v in components.values())):
+            errors.append(prefix + ".components")
+        total, power = sum(components.values()), e["current_basis"]["pout_w"]
+        roles = {d["role"]: sum(p["position_loss_w"] for p in e["current_positions"] if p["role"] == d["role"])
+            for d in e["selected_devices"]}
+        if (set(roles) != set(s["role_losses_w"]) or any(not math.isclose(value,
+                s["role_losses_w"][role], rel_tol=1e-10, abs_tol=1e-10) for role, value in roles.items())):
+            errors.append(prefix + ".roles")
+        if (not math.isfinite(s["total_loss_w"]) or not math.isclose(total, s["total_loss_w"], rel_tol=1e-10, abs_tol=1e-10)
+                or s["output_power_w"] != power
+                or (power == 0 and s["efficiency_ratio"] is not None)
+                or (power > 0 and (s["efficiency_ratio"] is None or not math.isfinite(s["efficiency_ratio"])
+                    or not math.isclose(s["efficiency_ratio"], power / (power + total), rel_tol=1e-12, abs_tol=1e-12)))):
+            errors.append(prefix + ".published_total")
+        if s["geometry_status"] == "available":
+            volumes = s["component_volumes_cm3"]
+            expected = {p["package_instance_id"] for p in e["packages"]} | {"phase_a", "phase_b", "phase_c", "upper.capacitor", "lower.capacitor", "shared_sink"}
+            if (set(volumes) != expected or any(not math.isfinite(v) or v <= 0 for v in volumes.values())
+                    or not math.isclose(s["total_component_volume_cm3"], sum(volumes.values()), rel_tol=1e-12, abs_tol=1e-12)):
+                errors.append(prefix + ".volume")
+        elif s["total_component_volume_cm3"] is not None:
+            errors.append(prefix + ".unavailable_volume")
+        if s["thermal_status"] == "available":
+            positions = s["position_thermal"]
+            if len(positions) != 12 or {p["position_id"] for p in positions} != {p["position_id"] for p in e["current_positions"]}:
+                errors.append(prefix + ".thermal_positions")
+            for p in positions:
+                current = next(v for v in e["current_positions"] if v["position_id"] == p["position_id"])
+                sink = e["design_basis"]["ambient_temp_c"] + sum(roles.values()) * e["thermal_configuration"]["coupling_factor"] * e["thermal_configuration"]["sink_rth_k_per_w"]
+                if (p["physical_device_count"] != current["parallel_count"] or p["part_number"] != current["part_number"]
+                        or not math.isclose(p["per_device_loss_w"], current["position_loss_w"] / current["parallel_count"], rel_tol=1e-12, abs_tol=1e-12)
+                        or not math.isclose(p["sink_temp_c"], sink, rel_tol=1e-12, abs_tol=1e-12)):
+                    errors.append(prefix + ".thermal_source")
+                tj = p["sink_temp_c"] + p["per_device_loss_w"] * (p["rth_jc_k_per_w"] + p["rth_cs_k_per_w"])
+                if not math.isfinite(tj) or not math.isclose(tj, p["junction_temp_c"], rel_tol=1e-12, abs_tol=1e-12):
+                    errors.append(prefix + ".thermal_network")
+    except (KeyError, TypeError, ValueError, ZeroDivisionError, StopIteration):
+        errors.append(prefix + ".incomplete")
     return errors
 
 

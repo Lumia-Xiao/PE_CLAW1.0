@@ -35,6 +35,9 @@ def run_loss_pipeline(
     mode used by NPC efficiency sweep.  It keeps the existing selection and
     refreshes only the selected inductor's operating-point loss.
     """
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        from .run_t_type_system_pipeline import run_t_type_system_pipeline
+        return run_t_type_system_pipeline(report)
     from ..topology_capabilities import require_engineering_stage
     require_engineering_stage(report.spec.topology_id, "system")
 

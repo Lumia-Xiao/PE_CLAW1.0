@@ -111,8 +111,8 @@ NPC 一致用户输入及半导体选择合同冻结
 | 前置纠偏 | NPC 输入/选择合同及 T-type 后台适配 | 0–1 历史实现 | 合同已冻结；A1完成并推送，A2/A3及总体验收待实施，见12.5 |
 | 2 | 三相电感接入 | 1、前置纠偏验收 | T-type授权范围完成并推送，见15节；前置signed PF/A3保留后续 |
 | 3 | 上/下银行电流与真实电容选型 | 0、2 | T-type授权范围完成并推送，见16节 |
-| 4 | 选定硬件回读、固定硬件刷新与全链来源校验 | 1–3 | 待实施 |
-| 5 | 本轮损耗、热、几何及最早真实工程贯通 | 4 | 待实施 |
+| 4 | 选定硬件回读、固定硬件刷新与全链来源校验 | 1–3 | 已完成并推送，见17节 |
+| 5 | 本轮损耗、热、几何及最早真实工程贯通 | 4 | 已实现；累计验证及Git回执进行中，见18节 |
 | 6 | 固定硬件扫描、完整工程 GUI/报告/导出 | 5 | 待实施 |
 | 7 | 二轮完整验收、旧消费者回归、隔离与归档 | 6 | 待实施 |
 
@@ -190,6 +190,15 @@ NPC 一致用户输入及半导体选择合同冻结
 - 完成：所有下游使用同一 actual hardware 与当前 basis，第 7 节 refresh 组＋累计测试及旧 NPC/其他刷新消费者通过，Git 回执完成。
 
 ### 步骤 5：本轮损耗、热、几何与最早真实工程贯通
+
+#### 2026-10-15 实施边界（验证前）
+
+- 分类为限定 T-type 路由的共享集成：新增 typed system 及 topology system adapter，选后 closure 调用；公共 loss/thermal/geometry 入口增加 T-type 委派，其他拓扑分支不变。`system` 总开关仍关闭（它同时开放旧扫描链），仅开放 `scoped_system`，步骤6再接扫描/完整导出。原 LossResult 保留磁件小计语义，系统唯一所有者为 `t_type_engineering.system`。
+- 当前12位置的 per-device channel/diode W 乘各自 n 一次，按位置/角色分别保存；3相当前铜/芯 W、上下银行当前 ESR W 分项并验证已发布小计。必需对象/来源/有限非负校验失败时清 total/eta/系统体积，不回读 nominal/reference。Pout 来自同一 current_basis；零负载 eta=None。
+- 热配置固定工程默认：共享强迫风冷散热器0.12 K/W、120 m3/h、风量折减0.8、器件耦合1.15、安装压力0.35 MPa，均与 NPC 方法一致且纳入 hardware fingerprint。仅半导体导通功耗进入该散热器；3只电感采用公共 lumped magnetic engine 独立散热。逐位置 Tj=Ta+Psemi*coupling*Rsa+Pper-device*(Rjc+Rcs)，Rjc 保守取 IGBT/FRD 路径最大，TIM 由公共解析器读取；不迭代曲线温度、不声称完整损耗热验收。
+- 几何保存12n封装体积、3相磁件模型体积、2银行实物体积、1共享散热器代理体积。公共 package template 必须为已知型号、尺寸有限正值；缺任一尺寸禁止系统体积，保留组件小计。总量为模型组件体积和，不含间距/外壳/布置。
+- 失效条件：硬件/运行点/run/candidate/scope改变，重选或源数据失效均清依赖；固定刷新不重选。报告 JSON 使用 typed asdict 扩展并更新 validator/字段字典。基础 Loss/Thermal/Summary/Geometry 读当前结果，Overview完整BOM/扫描/CSV归步骤6。
+- 验证命令：`python -B scripts/validate_t_type_engineering_step5.py pytest_temp/tt-r2-s5-<fresh> focus`，随后 `t_type`、独立 `gui` 组；运行前记录本工作区解释器/导入/测试位置和源文件校验和。新增独立总量/热阻/封装数量/缺项/非有限/陈旧来源/零负载/真实Tk数值证据，沿用步骤4独立库曲线积分及固定硬件矩阵。本轮只运行 T-type，其他共享消费者回归留步骤7未验证门禁；不以此声明所有旧拓扑通过。
 
 - 文件：device loss integration/aggregation、run_loss_pipeline、run_thermal_pipeline、run_geometry_pipeline、semiconductor geometry、hardware_overview、T-type adapter、类型化模型及 GUI 基础结果。
 - 逐位置 channel/diode 导通损耗→两组总量，磁件运行铜/磁芯损耗→3 相总量，银行当前 ESR 模型→上下总量。数量、并联及包装节区只按其物理定义汇总一次，复用公共计算而不把磁件总量字段扩成系统量。
@@ -544,3 +553,16 @@ python -B -m pytest -q --basetemp .pytest-tmp-tt-input-parity tests/test_t_type_
 
 - 收尾回执：独立capacitor_gui1 passed/98.07s/exit0；最终legacy_gui再验1 passed/47.53s/exit0。分组全阶段去重498节点都有实际通过回执，早期累计与Tk失败已关联补验，无未解决失败；这是分组修复验证，不是一次最终全量。汇总pytest_temp/tt-r2-s4-verified-receipt.json；生产代码与最新失效组source SHA一致（仅runner增分组）。28任务文件明确暂存，67本地引用、AST、ChangeLog只追加、diff --check核实，95既有删除与本地产物保留。
 - 步骤4 Git回执：实现提交`8e5abd0d8fc6ba54e9c7dfd45f6f05b05773deda`已推送`pe-claw-1.1/codex/llc-waveform-operating-point-plan`，ls-remote核实同SHA；28个授权文件定向提交，不含验证/outputs/archives和95项既有删除。状态仅更新计划/日志，沿用已完成分组回执，不重跑电气链；步骤4在所述T-type范围关闭。
+
+
+## 18. 2026-10-15 步骤5执行记录（未提前标完成）
+
+- 基准8684b781f881203d8d19be9e5739fec77f3055e8，分支codex/llc-waveform-operating-point-plan；目标pe-claw-1.1同名分支。保留95项历史tracked删除、Plan/Deployment/web_migration_plan.md和migration/summary.md，不触及库、migration冻结证据和用户输出，不执行删除/清理。
+- 新增typed system/thermal config、topology system_adapter与pipeline orchestrator；完整硬件closure自动接入。公共loss/thermal/geometry仅T-type委派；原LossResult仍为磁件小计。system读取当前12位置、3磁件、2银行并核对原发布小计，提供范围W/eta、共享sink温度、三相磁件热与组件模型体积。磁件/银行更新清system，失效不保留成功阶段状态或旧scope值。
+- 基础Summary/Device/Loss/Thermal/Geometry读当前report，三相geometry按物理A/B/C显示；JSON直接序列化typed system，validator校核身份、20损耗组件、原发布total/eta、物理数量/体积和热网络；契约23/当前字段字典同步。快速Run Design输入及选择UI不变；system总开关继续关闭，scoped_system开放，未实施步骤6扫描或完整Overview/BOM/CSV。
+- 最早真实链：Python3.12.10/current src，默认700V/400VLL/10kW/50Hz/20kHz/PF1，真实库两角色/三磁件/两银行选后closure。第二次focus16 passed/90.34s；扩展focus28 passed/115.67s（pytest_temp/tt-r2-s5-focus-02、-focus-03）。首轮16失败保留于tt-r2-s5-first，根因公共当前电容是SideResult容器而非bank，修正读取recommended；未修改工程库/数值容差或跳过失败。
+- focus-03真实当前值：main35.352089645753736W、midpoint20.118323838104587W、三电感26.693806945938103W、两银行2.316087410166473W；原发布scope total84.48030783996289W、eta0.9916227405616246；worst Tj35.36524506900003C、组件model volume1940.3225896958274cm3。这是导通范围与显式工程冷却配置下的模型值，不是全物理效率/布局/采购验收。额定磁件reference与选后current小计有各自来源，不替代或改写reference。
+- 独立证据分离：位置非线性积分/库边界沿用本轮实际执行的步骤1/4测试；新测试独立RMS²ESR、数量手算total/eta、平面TIM厚度/导热/面积与Rjc库路径、共享sink热阻网络、封装/体积单位换算。合同负例覆盖missing/nonfinite/negative/stale source和无nominal回填；真实Tk数值/GUI刷新/失效/JSON来自当前report；固定硬件负载/PF/母线及同拓扑顺序重复负责隔离证据，均不替代物理公式证据。
+- 最终回执：`tt-r2-s5-final-focus` 30 passed / 174.48 s；固定刷新补验 `tt-r2-s5-final-refresh` 30 passed / 771.06 s；额定/滞后/超前及银行矩阵 `tt-r2-s5-final-matrix` 18 passed / 735.86 s；散热边界1 passed / 184.77 s；独立新进程GUI1 passed / 128.92 s；未完成硬件入口合同5 passed / 8.47 s；历史步骤6按钮GUI1 passed / 41.30 s。累计T-type组启动版本516 passed/10 failed/2 deselected，10个失败均为本次显示合同或校验器浮点精度差异；修正后对应节点均在上述刷新、矩阵、GUI、staged_scope补验中通过，无未解决失败。累计组仍保留原始exit1回执，不能改写为最终全量通过。
+- 独立回执 `pytest_temp/tt-r2-s5-verified-receipt.json`：去重通过节点529，历史失败节点10，未解决0；Python3.12.10/current src，所有新增系统节点均只针对T-type。生产代码自最终focus预检后SHA未再变化；67条文档本地引用、24个Python AST、ChangeLog追加、diff检查通过。执行了当前合同/用户链/公式/同拓扑隔离所需范围，未执行NPC/其他拓扑电气回归、跨拓扑双顺序或full suite，仍是步骤7门禁。无周备份操作。
+- 步骤5在上述T-type范围关闭；步骤6固定硬件扫描、完整Overview/BOM/CSV导出仍待后续。

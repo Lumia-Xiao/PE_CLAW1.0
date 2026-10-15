@@ -182,3 +182,27 @@ Earlier step2/3 candidate-L readback and pending-closure statements describe the
 | waveform.metadata.t_type_hardware_id/t_type_parent_candidate_fingerprint | Actual waveform hardware and original parent identities | validate before current device/magnetic/bank consumers |
 
 System loss/eta/assembly thermal/geometry/sweep remain unavailable. Selected L/C may still be displayed as hardware identity after failure; current numeric export is explicitly unavailable. Step4 evidence is scoped to T-type.
+
+
+## Step 5 current scoped system
+
+Authority: contract section23. Earlier “system unavailable” statements are historical stage boundaries.
+
+| Field | Meaning / unit / physical quantity | Producer / consumers / missing behavior |
+|---|---|---|
+| thermal_configuration | Shared sink engineering Rsa K/W, airflow m3/h, derating/coupling ratio, pressure MPa, model | Explicit NPC-method defaults, hardware thermal fingerprint; edit requires explicit hardware update |
+| system.hardware_id/run_id/candidate_fingerprint/operating_basis/loss_scope_id/excluded_components | Current source identity; same physical hardware and operating point for all totals | topology system_adapter, pipeline closure, views/JSON validator; source mismatch blocks published totals |
+| system.loss_components_w | 12 position W + 3 copper W + 3 core W + upper/lower bank W | Current records only, n applied once; finite nonnegative, exactly20 components |
+| system.role_losses_w | Two role sums W of six actual positions each | Not Device per-role worst-position per-device references |
+| system.total_loss_w/output_power_w/efficiency_ratio | Scope W, positive-forward active output W, ratio | Current scope owner, eta=Pout/(Pout+loss); zero Pout eta=None; missing required component all unavailable |
+| system.loss_status/diagnostics | available / unavailable and specific failure | No stale/nominal fallback; schema checks original published total |
+| system.position_thermal | Twelve positions, n physical devices per position; per-device W, Rjc/Rcs K/W, Ts/Tc/Tj and margin Celsius | Current conduction plus selected library paths/TIM; maxIGBT/FRD conservative combined path |
+| system.required_sink_rth_k_per_w/required_airflow_m3_h | Minimum allowed shared sink K/W and air-flow estimate m3/h | Current T-type powers, explicit config; negative allowed Rsa means impossible target; zero sink power allowedRsa=None |
+| system.thermal_status/thermal_passed | Thermal calculation availability / semiconductor shared-sink target and airflow verdict | Does not certify magnetic/capacitor limits or full-loss hardware; no electrothermal curve iteration |
+| thermal.chosen_design_estimates | Three physical current magnetic lumped thermal proxies, Celsius | Public magnetic thermal engine; no reference fallback |
+| system.component_volumes_cm3/geometry_sources | Each12n package body,3 magnetic models,2 banks,1 sink proxy cm3 plus sources | Count once per physical object; retain partial components if dimensions unavailable |
+| system.total_component_volume_cm3/geometry_status | Sum of required component model volumes cm3 / availability | Missing dimensions suppress total; excludes spacing/enclosure/physical layout |
+| loss.total_loss_w | Three-phase magnetic subtotal W (unchanged meaning) | Generic magnetic contract; report metadata points to engineering_result.system for system totals |
+| geometry.targets | Three physical phase-inductor layouts | Existing layout engine, current selected design, phases A/B/C; no fabricated system placement |
+
+Switching/recovery/Coss/auxiliary powers remain excluded. Full sweep, Overview/BOM and CSV/export integration are step6; other-topology electrical regression remains an explicit unverified gate under current user scope.

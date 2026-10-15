@@ -33,6 +33,9 @@ _LLC_EXTERNAL_LR_GEOMETRY_ROLES = ("min-volume", "min-loss", "recommended")
 
 def run_geometry_pipeline(report: DesignReport, pipeline_options: PipelineOptions | None = None) -> DesignReport:
     """Attach first-pass engineering geometry view models to a design report."""
+    if report.spec.topology_id == "three_phase_three_level_t_type_inverter":
+        from .run_t_type_system_pipeline import run_t_type_system_pipeline
+        return run_t_type_system_pipeline(report)
     from ..topology_capabilities import require_engineering_stage
     require_engineering_stage(report.spec.topology_id, "geometry")
     options = resolve_pipeline_options(pipeline_options)

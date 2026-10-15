@@ -34,14 +34,19 @@ def _new_snapshot(report, provenance):
 def _store(report, snapshot, *, audit=None):
     engineering = report.t_type_engineering or TTypeEngineeringResult(build_design_basis(report))
     old_diagnostics = getattr(engineering.magnetics, "diagnostics", ())
-    engineering = replace(engineering, magnetics=snapshot,
-        stage_status={**engineering.stage_status, "magnetics": "succeeded" if snapshot.status == "available" else "blocked"})
+    engineering = replace(engineering, magnetics=snapshot, system=None,
+        stage_status={**engineering.stage_status, "magnetics": "succeeded" if snapshot.status == "available" else "blocked",
+            "scoped_system": "not_started" if snapshot.status == "available" else "blocked"})
     magnetic = report.magnetic or MagneticResult()
     magnetic = replace(magnetic, evaluations=[p.evaluation for p in snapshot.phase_instances] if snapshot.status == "available" else [],
         core_loss_excitation_audit=audit or {},
         notes=[*(note for note in magnetic.notes if note not in old_diagnostics), *snapshot.diagnostics])
-    report = replace(report, t_type_engineering=engineering, magnetic=magnetic, geometry=report.geometry)
-    return update_design_run(report, {"inductor_design": "succeeded" if snapshot.status == "available" else "blocked"},
+    report = replace(report, t_type_engineering=engineering, magnetic=magnetic,
+        loss=None, thermal=None, geometry=None, efficiency_sweep=None)
+    stages = {"inductor_design": "succeeded" if snapshot.status == "available" else "blocked"}
+    if report.t_type_engineering.hardware is not None:
+        stages.update(loss="blocked", thermal="blocked")
+    return update_design_run(report, stages,
         reason=(snapshot.diagnostics[0] if snapshot.diagnostics else None))
 
 

@@ -739,3 +739,22 @@ Summary短文本保留初估并补selected L/C与refresh status；Device区分�
 ### 22.4 验证边界
 
 独立事件ODE/RMS与解析Q/C、独立标量双线性导通积分验证公式；真实库完整闭合/反向组件选择顺序、无重选、硬件编辑/身份注入、失效恢复验证契约；真实Tk当前数字/编辑失效/结构导出验证用户链；同T-type A→B→A与反序验证隔离。controlled selected-L变更仅验证实际参数读回，不宣称改后的磁件是可采购实物。仅执行T-type测试；其他拓扑共享消费者回归未执行，保留后续集成gate。当前实际回执见工程计划17节，收集/历史回执不作为本版通过依据。
+
+
+## 23. 第二轮步骤5：当前范围损耗、热与组件几何
+
+本节替代第22节“系统结果尚未接入”的历史阶段说明。输入、选型策略、库和原始 target candidate 不变。快速 Run Design 仍只选半导体；两角色、三电感、上下银行齐备后，硬件 closure 自动生成 `t_type_engineering.system`。其运行身份为 hardware/run/candidate/current_basis/loss_scope；当前波形、逐位置导通、电感和银行必须同源。`scoped_system` 开放，旧 `system` 总开关保持关闭以防进入尚未适配的扫描链；公共 loss/thermal/geometry 入口仅对 T-type 委派到该 closure 结果生成器。步骤6仍拥有扫描、Overview/BOM和完整CSV导出。
+
+系统唯一所有者为 typed system；公共 `LossResult.total_loss_w` 保留三电感磁件小计语义，不能当作系统损耗。system保存12位置W、3相各自铜/芯W、2银行W及两角色W小计。每位置W=n*(per-device channel W+diode W)，离散IGBT/FRD共一封装，每位置n只；12n封装没有再乘角色位置数。共享module sections尚无支持模型，硬件validator拒绝不支持绑定而非猜计数。原发布磁件/银行/位置小计与组件值不符也拒绝汇总。
+
+`P_scope=sum(12 position W)+sum(3 copper W+3 core W)+P_CU+P_CL`；`eta_scope=Pout/(Pout+P_scope)`，Pout为同一current_basis正向有功W。所有必需量有限且非负；零负载eta=None，保留有效损耗。缺实例、错source或非有限输入清系统total/eta/体积并保留具体诊断，禁用nominal/reference回填。该效率排除换流/恢复、Coss、驱动、控制、风扇、缓冲、均压、预充，不是全物理效率。
+
+热配置是工程假设并纳入hardware fingerprint：共享强迫风冷sink Rsa=0.12 K/W、design airflow=120 m3/h、airflow derating=0.8、coupling=1.15、installation pressure=0.35 MPa；安装压力仅声明，现有TIM引擎不模拟压力变化。配置改变必须显式选定硬件更新，普通工况刷新拒绝硬件变更。方法复用NPC及公共TIM/散热器表面代理，按当前T-type导通功耗重算，不复用NPC温度或结论。
+
+每位置保存per-device功耗、Rjc、Rcs及sink/case/junction温度和margin。`Ts=Ta+sum(Pposition)*coupling*Rsa`，`Tc=Ts+Pdevice*Rcs`，`Tj=Tc+Pdevice*Rjc`。Rjc保守取选定IGBT/FRD较大路径，Rcs来自公共TIM解析器及原选定应力override；target=min(设计target,器件Tjmax)。required Rsa=min((target-Ta-Pdevice*(Rjc+Rcs))/(Psemi*coupling))，负值明确保留为配置不可满足。流量估计`Psemi/(1.2*1005*max(target-Ta,1))*3600 m3/h`，按折减风量比较。thermal_passed只表示半导体共享散热器在本范围内通过，不表示所有组件/硬件安全。磁件三实例使用公共lumped magnetic thermal engine当前铜/芯W，输出hotspot proxy；不将磁件热混入共享半导体sink。银行温升仍来自选定银行现有独立热模型。曲线温度固定，不实施电热迭代。
+
+几何为组件模型体积和cm3，不是整机包络：12n个已知package body（mm3/1000）、3个选定磁件model m3*1e6、2银行实物体积及1共享sink表面代理。sink体积复用forced_air模型`1/(0.0025*10*Rsa)`cm3。磁件layout沿用公共装配/绕组引擎，三相分别展示；磁件model volume与layout包络不是同义字段。package未知fallback、缺/非有限/非正尺寸使系统volume=None，可保留可用组件小计和来源；不能猜布局、外壳/间距或重复计同封装FRD。
+
+系统pipeline不做synthesis/search，不改变库或选型次序。固定工况刷新重算全部current系统值；磁件/银行子结果更新或失效先清system及loss/thermal/geometry/sweep，完整closure再发布。Loss、Thermal、Geometry、Summary、Device基础读当前report，JSON asdict保留typed来源/单位合同并由当前validator校验。数据生产者为topology system_adapter，stage orchestration为run_t_type_system_pipeline，消费者为当前页面和结构化报告；后续扫描必须用同一所有者。
+
+实际验证命令、当次源SHA、通过数量与未验证范围见工程计划步骤5回执；本节为合同，不能替代执行证据。

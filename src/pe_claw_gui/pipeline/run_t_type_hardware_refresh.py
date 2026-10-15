@@ -17,6 +17,8 @@ def invalidate_t_type_hardware(report, reason):
     report = invalidate_t_type_magnetics(report, reason)
     report = invalidate_t_type_capacitors(report, reason)
     e = report.t_type_engineering
+    if e is not None:
+        e = replace(e, system=None)
     if e is not None and (e.hardware is not None or e.current_hardware_id is not None or e.current_positions):
         e = replace(e, current_hardware_id=None, current_basis={}, current_positions=(),
             refresh_status="unavailable", refresh_diagnostics=(reason,))
@@ -108,7 +110,9 @@ def refresh_t_type_hardware(report, operating_point=None, *, accept_hardware_cha
         report = refresh_t_type_capacitors(report)
         if report.t_type_engineering.capacitors.status != "available":
             raise ValueError("; ".join(report.t_type_engineering.capacitors.diagnostics))
-        return replace(report, t_type_engineering=replace(report.t_type_engineering, refresh_status="available"))
+        from .run_t_type_system_pipeline import run_t_type_system_pipeline
+        report = replace(report, t_type_engineering=replace(report.t_type_engineering, refresh_status="available"))
+        return run_t_type_system_pipeline(report)
     except (ValueError, KeyError, RuntimeError, TypeError, StopIteration) as exc:
         return invalidate_t_type_hardware(replace(retained, operating_point=point),
             f"T-type selected-hardware refresh failed: {type(exc).__name__}: {exc}")

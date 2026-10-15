@@ -236,6 +236,7 @@ def run_t_type_device_pipeline(report, plugin):
     )
     if previous is not None:
         engineering = replace(engineering, magnetics=report.t_type_engineering.magnetics,
+            thermal_configuration=previous.thermal_configuration,
             capacitors=report.t_type_engineering.capacitors, hardware=previous.hardware,
             stage_status={**report.t_type_engineering.stage_status, **engineering.stage_status})
     result = DeviceSelectionResult(

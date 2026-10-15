@@ -156,6 +156,61 @@ class TTypePositionOperatingResult:
 
 
 @dataclass(frozen=True)
+class TTypeThermalConfiguration:
+    """Engineering assumptions, shared with the NPC method, not a measured sink."""
+
+    sink_rth_k_per_w: float = 0.12
+    design_airflow_m3_h: float = 120.0
+    airflow_derating: float = 0.8
+    coupling_factor: float = 1.15
+    contact_pressure_mpa: float = 0.35
+    model: str = "forced_air_shared_extrusion_proxy_v1"
+
+
+@dataclass(frozen=True)
+class TTypePositionThermal:
+    position_id: str
+    part_number: str
+    physical_device_count: int
+    per_device_loss_w: float
+    rth_jc_k_per_w: float
+    rth_cs_k_per_w: float
+    interface_model: str
+    sink_temp_c: float
+    case_temp_c: float
+    junction_temp_c: float
+    junction_margin_c: float
+
+
+@dataclass(frozen=True)
+class TTypeSystemResult:
+    """Current scope totals; generic LossResult remains a magnetic subtotal."""
+
+    hardware_id: str | None
+    run_id: str | None
+    candidate_fingerprint: str
+    operating_basis: dict[str, float | str]
+    loss_scope_id: str = LOSS_SCOPE_ID
+    excluded_components: tuple[str, ...] = EXCLUDED_COMPONENTS
+    loss_status: str = "unavailable"
+    loss_components_w: dict[str, float] = field(default_factory=dict)
+    role_losses_w: dict[str, float] = field(default_factory=dict)
+    total_loss_w: float | None = None
+    output_power_w: float | None = None
+    efficiency_ratio: float | None = None
+    thermal_status: str = "unavailable"
+    position_thermal: tuple[TTypePositionThermal, ...] = ()
+    required_sink_rth_k_per_w: float | None = None
+    required_airflow_m3_h: float | None = None
+    thermal_passed: bool | None = None
+    geometry_status: str = "unavailable"
+    component_volumes_cm3: dict[str, float] = field(default_factory=dict)
+    total_component_volume_cm3: float | None = None
+    geometry_sources: dict[str, str] = field(default_factory=dict)
+    diagnostics: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class TTypeEngineeringResult:
     design_basis: TTypeDesignBasis
     schema_version: int = 1
@@ -176,3 +231,5 @@ class TTypeEngineeringResult:
     current_positions: tuple[TTypePositionOperatingResult, ...] = ()
     refresh_status: str = "not_started"
     refresh_diagnostics: tuple[str, ...] = ()
+    thermal_configuration: TTypeThermalConfiguration = field(default_factory=TTypeThermalConfiguration)
+    system: TTypeSystemResult | None = None

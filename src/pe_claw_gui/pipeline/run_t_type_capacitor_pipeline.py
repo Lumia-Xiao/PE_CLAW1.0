@@ -25,11 +25,16 @@ def _store(report, snapshot, capacitor=None):
         capacitor = replace(capacitor, current_operating_input=None, current_operating_output=None)
     engineering = report.t_type_engineering or TTypeEngineeringResult(build_design_basis(report))
     status = "succeeded" if snapshot.status == "available" else "blocked"
-    engineering = replace(engineering, capacitors=snapshot,
-                          stage_status={**engineering.stage_status, "capacitors": status})
+    engineering = replace(engineering, capacitors=snapshot, system=None,
+                          stage_status={**engineering.stage_status, "capacitors": status,
+                              "scoped_system": "not_started" if snapshot.status == "available" else "blocked"})
+    stages = {"capacitor_design": status}
+    if engineering.hardware is not None:
+        stages.update(loss="blocked", thermal="blocked")
     return update_design_run(replace(report, t_type_engineering=engineering,
-        capacitor=capacitor, notes=[n for n in report.notes if n != "capacitor: stage not run; outside first-pass T-type scope."]),
-        {"capacitor_design": status}, reason=snapshot.diagnostics[0] if snapshot.diagnostics else None)
+        capacitor=capacitor, loss=None, thermal=None, geometry=None, efficiency_sweep=None,
+        notes=[n for n in report.notes if n != "capacitor: stage not run; outside first-pass T-type scope."]),
+        stages, reason=snapshot.diagnostics[0] if snapshot.diagnostics else None)
 
 
 def invalidate_t_type_capacitors(report, reason):

@@ -312,7 +312,11 @@ def _build_t_type_summary_notes(report: DesignReport) -> list[str]:
     capacitors = getattr(report.t_type_engineering, "capacitors", None)
     if capacitors is not None:
         lines.append(f"Capacitor banks = {capacitors.status}; see Capacitors.")
-    if report.loss is None:
+    system = getattr(report.t_type_engineering, "system", None)
+    if system is not None and system.total_loss_w is not None:
+        lines.append(f"Scoped total loss = {system.total_loss_w:.6f} W (conduction + magnetics + capacitors).")
+        lines.append(f"Scoped efficiency = {system.efficiency_ratio * 100:.6f} %." if system.efficiency_ratio is not None else "Scoped efficiency = unavailable (zero output power).")
+    else:
         lines.append("Loss and system efficiency are unavailable.")
     if report.stress is not None:
         warnings.extend(note for note in report.stress.notes if note not in routine_notes)

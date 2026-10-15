@@ -213,13 +213,17 @@ def _build_t_type_selection_text(report):
                 f"  Source: {reference.source}"])
     if engineering and engineering.refresh_status == "available":
         lines[2] = "Current conduction available; system losses and efficiency: unavailable."
+        system = engineering.system
+        if system is not None and system.total_loss_w is not None:
+            lines[2] = f"Current conduction available; scoped system loss = {system.total_loss_w:.6f} W; see Loss/Thermal for model scope."
         lines.append(f"Current hardware: {engineering.current_hardware_id}")
         for position in engineering.current_positions:
             lines.append(f"  {position.position_id}: channel/diode per device = {position.per_device_channel_w:.6f} / {position.per_device_diode_w:.6f} W; position = {position.position_loss_w:.6f} W")
     for scheme in result.scheme_results:
         lines.append(f"{scheme.label}: complete={scheme.complete}, feasible={scheme.feasible}")
         lines.extend(f"  {r}: {s}" for r,s in scheme.selection_summaries.items())
-    lines.extend(result.notes)
+    lines.extend(n for n in result.notes if not (engineering and engineering.system
+        and engineering.system.total_loss_w is not None and n == "Excluded switching/recovery energies are not modeled; system losses unavailable."))
     return "\n".join(lines)
 
 

@@ -132,7 +132,8 @@ def test_real_tk_card_buttons_current_readback_and_failure_invalidation(monkeypa
         assert 'Operating DC bus = 700.000000 V' in summary
         assert 'waveform_actual' in summary
         loss = app.workspace.loss_view.text.get('1.0','end')
-        assert 'Estimated efficiency: unavailable' in loss
+        assert 'T-type scoped system unavailable' in loss
+        assert report.t_type_engineering.system is None and report.loss is None
         assert '100%' not in loss and '100.0' not in loss
         assert 'Efficiency unavailable' in app.workspace.efficiency_view.message.cget('text')
         assert 'Main switches (6 positions)' in stress and 'Midpoint switches (6 positions)' in stress
