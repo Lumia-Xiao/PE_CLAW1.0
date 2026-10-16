@@ -135,7 +135,21 @@ class JobStore:
         # Publishing may succeed before a socket error; never overwrite a claimed run.
         with self.Session.begin() as s:
             s.execute(update(JobRow).where(JobRow.job_id == job_id, JobRow.status == 'queued').values(
-                error_json={'code': 'QUEUE_UNAVAILABLE', 'message': 'Waiting for queue recovery'}))
+                error_json={
+                    'code': 'QUEUE_UNAVAILABLE',
+                    'message': 'Waiting for queue recovery',
+                    'correlation_id': job_id,
+                }))
+
+    def queue_published(self, job_id):
+        """Clear a prior broker error without overwriting a claimed Worker state."""
+
+        with self.Session.begin() as s:
+            s.execute(
+                update(JobRow)
+                .where(JobRow.job_id == job_id, JobRow.status == 'queued')
+                .values(error_json=None)
+            )
 
     def owned_update(self, job_id, token, **values):
         with self.Session.begin() as s:

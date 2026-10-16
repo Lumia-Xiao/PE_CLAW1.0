@@ -1,7 +1,27 @@
-from celery import Celery
 import os
-celery_app=Celery("pe_claw", broker=os.getenv("PE_CLAW_REDIS_URL","redis://localhost:6379/0"), backend=os.getenv("PE_CLAW_REDIS_URL","redis://localhost:6379/0"))
-celery_app.conf.update(task_track_started=True, task_serializer="json", accept_content=["json"], result_serializer="json")
+
+from celery import Celery
+
+
+def _worker_concurrency() -> int:
+    try:
+        value = int(os.getenv("PE_CLAW_WORKER_CONCURRENCY", "1"))
+    except ValueError as exc:
+        raise RuntimeError("PE_CLAW_WORKER_CONCURRENCY must be a positive integer") from exc
+    if value < 1:
+        raise RuntimeError("PE_CLAW_WORKER_CONCURRENCY must be a positive integer")
+    return value
+
+
+redis_url = os.getenv("PE_CLAW_REDIS_URL", "redis://localhost:6379/0")
+celery_app = Celery("pe_claw", broker=redis_url, backend=redis_url)
+celery_app.conf.update(
+    task_track_started=True,
+    task_serializer="json",
+    accept_content=["json"],
+    result_serializer="json",
+    worker_concurrency=_worker_concurrency(),
+)
 celery_app.conf.update(
     include=["pe_claw_web.workers.tasks", "pe_claw_web.workers.action_tasks"],
     worker_prefetch_multiplier=1,

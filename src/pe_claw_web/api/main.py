@@ -36,20 +36,38 @@ def design_buck(request: BuckDesignRequest):
             correlation_id=correlation_id,
         )
         return JSONResponse(status_code=500, content=error.model_dump(mode='json'))
-@app.post('/api/v1/design-jobs',response_model=DesignJobResponse,status_code=202)
+@app.post(
+    '/api/v1/design-jobs',
+    response_model=DesignJobResponse,
+    status_code=202,
+    responses={503: {'model': DesignError}},
+)
 def create_job(payload: DesignJobCreate):
     try:
         item, created=store.create_complete(payload)
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from None
-    if not created:
+    retry_queue_publish = (
+        not created
+        and item.status == 'queued'
+        and item.error is not None
+        and item.error.code == 'QUEUE_UNAVAILABLE'
+    )
+    if not created and not retry_queue_publish:
         return item
     try:
         with celery_app.connection_for_write() as connection: connection.ensure_connection(max_retries=0)
         design_buck_task.delay(item.job_id)
+        store.queue_published(item.job_id)
     except (OperationalError, ConnectionError, TimeoutError) as exc:
         store.queue_unavailable(item.job_id)
-        raise HTTPException(503, 'Design queue is unavailable. Please retry later.') from exc
+        logger.warning('Design queue unavailable; correlation_id=%s', item.job_id)
+        error = DesignError(
+            code='QUEUE_UNAVAILABLE',
+            message='Design queue is unavailable. Please retry later.',
+            correlation_id=item.job_id,
+        )
+        return JSONResponse(status_code=503, content=error.model_dump(mode='json'))
     return store.get(item.job_id)[0]
 @app.post('/api/v1/design-jobs/{job_id}/retry', response_model=DesignJobResponse, status_code=202)
 def retry_job(job_id: UUID, restart: bool = False):

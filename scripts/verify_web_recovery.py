@@ -90,13 +90,18 @@ def main(argv=None, *, restart_database=None):
         response=http.post('/api/v1/design-jobs',json=payload.model_dump(mode='json'))
         assert response.status_code==503, response.text
         # The initial broker failure must still leave exactly one durable queued job.
+        job_id=response.json()['correlation_id']
+        response=http.post('/api/v1/design-jobs',json=payload.model_dump(mode='json'))
+        assert response.status_code==503, response.text
+        assert response.json()['correlation_id']==job_id
+        evidence['initial_queue_outage_durable']=True
+        item=store.get(job_id)[0]; evidence['job_id']=item.job_id
+        broker=redis_start('redis-first.log'); wait_until(ping)
         response=http.post('/api/v1/design-jobs',json=payload.model_dump(mode='json'))
         assert response.status_code==202, response.text
-        assert response.json()['status']=='queued'
-        evidence['initial_queue_outage_durable']=True
-        item=store.get(response.json()['job_id'])[0]; evidence['job_id']=item.job_id
+        assert response.json()['job_id']==item.job_id
+        assert response.json()['error'] is None
         assert http.post('/api/v1/design-jobs',json=payload.model_dump(mode='json')).json()['job_id']==item.job_id
-        broker=redis_start('redis-first.log'); wait_until(ping)
         first=worker('worker-first.log')
         recovery=start([sys.executable,'-m','pe_claw_web.jobs.maintenance','recover','--loop'],'recovery.log')
         def saved():

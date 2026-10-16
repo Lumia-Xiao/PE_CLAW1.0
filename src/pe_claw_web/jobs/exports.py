@@ -115,7 +115,7 @@ def public_summary(report, summary):
     def clean(value):
         if isinstance(value, dict):
             return {k: clean(v) for k, v in value.items() if k != "artifact_paths"}
-        if isinstance(value, list):
+        if isinstance(value, (list, tuple)):
             return [clean(v) for v in value]
         return value
     return clean(summary)
