@@ -158,19 +158,32 @@ def test_resume_skips_selection_and_preserves_hardware(real_report, monkeypatch,
     def refresh(current, plugin, operating_point, **kwargs):
         assert current.device.selected_devices == {'switch':'fixed'}
         assert current.magnetic.chosen_designs[0].candidate_id == 'fixed-core'
+        assert kwargs['refresh_loss_thermal'] is False
         calls.append('refresh')
         return replace(current, operating_point=operating_point)
+    def loss(current, **kwargs):
+        assert current.device.selected_devices == {'switch':'fixed'}
+        assert current.magnetic.chosen_designs[0].candidate_id == 'fixed-core'
+        calls.append('loss')
+        return current
+    def thermal(current, **kwargs):
+        assert current.device.selected_devices == {'switch':'fixed'}
+        assert current.magnetic.chosen_designs[0].candidate_id == 'fixed-core'
+        calls.append('thermal')
+        return current
     def sweep(current, **kwargs):
         assert current.magnetic.chosen_designs[0].turns == 10
         calls.append('sweep')
         return EfficiencySweepResult(status='blocked', blocked_reason='test-only absent loss data')
     monkeypatch.setattr(complete, 'run_operating_point_refresh', refresh)
+    monkeypatch.setattr(complete, 'run_loss_pipeline', loss)
+    monkeypatch.setattr(complete, 'run_thermal_pipeline', thermal)
     monkeypatch.setattr(complete, 'run_geometry_pipeline', lambda report, **kw: report)
     monkeypatch.setattr(complete, 'run_efficiency_sweep', sweep)
     progress=[]
     result=complete.run_complete(request, output_root=tmp_path/'resume', operating_point=point, checkpoint=data, on_stage=lambda stage,p: progress.append(stage))
-    assert calls == ['refresh','sweep']
-    assert progress == ['operating_point','efficiency_sweep','report']
+    assert calls == ['refresh','loss','thermal','sweep']
+    assert progress == ['operating_point','loss','thermal','efficiency_sweep','report']
     assert result.summary['efficiency_sweep']['status'] == 'blocked'
 
 def test_worker_failure_retry_keeps_partial_result(repo, monkeypatch, real_report):
@@ -190,6 +203,13 @@ def test_worker_failure_retry_keeps_partial_result(repo, monkeypatch, real_repor
     status, _, result = repo.get(item.job_id)
     assert status.status == 'failed' and status.stage == 'devices'
     assert status.retryable and result['job_id'] == item.job_id
+    assert status.stages['topology'] == 'succeeded'
+    assert status.stages['devices'] == 'failed'
+    assert status.stages['capacitor'] == 'blocked'
+    assert status.stage_details['devices'].error.code == 'DESIGN_FAILED'
+    assert status.stage_details['devices'].started_at is not None
+    assert status.stage_details['devices'].finished_at is not None
+    assert status.stage_details['capacitor'].warnings == ['Blocked because stage devices failed.']
     assert 'private stack' not in status.error.message
     assert repo.retry(item.job_id)
     def finish(request, **kwargs):

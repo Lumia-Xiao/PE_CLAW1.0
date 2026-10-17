@@ -12,6 +12,7 @@ from pe_claw_web.schemas import (
     DesignJobCreate,
     DesignJobResponse,
     DesignJobStatus,
+    DesignStageState,
     DesignRequest,
 )
 
@@ -45,8 +46,18 @@ def test_invalid_request():
 
 
 def test_response_contract():
-    response = DesignJobResponse(job_id="job-1", topology="buck_diode_rectified_unidirectional", status=DesignJobStatus.queued, progress=0, created_at=datetime.now(timezone.utc))
+    response = DesignJobResponse(
+        job_id="job-1",
+        topology="buck_diode_rectified_unidirectional",
+        status=DesignJobStatus.queued,
+        progress=0,
+        created_at=datetime.now(timezone.utc),
+        stages={"validate": "running"},
+        stage_details={"validate": DesignStageState(status="running", progress=0)},
+    )
     assert response.schema_version == "1.0"
+    assert response.stage_details["validate"].schema_version == "1.0"
+    assert response.stage_details["validate"].status == "running"
 
 
 def test_complete_execution_profile_and_operating_point():

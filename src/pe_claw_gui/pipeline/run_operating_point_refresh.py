@@ -26,8 +26,14 @@ def run_operating_point_refresh(
     operating_point: OperatingPoint,
     pipeline_options: PipelineOptions | None = None,
     npc_periodic_initial_current_a: list[float] | None = None,
+    refresh_loss_thermal: bool = True,
 ) -> DesignReport:
-    """Refresh waveform, stress, topology evaluation, and operating-point losses only."""
+    """Refresh operating-point outputs while preserving the selected hardware.
+
+    ``refresh_loss_thermal`` defaults to the historical desktop behavior.  A
+    complete Web Worker disables it so loss and thermal remain explicit,
+    independently checkpointed stages in the same fixed-hardware flow.
+    """
     options = resolve_pipeline_options(pipeline_options)
     if report.candidate is None:
         raise RuntimeError("Run Design first before generating waveforms.")
@@ -74,7 +80,7 @@ def run_operating_point_refresh(
     # auditable skip, not permission to redesign the hardware.
     if uses_semiconductor_selector:
         refreshed_report = run_device_operating_point_refresh(refreshed_report, plugin=plugin)
-    if (
+    if refresh_loss_thermal and (
         refreshed_report.spec.topology_id not in MAGNETIC_REFRESH_DISABLED_TOPOLOGIES
         and refreshed_report.magnetic is not None
         and refreshed_report.magnetic.chosen_designs

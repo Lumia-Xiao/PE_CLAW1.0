@@ -2,7 +2,8 @@
 
 The initial Web boundary is version `1.0`. Its public Pydantic models are
 `DesignRequest`, `BuckDesignRequest`, `DesignJobCreate`, `DesignJobResponse`,
-`DesignResultResponse`, `DesignError`, and `ArtifactManifestEntry`.
+`DesignResultResponse`, `DesignStageState`, `DesignError`, and
+`ArtifactManifestEntry`.
 
 The starter routes are:
 
@@ -29,3 +30,9 @@ failures use a versioned `DesignError` with a stable identifier `code`, bounded
 public `message`, and optional opaque `correlation_id`. Artifact manifest
 entries expose a safe filename and API download URL rather than a filesystem
 path.
+
+Complete-job status keeps the compact `stages` status map for existing clients
+and adds `stage_details`. Each `DesignStageState` contains the stage-local
+status and progress, warnings, a sanitized structured error, and start/finish
+timestamps. See [`web-complete-worker.md`](web-complete-worker.md) for the
+fixed execution order and failure semantics.

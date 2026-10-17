@@ -12,6 +12,8 @@ from pe_claw_gui.pipeline.run_capacitor_pipeline import run_capacitor_pipeline
 from pe_claw_gui.pipeline.run_magnetic_pipeline import run_magnetic_pipeline
 from pe_claw_gui.pipeline.run_geometry_pipeline import run_geometry_pipeline
 from pe_claw_gui.pipeline.run_operating_point_refresh import run_operating_point_refresh
+from pe_claw_gui.pipeline.run_loss_pipeline import run_loss_pipeline
+from pe_claw_gui.pipeline.run_thermal_pipeline import run_thermal_pipeline
 from pe_claw_gui.pipeline.run_efficiency_sweep_pipeline import run_efficiency_sweep
 from pe_claw_gui.reports import build_structured_report
 from pe_claw_gui.topologies.base.registry import build_default_registry
@@ -20,8 +22,9 @@ from pe_claw_web.schemas import DesignResultResponse
 from pe_claw_web.jobs.checkpoints import snapshot, restore, CheckpointIncompatible
 from pe_claw_web.jobs.exports import public_summary
 from pe_claw_web.jobs.store import digest
+from pe_claw_web.jobs.stages import PIPELINE_STAGES, STAGE_PROGRESS
 
-STAGES = ('topology', 'devices', 'capacitor', 'magnetics', 'operating_point', 'efficiency_sweep', 'report')
+STAGES = PIPELINE_STAGES
 
 def result_of(report, topology):
     notes = [*report.notes, *(report.efficiency_sweep.warnings if report.efficiency_sweep else [])]
@@ -42,7 +45,7 @@ def run_complete(request, *, output_root: Path, operating_point=None, checkpoint
         if completed is not None and i <= STAGES.index(completed):
             continue
         if on_stage:
-            on_stage(stage, 5 + i * 13)
+            on_stage(stage, STAGE_PROGRESS[stage])
         if stage == 'topology':
             raw = build_default_inputs()
             raw.update({k: str(v) for k, v in request.pipeline_input().items()})
@@ -57,8 +60,22 @@ def run_complete(request, *, output_root: Path, operating_point=None, checkpoint
                     report = run_magnetic_pipeline(report)
                 elif stage == 'operating_point':
                     point = operating_point or {'vin_v': report.candidate.vin_nom, 'load_ratio': 1.0}
-                    # Core refresh already calculates loss/thermal using the selected hardware.
-                    report = run_operating_point_refresh(report, plugin, OperatingPoint(**point), pipeline_options=options)
+                    report = run_operating_point_refresh(
+                        report,
+                        plugin,
+                        OperatingPoint(**point),
+                        pipeline_options=options,
+                        refresh_loss_thermal=False,
+                    )
+                elif stage == 'loss':
+                    report = run_loss_pipeline(
+                        report,
+                        preserve_selected_design_id=True,
+                        refresh_plot_artifact=False,
+                        pipeline_options=options,
+                    )
+                elif stage == 'thermal':
+                    report = run_thermal_pipeline(report, pipeline_options=options)
                     report = run_geometry_pipeline(report, pipeline_options=options)
                 elif stage == 'efficiency_sweep':
                     report = replace(report, efficiency_sweep=run_efficiency_sweep(report, plugin=plugin, output_dir=output_root/'efficiency_sweep'))

@@ -227,6 +227,18 @@ class ArtifactManifestEntry(WebContractModel):
     )
 
 
+class DesignStageState(WebContractModel):
+    """Durable state for one stage of a complete design job."""
+
+    schema_version: Literal["1.0"] = API_SCHEMA_VERSION
+    status: Literal["pending", "running", "succeeded", "failed", "blocked", "unavailable"]
+    progress: int = Field(default=0, ge=0, le=100, description="Completion of this stage in percent.")
+    warnings: list[str] = Field(default_factory=list)
+    error: DesignError | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+
+
 class DesignJobResponse(WebContractModel):
     schema_version: Literal["1.0"] = API_SCHEMA_VERSION
     job_id: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
@@ -247,6 +259,7 @@ class DesignJobResponse(WebContractModel):
     artifacts_url: str | None = Field(default=None, pattern=r"^/api/v1/design-jobs/[A-Za-z0-9_-]+/artifacts$")
     attempt: int = Field(default=0, ge=0)
     stages: dict[str, str] = Field(default_factory=dict)
+    stage_details: dict[str, DesignStageState] = Field(default_factory=dict)
     retryable: bool = False
 
 

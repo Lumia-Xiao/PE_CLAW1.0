@@ -11,8 +11,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import make_url
 
-from pe_claw_web.schemas import BuckDesignRequest, DesignJobResponse, DesignActionResponse
+from pe_claw_web.schemas import BuckDesignRequest, DesignJobResponse, DesignActionResponse, DesignStageState
 from .models import Base, JobRow, ActionRow, RequestKeyRow
+from .stages import new_stage_details
 
 def utcnow():
     return datetime.now(timezone.utc)
@@ -22,6 +23,30 @@ def digest(value):
 
 class LeaseLost(RuntimeError):
     pass
+
+
+def _stage_views(raw):
+    """Expose legacy status strings and the richer per-stage contract together."""
+
+    statuses = {}
+    details = {}
+    for stage, value in (raw or {}).items():
+        if isinstance(value, dict):
+            detail = DesignStageState.model_validate(value)
+        else:
+            status = str(value)
+            detail = DesignStageState(
+                status=status,
+                progress=100 if status in {'succeeded', 'failed', 'blocked', 'unavailable'} else 0,
+            )
+        statuses[stage] = detail.status
+        details[stage] = detail
+    return statuses, details
+
+
+def _stage_payloads(raw):
+    return {stage: detail.model_dump(mode='json') for stage, detail in _stage_views(raw)[1].items()}
+
 
 class JobStore:
     def __init__(self, url=None, *, initialize=None):
@@ -39,12 +64,13 @@ class JobStore:
             upgrade(self.engine)
 
     def _response(self, row):
+        stages, stage_details = _stage_views(row.stages_json)
         return DesignJobResponse(job_id=row.job_id, topology=row.topology, status=row.status,
             progress=row.progress, stage=row.stage, created_at=row.created_at,
             started_at=row.started_at, finished_at=row.finished_at, error=row.error_json,
             result_url=f'/api/v1/design-jobs/{row.job_id}/result' if row.result_json else None,
             artifacts_url=f'/api/v1/design-jobs/{row.job_id}/artifacts' if row.status == 'succeeded' else None,
-            attempt=row.attempt, stages=row.stages_json or {},
+            attempt=row.attempt, stages=stages, stage_details=stage_details,
             retryable=row.status == 'failed' and (row.error_json or {}).get('code') != 'CHECKPOINT_INCOMPATIBLE')
 
     def create(self, request, execution=None):
@@ -56,7 +82,8 @@ class JobStore:
     def _new_row(self, request, execution=None):
         return JobRow(job_id=str(uuid.uuid4()), topology=request.topology,
             request_json=request.model_dump(mode='json'), execution_json=execution,
-            status='queued', progress=0, stage='queued', attempt=0, created_at=utcnow())
+            status='queued', progress=0, stage='queued', attempt=0, created_at=utcnow(),
+            stages_json=new_stage_details())
 
     def create_complete(self, payload):
         operating_point = (
@@ -172,7 +199,13 @@ class JobStore:
             row.result_json = make_payload()
             row.status, row.progress, row.stage = 'succeeded', 100, 'finalize'
             row.finished_at, row.lease_token = utcnow(), None
-            row.stages_json = {**(row.stages_json or {}), 'report': 'succeeded', 'finalize': 'succeeded'}
+            stage_details = _stage_payloads(row.stages_json)
+            finished_at = utcnow().isoformat()
+            for stage in ('report', 'finalize'):
+                detail = stage_details.get(stage, {'status': 'pending', 'progress': 0, 'warnings': []})
+                detail.update(status='succeeded', progress=100, error=None, finished_at=finished_at)
+                stage_details[stage] = detail
+            row.stages_json = stage_details
             return row.result_json
 
     def retry(self, job_id, *, restart=False):
