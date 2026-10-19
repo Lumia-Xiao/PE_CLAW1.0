@@ -5,3 +5,8 @@ pytest_temp/
 __pycache__/
 *.egg-info/
 pe_claw_jobs.db
+deployment/windows/pe-claw.env.ps1
+deployment/windows/*.pfx
+deployment/windows/*.p12
+deployment/windows/*.key
+deployment/windows/*.pem
