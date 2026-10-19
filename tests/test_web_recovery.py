@@ -4,7 +4,9 @@ from datetime import timedelta
 from dataclasses import replace
 import json
 from pathlib import Path
+from uuid import UUID
 import pytest
+from fastapi import HTTPException
 from sqlalchemy import inspect, text
 
 from pe_claw_web.schemas import BuckDesignRequest, DesignJobCreate
@@ -114,6 +116,30 @@ def test_cleanup_protects_active_and_unknown_folders(repo, tmp_path):
     assert len(list(root.iterdir())) == 3
     assert (root/'user-output').exists()
 
+
+def test_cleanup_protects_job_with_active_action(repo, tmp_path):
+    from pe_claw_web.schemas import DesignAction, DesignActionRequest
+
+    root = tmp_path/'artifacts'
+    root.mkdir()
+    item = repo.create(BuckDesignRequest(**INPUT))
+    folder = root/item.job_id
+    folder.mkdir()
+    repo.update(item.job_id, status='succeeded', finished_at=utcnow()-timedelta(days=9))
+    action = repo.create_action(
+        DesignActionRequest(job_id=item.job_id, action=DesignAction.capacitor),
+        'active-cleanup-guard',
+    )
+
+    assert cleanup_artifacts(root, 24, repository=repo) == 0
+    assert folder.exists()
+    assert repo.get(item.job_id)[0].status == 'succeeded'
+
+    repo.update_action(action.action_id, status='succeeded', finished_at=utcnow())
+    assert cleanup_artifacts(root, 24, repository=repo) == 1
+    assert not folder.exists()
+    assert repo.get(item.job_id)[0].status == 'expired'
+
 @pytest.fixture
 def real_report(tmp_path):
     from pe_claw_gui.pipeline.run_topology_pipeline import run_topology_pipeline
@@ -221,3 +247,44 @@ def test_worker_failure_retry_keeps_partial_result(repo, monkeypatch, real_repor
     assert repo.get(item.job_id)[0].attempt == 2
     tasks.design_buck_task.run(item.job_id)
     assert repo.get(item.job_id)[0].attempt == 2
+
+
+def test_incompatible_checkpoint_requires_explicit_restart(repo, monkeypatch):
+    import pe_claw_web.api.main as main
+    import pe_claw_web.workers.tasks as tasks
+
+    item = repo.create(BuckDesignRequest(**INPUT))
+    incompatible = {'schema_version': '0.0', 'sha256': '0' * 64}
+    repo.update(item.job_id, checkpoint_json=incompatible)
+    monkeypatch.setattr(tasks, 'store', repo)
+
+    def reject_checkpoint(_request, **kwargs):
+        assert kwargs['checkpoint'] == incompatible
+        raise CheckpointIncompatible('private checkpoint detail')
+
+    monkeypatch.setattr(tasks, 'run_complete_buck_design', reject_checkpoint)
+    with pytest.raises(CheckpointIncompatible):
+        tasks.design_buck_task.run(item.job_id)
+
+    failed, _, partial = repo.get(item.job_id)
+    assert failed.status == 'failed'
+    assert failed.error.code == 'CHECKPOINT_INCOMPATIBLE'
+    assert failed.retryable is False
+    assert 'private checkpoint detail' not in failed.error.message
+    assert 'restart this job explicitly' in failed.error.message
+    assert partial is None
+
+    monkeypatch.setattr(main, 'store', repo)
+    monkeypatch.setattr(main.design_buck_task, 'delay', lambda _job_id: None)
+    with pytest.raises(HTTPException) as blocked:
+        main.retry_job(UUID(item.job_id), restart=False)
+    assert blocked.value.status_code == 409
+    assert repo.get_checkpoint(item.job_id) == incompatible
+
+    restarted = main.retry_job(UUID(item.job_id), restart=True)
+    assert restarted.status == 'queued'
+    assert restarted.error is None
+    assert restarted.stage == 'queued'
+    assert restarted.progress == 0
+    assert repo.get_checkpoint(item.job_id) is None
+    assert repo.get(item.job_id)[2] is None

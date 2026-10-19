@@ -124,7 +124,7 @@ def design_buck_task(self, job_id):
     except Exception as exc:
         error = {
             'code': 'CHECKPOINT_INCOMPATIBLE' if isinstance(exc, CheckpointIncompatible) else 'DESIGN_FAILED',
-            'message': 'Saved checkpoint cannot be resumed; create a new design' if isinstance(exc, CheckpointIncompatible) else f'Design failed at {active}; completed stages were saved',
+            'message': 'Saved checkpoint is incompatible; restart this job explicitly from the beginning' if isinstance(exc, CheckpointIncompatible) else f'Design failed at {active}; completed stages were saved',
             'correlation_id': job_id,
         }
         now = utcnow().isoformat()

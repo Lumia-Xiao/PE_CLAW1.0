@@ -1,1 +1,3 @@
-outputs/
+# Runtime design results are local artifacts, never source files.
+*
+!.gitignore
