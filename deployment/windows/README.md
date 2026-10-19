@@ -49,7 +49,7 @@ quota, timeout, audit, cleanup and upgrade contract.
   -EvidencePath 'C:\ProgramData\PE-Claw\evidence\preflight.json'
 ```
 
-## 2. PostgreSQL initialization and backup
+## 2. PostgreSQL initialization and paired backup
 
 Create a dedicated least-privilege login and database with PostgreSQL tools;
 do not reuse the postgres superuser in the environment file. `createuser
@@ -77,6 +77,20 @@ The companion JSON records byte size and SHA-256. Test restoration only into a
 new isolated database using `createdb` and `pg_restore --clean --if-exists`; do
 not overwrite the active database. Stop application services or use a
 transactionally consistent operational procedure before a production restore.
+
+Back up the external artifact root in the same maintenance window. The script
+rejects artifacts inside the checkout, refuses links/junctions, verifies the
+ZIP entry list, and writes per-file and archive SHA-256 values:
+
+```powershell
+.\deployment\windows\backup-artifacts.ps1 `
+  -ArtifactRoot 'C:\ProgramData\PE-Claw\artifacts'
+```
+
+Keep the database dump, artifact ZIP and both JSON manifests as one backup set.
+The manifests can expose database names, host names, artifact paths and job
+filenames; restrict them like the backups and never publish them in the Web
+root or release archive.
 
 ## 3. Redis or Memurai
 
@@ -174,3 +188,22 @@ browser refresh of the original job, backup/restore rehearsal, external port
 exposure and service-account ACLs. Record Windows, Python, Node, PostgreSQL,
 Redis/Memurai, NSSM, IIS/Rewrite/ARR and certificate versions. A missing
 dependency or administrator environment remains `blocked`, not `passed`.
+
+## 7. Release package
+
+Build the browser assets, then create split server and public frontend packages:
+
+```powershell
+cd web\frontend
+npm ci
+npm run build
+cd ..\..
+.\.venv\Scripts\python.exe scripts\build_web_release.py
+```
+
+A final package requires a clean checkout. `--allow-dirty` produces a visibly
+labelled candidate only. The JSON manifest records the revision, clean/dirty
+classification, archive size and SHA-256. The frontend ZIP is checked to contain
+no Python, PowerShell, environment, database, key or source-map files. The server
+ZIP contains Python source and therefore belongs only on the controlled backend
+host; never copy it to the IIS site root or a client machine.

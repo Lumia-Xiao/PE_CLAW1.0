@@ -10,3 +10,5 @@ deployment/windows/*.pfx
 deployment/windows/*.p12
 deployment/windows/*.key
 deployment/windows/*.pem
+/release/*.zip
+/release/*.json

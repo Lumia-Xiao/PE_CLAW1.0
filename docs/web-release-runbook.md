@@ -97,6 +97,46 @@ Upgrade order is fixed:
 Legacy jobs are preserved under the disabled `legacy-system` owner. They are
 not made visible to a newly created user automatically.
 
+### Start and stop
+
+Use explicit service order and stop traffic before stopping the backend:
+
+```powershell
+Start-Service -Name 'postgresql-x64-16'
+Start-Service -Name 'Memurai'
+Start-Service -Name 'PE-Claw-Recovery'
+Start-Service -Name 'PE-Claw-Worker'
+Start-Service -Name 'PE-Claw-API'
+Start-Service -Name 'W3SVC'
+
+Stop-Service -Name 'W3SVC'
+Stop-Service -Name 'PE-Claw-API'
+Stop-Service -Name 'PE-Claw-Worker'
+Stop-Service -Name 'PE-Claw-Recovery'
+```
+
+Do not stop PostgreSQL or Redis for an ordinary application restart. Before a
+maintenance stop, wait for active work or record the job IDs and rely on the
+lease/recovery contract. After start, require `GET /api/v1/health`, revision and
+migration agreement from `GET /api/v1/release`, then run authenticated acceptance.
+
+### Upgrade and rollback
+
+`upgrade` means deploying a reviewed clean release archive whose manifest hash
+has been checked, taking paired database/artifact backups, stopping Web traffic,
+installing into a new versioned directory, migrating twice, switching the NSSM
+application paths and IIS frontend root, then running acceptance. Keep the old
+versioned directory and the complete matching backup set until acceptance and
+the retention window finish.
+
+`rollback` is permitted without database restore only when no migration or data
+contract changed. For revision `0004_security_ownership` or any later data
+change, stop API/Worker/Recovery, restore the pre-upgrade dump into a new
+database, restore the matching artifact ZIP into a new artifact directory,
+point the old code revision at those isolated restored resources, and run the
+same acceptance before switching traffic. Never downgrade by deleting columns,
+editing `alembic_version`, or mixing a new database with old artifacts.
+
 ## Recovery, cleanup and backup
 
 Recovery is independent of Celery Beat:
@@ -122,9 +162,17 @@ evidence or backups. Inspect retention candidates and take an artifact backup
 before a production cleanup.
 
 Use `deployment/windows/backup-postgres.ps1` for a custom-format database dump
-and checksum manifest. Back up the external artifact root in the same window.
-Restore rehearsals must use a new isolated database and artifact directory;
-never rehearse by overwriting the active instance.
+and checksum manifest, and `deployment/windows/backup-artifacts.ps1` for the
+external artifact ZIP, per-file hashes and archive hash. Keep them as one
+timestamped backup set. Restore rehearsals must use a new isolated database and
+artifact directory; compare all manifest hashes and never rehearse by
+overwriting the active instance.
+
+To prove old-job compatibility, record a pre-upgrade job ID, restore the backup
+set in isolation, migrate the restored database, sign in as an authorized owner
+or administrator, and verify the job, result and every artifact hash. Rows
+adopted by migration `0004` remain owned by disabled `legacy-system`; enabling
+or transferring that account is a separate authorized administrative action.
 
 ## Acceptance and troubleshooting
 
