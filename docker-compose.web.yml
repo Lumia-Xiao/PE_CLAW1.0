@@ -34,6 +34,12 @@ services:
       PE_CLAW_DATABASE_URL: postgresql+psycopg://pe_claw:${PE_CLAW_POSTGRES_PASSWORD}@postgres:5432/pe_claw
       PE_CLAW_REDIS_URL: redis://redis:6379/0
       PE_CLAW_ARTIFACT_ROOT: /data/artifacts
+      PE_CLAW_RELEASE_REVISION: ${PE_CLAW_RELEASE_REVISION:-development}
+      PE_CLAW_MAX_REQUEST_BYTES: ${PE_CLAW_MAX_REQUEST_BYTES:-65536}
+      PE_CLAW_MAX_CONCURRENT_JOBS: ${PE_CLAW_MAX_CONCURRENT_JOBS:-2}
+      PE_CLAW_DAILY_JOB_LIMIT: ${PE_CLAW_DAILY_JOB_LIMIT:-25}
+      PE_CLAW_SESSION_HOURS: ${PE_CLAW_SESSION_HOURS:-8}
+      PE_CLAW_CORS_ORIGINS: ${PE_CLAW_CORS_ORIGINS:-}
     volumes: ["pe-claw-artifacts:/data/artifacts"]
     depends_on:
       migrate: {condition: service_completed_successfully}
@@ -45,6 +51,8 @@ services:
       PE_CLAW_DATABASE_URL: postgresql+psycopg://pe_claw:${PE_CLAW_POSTGRES_PASSWORD}@postgres:5432/pe_claw
       PE_CLAW_REDIS_URL: redis://redis:6379/0
       PE_CLAW_ARTIFACT_ROOT: /data/artifacts
+      PE_CLAW_RELEASE_REVISION: ${PE_CLAW_RELEASE_REVISION:-development}
+      PE_CLAW_JOB_TIMEOUT_SECONDS: ${PE_CLAW_JOB_TIMEOUT_SECONDS:-1800}
     volumes: ["pe-claw-artifacts:/data/artifacts"]
     depends_on:
       migrate: {condition: service_completed_successfully}
@@ -56,6 +64,7 @@ services:
       PE_CLAW_DATABASE_URL: postgresql+psycopg://pe_claw:${PE_CLAW_POSTGRES_PASSWORD}@postgres:5432/pe_claw
       PE_CLAW_REDIS_URL: redis://redis:6379/0
       PE_CLAW_ARTIFACT_ROOT: /data/artifacts
+      PE_CLAW_RELEASE_REVISION: ${PE_CLAW_RELEASE_REVISION:-development}
     volumes: ["pe-claw-artifacts:/data/artifacts"]
     depends_on:
       migrate: {condition: service_completed_successfully}

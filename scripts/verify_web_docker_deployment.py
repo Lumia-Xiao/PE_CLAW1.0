@@ -34,7 +34,12 @@ def main():
         sock.bind(('127.0.0.1', 0))
         port = sock.getsockname()[1]
     env = os.environ.copy()
-    env.update(PE_CLAW_POSTGRES_PASSWORD=secrets.token_urlsafe(32), PE_CLAW_WEB_PORT=str(port))
+    revision = subprocess.run(
+        ['git', 'rev-parse', 'HEAD'], cwd=project, capture_output=True,
+        text=True, encoding='utf-8', errors='replace', check=True,
+    ).stdout.strip()
+    env.update(PE_CLAW_POSTGRES_PASSWORD=secrets.token_urlsafe(32),
+               PE_CLAW_WEB_PORT=str(port), PE_CLAW_RELEASE_REVISION=revision)
     # Test-only faster recovery; production defaults remain unchanged.
     override = root / 'override.json'
     override.write_text(json.dumps({'services': {service: {'environment': {
@@ -47,8 +52,9 @@ def main():
     launched = False
     http = None
 
-    def run(*parts, check=True):
+    def run(*parts, check=True, stdin=None):
         result = subprocess.run(command + list(parts), cwd=project, env=env,
+            input=stdin,
             capture_output=True, text=True, encoding='utf-8', errors='replace',
             creationflags=flags, timeout=args.timeout)
         with (root / 'compose.log').open('a', encoding='utf-8') as log:
@@ -110,9 +116,32 @@ def main():
             except httpx.HTTPError:
                 return False
         wait_until(healthy)
+        acceptance_password = secrets.token_urlsafe(24)
+        created_user = run(
+            'exec', '-T', 'api', 'python', 'scripts/create_web_user.py',
+            'docker-acceptance', '--role', 'admin', '--password-stdin',
+            stdin=acceptance_password + '\n',
+        )
+        assert 'created user_id=' in created_user.stdout
+        login = http.post('/api/v1/auth/login', json={
+            'username': 'docker-acceptance', 'password': acceptance_password,
+        })
+        login.raise_for_status()
+        http.headers['Authorization'] = 'Bearer ' + login.json()['access_token']
+        acceptance_password = ''
+        release = http.get('/api/v1/release').json()
+        assert release['release_revision'] == revision
+        assert release['migration_revision'] == '0004_security_ownership'
         page = http.get('/')
         assert page.status_code == 200 and '<div id="root">' in page.text
         evidence['frontend_and_proxy'] = True
+        evidence['release'] = {
+            key: release[key] for key in (
+                'application_version', 'frontend_version', 'migration_revision',
+                'pipeline_version', 'release_revision', 'python_version',
+            )
+        }
+        evidence['release']['dependencies'] = release['dependencies']
         payload = {'execution_profile': 'complete', 'request': dict(vin_min=36,
             vin_max=60, vout=12, pout=120, fs_khz=100, ripple_current_ratio=.3,
             ripple_voltage_ratio_percent=1)}

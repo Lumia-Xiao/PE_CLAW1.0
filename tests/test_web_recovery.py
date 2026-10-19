@@ -33,7 +33,7 @@ def test_migration_adopts_legacy_without_losing_rows(tmp_path):
     assert repo.get('legacy')[0].status == 'succeeded'
     assert 'idempotency_key' in {c['name'] for c in inspect(repo.engine).get_columns('design_actions')}
     with repo.engine.connect() as conn:
-        assert conn.scalar(text('SELECT version_num FROM alembic_version')) == '0003_request_keys'
+        assert conn.scalar(text('SELECT version_num FROM alembic_version')) == '0004_security_ownership'
     from pe_claw_web.jobs.migrate import upgrade
     upgrade(repo.engine)
     assert repo.get('legacy')[0].job_id == 'legacy'
@@ -276,12 +276,14 @@ def test_incompatible_checkpoint_requires_explicit_restart(repo, monkeypatch):
 
     monkeypatch.setattr(main, 'store', repo)
     monkeypatch.setattr(main.design_buck_task, 'delay', lambda _job_id: None)
+    from pe_claw_web.security import Principal
+    principal = Principal('legacy-system', 'legacy-system', 'admin', 'test-session', utcnow() + timedelta(hours=1))
     with pytest.raises(HTTPException) as blocked:
-        main.retry_job(UUID(item.job_id), restart=False)
+        main.retry_job(UUID(item.job_id), restart=False, principal=principal)
     assert blocked.value.status_code == 409
     assert repo.get_checkpoint(item.job_id) == incompatible
 
-    restarted = main.retry_job(UUID(item.job_id), restart=True)
+    restarted = main.retry_job(UUID(item.job_id), restart=True, principal=principal)
     assert restarted.status == 'queued'
     assert restarted.error is None
     assert restarted.stage == 'queued'

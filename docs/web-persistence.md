@@ -11,6 +11,7 @@ acceptance belongs to the next migration stage.
 `design_jobs` is keyed by a UUID string and persists:
 
 - the topology and validated request JSON;
+- owning user/project IDs used by every job, result and artifact lookup;
 - execution options and idempotency keys;
 - `queued`, `running`, `succeeded`, or `failed` state;
 - progress, active stage, timestamps, attempt and lease data;

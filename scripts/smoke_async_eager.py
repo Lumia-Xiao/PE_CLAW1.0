@@ -10,18 +10,23 @@ os.environ["PE_CLAW_CELERY_EAGER"] = "1"
 with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as root:
     os.environ["PE_CLAW_DATABASE_URL"] = f"sqlite:///{root}/jobs.db"
     os.environ["PE_CLAW_ARTIFACT_ROOT"] = f"{root}/artifacts"
-    from pe_claw_web.api.main import app
+    from pe_claw_web.api import main as main_module
+    app = main_module.app
     from pe_claw_web.jobs import store as store_module
     from pe_claw_web.workers import tasks as task_module
     from pe_claw_web.jobs.artifacts import save_result
     from pe_claw_web.schemas import DesignResultResponse
     from pe_claw_web.jobs.store import JobStore
     import httpx, asyncio
-    store = JobStore(); store_module.store = store; task_module.store = store
+    store = JobStore(); store_module.store = store; task_module.store = store; main_module.store = store
+    store.create_user("smoke-user", "smoke-password-123")
     fixture = DesignResultResponse(job_id="sync", topology="buck_diode_rectified_unidirectional", summary={"smoke": True})
-    task_module.run_buck_design = lambda request, **kwargs: fixture
+    task_module.run_complete_buck_design = lambda request, **kwargs: fixture
     async def run():
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://smoke") as client:
+            login = await client.post("/api/v1/auth/login", json={"username": "smoke-user", "password": "smoke-password-123"})
+            assert login.status_code == 200, login.text
+            client.headers["Authorization"] = f"Bearer {login.json()['access_token']}"
             payload = {"request": {"vin_min":36,"vin_max":60,"vout":12,"pout":120,"fs_khz":100,"ripple_current_ratio":.3,"ripple_voltage_ratio_percent":1}}
             created = await client.post("/api/v1/design-jobs", json=payload)
             assert created.status_code == 202, created.text

@@ -12,6 +12,7 @@ import subprocess
 import sys
 import time
 import uuid
+import secrets
 
 def hardware_signature(checkpoint):
     from pe_claw_web.jobs.checkpoints import decode, encode, checksum
@@ -58,6 +59,8 @@ def main(argv=None, *, restart_database=None):
     from pe_claw_web.workers.tasks import design_buck_task
     from pe_claw_web.schemas import BuckDesignRequest, DesignJobCreate
     upgrade(store.engine)
+    acceptance_password=secrets.token_urlsafe(24)
+    store.create_user('recovery-acceptance', acceptance_password, role='admin')
     with store.Session() as session:
         if session.scalar(select(func.count()).select_from(JobRow)):
             raise RuntimeError('Smoke database must be empty')
@@ -86,6 +89,10 @@ def main(argv=None, *, restart_database=None):
             try: return http.get('/api/v1/health').status_code==200
             except httpx.HTTPError: return False
         wait_until(healthy)
+        login=http.post('/api/v1/auth/login',json={'username':'recovery-acceptance','password':acceptance_password})
+        login.raise_for_status()
+        http.headers['Authorization']='Bearer '+login.json()['access_token']
+        acceptance_password=''
         payload=DesignJobCreate(request=BuckDesignRequest(vin_min=36,vin_max=60,vout=12,pout=120,fs_khz=100,ripple_current_ratio=.3,ripple_voltage_ratio_percent=1))
         response=http.post('/api/v1/design-jobs',json=payload.model_dump(mode='json'))
         assert response.status_code==503, response.text

@@ -48,6 +48,15 @@ def _result(job_id: str) -> dict:
 
 
 def _call(app, method: str, path: str, **kwargs):
+    if path.startswith('/api/v1/design') and 'Authorization' not in kwargs.get('headers', {}):
+        import pe_claw_web.api.main as main
+        if not hasattr(main.store, '_contract_token'):
+            authenticated = main.store.authenticate_credentials('persistence-user', 'persistence-password-1234')
+            if authenticated is None:
+                main.store.create_user('persistence-user', 'persistence-password-1234')
+                authenticated = main.store.authenticate_credentials('persistence-user', 'persistence-password-1234')
+            main.store._contract_token = authenticated[0]
+        kwargs.setdefault('headers', {})['Authorization'] = f'Bearer {main.store._contract_token}'
     async def send():
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(transport=transport, base_url="http://stage4.local") as client:
@@ -149,7 +158,7 @@ def test_migration_is_repeatable_and_preserves_existing_job(tmp_path):
     upgrade(repository.engine)
 
     with repository.engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0003_request_keys"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0004_security_ownership"
         assert connection.scalar(
             text("SELECT COUNT(*) FROM design_jobs WHERE job_id = :job_id"),
             {"job_id": item.job_id},

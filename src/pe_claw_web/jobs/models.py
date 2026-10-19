@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import JSON, DateTime, String, Index
+from sqlalchemy import JSON, Boolean, DateTime, String, Index
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 class Base(DeclarativeBase): pass
@@ -14,6 +14,8 @@ class JobRow(Base):
     __table_args__ = (Index('uq_design_jobs_input_key', 'input_key', unique=True), Index('uq_design_jobs_client_key', 'client_key', unique=True))
     input_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     client_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    owner_user_id: Mapped[str] = mapped_column(String(64), nullable=False, default='legacy-system', index=True)
+    project_id: Mapped[str] = mapped_column(String(64), nullable=False, default='legacy-system', index=True)
     attempt: Mapped[int] = mapped_column(default=0, server_default='0')
     lease_token: Mapped[str | None] = mapped_column(String(64), nullable=True)
     heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -23,3 +25,35 @@ class JobRow(Base):
 class ActionRow(Base):
     __tablename__='design_actions'
     action_id: Mapped[str]=mapped_column(String(64),primary_key=True); job_id: Mapped[str]=mapped_column(String(64),index=True); action: Mapped[str]=mapped_column(String(32)); idempotency_key: Mapped[str]=mapped_column(String(128),index=True); request_json: Mapped[dict]=mapped_column(JSON); status: Mapped[str]=mapped_column(String(20)); progress: Mapped[int]=mapped_column(); stage: Mapped[str|None]=mapped_column(String(64),nullable=True); created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True)); started_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True),nullable=True); finished_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True),nullable=True); error_json: Mapped[dict|None]=mapped_column(JSON,nullable=True); result_json: Mapped[dict|None]=mapped_column(JSON,nullable=True)
+
+
+class UserRow(Base):
+    __tablename__ = 'web_users'
+    user_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    username: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String(512), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=False, default='user')
+    active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class SessionRow(Base):
+    __tablename__ = 'web_sessions'
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class AuditEventRow(Base):
+    __tablename__ = 'web_audit_events'
+    event_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    actor_user_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    action: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    resource_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    resource_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    outcome: Mapped[str] = mapped_column(String(20), nullable=False)
+    details_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)

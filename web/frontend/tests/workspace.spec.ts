@@ -22,7 +22,14 @@ const file = {
   schema_version: "1.0",
   sha256: "a".repeat(64),
 };
+async function authenticate(page: Page) {
+  await page.addInitScript(() => sessionStorage.setItem("pe-claw-session-v1", "test-session-token"));
+  await page.route("**/api/v1/auth/session", (route) =>
+    route.fulfill({ json: { schema_version: "1.0", expires_at: "2026-12-01T00:00:00Z", user: { user_id: "test-user", username: "student", role: "user" } } }),
+  );
+}
 async function setup(page: Page) {
+  await authenticate(page);
   await page.route("**/api/v1/topologies", (route) =>
     route.fulfill({ json: catalog }),
   );
@@ -113,7 +120,7 @@ test("submit, poll, render real Buck fixture, navigate tabs and download", async
   await page.getByRole("tab", { name: "Files", exact: true }).click();
   await expect(page.getByText(`SHA-256: ${file.sha256}`)).toBeVisible();
   const download = page.waitForEvent("download");
-  await page.getByRole("link", { name: "下载", exact: true }).click();
+  await page.getByRole("button", { name: "下载", exact: true }).click();
   const downloaded = await download;
   expect(downloaded.suggestedFilename()).toBe("result.json");
   expect(
@@ -194,7 +201,7 @@ test("waveform and efficiency files belong to unified task and fit mobile", asyn
   await page.goto("/");
   await expect(page.getByRole("status")).toHaveText("已完成");
   await page.getByRole("tab", { name: "Waveforms", exact: true }).click();
-  await expect(page.getByRole("img", { name: "Waveforms · 当前任务计算曲线" })).toHaveAttribute("src", /waveform-png$/);
+  await expect(page.getByRole("img", { name: "Waveforms · 当前任务计算曲线" })).toHaveAttribute("src", /^blob:/);
   await expect(page.getByText("当前报告提供波形统计值，未包含时域采样序列。")).toHaveCount(0);
   await page.getByRole("tab", { name: "Files", exact: true }).click();
   await expect(page.getByText("waveform.png", { exact: true })).toBeVisible();
@@ -277,6 +284,7 @@ test("lost status connection can be retried without duplicate jobs", async ({
   await expect(page.getByRole("status")).toHaveText("已完成");
 });
 test("catalog connection error is recoverable", async ({ page }) => {
+  await authenticate(page);
   await page.route("**/api/v1/topologies", (route) => route.abort());
   await page.goto("/");
   await expect(
@@ -288,6 +296,30 @@ test("catalog connection error is recoverable", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "选择转换器分类" }),
   ).toBeVisible();
+});
+
+test("login stores only the bearer session and logout clears prior user workspace", async ({ page }) => {
+  await page.addInitScript(({ id }) =>
+    localStorage.setItem("pe-claw-web-v1", JSON.stringify({ jobId: id, draft: { pout: "999" } })), { id });
+  await page.route("**/api/v1/topologies", (route) => route.fulfill({ json: catalog }));
+  await page.route("**/api/v1/auth/login", async (route) => {
+    expect(route.request().postDataJSON()).toEqual({ username: "student", password: "valid-password" });
+    await route.fulfill({ json: { schema_version: "1.0", access_token: "fresh-token", token_type: "bearer", expires_at: "2026-12-01T00:00:00Z", user: { user_id: "test-user", username: "student", role: "user" } } });
+  });
+  await page.route("**/api/v1/auth/logout", async (route) => {
+    expect(route.request().headers().authorization).toBe("Bearer fresh-token");
+    await route.fulfill({ status: 204 });
+  });
+  await page.goto("/");
+  await page.getByLabel("用户名").fill("student");
+  await page.getByLabel("密码").fill("valid-password");
+  await page.getByRole("button", { name: "登录", exact: true }).click();
+  await expect(page.getByRole("banner")).toContainText("student");
+  expect(await page.evaluate(() => sessionStorage.getItem("pe-claw-session-v1"))).toBe("fresh-token");
+  expect(await page.evaluate(() => localStorage.getItem("pe-claw-web-v1"))).not.toContain("999");
+  await page.getByRole("button", { name: "退出", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "登录设计工作区" })).toBeVisible();
+  expect(await page.evaluate(() => sessionStorage.getItem("pe-claw-session-v1"))).toBeNull();
 });
 test("queue errors preserve inputs and keep submit available", async ({
   page,

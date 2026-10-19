@@ -2,12 +2,17 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ApiError,
   BUCK,
+  authToken,
+  clearAuthToken,
   jobPath,
   request,
+  setAuthToken,
   type Artifact,
   type Catalog,
   type Job,
   type Result,
+  type Session,
+  type SessionInfo,
   type StageState,
   type Topology,
 } from "./api";
@@ -51,7 +56,11 @@ const errorText = (error: unknown) =>
   error instanceof Error ? error.message : "操作失败，请重试。";
 
 export default function App() {
-  const [initial] = useState(restore);
+  const [initial] = useState(() => {
+    if (authToken()) return restore();
+    save({});
+    return {};
+  });
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [catalogError, setCatalogError] = useState("");
   const [catalogRetry, setCatalogRetry] = useState(0);
@@ -80,6 +89,38 @@ export default function App() {
   > | null>(null);
   const [recoverId, setRecoverId] = useState("");
   const submissionLock = useRef(false);
+  const [authState, setAuthState] = useState<"checking" | "anonymous" | "authenticated">(
+    authToken() ? "checking" : "anonymous",
+  );
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
+  const [signedInAs, setSignedInAs] = useState("");
+
+  useEffect(() => {
+    const expired = () => {
+      clearAuthToken();
+      save({});
+      setAuthState("anonymous");
+      setSignedInAs("");
+      setJobId("");
+      setDraft({});
+      setJob(null);
+      setResult(null);
+      setArtifacts([]);
+    };
+    window.addEventListener("pe-claw-auth-expired", expired);
+    if (authToken()) {
+      request<SessionInfo>("/api/v1/auth/session")
+        .then((session) => {
+          setSignedInAs(session.user.username);
+          setAuthState("authenticated");
+        })
+        .catch(() => expired());
+    }
+    return () => window.removeEventListener("pe-claw-auth-expired", expired);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -240,6 +281,44 @@ export default function App() {
       setSubmitting(false);
     }
   }
+  async function signIn(event: FormEvent) {
+    event.preventDefault();
+    if (authBusy) return;
+    setAuthBusy(true);
+    setAuthError("");
+    try {
+      const session = await request<Session>("/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      setAuthToken(session.access_token);
+      save({});
+      setPassword("");
+      setSignedInAs(session.user.username);
+      setAuthState("authenticated");
+      setJobId("");
+      setDraft({});
+      setRetry((value) => value + 1);
+    } catch (e) {
+      setAuthError(errorText(e));
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+  async function signOut() {
+    try { await request<void>("/api/v1/auth/logout", { method: "POST" }); }
+    catch { /* Local revocation still prevents reuse in this browser. */ }
+    clearAuthToken();
+    save({});
+    setAuthState("anonymous");
+    setSignedInAs("");
+    setJobId("");
+    setDraft({});
+    setJob(null);
+    setResult(null);
+    setArtifacts([]);
+  }
   const stageEntries: [string, StageState][] = job?.stage_details
     ? Object.entries(job.stage_details)
     : Object.entries(job?.stages || {}).map(([stage, status]) => [
@@ -251,6 +330,25 @@ export default function App() {
           warnings: [],
         },
       ]);
+  if (authState !== "authenticated") {
+    return <>
+      <header className="masthead">
+        <div className="brand"><span className="logo">PE</span><div><strong>PE-Claw</strong><small>POWER ELECTRONICS DESIGN</small></div></div>
+      </header>
+      <main className="login-shell">
+        {authState === "checking" ? <p role="status" className="loading">正在验证会话…</p> :
+          <form className="panel login-panel" onSubmit={signIn}>
+            <span className="eyebrow">SECURE WORKSPACE</span>
+            <h1>登录设计工作区</h1>
+            <p>任务、结果和下载仅对其所有者可见。</p>
+            <label>用户名<input autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} required /></label>
+            <label>密码<input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
+            {authError && <div className="error" role="alert">{authError}</div>}
+            <button className="primary" disabled={authBusy}>{authBusy ? "正在登录…" : "登录"}</button>
+          </form>}
+      </main>
+    </>;
+  }
   return (
     <>
       <header className="masthead">
@@ -262,8 +360,9 @@ export default function App() {
           </div>
         </div>
         <div className="header-right">
-          <span className="dot" />
-          Converter workspace <span className="version">WEB · 0.1</span>
+          <span className="dot" /> {signedInAs}
+          <button className="logout" onClick={() => void signOut()}>退出</button>
+          <span className="version">WEB · 0.1</span>
         </div>
       </header>
       <nav className="navigation" aria-label="工作区导航">

@@ -9,9 +9,16 @@ The starter routes are:
 
 ```text
 GET  /api/v1/health
+GET  /api/v1/release
 GET  /api/v1/topologies
+POST /api/v1/auth/login
 POST /api/v1/design/buck
 ```
+
+Health, release metadata, topology catalog and login are public. Design and
+resource routes require a short-lived Bearer session and enforce job ownership.
+See [`web-release-runbook.md`](web-release-runbook.md) for the complete security
+and operations contract.
 
 [`web-api-v1-buck-request.json`](web-api-v1-buck-request.json) is a complete
 request body for `POST /api/v1/design/buck` and is loaded directly by the

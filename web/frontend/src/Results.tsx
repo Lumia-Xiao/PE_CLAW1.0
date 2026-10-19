@@ -1,5 +1,37 @@
-import { useState } from "react";
-import { safeDownload, type Artifact, type Json, type Result } from "./api";
+import { useEffect, useState } from "react";
+import { artifactBlob, safeDownload, type Artifact, type Json, type Result } from "./api";
+
+function ArtifactDownload({ artifact }: { artifact: Artifact }) {
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  if (!safeDownload(artifact.download_url)) return <span>下载地址不可用</span>;
+  return <button className="button" disabled={busy} onClick={async () => {
+    setBusy(true); setFailed(false);
+    try {
+      const blob = await artifactBlob(artifact.download_url);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url; link.download = artifact.name; link.click();
+      URL.revokeObjectURL(url);
+    } catch { setFailed(true); }
+    finally { setBusy(false); }
+  }}>{failed ? "下载失败，重试" : busy ? "正在下载…" : "下载"}</button>;
+}
+
+function ArtifactImage({ artifact, alt }: { artifact: Artifact; alt: string }) {
+  const [url, setUrl] = useState("");
+  useEffect(() => {
+    let active = true;
+    let objectUrl = "";
+    artifactBlob(artifact.download_url).then((blob) => {
+      if (!active) return;
+      objectUrl = URL.createObjectURL(blob);
+      setUrl(objectUrl);
+    }).catch(() => setUrl(""));
+    return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
+  }, [artifact.download_url]);
+  return url ? <figure className="chart"><img className="artifact-preview" src={url} alt={alt} /></figure> : null;
+}
 
 const sections = [
   ["summary", "Summary", "设计摘要"],
@@ -232,17 +264,7 @@ export default function Results({
                         {a.sha256 ? <><br /><code className="checksum">SHA-256: {a.sha256}</code></> : ""}
                       </small>
                     </div>
-                    {safeDownload(a.download_url) ? (
-                      <a
-                        className="button"
-                        href={safeDownload(a.download_url)}
-                        download={a.name}
-                      >
-                        下载
-                      </a>
-                    ) : (
-                      <span>下载地址不可用</span>
-                    )}
+                    <ArtifactDownload artifact={a} />
                   </li>
                 ))}
               </ul>
@@ -285,7 +307,7 @@ export default function Results({
               </p>
             )}
             {key === "efficiency_sweep" && !preview && <EfficiencyChart data={value!} />}
-            {preview && safeDownload(preview.download_url) && <figure className="chart"><img className="artifact-preview" src={safeDownload(preview.download_url)} alt={`${title} · 当前任务计算曲线`} /></figure>}
+            {preview && safeDownload(preview.download_url) && <ArtifactImage artifact={preview} alt={`${title} · 当前任务计算曲线`} />}
             {stageWarnings.map((warning, i) => <p className="notice" key={i}>{warning}</p>)}
             <DataTable key={`${tab}-${result.job_id}`} value={object(value) ? Object.fromEntries(Object.entries(value).filter(([name]) => name !== "samples")) : value!} />
           </>

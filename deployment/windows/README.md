@@ -30,6 +30,16 @@ The deployment is same-origin through IIS and intentionally does not enable
 CORS. PostgreSQL, Redis and Uvicorn bind to loopback/private interfaces; only
 IIS HTTPS/443 is exposed by default.
 
+After applying migrations, provision the first administrator interactively:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\create_web_user.py release-admin --role admin
+```
+
+The password is prompted and is not placed in shell history. See
+[`docs/web-release-runbook.md`](../../docs/web-release-runbook.md) for the auth,
+quota, timeout, audit, cleanup and upgrade contract.
+
 ```powershell
 .\deployment\windows\preflight.ps1 `
   -RequireAdministrator -RequireIis `
@@ -139,6 +149,7 @@ blocked internal paths, a complete real Buck task, and every artifact byte/hash:
 ```powershell
 .\deployment\windows\verify-windows-native.ps1 `
   -BaseUrl 'https://pe-claw.example.internal' `
+  -Credential (Get-Credential -Message 'PE-Claw acceptance user') `
   -Nssm 'C:\Tools\nssm.exe'
 ```
 

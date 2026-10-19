@@ -25,9 +25,12 @@ Invoke-RestMethod http://127.0.0.1:8000/api/v1/health
 Submit the versioned example without changing its JSON representation:
 
 ```powershell
+# Obtain $headers from an authenticated session as documented in
+# docs/web-release-runbook.md.
 Invoke-RestMethod `
   -Method Post `
   -Uri http://127.0.0.1:8000/api/v1/design/buck `
+  -Headers $headers `
   -ContentType 'application/json' `
   -InFile .\docs\web-api-v1-buck-request.json
 ```

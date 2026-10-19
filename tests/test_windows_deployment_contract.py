@@ -50,6 +50,7 @@ def test_iis_config_orders_https_proxy_and_spa_and_blocks_internal_files():
     }
     assert headers["Strict-Transport-Security"].startswith("max-age=")
     assert "default-src 'self'" in headers["Content-Security-Policy"]
+    assert "img-src 'self' blob: data:" in headers["Content-Security-Policy"]
     assert headers["X-Frame-Options"] == "DENY"
     assert headers["X-Content-Type-Options"] == "nosniff"
 
@@ -68,6 +69,9 @@ def test_service_registration_uses_one_isolated_configuration_and_restart_policy
         "--pool=solo --concurrency=1",
         "alembic upgrade head",
         "must be outside the source checkout",
+        "PE_CLAW_RELEASE_REVISION=$releaseRevision",
+        "PE_CLAW_MAX_REQUEST_BYTES=$requestBytes",
+        "PE_CLAW_JOB_TIMEOUT_SECONDS=$jobTimeout",
     ):
         assert token in script
     assert "PE_CLAW_DATABASE_URL=$env:PE_CLAW_DATABASE_URL" in script
@@ -93,6 +97,9 @@ def test_acceptance_script_covers_versions_services_recovery_and_secret_scanning
         "status --porcelain --untracked-files=all",
         "Strict-Transport-Security",
         "Content-Security-Policy",
+        "/api/v1/auth/login",
+        "/api/v1/release",
+        "Authorization = \"Bearer $($login.access_token)\"",
         "/libraries/semiconductors/data/private.csv",
         "Stop-Service -Name 'PE-Claw-Worker'",
         "Stop-Service -Name $RedisService",
@@ -116,6 +123,7 @@ def test_preflight_requires_tls_and_populated_isolated_environment():
         "CertificateThumbprint",
         "environment_values",
         "artifact_isolation",
+        "security_limits",
         "connection_schemes",
         "url_rewrite",
         "arr",

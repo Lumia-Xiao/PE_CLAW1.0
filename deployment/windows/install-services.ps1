@@ -38,6 +38,28 @@ if (-not $Python) {
 $Python = (Resolve-Path -LiteralPath $Python).Path
 $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $retentionHours = if ($env:PE_CLAW_ARTIFACT_RETENTION_HOURS) { $env:PE_CLAW_ARTIFACT_RETENTION_HOURS } else { '168' }
+$sessionHours = if ($env:PE_CLAW_SESSION_HOURS) { $env:PE_CLAW_SESSION_HOURS } else { '8' }
+$requestBytes = if ($env:PE_CLAW_MAX_REQUEST_BYTES) { $env:PE_CLAW_MAX_REQUEST_BYTES } else { '65536' }
+$concurrentJobs = if ($env:PE_CLAW_MAX_CONCURRENT_JOBS) { $env:PE_CLAW_MAX_CONCURRENT_JOBS } else { '2' }
+$dailyJobs = if ($env:PE_CLAW_DAILY_JOB_LIMIT) { $env:PE_CLAW_DAILY_JOB_LIMIT } else { '25' }
+$jobTimeout = if ($env:PE_CLAW_JOB_TIMEOUT_SECONDS) { $env:PE_CLAW_JOB_TIMEOUT_SECONDS } else { '1800' }
+$corsOrigins = if ($env:PE_CLAW_CORS_ORIGINS) { $env:PE_CLAW_CORS_ORIGINS } else { '' }
+foreach ($setting in @{
+    PE_CLAW_SESSION_HOURS = $sessionHours
+    PE_CLAW_MAX_REQUEST_BYTES = $requestBytes
+    PE_CLAW_MAX_CONCURRENT_JOBS = $concurrentJobs
+    PE_CLAW_DAILY_JOB_LIMIT = $dailyJobs
+    PE_CLAW_JOB_TIMEOUT_SECONDS = $jobTimeout
+    PE_CLAW_ARTIFACT_RETENTION_HOURS = $retentionHours
+}.GetEnumerator()) {
+    $parsed = 0
+    if (-not [int]::TryParse([string]$setting.Value, [ref]$parsed) -or $parsed -lt 1) {
+        throw "$($setting.Key) must be a positive integer."
+    }
+}
+$gitPath = (Get-Command git.exe -ErrorAction Stop).Source
+$releaseRevision = (& $gitPath -C $ProjectRoot rev-parse HEAD).Trim()
+if ($LASTEXITCODE -ne 0 -or $releaseRevision -notmatch '^[0-9a-f]{40}$') { throw 'Could not resolve release revision.' }
 $artifactRoot = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($env:PE_CLAW_ARTIFACT_ROOT))
 $normalizedProjectRoot = $ProjectRoot.TrimEnd('\')
 if ($artifactRoot.Equals($normalizedProjectRoot, [StringComparison]::OrdinalIgnoreCase) -or
@@ -72,7 +94,14 @@ $environment = @(
     "PE_CLAW_ARTIFACT_ROOT=$artifactRoot",
     "PE_CLAW_LEASE_SECONDS=$env:PE_CLAW_LEASE_SECONDS",
     "PE_CLAW_HEARTBEAT_SECONDS=$env:PE_CLAW_HEARTBEAT_SECONDS",
-    "PE_CLAW_ARTIFACT_RETENTION_HOURS=$retentionHours"
+    "PE_CLAW_ARTIFACT_RETENTION_HOURS=$retentionHours",
+    "PE_CLAW_SESSION_HOURS=$sessionHours",
+    "PE_CLAW_MAX_REQUEST_BYTES=$requestBytes",
+    "PE_CLAW_MAX_CONCURRENT_JOBS=$concurrentJobs",
+    "PE_CLAW_DAILY_JOB_LIMIT=$dailyJobs",
+    "PE_CLAW_JOB_TIMEOUT_SECONDS=$jobTimeout",
+    "PE_CLAW_CORS_ORIGINS=$corsOrigins",
+    "PE_CLAW_RELEASE_REVISION=$releaseRevision"
 )
 $services = @(
     @{ Name = 'PE-Claw-API'; Arguments = '-m uvicorn pe_claw_web.api.main:app --host 127.0.0.1 --port 8000'; Dependencies = @($PostgresService) },

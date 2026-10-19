@@ -10,6 +10,7 @@ param(
     [string]$PostgresService = 'postgresql-x64-16',
     [string]$RedisService = 'Memurai',
     [int]$TimeoutSeconds = 900,
+    [PSCredential]$Credential,
     [switch]$ExerciseRecovery,
     [switch]$AllowHttp
 )
@@ -72,7 +73,7 @@ function Assert-ForbiddenPath([string]$Path) {
 }
 
 function Get-Job([string]$JobId) {
-    Invoke-RestMethod "$($BaseUrl.TrimEnd('/'))/api/v1/design-jobs/$JobId" -TimeoutSec 15
+    Invoke-RestMethod "$($BaseUrl.TrimEnd('/'))/api/v1/design-jobs/$JobId" -Headers $authHeaders -TimeoutSec 15
 }
 
 function Wait-ForState([string]$JobId, [scriptblock]$Ready, [int]$PollMilliseconds = 2000) {
@@ -139,6 +140,34 @@ try {
     if (-not $catalog.topologies) { throw 'Topology catalog is empty.' }
     $evidence.checks.https_frontend_headers_and_proxy = $true
 
+    $release = Invoke-RestMethod "$($BaseUrl.TrimEnd('/'))/api/v1/release" -TimeoutSec 30
+    if ($release.release_revision -ne $revision -or $release.migration_revision -ne '0004_security_ownership') {
+        throw 'Runtime release metadata does not match the accepted checkout or migration.'
+    }
+    $evidence.release = [ordered]@{
+        application_version = $release.application_version
+        frontend_version = $release.frontend_version
+        migration_revision = $release.migration_revision
+        pipeline_version = $release.pipeline_version
+        release_revision = $release.release_revision
+        python_version = $release.python_version
+        dependencies = $release.dependencies
+    }
+
+    if (-not $Credential) { $Credential = Get-Credential -Message 'PE-Claw acceptance user' }
+    $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.Password)
+    try {
+        $plainPassword = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer)
+        $loginBody = @{ username = $Credential.UserName; password = $plainPassword } | ConvertTo-Json
+        $login = Invoke-RestMethod "$($BaseUrl.TrimEnd('/'))/api/v1/auth/login" -Method Post -ContentType 'application/json' -Body $loginBody -TimeoutSec 30
+    } finally {
+        if ($pointer -ne [IntPtr]::Zero) { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer) }
+        $plainPassword = $null
+        $loginBody = $null
+    }
+    $authHeaders = @{ Authorization = "Bearer $($login.access_token)" }
+    $evidence.user_id = $login.user.user_id
+
     foreach ($path in '/src/pe_claw_web/api/main.py', '/libraries/semiconductors/data/private.csv', '/.git/config', '/outputs/', '/pe-claw.env.ps1') {
         Assert-ForbiddenPath $path
     }
@@ -152,7 +181,7 @@ try {
         execution_profile = 'complete'
         client_request_id = "windows-$stamp"
     } | ConvertTo-Json -Depth 5
-    $created = Invoke-RestMethod "$($BaseUrl.TrimEnd('/'))/api/v1/design-jobs" -Method Post -ContentType 'application/json' -Body $payload -TimeoutSec 30
+    $created = Invoke-RestMethod "$($BaseUrl.TrimEnd('/'))/api/v1/design-jobs" -Method Post -Headers $authHeaders -ContentType 'application/json' -Body $payload -TimeoutSec 30
     $jobId = $created.job_id
     $evidence.job_id = $jobId
 
@@ -184,14 +213,14 @@ try {
         $stable = Get-Job $jobId
         if ($stable.status -ne 'succeeded' -or $stable.attempt -ne 2) { throw 'A late delivery changed the terminal job or created a third attempt.' }
     }
-    $result = Invoke-RestMethod "$($BaseUrl.TrimEnd('/'))/api/v1/design-jobs/$jobId/result" -TimeoutSec 30
+    $result = Invoke-RestMethod "$($BaseUrl.TrimEnd('/'))/api/v1/design-jobs/$jobId/result" -Headers $authHeaders -TimeoutSec 30
     if ($result.job_id -ne $jobId -or $result.schema_version -ne '1.0') { throw 'Result response does not belong to the accepted job contract.' }
-    $manifest = Invoke-RestMethod "$($BaseUrl.TrimEnd('/'))/api/v1/design-jobs/$jobId/artifacts" -TimeoutSec 30
+    $manifest = Invoke-RestMethod "$($BaseUrl.TrimEnd('/'))/api/v1/design-jobs/$jobId/artifacts" -Headers $authHeaders -TimeoutSec 30
     if (-not $manifest) { throw 'Artifact manifest is empty.' }
     foreach ($artifact in $manifest) {
         if (-not $artifact.download_url.StartsWith("/api/v1/design-jobs/$jobId/")) { throw 'Artifact is not scoped to the current job.' }
         $target = Join-Path $evidenceDirectory $artifact.name
-        Invoke-WebRequest "$($BaseUrl.TrimEnd('/'))$($artifact.download_url)" -OutFile $target -TimeoutSec 60
+        Invoke-WebRequest "$($BaseUrl.TrimEnd('/'))$($artifact.download_url)" -Headers $authHeaders -OutFile $target -TimeoutSec 60
         $actual = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($actual -ne $artifact.sha256 -or (Get-Item -LiteralPath $target).Length -ne $artifact.size) { throw "Artifact verification failed: $($artifact.id)" }
     }

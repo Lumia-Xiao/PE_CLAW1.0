@@ -91,12 +91,27 @@ if ($checks.environment_file) {
         ($env:PE_CLAW_DATABASE_URL -match '^postgresql\+psycopg://') -and
         ($env:PE_CLAW_REDIS_URL -match '^rediss?://')
     $checks.artifact_isolation = $checks.environment_values -and (Test-OutsideProject $env:PE_CLAW_ARTIFACT_ROOT)
+    $numericSettings = [ordered]@{
+        PE_CLAW_SESSION_HOURS = if ($env:PE_CLAW_SESSION_HOURS) { $env:PE_CLAW_SESSION_HOURS } else { '8' }
+        PE_CLAW_MAX_REQUEST_BYTES = if ($env:PE_CLAW_MAX_REQUEST_BYTES) { $env:PE_CLAW_MAX_REQUEST_BYTES } else { '65536' }
+        PE_CLAW_MAX_CONCURRENT_JOBS = if ($env:PE_CLAW_MAX_CONCURRENT_JOBS) { $env:PE_CLAW_MAX_CONCURRENT_JOBS } else { '2' }
+        PE_CLAW_DAILY_JOB_LIMIT = if ($env:PE_CLAW_DAILY_JOB_LIMIT) { $env:PE_CLAW_DAILY_JOB_LIMIT } else { '25' }
+        PE_CLAW_JOB_TIMEOUT_SECONDS = if ($env:PE_CLAW_JOB_TIMEOUT_SECONDS) { $env:PE_CLAW_JOB_TIMEOUT_SECONDS } else { '1800' }
+    }
+    $invalidNumericSettings = @()
+    foreach ($setting in $numericSettings.GetEnumerator()) {
+        $parsed = 0
+        if (-not [int]::TryParse([string]$setting.Value, [ref]$parsed) -or $parsed -lt 1) { $invalidNumericSettings += $setting.Key }
+    }
+    $checks.security_limits = ($invalidNumericSettings.Count -eq 0)
+    $details.invalid_numeric_settings = $invalidNumericSettings
     $details.missing_environment_names = $missing
     $details.placeholder_environment_names = $placeholder
 } else {
     $checks.environment_values = $false
     $checks.connection_schemes = $false
     $checks.artifact_isolation = $false
+    $checks.security_limits = $false
 }
 
 if ($RequireIis) {
@@ -109,7 +124,7 @@ if ($RequireIis) {
     $checks.certificate = ($normalizedThumbprint -match '^[0-9A-Fa-f]{40}$') -and (Test-Path -LiteralPath "Cert:\LocalMachine\My\$normalizedThumbprint")
 }
 
-$requiredChecks = @('windows', 'python', 'node', 'npm', 'nssm', 'psql', 'pg_dump', 'pg_restore', 'redis', 'frontend', 'environment_file', 'environment_values', 'connection_schemes', 'artifact_isolation')
+$requiredChecks = @('windows', 'python', 'node', 'npm', 'nssm', 'psql', 'pg_dump', 'pg_restore', 'redis', 'frontend', 'environment_file', 'environment_values', 'connection_schemes', 'artifact_isolation', 'security_limits')
 if ($RequireAdministrator) { $requiredChecks += 'administrator' }
 if ($RequireIis) { $requiredChecks += 'iis_module', 'url_rewrite', 'arr', 'certificate' }
 $blocked = @($requiredChecks | Where-Object { -not $checks[$_] })

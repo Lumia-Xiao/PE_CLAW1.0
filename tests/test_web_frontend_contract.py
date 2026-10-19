@@ -35,10 +35,24 @@ def api(tmp_path, monkeypatch):
 
 
 def call(api, method, path, **kwargs):
+    if path.startswith('/api/v1/design') and 'Authorization' not in kwargs.get('headers', {}):
+        token, _ = auth_identity(api.store)
+        kwargs.setdefault('headers', {})['Authorization'] = f'Bearer {token}'
     async def send():
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=api.app), base_url='http://test') as client:
             return await client.request(method, path, **kwargs)
     return asyncio.run(send())
+
+
+def auth_identity(store):
+    if not hasattr(store, '_contract_auth'):
+        authenticated = store.authenticate_credentials('contract-user', 'contract-password-1234')
+        if authenticated is None:
+            store.create_user('contract-user', 'contract-password-1234')
+            authenticated = store.authenticate_credentials('contract-user', 'contract-password-1234')
+        token, _, user = authenticated
+        store._contract_auth = (token, user.user_id)
+    return store._contract_auth
 
 
 def test_catalog_matches_browser_fixture_and_gui_defaults(api):
@@ -171,7 +185,7 @@ def test_queue_failure_and_invalid_request_have_http_errors(api, monkeypatch):
 
 def test_failed_job_never_exposes_artifact(api, monkeypatch):
     main, tasks, store = api
-    item = store.create(BuckDesignRequest(**INPUT))
+    item = store.create(BuckDesignRequest(**INPUT), owner_user_id=auth_identity(store)[1])
     folder = main.ARTIFACT_ROOT / item.job_id
     folder.mkdir(parents=True)
     (folder / 'result.json').write_text('{}')
@@ -188,7 +202,7 @@ def test_failed_job_never_exposes_artifact(api, monkeypatch):
 def test_unified_exports_download_bytes_and_isolation(api):
     main, _, store = api
     from pe_claw_web.jobs.artifacts import save_result
-    item = store.create(BuckDesignRequest(**INPUT))
+    item = store.create(BuckDesignRequest(**INPUT), owner_user_id=auth_identity(store)[1])
     summary = {
         'waveform': {'available': True, 'samples': {'time_s': [0, .001, .002], 'inductor_current_a': [1, 2, 1]}},
         'efficiency_sweep': {'available': True, 'status': 'available', 'points': [
@@ -216,7 +230,7 @@ def test_unified_exports_download_bytes_and_isolation(api):
     csv_entry = next(f for f in files if f['id'] == 'capacitor-csv')
     assert 'capacitance,1e-06,F,fixture' in call(main, 'GET', csv_entry['download_url']).text
     assert call(main, 'GET', files[0]['download_url']).json()['artifacts'] == files[1:]
-    other = store.create(BuckDesignRequest(**INPUT))
+    other = store.create(BuckDesignRequest(**INPUT), owner_user_id=auth_identity(store)[1])
     store.update(other.job_id, status='succeeded', result_json={'artifacts': []})
     assert call(main, 'GET', csv_entry['download_url'].replace(item.job_id, other.job_id)).status_code == 404
     assert call(main, 'GET', f'/api/v1/design-jobs/{item.job_id}/artifacts/private-log').status_code == 404
@@ -237,7 +251,7 @@ def test_exports_do_not_publish_stale_files_or_blocked_curves(tmp_path):
 
 def test_download_rejects_symlink_escape(api, tmp_path):
     main, _, store = api
-    item = store.create(BuckDesignRequest(**INPUT))
+    item = store.create(BuckDesignRequest(**INPUT), owner_user_id=auth_identity(store)[1])
     folder = main.ARTIFACT_ROOT / item.job_id
     folder.mkdir(parents=True)
     outside = tmp_path / 'private.json'
@@ -269,7 +283,7 @@ def test_public_waveform_uses_real_buck_samples(tmp_path):
 def test_retry_http_and_partial_result(api, monkeypatch):
     main, tasks, store = api
     from datetime import datetime, timezone
-    item = store.create(BuckDesignRequest(**INPUT))
+    item = store.create(BuckDesignRequest(**INPUT), owner_user_id=auth_identity(store)[1])
     partial = DesignResultResponse(job_id=item.job_id, topology=item.topology, summary={'candidate': {'available':True}})
     store.update(item.job_id, status='failed', finished_at=datetime.now(timezone.utc), stage='magnetics',
                  checkpoint_json={'saved':True}, result_json=partial.model_dump(mode='json'))

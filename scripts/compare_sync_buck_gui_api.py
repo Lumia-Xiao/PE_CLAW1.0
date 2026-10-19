@@ -195,11 +195,26 @@ def _gui_summary(request: BuckDesignRequest, output_root: Path) -> dict[str, Any
 
 
 async def _api_result(payload: dict[str, Any]) -> DesignResultResponse:
-    from pe_claw_web.api.main import app
+    from pe_claw_web.api import main as main_module
+    from pe_claw_web.jobs.store import JobStore
 
-    transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://step6.local") as client:
-        response = await client.post(ENDPOINT, json=payload)
+    repository = JobStore()
+    main_module.store = repository
+    try:
+        transport = httpx.ASGITransport(app=main_module.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://step6.local") as client:
+            repository.create_user('comparison-user', 'comparison-password-123')
+            login = await client.post('/api/v1/auth/login', json={
+                'username': 'comparison-user', 'password': 'comparison-password-123',
+            })
+            login.raise_for_status()
+            response = await client.post(
+                ENDPOINT,
+                json=payload,
+                headers={'Authorization': 'Bearer ' + login.json()['access_token']},
+            )
+    finally:
+        repository.engine.dispose()
     if response.status_code != 200:
         raise RuntimeError(f"{ENDPOINT} returned HTTP {response.status_code}: {response.text}")
     return DesignResultResponse.model_validate(response.json())

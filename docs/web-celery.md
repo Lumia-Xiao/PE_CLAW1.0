@@ -59,14 +59,25 @@ isolation.
 Submit and poll:
 
 ```powershell
+$credential = Get-Credential -Message 'PE-Claw user'
+$pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($credential.Password)
+try {
+  $password = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer)
+  $login = Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/api/v1/auth/login `
+    -ContentType 'application/json' -Body (@{ username = $credential.UserName; password = $password } | ConvertTo-Json)
+} finally {
+  [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer); $password = $null
+}
+$headers = @{ Authorization = "Bearer $($login.access_token)" }
 $body = Get-Content .\docs\web-api-v1-buck-request.json -Raw | ConvertFrom-Json
 $created = Invoke-RestMethod `
   -Method Post `
   -Uri http://127.0.0.1:8000/api/v1/design-jobs `
+  -Headers $headers `
   -ContentType 'application/json' `
   -Body (@{ client_request_id = 'buck-demo-001'; request = $body } | ConvertTo-Json -Depth 10)
 
-Invoke-RestMethod "http://127.0.0.1:8000/api/v1/design-jobs/$($created.job_id)"
+Invoke-RestMethod "http://127.0.0.1:8000/api/v1/design-jobs/$($created.job_id)" -Headers $headers
 ```
 
 The POST response is HTTP 202 with a `job_id`. Polling reports `queued`,

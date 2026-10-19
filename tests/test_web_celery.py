@@ -28,6 +28,15 @@ def _database_url(path) -> str:
 
 
 def _call(app, method: str, path: str, **kwargs):
+    if path.startswith('/api/v1/design') and 'Authorization' not in kwargs.get('headers', {}):
+        import pe_claw_web.api.main as main
+        if not hasattr(main.store, '_contract_token'):
+            authenticated = main.store.authenticate_credentials('celery-user', 'celery-password-1234')
+            if authenticated is None:
+                main.store.create_user('celery-user', 'celery-password-1234')
+                authenticated = main.store.authenticate_credentials('celery-user', 'celery-password-1234')
+            main.store._contract_token = authenticated[0]
+        kwargs.setdefault('headers', {})['Authorization'] = f'Bearer {main.store._contract_token}'
     async def send():
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(transport=transport, base_url="http://stage5.local") as client:

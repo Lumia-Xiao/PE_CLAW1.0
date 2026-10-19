@@ -1,5 +1,15 @@
 # Change Log
 
+## 2026-10-19 Web 阶段十一发布安全与运维收口（待 Git 批准）
+
+- 目的：完成 Web 最终发布边界，增加短期 Bearer 会话、用户/项目资源所有权、并发/每日/请求体/运行时间限制、管理权限、状态/结果/下载审计和安全响应头。
+- 代码与数据：新增安全模型、发布模型和 Alembic `0004_security_ownership`；旧任务无损归属禁用的 `legacy-system`；前端登录、会话失效、退出清理和带授权 Blob 下载已接入；API/Worker/Recovery、Windows NSSM 和 Compose 共享限制及发布 revision。
+- 发布保护：后端容器以非 root 用户运行；Nginx/IIS 限制请求、路径、CSP、frame/MIME/referrer；CORS 默认关闭并仅支持精确 allowlist；运行时 `/api/v1/release` 暴露代码、迁移、Pipeline、前端、Python 和关键依赖版本，不含秘密。
+- 运维：新增 `docs/web-release-runbook.md`，覆盖管理员引导、启动、升级、恢复、清理、数据库与 artifact 备份、故障排查和目标机验收；Windows/Compose/恢复 smoke 均改为认证调用。
+- 验证：Web/Windows pytest `118 passed, 5 skipped`；Playwright `16 passed`；GUI/API Buck parity 比较 `184` 个叶字段、`0` 差异；React production build、Python `compileall`、PowerShell 全脚本语法、Compose config、authenticated eager smoke、`git diff --check` 通过。跳过项为 4 个需隔离 PostgreSQL URL 的真实数据库用例和 1 个需 Windows Developer Mode 的 symlink 用例。
+- 全仓库附加门禁发现 6 个既有 AC-DC artifact 契约失败：实现 `e16be0a4` 明确仅公开两张 PNG，测试 `c8eccee9` 仍要求公开 CSV；未通过修改无关合同或弱化断言隐藏该问题。Docker 引擎及 IIS/HTTPS 目标机验收不可用，分别记录为 blocked。
+- Git：分支 `Development-of-Web`；commit、push、merge 均待用户明确批准，本条不填写不存在的提交 ID。备份：未执行生产备份，本地更改未触及生产数据库、artifact 根或 `outputs/` 用户结果。
+
 ## 2026-09-21 Web 计划与部署计划重组
 
 - 合并 `Plan/Active/plan.md` 与 `student_web_migration_plan.md` 为统一的 `web_migration_plan.md`，保留 Web 架构、执行阶段、学生交付规则和验收边界。

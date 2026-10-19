@@ -247,6 +247,16 @@ validate
 
 **最终验收**：用户无需 `.bat` 完成完整 Buck 设计；Web 与 GUI 关键字段一致；任务状态、恢复、artifact hash、权限和环境限制均有证据。
 
+#### 2026-10-19 Step 14 本地实施记录
+
+- 已补齐 Bearer 会话、用户/任务/结果/artifact 所有权、用户级并发与每日配额、请求体和 Worker 超时、管理权限与审计事件；前端受保护下载使用带授权请求的 Blob，不在 Cookie 中保存身份。
+- 已增加发布元数据、生产响应头、显式 CORS allowlist、非 root 后端容器、Nginx/IIS 路径和 CSP 保护，并将 Windows/Compose 验收改为登录后执行。
+- 已增加启动、升级、恢复、清理、备份、安全与排障运行手册；Alembic head 为 `0004_security_ownership`，旧任务保留在禁用的 `legacy-system` owner 下。
+- 本地代码级证据：Web/Windows 合同 `118 passed, 5 skipped`；Playwright `16 passed`；GUI/API Buck parity `184` 个叶字段、`0` 差异；React production build、PowerShell parse、Compose config、authenticated eager smoke、`compileall` 和 `git diff --check` 通过。4 个真实 PostgreSQL 用例因未配置隔离测试 URL 跳过，1 个 symlink 用例因 Windows Developer Mode 跳过。
+- 全仓库额外回归发现既有 AC-DC artifact 合同不一致：实现提交 `e16be0a4` 明确不公开 CSV，但旧测试提交 `c8eccee9` 仍要求 `artifact_paths["csv"]`；6 个断言因此失败。本步骤未修改该无关合同，也未弱化测试。
+- Docker Desktop 引擎未运行；IIS/HTTPS、真实 PostgreSQL/Redis、完整机器重启和备份恢复仍必须在独立目标机验收，不能计为本机通过。
+- 按用户要求，本步骤尚未 commit、push 或 merge；正式完成状态需在用户批准 Git 操作并完成所需目标机门禁后更新。
+
 ## 6. 当前实施记录与未完成事项
 
 - 已有本地 Web Buck 工作区、API、React 页面、任务持久化、恢复链路和 artifact 校验记录，但部分记录仍标明未推送或未完成生产验收。

@@ -21,6 +21,8 @@ celery_app.conf.update(
     accept_content=["json"],
     result_serializer="json",
     worker_concurrency=_worker_concurrency(),
+    task_time_limit=int(os.getenv("PE_CLAW_JOB_TIMEOUT_SECONDS", "1800")) + 60,
+    task_soft_time_limit=int(os.getenv("PE_CLAW_JOB_TIMEOUT_SECONDS", "1800")),
 )
 celery_app.conf.update(
     include=["pe_claw_web.workers.tasks", "pe_claw_web.workers.action_tasks"],

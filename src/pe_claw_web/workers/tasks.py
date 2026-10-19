@@ -1,7 +1,10 @@
 from __future__ import annotations
 import logging
 import os
+import time
 from threading import Event, Thread
+
+from billiard.exceptions import SoftTimeLimitExceeded
 
 from .celery_app import celery_app
 from pe_claw_web.jobs.store import store, LeaseLost, utcnow
@@ -12,8 +15,21 @@ from pe_claw_web.api.complete import run_complete as run_complete_buck_design, S
 
 log = logging.getLogger(__name__)
 
+
+class JobTimeout(RuntimeError):
+    pass
+
 @celery_app.task(bind=True, name='pe_claw.design_buck', acks_late=True, reject_on_worker_lost=True, ignore_result=True)
 def design_buck_task(self, job_id):
+    timeout_seconds = float(os.getenv('PE_CLAW_JOB_TIMEOUT_SECONDS', '1800'))
+    if timeout_seconds <= 0:
+        raise RuntimeError('PE_CLAW_JOB_TIMEOUT_SECONDS must be positive')
+    deadline = time.monotonic() + timeout_seconds
+
+    def ensure_deadline():
+        if time.monotonic() >= deadline:
+            raise JobTimeout(job_id)
+
     token = store.claim(job_id)
     if token is None:
         return
@@ -41,6 +57,7 @@ def design_buck_task(self, job_id):
 
     def on_stage(stage, progress):
         nonlocal active
+        ensure_deadline()
         if lost.is_set():
             raise LeaseLost(job_id)
         active = stage
@@ -50,6 +67,7 @@ def design_buck_task(self, job_id):
         store.owned_update(job_id, token, stage=stage, progress=progress, stages_json=dict(stages), heartbeat_at=utcnow())
 
     def finish_stage(stage, status='succeeded', *, warnings=None, error=None, **updates):
+        ensure_deadline()
         detail = stages[stage]
         detail.update(
             status=status,
@@ -109,6 +127,7 @@ def design_buck_task(self, job_id):
             output_root=ARTIFACT_ROOT/job_id/'attempts'/token/'pipeline',
             operating_point=execution.get('operating_point'), checkpoint=checkpoint,
             on_stage=on_stage, on_checkpoint=on_checkpoint).model_copy(update={'job_id': job_id})
+        ensure_deadline()
         if lost.is_set():
             raise LeaseLost(job_id)
         on_stage('finalize', 98)
@@ -122,9 +141,15 @@ def design_buck_task(self, job_id):
     except LeaseLost:
         log.warning('Job %s lease lost; this attempt cannot publish', job_id)
     except Exception as exc:
+        timed_out = isinstance(exc, (JobTimeout, SoftTimeLimitExceeded))
+        code = ('JOB_TIMEOUT' if timed_out else
+                'CHECKPOINT_INCOMPATIBLE' if isinstance(exc, CheckpointIncompatible) else 'DESIGN_FAILED')
+        message = ('Job exceeded the configured execution time limit' if timed_out else
+                   'Saved checkpoint is incompatible; restart this job explicitly from the beginning' if isinstance(exc, CheckpointIncompatible) else
+                   f'Design failed at {active}; completed stages were saved')
         error = {
-            'code': 'CHECKPOINT_INCOMPATIBLE' if isinstance(exc, CheckpointIncompatible) else 'DESIGN_FAILED',
-            'message': 'Saved checkpoint is incompatible; restart this job explicitly from the beginning' if isinstance(exc, CheckpointIncompatible) else f'Design failed at {active}; completed stages were saved',
+            'code': code,
+            'message': message,
             'correlation_id': job_id,
         }
         now = utcnow().isoformat()

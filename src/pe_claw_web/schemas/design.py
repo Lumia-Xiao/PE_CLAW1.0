@@ -242,6 +242,8 @@ class DesignStageState(WebContractModel):
 class DesignJobResponse(WebContractModel):
     schema_version: Literal["1.0"] = API_SCHEMA_VERSION
     job_id: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+    owner_user_id: str = Field(default="legacy-system", min_length=3, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+    project_id: str = Field(default="legacy-system", min_length=3, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     topology: Literal["buck_diode_rectified_unidirectional"]
     status: DesignJobStatus
     progress: int = Field(

@@ -88,6 +88,33 @@ export interface Result {
   warnings: string[];
   artifacts: Artifact[];
 }
+export interface User {
+  user_id: string;
+  username: string;
+  role: "user" | "admin";
+}
+export interface Session {
+  access_token: string;
+  token_type: "bearer";
+  expires_at: string;
+  user: User;
+}
+export interface SessionInfo {
+  expires_at: string;
+  user: User;
+}
+
+const authKey = "pe-claw-session-v1";
+export const authToken = () => sessionStorage.getItem(authKey) || "";
+export const setAuthToken = (token: string) => sessionStorage.setItem(authKey, token);
+export const clearAuthToken = () => sessionStorage.removeItem(authKey);
+
+function authenticatedOptions(options: RequestInit): RequestInit {
+  const headers = new Headers(options.headers);
+  const token = authToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  return { ...options, headers };
+}
 
 export class ApiError extends Error {
   constructor(
@@ -107,12 +134,16 @@ export async function request<T>(
     const signal = options.signal
       ? AbortSignal.any([options.signal, timeout])
       : timeout;
-    response = await fetch(url, { ...options, signal });
+    response = await fetch(url, authenticatedOptions({ ...options, signal }));
   } catch (error) {
     if (options.signal?.aborted) throw error;
     throw new ApiError("无法连接设计服务，请检查服务是否已启动后重试。", 0);
   }
   if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthToken();
+      window.dispatchEvent(new Event("pe-claw-auth-expired"));
+    }
     const body = await response.json().catch(() => ({}));
     const detail = body.detail;
     const message = typeof body.message === "string"
@@ -129,7 +160,21 @@ export async function request<T>(
           : `请求失败（${response.status}）`;
     throw new ApiError(message, response.status);
   }
+  if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
+}
+export async function artifactBlob(url: string): Promise<Blob> {
+  const safe = safeDownload(url);
+  if (!safe) throw new ApiError("无效的文件地址。", 400);
+  const response = await fetch(safe, authenticatedOptions({ signal: AbortSignal.timeout(30000) }));
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthToken();
+      window.dispatchEvent(new Event("pe-claw-auth-expired"));
+    }
+    throw new ApiError(`文件下载失败（${response.status}）`, response.status);
+  }
+  return response.blob();
 }
 export const jobPath = (id: string) =>
   `/api/v1/design-jobs/${encodeURIComponent(id)}`;

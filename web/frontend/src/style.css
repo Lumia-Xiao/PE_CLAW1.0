@@ -881,3 +881,9 @@ footer {
 .checksum { overflow-wrap: anywhere; word-break: break-all; }
 .file-list li > div { min-width: 0; }
 .file-list .button { flex-shrink: 0; white-space: nowrap; }
+.login-shell { min-height: calc(100vh - 74px); display: grid; place-items: center; }
+.login-panel { width: min(430px, 100%); padding: 34px; display: grid; gap: 18px; }
+.login-panel h1 { margin: 0; }
+.login-panel label { display: grid; gap: 7px; font-weight: 700; }
+.login-panel input { width: 100%; }
+.logout { border: 1px solid #4b6265; color: #d9e6e7; background: transparent; padding: 7px 11px; }
