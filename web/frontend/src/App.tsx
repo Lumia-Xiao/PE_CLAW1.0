@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ApiError,
   BUCK,
@@ -8,6 +8,7 @@ import {
   type Catalog,
   type Job,
   type Result,
+  type StageState,
   type Topology,
 } from "./api";
 import Results from "./Results";
@@ -16,7 +17,9 @@ const storageKey = "pe-claw-web-v1";
 type Saved = { jobId?: string; draft?: Record<string, string> };
 function restore(): Saved {
   try {
-    return JSON.parse(localStorage.getItem(storageKey) || "{}") ?? {};
+    const saved = JSON.parse(localStorage.getItem(storageKey) || "{}") ?? {};
+    const jobId = new URLSearchParams(window.location.search).get("job");
+    return jobId ? { ...saved, jobId } : saved;
   } catch {
     return {};
   }
@@ -35,6 +38,14 @@ const statusLabels: Record<string, string> = {
   failed: "设计失败",
   cancelled: "已取消",
   expired: "结果已过期",
+};
+const stageStatusLabels: Record<string, string> = {
+  pending: "等待",
+  running: "执行中",
+  succeeded: "完成",
+  failed: "失败",
+  blocked: "已阻塞",
+  unavailable: "不可用",
 };
 const errorText = (error: unknown) =>
   error instanceof Error ? error.message : "操作失败，请重试。";
@@ -63,7 +74,12 @@ export default function App() {
   const [submitted, setSubmitted] = useState<Record<string, string> | null>(
     null,
   );
+  const [confirmation, setConfirmation] = useState<Record<
+    string,
+    string
+  > | null>(null);
   const [recoverId, setRecoverId] = useState("");
+  const submissionLock = useRef(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -77,6 +93,10 @@ export default function App() {
   }, [catalogRetry]);
   useEffect(() => {
     save({ jobId, draft });
+    const url = new URL(window.location.href);
+    if (jobId) url.searchParams.set("job", jobId);
+    else url.searchParams.delete("job");
+    window.history.replaceState(null, "", url);
   }, [jobId, draft]);
   useEffect(() => {
     if (!jobId) return;
@@ -138,9 +158,10 @@ export default function App() {
   function openTopology(t: Topology) {
     setSelected(t.id);
     setPage("workspace");
+    setConfirmation(null);
     setError("");
   }
-  async function submit(event: FormEvent) {
+  function review(event: FormEvent) {
     event.preventDefault();
     if (!topology || busy) return;
     setError("");
@@ -163,7 +184,20 @@ export default function App() {
       setError("Vin max 必须大于或等于 Vin min。");
       return;
     }
+    if (numbers.vout >= numbers.vin_min) {
+      setError("Buck 拓扑要求 Vout 小于 Vin min。");
+      return;
+    }
+    setConfirmation({ ...values });
+  }
+  async function runConfirmed() {
+    if (!topology || !confirmation || busy || submissionLock.current) return;
+    const numbers = Object.fromEntries(
+      topology.fields.map((f) => [f.key, Number(confirmation[f.key])]),
+    );
+    submissionLock.current = true;
     setSubmitting(true);
+    setError("");
     try {
       const next = await request<Job>("/api/v1/design-jobs", {
         method: "POST",
@@ -174,12 +208,14 @@ export default function App() {
       setArtifacts([]);
       setPollError("");
       setJob(next);
-      setSubmitted({ ...values });
+      setSubmitted({ ...confirmation });
+      setConfirmation(null);
       setJobId(next.job_id);
       setRetry(v => v + 1); // An idempotent submission can return the current job ID.
     } catch (e) {
       setError(errorText(e));
     } finally {
+      submissionLock.current = false;
       setSubmitting(false);
     }
   }
@@ -188,7 +224,8 @@ export default function App() {
     setPage("topologies");
   };
   async function resumeJob(restart = false) {
-    if (submitting) return;
+    if (submitting || submissionLock.current) return;
+    submissionLock.current = true;
     setSubmitting(true);
     setError("");
     try {
@@ -198,8 +235,22 @@ export default function App() {
       setArtifacts([]);
       setRetry(v => v + 1);
     } catch (e) { setError(errorText(e)); }
-    finally { setSubmitting(false); }
+    finally {
+      submissionLock.current = false;
+      setSubmitting(false);
+    }
   }
+  const stageEntries: [string, StageState][] = job?.stage_details
+    ? Object.entries(job.stage_details)
+    : Object.entries(job?.stages || {}).map(([stage, status]) => [
+        stage,
+        {
+          schema_version: "1.0",
+          status: status as StageState["status"],
+          progress: ["succeeded", "failed", "blocked", "unavailable"].includes(status) ? 100 : 0,
+          warnings: [],
+        },
+      ]);
   return (
     <>
       <header className="masthead">
@@ -349,7 +400,48 @@ export default function App() {
             </div>
             <div className="workspace">
               <aside>
-                <form className="panel input-panel" onSubmit={submit}>
+                {confirmation ? (
+                  <section className="panel confirmation-panel" aria-labelledby="confirmation-title">
+                    <div className="panel-head">
+                      <div>
+                        <span className="eyebrow">DESIGN CONFIRMATION</span>
+                        <h2 id="confirmation-title">确认完整设计</h2>
+                      </div>
+                      <span className="tag ready">准备提交</span>
+                    </div>
+                    <div className="confirmation-body">
+                      <p>请确认拓扑、输入单位与运行点。提交后将启动一个完整顺序任务。</p>
+                      <dl className="confirmation-values">
+                        <div><dt>拓扑</dt><dd>{topology?.name}</dd></div>
+                        {topology?.fields.map((field) => (
+                          <div key={field.key}>
+                            <dt>{field.label}</dt>
+                            <dd>{confirmation[field.key]} {field.unit}</dd>
+                          </div>
+                        ))}
+                        <div><dt>运行点 Vin</dt><dd>{((Number(confirmation.vin_min) + Number(confirmation.vin_max)) / 2).toString()} V</dd></div>
+                        <div><dt>运行点负载</dt><dd>1 p.u.</dd></div>
+                      </dl>
+                      <ol className="sequence" aria-label="完整设计阶段">
+                        {[
+                          "Validate", "Topology", "Devices", "Capacitor", "Magnetics",
+                          "Operating point", "Loss", "Thermal", "Efficiency", "Report", "Finalize",
+                        ].map((stage) => <li key={stage}>{stage}</li>)}
+                      </ol>
+                      {error && <div role="alert" className="error">{error}</div>}
+                      <div className="confirmation-actions">
+                        <button type="button" disabled={submitting} onClick={() => { setConfirmation(null); setError(""); }}>
+                          返回修改
+                        </button>
+                        <button className="primary" type="button" disabled={submitting} onClick={() => void runConfirmed()}>
+                          {submitting ? "正在提交…" : "确认并运行完整设计"}
+                        </button>
+                      </div>
+                      <p className="form-note">同一次点击只创建或复用一个任务；浏览器仅保存任务编号和表单草稿。</p>
+                    </div>
+                  </section>
+                ) : (
+                <form className="panel input-panel" onSubmit={review}>
                   <div className="panel-head">
                     <div>
                       <span className="eyebrow">DESIGN INPUTS</span>
@@ -360,6 +452,7 @@ export default function App() {
                       disabled={busy}
                       onClick={() => {
                         setDraft({});
+                        setConfirmation(null);
                         setError("");
                       }}
                     >
@@ -404,14 +497,13 @@ export default function App() {
                       ? "正在提交…"
                       : busy
                         ? "设计运行中…"
-                        : job?.status === "failed"
-                          ? "重新运行设计"
-                          : "Run Design · 运行设计"}
+                        : "检查并确认设计"}
                   </button>
                   <p className="form-note">
                     参数提交后由本地后端计算。离开页面不会取消已提交的任务。
                   </p>
                 </form>
+                )}
                 <section className="panel help"><h3>完整设计流程</h3><p>确认输入后将自动依次执行电容、磁件、运行点波形、损耗、热分析和效率扫描。</p></section>
               </aside>
               <div className="output-column">
@@ -448,8 +540,12 @@ export default function App() {
                         {job.retryable ? "从已保存阶段恢复" : "快照不可用，从头重新运行"}
                       </button>
                     </>}
-                    {job?.stages && <details><summary>阶段状态 · 第 {job.attempt || 0} 次执行</summary>
-                      <dl>{Object.entries(job.stages).map(([stage, status]) => <div key={stage}><dt>{stage}</dt><dd>{status}</dd></div>)}</dl>
+                    {stageEntries.length > 0 && <details><summary>阶段状态 · 第 {job?.attempt || 0} 次执行</summary>
+                      <ol className="stage-list">{stageEntries.map(([stage, detail]) => <li key={stage} className={detail.status}>
+                        <div><strong>{stage}</strong><span>{stageStatusLabels[detail.status] || detail.status}</span></div>
+                        {detail.warnings.map((warning, index) => <small key={index}>{warning}</small>)}
+                        {detail.error && <small>{detail.error.message}</small>}
+                      </li>)}</ol>
                     </details>}
                     {(job?.status === "cancelled" ||
                       job?.status === "expired") && (

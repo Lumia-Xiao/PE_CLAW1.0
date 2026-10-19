@@ -24,6 +24,26 @@ export type JobStatus =
   | "failed"
   | "cancelled"
   | "expired";
+export type StageStatus =
+  | "pending"
+  | "running"
+  | "succeeded"
+  | "failed"
+  | "blocked"
+  | "unavailable";
+export interface StageState {
+  schema_version: "1.0";
+  status: StageStatus;
+  progress: number;
+  warnings: string[];
+  error?: {
+    code: string;
+    message: string;
+    correlation_id?: string | null;
+  } | null;
+  started_at?: string | null;
+  finished_at?: string | null;
+}
 export interface Job {
   job_id: string;
   topology: string;
@@ -36,6 +56,7 @@ export interface Job {
   result_url?: string | null;
   attempt?: number;
   stages?: Record<string, string>;
+  stage_details?: Record<string, StageState>;
   retryable?: boolean;
   error?: {
     code: string;
@@ -94,16 +115,18 @@ export async function request<T>(
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     const detail = body.detail;
-    const message = Array.isArray(detail)
+    const message = typeof body.message === "string"
+      ? body.message
+      : Array.isArray(detail)
       ? detail
           .map(
             (e: { loc: string[]; msg: string }) =>
               `${e.loc.join(".")}: ${e.msg}`,
           )
           .join("；")
-      : typeof detail === "string"
-        ? detail
-        : `请求失败（${response.status}）`;
+        : typeof detail === "string"
+          ? detail
+          : `请求失败（${response.status}）`;
     throw new ApiError(message, response.status);
   }
   return response.json() as Promise<T>;

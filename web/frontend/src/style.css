@@ -367,6 +367,57 @@ input:disabled {
   margin: 0;
   line-height: 1.7;
 }
+.confirmation-body {
+  padding: 18px 20px 0;
+}
+.confirmation-body > p:first-child {
+  color: #637a80;
+  font-size: 12px;
+}
+.confirmation-values {
+  margin: 0 0 16px;
+}
+.confirmation-values > div {
+  align-items: baseline;
+  gap: 14px;
+  padding: 7px 0;
+}
+.confirmation-values dt {
+  color: #687e84;
+}
+.confirmation-values dd {
+  text-align: right;
+  font-family: "Consolas", monospace;
+  overflow-wrap: anywhere;
+}
+.sequence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  margin: 0 0 18px;
+  list-style: none;
+}
+.sequence li {
+  padding: 4px 7px;
+  border-radius: 4px;
+  background: #f0f5f4;
+  color: #52736b;
+  font-size: 9px;
+  letter-spacing: 0.2px;
+}
+.confirmation-actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+}
+.confirmation-actions .primary {
+  min-width: 0;
+}
+.confirmation-panel .form-note {
+  padding-right: 0;
+  padding-left: 0;
+}
 .help {
   margin-top: 14px;
   padding: 16px 20px;
@@ -501,6 +552,49 @@ progress::-webkit-progress-value {
   color: #7f9095;
 }
 .job-meta code {
+  overflow-wrap: anywhere;
+}
+.stage-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 6px;
+}
+.stage-list li {
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid #dce5e4;
+  border-radius: 4px;
+  background: #f8fafa;
+}
+.stage-list li > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+}
+.stage-list li strong {
+  overflow-wrap: anywhere;
+}
+.stage-list li span {
+  color: #75888d;
+  white-space: nowrap;
+}
+.stage-list li.running {
+  border-color: #79ad9d;
+  background: #f0f8f5;
+}
+.stage-list li.failed,
+.stage-list li.blocked {
+  border-color: #dfb6ae;
+  background: #fff5f2;
+}
+.stage-list small {
+  display: block;
+  margin-top: 5px;
+  color: #87554d;
   overflow-wrap: anywhere;
 }
 .error {
@@ -762,6 +856,9 @@ footer {
   .job-meta {
     flex-direction: column;
     gap: 4px;
+  }
+  .confirmation-actions {
+    grid-template-columns: 1fr;
   }
   .panel-head {
     padding: 16px;

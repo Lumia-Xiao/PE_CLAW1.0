@@ -49,6 +49,20 @@ async function openBuck(page: Page) {
     })
     .click();
 }
+async function review(page: Page) {
+  await page
+    .getByRole("button", { name: "检查并确认设计", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "确认完整设计", exact: true }),
+  ).toBeVisible();
+}
+async function reviewAndConfirm(page: Page) {
+  await review(page);
+  await page
+    .getByRole("button", { name: "确认并运行完整设计", exact: true })
+    .click();
+}
 test("submit, poll, render real Buck fixture, navigate tabs and download", async ({
   page,
 }, info) => {
@@ -66,8 +80,15 @@ test("submit, poll, render real Buck fixture, navigate tabs and download", async
   await expect(
     page.getByRole("spinbutton", { name: "Vin min V", exact: true }),
   ).toHaveValue("36");
+  await review(page);
+  await expect(page.getByText("36 V", { exact: true })).toBeVisible();
+  await expect(page.getByText("48 V", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "完整设计阶段" }).getByRole("listitem"),
+  ).toHaveCount(11);
+  expect(submitted).toBeUndefined();
   await page
-    .getByRole("button", { name: "Run Design · 运行设计", exact: true })
+    .getByRole("button", { name: "确认并运行完整设计", exact: true })
     .click();
   await expect(page.getByRole("status")).toHaveText("已完成");
   expect(submitted).toMatchObject({
@@ -127,6 +148,11 @@ test("failed complete job shows saved results and resumes same job", async ({ pa
   await page.route(`**${path}`, route => route.fulfill({ json: resumed ? { ...job("running"), attempt:2 } : {
     ...job("failed"), stage:"magnetics", retryable:true, result_url:`${path}/result`, attempt:1,
     stages:{topology:"succeeded", devices:"succeeded", magnetics:"failed"},
+    stage_details:{
+      topology:{schema_version:"1.0",status:"succeeded",progress:100,warnings:[]},
+      devices:{schema_version:"1.0",status:"succeeded",progress:100,warnings:[]},
+      magnetics:{schema_version:"1.0",status:"failed",progress:100,warnings:["磁件候选不足"],error:{code:"DESIGN_FAILED",message:"磁件阶段失败"}},
+    },
     error:{code:"DESIGN_FAILED",message:"Design failed at magnetics; completed stages were saved"},
   } }));
   await page.route(`**${path}/retry?restart=false`, route => {
@@ -135,6 +161,9 @@ test("failed complete job shows saved results and resumes same job", async ({ pa
   });
   await page.goto("/");
   await expect(page.getByRole("cell",{name:"candidate.inductance",exact:true})).toBeVisible();
+  await page.getByText("阶段状态 · 第 1 次执行", { exact: true }).click();
+  await expect(page.getByText("磁件候选不足", { exact: true })).toBeVisible();
+  await expect(page.getByText("磁件阶段失败", { exact: true })).toBeVisible();
   await page.getByRole("button",{name:"从已保存阶段恢复",exact:true}).click();
   await expect(page.getByRole("status")).toHaveText("计算中");
   await expect(page.getByRole("cell",{name:"candidate.inductance",exact:true})).toHaveCount(0);
@@ -146,7 +175,7 @@ test("idempotent submission reloads results when the server reuses the job ID", 
   await page.route(`**${path}`, route => route.fulfill({json:job("succeeded")}));
   await openBuck(page);
   for (let i=0;i<2;i++) {
-    await page.getByRole("button", {name:"Run Design · 运行设计",exact:true}).click();
+    await reviewAndConfirm(page);
     await expect(page.getByRole("cell",{name:"candidate.inductance",exact:true})).toBeVisible();
   }
 });
@@ -186,11 +215,24 @@ test("invalid voltage range stays local and does not submit", async ({
     .getByRole("spinbutton", { name: "Vin min V", exact: true })
     .fill("80");
   await page
-    .getByRole("button", { name: "Run Design · 运行设计", exact: true })
+    .getByRole("button", { name: "检查并确认设计", exact: true })
     .click();
   await expect(page.getByRole("alert")).toContainText(
     "Vin max 必须大于或等于 Vin min",
   );
+  expect(submissions).toBe(0);
+});
+test("Buck output voltage relationship matches the API contract", async ({ page }) => {
+  await setup(page);
+  let submissions = 0;
+  await page.route("**/api/v1/design-jobs", (route) => {
+    submissions++;
+    return route.fulfill({ json: job() });
+  });
+  await openBuck(page);
+  await page.getByRole("spinbutton", { name: "Vout V", exact: true }).fill("36");
+  await page.getByRole("button", { name: "检查并确认设计", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("Vout 小于 Vin min");
   expect(submissions).toBe(0);
 });
 test("design failure is visible and can be resubmitted", async ({ page }) => {
@@ -207,14 +249,12 @@ test("design failure is visible and can be resubmitted", async ({ page }) => {
     }),
   );
   await openBuck(page);
-  await page
-    .getByRole("button", { name: "Run Design · 运行设计", exact: true })
-    .click();
+  await reviewAndConfirm(page);
   await expect(page.getByRole("alert")).toContainText(
     "Design execution failed",
   );
   await expect(
-    page.getByRole("button", { name: "重新运行设计", exact: true }),
+    page.getByRole("button", { name: "检查并确认设计", exact: true }),
   ).toBeEnabled();
 });
 test("lost status connection can be retried without duplicate jobs", async ({
@@ -256,19 +296,18 @@ test("queue errors preserve inputs and keep submit available", async ({
   await page.route("**/api/v1/design-jobs", (route) =>
     route.fulfill({
       status: 503,
-      json: { detail: "Design queue is unavailable" },
+      json: { code: "QUEUE_UNAVAILABLE", message: "设计队列暂不可用，请稍后重试。" },
     }),
   );
   await openBuck(page);
   await page
     .getByRole("spinbutton", { name: "Pout W", exact: true })
     .fill("200");
-  await page
-    .getByRole("button", { name: "Run Design · 运行设计", exact: true })
-    .click();
+  await reviewAndConfirm(page);
   await expect(page.getByRole("alert")).toContainText(
-    "Design queue is unavailable",
+    "设计队列暂不可用",
   );
+  await page.getByRole("button", { name: "返回修改", exact: true }).click();
   await expect(
     page.getByRole("spinbutton", { name: "Pout W", exact: true }),
   ).toHaveValue("200");
@@ -305,13 +344,14 @@ test("mobile layout, draft persistence and unavailable topology", async ({
   await expect(
     page.getByRole("spinbutton", { name: "Pout W", exact: true }),
   ).toHaveValue("240");
+  await review(page);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
   await page.screenshot({
-    path: info.outputPath("buck-mobile.png"),
+    path: info.outputPath("buck-confirmation-mobile.png"),
     fullPage: true,
   });
 });
@@ -327,16 +367,19 @@ test("pending task survives reload without resubmitting", async ({ page }) => {
     route.fulfill({ json: job("running") }),
   );
   await openBuck(page);
-  await page
-    .getByRole("button", { name: "Run Design · 运行设计", exact: true })
-    .click();
+  await reviewAndConfirm(page);
   await expect(page.getByRole("status")).toHaveText("计算中");
+  await expect(page).toHaveURL(new RegExp(`\\?job=${id}$`));
+  await page.evaluate(() => localStorage.clear());
   await page.reload();
   await expect(page.getByRole("status")).toHaveText("计算中");
   await expect(
     page.getByRole("button", { name: "设计运行中…", exact: true }),
   ).toBeDisabled();
   expect(submissions).toBe(1);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("pe-claw-web-v1") || "{}"));
+  expect(Object.keys(saved).sort()).toEqual(["draft", "jobId"]);
+  expect(Object.values(saved.draft).every((value) => typeof value === "string")).toBe(true);
 });
 
 test("expired or missing result does not display stale numbers", async ({
@@ -357,6 +400,24 @@ test("expired or missing result does not display stale numbers", async ({
     page.getByRole("cell", { name: "candidate.inductance", exact: true }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Run Design · 运行设计", exact: true }),
+    page.getByRole("button", { name: "检查并确认设计", exact: true }),
   ).toBeEnabled();
+});
+
+test("confirmation submit lock prevents duplicate clicks", async ({ page }) => {
+  await setup(page);
+  let submissions = 0;
+  await page.route("**/api/v1/design-jobs", async (route) => {
+    submissions++;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await route.fulfill({ status: 202, json: job() });
+  });
+  await page.route(`**${path}`, (route) => route.fulfill({ json: job("running") }));
+  await openBuck(page);
+  await review(page);
+  await page
+    .getByRole("button", { name: "确认并运行完整设计", exact: true })
+    .dblclick();
+  await expect(page.getByRole("status")).toHaveText("计算中");
+  expect(submissions).toBe(1);
 });

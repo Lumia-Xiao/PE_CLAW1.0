@@ -1,6 +1,6 @@
 # PE-Claw React 工作区
 
-当前交付为阶段 D 的 Buck 工作区：复用桌面版的 Categories → Topologies → 左侧表单/右侧结果页流程。其他注册拓扑展示为尚未接入，属于阶段 E。
+当前交付为 Web 迁移 Step 10 的 Buck 工作区：复用桌面版的 Categories → Topologies → 参数输入 → 设计确认 → 任务进度 → 结果页核心流程。其他注册拓扑展示为尚未接入，不会伪装为可执行设计。
 
 ## 本地启动
 
@@ -47,8 +47,9 @@ npm run dev
 ## 使用与结果边界
 
 - 七个设计参数的默认值来自 `GET /api/v1/topologies`；该接口从注册表、Buck 默认输入和 Pydantic 字段范围生成元数据。
-- 提交 `POST /api/v1/design-jobs`，轮询任务状态，成功后读取结果与 artifact 清单。
-- 当前任务编号和表单草稿保存在浏览器 localStorage，刷新可恢复；分类页支持手动输入任务编号。
+- 输入页先按 API 的正数、`vin_max >= vin_min`、`vout < vin_min` 规则校验，再进入带单位和额定运行点的确认页。只有“确认并运行完整设计”会提交 `POST /api/v1/design-jobs`；同步提交锁和禁用状态共同防止重复点击。
+- 当前任务编号和表单字符串草稿保存在浏览器 localStorage，任务编号同时写入同源 URL 的 `job` 查询参数；刷新或清除 localStorage 后仍可按 URL 恢复。分类页也支持手动输入任务编号。浏览器不保存 `DesignReport`、候选器件或其他后端内部对象。
+- 任务页轮询总体进度，并展示 Step 9 的逐阶段状态、警告和公开错误；失败任务可按后端 `retryable` 状态恢复或从头运行。
 - 遇到网络错误可重试查询；队列不可用、设计失败、任务不存在有不同提示。
 - 结果表保留报告字段名称、单位与来源。Summary 显示核心参数；其他标签页显示报告对应分区。
 - Waveforms 在报告缺少时域采样时只显示统计或未提供状态；不会从统计量构造波形。Efficiency 在报告确实含负载扫描点时绘制曲线。
@@ -70,7 +71,7 @@ npx playwright install chromium
 npm test
 ```
 
-浏览器测试使用拦截的任务 HTTP 响应，覆盖提交/轮询/恢复/错误/下载/窄屏。fixture 由真实 Buck 拓扑流水线生成，可在仓库根目录执行 `python -B scripts/export_web_test_fixtures.py` 更新。
+浏览器测试使用拦截的任务 HTTP 响应，覆盖确认前零提交、双击防重、提交/轮询、URL 刷新恢复、逐阶段错误、结构化 API 故障、下载和 390 px 窄屏。fixture 由真实 Buck 拓扑流水线生成，可在仓库根目录执行 `python -B scripts/export_web_test_fixtures.py` 更新。
 后端集成测试使用临时 SQLite、临时输出目录；运行真实 Buck 同步计算，对照 fixture，并测试任务 Worker 函数与文件下载。它不等同于外部 PostgreSQL、Redis 和独立 Celery 进程的部署验收。
 
 F4 扩展字段仅在 Web 结果投影增加：`summary.waveform.samples` 为最终运行点真实采样；`summary.efficiency_sweep.blocked_reason` 为阻塞原因，无扫描点或非 available 状态时 available 为 false。核心报告、计算公式与选型规则保持原有契约。
