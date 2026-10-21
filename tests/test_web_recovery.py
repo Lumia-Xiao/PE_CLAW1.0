@@ -83,6 +83,49 @@ def test_stale_worker_is_fenced_and_checkpoints_survive_reopen(repo):
     assert reopened.get(item.job_id)[0].attempt == 2
     reopened.engine.dispose()
 
+
+def test_cancel_is_owner_scoped_and_fences_claimed_worker(repo):
+    item = repo.create(BuckDesignRequest(**INPUT), owner_user_id='owner-a')
+    token = repo.claim(item.job_id)
+
+    assert repo.cancel(item.job_id, owner_user_id='owner-b') is False
+    assert repo.get(item.job_id)[0].status == 'running'
+    assert repo.cancel(item.job_id, owner_user_id='owner-a') is True
+
+    cancelled = repo.get(item.job_id)[0]
+    assert cancelled.status == 'cancelled'
+    assert cancelled.stage == 'cancelled'
+    assert cancelled.finished_at is not None
+    assert repo.cancel(item.job_id, owner_user_id='owner-a') is False
+    with pytest.raises(LeaseLost):
+        repo.owned_update(item.job_id, token, progress=99)
+    with pytest.raises(LeaseLost):
+        repo.publish(item.job_id, token, lambda: {'must_not_publish': True})
+    assert repo.get(item.job_id)[2] is None
+    assert any(
+        event.action == 'job.cancelled' and event.resource_id == item.job_id
+        for event in repo.list_audit(limit=20)
+    )
+
+
+def test_job_history_is_owner_scoped_ordered_and_filterable(repo):
+    first = repo.create(BuckDesignRequest(**INPUT), owner_user_id='history-owner')
+    second = repo.create(
+        BuckDesignRequest(**{**INPUT, 'pout': 121}), owner_user_id='history-owner'
+    )
+    repo.create(BuckDesignRequest(**{**INPUT, 'pout': 122}), owner_user_id='other-owner')
+    repo.update(first.job_id, status='succeeded', progress=100)
+    repo.update(second.job_id, status='failed', progress=55)
+
+    history = repo.list_jobs(owner_user_id='history-owner')
+    assert [item.job_id for item in history] == [second.job_id, first.job_id]
+    assert [item.job_id for item in repo.list_jobs(
+        owner_user_id='history-owner', status='failed'
+    )] == [second.job_id]
+    assert [item.job_id for item in repo.list_jobs(
+        owner_user_id='history-owner', query=first.job_id[4:16]
+    )] == [first.job_id]
+
 def test_database_outage_leaves_last_committed_checkpoint(repo, monkeypatch, real_report):
     from sqlalchemy.exc import OperationalError
     import pe_claw_web.workers.tasks as tasks
@@ -165,6 +208,215 @@ def test_snapshot_roundtrip_and_tamper_rejection(real_report):
     body = {**data, 'report': {'kind':'dataclass','type':'os:system','fields':{'command':'bad'}}}
     body['sha256'] = checksum({k:v for k,v in body.items() if k != 'sha256'})
     with pytest.raises(CheckpointIncompatible): restore(body, 'input-key')
+
+
+def test_waveform_action_restores_final_snapshot_and_preserves_fixed_hardware(
+    repo, real_report, monkeypatch, tmp_path,
+):
+    from types import SimpleNamespace
+    from pe_claw_gui.models.device_result import DeviceSelectionResult
+    from pe_claw_gui.models.inductor import FixedInductorDesignCandidate
+    from pe_claw_gui.models.magnetic_result import MagneticResult
+    from pe_claw_web.schemas import DesignActionRequest
+    import pe_claw_web.workers.action_tasks as action_tasks
+
+    request = BuckDesignRequest(**INPUT)
+    initial_point = {'vin_v': 48.0, 'load_ratio': 1.0}
+    item = repo.create(
+        request,
+        execution={'profile': 'complete', 'operating_point': initial_point},
+    )
+    fixed_report = replace(
+        real_report,
+        device=DeviceSelectionResult(selected_devices={'switch': 'fixed-device'}),
+        magnetic=MagneticResult(chosen_designs=[
+            FixedInductorDesignCandidate(candidate_id='fixed-core', turns=12),
+        ]),
+    )
+    request_key = digest({
+        'request': request.model_dump(mode='json'),
+        'operating_point': initial_point,
+    })
+    repo.update(
+        item.job_id,
+        status='succeeded',
+        progress=100,
+        stage='finalize',
+        checkpoint_json=snapshot(fixed_report, 'report', request_key),
+    )
+    action_request = DesignActionRequest(
+        job_id=item.job_id,
+        action='waveforms',
+        operating_point={'vin_v': 42.0, 'load_ratio': 0.5},
+    )
+    action = repo.create_action(action_request, 'fixed-hardware-refresh')
+    original_candidate = fixed_report.candidate
+    original_device = fixed_report.device
+    original_magnetic = fixed_report.magnetic
+
+    def refresh(current, _plugin, operating_point, **_kwargs):
+        assert current.candidate == original_candidate
+        assert current.device == original_device
+        assert current.magnetic == original_magnetic
+        return replace(current, operating_point=operating_point)
+
+    monkeypatch.setattr(action_tasks, 'store', repo)
+    monkeypatch.setattr(action_tasks, 'ARTIFACT_ROOT', tmp_path / 'artifacts')
+    monkeypatch.setattr(action_tasks, 'run_operating_point_refresh', refresh)
+    monkeypatch.setattr(
+        action_tasks,
+        'result_of',
+        lambda report, _topology: SimpleNamespace(
+            summary={
+                'operating_point': {
+                    'vin_v': report.operating_point.vin_v,
+                    'load_ratio': report.operating_point.load_ratio,
+                },
+            },
+            warnings=[],
+        ),
+    )
+    monkeypatch.setattr(action_tasks, 'save_action_manifest', lambda *_args: [])
+
+    payload = action_tasks.run_action_task.run(action.action_id)
+
+    assert payload['summary']['operating_point'] == {'vin_v': 42.0, 'load_ratio': 0.5}
+    stored = repo.get_action(action.action_id)[0]
+    assert stored.status == 'succeeded'
+    assert stored.progress == 100
+
+
+def test_nonbuck_waveform_action_passes_power_factor_and_output_voltage(
+    real_report, monkeypatch, tmp_path,
+):
+    from types import SimpleNamespace
+    from pe_claw_web.schemas import DesignActionRequest
+    import pe_claw_web.workers.action_tasks as action_tasks
+
+    topology = 'three_phase_two_level_voltage_source_inverter'
+    fixed_report = real_report
+    job = (SimpleNamespace(status='succeeded'), SimpleNamespace(topology=topology), None)
+    request = DesignActionRequest(
+        job_id='generic-operating-point',
+        action='waveforms',
+        operating_point={
+            'vin_v': 700,
+            'load_ratio': 0.65,
+            'vout_v': 400,
+            'power_factor': 0.9,
+            'switching_frequency_hz': 20_000,
+        },
+    )
+    captured = {}
+
+    def refresh(report, _plugin, point, **_kwargs):
+        captured.update(point.__dict__)
+        return report
+
+    monkeypatch.setattr(
+        action_tasks, '_restore_fixed_hardware_report',
+        lambda *_args: (job, fixed_report),
+    )
+    monkeypatch.setattr(action_tasks, 'run_operating_point_refresh', refresh)
+    monkeypatch.setattr(
+        action_tasks, 'result_of',
+        lambda _report, active_topology: SimpleNamespace(
+            summary={'topology': active_topology}, warnings=[]
+        ),
+    )
+
+    result = action_tasks._run_waveform_refresh(
+        SimpleNamespace(job_id=request.job_id), request, tmp_path,
+    )
+    assert captured == {
+        'vin_v': 700.0,
+        'load_ratio': 0.65,
+        'vout_v': 400.0,
+        'power_factor': 0.9,
+        'switching_frequency_hz': 20_000.0,
+    }
+    assert result.summary['topology'] == topology
+
+
+@pytest.mark.parametrize(('action_name', 'expected_calls'), [
+    ('capacitor', ['capacitor']),
+    ('magnetics', ['magnetics', 'geometry']),
+    ('efficiency_sweep', ['efficiency_sweep']),
+])
+def test_derived_stage_actions_reuse_restored_report(
+    action_name, expected_calls, real_report, monkeypatch, tmp_path,
+):
+    from types import SimpleNamespace
+    from pe_claw_gui.models.device_result import DeviceSelectionResult
+    from pe_claw_gui.models.inductor import FixedInductorDesignCandidate
+    from pe_claw_gui.models.magnetic_result import MagneticResult
+    from pe_claw_web.schemas import DesignActionRequest
+    import pe_claw_web.workers.action_tasks as action_tasks
+
+    fixed_report = replace(
+        real_report,
+        device=DeviceSelectionResult(selected_devices={'switch': 'fixed-device'}),
+        magnetic=MagneticResult(chosen_designs=[
+            FixedInductorDesignCandidate(candidate_id='fixed-core', turns=12),
+        ]),
+    )
+    request = BuckDesignRequest(**INPUT)
+    job = (SimpleNamespace(status='succeeded'), request, None)
+    action_row = SimpleNamespace(job_id='job-fixed-hardware')
+    action_request = DesignActionRequest(job_id=action_row.job_id, action=action_name)
+    calls = []
+
+    def assert_fixed_hardware(current):
+        assert current.candidate == fixed_report.candidate
+        assert current.device == fixed_report.device
+        assert current.magnetic == fixed_report.magnetic
+
+    def capacitor(current, **_kwargs):
+        assert_fixed_hardware(current)
+        calls.append('capacitor')
+        return current
+
+    def magnetics(current, **_kwargs):
+        assert_fixed_hardware(current)
+        calls.append('magnetics')
+        return current
+
+    def geometry(current, **_kwargs):
+        assert_fixed_hardware(current)
+        calls.append('geometry')
+        return current
+
+    def efficiency(current, **_kwargs):
+        assert_fixed_hardware(current)
+        calls.append('efficiency_sweep')
+        return SimpleNamespace(status='available')
+
+    monkeypatch.setattr(
+        action_tasks,
+        '_restore_fixed_hardware_report',
+        lambda *_args: (job, fixed_report),
+    )
+    monkeypatch.setattr(action_tasks, 'run_capacitor_pipeline', capacitor)
+    monkeypatch.setattr(action_tasks, 'run_magnetic_pipeline', magnetics)
+    monkeypatch.setattr(action_tasks, 'run_geometry_pipeline', geometry)
+    monkeypatch.setattr(action_tasks, 'run_efficiency_sweep', efficiency)
+    monkeypatch.setattr(
+        action_tasks,
+        'result_of',
+        lambda report, topology: SimpleNamespace(
+            summary={'topology': topology, 'candidate_preserved': report.candidate == fixed_report.candidate},
+            warnings=[],
+        ),
+    )
+
+    result = action_tasks._run_stage_action(
+        action_row,
+        action_request,
+        tmp_path / action_name,
+    )
+
+    assert calls == expected_calls
+    assert result.summary['topology'] == request.topology
 
 def test_resume_skips_selection_and_preserves_hardware(real_report, monkeypatch, tmp_path):
     import pe_claw_web.api.complete as complete

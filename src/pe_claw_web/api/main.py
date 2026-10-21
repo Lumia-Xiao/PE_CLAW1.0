@@ -7,7 +7,7 @@ import platform
 from importlib.metadata import PackageNotFoundError, version
 from uuid import UUID, uuid4
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -202,6 +202,21 @@ def login(payload: LoginRequest):
         user=UserSummary(user_id=user.user_id, username=user.username, role=user.role))
 
 
+@app.post('/api/v1/auth/register', response_model=SessionResponse, status_code=201)
+def register(payload: RegisterRequest):
+    try:
+        store.create_user(payload.username, payload.password, role='user',
+                          audit_action='auth.register')
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from None
+    authenticated = store.authenticate_credentials(payload.username, payload.password)
+    if authenticated is None:
+        raise HTTPException(500, 'Registered account could not be authenticated')
+    token, expires_at, user = authenticated
+    return SessionResponse(access_token=token, expires_at=expires_at,
+        user=UserSummary(user_id=user.user_id, username=user.username, role=user.role))
+
+
 @app.get('/api/v1/auth/session', response_model=SessionInfo)
 def session_info(principal: Principal = Depends(current_user)):
     return SessionInfo(expires_at=principal.expires_at,
@@ -213,14 +228,55 @@ def logout(principal: Principal = Depends(current_user)):
     store.revoke_session(principal)
 
 
-@app.post('/api/v1/admin/users', response_model=UserSummary, status_code=201)
+@app.post('/api/v1/auth/change-password', status_code=204)
+def change_password(payload: PasswordChangeRequest, principal: Principal = Depends(current_user)):
+    if payload.current_password == payload.new_password:
+        raise HTTPException(422, 'New password must be different from the current password')
+    if not store.change_password(principal.user_id, payload.current_password, payload.new_password):
+        raise HTTPException(400, 'Current password is incorrect')
+
+
+def _admin_user(row):
+    return AdminUserSummary(user_id=row.user_id, username=row.username, role=row.role,
+                            active=row.active, created_at=row.created_at)
+
+
+@app.post('/api/v1/admin/users', response_model=AdminUserSummary, status_code=201)
 def create_user(payload: AdminUserCreate, principal: Principal = Depends(administrator)):
     try:
         user = store.create_user(payload.username, payload.password, role=payload.role,
                                  actor_user_id=principal.user_id)
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from None
-    return UserSummary(user_id=user.user_id, username=user.username, role=user.role)
+    return _admin_user(user)
+
+
+@app.get('/api/v1/admin/users', response_model=list[AdminUserSummary])
+def list_users(principal: Principal = Depends(administrator)):
+    rows = store.list_users()
+    store.audit(principal.user_id, 'admin.user.list', 'user', None, 'succeeded',
+                {'count': len(rows)})
+    return [_admin_user(row) for row in rows]
+
+
+@app.post('/api/v1/admin/users/{user_id}/update', response_model=AdminUserSummary)
+def update_user(user_id: str, payload: AdminUserUpdate,
+                principal: Principal = Depends(administrator)):
+    if user_id == principal.user_id and (payload.active is False or payload.role == 'user'):
+        raise HTTPException(409, 'An administrator cannot disable or demote the active account')
+    user = store.update_user(user_id, actor_user_id=principal.user_id,
+                             role=payload.role, active=payload.active)
+    if user is None:
+        raise HTTPException(404, 'User not found')
+    return _admin_user(user)
+
+
+@app.post('/api/v1/admin/users/{user_id}/reset-password', status_code=204)
+def reset_user_password(user_id: str, payload: AdminPasswordReset,
+                        principal: Principal = Depends(administrator)):
+    if not store.reset_user_password(user_id, payload.new_password,
+                                     actor_user_id=principal.user_id):
+        raise HTTPException(404, 'User not found')
 
 
 @app.get('/api/v1/admin/audit-events', response_model=list[AuditEventResponse])
@@ -281,6 +337,21 @@ def create_job(payload: DesignJobCreate, principal: Principal = Depends(current_
     return store.get(item.job_id, owner_user_id=principal.user_id)[0]
 
 
+@app.get('/api/v1/design-jobs', response_model=list[DesignJobResponse])
+def list_jobs(
+    status: DesignJobStatus | None = None,
+    query: str | None = Query(default=None, min_length=1, max_length=64),
+    limit: int = Query(default=100, ge=1, le=100),
+    principal: Principal = Depends(current_user),
+):
+    return store.list_jobs(
+        owner_user_id=principal.user_id,
+        status=status.value if status is not None else None,
+        query=query,
+        limit=limit,
+    )
+
+
 @app.post('/api/v1/design-jobs/{job_id}/retry', response_model=DesignJobResponse, status_code=202)
 def retry_job(job_id: UUID, restart: bool = False, principal: Principal = Depends(current_user)):
     job_id = str(job_id)
@@ -296,6 +367,15 @@ def retry_job(job_id: UUID, restart: bool = False, principal: Principal = Depend
     return store.get(job_id, owner_user_id=principal.user_id)[0]
 
 
+@app.post('/api/v1/design-jobs/{job_id}/cancel', response_model=DesignJobResponse)
+def cancel_job(job_id: UUID, principal: Principal = Depends(current_user)):
+    job_id = str(job_id)
+    _owned_job(job_id, principal)
+    if not store.cancel(job_id, owner_user_id=principal.user_id):
+        raise HTTPException(409, 'Only a queued or running job can be cancelled')
+    return store.get(job_id, owner_user_id=principal.user_id)[0]
+
+
 @app.get('/api/v1/design-jobs/{job_id}', response_model=DesignJobResponse)
 def get_job(job_id: str, principal: Principal = Depends(current_user)):
     return _owned_job(job_id, principal)[0]
@@ -308,6 +388,15 @@ def _create_action(job_id: str, payload: DesignActionRequest, expected: str,
     job = _owned_job(job_id, principal)
     if job[0].status != 'succeeded':
         raise HTTPException(409, 'Base design must be succeeded')
+    if expected == 'waveforms':
+        point = payload.operating_point
+        if point is None:
+            raise HTTPException(422, 'Operating point is required')
+        raw = job[1].pipeline_input()
+        lower = raw.get('vin_min', raw.get('vac_rms_min'))
+        upper = raw.get('vin_max', raw.get('vac_rms_max'))
+        if lower is not None and upper is not None and not float(lower) <= point.vin_v <= float(upper):
+            raise HTTPException(422, 'Operating-point input voltage must be inside the design input range')
     item = store.create_action(payload, idempotency_key or payload.model_dump_json())
     try:
         if not celery_app.conf.task_always_eager:
@@ -335,6 +424,20 @@ def create_magnetics_action(job_id: str, payload: DesignActionRequest,
                             idempotency_key: str | None = None,
                             principal: Principal = Depends(current_user)):
     return _create_action(job_id, payload, 'magnetics', idempotency_key, principal)
+
+
+@app.post('/api/v1/design-jobs/{job_id}/actions/waveforms', response_model=DesignActionResponse, status_code=202)
+def create_waveform_action(job_id: str, payload: DesignActionRequest,
+                           idempotency_key: str | None = None,
+                           principal: Principal = Depends(current_user)):
+    return _create_action(job_id, payload, 'waveforms', idempotency_key, principal)
+
+
+@app.post('/api/v1/design-jobs/{job_id}/actions/efficiency-sweep', response_model=DesignActionResponse, status_code=202)
+def create_efficiency_sweep_action(job_id: str, payload: DesignActionRequest,
+                                   idempotency_key: str | None = None,
+                                   principal: Principal = Depends(current_user)):
+    return _create_action(job_id, payload, 'efficiency_sweep', idempotency_key, principal)
 
 
 @app.get('/api/v1/design-jobs/{job_id}/actions/{action_id}', response_model=DesignActionResponse)
@@ -380,7 +483,11 @@ def action_artifact_download(job_id: str, action_id: str, artifact_id: str,
         raise HTTPException(404, 'Artifact not found')
     store.audit(principal.user_id, 'artifact.download', 'action_artifact', artifact_id,
                 'succeeded', {'job_id': job_id, 'action_id': action_id})
-    return FileResponse(path, media_type='application/json', filename='capacitor-result.json')
+    return FileResponse(
+        path,
+        media_type='application/json',
+        filename=f'{pair[0].action}-result.json',
+    )
 
 
 @app.get('/api/v1/design-jobs/{job_id}/result', response_model=DesignResultResponse)

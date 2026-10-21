@@ -1,10 +1,11 @@
 # PE-Claw Web release and operations runbook
 
-This is the release authority for the Buck Web slice. The deliverable is the
-React workspace, FastAPI API, Celery Worker, independent recovery loop,
-PostgreSQL, Redis/Memurai and job-scoped artifact storage. The 19-topology GUI
-remains broader than the current Web surface: only the registered Web-enabled
-Buck topology is a release claim.
+This is the release authority for the 19-topology Web surface. The deliverable
+is the React workspace, FastAPI API, Celery Worker, independent recovery loop,
+PostgreSQL, Redis/Memurai and job-scoped artifact storage. Browser field
+contracts are derived from the registered Tkinter form classes; the parity
+method and per-topology record are in
+[`web-topology-parity-evidence.md`](web-topology-parity-evidence.md).
 
 ## Security boundary
 

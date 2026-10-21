@@ -14,6 +14,7 @@ from pe_claw_web.schemas import (
     DesignJobStatus,
     DesignStageState,
     DesignRequest,
+    TopologyDesignRequest,
 )
 
 
@@ -34,6 +35,40 @@ def test_buck_request():
     assert request.model_dump()["topology"] == "buck_diode_rectified_unidirectional"
     assert request.model_dump()["schema_version"] == "1.0"
     DesignJobCreate(request=request)
+
+
+def test_all_registered_topology_form_defaults_are_valid_web_requests():
+    from pe_claw_gui.topologies.base.registry import build_default_registry
+
+    registry = build_default_registry()
+    validated = []
+    for definition in registry.list_definitions():
+        fields = registry.get_form_class(definition.topology_id).get_design_fields()
+        request = TopologyDesignRequest(
+            topology=definition.topology_id,
+            raw_input={field.key: field.default for field in fields},
+        )
+        assert request.pipeline_input() == {field.key: field.default for field in fields}
+        DesignJobCreate(request=request)
+        validated.append(definition.topology_id)
+    assert len(validated) == 19
+
+
+def test_generic_topology_request_rejects_missing_extra_nested_and_invalid_choice():
+    from pe_claw_gui.topologies.base.registry import build_default_registry
+
+    registry = build_default_registry()
+    topology = 'single_phase_full_bridge_inverter'
+    fields = registry.get_form_class(topology).get_design_fields()
+    raw = {field.key: field.default for field in fields}
+    with pytest.raises(ValidationError):
+        TopologyDesignRequest(topology=topology, raw_input={key: value for key, value in raw.items() if key != 'pout_w'})
+    with pytest.raises(ValidationError):
+        TopologyDesignRequest(topology=topology, raw_input={**raw, 'module_name': 'internal'})
+    with pytest.raises(ValidationError):
+        TopologyDesignRequest(topology=topology, raw_input={**raw, 'pout_w': {'expression': '1+1'}})
+    with pytest.raises(ValidationError):
+        TopologyDesignRequest(topology=topology, raw_input={**raw, 'conduction_mode': 'unsupported'})
 
 
 def test_invalid_request():

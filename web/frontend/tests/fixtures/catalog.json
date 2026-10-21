@@ -133,6 +133,78 @@
           "default": "1.0",
           "exclusive_minimum": 0
         }
+      ],
+      "options": [
+        {
+          "key": "main_switch_category",
+          "label": "Main switch category",
+          "unit": "",
+          "default": "Any active switch",
+          "input_type": "select",
+          "choices": [
+            "Any active switch",
+            "Discrete MOSFET",
+            "Discrete Silicon MOSFET",
+            "Discrete SiC MOSFET",
+            "GaN switch",
+            "Discrete IGBT",
+            "MOSFET module",
+            "IGBT module",
+            "MOSFET + SBD module",
+            "IGBT + FWD module",
+            "Half-bridge module section",
+            "Chopper module section"
+          ]
+        },
+        {
+          "key": "rectifier_diode_category",
+          "label": "Rectifier diode category",
+          "unit": "",
+          "default": "Any diode",
+          "input_type": "select",
+          "choices": [
+            "Any diode",
+            "Discrete SiC SBD",
+            "Discrete Schottky diode",
+            "FRD / FWD",
+            "JBS diode",
+            "Diode module",
+            "Internal diode section from selected switch module"
+          ]
+        },
+        {
+          "key": "semiconductor_manufacturer",
+          "label": "Semiconductor manufacturer",
+          "unit": "",
+          "default": "Any",
+          "input_type": "select",
+          "choices": [
+            "Any",
+            "Infineon",
+            "Navitas",
+            "Mitsubishi",
+            "ROHM",
+            "Wolfspeed"
+          ]
+        },
+        {
+          "key": "ambient_temp_c",
+          "label": "Ambient temperature",
+          "unit": "°C",
+          "default": "25.0",
+          "input_type": "number",
+          "minimum": -40.0,
+          "maximum": 150.0
+        },
+        {
+          "key": "target_junction_temp_c",
+          "label": "Target junction temperature",
+          "unit": "°C",
+          "default": "100.0",
+          "input_type": "number",
+          "minimum": 25.0,
+          "maximum": 175.0
+        }
       ]
     },
     {

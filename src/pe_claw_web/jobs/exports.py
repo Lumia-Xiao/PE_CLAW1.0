@@ -103,10 +103,52 @@ def public_summary(report, summary):
         wave = report.waveform
         summary["waveform"]["samples"] = {
             key: list(getattr(wave, key)) for key in (
-                "time_s", "inductor_current_a", "capacitor_current_a",
-                "switch_node_voltage_v", "output_voltage_v",
-            )
+                "time_s", "switch_node_voltage_v", "inductor_current_a",
+                "capacitor_current_a", "output_voltage_v", "switch_current_a",
+                "diode_current_a", "input_source_current_a", "inductor_voltage_v",
+                "vox_voltage_v", "output_ripple_v", "gate_s1", "gate_s2",
+                "gate_s3", "gate_s4",
+            ) if getattr(wave, key)
         }
+    if report.capacitor is not None:
+        for side_name, attribute in (
+            ("input", "input_selection"),
+            ("output", "output_selection"),
+        ):
+            side = getattr(report.capacitor, attribute, None)
+            if side is None:
+                continue
+            summary["capacitor"][side_name]["pareto"] = [
+                _capacitor_pf_entry(entry) for entry in side.pareto_front
+            ]
+            summary["capacitor"][side_name]["representatives"] = {
+                role: _capacitor_pf_entry(entry) if entry is not None else None
+                for role, entry in (
+                    ("recommended", side.recommended),
+                    ("min_volume", side.min_volume),
+                    ("min_loss", side.min_loss),
+                    ("compromise", side.compromise),
+                )
+            }
+    if report.magnetic is not None:
+        summary["magnetic"]["candidate_comparison"] = [
+            _magnetic_candidate_entry(candidate)
+            for candidate in report.magnetic.compressed_candidates
+        ]
+        summary["magnetic"]["representatives"] = [
+            _magnetic_candidate_entry(candidate)
+            for candidate in report.magnetic.chosen_designs
+        ]
+        summary["magnetic"]["design_requirements"] = dict(
+            report.magnetic.design_requirements
+        )
+    if report.geometry is not None:
+        for public_target, target in zip(
+            summary["geometry"].get("targets", []),
+            report.geometry.targets,
+        ):
+            if target.layout is not None:
+                public_target["layout"] = _geometry_layout_entry(target.layout)
     if report.efficiency_sweep is not None:
         sweep = summary["efficiency_sweep"]
         sweep["available"] = report.efficiency_sweep.status == "available" and bool(report.efficiency_sweep.points)
@@ -119,3 +161,67 @@ def public_summary(report, summary):
             return [clean(v) for v in value]
         return value
     return clean(summary)
+
+
+def _capacitor_pf_entry(entry):
+    candidate = entry.candidate
+    return {
+        "part_number": candidate.part_number,
+        "manufacturer": candidate.manufacturer,
+        "series": candidate.series,
+        "series_count": entry.series_count,
+        "parallel_count": entry.parallel_count,
+        "total_count": entry.total_capacitor_count,
+        "capacitance_f": entry.equivalent_capacitance_f,
+        "volume_cm3": entry.total_volume_cm3,
+        "loss_w": entry.p_total_w,
+        "ripple_v": entry.ripple_total_pp_v,
+        "hotspot_temp_c": entry.hotspot_temp_c,
+        "feasible": entry.feasible,
+        "representative_label": entry.representative_label,
+        "recommended": entry.recommended_flag,
+    }
+
+
+def _magnetic_candidate_entry(candidate):
+    return {
+        "design_id": candidate.candidate_id,
+        "assembly_type": candidate.assembly_type,
+        "stack_count": candidate.stack_count,
+        "core_name": candidate.core_name,
+        "material_name": candidate.material_name,
+        "wire_name": candidate.wire_name,
+        "turns": candidate.turns,
+        "parallel_bundles": candidate.parallel_bundles,
+        "gap_m": candidate.gap_m,
+        "inductance_h": candidate.inductance_h,
+        "fill_factor": candidate.fill_factor,
+        "volume_m3": candidate.total_volume_m3,
+        "loss_w": candidate.reference_total_loss_w,
+        "b_peak_t": candidate.b_peak_design_t,
+    }
+
+
+def _geometry_layout_entry(layout):
+    return {
+        "template_name": layout.template_name,
+        "core_family": layout.core_family,
+        "core_name": layout.core_name,
+        "material_name": layout.material_name,
+        "wire_name": layout.wire_name,
+        "turns": layout.turns,
+        "parallels": layout.parallels,
+        "outer_width_mm": layout.outer_width_mm,
+        "outer_height_mm": layout.outer_height_mm,
+        "outer_depth_mm": layout.outer_depth_mm,
+        "window_width_mm": layout.window_width_mm,
+        "window_height_mm": layout.window_height_mm,
+        "winding_block_width_mm": layout.winding_block_width_mm,
+        "winding_block_height_mm": layout.winding_block_height_mm,
+        "overall_width_mm": layout.overall_width_mm,
+        "overall_height_mm": layout.overall_height_mm,
+        "overall_depth_mm": layout.overall_depth_mm,
+        "gap_mm": layout.gap_mm,
+        "dimension_source": layout.geometry_dimension_source,
+        "warning": layout.geometry_warning,
+    }

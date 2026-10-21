@@ -11,7 +11,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import make_url
 
-from pe_claw_web.schemas import BuckDesignRequest, DesignJobResponse, DesignActionResponse, DesignStageState
+from pe_claw_web.schemas import (
+    BuckDesignRequest, DesignActionResponse, DesignJobResponse, DesignStageState,
+    TopologyDesignRequest,
+)
 from .models import (
     ActionRow, AuditEventRow, Base, JobRow, RequestKeyRow, SessionRow, UserRow,
 )
@@ -26,6 +29,19 @@ def utcnow():
 
 def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+
+
+def default_operating_point(request):
+    raw = request.pipeline_input()
+    if 'vin_min' in raw and 'vin_max' in raw:
+        vin_v = (float(raw['vin_min']) + float(raw['vin_max'])) / 2
+    else:
+        nominal_keys = ('vin_nom', 'vdc_nom', 'vac_rms', 'vll_rms', 'vac_ll_rms')
+        try:
+            vin_v = float(next(raw[key] for key in nominal_keys if key in raw))
+        except StopIteration as exc:
+            raise ValueError('Topology input has no operating-point input voltage') from exc
+    return {'vin_v': vin_v, 'load_ratio': 1.0}
 
 
 def positive_int_setting(name, default):
@@ -119,9 +135,9 @@ class JobStore:
 
     def _create_complete_locked(self, payload, *, owner_user_id, project_id):
         operating_point = (
-            payload.operating_point.model_dump(mode='json')
+            payload.operating_point.model_dump(mode='json', exclude_none=True)
             if payload.operating_point is not None
-            else {'vin_v': (payload.request.vin_min + payload.request.vin_max) / 2, 'load_ratio': 1.0}
+            else default_operating_point(payload.request)
         )
         execution = {'profile': payload.execution_profile, 'operating_point': operating_point}
         key = digest({'owner_user_id': owner_user_id, 'project_id': project_id,
@@ -187,7 +203,26 @@ class JobStore:
             row = s.get(JobRow, job_id)
             if row is not None and owner_user_id is not None and row.owner_user_id != owner_user_id:
                 row = None
-            return None if row is None else (self._response(row), BuckDesignRequest.model_validate(row.request_json), row.result_json)
+            if row is None:
+                return None
+            request_model = (
+                TopologyDesignRequest.model_validate(row.request_json)
+                if 'raw_input' in row.request_json
+                else BuckDesignRequest.model_validate(row.request_json)
+            )
+            return self._response(row), request_model, row.result_json
+
+    def list_jobs(self, *, owner_user_id, status=None, query=None, limit=100):
+        with self.Session() as s:
+            statement = select(JobRow).where(JobRow.owner_user_id == owner_user_id)
+            if status is not None:
+                statement = statement.where(JobRow.status == status)
+            if query:
+                statement = statement.where(JobRow.job_id.contains(query, autoescape=True))
+            rows = s.scalars(
+                statement.order_by(JobRow.created_at.desc(), JobRow.job_id.desc()).limit(limit)
+            )
+            return [self._response(row) for row in rows]
 
     def get_execution(self, job_id):
         with self.Session() as s:
@@ -293,6 +328,39 @@ class JobStore:
                 return True
             return False
 
+    def cancel(self, job_id, *, owner_user_id):
+        """Cancel an active job and fence any Worker that already claimed it."""
+
+        finished_at = utcnow()
+        with self.Session.begin() as s:
+            changed = s.execute(
+                update(JobRow)
+                .where(
+                    JobRow.job_id == job_id,
+                    JobRow.owner_user_id == owner_user_id,
+                    JobRow.status.in_(['queued', 'running']),
+                )
+                .values(
+                    status='cancelled',
+                    stage='cancelled',
+                    finished_at=finished_at,
+                    heartbeat_at=None,
+                    lease_token=None,
+                    error_json=None,
+                )
+            )
+            if changed.rowcount != 1:
+                return False
+            self._add_audit(
+                s,
+                owner_user_id,
+                'job.cancelled',
+                'job',
+                job_id,
+                'succeeded',
+            )
+            return True
+
     def recover(self, lease_seconds=120, max_attempts=3):
         cutoff = utcnow() - timedelta(seconds=lease_seconds)
         stale = (JobRow.status == 'running', func.coalesce(JobRow.heartbeat_at, JobRow.started_at, JobRow.created_at) < cutoff)
@@ -354,7 +422,8 @@ class JobStore:
         with self.Session.begin() as s:
             self._add_audit(s, actor_user_id, action, resource_type, resource_id, outcome, details)
 
-    def create_user(self, username, password, *, role='user', actor_user_id=None):
+    def create_user(self, username, password, *, role='user', actor_user_id=None,
+                    audit_action='admin.user.create'):
         username = normalize_username(username)
         if role not in {'user', 'admin'}:
             raise ValueError('Role must be user or admin')
@@ -364,11 +433,56 @@ class JobStore:
         try:
             with self.Session.begin() as s:
                 s.add(row)
-                self._add_audit(s, actor_user_id or row.user_id, 'admin.user.create',
+                self._add_audit(s, actor_user_id or row.user_id, audit_action,
                                 'user', row.user_id, 'succeeded', {'role': role})
         except IntegrityError as exc:
             raise ValueError('Username already exists') from exc
         return row
+
+    def list_users(self):
+        with self.Session() as s:
+            return list(s.scalars(
+                select(UserRow)
+                .where(UserRow.role.in_(['user', 'admin']))
+                .order_by(UserRow.created_at.asc(), UserRow.username.asc())
+            ))
+
+    def update_user(self, user_id, *, actor_user_id, role=None, active=None):
+        with self.Session.begin() as s:
+            user = s.get(UserRow, user_id)
+            if user is None or user.role not in {'user', 'admin'}:
+                return None
+            if role is not None:
+                user.role = role
+            if active is not None:
+                user.active = active
+            if active is False:
+                now = utcnow()
+                for session in s.scalars(select(SessionRow).where(
+                    SessionRow.user_id == user_id,
+                    SessionRow.revoked_at.is_(None),
+                )):
+                    session.revoked_at = now
+            self._add_audit(s, actor_user_id, 'admin.user.update', 'user', user_id, 'succeeded',
+                            {'role': user.role, 'active': user.active})
+            return user
+
+    def reset_user_password(self, user_id, new_password, *, actor_user_id):
+        with self.Session.begin() as s:
+            user = s.get(UserRow, user_id)
+            if user is None or user.role not in {'user', 'admin'}:
+                return False
+            user.password_hash = password_hash(new_password)
+            now = utcnow()
+            sessions = list(s.scalars(select(SessionRow).where(
+                SessionRow.user_id == user_id,
+                SessionRow.revoked_at.is_(None),
+            )))
+            for session in sessions:
+                session.revoked_at = now
+            self._add_audit(s, actor_user_id, 'admin.user.password_reset', 'user', user_id,
+                            'succeeded', {'revoked_sessions': len(sessions)})
+            return True
 
     def authenticate_credentials(self, username, password, *, session_hours=None):
         try:
@@ -391,6 +505,24 @@ class JobStore:
                              created_at=now, expires_at=expires, last_seen_at=now))
             self._add_audit(s, user.user_id, 'auth.login', 'session', None, 'succeeded')
         return token, expires, user
+
+    def change_password(self, user_id, current_password, new_password):
+        with self.Session.begin() as s:
+            user = s.get(UserRow, user_id)
+            if user is None or not user.active or not verify_password(current_password, user.password_hash):
+                self._add_audit(s, user_id, 'auth.password.change', 'user', user_id, 'denied')
+                return False
+            user.password_hash = password_hash(new_password)
+            now = utcnow()
+            sessions = list(s.scalars(select(SessionRow).where(
+                SessionRow.user_id == user_id,
+                SessionRow.revoked_at.is_(None),
+            )))
+            for session in sessions:
+                session.revoked_at = now
+            self._add_audit(s, user_id, 'auth.password.change', 'user', user_id, 'succeeded',
+                            {'revoked_sessions': len(sessions)})
+            return True
 
     def authenticate_session(self, token):
         hashed = token_digest(token)

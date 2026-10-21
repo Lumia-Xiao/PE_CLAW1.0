@@ -11,6 +11,7 @@ from .design import (
     DesignRequest,
     DesignResultResponse,
     OperatingPointRequest,
+    TopologyDesignRequest,
 )
 from .actions import (
     ACTION_DEPENDENCIES, ACTION_STAGES, ActionStatus, DesignAction,
@@ -18,8 +19,9 @@ from .actions import (
     action_dependencies, action_stages, validate_action_transition,
 )
 from .security import (
-    AdminUserCreate, AuditEventResponse, LoginRequest, SessionInfo,
-    SessionResponse, UserSummary,
+    AdminPasswordReset, AdminUserCreate, AdminUserSummary, AdminUserUpdate,
+    AuditEventResponse, LoginRequest, PasswordChangeRequest, RegisterRequest,
+    SessionInfo, SessionResponse, UserSummary,
 )
 from .release import ReleaseInfo
 __all__ = [
@@ -35,7 +37,8 @@ __all__ = [
     "DesignRequest",
     "DesignResultResponse",
     "OperatingPointRequest",
+    "TopologyDesignRequest",
 ]
 __all__ += ["ACTION_DEPENDENCIES", "ACTION_STAGES", "ActionStatus", "DesignAction", "DesignActionRequest", "DesignActionResponse", "OperatingPointRequest", "action_dependencies", "action_stages", "validate_action_transition"]
-__all__ += ["AdminUserCreate", "AuditEventResponse", "LoginRequest", "SessionInfo", "SessionResponse", "UserSummary"]
+__all__ += ["AdminPasswordReset", "AdminUserCreate", "AdminUserSummary", "AdminUserUpdate", "AuditEventResponse", "LoginRequest", "PasswordChangeRequest", "RegisterRequest", "SessionInfo", "SessionResponse", "UserSummary"]
 __all__ += ["ReleaseInfo"]

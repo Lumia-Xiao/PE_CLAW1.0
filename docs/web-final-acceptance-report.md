@@ -4,6 +4,28 @@ Date: 2026-10-19
 Stage: Step 15 / Phase 12 — final release and code protection  
 Candidate base revision: `e8bdd2f`
 
+## 2026-10-21 working-tree update
+
+The earlier Buck-only limitation in this report has been superseded by the
+uncommitted 19-topology Web candidate on branch `Development-of-Web`, base
+revision `599cf4c`. The browser now derives all topology fields, choices, units
+and defaults from the registered Tkinter forms; accepts all 19 strict topology
+requests; preserves topology-specific fixed-hardware operating-point inputs;
+and exposes task cancellation, history, self-service account operations and
+administrator user management. Per-topology evidence is recorded in
+[`web-topology-parity-evidence.md`](web-topology-parity-evidence.md).
+
+Current local validation is 147 passed / 0 failed / 5 environment skips for the
+complete Web/Windows Python suite, 24 passed / 0 failed for Playwright, and a
+successful production frontend build. Four skips require a real PostgreSQL
+test URL and one requires Windows developer-mode symlink permission.
+
+Target deployment is still **blocked**. The 2026-10-21 preflight found no NSSM,
+PostgreSQL client/backup tools, Redis/Memurai, populated production environment
+file or isolated artifact configuration on this host. PostgreSQL/Redis/IIS/TLS,
+machine restart and paired backup/restore therefore remain target-host gates
+and are not claimed as passed.
+
 ## Decision
 
 Repository release engineering is complete for a candidate build. Production
@@ -78,9 +100,10 @@ machine deployment.
 
 ## Known limitations and rollback
 
-The current Web release supports the registered Buck Web topology; it does not
-claim browser parity for all 19 GUI topologies. No production secrets, database
-dump, artifact backup or target evidence belongs in Git or either release ZIP.
+The Buck-only statement applied to the original Step 15 candidate and is
+superseded by the 2026-10-21 working-tree update above. No production secrets,
+database dump, artifact backup or target evidence belongs in Git or either
+release ZIP.
 
 Before target acceptance, rollback means discarding the candidate archives.
 After deployment, follow the runbook: stop Web services, restore the matching

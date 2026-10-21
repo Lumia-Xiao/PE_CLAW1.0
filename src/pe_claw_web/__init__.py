@@ -8,6 +8,7 @@ from .schemas import (
     DesignJobResponse,
     DesignRequest,
     DesignResultResponse,
+    TopologyDesignRequest,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "DesignJobResponse",
     "DesignRequest",
     "DesignResultResponse",
+    "TopologyDesignRequest",
 ]

@@ -150,6 +150,47 @@ class BuckDesignRequest(DesignRequest):
         return {**electrical, **self.options.model_dump(mode="json")}
 
 
+class TopologyDesignRequest(WebContractModel):
+    """Strict Web envelope for any topology registered by the desktop runtime."""
+
+    schema_version: Literal["1.0"] = API_SCHEMA_VERSION
+    topology: str = Field(min_length=1, max_length=128, pattern=r"^[a-z][a-z0-9_]*$")
+    raw_input: dict[str, JsonValue]
+
+    @model_validator(mode="after")
+    def validate_registered_input(self) -> "TopologyDesignRequest":
+        from pe_claw_gui.topologies.base.registry import build_default_registry
+
+        registry = build_default_registry()
+        try:
+            form_class = registry.get_form_class(self.topology)
+            plugin = registry.get_plugin(self.topology)
+        except ValueError as exc:
+            raise ValueError(str(exc)) from None
+        declared = {field.key: field for field in form_class.get_design_fields()}
+        supplied = set(self.raw_input)
+        missing = sorted(set(declared) - supplied)
+        unexpected = sorted(supplied - set(declared))
+        if missing:
+            raise ValueError(f"Missing topology input fields: {', '.join(missing)}")
+        if unexpected:
+            raise ValueError(f"Unexpected topology input fields: {', '.join(unexpected)}")
+        for key, value in self.raw_input.items():
+            if value is None or isinstance(value, (dict, list)):
+                raise ValueError(f"Topology input {key} must be a JSON scalar")
+            choices = declared[key].choices
+            if choices and str(value) not in choices:
+                raise ValueError(f"Topology input {key} must be one of its declared choices")
+        try:
+            plugin.build_spec(self.pipeline_input())
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError(str(exc)) from None
+        return self
+
+    def pipeline_input(self) -> dict[str, str]:
+        return {key: str(value) for key, value in self.raw_input.items()}
+
+
 class OperatingPointRequest(WebContractModel):
     """Fixed-hardware operating point used by complete design jobs."""
 
@@ -163,11 +204,14 @@ class OperatingPointRequest(WebContractModel):
         description="Requested load relative to rated load.",
         json_schema_extra={"unit": "ratio"},
     )
+    vout_v: float | None = Field(default=None, gt=0)
+    power_factor: float | None = Field(default=None, ge=-1, le=1)
+    switching_frequency_hz: float | None = Field(default=None, gt=0)
 
 
 class DesignJobCreate(WebContractModel):
     schema_version: Literal["1.0"] = API_SCHEMA_VERSION
-    request: BuckDesignRequest
+    request: TopologyDesignRequest | BuckDesignRequest
     client_request_id: str | None = Field(
         default=None,
         min_length=1,
@@ -181,7 +225,9 @@ class DesignJobCreate(WebContractModel):
     def validate_operating_point(self) -> "DesignJobCreate":
         if self.operating_point is None:
             return self
-        if not self.request.vin_min <= self.operating_point.vin_v <= self.request.vin_max:
+        if isinstance(self.request, BuckDesignRequest) and not (
+            self.request.vin_min <= self.operating_point.vin_v <= self.request.vin_max
+        ):
             raise ValueError("operating_point.vin_v must be within the design Vin range")
         return self
 
@@ -244,7 +290,7 @@ class DesignJobResponse(WebContractModel):
     job_id: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     owner_user_id: str = Field(default="legacy-system", min_length=3, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     project_id: str = Field(default="legacy-system", min_length=3, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
-    topology: Literal["buck_diode_rectified_unidirectional"]
+    topology: str = Field(min_length=1, max_length=128, pattern=r"^[a-z][a-z0-9_]*$")
     status: DesignJobStatus
     progress: int = Field(
         ge=0,
@@ -268,7 +314,7 @@ class DesignJobResponse(WebContractModel):
 class DesignResultResponse(WebContractModel):
     schema_version: Literal["1.0"] = API_SCHEMA_VERSION
     job_id: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
-    topology: Literal["buck_diode_rectified_unidirectional"]
+    topology: str = Field(min_length=1, max_length=128, pattern=r"^[a-z][a-z0-9_]*$")
     summary: dict[str, JsonValue]
     warnings: list[str] = Field(default_factory=list)
     artifacts: list[ArtifactManifestEntry] = Field(default_factory=list)

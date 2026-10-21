@@ -76,6 +76,34 @@ def test_login_bearer_session_logout_and_no_cookie_or_csrf_state(secured):
     assert call(main.app, "GET", "/api/v1/auth/session", headers=headers).status_code == 401
 
 
+def test_registration_and_password_change_revoke_existing_sessions(secured):
+    main, _, repository, _ = secured
+    registered = call(main.app, "POST", "/api/v1/auth/register", json={
+        "username": "new-student", "password": PASSWORD,
+    })
+    assert registered.status_code == 201
+    assert registered.json()["user"]["role"] == "user"
+    assert call(main.app, "POST", "/api/v1/auth/register", json={
+        "username": "new-student", "password": PASSWORD,
+    }).status_code == 409
+
+    old_headers = {"Authorization": f"Bearer {registered.json()['access_token']}"}
+    changed = call(main.app, "POST", "/api/v1/auth/change-password", headers=old_headers, json={
+        "current_password": PASSWORD, "new_password": "a different secure password",
+    })
+    assert changed.status_code == 204
+    assert call(main.app, "GET", "/api/v1/auth/session", headers=old_headers).status_code == 401
+    assert call(main.app, "POST", "/api/v1/auth/login", json={
+        "username": "new-student", "password": PASSWORD,
+    }).status_code == 401
+    assert call(main.app, "POST", "/api/v1/auth/login", json={
+        "username": "new-student", "password": "a different secure password",
+    }).status_code == 200
+    events = repository.list_audit(limit=20)
+    assert any(event.action == "auth.register" for event in events)
+    assert any(event.action == "auth.password.change" for event in events)
+
+
 def test_user_cannot_read_another_users_job_result_or_artifact(secured):
     main, _, repository, artifact_root = secured
     alice_headers, alice = bearer(repository, "alice")
@@ -105,6 +133,39 @@ def test_user_cannot_read_another_users_job_result_or_artifact(secured):
     assert call(main.app, "GET", path, headers=bob_headers).status_code == 404
     assert call(main.app, "GET", path + "/result", headers=bob_headers).status_code == 404
     assert call(main.app, "GET", path + "/artifacts/result-json", headers=bob_headers).status_code == 404
+
+
+def test_job_cancel_is_owner_scoped_and_only_accepts_active_jobs(secured):
+    main, _, repository, _ = secured
+    alice_headers, alice = bearer(repository, "cancel-owner")
+    bob_headers, _ = bearer(repository, "cancel-other")
+    item = repository.create(BuckDesignRequest(**INPUT), owner_user_id=alice.user_id)
+    path = f"/api/v1/design-jobs/{item.job_id}/cancel"
+
+    assert call(main.app, "POST", path, headers=bob_headers).status_code == 404
+    cancelled = call(main.app, "POST", path, headers=alice_headers)
+    assert cancelled.status_code == 200
+    assert cancelled.json()["status"] == "cancelled"
+    assert cancelled.json()["stage"] == "cancelled"
+    assert call(main.app, "POST", path, headers=alice_headers).status_code == 409
+
+
+def test_job_history_api_filters_without_leaking_other_users_jobs(secured):
+    main, _, repository, _ = secured
+    alice_headers, alice = bearer(repository, "history-alice")
+    _, bob = bearer(repository, "history-bob")
+    alice_job = repository.create(BuckDesignRequest(**INPUT), owner_user_id=alice.user_id)
+    repository.update(alice_job.job_id, status="succeeded", progress=100)
+    repository.create(BuckDesignRequest(**{**INPUT, "pout": 121}), owner_user_id=bob.user_id)
+
+    response = call(main.app, "GET", "/api/v1/design-jobs?status=succeeded", headers=alice_headers)
+    assert response.status_code == 200
+    assert [item["job_id"] for item in response.json()] == [alice_job.job_id]
+    searched = call(
+        main.app, "GET", f"/api/v1/design-jobs?query={alice_job.job_id[4:16]}",
+        headers=alice_headers,
+    )
+    assert [item["job_id"] for item in searched.json()] == [alice_job.job_id]
 
 
 def test_concurrent_and_daily_quotas_are_scoped_per_user(tmp_path, monkeypatch):
@@ -174,6 +235,37 @@ def test_request_limit_cors_admin_and_audit_contract(secured):
         "Origin": "https://evil.example", "Access-Control-Request-Method": "GET"
     })
     assert "access-control-allow-origin" not in denied.headers
+
+
+def test_admin_can_manage_users_reset_password_and_cannot_lock_self_out(secured):
+    main, _, repository, _ = secured
+    admin_headers, admin = bearer(repository, "manage-admin", role="admin")
+    user_headers, user = bearer(repository, "managed-account")
+
+    users = call(main.app, "GET", "/api/v1/admin/users", headers=admin_headers)
+    assert users.status_code == 200
+    assert {item["username"] for item in users.json()} == {"manage-admin", "managed-account"}
+    assert "legacy-system" not in {item["username"] for item in users.json()}
+    assert call(main.app, "GET", "/api/v1/admin/users", headers=user_headers).status_code == 403
+    assert call(main.app, "POST", f"/api/v1/admin/users/{admin.user_id}/update",
+                headers=admin_headers, json={"active": False}).status_code == 409
+
+    disabled = call(main.app, "POST", f"/api/v1/admin/users/{user.user_id}/update",
+                    headers=admin_headers, json={"active": False})
+    assert disabled.status_code == 200 and disabled.json()["active"] is False
+    assert call(main.app, "GET", "/api/v1/auth/session", headers=user_headers).status_code == 401
+    enabled = call(main.app, "POST", f"/api/v1/admin/users/{user.user_id}/update",
+                   headers=admin_headers, json={"active": True, "role": "admin"})
+    assert enabled.json()["active"] is True and enabled.json()["role"] == "admin"
+    reset = call(main.app, "POST", f"/api/v1/admin/users/{user.user_id}/reset-password",
+                 headers=admin_headers, json={"new_password": "managed password changed"})
+    assert reset.status_code == 204
+    assert call(main.app, "POST", "/api/v1/auth/login", json={
+        "username": "managed-account", "password": "managed password changed",
+    }).status_code == 200
+    events = repository.list_audit(limit=30)
+    assert any(event.action == "admin.user.update" for event in events)
+    assert any(event.action == "admin.user.password_reset" for event in events)
 
 
 def test_release_metadata_is_traceable_and_contains_no_secret(secured, monkeypatch):

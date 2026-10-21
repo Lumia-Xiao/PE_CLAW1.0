@@ -266,6 +266,61 @@ main {
 .recover label {
   font-weight: 600;
 }
+.history-panel {
+  overflow: hidden;
+}
+.history-filters {
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) minmax(260px, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e4eaea;
+}
+.history-filters label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.history-table-wrap {
+  overflow-x: auto;
+}
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+}
+.history-table caption {
+  text-align: left;
+  padding: 15px 20px;
+  font-weight: 650;
+}
+.history-table th,
+.history-table td {
+  padding: 11px 14px;
+  border-top: 1px solid #e8eeee;
+  text-align: left;
+  font-size: 12px;
+}
+.history-table code {
+  overflow-wrap: anywhere;
+}
+.history-status {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 3px 7px;
+  background: #edf2f2;
+}
+.history-status.succeeded {
+  background: #eaf4ed;
+  color: #326657;
+}
+.history-status.failed,
+.history-status.cancelled {
+  background: #faeeee;
+  color: #8c3d3d;
+}
 .workspace-title {
   display: flex;
   align-items: center;
@@ -320,7 +375,8 @@ main {
   display: flex;
   position: relative;
 }
-.input-unit input {
+.input-unit input,
+.input-unit select {
   width: 100%;
   padding-right: 55px;
   font-family: "Consolas", monospace;
@@ -334,7 +390,8 @@ main {
   font-size: 11px;
   color: #7a8e94;
 }
-input {
+input,
+select {
   border: 1px solid #bccdd1;
   background: #fbfdfd;
   border-radius: 5px;
@@ -749,6 +806,30 @@ dd {
   color: #4c7569;
   margin-bottom: 12px;
 }
+.waveform-channels svg, .pareto-chart svg {
+  min-width: 620px;
+}
+.waveform-channels, .pareto-chart {
+  overflow-x: auto;
+}
+.specialized-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.geometry-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.geometry-grid > div {
+  border: 1px solid #dce5e5;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fafa;
+}
+.geometry-grid svg { width: 100%; height: auto; }
+.geometry-grid small { display: block; color: #6f8789; overflow-wrap: anywhere; }
 footer {
   display: flex;
   justify-content: space-between;
@@ -876,6 +957,7 @@ footer {
   .help {
     margin-bottom: 5px;
   }
+  .specialized-grid, .geometry-grid { grid-template-columns: 1fr; }
 }
 .artifact-preview { display: block; width: 100%; height: auto; }
 .checksum { overflow-wrap: anywhere; word-break: break-all; }
@@ -886,4 +968,37 @@ footer {
 .login-panel h1 { margin: 0; }
 .login-panel label { display: grid; gap: 7px; font-weight: 700; }
 .login-panel input { width: 100%; }
+.account-panel { width: min(620px, 100%); padding: 26px; display: grid; gap: 16px; }
+.account-panel label { display: grid; gap: 7px; font-weight: 650; }
+.account-panel p { color: #637a80; }
+.admin-create { padding: 20px; display: grid; grid-template-columns: 1fr 1fr 180px auto; gap: 14px; align-items: end; margin-bottom: 20px; }
+.admin-create h2 { grid-column: 1 / -1; }
+.admin-create label { display: grid; gap: 6px; font-size: 12px; font-weight: 650; }
+.admin-section { margin-top: 20px; overflow: hidden; }
+.admin-section > h2 { padding: 18px 20px; }
+.admin-reset { display: flex; gap: 6px; min-width: 260px; }
 .logout { border: 1px solid #4b6265; color: #d9e6e7; background: transparent; padding: 7px 11px; }
+.operating-point form {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+  padding: 20px 24px 8px;
+}
+.operating-point form label { display: grid; gap: 7px; font-size: 12px; font-weight: 700; }
+.operating-point > p, .operating-point > .error { margin: 10px 24px 20px; }
+.operating-point .success { color: #16705c; font-weight: 700; }
+.stage-action-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 20px 24px 8px;
+}
+.stage-actions > p, .stage-actions > .error { margin: 10px 24px 20px; }
+.stage-actions .success { color: #16705c; font-weight: 700; }
+@media (max-width: 720px) {
+  .operating-point form { grid-template-columns: 1fr; padding: 16px; }
+  .operating-point > p, .operating-point > .error { margin: 8px 16px 16px; }
+  .stage-action-buttons { grid-template-columns: 1fr; padding: 16px; }
+  .stage-actions > p, .stage-actions > .error { margin: 8px 16px 16px; }
+}

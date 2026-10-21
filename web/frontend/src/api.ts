@@ -2,9 +2,23 @@ export const BUCK = "buck_diode_rectified_unidirectional";
 export interface Field {
   key: string;
   label: string;
+  gui_label?: string;
   unit: string;
   default: string;
+  input_type?: "number" | "select" | "text";
+  choices?: string[];
+  required?: boolean;
   exclusive_minimum: number | null;
+}
+export interface OptionField {
+  key: string;
+  label: string;
+  unit: string;
+  default: string;
+  input_type: "number" | "select";
+  choices?: string[];
+  minimum?: number;
+  maximum?: number;
 }
 export interface Topology {
   id: string;
@@ -12,6 +26,11 @@ export interface Topology {
   category_id: string;
   web_enabled: boolean;
   fields: Field[];
+  options?: OptionField[];
+  operating_point?: {
+    defaults: Record<string, number>;
+    fields: { key: "vin_v" | "vout_v" | "load_ratio" | "power_factor"; label: string; unit: string; minimum?: number; maximum?: number }[];
+  };
 }
 export interface Catalog {
   categories: { id: string; name: string; description: string }[];
@@ -88,10 +107,54 @@ export interface Result {
   warnings: string[];
   artifacts: Artifact[];
 }
+export type ActionStatus =
+  | "queued"
+  | "running"
+  | "succeeded"
+  | "failed"
+  | "cancelled"
+  | "expired";
+export interface DesignAction {
+  action_id: string;
+  job_id: string;
+  action: "capacitor" | "magnetics" | "waveforms" | "efficiency_sweep";
+  status: ActionStatus;
+  progress: number;
+  stage?: string | null;
+  result_url?: string | null;
+  error?: {
+    code: string;
+    message: string;
+    correlation_id?: string | null;
+  } | null;
+}
+export interface ActionResult {
+  schema_version: "1.0";
+  action_id: string;
+  job_id: string;
+  action: DesignAction["action"];
+  summary: Record<string, Json>;
+  warnings: string[];
+  artifacts: Artifact[];
+}
 export interface User {
   user_id: string;
   username: string;
   role: "user" | "admin";
+}
+export interface AdminUser extends User {
+  active: boolean;
+  created_at: string;
+}
+export interface AuditEvent {
+  event_id: string;
+  occurred_at: string;
+  actor_user_id?: string | null;
+  action: string;
+  resource_type: string;
+  resource_id?: string | null;
+  outcome: string;
+  details: Record<string, string | number | boolean | null>;
 }
 export interface Session {
   access_token: string;
